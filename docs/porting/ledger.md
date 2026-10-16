@@ -32,4 +32,9 @@ Status values: `not started` → `rules` (core logic + tests) → `playable` (wo
 | Custom HUD overlays | BetterHud | No client mod | No |
 | Ambient particles (steam, smoke, etc.) | Particles only on explicit player actions | Client/server performance | No |
 | Custom fluids placed in the world (salt water, molten metal, river flow visuals) | Vanilla water/lava visuals + server-side behaviour, or placement disabled | Clients can't receive new fluid types | When a feasible technique appears |
+| Ore blocks: 3 grades × ore × rock each with its own texture | Profile-dependent (ARCHITECTURE §9.1). Default 1.21.x `level-3a`: poor/normal share a visual, rich distinct. Default 26.x `level-2`: all grades distinct | Vanilla-client visual state budget, leaving room for other CraftEngine packs | Owner-configurable |
+| Gem ores (amethyst, diamond, emerald, lapis, opal, pyrite, ruby, sapphire, topaz) look like ore in rock everywhere | From `level-2`: look like their host rock until exposed to air, then show an overlay (display entity) | Visual budget; bonus anti-xray | Owner-configurable |
+| Deposits (gravel per mineral × rock) | From `level-2`: one gravel+specks visual per mineral, rock-agnostic | Visual budget | Owner-configurable |
+| Wood/stripped wood blocks have per-axis models | From `level-1`: all axes share one visual (bark on all faces) | Visual budget | Owner-configurable |
+| Metal blocks, mechanical blocks, crates, workbenches are block models | Drawn with `entity_renderer` display entities | Visual budget (approved) | No |
 | Custom sky / star map | Not implemented (optional core-shader work later) | Needs core shaders | Optional |

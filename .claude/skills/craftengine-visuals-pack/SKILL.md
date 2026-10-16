@@ -67,6 +67,19 @@ Also required: a datapack that edits client-relevant tags for repurposed blocks 
 - The installed `mappings.yml` is frozen at first install, so pool sizes differ per server. After `CraftEngineReloadEvent`, check the pool candidate counts at runtime and warn on shortfall.
 - First-time `auto_state` allocation can be nondeterministic with multi-threaded loading. Prefer explicit assignments from datagen, or seed `cache/visual_block_states.json`. Run `/ce clean-cache visual_block_states` after removing blocks.
 
+## Visual budget profiles (decided; spec in ARCHITECTURE.md §9.1)
+The allocator implements **all** profiles `level-0` … `level-3b`, and the owner selects one per MC version family in config (`visuals.profile`). Defaults: **`level-3a` on 1.21.x, `level-2` on 26.x.** Always on:
+- metal and mechanical blocks via `entity_renderer`;
+- hardened = raw;
+- flattened ore textures;
+- button states (not tripwire) for groundcover.
+
+Rules when implementing:
+- datagen emits one allocation per (profile × version family) into the jar; the installer writes the selected one;
+- at runtime, check the real CE pool counts: fail clearly if the profile doesn't fit, warn below `visuals.solid-reserve-warning` (500);
+- `visuals.use-nether-end-blocks: auto` uses Nether/End blocks only if those dimensions are off;
+- never silently change a profile. Switching is world-safe (client-side mappings only) but needs a restart and a pack rebuild.
+
 ## State-dependent item visuals (§4.3)
 Our plugin writes `custom_model_data` on the stack (`floats[0]` = heat 0..1, `colors[0]` = glow colour). The CE item `model:` is a `minecraft:range_dispatch` on `custom_model_data` (thresholds), and above a threshold it uses a `composite` of glow overlay + base, with a `custom_model_data` tint. Keep the pack minimum ≥ 1.21.4 and `always-use-custom-model-data: false`, otherwise CE claims `floats[0]`. Update the floats rarely (each change re-sends the item). The same pattern covers pan stages, mold fill, bloom size.
 
