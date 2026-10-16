@@ -1,6 +1,26 @@
 name: TerraFirmaPlugin
 version: '${version}'
 main: dev.tfp.paper.TfpPlugin
+bootstrapper: dev.tfp.paper.boot.TfpBootstrap
+loader: dev.tfp.paper.boot.TfpLoader
+# The jar is compiled against the 1.21.11 API (M0-JAR-01: one jar runs on 1.21.11 and 26.x).
 api-version: '1.21.11'
+# STARTUP: our generator must apply to the default worlds.
 load: STARTUP
 folia-supported: true
+description: TerraFirmaCraft gameplay for vanilla clients.
+# load: BEFORE = they load before us. join-classpath: our integration adapters link against their APIs.
+# required: false = start without them in degraded mode (no custom blocks/models/HUD) instead of refusing
+# to load; the compat gate (content/compat.yml) logs what is missing and refuses versions that are too old.
+dependencies:
+  server:
+    CraftEngine: { load: BEFORE, required: false, join-classpath: true }
+    BetterModel: { load: BEFORE, required: false, join-classpath: true }
+    BetterHud: { load: BEFORE, required: false, join-classpath: true }
+permissions:
+  tfp.command:
+    description: Use /tfp and /tfp version.
+    default: true
+  tfp.admin:
+    description: Use /tfp reload.
+    default: op

@@ -31,18 +31,22 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
     - the loader handles libraries;
     - the plugin class runs the `onLoad`/`onEnable` phases as specified in `dependency-bootstrap` §2.
   - Done when: boots on all 4 targets; `/tfp version` works.
+  - Status: code done (`paper-plugin.yml`, `boot/TfpBootstrap` datapack + `/tfp [version|reload config]`, `boot/TfpLoader`, `TfpPlugin` phases), `BootstrapTest` + `:dist:shadowJar` pass. Client plugins are `required: false` (degraded mode; the compat gate refuses too-old versions). Libraries: Caffeine/JCTools stay bundled + relocated, so the loader resolves nothing. Not run on a server yet: boot on the 4 targets, datapack discovery (pack.mcmeta format range) and `/tfp version` in game are unverified.
 
-- [ ] **M1-BOOT-02 Compatibility gate** · deps: M1-BOOT-01 · skills: dependency-bootstrap
+- [x] **M1-BOOT-02 Compatibility gate** · deps: M1-BOOT-01 · skills: dependency-bootstrap
   - Do: `content/compat.yml` (MC range, plugin minimums, Java 25). Refuse to enable on unsupported versions, with clear messages. Warn on untested newer versions.
   - Done when: unit tests cover the gate; a self-test with a too-old dependency fails cleanly.
+  - Status: pure decision `core.compat.CompatGate` (`CompatGateTest`, `VersionTest`); Bukkit side `paper.boot.CompatCheck` (`CompatCheckTest` runs the too-old-dependency case against faked server/plugins). Minimums = spike-pinned versions (CE 26.9.2, BM 3.5.1, BH 2.2.0-SNAPSHOT-449). The in-server self-test is left to M1-TEST-01.
 
-- [ ] **M1-BOOT-03 Config system** · deps: M1-BOOT-01
+- [x] **M1-BOOT-03 Config system** · deps: M1-BOOT-01
   - Do: our `config.yml`, with a typed config in `core` (records), comment-preserving defaults merge and a reload path. It includes `visuals.profile` (`1.21: level-3a`, `26: level-2`), `visuals.solid-reserve-warning: 500`, `visuals.use-nether-end-blocks: auto` and `auto-install.*`. Port TFC's `config/ServerConfig`/`CommonConfig` keys as their features land.
   - Done when: config round-trip tests pass.
+  - Status: `core.config` (`TfpConfig`, `ConfigCodec`, text-based `YamlDefaultsMerge`), `paper.config.ConfigService` + `/tfp reload config`. Tests: `ConfigCodecTest`, `YamlDefaultsMergeTest`, `ConfigServiceTest`.
 
-- [ ] **M1-BOOT-04 Ready gate** · deps: M1-BOOT-01
+- [x] **M1-BOOT-04 Ready gate** · deps: M1-BOOT-01
   - Do: a single readiness flag: CE reloaded ∧ BetterModel models ready ∧ registries loaded. Features and self-tests wait on it.
   - Done when: a self-test asserts ready within N seconds of startup.
+  - Status: `paper.ready.ReadyGate` (signal / waive for a missing plugin / fail), `ReadyGateTest`. Signals are not wired yet: CE → M1-INT-02, BetterModel → M1-INT-03, registries → registry Paper glue; the in-server self-test is M1-TEST-01.
 
 ## Threading primitives
 

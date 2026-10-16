@@ -1,0 +1,31 @@
+# TerraFirmaPlugin configuration.
+# Missing top-level sections are added back with their defaults on startup; your edits and comments
+# are kept. Apply changes with /tfp reload config (some keys only take effect after a restart).
+
+# Client visuals: how TFC blocks are mapped onto the block states vanilla clients know.
+# profile: per Minecraft version family. level-0 | level-1 | level-2 | level-3a | level-3b.
+#   Higher levels share more visuals (e.g. ore grades) and leave more CraftEngine states free
+#   for other packs; lower levels look closer to TFC. Changing it needs a restart.
+# solid-reserve-warning: warn at startup if fewer free solid-pool slots remain for other CraftEngine packs.
+# use-nether-end-blocks: auto | true | false. auto = repurpose Nether/End blocks only if the server
+#   has no vanilla Nether/End (allow-nether / allow-end off).
+visuals:
+  profile:
+    "1.21": level-3a
+    "26": level-2
+  solid-reserve-warning: 500
+  use-nether-end-blocks: auto
+
+# Automatic setup of CraftEngine, BetterModel and BetterHud.
+# craftengine / betterhud: write our content into plugins/CraftEngine/resources/tfp and
+#   plugins/BetterHud/packs/tfp. Files you edited are kept (ours is written beside them as .tfp-new).
+# config-edits: apply the few config changes we need in those plugins (each one is logged).
+# download-missing: download missing client plugins (pinned versions, hash-checked). Off by default:
+#   downloading code needs your explicit consent.
+# restore-deleted: recreate files of ours that you deleted.
+auto-install:
+  craftengine: true
+  betterhud: true
+  config-edits: true
+  download-missing: false
+  restore-deleted: false

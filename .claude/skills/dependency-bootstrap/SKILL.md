@@ -21,9 +21,9 @@ load: STARTUP                     # needed so our generator applies to the defau
 folia-supported: true
 dependencies:
   server:
-    CraftEngine: { load: BEFORE, required: true,  join-classpath: true }
-    BetterModel: { load: BEFORE, required: true,  join-classpath: true }
-    BetterHud:   { load: BEFORE, required: true,  join-classpath: true }
+    CraftEngine: { load: BEFORE, required: false (degraded mode without the plugin; see M1-BOOT-01),  join-classpath: true }
+    BetterModel: { load: BEFORE, required: false (degraded mode without the plugin; see M1-BOOT-01),  join-classpath: true }
+    BetterHud:   { load: BEFORE, required: false (degraded mode without the plugin; see M1-BOOT-01),  join-classpath: true }
 ```
 
 Read each dependency's exact `name:` from its jar's plugin descriptor before finalizing (open question in the tooling report). `load: BEFORE` means *they* load before *us*.

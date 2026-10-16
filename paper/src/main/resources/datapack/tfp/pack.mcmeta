@@ -1,0 +1,9 @@
+{
+  "pack": {
+    "description": "TerraFirmaPlugin data (biomes, tags, damage types)",
+    "pack_format": 61,
+    "supported_formats": { "min_inclusive": 61, "max_inclusive": 1000 },
+    "min_format": 61,
+    "max_format": 1000
+  }
+}

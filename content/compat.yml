@@ -1,0 +1,34 @@
+# Version compatibility for the startup gate (M1-BOOT-02). Shipped in the jar as compat.yml.
+# Hand-maintained: update it with the CI matrix (plans/90-cross-cutting.md). Quote every version:
+# YAML would read 26.10 as the number 26.1.
+#
+# Below a minimum -> refuse to enable, naming what to update.
+# Newer than everything tested -> warn and continue.
+# Client plugin not installed -> warn and run in degraded mode without its features.
+
+java: 25
+
+# Only versions the M0 spikes ran on a server count as supported. paper-plugin.yml pins
+# api-version to 1.21.11 (the compile API), so older 1.21.x builds can't load the jar until
+# that is verified (see docs/spikes/M0-JAR-01.md); widen this list after such a run.
+minecraft:
+  supported:
+    - { min: "1.21.11", max: "1.21.11" }
+    - { min: "26.3", max: "26.3" }
+  tested: ["1.21.11", "26.3"]
+
+# Keys are the exact plugin names from each jar's plugin descriptor.
+# min: the versions pinned and verified by the M0 spikes (gradle/libs.versions.toml).
+plugins:
+  CraftEngine:
+    min: "26.9.2"
+    tested: ["26.9.2"]
+    provides: "custom blocks, items, furniture, GUI textures and the resource pack"
+  BetterModel:
+    min: "3.5.1"
+    tested: ["3.5.1"]
+    provides: "animal and entity models"
+  BetterHud:
+    min: "2.2.0-SNAPSHOT-449"
+    tested: ["2.2.0-SNAPSHOT-449"]
+    provides: "the HUD (health, thirst, hunger, temperature)"

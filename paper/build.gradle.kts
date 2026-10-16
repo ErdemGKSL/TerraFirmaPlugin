@@ -11,4 +11,6 @@ tasks.processResources {
     val props = mapOf("version" to project.version.toString())
     inputs.properties(props)
     filesMatching("paper-plugin.yml") { expand(props) }
+    // M1-BOOT-02: the compatibility table lives with the other content sources; shipped at the jar root.
+    from(rootProject.layout.projectDirectory.file("content/compat.yml"))
 }
