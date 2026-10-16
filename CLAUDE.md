@@ -52,4 +52,5 @@ Skills live in `.claude/skills/`. Load the matching skill **before** acting; mor
 - Every behaviour that differs from TFC gets a row in the ledger's Divergences table.
 - Ported files carry the EUPL + "Ported from TerraFirmaCraft ... @ commit" header.
 - Generate 2D art only through the imagegen MCP and the `image-generation` skill (style guide, post-processing, raws + prompt kept in `art/raw/<id>/`). Never hand-draw pixels in code.
+- **Delegate test execution to Haiku subagents** (`Agent` with `model: "haiku"`): running server matrices (`spikes/run-matrix.sh`, `:itest:runSelfTest`), headless-client sessions (`spikes/client/`), screenshot capture, log scanning and result summarising. Give the agent exact commands, the files to read and the report format. Keep design, code changes and judging the results in the main session.
 - When a design decision changes, update `ARCHITECTURE.md` (and `PRD.md` if scope changes) in the same change.
