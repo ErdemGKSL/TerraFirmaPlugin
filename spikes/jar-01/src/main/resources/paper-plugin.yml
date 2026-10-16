@@ -1,0 +1,9 @@
+name: TfpSpikeJar01
+version: '0.0.0-spike'
+main: dev.tfp.spike.jar01.Jar01Plugin
+bootstrapper: dev.tfp.spike.jar01.Jar01Bootstrap
+loader: dev.tfp.spike.jar01.Jar01Loader
+api-version: '1.21.11'
+load: POSTWORLD
+folia-supported: true
+description: M0-JAR-01 spike. Exercises every API family of the production plugin on one jar.

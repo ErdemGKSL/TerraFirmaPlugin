@@ -1,0 +1,10 @@
+name: TfpSpikeBm01
+version: '0.0.0-spike'
+main: dev.tfp.spike.bm01.Bm01Plugin
+api-version: '1.21.11'
+load: STARTUP
+folia-supported: true
+description: M0-BM-01 spike. BetterModel carrier, animation, tracker persistence and lifecycle checks. Throwaway.
+dependencies:
+  server:
+    BetterModel: { load: BEFORE, required: true, join-classpath: true }

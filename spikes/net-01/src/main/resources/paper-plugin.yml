@@ -1,0 +1,10 @@
+name: TfpSpikeNet01
+version: '0.0.0-spike'
+main: dev.tfp.spike.net01.Net01Plugin
+api-version: '1.21.11'
+load: STARTUP
+folia-supported: true
+dependencies:
+  server:
+    packetevents: { load: BEFORE, required: true, join-classpath: true }
+    CraftEngine: { load: BEFORE, required: false, join-classpath: true }

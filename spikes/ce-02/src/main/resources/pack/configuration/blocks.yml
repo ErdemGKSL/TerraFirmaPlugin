@@ -1,0 +1,19 @@
+blocks:
+  tfpspike2:crop_be:
+    behavior:
+      type: tfpspike2:crop_be
+    settings:
+      hardness: 0.5
+      resistance: 0.5
+      push_reaction: normal
+    state:
+      auto_state: solid
+      texture: minecraft:block/hay_block_side
+  tfpspike2:crop_plain:
+    settings:
+      hardness: 0.5
+      resistance: 0.5
+      push_reaction: normal
+    state:
+      auto_state: solid
+      texture: minecraft:block/melon_side

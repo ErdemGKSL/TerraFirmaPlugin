@@ -1,0 +1,8 @@
+tfp_main:
+  default: true
+  layouts:
+    1:
+      name: tfp_vitals
+      gui:
+        x: 50
+        y: 100

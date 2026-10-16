@@ -1,0 +1,25 @@
+# BH-01 spike: bars. Each bar is one background image plus one listener fill image.
+tfp_health_bg:
+  type: single
+  file: tfp/health_bg.png
+tfp_health_fill:
+  type: listener
+  file: tfp/health_fill.png
+  split: 40
+  split-type: left
+  setting:
+    listener:
+      class: placeholder
+      value: tfp_health
+      max: tfp_max_health
+tfp_thirst_bg:
+  type: single
+  file: tfp/thirst_bg.png
+tfp_thirst_fill:
+  type: listener
+  file: tfp/thirst_fill.png
+  split: 40
+  split-type: left
+  setting:
+    listener:
+      class: tfp_thirst

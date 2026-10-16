@@ -19,4 +19,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "tfp-spikes"
-include("harness", "ce-01", "vis-01")
+include("harness", "ce-01", "ce-02", "vis-01", "vis-02", "async-01", "net-01", "gui-01", "bm-01", "bh-01", "jar-01")

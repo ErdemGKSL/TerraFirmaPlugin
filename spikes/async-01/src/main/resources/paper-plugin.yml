@@ -1,0 +1,6 @@
+name: TfpSpikeAsync01
+version: '0.0.0-spike'
+main: dev.tfp.spike.async01.Async01Plugin
+api-version: '1.21.11'
+load: POSTWORLD
+folia-supported: true

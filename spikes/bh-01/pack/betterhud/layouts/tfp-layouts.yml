@@ -1,0 +1,39 @@
+# Positions are GUI pixels from the layout origin; the HUD anchors the layout at gui {50,100} (bottom centre).
+# Vanilla hearts/food sit at y=-39..-30 and x=-91..-10 / 10..91 (hotbar 182 px wide), so the bars take that row.
+tfp_vitals:
+  images:
+    1:
+      name: tfp_health_bg
+      x: -91
+      y: -39
+    2:
+      name: tfp_health_fill
+      x: -91
+      y: -39
+    3:
+      name: tfp_thirst_bg
+      x: 10
+      y: -39
+    4:
+      name: tfp_thirst_fill
+      x: 10
+      y: -39
+  texts:
+    1:
+      name: tfp_font
+      pattern: "[tfp_health]//[tfp_max_health]"
+      placeholder-string-format:
+        number: "#"
+      align: center
+      x: -50
+      y: -38
+      scale: 0.5
+    2:
+      name: tfp_font
+      pattern: "Thirst [tfp_thirst]"
+      placeholder-string-format:
+        number: "#"
+      align: center
+      x: 50
+      y: -38
+      scale: 0.5
