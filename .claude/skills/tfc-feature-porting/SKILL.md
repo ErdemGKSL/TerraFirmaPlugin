@@ -96,6 +96,8 @@ Every source file that is ported or substantially derived from TFC starts with:
  */
 ```
 
+`./gradlew check` enforces this (`checkLicenseHeaders`, build-logic `CheckLicenseHeaders`): every Java file needs the first four lines, and a ported file's `file: ... @ <commit>` must be a prefix of the commit pinned in the ledger. Bumping the pinned commit therefore flags every ported file for re-checking. Non-EUPL assets are listed by datagen in `content/generated/content/third-party.json`, and `checkNotice` fails unless NOTICE names each license and source.
+
 Assets copied from TFC keep their relative path in `content/` and are covered by `NOTICE`. Assets with a different upstream license (some sounds are CC-BY-4.0 or CC0, `FastNoiseLite` is MIT) must be listed explicitly in `NOTICE`. Don't use the TerraFirmaCraft name or logo as our product branding.
 
 ## Anti-patterns to catch in review

@@ -13,7 +13,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
     - foojay resolver.
   - Done when: `./gradlew build` produces one plugin jar, and `core`/`worldgen` have no Bukkit on their classpath (enforced by a dependency check).
 
-- [ ] **M1-BUILD-02 License headers & NOTICE automation** · deps: M1-BUILD-01
+- [x] **M1-BUILD-02 License headers & NOTICE automation** · deps: M1-BUILD-01
   - Do: EUPL header check (Spotless or similar). A ported-file header template with a TFC path + commit field. A NOTICE consistency check (e.g. every asset with a non-EUPL license is listed).
   - Done when: CI fails on missing headers.
 
