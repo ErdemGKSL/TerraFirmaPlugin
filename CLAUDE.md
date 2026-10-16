@@ -10,6 +10,7 @@ A from-scratch reimplementation of the **TerraFirmaCraft** mod (TFC, MC 1.21.1 N
 |---|---|---|
 | `PRD.md` | Product requirements: vision, users, scope (feature modules with P0/P1/P2), non-functional requirements, milestones, risks | Deciding *what* to build or prioritizing |
 | `ARCHITECTURE.md` | System design: runtime topology, modules, threading model, data/persistence, worldgen, client-visual pipeline, packet layer, lifecycle, testing, open spikes | Before writing or reviewing any code. Keep it updated when the design changes. |
+| `plans/` | Phased TODO plans (M0 spikes → M6 release) with task IDs, deps, skills, TFC refs, and done-criteria. Start at `plans/README.md` | Picking or finishing work |
 | `docs/porting/ledger.md` | Per-feature port status + every **divergence** from TFC | Starting or finishing a feature; whenever behaviour differs from TFC |
 | `IMAGES.md` | Queue of 2D images we need generated (textures, GUI, HUD, icons) | You need art that TFC doesn't have. See the `image-requests` skill. |
 | `AGENTS.md` | Instructions for Codex/ChatGPT, which generates the images listed in `IMAGES.md` | Not for Claude; don't follow it |

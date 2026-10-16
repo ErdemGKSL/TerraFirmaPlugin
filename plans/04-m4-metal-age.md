@@ -1,0 +1,72 @@
+# M4: Metal age
+
+Goal: the TFC metallurgy chain up to red/blue steel. Exit: the scripted "metal run" self-test passes (copper → bronze alloys → wrought iron via bloomery → steel → black steel → red/blue steel), with GUIs and visuals.
+
+Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
+
+- [ ] **M4-MET-01 Metals registry & items** · deps: M1-REG-01, M1-DGN-03 · skills: craftengine-items, tfc-asset-migration
+  - TFC: `util/Metal.java`, `util/MetalItem.java`, `util/registry/RegistryMetal.java`, data `fluid_heat/`, `item_heat/`
+  - Do: 27 metals with tiers; generated CE items for ingots, double ingots, sheets, double sheets, rods, tool heads, tools, armor parts and armor (~60 per metal). Metal blocks use `entity_renderer` (decided).
+  - Done when: all metal items load; tooltips show heat; showcase.
+
+- [ ] **M4-MET-02 Alloying** · deps: M4-MET-01, M3-POT-02
+  - TFC: `util/AlloyRange.java`, `util/FluidAlloy.java`, recipes `alloy/`
+  - Done when: golden alloy-ratio tests for all 9 alloys.
+
+- [ ] **M4-MET-03 Casting** · deps: M4-MET-02
+  - TFC: `common/recipes/CastingRecipe.java`, `CastingCraftingRecipe.java`, recipes `casting/`
+  - Done when: all 111 casting recipes; mold break chance as in TFC.
+
+- [ ] **M4-ANV-01 Forging rules** · deps: M1-REG-02 · skills: tfc-feature-porting
+  - TFC: `common/component/forge/` (`ForgeRule`, `ForgeStep`, `ForgeSteps`, `Forging`, `ForgingBonus`); test `ForgeRuleTest`
+  - Done when: `ForgeRuleTest` ported and green.
+
+- [ ] **M4-ANV-02 Anvil block & GUI** · deps: M4-ANV-01, M3-HEAT-01 · skills: craftengine-gui-furniture, craftengine-java-api
+  - TFC: `common/blockentities/AnvilBlockEntity.java`, `common/container/{Anvil,AnvilPlan}Container.java`, `network/SelectAnvilPlanPacket.java`, `common/blocks/devices/AnvilBlock.java`, `common/blocks/rock/RockAnvilBlock.java`, textures `gui/anvil*.png`
+  - Do: rock anvil + metal anvils (tiered); plan selection GUI; forging GUI with step buttons (slot items), target/progress markers drawn as title glyph overlays; hammer use; items visible on the anvil top (dynamic renderer); welding; forging bonus.
+  - Done when: all 281 anvil + 87 welding recipes; GUI checklist; golden forging sequences.
+
+- [ ] **M4-FORGE-01 Charcoal forge & bellows** · deps: M3-HEAT-03 · skills: paper-folia-threading
+  - TFC: `common/blockentities/{CharcoalForge,Bellows}BlockEntity.java`, `common/blocks/devices/{CharcoalForge,Bellows}Block.java`, tag `charcoal_forge_insulation`
+  - Do: multiblock insulation check (async), temperature curve (lazy while active), bellows boost.
+  - Done when: golden heating curves.
+
+- [ ] **M4-CRUC-01 Crucible, channels & mold table** · deps: M4-MET-02, M4-FORGE-01
+  - TFC: `common/blockentities/{Crucible,Channel,MoldTable}BlockEntity.java`, `util/ChannelFlow.java`
+  - Do: crucible GUI, pouring into channels, flow simulation decided async, mold table filling; molten metal visuals with an emissive animated texture.
+  - Done when: flow golden tests; self-test pour.
+
+- [ ] **M4-BLOOM-01 Bloomery** · deps: M4-FORGE-01
+  - TFC: `common/blockentities/{Bloomery,Bloom}BlockEntity.java`, recipe `bloomery/`, tag `bloomery_insulation`
+  - Done when: wrought iron path works; golden timing.
+
+- [ ] **M4-BLAST-01 Blast furnace** · deps: M4-BLOOM-01, M4-CRUC-01
+  - TFC: `common/blockentities/BlastFurnaceBlockEntity.java`, recipe `blast_furnace/`, tag `blast_furnace_insulation`
+  - Done when: pig iron → steel path works.
+
+- [ ] **M4-INGOT-01 Ingot & sheet piles** · deps: M4-MET-01 · skills: craftengine-gui-furniture
+  - TFC: `common/blockentities/IngotPileBlockEntity.java`, `common/blocks/devices/{IngotPile,DoubleIngotPile}Block.java`
+  - Do: stacking piles with the `tint_source` renderer (count + metal → item model select); collision layer.
+  - Done when: visual checklist; place/break preserves items.
+
+- [ ] **M4-TOOL-02 Metal tools, armor & tiers** · deps: M4-MET-01, M3-TOOL-01 · skills: craftengine-items
+  - TFC: `common/items/*` (tools, armor, shields, maces, javelins), `common/component/forge/ForgingBonus*`
+  - Do: tier `break_power`, mining speeds, durability with the forging bonus, armor damage resistances, equipment assets.
+  - Done when: tier progression tests; armor golden values.
+
+- [ ] **M4-PROS-01 Prospecting** · deps: M2-GEN-10, M4-TOOL-02
+  - TFC: `common/items/PropickItem.java`, `ProspectResult.java`, `network/ProspectedPacket.java`, `common/commands/PropickCommand.java`
+  - Do: propick scan decided async (snapshot of the radius), result message; this replaces visual ore-grade info on `level-3a`.
+  - Done when: golden scan results on fixed worlds.
+
+- [ ] **M4-CHIS-01 Chisel** · deps: M4-TOOL-02
+  - TFC: `common/items/ChiselItem.java`, `common/player/ChiselMode.java`, `network/CycleChiselModePacket.java`, recipes `chisel/`
+  - Do: modes cycled via a vanilla trigger (sneak + swap-hand key), smoothing/stairs/slabs conversions.
+  - Done when: all 513 chisel recipes.
+
+- [ ] **M4-WEATH-01 Metal weathering & lamps** · deps: M4-MET-01, M2-CAL-01
+  - TFC: `common/blocks/Weathering*.java`, `common/blockentities/LampBlockEntity.java`, data `lamp_fuel/`
+  - Done when: lazy weathering test; lamp fuel burn golden test.
+
+## Exit criteria
+The metal-run self-test passes on all targets. Anvil/forge/crucible GUIs pass the visual checklist. Ledger rows `playable`.
