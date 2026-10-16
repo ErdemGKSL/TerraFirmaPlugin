@@ -1,0 +1,9 @@
+name: TfpSpikeCe01
+version: '0.0.0-spike'
+main: dev.tfp.spike.ce01.Ce01Plugin
+api-version: '1.21.11'
+load: STARTUP
+folia-supported: true
+dependencies:
+  server:
+    CraftEngine: { load: BEFORE, required: true, join-classpath: true }

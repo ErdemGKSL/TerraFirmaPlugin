@@ -33,7 +33,8 @@ for ((platform, mc) in targets) {
         }
         minecraftVersion(mc)
         javaLauncher = java25
-        runDirectory = rootProject.layout.projectDirectory.dir("run/$platform-$mc")
+        val runName = providers.gradleProperty("runName").orNull
+        runDirectory = rootProject.layout.projectDirectory.dir(if (runName == null) "run/$platform-$mc" else "run/$runName/$platform-$mc")
         pluginJars.from(tasks.jar)
         // Extra spike plugins (e.g. -PspikeJars=../ce-01/build/libs/x.jar) can be added per run.
         providers.gradleProperty("spikeJars").orNull?.split(",")?.forEach { pluginJars.from(rootProject.file(it)) }

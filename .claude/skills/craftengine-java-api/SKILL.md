@@ -58,9 +58,10 @@ Reload unbinds every custom block from an **async** thread. During it, `getCusto
 Exactly one owner per datum. Never mirror the same value in two stores. With CE storage `none` or blacklisted worlds, BE data is lost on unload, so the installer must not set those for TFC worlds.
 
 ## Worldgen (§9)
-- CE wraps the world's chunk generator (Paper and Folia), including our Bukkit `ChunkGenerator`, and injects sections before NOISE/SURFACE/CARVER/STRUCTURE/FEATURE. **Writing `CraftEngineBlocks.getBukkitBlockData(state)` via `ChunkData.setBlock` or `LimitedRegion.setBlockData` is recorded** (confirmed by code path; the test plan in §9.6 must still pass on a real server).
+- CE wraps the world's chunk generator (Paper and Folia), including our Bukkit `ChunkGenerator`, and injects sections before NOISE/SURFACE/CARVER/STRUCTURE/FEATURE. **Writing `CraftEngineBlocks.getBukkitBlockData(state)` via `ChunkData.setBlock` or `LimitedRegion.setBlockData` is recorded**: verified on Paper/Folia 1.21.11 and 26.3 (`docs/spikes/M0-CE-01.md`), including populator writes into the neighbour chunk (`LimitedRegion` buffer = 16), after unload and after restart.
 - Pre-resolve one `BlockData` per state at startup/reload, and never call CE lookups per block in the generator. Treat `/ce reload` during generation as unsupported.
-- Keep CE `chunk-system.cache-system: true`, so that populator writes into *neighbour* chunks aren't lost. Don't use the deprecated `generateChunkData`.
+- **CE `chunk-system.cache-system: true` is mandatory.** Measured: with `false`, CE tracks *none* of the worldgen-written blocks (live block is `custom_N`, but CE storage is empty, no behaviour/BE, nothing saved). The installer enforces it. Don't use the deprecated `generateChunkData`.
+- Generation threads are `Paper Common Worker` (Paper and Folia). If CE states aren't resolved yet (CE config not loaded), fail loudly instead of writing vanilla blocks.
 - BE blocks placed in worldgen construct our controller **on the worldgen thread**. Prefer property-only blocks for generated content.
 
 ## Thread requirements (§10)

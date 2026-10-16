@@ -229,7 +229,7 @@ Pyramid: pure unit/property/golden-value tests (core, worldgen; ported TFC tests
 
 ## 14. Open technical questions (spikes before feature work)
 
-1. CraftEngine blocks written from a Bukkit `ChunkGenerator`/`BlockPopulator` are tracked by CE (Paper and Folia, 1.21.11 and 26.3).
+1. ~~CraftEngine blocks written from a Bukkit `ChunkGenerator`/`BlockPopulator` are tracked by CE.~~ **Resolved (M0-CE-01):** yes on all four targets, including cross-chunk populator writes, persisting across unload and restart. `chunk-system.cache-system: true` is **mandatory**: with `false`, CE doesn't track worldgen-written blocks at all. Controllers are constructed on worldgen threads. `docs/spikes/M0-CE-01.md`.
 2. Per-block data: CE `BlockEntityController` vs our own chunk-PDC store (persistence cost, reload behaviour, Folia safety).
 3. A datapack biome returned from `BiomeProvider` works and persists; obtaining biome network ids for the packet remap without NMS.
 4. PacketEvents listener thread and chunk biome palette rewriting cost.

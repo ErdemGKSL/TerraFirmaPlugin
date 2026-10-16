@@ -10,7 +10,7 @@ Test servers: run-paper with CraftEngine 26.9.x, BetterModel 3.5.x and BetterHud
   - Do: a minimal Gradle project under `spikes/harness/` with run-paper tasks for the 4 server targets, `downloadPlugins` for CE/BM/BH (+ PacketEvents), and the EULA property. A tiny test plugin with `paper-plugin.yml` (`load: STARTUP`, `folia-supported: true`, dependencies on the three plugins).
   - Done when: each target boots with all plugins enabled and no errors, documented in `docs/spikes/M0-ENV-01.md`.
 
-- [ ] **M0-CE-01 CraftEngine blocks from our ChunkGenerator** · deps: M0-ENV-01 · skills: craftengine-java-api
+- [x] **M0-CE-01 CraftEngine blocks from our ChunkGenerator** · deps: M0-ENV-01 · skills: craftengine-java-api
   - Do: follow the test plan in `craftengine-java-api` → report §9.6. A Bukkit `ChunkGenerator` on the default world writes `CraftEngineBlocks.getBukkitBlockData(state)` in `generateNoise` and in a `BlockPopulator` (including neighbour-chunk border writes). Use one marker block without a block entity and one with. CE `misc.delay-configuration-load: false`, `cache-system: true`.
   - Done when: markers are custom after generation, after unload/reload and after restart, on all 4 targets. The neighbour-write result with `cache-system: false` is recorded. The thread name recorded by the BE marker's controller is noted.
 

@@ -1,0 +1,17 @@
+blocks:
+  tfpspike:marker:
+    settings:
+      hardness: 1.0
+      resistance: 1.0
+    state:
+      auto_state: solid
+      texture: minecraft:block/gold_block
+  tfpspike:marker_be:
+    behavior:
+      type: tfpspike:marker_be
+    settings:
+      hardness: 1.0
+      resistance: 1.0
+    state:
+      auto_state: solid
+      texture: minecraft:block/diamond_block
