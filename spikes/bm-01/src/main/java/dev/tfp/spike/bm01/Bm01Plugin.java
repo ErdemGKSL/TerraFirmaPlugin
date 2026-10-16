@@ -178,6 +178,16 @@ public final class Bm01Plugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
+    public void onEntitiesUnload(org.bukkit.event.world.EntitiesUnloadEvent e) {
+        for (Entity entity : e.getEntities()) {
+            if (entity.getPersistentDataContainer().has(kindKey)) {
+                Report.line("EntitiesUnloadEvent carrier " + entity.getUniqueId() + " thread="
+                        + Thread.currentThread().getName());
+            }
+        }
+    }
+
+    @EventHandler
     public void onEntitiesLoad(EntitiesLoadEvent e) {
         String thread = Thread.currentThread().getName();
         count("EntitiesLoadEvent:" + thread);

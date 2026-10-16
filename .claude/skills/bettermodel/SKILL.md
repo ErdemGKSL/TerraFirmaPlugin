@@ -90,3 +90,10 @@ BetterModel persists only `{model id, scaler, rotator, hide option}` in the enti
 `/bm spawn <model>`, `/bm test <model> <animation>`, `/bm reload` (async, full pack rebuild, wipes visual state), config `debug.tracker: true`.
 
 Full API tables, event list, config keys, the TFC bbmodel audit and open questions: `references/research-report.md`.
+
+## Verified in M0-BM-01 (Paper 1.21.11, Cow carrier; see docs/spikes/M0-BM-01.md)
+- Verified in M0-BM-01: face UVs of `uv [0,0,0,0]` in a .bbmodel make the model invisible in BetterModel 3.5.1, even with `box_uv`; real per-face rectangles render.
+- Verified in M0-BM-01: after a restart, carriers that load before the models are registered get no tracker (`trackerExistsOnLoad=false`); re-attaching them in `PluginEndReloadEvent` restores it.
+- Verified in M0-BM-01: a baby flag alone does not shrink a `ModelScaler.entity()` model; SCALE attribute 0.5 and `multiply(0.5f)` both do.
+- Verified in M0-BM-01: tint kept in our PDC survives a restart and `/bm reload` only through the `CreateEntityTrackerEvent` re-apply (with re-apply off it is lost).
+- Verified in M0-BM-01: the first CraftEngine pack build can omit bettermodel entries; a second `ce reload all` includes them.
