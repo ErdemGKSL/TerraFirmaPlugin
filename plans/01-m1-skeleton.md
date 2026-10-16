@@ -106,7 +106,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Done when: M1-REG-04 passes.
   - Status: done. Export + `data/id_map.json` (blocks, items, fluids 133, entity types 131, food traits 10, `external_ids` for the vanilla/NeoForge ids used) + `data/external_tags.json` (16 NeoForge `c:` and 12 vanilla tags referenced but not defined in the checkout; 440 `c:` tag files TFC does define are exported). External lists come from running core's loader over the export. ContentDataLoadTest runs and passes; `verifyContent` passes, two runs byte-identical. External ids/tags are not verified against vanilla/NeoForge registries (not in the checkout).
 
-- [ ] **M1-DGN-03 Asset pipeline v1: rocks, soils, ores** · deps: M1-DGN-01 · skills: tfc-asset-migration, craftengine-config-generation, craftengine-blocks
+- [x] **M1-DGN-03 Asset pipeline v1: rocks, soils, ores** · deps: M1-DGN-01 · skills: tfc-asset-migration, craftengine-config-generation, craftengine-blocks
   - TFC: `assets/tfc/{blockstates,models,textures}/{rock,ore,dirt,grass,clay,sand,...}`
   - Do:
     1. Copy textures and models with refs rewritten.
@@ -117,6 +117,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Status: 1353 cube blocks + templates + lang (13 locales) generated and statically checked; CE load not verified yet (self-test). Not emitted yet (listed in `reports/datagen-summary.json`): connected grass (multipart), slabs/stairs/walls, loose rocks, spikes, buttons, plates, anvils, aqueducts, rope anchors, small ores.
   - Code ready, server run pending: `ce.pack_issues` passes (0 `Found N issue(s)` lines for `tfp`/`tfpitest` from the live Log4j tap, and rock/soil/ore samples loaded) on the second start (the first creates `plugins/CraftEngine/resources`, so our pack is not installed then and the case skips).
 
+  - Verified in the server (checks-1.21.11, 2026-10-16): the generated rock, soil and ore families install and load (1353 tfp blocks) with zero CraftEngine issue lines on four starts
 - [x] **M1-DGN-04 Visual allocator with profiles** · deps: M1-DGN-03, M0-VIS-01 · skills: craftengine-visuals-pack
   - Do: implement profiles `level-0…level-3b` × MC version families. Sources, in order: CE `solid` → identity duplicates → (Nether/End) → absent-in-TFC (CSV allowlist). Also:
     - emit `block_state_mappings` that hide the repurposed blocks;
@@ -201,7 +202,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Done when: a self-test shows a translated message per locale.
   - Status: server side done: `paper/i18n/Messages` (`lang/<locale>.properties`, `lang/index.txt`, fallback same language → `en_us` → key, literal `{n}` arguments) with `en_us` and `tr_tr` for all our messages; `MessagesTest` shows a translated message per shipped locale and checks every bundle has every key with the same arguments; command replies are translated per sender (`BootstrapTest`). The client lang (block/item names from TFC's locales) is datagen's job (M1-DGN; CE `lang/*.json` already in the generated pack).
 
-- [ ] **M1-SVC-05 Commands & debug** · deps: M1-BOOT-01
+- [x] **M1-SVC-05 Commands & debug** · deps: M1-BOOT-01
   - Do: `/tfp reload [data|content]`, `/tfp debug showcase <family>` (places all variants in a grid), `/tfp debug block|player|chunk`, `/tfp version`.
   - Done when: the showcase works for rocks/soils/ores.
   - Status: `TfpCommands`: `/tfp [version]`, `/tfp reload [config|data|content]` (bare = data), `/tfp debug block|chunk|player [name]|packets`, translated replies; `TfpPlugin` implements them (`reload data` via `paper/data/RegistryService`, which also loads the registries at enable and signals `REGISTRIES_LOADED`; `reload content` answers "not available" until M1-INST). `BootstrapTest` covers the Brigadier tree, permissions, version output, every subcommand with a fake handler, and Turkish replies. **Missing:** `/tfp debug showcase <family>` (the Done-when), and in-server runs of the debug commands.
@@ -209,6 +210,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 
 ## Self-test harness
 
+  - Verified in the server (checks-1.21.11, 2026-10-16): showcase rocks 217/217, soils 23/23, ores 1113/1113 placed (chat messages; screenshot of rocks viewed)
 - [x] **M1-TEST-01 itest plugin** · deps: M1-BOOT-04 · skills: plugin-testing
   - Do: a case runner that waits on the ready gate, writes a JUnit XML report and shuts down. Fails on thread-assert exceptions in logs and on CE issues for our pack.
   - Done when: it runs in the CI matrix.
