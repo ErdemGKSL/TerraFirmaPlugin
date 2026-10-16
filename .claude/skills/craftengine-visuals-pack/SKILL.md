@@ -57,13 +57,12 @@ Allocation order: `solid` → identity duplicates → (Nether/End) → absent-in
 Also required: a datapack that edits client-relevant tags for repurposed blocks (ambient-sound tags, `#crystal_sound_blocks`, `#impermeable` for waterlogged double slabs). Also intercept vanilla mechanics that would create repurposed blocks in a TFC world: lava+water → cobblestone/stone/obsidian/basalt, concrete-powder hardening, copper oxidation, recipes and loot.
 
 ### Allocator rules (from the earlier analysis)
-- The verified explicit full cubes total only **197** (stone family, ores, wool, concrete, concrete powder, terracotta, glazed terracotta). TFC's full cubes (≈1125 graded ores + ≈210 rock variants + soils + wood) **exceed solid + 197 on 1.21.x**. The datagen allocator must:
-  1. dedupe identical models;
-  2. use an **audited, curated** list of further vanilla full-cube blocks (planks, logs/wood × axis, bricks, copper, coral, quartz, prismarine...), each checked for prediction and render layer;
-  3. assign deterministically and emit **full state strings** (never `block:N` shorthand);
-  4. emit `block_state_mappings` that hide real instances of every repurposed state, without repeating CE's internal lines;
-  5. report used/available per pool and per MC version, and fail CI on overflow.
-
+- The datagen allocator:
+  1. dedupes identical models (hardened = raw);
+  2. assigns from the audited CSV (`docs/research/vanilla-fullcube-supply.csv`) in the order above;
+  3. emits **full state strings** (never `block:N`);
+  4. emits `block_state_mappings` hiding real instances of every repurposed state, without repeating CE's internal lines;
+  5. reports used/available per pool and per MC version, and fails CI on overflow.
   If it still doesn't fit, **ask the user** (e.g. merge ore-grade visuals on 1.21.x only). Never degrade silently.
 - The installed `mappings.yml` is frozen at first install, so pool sizes differ per server. After `CraftEngineReloadEvent`, check the pool candidate counts at runtime and warn on shortfall.
 - First-time `auto_state` allocation can be nondeterministic with multi-threaded loading. Prefer explicit assignments from datagen, or seed `cache/visual_block_states.json`. Run `/ce clean-cache visual_block_states` after removing blocks.

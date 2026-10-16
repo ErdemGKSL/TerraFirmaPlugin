@@ -29,12 +29,7 @@ Verified counts (default `mappings.yml`, fresh install; `research-report.md` §0
 | Freed states in no auto group (doors, trapdoors, gates, copper slabs/stairs/grates/bars/chains/lanterns, anvils...) | 1900 | 2164 (26.3: 2242) | per block | explicit full state string |
 | `transparent` + `entity_renderer` | 1 state for unlimited blocks | | of the chosen visual | `auto_state: {type: sugar_cane, id: transparent}`, or `barrier` for full collision |
 
-**Budget warning:** TFC's full cubes are ~1125 graded ores + ~210 rock variants + soils/sand + wood. That exceeds solid (1289) + the verified explicit cubes (197) on 1.21.x. The datagen allocator must:
-1. reuse identical models (hardened = raw);
-2. audit additional vanilla full-cube blocks;
-3. report the shortfall per MC version.
-
-Only if it still doesn't fit, raise it with the user (e.g. merge ore grades visually on 1.21.x only). Never decide silently.
+**Budget (measured):** supply is 1957 (1.21.11) / 2217 (26.3) including identity duplicates, absent-in-TFC and Nether/End blocks (`docs/research/block-budget-workarounds.md`). Demand is ≈1790 core terrain + ≈150 deco, after hardened = raw and with mechanical blocks moved to renderers. Everything fits 26.x. On 1.21.x the rarest deco may have to move to renderers or the leaves pool. Ore grades stay distinct. If the allocator still reports a shortfall, ask the user. Never decide silently.
 
 The installed `mappings.yml` is frozen at first extraction, so pool sizes vary per server. Read `AutoStateGroup` candidate counts at runtime after `CraftEngineReloadEvent` and warn on shortfall.
 
