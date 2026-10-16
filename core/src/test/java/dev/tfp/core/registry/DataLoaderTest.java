@@ -148,26 +148,57 @@ class DataLoaderTest {
         assertThatThrownBy(() -> load(root)).hasMessageContaining("unsupported load condition type 'neoforge:mod_loaded'");
     }
 
+    static final String ID_MAP = """
+            {"comment": "generated", "namespaces": {"tfc": "tfp"},
+             "blocks": {"tfc:rock/raw/granite": "tfp:rock/raw/granite"},
+             "items": {"tfc:clay_ball": "tfp:clay_ball"},
+             "fluids": {"tfc:vinegar": "tfp:vinegar"},
+             "entity_types": {"tfc:cow": "tfp:cow"},
+             "food_traits": {"tfc:salted": "tfp:salted"},
+             "external_ids": {"item": ["minecraft:stick"], "fluid": ["minecraft:milk"]}}""";
+    static final String EXTERNAL_TAGS = """
+            {"comment": "generated", "namespaces": {"c": "NeoForge", "minecraft": "vanilla"},
+             "tags": {"item": ["c:feathers", "minecraft:logs"]}}""";
+
+    static KnownIds idMap(String idMap, String externalTags) {
+        return KnownIds.fromIdMap(StrictJson.parse(idMap, "id_map.json"), DecodeContext.root("id_map.json"),
+                StrictJson.parse(externalTags, "external_tags.json"), DecodeContext.root("external_tags.json"));
+    }
+
     @Test
-    void idMapChecksOurItemsAndBlocks() throws IOException {
-        // Shape of tools/datagen's data/id_map.json (M1-DGN-02).
-        KnownIds ids = KnownIds.fromIdMap(StrictJson.parse("""
-                {"comment": "generated", "namespaces": {"tfc": "tfp"},
-                 "blocks": {"tfc:rock/raw/granite": "tfp:rock/raw/granite"},
-                 "items": {"tfc:clay_ball": "tfp:clay_ball"}}""", "id_map.json"), DecodeContext.root("id_map.json"));
+    void idMapChecksEveryRegistryAndExternalTagsExactly() throws IOException {
+        // Shape of tools/datagen's data/id_map.json and data/external_tags.json (M1-DGN-02).
+        KnownIds ids = idMap(ID_MAP, EXTERNAL_TAGS);
         assertThat(ids.hasId("item", "tfp:clay_ball")).isTrue();
         assertThat(ids.hasId("item", "tfp:ghost")).isFalse();
         assertThat(ids.hasId(TagType.BLOCK, "tfp:rock/raw/granite")).isTrue();
-        assertThat(ids.hasId("item", "minecraft:stick")).as("vanilla ids are not in the map yet").isTrue();
-        assertThat(ids.hasId("fluid", "tfp:vinegar")).as("fluids are not in the map yet").isTrue();
+        assertThat(ids.hasId("fluid", "tfp:vinegar")).isTrue();
+        assertThat(ids.hasId("fluid", "tfp:ghost")).isFalse();
+        assertThat(ids.hasId("entity_type", "tfp:cow")).isTrue();
+        assertThat(ids.hasId("entity_type", "tfp:vinegar")).isFalse();
+        assertThat(ids.hasId("food_trait", "tfp:salted")).isTrue();
+        assertThat(ids.hasId("food_trait", "tfp:ghost")).isFalse();
+        assertThat(ids.hasId("unknown_registry", "tfp:cow")).isFalse();
+        assertThat(ids.hasId("item", "minecraft:stick")).as("listed vanilla id").isTrue();
+        assertThat(ids.hasId("item", "minecraft:diamond")).as("unlisted vanilla id").isFalse();
+        assertThat(ids.hasId("fluid", "minecraft:milk")).as("NeoForge-provided fluid").isTrue();
+        assertThat(ids.hasExternalTag(TagType.ITEM, "c:feathers")).isTrue();
         assertThat(ids.hasExternalTag(TagType.ITEM, "minecraft:logs")).isTrue();
-        assertThat(ids.hasExternalTag(TagType.ITEM, "c:ingots")).isFalse();
-        assertThatThrownBy(() -> KnownIds.fromIdMap(StrictJson.parse(
-                "{\"namespaces\": {}, \"blocks\": {}, \"items\": {}, \"fluids\": {}}", "m"), DecodeContext.root("m")))
-                .hasMessageContaining("unknown key(s) [fluids]");
+        assertThat(ids.hasExternalTag(TagType.ITEM, "c:ingots")).as("unlisted c: tag").isFalse();
+        assertThat(ids.hasExternalTag(TagType.ITEM, "minecraft:planks")).as("unlisted vanilla tag").isFalse();
+        assertThat(ids.hasExternalTag(TagType.BLOCK, "c:feathers")).as("listed for items only").isFalse();
+        assertThatThrownBy(() -> idMap(ID_MAP.replace("\"food_traits\"", "\"traits\""), EXTERNAL_TAGS))
+                .hasMessageContaining("traits");
+        assertThatThrownBy(() -> idMap(ID_MAP, EXTERNAL_TAGS.replace("c:feathers", "tfp:feathers")))
+                .hasMessageContaining("not in a declared external namespace");
+        assertThatThrownBy(() -> idMap(ID_MAP, EXTERNAL_TAGS.replace("c:feathers", "forge:feathers")))
+                .hasMessageContaining("not in a declared external namespace");
+        assertThatThrownBy(() -> idMap(ID_MAP.replace("minecraft:stick", "tfp:stick"), EXTERNAL_TAGS))
+                .hasMessageContaining("is in one of our namespaces");
 
         Path root = tmp.resolve("data");
         write(root, KnownIds.ID_MAP_FILE, "{}");
+        write(root, KnownIds.EXTERNAL_TAGS_FILE, "{}");
         write(root, "tfp/recipe/a.json", "{\"type\": \"tfc:quern\", \"ingredient\": {\"item\": \"tfp:clay_ball\"}, \"result\": {\"id\": \"tfp:ghost\"}}");
         assertThatThrownBy(() -> DataLoader.standard(ids).load(List.of(root)))
                 .isInstanceOfSatisfying(DataLoadException.class, e -> assertThat(e.errors())

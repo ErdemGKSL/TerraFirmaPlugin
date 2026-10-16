@@ -128,6 +128,19 @@ class DatagenTest {
         JsonObject idMap = JsonParser.parseString(text(files, "data/id_map.json")).getAsJsonObject();
         assertThat(idMap.getAsJsonObject("blocks").get("tfc:rock/raw/granite").getAsString()).isEqualTo("tfp:rock/raw/granite");
         assertThat(idMap.getAsJsonObject("items").get("tfc:ore/normal_hematite").getAsString()).isEqualTo("tfp:ore/normal_hematite");
+        assertThat(idMap.getAsJsonObject("fluids").keySet()).containsExactly("tfc:flowing_salt_water",
+            "tfc:metal/copper", "tfc:metal/flowing_copper", "tfc:river_water", "tfc:salt_water");
+        assertThat(idMap.getAsJsonObject("entity_types").keySet()).containsExactly("tfc:bluegill",
+            "tfc:boat/acacia", "tfc:boat/douglas_fir", "tfc:lake_trout", "tfc:seat");
+        assertThat(idMap.getAsJsonObject("food_traits").keySet()).containsExactly("tfc:salted", "tfc:vinegar");
+        // ids outside our namespace that the data references (found by core's loader)
+        assertThat(idMap.getAsJsonObject("external_ids").getAsJsonArray("item").toString()).isEqualTo("[\"minecraft:stone\"]");
+
+        // c:ores/hematite is defined by the exported data, c:feathers is not (NeoForge); #tfp:other is undefined
+        // but in our namespace, so it is never declared external
+        JsonObject external = JsonParser.parseString(text(files, "data/external_tags.json")).getAsJsonObject();
+        assertThat(external.getAsJsonObject("namespaces").keySet()).containsExactly("c", "minecraft");
+        assertThat(external.getAsJsonObject("tags").toString()).isEqualTo("{\"item\":[\"c:feathers\"]}");
     }
 
     @Test

@@ -64,8 +64,8 @@ public final class DataLoader {
     /** Second-level folders holding TFC definition managers ({@code data/tfc/tfc/...}; {@code tfp} after renaming). */
     public static final Set<String> DEFINITION_ROOTS = Set.of("tfc", "tfp");
 
-    /** Files allowed directly in a data root: datagen's id map (read separately, see {@link KnownIds#fromIdMap}). */
-    public static final Set<String> ROOT_FILES = Set.of(KnownIds.ID_MAP_FILE);
+    /** Files allowed directly in a data root: datagen's id tables (read separately, see {@link KnownIds#fromDataRoot}). */
+    public static final Set<String> ROOT_FILES = Set.of(KnownIds.ID_MAP_FILE, KnownIds.EXTERNAL_TAGS_FILE);
 
     private static final String CONDITIONS = "neoforge:conditions";
 

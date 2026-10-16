@@ -81,10 +81,10 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Do: our tag registry for blocks/items/fluids/entities (CE ids + vanilla), loaded from the datagen output.
   - Done when: TFC tag files load, and lookups are tested.
 
-- [ ] **M1-REG-04 Data-load test** · deps: M1-REG-02, M1-DGN-02
+- [x] **M1-REG-04 Data-load test** · deps: M1-REG-02, M1-DGN-02
   - Do: a test loading all of `content/data/**`. It fails on unknown types, unresolved ids/tags or duplicates.
   - Done when: it runs in CI.
-  - Status: `core/.../registry/ContentDataLoadTest` loads `content/generated/content/data` with `id_map.json` in `:core:test` (part of `check`; the folder is a test input). Everything parses and every `tfp:` item/block id resolves, but 99 references to NeoForge `c:` common tags that datagen doesn't export (`c:cobblestones`, `c:feathers`, ...) remain, so the test aborts (skipped) on exactly that error kind and fails on any other. Open until M1-DGN-02 exports those tags. The id map should also list fluids, entity types, food traits and the vanilla ids used, so that those are checked too.
+  - Status: done. `core/.../registry/ContentDataLoadTest` loads `content/generated/content/data` with `id_map.json` + `external_tags.json` (`KnownIds.fromDataRoot`) in `:core:test`, part of `check` (the folder is a test input), and passes with no skip. It fails on any unknown folder/kind/type/key, duplicate, tag cycle, or unresolved item/block/fluid/entity type/food trait id or tag. Ids/tags outside `tfp:` are accepted only when listed (see M1-DGN-02).
 
 ## Datagen v1 (tools/datagen)
 
@@ -93,11 +93,11 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Done when: two runs produce identical output; CI verifies `content/` is up to date.
   - Status: done. Output dir `content/generated/content` (jar `/content`). Determinism: unit test + two real runs diffed. CI gate: `./gradlew :tools:datagen:verifyContent` (wire into the workflow in M1-BUILD-03).
 
-- [ ] **M1-DGN-02 Data export** · deps: M1-DGN-01 · skills: tfc-feature-porting
+- [x] **M1-DGN-02 Data export** · deps: M1-DGN-01 · skills: tfc-feature-porting
   - TFC: `src/generated/resources/data/tfc/{tfc/**,recipe/**,tags/**}`
   - Do: rename `tfc:` → `tfp:`, maintain the item/block id mapping table, write `content/data/**` in TFC schemas.
   - Done when: M1-REG-04 passes.
-  - Status: export + `data/id_map.json` generated (generated `data/tfc/{tfc,recipe,tags}`, `c:`/`minecraft:` tags, hand-written worldgen tags). Open until M1-REG-04 exists.
+  - Status: done. Export + `data/id_map.json` (blocks, items, fluids 133, entity types 131, food traits 10, `external_ids` for the vanilla/NeoForge ids used) + `data/external_tags.json` (16 NeoForge `c:` and 12 vanilla tags referenced but not defined in the checkout; 440 `c:` tag files TFC does define are exported). External lists come from running core's loader over the export. ContentDataLoadTest runs and passes; `verifyContent` passes, two runs byte-identical. External ids/tags are not verified against vanilla/NeoForge registries (not in the checkout).
 
 - [ ] **M1-DGN-03 Asset pipeline v1: rocks, soils, ores** · deps: M1-DGN-01 · skills: tfc-asset-migration, craftengine-config-generation, craftengine-blocks
   - TFC: `assets/tfc/{blockstates,models,textures}/{rock,ore,dirt,grass,clay,sand,...}`

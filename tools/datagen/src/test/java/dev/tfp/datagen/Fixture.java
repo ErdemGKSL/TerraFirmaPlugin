@@ -31,7 +31,7 @@ final class Fixture {
             "{\"__comment__\": \"x\", \"ingredient\": {\"item\": \"tfc:ore/normal_hematite\"}, \"heat_capacity\": 0.5}");
         write(root, D + "tfc/recipe/quern/hematite.json",
             "{\"type\": \"tfc:quern\", \"ingredient\": {\"tag\": \"c:ores/hematite\"}, \"result\": {\"id\": \"tfc:powder/hematite\", \"count\": 2}}");
-        write(root, D + "tfc/tags/item/rocks.json", "{\"values\": [\"tfc:rock/raw/granite\", \"#tfc:other\", \"minecraft:stone\"]}");
+        write(root, D + "tfc/tags/item/rocks.json", "{\"values\": [\"tfc:rock/raw/granite\", \"#tfc:other\", \"minecraft:stone\", \"#c:feathers\"]}");
         write(root, D + "tfc/loot_table/ignored.json", "{}");
         write(root, D + "c/tags/item/ores/hematite.json", "{\"values\": [\"tfc:ore/normal_hematite\"]}");
         write(root, M + "tfc/tags/worldgen/biome/is_ocean.json", "{\"values\": [\"tfc:ocean\"]}");
@@ -116,6 +116,56 @@ final class Fixture {
         }
         png(root, A + "textures/block/ore/normal_hematite.png", ORE, 0x00000000);
         write(root, A + "textures/block/rock/raw/granite.png.mcmeta", "{\"animation\": {}}");
+
+        // Java registrations (TfcRegistries), in the shapes used at the pinned commit
+        write(root, TfcRegistries.FLUIDS, """
+            public final class TFCFluids {
+                public static final FluidHolder<BaseFlowingFluid> SALT_WATER = register("salt_water", b -> {});
+                public static final DeferredHolder<Fluid, RiverWaterFluid> RIVER_WATER = FLUIDS.register("river_water", RiverWaterFluid::new);
+                private static FluidHolder<F> register(String name) {
+                    final int index = name.lastIndexOf('/');
+                    final String flowingName = index == -1 ? "flowing_" + name : name.substring(0, index) + "/flowing_" + name.substring(index + 1);
+                }
+            }""");
+        simpleBlockstate(root, "fluid/salt_water");
+        simpleBlockstate(root, "fluid/river_water");
+        simpleBlockstate(root, "fluid/metal/copper");
+        write(root, TfcRegistries.ENTITIES, """
+            import net.dries007.tfc.common.blocks.wood.Wood;
+            public final class TFCEntities {
+                public static final Id<Seat> SEAT = register("seat", EntityType.Builder.of(Seat::new, MobCategory.MISC));
+                public static final Map<Wood, Id<TFCBoat>> BOATS = Helpers.mapOf(Wood.class, wood ->
+                    register("boat/" + wood.name(), EntityType.Builder.<TFCBoat>of((type, level) -> new TFCBoat(type, level), MobCategory.MISC))
+                );
+                public static final Map<Fish, Id<FreshwaterFish>> FRESHWATER_FISH = Helpers.mapOf(Fish.class, fish -> register(fish.getSerializedName(), EntityType.Builder.of(FreshwaterFish::new)));
+                public static <E extends Entity> Id<E> register(String name, EntityType.Builder<E> builder, boolean serialize) {
+                    final String id = name.toLowerCase(Locale.ROOT);
+                }
+            }""");
+        write(root, TfcRegistries.JAVA + TfcRegistries.PACKAGE + "common/blocks/wood/Wood.java", """
+            public enum Wood implements RegistryWood
+            {
+                ACACIA(false, 0f, MapColor.TERRACOTTA_ORANGE), // a comment, with a comma
+                DOUGLAS_FIR(true, 0.32f, MapColor.TERRACOTTA_YELLOW);
+                Wood(boolean conifer) { this.serializedName = name().toLowerCase(Locale.ROOT); }
+                public String getSerializedName() { return serializedName; }
+            }""");
+        write(root, TfcRegistries.JAVA + TfcRegistries.PACKAGE + "common/entities/Fish.java", """
+            public enum Fish
+            {
+                BLUEGILL,
+                LAKE_TROUT;
+                Fish() { serializedName = name().toLowerCase(Locale.ROOT); }
+                public String getSerializedName() { return serializedName; }
+            }""");
+        write(root, TfcRegistries.FOOD_TRAITS, """
+            public final class FoodTraits {
+                public static final DeferredHolder<FoodTrait, FoodTrait> SALTED = register("salted", TFCConfig.SERVER.traitSaltedModifier);
+                public static final DeferredHolder<FoodTrait, FoodTrait> PRESERVED_IN_VINEGAR = register("vinegar", TFCConfig.SERVER.traitVinegarModifier);
+                private static DeferredHolder<FoodTrait, FoodTrait> register(String name, Supplier<Double> decayModifier) {
+                    return TRAITS.register(name, () -> new FoodTrait(decayModifier, "tfc.tooltip.food_trait." + name));
+                }
+            }""");
 
         // lang
         write(root, A + "lang/en_us.json", "{\"block.tfc.rock.raw.granite\": \"Raw Granite\", "
