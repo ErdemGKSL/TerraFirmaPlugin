@@ -44,7 +44,7 @@ Test servers: run-paper with CraftEngine 26.9.x, BetterModel 3.5.x and BetterHud
   - Do: CE `lang` override of `container.crafting` with a `minecraft:default` glyph (the `ui-inventory-tab-button` placeholder, see `image-generation` backlog). Check whether an empty-cursor click outside the player inventory sends a slot −999 click on 1.21.11 and 26.3 clients. Try the alternative trigger (`PlayerRecipeBookSettingsChangeEvent`). Check a textured chest GUI using the alignment math.
   - Done when: the chosen trigger works on both versions, a textured 6-row GUI aligns pixel-perfect at GUI scales 1–4, and the caveats (crafting table title, creative inventory) are documented.
 
-- [ ] **M0-BM-01 BetterModel carrier & lifecycle** · deps: M0-ENV-01 · skills: bettermodel, model-authoring
+- [x] **M0-BM-01 BetterModel carrier & lifecycle** · deps: M0-ENV-01 · skills: bettermodel, model-authoring
   - Do: register `tools/models` output (bovine example + converted TFC deer) via `ModelAssetsEvent`. Spawn on a Cow carrier and on a Horse (mount). Check:
     - walk on pathfinding; `eat` override layering;
     - baby scale (`ModelScaler.entity()` vs attribute); hiding the carrier's equipment/name;

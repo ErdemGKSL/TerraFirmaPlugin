@@ -52,6 +52,7 @@ Pick the vanilla type closest in hitbox size, movement physics and pathing:
 Then:
 - `setSilent(true)` and play TFC sounds ourselves.
 - Replace AI with our Mob Goals. BetterModel is unaffected.
+- Carriers can come back from a restart with `NoAI:1b` (origin unverified, M0-BM-01). A carrier with AI off does not walk, and `moveTo` returns ok without moving. Clear it (`setAI(true)` or `NoAI:0b`) when the carrier is ours to move, and wait about a second after clearing before pathing: `moveTo` returned false straight after the change.
 - `walk` only animates for **pathfinding** movement, not `setVelocity`.
 
 ## Driving the model (through `integration/bettermodel` only)
