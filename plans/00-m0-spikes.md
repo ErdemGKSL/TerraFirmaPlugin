@@ -6,7 +6,7 @@ Test servers: run-paper with CraftEngine 26.9.x, BetterModel 3.5.x and BetterHud
 
 ## Tasks
 
-- [ ] **M0-ENV-01 Spike harness** · deps: none · skills: plugin-testing
+- [x] **M0-ENV-01 Spike harness** · deps: none · skills: plugin-testing
   - Do: a minimal Gradle project under `spikes/harness/` with run-paper tasks for the 4 server targets, `downloadPlugins` for CE/BM/BH (+ PacketEvents), and the EULA property. A tiny test plugin with `paper-plugin.yml` (`load: STARTUP`, `folia-supported: true`, dependencies on the three plugins).
   - Done when: each target boots with all plugins enabled and no errors, documented in `docs/spikes/M0-ENV-01.md`.
 

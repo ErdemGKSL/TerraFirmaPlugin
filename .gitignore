@@ -1,3 +1,8 @@
 tools/models/out/
 __pycache__/
 *.pyc
+spikes/run/
+spikes/logs/
+**/build/
+**/.gradle/
+.kotlin/

@@ -1,0 +1,13 @@
+name: TfpSpikeHarness
+version: '0.0.0-spike'
+main: dev.tfp.spike.harness.HarnessPlugin
+api-version: '1.21.11'
+load: STARTUP
+folia-supported: true
+description: M0-ENV-01 spike harness. Checks that CE/BM/BH/PacketEvents are enabled and reports.
+dependencies:
+  server:
+    CraftEngine: { load: BEFORE, required: true, join-classpath: true }
+    BetterModel: { load: BEFORE, required: true, join-classpath: true }
+    BetterHud: { load: BEFORE, required: true, join-classpath: true }
+    packetevents: { load: BEFORE, required: false, join-classpath: true }
