@@ -50,11 +50,11 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Do: the `Scheduler` interface (region / entity with retired / global / async CPU pool / io on virtual threads) + Folia-scheduler implementation + `ThreadAsserts` (`-Dtfp.assertThreads`).
   - Done when: unit + self-tests on Paper and Folia; no `BukkitScheduler` usage (enforced by an ArchUnit-style check).
 
-- [ ] **M1-THR-02 RegionCommitQueue** · deps: M1-THR-01 · skills: paper-folia-threading
+- [x] **M1-THR-02 RegionCommitQueue** · deps: M1-THR-01 · skills: paper-folia-threading
   - Do: per-region budgeted queue, `BlockChange(pos, expectedOld, new)` validation, stale re-queue callback, configurable budget (default 1.5 ms/tick/region), metrics.
   - Done when: a stress self-test keeps the budget, and the stale-change race test passes.
 
-- [ ] **M1-THR-03 AsyncDecisionPipeline** · deps: M1-THR-02 · skills: paper-folia-threading
+- [x] **M1-THR-03 AsyncDecisionPipeline** · deps: M1-THR-02 · skills: paper-folia-threading
   - Do: generic pipeline (snapshot supplier → pure decide → per-chunk commit), per-position coalescing, `NeighbourSnapshot` helper (radius-N capture, immutable), metrics.
   - Done when: the connected-block toy from M0-ASYNC-01 is rebuilt on it, with tests.
 
