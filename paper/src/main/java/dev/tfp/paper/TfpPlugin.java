@@ -6,6 +6,11 @@
 package dev.tfp.paper;
 
 import dev.tfp.core.compat.CompatGate;
+import dev.tfp.core.compat.Version;
+import dev.tfp.core.visuals.Suppression;
+import dev.tfp.core.visuals.SuppressionSet;
+import dev.tfp.core.visuals.VisualIndex;
+import dev.tfp.core.visuals.VisualSelection;
 import dev.tfp.core.registry.Registries;
 import dev.tfp.paper.blockdata.ChunkDataStore;
 import dev.tfp.paper.blockdata.PdcChunkDataStore;
@@ -16,6 +21,7 @@ import dev.tfp.paper.config.ConfigService;
 import dev.tfp.paper.data.RegistryService;
 import dev.tfp.paper.i18n.Messages;
 import dev.tfp.paper.install.Installer;
+import dev.tfp.paper.install.PackRebuildTrigger;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.integration.IntegrationContext;
 import dev.tfp.paper.integration.Integrations;
@@ -32,6 +38,7 @@ import dev.tfp.paper.ready.ReadyGate;
 import dev.tfp.paper.ready.ReadyGate.Signal;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ServerScheduler;
+import dev.tfp.paper.suppression.SuppressionListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -76,6 +83,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
 
     private final ReadyGate readyGate = new ReadyGate();
     private volatile Installer.Result install;
+    private Path contentRoot;
+    private VisualSelection visualSelection;
+    private VisualIndex visualIndex;
+    private volatile PackRebuildTrigger packRebuild;
     private CompatGate.Report compat;
     private ConfigService config;
     private volatile Scheduler scheduler;
@@ -119,12 +130,22 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
 
     private Installer.Result runInstaller() {
         Path pluginsDir = getDataPath().toAbsolutePath().getParent();
-        Path contentRoot;
         try {
             contentRoot = RegistryService.jarDataRoot(TfpPlugin.class.getClassLoader()).getParent();
         } catch (RuntimeException e) {
             getLogger().log(Level.SEVERE, "Cannot open the plugin jar's /content", e);
             contentRoot = null;
+        }
+        // M1-INST-03: the visual allocation for visuals.profile and the running version family.
+        try {
+            visualSelection = VisualSelection.of(config.current().visuals(), Version.parse(getServer().getMinecraftVersion()),
+                    getServer().getAllowNether(), getServer().getAllowEnd());
+            getLogger().info("Visual allocation: " + visualSelection.id());
+            if (contentRoot != null) {
+                visualIndex = VisualIndex.parse(java.nio.file.Files.readString(contentRoot.resolve("visuals/index.json")));
+            }
+        } catch (IOException | RuntimeException e) {
+            getLogger().log(Level.SEVERE, "Cannot read the shipped visual allocations; no capacity check this run", e);
         }
         Set<String> installed = new HashSet<>();
         for (String name : new String[] {Installer.CRAFTENGINE, "BetterModel", Installer.BETTERHUD}) {
@@ -134,7 +155,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         }
         return Installer.run(new Installer.Inputs(config.current().autoInstall(), pluginsDir,
                 getDataPath().resolve("install"), contentRoot, getPluginMeta().getVersion(), installed,
-                Installer.ceStates(contentRoot)), getLogger());
+                Installer.ceStates(contentRoot), visualSelection), getLogger());
     }
 
     @Override
@@ -154,6 +175,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         // CRAFTENGINE_RELOADED is signalled by the CE adapter (M1-INT-02), BETTERMODEL_MODELS_READY by the
         // BetterModel adapter (M1-INT-03), REGISTRIES_LOADED by the registry loader's first swap.
         integrations.onEnable();
+        enableVisuals();
         enableServices();
         getLogger().info("Integrations: " + (integrations.activePlugins().isEmpty() ? "none"
                 : String.join(", ", integrations.activePlugins())));
@@ -169,6 +191,41 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 getLogger().warning("Not ready after " + READY_WARN_SECONDS + " s, " + readyGate.describe());
             }
         }, CompletableFuture.delayedExecutor(READY_WARN_SECONDS, TimeUnit.SECONDS, scheduler.cpuExecutor()));
+    }
+
+    /**
+     * M1-INST-03: the pool check and the one pack rebuild after CraftEngine loaded; M1-INST-04: the
+     * vanilla-block suppression listeners for the installed allocation.
+     */
+    private void enableVisuals() {
+        PackRebuildTrigger trigger = new PackRebuildTrigger(install, getDataPath().resolve("install"),
+                integrations.packRebuilder(), integrations.visualPools(), visualIndex, visualSelection,
+                config.current().visuals().solidReserveWarning(), scheduler.ioExecutor(), getLogger());
+        packRebuild = trigger;
+        integrations.blockVisuals().onReload(trigger::onCraftEngineReload);
+
+        if (contentRoot == null || visualSelection == null) {
+            getLogger().warning("No visual allocation: vanilla-block suppression is off");
+            return;
+        }
+        try {
+            Path dir = contentRoot.resolve(visualSelection.dir());
+            SuppressionSet set = SuppressionSet.parse(java.nio.file.Files.readString(dir.resolve("suppressed_blocks.json")),
+                    java.nio.file.Files.readString(dir.resolve("visual_mappings.yml")));
+            // Until the M2 generator marks TFC worlds, every world counts: the CraftEngine mappings hide these
+            // vanilla blocks in every world anyway.
+            SuppressionListener listener = new SuppressionListener(new Suppression(set), world -> true, getLogger());
+            getServer().getPluginManager().registerEvents(listener, this);
+            getLogger().info("Vanilla-block suppression: " + set.blockIds().size() + " repurposed block(s) of "
+                    + visualSelection.id());
+        } catch (IOException | RuntimeException e) {
+            getLogger().log(Level.SEVERE, "Cannot load the vanilla-block suppression list; suppression is off", e);
+        }
+    }
+
+    /** M1-INST-03: the pack rebuild / pool check state (null until enabled). */
+    public PackRebuildTrigger packRebuild() {
+        return packRebuild;
     }
 
     /** M1-SVC-01..03: registries, player data, packet layer. */

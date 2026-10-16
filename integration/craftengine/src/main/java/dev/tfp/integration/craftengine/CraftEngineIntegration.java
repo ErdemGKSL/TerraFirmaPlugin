@@ -11,6 +11,8 @@ import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.integration.CustomItems;
 import dev.tfp.paper.integration.Integration;
 import dev.tfp.paper.integration.IntegrationContext;
+import dev.tfp.paper.integration.PackRebuilder;
+import dev.tfp.paper.integration.VisualPools;
 import dev.tfp.paper.ready.ReadyGate;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.util.List;
@@ -46,6 +48,8 @@ import org.bukkit.event.world.ChunkUnloadEvent;
  *       first one also signals {@link ReadyGate.Signal#CRAFTENGINE_RELOADED};</li>
  *   <li>region-thread-only world calls ({@link CustomBlocks}): refused off the owning region thread;</li>
  *   <li>item lookups ({@link CustomItems}, served by {@link CraftEngineItemAdapter});</li>
+ *   <li>pack rebuild and solid-pool counts ({@link PackRebuilder}, {@link VisualPools}, served by
+ *       {@link CraftEnginePackAdapter}, M1-INST-03);</li>
  *   <li>chunk hooks at priority LOW on load (after CraftEngine restores at LOWEST) and HIGH on unload
  *       (before CraftEngine saves at HIGHEST);</li>
  *   <li>{@link CraftEngineIssueLog} for configuration issues in our pack (appender wiring: M1-TEST-01).</li>
@@ -69,11 +73,13 @@ public final class CraftEngineIntegration implements Integration, BlockVisuals, 
     private final List<Consumer<Chunk>> chunkUnloadHooks = new CopyOnWriteArrayList<>();
     private volatile Table table = Table.EMPTY;
     private final CraftEngineItemAdapter items = new CraftEngineItemAdapter();
+    private final CraftEnginePackAdapter pack;
     private volatile boolean loaded;
 
     CraftEngineIntegration(IntegrationContext ctx, CraftEngineBehaviours behaviours) {
         this.ctx = ctx;
         this.behaviours = behaviours;
+        this.pack = new CraftEnginePackAdapter(ctx, NAMESPACE);
     }
 
     /** Where feature adapters add their behaviours before {@code onLoad}. */
@@ -94,6 +100,9 @@ public final class CraftEngineIntegration implements Integration, BlockVisuals, 
     public <T> Optional<T> service(Class<T> type) {
         if (type == CustomItems.class) {
             return Optional.of(type.cast(items));
+        }
+        if (type == PackRebuilder.class || type == VisualPools.class) {
+            return Optional.of(type.cast(pack));
         }
         return Integration.super.service(type);
     }

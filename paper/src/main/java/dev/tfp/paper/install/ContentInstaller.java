@@ -69,13 +69,23 @@ public final class ContentInstaller {
      * @param restoreDeleted {@code auto-install.restore-deleted}
      */
     public static Report install(Path source, Path target, String contentVersion, boolean restoreDeleted) throws IOException {
+        return install(list(source), target, contentVersion, restoreDeleted);
+    }
+
+    /**
+     * Same as {@link #install(Path, Path, String, boolean)} for an explicit file set (a shipped tree plus
+     * overlay files, e.g. the selected visual allocation, M1-INST-03).
+     *
+     * @param shipped target-relative {@code /}-separated path → source file
+     */
+    public static Report install(Map<String, Path> shipped, Path target, String contentVersion, boolean restoreDeleted)
+            throws IOException {
         Files.createDirectories(target);
         AtomicFiles.deleteStaleTemps(target);
         Path manifestFile = target.resolve(InstallManifest.FILE_NAME);
         InstallManifest old = readManifest(manifestFile);
         InstallManifest.Builder next = old.toBuilder(contentVersion);
 
-        Map<String, Path> shipped = list(source);
         int written = 0;
         int unchanged = 0;
         int keptEdited = 0;

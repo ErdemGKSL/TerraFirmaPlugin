@@ -5,7 +5,9 @@
  */
 package dev.tfp.paper.integration;
 
+import dev.tfp.core.visuals.ProfileCheck.PoolUsage;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
@@ -118,4 +120,18 @@ final class Absent {
         public void onModelCreated(Consumer<Entity> hook) {
         }
     };
+
+    static final PackRebuilder PACK_REBUILDER = new PackRebuilder() {
+        @Override
+        public boolean available() {
+            return false;
+        }
+
+        @Override
+        public CompletableFuture<Boolean> rebuild() {
+            return CompletableFuture.failedFuture(new IllegalStateException("CraftEngine is not available"));
+        }
+    };
+
+    static final VisualPools VISUAL_POOLS = () -> Optional.<PoolUsage>empty();
 }

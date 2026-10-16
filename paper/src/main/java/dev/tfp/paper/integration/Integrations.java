@@ -128,6 +128,16 @@ public final class Integrations {
         return find(CustomItems.class).orElse(Absent.CUSTOM_ITEMS);
     }
 
+    /** M1-INST-03: CraftEngine pack rebuild (absent: {@link PackRebuilder#available()} is false). */
+    public PackRebuilder packRebuilder() {
+        return find(PackRebuilder.class).orElse(Absent.PACK_REBUILDER);
+    }
+
+    /** M1-INST-03: CraftEngine pool counts (absent: always empty). */
+    public VisualPools visualPools() {
+        return find(VisualPools.class).orElse(Absent.VISUAL_POOLS);
+    }
+
     public EntityModels entityModels() {
         return find(EntityModels.class).orElse(Absent.ENTITY_MODELS);
     }

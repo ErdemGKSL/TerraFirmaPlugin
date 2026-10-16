@@ -9,7 +9,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.tfp.core.config.TfpConfig.AutoInstall;
 import dev.tfp.core.install.ConfigEdit.Outcome;
+import dev.tfp.core.config.TfpConfig.Profile;
 import dev.tfp.core.install.InstallManifest;
+import dev.tfp.core.visuals.VisualSelection;
+import dev.tfp.paper.integration.FakePackRebuilder;
+import dev.tfp.paper.integration.FakeVisualPools;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -94,6 +98,8 @@ class InstallerTest {
         assertThat(first.status().packRebuild()).isTrue();
         assertThat(Files.exists(plugins.resolve("TerraFirmaPlugin/install/" + ThirdPartyConfigEditor.RECORD_FILE))).isTrue();
 
+        // The rebuild requested by the first start succeeded (PackRebuildTrigger records it).
+        Installer.recordPackBuilt(plugins.resolve("TerraFirmaPlugin/install"), first.packFingerprint());
         Installer.Result second = run(AutoInstall.DEFAULTS, ALL);
         assertThat(second.status().restartRequired()).isFalse();
         assertThat(second.status().degraded()).isFalse();
@@ -197,5 +203,117 @@ class InstallerTest {
         run(AutoInstall.DEFAULTS, ALL);
         assertThat(Files.exists(Installer.craftEngineTarget(plugins).resolve(InstallManifest.FILE_NAME))).isTrue();
         assertThat(Files.exists(Installer.betterHudTarget(plugins).resolve(InstallManifest.FILE_NAME))).isTrue();
+    }
+
+    // ---- M1-INST-03: visual profile selection and the pack rebuild -----------------------------------
+
+    static final VisualSelection L3A = new VisualSelection("1.21", Profile.LEVEL_3A, false);
+    static final VisualSelection L2 = new VisualSelection("1.21", Profile.LEVEL_2, false);
+
+    Path stateDir() {
+        return plugins.resolve("TerraFirmaPlugin/install");
+    }
+
+    void shipAllocation(VisualSelection v) throws IOException {
+        write(content.resolve(v.dir()).resolve("visual_templates.yml"), "templates: " + v.profile().id() + "\n");
+        write(content.resolve(v.dir()).resolve("visual_mappings.yml"), "block_state_mappings: {} # " + v.profile().id() + "\n");
+        write(content.resolve(v.dir()).resolve("suppressed_blocks.json"), "{\"suppress\": []}");
+    }
+
+    Installer.Result run(VisualSelection v) {
+        return Installer.run(new Installer.Inputs(AutoInstall.DEFAULTS, plugins, stateDir(), content, "1.0", ALL, 1353, v), LOG);
+    }
+
+    /** One server run after CraftEngine loaded: two CraftEngine reloads (startup + the rebuild's own). */
+    int startServer(Installer.Result r, FakePackRebuilder rebuilder) {
+        int before = rebuilder.requests();
+        PackRebuildTrigger t = new PackRebuildTrigger(r, stateDir(), rebuilder, new FakeVisualPools(), null, null, 500,
+                Runnable::run, LOG);
+        t.onCraftEngineReload();
+        t.onCraftEngineReload();
+        return rebuilder.requests() - before;
+    }
+
+    @Test
+    void selectedAllocationIsInstalledIntoTheCraftEnginePack() throws IOException {
+        shipAllocation(L3A);
+        Installer.Result r = run(L3A);
+        Path visuals = Installer.craftEngineTarget(plugins).resolve("configuration/visuals");
+        assertThat(Files.readString(visuals.resolve("visual_templates.yml"))).isEqualTo("templates: level-3a\n");
+        assertThat(visuals.resolve("visual_mappings.yml")).isRegularFile();
+        assertThat(visuals.resolve("suppressed_blocks.json")).doesNotExist();
+        assertThat(r.packFingerprint().selection()).isEqualTo(L3A);
+    }
+
+    @Test
+    void profileChangedBetweenRestartsRequestsOneRebuildAndChangesNoWorld() throws IOException {
+        shipAllocation(L3A);
+        shipAllocation(L2);
+        Path world = plugins.getParent().resolve("world/region/r.0.0.mca");
+        write(world, "chunks");
+        FakePackRebuilder ce = new FakePackRebuilder();
+
+        Installer.Result first = run(L3A);
+        assertThat(first.status().packRebuild()).isTrue();
+        assertThat(startServer(first, ce)).isEqualTo(1);
+        assertThat(Installer.readPackRecord(stateDir())).contains(first.packFingerprint());
+
+        Installer.Result same = run(L3A);
+        assertThat(same.packPlan().rebuild()).isFalse();
+        assertThat(startServer(same, ce)).isZero();
+
+        Installer.Result switched = run(L2);
+        assertThat(switched.status().packRebuild()).isTrue();
+        assertThat(switched.packPlan().migrateWorldData()).isFalse();
+        assertThat(switched.packPlan().reason()).contains("1.21/level-3a/nether-end-off -> 1.21/level-2/nether-end-off");
+        assertThat(Files.readString(Installer.craftEngineTarget(plugins).resolve("configuration/visuals/visual_templates.yml")))
+                .isEqualTo("templates: level-2\n");
+        assertThat(startServer(switched, ce)).isEqualTo(1);
+
+        Installer.Result again = run(L2);
+        assertThat(again.packPlan().rebuild()).isFalse();
+        assertThat(startServer(again, ce)).isZero();
+        assertThat(ce.requests()).isEqualTo(2);
+        assertThat(Files.readString(world)).isEqualTo("chunks");
+    }
+
+    @Test
+    void failedRebuildIsRetriedAtTheNextStart() throws IOException {
+        shipAllocation(L3A);
+        FakePackRebuilder ce = new FakePackRebuilder().succeeding(false);
+        assertThat(startServer(run(L3A), ce)).isEqualTo(1);
+        assertThat(Installer.readPackRecord(stateDir())).isEmpty();
+        ce.failing(new IllegalStateException("busy"));
+        assertThat(startServer(run(L3A), ce)).isEqualTo(1);
+        ce.succeeding(true);
+        assertThat(startServer(run(L3A), ce)).isEqualTo(1);
+        assertThat(startServer(run(L3A), ce)).isZero();
+    }
+
+    @Test
+    void missingAllocationIsReportedAndDegrades() throws IOException {
+        Installer.Result r = run(L2);
+        assertThat(r.craftEngine()).isNotNull();
+        assertThat(r.status().degraded()).isTrue();
+        assertThat(String.join("\n", r.status().banner())).contains("visual allocation 1.21/level-2/nether-end-off is not shipped");
+    }
+
+    @Test
+    void capacityCheckRunsOnEveryReload() throws IOException {
+        shipAllocation(L2);
+        dev.tfp.core.visuals.VisualIndex index = dev.tfp.core.visuals.VisualIndex.parse("""
+                {"format": 1, "families": {"1.21": {"solid_pool": 1289}}, "allocations": [
+                  {"family": "1.21", "profile": "level-2", "nether_end": false, "dir": "d", "solid_used": 591, "solid_free": 698},
+                  {"family": "1.21", "profile": "level-3a", "nether_end": false, "dir": "d", "solid_used": 339, "solid_free": 950}]}""");
+        FakeVisualPools pools = new FakeVisualPools().solid(1289, 1289, 389);
+        PackRebuildTrigger t = new PackRebuildTrigger(run(L2), stateDir(), new FakePackRebuilder(), pools, index, L2, 500,
+                Runnable::run, LOG);
+        t.onCraftEngineReload();
+        assertThat(t.lastCheck().verdict()).isEqualTo(dev.tfp.core.visuals.ProfileCheck.Verdict.FAIL);
+        assertThat(t.lastCheck().suggestion()).contains(Profile.LEVEL_3A);
+        assertThat(t.rebuildRequested()).isTrue();
+        pools.solid(1289, 691, 591);
+        t.onCraftEngineReload();
+        assertThat(t.lastCheck().verdict()).isEqualTo(dev.tfp.core.visuals.ProfileCheck.Verdict.OK);
     }
 }

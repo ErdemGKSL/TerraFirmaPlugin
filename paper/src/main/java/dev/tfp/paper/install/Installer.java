@@ -9,13 +9,19 @@ import dev.tfp.core.config.TfpConfig;
 import dev.tfp.core.install.ConfigEdit;
 import dev.tfp.core.install.InstallStatus;
 import dev.tfp.core.install.InstallStatus.EditResult;
+import dev.tfp.core.install.InstallManifest;
 import dev.tfp.core.install.ThirdPartyEdits;
+import dev.tfp.core.visuals.PackBuild;
+import dev.tfp.core.visuals.VisualSelection;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +32,11 @@ import java.util.logging.Logger;
  * then the targeted config edits, then the restart/degraded decision ({@link InstallStatus#decide}).
  * BetterModel gets no files: its models are registered from our jar.
  *
+ * <p>M1-INST-03: the selected visual allocation ({@code /content/visuals/<family>/<profile>/nether-end-*})
+ * is installed with the CraftEngine pack as {@code configuration/visuals/}; the pack's fingerprint is compared
+ * with the one the last successful rebuild delivered ({@link PackBuild}); a difference asks for one rebuild
+ * ({@code status().packRebuild()}), which {@link PackRebuildTrigger} starts after CraftEngine has loaded.
+ *
  * <p>Blocking file I/O: {@code onLoad} or the io executor only. Not thread-safe; run one at a time.
  */
 public final class Installer {
@@ -33,6 +44,10 @@ public final class Installer {
     public static final String BETTERHUD = "BetterHud";
     /** Our pack's folder name in both plugins. */
     public static final String PACK = "tfp";
+    /** Where the selected allocation's files go inside our CraftEngine pack. */
+    public static final String VISUALS_DIR = "configuration/visuals/";
+    /** The allocation files installed into the CraftEngine pack (the suppression list stays in the jar). */
+    public static final List<String> VISUAL_FILES = List.of("visual_templates.yml", "visual_mappings.yml");
 
     /**
      * @param pluginsDir     the server's {@code plugins/} folder
@@ -41,17 +56,29 @@ public final class Installer {
      * @param contentVersion recorded in the manifests (our plugin version)
      * @param installed      names of the client plugins present
      * @param ceStates       CraftEngine block states our content defines (sizes {@code serverside-blocks})
+     * @param visuals        the visual allocation to install (null: none, e.g. no content)
      */
     public record Inputs(TfpConfig.AutoInstall settings, Path pluginsDir, Path stateDir, Path contentRoot,
-            String contentVersion, Set<String> installed, int ceStates) {
+            String contentVersion, Set<String> installed, int ceStates, VisualSelection visuals) {
         public Inputs {
             installed = Set.copyOf(installed);
         }
+
+        public Inputs(TfpConfig.AutoInstall settings, Path pluginsDir, Path stateDir, Path contentRoot,
+                String contentVersion, Set<String> installed, int ceStates) {
+            this(settings, pluginsDir, stateDir, contentRoot, contentVersion, installed, ceStates, null);
+        }
     }
 
-    /** Everything one run did. A null report means the target was skipped ({@code skipped} says why). */
+    /**
+     * Everything one run did. A null report means the target was skipped ({@code skipped} says why).
+     *
+     * @param packPlan        whether our CE pack content/profile differs from the last delivered build
+     * @param packFingerprint what our CE pack holds now; record it with {@link #recordPackBuilt} once a
+     *                        rebuild succeeded (null if our CE pack was not installed)
+     */
     public record Result(InstallStatus status, ContentInstaller.Report craftEngine, ContentInstaller.Report betterHud,
-            List<String> skipped, List<EditResult> edits) {
+            List<String> skipped, List<EditResult> edits, PackBuild.Plan packPlan, PackBuild.Fingerprint packFingerprint) {
         public Result {
             skipped = List.copyOf(skipped);
             edits = List.copyOf(edits);
@@ -85,7 +112,18 @@ public final class Installer {
             skipped.add("CraftEngine pack: plugins/CraftEngine/resources does not exist yet (start CraftEngine once)");
             failures.add("our CraftEngine pack is not installed: plugins/CraftEngine/resources does not exist yet");
         } else {
-            ce = installTree(in, "craftengine/" + PACK, craftEngineTarget(in.pluginsDir()), "CraftEngine pack", skipped, failures, log);
+            ce = installCraftEngine(in, skipped, failures, log);
+        }
+        PackBuild.Plan plan = PackBuild.Plan.NOTHING;
+        PackBuild.Fingerprint fingerprint = null;
+        if (ce != null) {
+            try {
+                fingerprint = fingerprint(craftEngineTarget(in.pluginsDir()), in.visuals());
+                plan = PackBuild.decide(readPackRecord(in.stateDir()), fingerprint);
+            } catch (IOException | RuntimeException e) {
+                log.log(Level.WARNING, "Cannot compare our CraftEngine pack with the last build; rebuilding it", e);
+                plan = new PackBuild.Plan(true, false, "pack fingerprint unavailable (" + e + ")");
+            }
         }
 
         ContentInstaller.Report bh = null;
@@ -109,8 +147,9 @@ public final class Installer {
             failures.add("config edits failed: " + e);
         }
 
-        InstallStatus status = InstallStatus.decide(edits, ceInstalled, ce != null && ce.changed(), failures);
-        Result result = new Result(status, ce, bh, skipped, edits);
+        // A changed CE file always changes the fingerprint, so the plan covers ce.changed() too.
+        InstallStatus status = InstallStatus.decide(edits, ceInstalled, plan.rebuild(), failures);
+        Result result = new Result(status, ce, bh, skipped, edits, plan, fingerprint);
         logResult(result, log);
         return result;
     }
@@ -139,6 +178,68 @@ public final class Installer {
         } catch (IOException | RuntimeException e) {
             return 0;
         }
+    }
+
+    /** Our CE pack plus the selected visual allocation under {@link #VISUALS_DIR}. */
+    private static ContentInstaller.Report installCraftEngine(Inputs in, List<String> skipped, List<String> failures,
+            Logger log) {
+        String label = "CraftEngine pack";
+        String sourceRel = "craftengine/" + PACK;
+        Path target = craftEngineTarget(in.pluginsDir());
+        Optional<Path> source = Optional.ofNullable(in.contentRoot()).map(r -> r.resolve(sourceRel)).filter(Files::isDirectory);
+        if (source.isEmpty()) {
+            skipped.add(label + ": the plugin jar ships no /content/" + sourceRel);
+            return null;
+        }
+        try {
+            Map<String, Path> files = new TreeMap<>(ContentInstaller.list(source.get()));
+            VisualSelection v = in.visuals();
+            if (v != null) {
+                Path dir = in.contentRoot().resolve(v.dir());
+                List<String> missing = VISUAL_FILES.stream().filter(f -> !Files.isRegularFile(dir.resolve(f))).toList();
+                if (missing.isEmpty()) {
+                    for (String f : VISUAL_FILES) {
+                        files.put(VISUALS_DIR + f, dir.resolve(f));
+                    }
+                } else {
+                    failures.add("visual allocation " + v.id() + " is not shipped in the plugin jar (missing " + missing
+                            + "): our blocks have no visuals");
+                }
+            }
+            return ContentInstaller.install(files, target, in.contentVersion(), in.settings().restoreDeleted());
+        } catch (IOException | RuntimeException e) {
+            log.log(Level.SEVERE, "Cannot install the " + label + " into " + target, e);
+            failures.add(label + " install failed: " + e);
+            return null;
+        }
+    }
+
+    /** What our installed CE pack holds (from its manifest) with the selection installed. */
+    static PackBuild.Fingerprint fingerprint(Path ceTarget, VisualSelection visuals) throws IOException {
+        InstallManifest m = ContentInstaller.readManifest(ceTarget.resolve(InstallManifest.FILE_NAME));
+        Map<String, String> files = new TreeMap<>();
+        m.files().forEach((k, e) -> {
+            if (!e.deleted()) {
+                files.put(k, e.sha256());
+            }
+        });
+        return PackBuild.Fingerprint.of(files, visuals);
+    }
+
+    /** The fingerprint of the last successful CraftEngine pack rebuild (empty: none or unreadable). */
+    public static Optional<PackBuild.Fingerprint> readPackRecord(Path stateDir) {
+        Path f = stateDir.resolve(PackBuild.RECORD_FILE);
+        try {
+            return Files.isRegularFile(f) ? PackBuild.Fingerprint.fromJson(Files.readString(f, StandardCharsets.UTF_8))
+                    : Optional.empty();
+        } catch (IOException e) {
+            return Optional.empty();
+        }
+    }
+
+    /** Records that a CraftEngine rebuild delivered {@code fingerprint}. Blocking I/O: io executor. */
+    public static void recordPackBuilt(Path stateDir, PackBuild.Fingerprint fingerprint) throws IOException {
+        AtomicFiles.write(stateDir.resolve(PackBuild.RECORD_FILE), fingerprint.toJson().getBytes(StandardCharsets.UTF_8));
     }
 
     private static ContentInstaller.Report installTree(Inputs in, String sourceRel, Path target, String label,
@@ -182,7 +283,8 @@ public final class Installer {
             }
         }
         if (r.status().packRebuild()) {
-            log.info("The CraftEngine resource pack must be rebuilt for players to see the changes.");
+            log.info("The CraftEngine resource pack will be rebuilt once CraftEngine has loaded"
+                    + (r.packPlan().reason().isEmpty() ? "" : " (" + r.packPlan().reason() + ")") + ".");
         }
         for (String line : r.status().banner()) {
             log.severe(line);
