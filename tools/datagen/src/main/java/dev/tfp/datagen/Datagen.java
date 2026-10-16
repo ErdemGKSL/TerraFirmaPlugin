@@ -5,6 +5,8 @@
  */
 package dev.tfp.datagen;
 
+import dev.tfp.datagen.visuals.VisualDemand;
+import dev.tfp.datagen.visuals.VisualOutputs;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -49,6 +51,17 @@ public final class Datagen {
         }
     }
 
+    /** Model id → JSON text in the pack (or the id itself for a model we do not ship, e.g. vanilla). */
+    static String modelContent(OutputTree out, String model) {
+        if (model.startsWith(Json.TO_NS + ":")) {
+            byte[] b = out.get(AssetPipeline.RP + "models/" + model.substring(Json.TO_NS.length() + 1) + ".json");
+            if (b != null) {
+                return new String(b, java.nio.charset.StandardCharsets.UTF_8);
+            }
+        }
+        return model;
+    }
+
     public record Result(OutputTree tree, Report report) {
     }
 
@@ -58,10 +71,11 @@ public final class Datagen {
         OutputTree out = new OutputTree();
         Report report = new Report();
         report.data(DataExport.run(tfc, out));
-        AssetPipeline.run(tfc, out, report);
+        List<VisualDemand> demand = AssetPipeline.run(tfc, out, report);
         if (!report.missing().isEmpty()) {
             throw new DatagenException("unresolved model/texture references: " + report.missing());
         }
+        VisualOutputs.run(out, demand, model -> modelContent(out, model));
         out.put("third-party.json", "[]\n"); // no non-EUPL file is copied yet (checked by :checkNotice)
         out.put("reports/datagen-summary.json", Json.write(report.toJson()));
         out.put(Manifest.FILE, Manifest.build(tfc.head(), tfc.inputs(), out.files()));

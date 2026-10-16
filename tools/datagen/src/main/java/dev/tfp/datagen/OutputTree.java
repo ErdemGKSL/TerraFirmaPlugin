@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 public final class OutputTree {
     /** Top-level entries of the content directory that datagen owns (everything else is left alone). */
     public static final List<String> OWNED = List.of(
-        "data", "craftengine", "reports", Manifest.FILE, "third-party.json");
+        "data", "craftengine", "visuals", "datapack", "reports", Manifest.FILE, "third-party.json");
 
     private final SortedMap<String, byte[]> files = new TreeMap<>();
 
@@ -47,6 +47,11 @@ public final class OutputTree {
 
     public void put(String path, String text) {
         put(path, text.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /** The bytes written at {@code path}, or null. */
+    public synchronized byte[] get(String path) {
+        return files.get(path);
     }
 
     public synchronized boolean contains(String path) {

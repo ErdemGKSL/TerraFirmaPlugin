@@ -7,9 +7,6 @@ package dev.tfp.datagen;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,39 +38,74 @@ final class CeYamlCheck {
         return new Yaml(opts).load(text);
     }
 
+    /**
+     * Validates the CE pack once per allocation: the pack's own templates plus that allocation's
+     * {@code visual_templates.yml} must define every template the blocks call, and every variant must name an
+     * appearance the visual template provides.
+     */
     @SuppressWarnings("unchecked")
     static void assertValid(SortedMap<String, byte[]> files) {
         Map<String, Object> templates = new HashMap<>();
         Map<String, String> bodies = new HashMap<>();
         List<Map.Entry<String, Map<String, Object>>> configs = new ArrayList<>();
+        List<String> allocations = new ArrayList<>();
         for (var e : files.entrySet()) {
+            if (e.getKey().startsWith("visuals/") && e.getKey().endsWith("/visual_templates.yml")) {
+                allocations.add(e.getKey());
+            }
             if (!e.getKey().startsWith(AssetPipeline.CONFIG) || !e.getKey().endsWith(".yml")) {
                 continue;
             }
             Map<String, Object> root = (Map<String, Object>) parse(new String(e.getValue(), StandardCharsets.UTF_8), e.getKey());
-            for (var section : root.entrySet()) {
-                if (section.getKey().startsWith("templates")) {
-                    for (var t : ((Map<String, Object>) section.getValue()).entrySet()) {
-                        assertThat(templates.put(t.getKey(), t.getValue())).as("duplicate template " + t.getKey()).isNull();
-                        bodies.put(t.getKey(), new Yaml().dump(t.getValue()));
-                    }
-                } else {
-                    configs.add(Map.entry(e.getKey(), root));
-                }
+            if (!collectTemplates(root, templates, bodies)) {
+                configs.add(Map.entry(e.getKey(), root));
             }
         }
         assertThat(templates).isNotEmpty();
-        Set<String> ids = new HashSet<>();
-        for (var c : new HashSet<>(configs)) {
-            for (var section : c.getValue().entrySet()) {
-                assertThat(section.getKey()).as(c.getKey()).isIn("blocks", "items");
-                for (var entry : ((Map<String, Object>) section.getValue()).entrySet()) {
-                    assertThat(ids.add(section.getKey() + "/" + entry.getKey())).as("duplicate id " + entry.getKey()).isTrue();
-                    assertThat(entry.getKey()).startsWith("tfp:");
-                    walk(entry.getValue(), templates, bodies, c.getKey() + " " + entry.getKey());
+        assertThat(allocations).as("visual allocations").isNotEmpty();
+        for (String alloc : allocations) {
+            Map<String, Object> t = new HashMap<>(templates);
+            Map<String, String> b = new HashMap<>(bodies);
+            Map<String, Object> root = (Map<String, Object>) parse(new String(files.get(alloc), StandardCharsets.UTF_8), alloc);
+            assertThat(root.keySet()).as(alloc).containsExactly("templates#visuals");
+            collectTemplates(root, t, b);
+            String mappings = alloc.replace("visual_templates.yml", "visual_mappings.yml");
+            assertThat(files).as(alloc).containsKey(mappings);
+            Map<String, Object> m = (Map<String, Object>) parse(new String(files.get(mappings), StandardCharsets.UTF_8), mappings);
+            assertThat(m.keySet()).as(mappings).containsExactly("block_state_mappings");
+            for (var e : ((Map<String, Object>) m.get("block_state_mappings")).entrySet()) {
+                assertThat(e.getKey()).as(mappings).matches(STATE);
+                assertThat((String) e.getValue()).as(mappings).matches(STATE);
+            }
+            Set<String> ids = new HashSet<>();
+            for (var c : configs) {
+                for (var section : c.getValue().entrySet()) {
+                    assertThat(section.getKey()).as(c.getKey()).isIn("blocks", "items");
+                    for (var entry : ((Map<String, Object>) section.getValue()).entrySet()) {
+                        assertThat(ids.add(section.getKey() + "/" + entry.getKey())).as("duplicate id " + entry.getKey()).isTrue();
+                        assertThat(entry.getKey()).startsWith("tfp:");
+                        walk(entry.getValue(), t, b, alloc + ": " + c.getKey() + " " + entry.getKey());
+                    }
                 }
             }
         }
+    }
+
+    private static final String STATE = "minecraft:[a-z0-9_]+(\\[[a-z0-9_]+=[a-z0-9_]+(,[a-z0-9_]+=[a-z0-9_]+)*])?";
+
+    @SuppressWarnings("unchecked")
+    private static boolean collectTemplates(Map<String, Object> root, Map<String, Object> templates, Map<String, String> bodies) {
+        boolean any = false;
+        for (var section : root.entrySet()) {
+            if (section.getKey().startsWith("templates")) {
+                any = true;
+                for (var t : ((Map<String, Object>) section.getValue()).entrySet()) {
+                    assertThat(templates.put(t.getKey(), t.getValue())).as("duplicate template " + t.getKey()).isNull();
+                    bodies.put(t.getKey(), new Yaml().dump(t.getValue()));
+                }
+            }
+        }
+        return any;
     }
 
     @SuppressWarnings("unchecked")
@@ -91,11 +123,18 @@ final class CeYamlCheck {
             }
             if (m.containsKey("properties") && m.containsKey("variants")) {
                 Map<String, Map<String, Object>> props = (Map<String, Map<String, Object>>) m.get("properties");
-                for (Object key : ((Map<?, ?>) m.get("variants")).keySet()) {
-                    for (String kv : key.toString().split(",")) {
+                Map<String, Object> apps = (Map<String, Object>) m.get("appearances");
+                if (apps != null && apps.containsKey("template")) {
+                    apps = (Map<String, Object>) templates.get((String) apps.get("template"));
+                }
+                for (var v : ((Map<?, ?>) m.get("variants")).entrySet()) {
+                    for (String kv : v.getKey().toString().split(",")) {
                         String[] p = kv.split("=", 2);
-                        assertThat(props).as(where + " variant " + key).containsKey(p[0]);
+                        assertThat(props).as(where + " variant " + v.getKey()).containsKey(p[0]);
                     }
+                    Object app = ((Map<?, ?>) v.getValue()).get("appearance");
+                    assertThat(apps).as(where + " appearances").isNotNull();
+                    assertThat(apps).as(where + " variant " + v.getKey()).containsKey((String) app);
                 }
             }
             m.values().forEach(v -> walk(v, templates, bodies, where));
@@ -136,17 +175,31 @@ final class CeYamlCheck {
         return req;
     }
 
+    /**
+     * Raw rock's visual template (every allocation) draws exactly TFC's random pillar blockstate: per axis the
+     * models of {@link CeBlockStates#expandRandomPillar}.
+     */
     @SuppressWarnings("unchecked")
-    static void assertRandomPillarTemplateMatches() {
-        String text;
-        try (InputStream in = AssetPipeline.class.getResourceAsStream("ce/templates/block_states.yml")) {
-            text = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+    static void assertRandomPillarVisualsMatch(SortedMap<String, byte[]> files, String rockId) {
+        String a = "tfp:block/" + rockId;
+        Map<String, List<CeBlockStates.ModelRef>> expected = CeBlockStates.expandRandomPillar(a, a + "_mirrored");
+        int checked = 0;
+        for (var e : files.entrySet()) {
+            if (!e.getKey().endsWith("/visual_templates.yml")) {
+                continue;
+            }
+            Map<String, Object> root = (Map<String, Object>) parse(new String(e.getValue(), StandardCharsets.UTF_8), e.getKey());
+            Map<String, Object> apps = (Map<String, Object>) ((Map<String, Object>) root.get("templates#visuals"))
+                .get(CeBlockStates.visualTemplate(rockId));
+            assertThat(apps.keySet()).containsExactly("axis_x", "axis_y", "axis_z");
+            expected.forEach((key, models) -> {
+                Map<String, Object> app = (Map<String, Object>) apps.get(key.replace("=", "_"));
+                assertThat(app.get("models")).as(e.getKey() + " " + key)
+                    .isEqualTo(models.stream().map(CeBlockStates.ModelRef::toYaml).toList());
+                assertThat(app.containsKey("state") != app.containsKey("auto_state")).isTrue();
+            });
+            checked++;
         }
-        text = text.replace("${pillar_model_mirrored}", "B").replace("${pillar_model}", "A");
-        Map<String, Object> root = (Map<String, Object>) parse(text, "block_states.yml");
-        Object template = ((Map<String, Object>) root.get("templates#block_states")).get("tfp:block_state/random_pillar");
-        assertThat(template).isEqualTo(CeBlockStates.literal(CeBlockStates.expandRandomPillar("A", "B")));
+        assertThat(checked).isEqualTo(20);
     }
 }

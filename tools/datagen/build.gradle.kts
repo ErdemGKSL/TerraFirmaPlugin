@@ -18,6 +18,9 @@ val tfcCheckout = providers.gradleProperty("tfc.checkout")
 val contentDir = rootProject.layout.projectDirectory.dir("content/generated/content")
 
 tasks.test {
+    // The full-checkout test holds the whole generated tree (~80 MB) and parses 20 visual allocations. A bounded
+    // heap makes the GC collect early instead of growing towards 1/4 of RAM (the CI/container memory limit).
+    maxHeapSize = "1g"
     // The full-checkout test runs only when the pinned checkout is present.
     systemProperty("tfc.checkout", tfcCheckout.get())
     systemProperty("tfp.repoRoot", rootProject.layout.projectDirectory.asFile.absolutePath)

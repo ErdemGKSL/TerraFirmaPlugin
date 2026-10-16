@@ -18,20 +18,20 @@ import java.util.Set;
 /**
  * TFC {@code variants} blockstate → CraftEngine {@code state}/{@code states} section.
  *
- * <p>Every appearance takes {@code auto_state: solid}: this converter is only used for full opaque cubes. The
- * visual allocator (M1-DGN-04) later replaces the pool choice per profile. Known shapes become calls to our
- * {@code tfp:block_state/*} templates; anything else is emitted literally with fully specified, non-overlapping
- * variant keys.
+ * <p>This converter is only used for full opaque cubes. The visual of every appearance (which vanilla state it
+ * is drawn with, and the model) comes from a per-block template {@code tfp:visual/<id>} that the visual allocator
+ * ({@link dev.tfp.datagen.visuals.VisualAllocator}, M1-DGN-04) writes once per profile × MC version family. The
+ * block entry itself keeps only the server-side shape: no appearance, or {@code properties} + {@code variants}
+ * with the {@code appearances} map filled by that template. The appearances (name → models) are returned as the
+ * allocator's demand. Variant keys are fully specified and non-overlapping.
  */
-final class CeBlockStates {
-    static final String POOL = "solid";
-
+public final class CeBlockStates {
     private CeBlockStates() {
     }
 
     /** One weighted/rotated model reference of a blockstate variant. */
-    record ModelRef(String path, int x, int y, boolean uvlock, int weight) {
-        Map<String, Object> toYaml() {
+    public record ModelRef(String path, int x, int y, boolean uvlock, int weight) {
+        public Map<String, Object> toYaml() {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("path", path);
             if (x != 0) {
@@ -49,7 +49,7 @@ final class CeBlockStates {
             return m;
         }
 
-        boolean plain() {
+        public boolean plain() {
             return x == 0 && y == 0 && !uvlock && weight == 1;
         }
     }
@@ -87,24 +87,46 @@ final class CeBlockStates {
         return a;
     }
 
-    /** Returns {@code ("state" | "states", section)}. */
-    static Map.Entry<String, Object> toCe(Variants v) {
+    /** Template id of the per-block visual written by the allocator. */
+    public static String visualTemplate(String id) {
+        return Json.TO_NS + ":visual/" + id;
+    }
+
+    /**
+     * A converted block: {@code key} is {@code state} or {@code states}, {@code section} the profile-independent
+     * YAML, {@code appearances} the appearance name → models that the visual template must provide (the single
+     * appearance of a {@code state} block has the name {@code ""}).
+     */
+    public record CeState(String key, Map<String, Object> section, Map<String, List<ModelRef>> appearances) {
+    }
+
+    static CeState toCe(Variants v, String id) {
         Map<String, List<ModelRef>> by = v.byKey();
+        String visual = visualTemplate(id);
         if (by.size() == 1 && by.containsKey("")) {
-            List<ModelRef> models = by.get("");
-            if (models.size() == 1 && models.getFirst().plain()) {
-                return Map.entry("state", call("tfp:block_state/cube", Map.of("cube_model", models.getFirst().path())));
-            }
-            return Map.entry("state", appearance(models));
+            return new CeState("state", call(visual, Map.of()), Map.of("", List.copyOf(by.get(""))));
         }
-        String[] pillar = randomPillarModels(by);
-        if (pillar != null) {
-            Map<String, Object> args = new LinkedHashMap<>();
-            args.put("pillar_model", pillar[0]);
-            args.put("pillar_model_mirrored", pillar[1]);
-            return Map.entry("states", call("tfp:block_state/random_pillar", args));
+        Map<String, Object> props = new LinkedHashMap<>();
+        Map<String, List<ModelRef>> appearances = new LinkedHashMap<>();
+        Map<String, Object> variants = new LinkedHashMap<>();
+        if (randomPillarModels(by) != null) {
+            Map<String, Object> axis = new LinkedHashMap<>();
+            axis.put("type", "axis");
+            axis.put("default", "y");
+            props.put("axis", axis);
+        } else {
+            props.putAll(properties(by));
         }
-        return Map.entry("states", literal(by));
+        for (Map.Entry<String, List<ModelRef>> e : by.entrySet()) {
+            String name = e.getKey().replace("=", "_").replace(",", "__");
+            appearances.put(name, List.copyOf(e.getValue()));
+            variants.put(e.getKey(), Map.of("appearance", name));
+        }
+        Map<String, Object> states = new LinkedHashMap<>();
+        states.put("properties", props);
+        states.put("appearances", call(visual, Map.of()));
+        states.put("variants", variants);
+        return new CeState("states", states, appearances);
     }
 
     static Map<String, Object> call(String template, Map<String, ?> args) {
@@ -116,9 +138,9 @@ final class CeBlockStates {
         return m;
     }
 
-    static Map<String, Object> appearance(List<ModelRef> models) {
-        Map<String, Object> a = new LinkedHashMap<>();
-        a.put("auto_state", POOL);
+    /** One CE appearance: the visual (an explicit state or an auto_state) plus the model(s). */
+    public static Map<String, Object> appearance(Map<String, Object> visual, List<ModelRef> models) {
+        Map<String, Object> a = new LinkedHashMap<>(visual);
         if (models.size() == 1) {
             ModelRef m = models.getFirst();
             a.put("model", m.plain() ? m.path() : m.toYaml());
@@ -130,7 +152,7 @@ final class CeBlockStates {
 
     /**
      * TFC raw/hardened rock: an {@code axis} property, each axis a random pick of the model and its mirrored twin
-     * (2 rotations for x/z, 4 for y). Must match {@code tfp:block_state/random_pillar} exactly.
+     * (2 rotations for x/z, 4 for y), exactly {@link #expandRandomPillar}.
      */
     static String[] randomPillarModels(Map<String, List<ModelRef>> by) {
         if (!by.keySet().equals(Set.of("axis=x", "axis=y", "axis=z"))) {
@@ -145,8 +167,8 @@ final class CeBlockStates {
         return expandRandomPillar(a, b).equals(by) ? new String[] {a, b} : null;
     }
 
-    /** The literal blockstate shape that {@code tfp:block_state/random_pillar} stands for. */
-    static Map<String, List<ModelRef>> expandRandomPillar(String a, String b) {
+    /** The TFC blockstate shape of raw/hardened rock (each axis a random pick of a model and its mirrored twin). */
+    public static Map<String, List<ModelRef>> expandRandomPillar(String a, String b) {
         Map<String, List<ModelRef>> m = new LinkedHashMap<>();
         m.put("axis=x", List.of(new ModelRef(a, 90, 90, false, 1), new ModelRef(b, 90, 90, false, 1)));
         m.put("axis=y", List.of(new ModelRef(a, 0, 0, false, 1), new ModelRef(b, 0, 0, false, 1),
@@ -156,8 +178,8 @@ final class CeBlockStates {
         return m;
     }
 
-    /** Generic literal conversion: properties inferred from the variant keys, one appearance per key. */
-    static Map<String, Object> literal(Map<String, List<ModelRef>> by) {
+    /** CE properties inferred from the variant keys (generic literal conversion). */
+    static Map<String, Object> properties(Map<String, List<ModelRef>> by) {
         Map<String, Set<String>> values = new LinkedHashMap<>();
         for (String key : by.keySet()) {
             if (key.isEmpty()) {
@@ -174,18 +196,7 @@ final class CeBlockStates {
         }
         Map<String, Object> props = new LinkedHashMap<>();
         values.forEach((name, vals) -> props.put(name, property(name, vals)));
-        Map<String, Object> appearances = new LinkedHashMap<>();
-        Map<String, Object> variants = new LinkedHashMap<>();
-        for (Map.Entry<String, List<ModelRef>> e : by.entrySet()) {
-            String name = e.getKey().replace("=", "_").replace(",", "__");
-            appearances.put(name, appearance(e.getValue()));
-            variants.put(e.getKey(), Map.of("appearance", name));
-        }
-        Map<String, Object> states = new LinkedHashMap<>();
-        states.put("properties", props);
-        states.put("appearances", appearances);
-        states.put("variants", variants);
-        return states;
+        return props;
     }
 
     private static Map<String, Object> property(String name, Set<String> vals) {

@@ -191,12 +191,12 @@ class DatagenTest {
         Datagen.Result r = run();
         SortedMap<String, byte[]> files = r.tree().files();
         String rock = text(files, AssetPipeline.CONFIG + "rock/granite.yml");
-        assertThat(rock).contains("tfp:rock/raw/granite:", "template: tfp:block_state/random_pillar",
+        assertThat(rock).contains("tfp:rock/raw/granite:", "appearances:\n        template: tfp:visual/rock/raw/granite\n",
             "template: tfp:loot_table/rock_to_loose", "loot_loose_rock: tfp:rock/loose/granite",
             "template: tfp:loot_table/gravel", "rock_hardness: 6.7", "item_lang_key: block.tfp.rock.raw.granite")
             .doesNotContain("granite_slab").doesNotContain("\t");
         assertThat(text(files, AssetPipeline.CONFIG + "ore/normal_hematite.yml"))
-            .contains("loot_item: tfp:ore/normal_hematite", "cube_model: tfp:block/ore/normal_hematite/granite");
+            .contains("loot_item: tfp:ore/normal_hematite", "state:\n      template: tfp:visual/ore/normal_hematite/granite\n");
         assertThat(text(files, AssetPipeline.CONFIG + "soil/alfisol.yml"))
             .contains("tfp:dirt/alfisol:", "tfp:clay/alfisol:", "loot_item: minecraft:clay_ball", "loot_count_max: 3");
         assertThat(text(files, AssetPipeline.CONFIG + "drops.yml"))
@@ -221,13 +221,24 @@ class DatagenTest {
         missingArg.put(rock, text(files, rock).replace("        rock_map_color: 60\n", "").getBytes(StandardCharsets.UTF_8));
         assertThatThrownBy(() -> CeYamlCheck.assertValid(missingArg)).hasMessageContaining("rock_map_color");
         SortedMap<String, byte[]> unknown = new java.util.TreeMap<>(files);
-        unknown.put(rock, text(files, rock).replace("tfp:block_state/cube", "tfp:block_state/cub").getBytes(StandardCharsets.UTF_8));
+        unknown.put(rock, text(files, rock).replace("tfp:visual/rock/cobble/granite", "tfp:visual/rock/cobble/granit").getBytes(StandardCharsets.UTF_8));
         assertThatThrownBy(() -> CeYamlCheck.assertValid(unknown)).hasMessageContaining("undefined template");
+        SortedMap<String, byte[]> badVariant = new java.util.TreeMap<>(files);
+        badVariant.put(rock, text(files, rock).replace("appearance: axis_z", "appearance: axis_w").getBytes(StandardCharsets.UTF_8));
+        assertThatThrownBy(() -> CeYamlCheck.assertValid(badVariant)).hasMessageContaining("axis_w");
     }
 
     @Test
-    void randomPillarTemplateMatchesTheJavaExpansion() {
-        CeYamlCheck.assertRandomPillarTemplateMatches();
+    void writesAllocationsReportsSuppressionListsAndDatapack() throws IOException {
+        SortedMap<String, byte[]> files = run().tree().files();
+        VisualContentCheck.assertComplete(files);
+        assertThat(text(files, "reports/visual-allocation-level-3a-1.21.md"))
+            .contains("(default for this family)", "| solid |", "Reserve target 500");
+    }
+
+    @Test
+    void rawRockVisualsMatchTheRandomPillarExpansionInEveryAllocation() throws IOException {
+        CeYamlCheck.assertRandomPillarVisualsMatch(run().tree().files(), "rock/raw/granite");
     }
 
     @Test
