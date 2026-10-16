@@ -39,7 +39,7 @@ Reuse TFC's own textures (`assets/tfc/textures/**` in the pinned TFC checkout) w
 - Used by: resource-pack sprite drawn just outside the player inventory window. Clicking there opens the TFC player screen (calendar/nutrition/climate).
 - Description: a small square button with a stone/wood frame, matching TFC GUI style, with a tiny calendar/leaf glyph in the centre suggesting "TFC info". Provide two variants side by side in one 48x24 sheet: normal (left) and hovered/highlighted (right).
 - References: TFC `assets/tfc/textures/gui/player_calendar.png`, `player_nutrition.png`, `player_climate.png` (tab icons/frames); vanilla inventory frame colours.
-- Constraints: opaque frame, transparent outside the frame, no text. Exact placement/size may change after the inventory-button spike (ARCHITECTURE.md §14 item 6).
+- Constraints: opaque frame, transparent outside the frame, no text. It will be drawn as a font glyph next to the player-inventory title through a CraftEngine `lang` override, so keep it ≤ 32 px tall and readable at GUI scale 1. Exact placement/size may change after the inventory-button spike (ARCHITECTURE.md §14 item 6; see craftengine-gui-furniture skill).
 - Requested by: tfc-feature-porting / player tabs decision, 2026-10-16
 - Notes:
 
