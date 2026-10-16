@@ -118,6 +118,9 @@ Forbidden everywhere (Folia): `BukkitScheduler`, scoreboards, runtime `createWor
 
 ## 7. State and persistence
 
+> **Decided by M0-CE-02 (`docs/spikes/M0-CE-02.md`):** player-placed or device blocks with state use CE block-entity controllers (CE removes the data with the block, saves with the chunk). Wild worldgen blocks use block properties only. A chunk-PDC store is rejected for per-block data because it leaves orphan entries after explosions, vanilla `setType` and pistons.
+
+
 | State | Where | Format / notes |
 |---|---|---|
 | Custom block identity + properties | CraftEngine storage (`<world>/craftengine/`) | Managed by CE, keyed by CE id |

@@ -14,7 +14,7 @@ Test servers: run-paper with CraftEngine 26.9.x, BetterModel 3.5.x and BetterHud
   - Do: follow the test plan in `craftengine-java-api` → report §9.6. A Bukkit `ChunkGenerator` on the default world writes `CraftEngineBlocks.getBukkitBlockData(state)` in `generateNoise` and in a `BlockPopulator` (including neighbour-chunk border writes). Use one marker block without a block entity and one with. CE `misc.delay-configuration-load: false`, `cache-system: true`.
   - Done when: markers are custom after generation, after unload/reload and after restart, on all 4 targets. The neighbour-write result with `cache-system: false` is recorded. The thread name recorded by the BE marker's controller is noted.
 
-- [ ] **M0-CE-02 Per-block data store decision** · deps: M0-CE-01 · skills: craftengine-java-api, paper-folia-threading
+- [x] **M0-CE-02 Per-block data store decision** · deps: M0-CE-01 · skills: craftengine-java-api, paper-folia-threading
   - Do: implement a toy "crop" two ways: (a) CE `BlockEntityController` with a planted timestamp, no ticker; (b) our chunk-PDC store. Measure for 10k blocks/chunk area: load/save time, memory, behaviour across `/ce reload`, Folia region access, block replaced by vanilla means (piston, explosion, WorldEdit).
   - Done when: a decision is recorded in `ARCHITECTURE.md` §7 (expected: CE controllers for devices/player crops, properties-only for wild blocks) with the numbers.
 
