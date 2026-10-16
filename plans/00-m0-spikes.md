@@ -30,7 +30,7 @@ Test servers: run-paper with CraftEngine 26.9.x, BetterModel 3.5.x and BetterHud
   - Do: a gem ore whose visual equals the host rock. On exposure, place one `item_display` per exposed face in the air cell, translated back 0.01. Check lighting, z-fighting and packet count. Count exposed faces/chunk with vanilla caves as a proxy (re-measure with TFC worldgen in M2-GEN-15).
   - Done when: screenshots are OK at day, night and in caves, and the cost per exposed gem is documented.
 
-- [ ] **M0-NET-01 Packet layer: biome remap + item lore** · deps: M0-ENV-01 · skills: paper-folia-threading
+- [x] **M0-NET-01 Packet layer: biome remap + item lore** · deps: M0-ENV-01 · skills: paper-folia-threading
   - Do:
     1. Ship a datapack with 2 colour variants of a biome. Return it from a `BiomeProvider`.
     2. With PacketEvents, rewrite chunk biome palettes per "season" and measure µs/packet.
