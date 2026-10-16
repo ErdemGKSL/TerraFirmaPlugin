@@ -1,0 +1,9 @@
+name: TfpSpikeGui01
+version: '0.0.0-spike'
+main: dev.tfp.spike.gui01.Gui01Plugin
+api-version: '1.21.11'
+load: STARTUP
+dependencies:
+  server:
+    packetevents: { load: BEFORE, required: true, join-classpath: true }
+    CraftEngine: { load: BEFORE, required: false, join-classpath: true }
