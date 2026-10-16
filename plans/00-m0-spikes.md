@@ -61,7 +61,7 @@ Test servers: run-paper with CraftEngine 26.9.x, BetterModel 3.5.x and BetterHud
   - Do: compile against the lowest Paper API with Java 25. Check: the `api-version` string, Adventure 4.x code running on 5.x, `ServerBuildInfo` version switch, and whether any NMS is needed (from M0-NET-01).
   - Done when: the same jar runs on all 4 targets.
 
-- [ ] **M0-ASYNC-01 AsyncDecisionPipeline under Folia** · deps: M0-ENV-01 · skills: paper-folia-threading
+- [x] **M0-ASYNC-01 AsyncDecisionPipeline under Folia** · deps: M0-ENV-01 · skills: paper-folia-threading
   - Do: a prototype of `AsyncDecisionPipeline` + `RegionCommitQueue` with a connected-block toy (fence-like). Stress it: 10k placements, explosions, piston chains across region borders. Measure the region-thread time per tick and the commit latency.
   - Done when: no thread violations on Folia, the per-region budget is respected, the stale-change re-queue works, and the numbers are documented.
 
