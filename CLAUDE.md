@@ -1,59 +1,53 @@
 # TerraFirmaPlugin
 
-A from-scratch reimplementation of the **TerraFirmaCraft** mod (TFC, MC 1.21.1 NeoForge) as a server-side plugin. Vanilla clients get every visual through **CraftEngine** (blocks, items, furniture, GUI textures, resource pack), **BetterModel** (entity models) and **BetterHud** (HUD).
+A from-scratch reimplementation of the **TerraFirmaCraft** mod (TFC, MC 1.21.1 NeoForge) as a **Paper + Folia** plugin for **vanilla clients**. All visuals come from **CraftEngine** (blocks, items, furniture, GUI textures, the resource pack), **BetterModel** (entity models) and **BetterHud** (HUD), which our plugin installs and configures automatically. License: **EUPL-1.2**, the same as TFC.
 
-The repository is in the planning phase: no production code yet. Skills in `.claude/skills/` hold the working knowledge. Load the relevant one before acting.
+**Status: planning phase.** There is no production code yet. The repo holds the design documents and the skills future work relies on.
 
-## Locked decisions
+## Documents
 
-| Topic | Decision |
+| File | What it is | Read it when |
+|---|---|---|
+| `PRD.md` | Product requirements: vision, users, scope (feature modules with P0/P1/P2), non-functional requirements, milestones, risks | Deciding *what* to build or prioritizing |
+| `ARCHITECTURE.md` | System design: runtime topology, modules, threading model, data/persistence, worldgen, client-visual pipeline, packet layer, lifecycle, testing, open spikes | Before writing or reviewing any code. Keep it updated when the design changes. |
+| `docs/porting/ledger.md` | Per-feature port status + every **divergence** from TFC | Starting or finishing a feature; whenever behaviour differs from TFC |
+| `IMAGES.md` | Queue of 2D images we need generated (textures, GUI, HUD, icons) | You need art that TFC doesn't have. See the `image-requests` skill. |
+| `AGENTS.md` | Instructions for Codex/ChatGPT, which generates the images listed in `IMAGES.md` | Not for Claude; don't follow it |
+| `NOTICE`, `LICENSE` | Attribution and EUPL-1.2 | Copying any TFC/third-party file |
+
+## Locked decisions (summary; details in `ARCHITECTURE.md`)
+- Paper + Folia only. MC 1.21.x (1.21.4+, tested 1.21.11) and 26.x (26.2/26.3). **Java 25** everywhere.
+- Lazy, calendar-based simulation instead of ticking. Snapshot → async compute → budgeted region-thread commit. Async worldgen and packet work.
+- CraftEngine blocks: unlimited server-side states. Terrain uses `auto_state` pools + repurposed vanilla states that never occur in a TFC world. Small shapes reuse matching vanilla hitboxes (e.g. button for small ore pieces). Rare blocks use `entity_renderer`. Ore grades keep distinct textures.
+- Inventory "tabs" open by clicking outside the inventory window, where the pack draws a button. Seasonal colours via datapack biomes + async chunk biome remap. HUD via BetterHud. Particles only on explicit actions.
+- Provisional names: namespace `tfp`, package `dev.tfp`. The final product name must differ from "TerraFirmaCraft".
+
+## Skills: which to load when
+Skills live in `.claude/skills/`. Load the matching skill **before** acting; more than one often applies.
+
+| Situation | Skill(s) |
 |---|---|
-| Platform | **Paper + Folia only** (no Spigot). Use Paper-specific APIs freely. Every feature must run on Folia. |
-| MC versions | **1.21.x and 26.x**. In practice: 1.21.4+ (BetterModel/BetterHud floor), tested on 1.21.11 + 26.2/26.3. Compile shared code against the lowest supported Paper API and keep `api-version` at that lowest version. |
-| Language / build | **Java 25 everywhere** (toolchain and server runtime, 1.21.x servers included), because BetterModel 3.x and BetterHud 2.x ship Java 25 class files and require Java 25. Gradle Kotlin DSL multi-module. Avoid NMS; isolate unavoidable NMS per MC version. |
-| Platform reality (2026-10) | Paper supports 26.2/26.3. Folia 26.3 is alpha and Folia 1.21.11 is the last stable line. Test both; log upstream Folia issues in the ledger. |
-| License | **EUPL-1.2** (same as TFC). TFC code/data/assets may be reused with attribution. Don't use the TFC name/logo as branding. |
-| Client visuals | CraftEngine + BetterModel + BetterHud, installed and configured **automatically by our plugin** (`dependency-bootstrap` skill) |
-| Blocks | Unlimited server-side blocks (CraftEngine). Full-cube terrain uses `auto_state` pools + repurposed vanilla states that never occur in a TFC world. Small shapes reuse matching vanilla hitboxes (e.g. button for small ore pieces). Rare decorative blocks use `entity_renderer`. Ore grades keep distinct textures. |
-| Threading | Main/region thread does as little as possible: lazy calendar-based evaluation instead of ticking, snapshot → async compute → budgeted region-thread commit, fully async worldgen, async packet rewriting (`paper-folia-threading` skill) |
-| Inventory tabs | Clicking outside the inventory window (fake button drawn by the resource pack) opens our TFC GUI |
-| Grass/foliage colours | Custom biomes via datapack + async biome-id rewrite in chunk packets for seasons |
-| HUD | BetterHud |
-| Particles | Only for explicit actions. Never ambient/passive. |
-
-Provisional (not yet decided, ask before cementing): the final product name (should be distinct from "TerraFirmaCraft" for trademark reasons), the Java root package, and the content namespace. Until decided, use namespace `tfp` and package `dev.tfp`.
-
-## Planned module layout
-
-```
-api/                     public API + events for addons
-core/                    pure Java: calendar, climate, food, heat, forging, recipes, registries (NO Bukkit/NMS/plugin imports)
-worldgen/                pure Java port of TFC world generation (noise, regions, layers, rivers, chunk data)
-paper/                   plugin bootstrap, listeners, scheduler abstraction, storage, packet layer, commands, GUIs
-nms/                     isolated version-specific code (only when Paper API can't do it)
-integration/craftengine  adapter: blocks, items, behaviours, pack content
-integration/bettermodel  adapter: entity models, animations
-integration/betterhud    adapter: HUD layouts, placeholders
-content/                 generated + copied data and assets (TFC JSON, textures, models, bbmodels, plugin YAMLs)
-tools/datagen            CLI that converts a TFC checkout into content/
-docs/porting/ledger.md   feature status + divergences from TFC
-```
-
-## Skills (load before working in that area)
-
-| Skill | Use it for |
-|---|---|
-| `tfc-feature-porting` | Any TFC mechanic → plugin port. The master workflow. |
-| `tfc-asset-migration` | Moving TFC textures/models/blockstates/bbmodels/GUI/lang into CraftEngine/BetterModel/BetterHud content |
-| `craftengine` | Blocks, items, furniture, appearances, hitboxes, behaviours, resource pack, CraftEngine Java API |
-| `bettermodel` | Entity models, animations, carrier mobs, BetterModel API |
-| `betterhud` | HUD elements, placeholders, BetterHud API |
-| `dependency-bootstrap` | How our plugin auto-installs and auto-configures the three client plugins |
-| `paper-folia-threading` | Schedulers, region ownership, async design, packet rewriting |
-| `plugin-testing` | Unit, integration, concurrency and performance tests |
+| Porting/implementing any TFC mechanic, or "how does TFC do X" with intent to build it | `tfc-feature-porting` (the master workflow) |
+| Moving TFC textures/models/blockstates/lang/sounds/bbmodels, extending `tools/datagen` | `tfc-asset-migration` |
+| Anything CraftEngine: start with the hub, then the specific sub-skill | `craftengine` (hub) |
+| ↳ block YAML, properties, built-in block behaviours | `craftengine-blocks` |
+| ↳ appearances, `block_state_mappings`, auto_state pools, repurposed vanilla states, resource pack build/hosting/merging | `craftengine-visuals-pack` |
+| ↳ items, tools, armor, recipes, loot, events/functions/conditions | `craftengine-items` |
+| ↳ entity_renderer, furniture, images/fonts, textured GUIs | `craftengine-gui-furniture` |
+| ↳ Java API, custom behaviours, block entities, storage, worldgen placement, startup timing | `craftengine-java-api` |
+| ↳ templates, config_factory, YAML extensions, generating CE config at scale | `craftengine-config-generation` |
+| Entities, animals, models, animations | `bettermodel` |
+| HUD elements, placeholders, hiding vanilla bars | `betterhud` |
+| Plugin startup, load order, installing content into the three plugins, their config edits, `/tfp reload` | `dependency-bootstrap` |
+| Scheduling, async, Folia, packets, persistence, performance | `paper-folia-threading` |
+| Tests, CI, benchmarks, profiling, "is this feature done?" | `plugin-testing` |
+| Needing a 2D image (texture, GUI, HUD art, icon) that doesn't exist | `image-requests` |
 
 ## Working rules
-- Reference TFC by path + pinned commit (see `docs/porting/ledger.md`). Don't vendor the whole TFC tree.
-- Every divergence from TFC behaviour goes into the ledger's Divergences table.
-- `core/` and `worldgen/` must stay platform-free and thread-safe (immutable data, no Bukkit).
-- Feature code talks to CraftEngine/BetterModel/BetterHud only through our `integration/*` adapters.
+- Reference TFC by path + the pinned commit in the ledger. Clone TFC outside the repo; never vendor the whole tree.
+- `core/` and `worldgen/` stay platform-free and thread-safe. Feature code reaches CraftEngine/BetterModel/BetterHud only through `integration/*` adapters.
+- Never edit generated content by hand. Fix `tools/datagen` or add an override.
+- Every behaviour that differs from TFC gets a row in the ledger's Divergences table.
+- Ported files carry the EUPL + "Ported from TerraFirmaCraft ... @ commit" header.
+- Don't generate images yourself. Request them in `IMAGES.md` (`image-requests` skill).
+- When a design decision changes, update `ARCHITECTURE.md` (and `PRD.md` if scope changes) in the same change.
