@@ -1,0 +1,17 @@
+TerraFirmaPlugin
+Licensed under the European Union Public Licence v1.2 (see LICENSE).
+
+This project reimplements and adapts code, data and assets from TerraFirmaCraft:
+  https://github.com/TerraFirmaCraft/TerraFirmaCraft
+  Copyright (c) TerraFirmaCraft contributors
+  Licensed under the EUPL, Version 1.2.
+
+Ported source files name the TerraFirmaCraft file and commit they derive from in their header.
+This project is not affiliated with or endorsed by the TerraFirmaCraft team.
+
+Third-party material with other licenses (inherited from TerraFirmaCraft):
+  - FastNoiseLite: MIT License, https://github.com/Auburn/FastNoiseLite
+  - Sounds: CC0 unless otherwise noted.
+  - rock_slide_long_3: CC-BY-4.0, modified from https://freesound.org/people/Benboncan/sounds/60085/
+  - bsc5p_radec_min.json star catalog: CC-BY-4.0, from https://github.com/frostoven/BSC5P-JSON-XYZ
+Add an entry here whenever an asset with a different license is copied into content/.
