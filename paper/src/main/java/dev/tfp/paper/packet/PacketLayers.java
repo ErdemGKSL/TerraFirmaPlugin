@@ -16,7 +16,7 @@ public final class PacketLayers {
     }
 
     /**
-     * @param packetEventsInstalled whether the PacketEvents plugin is installed and enabled
+     * @param packetEventsInstalled whether the PacketEvents plugin is installed (loaded; it enables after us)
      */
     public static PacketLayer create(boolean packetEventsInstalled) {
         if (!packetEventsInstalled) {

@@ -41,6 +41,7 @@ class InstallStatusTest {
         assertThat(String.join("\n", s.banner())).contains("RESTART REQUIRED",
                 "CraftEngine/config.yml misc.delay-configuration-load: true -> false", "degraded mode")
                 .doesNotContain("default-hud");
+        assertThat(s.setupIncomplete()).isFalse(); // logged as a warning: the expected first start
     }
 
     @Test
@@ -61,6 +62,7 @@ class InstallStatusTest {
         assertThat(s.restartRequired()).isFalse();
         assertThat(s.degraded()).isTrue();
         assertThat(String.join("\n", s.banner())).contains("SETUP INCOMPLETE", "chunk-system.cache-system is false");
+        assertThat(s.setupIncomplete()).isTrue();
         // A non-mandatory key kept by the owner is only a warning (logged elsewhere), not degraded.
         assertThat(InstallStatus.decide(List.of(result("resource-pack.exclude-core-shaders", Outcome.OWNER_KEPT, "true", "true")),
                 true, false, List.of()).degraded()).isFalse();

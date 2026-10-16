@@ -13,11 +13,13 @@ import dev.tfp.core.config.TfpConfig.Profile;
 import dev.tfp.core.install.InstallManifest;
 import dev.tfp.core.visuals.VisualSelection;
 import dev.tfp.paper.integration.FakePackRebuilder;
+import dev.tfp.paper.integration.PackRebuilder;
 import dev.tfp.paper.integration.FakeVisualPools;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -275,6 +277,38 @@ class InstallerTest {
         assertThat(startServer(again, ce)).isZero();
         assertThat(ce.requests()).isEqualTo(2);
         assertThat(Files.readString(world)).isEqualTo("chunks");
+    }
+
+    /** The self-test's CE cases wait for this: CraftEngine's registries are empty while the rebuild reload runs. */
+    @Test
+    void settledCompletesWhenThePlannedRebuildEndsOrAtOnceWithoutOne() throws IOException {
+        shipAllocation(L3A);
+        CompletableFuture<Boolean> pending = new CompletableFuture<>();
+        PackRebuilder slow = new PackRebuilder() {
+            @Override
+            public boolean available() {
+                return true;
+            }
+
+            @Override
+            public CompletableFuture<Boolean> rebuild() {
+                return pending;
+            }
+        };
+        PackRebuildTrigger t = new PackRebuildTrigger(run(L3A), stateDir(), slow, new FakeVisualPools(), null, null, 500,
+                Runnable::run, LOG);
+        assertThat(t.settled()).isNotDone(); // planned, CraftEngine not loaded yet
+        t.onCraftEngineReload();
+        assertThat(t.settled()).isNotDone();
+        pending.complete(false); // a failed rebuild settles too
+        assertThat(t.settled()).isDone();
+
+        assertThat(startServer(run(L3A), new FakePackRebuilder())).isEqualTo(1); // succeeds and is recorded
+        Installer.Result clean = run(L3A);
+        assertThat(clean.packPlan().rebuild()).isFalse();
+        PackRebuildTrigger none = new PackRebuildTrigger(clean, stateDir(), new FakePackRebuilder(), new FakeVisualPools(),
+                null, null, 500, Runnable::run, LOG);
+        assertThat(none.settled()).isDone();
     }
 
     @Test

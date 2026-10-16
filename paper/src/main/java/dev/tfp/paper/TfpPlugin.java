@@ -271,7 +271,9 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             });
         });
 
-        boolean packetEvents = getServer().getPluginManager().isPluginEnabled(PacketLayers.PACKETEVENTS);
+        // We load at STARTUP, PacketEvents at POSTWORLD: it is loaded (its API exists after its onLoad) but not yet
+        // enabled here. Registering the listener now is what the M0-NET-01 spike did; isPluginEnabled is false here.
+        boolean packetEvents = getServer().getPluginManager().getPlugin(PacketLayers.PACKETEVENTS) != null;
         PacketHandlerRegistry packets = new PacketHandlerRegistry(getLogger());
         this.packets = packets;
         packets.register(new NoopPacketHandler());

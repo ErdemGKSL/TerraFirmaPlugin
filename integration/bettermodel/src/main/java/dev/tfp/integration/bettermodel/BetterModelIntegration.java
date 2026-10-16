@@ -12,6 +12,7 @@ import dev.tfp.paper.integration.IntegrationContext;
 import dev.tfp.paper.integration.ModelSource;
 import dev.tfp.paper.ready.ReadyGate;
 import dev.tfp.paper.scheduler.ThreadAsserts;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,6 +61,12 @@ public final class BetterModelIntegration implements Integration, EntityModels {
     private final Map<String, ModelSource> sources = new ConcurrentHashMap<>();
     private final List<Consumer<Entity>> createdHooks = new CopyOnWriteArrayList<>();
     private final List<ModelEventListener> subscriptions = new CopyOnWriteArrayList<>();
+    /**
+     * The tracker whose {@link CreateEntityTrackerEvent} is being handled on this thread. BetterModel fires the
+     * event from the {@code EntityTracker} constructor, before {@code EntityTrackerRegistry} stores the tracker,
+     * so a hook's {@link #tint}/{@link #animate} would not find it in the registry yet.
+     */
+    private final ThreadLocal<EntityTracker> creating = new ThreadLocal<>();
     private volatile boolean ready;
 
     BetterModelIntegration(IntegrationContext ctx, List<ModelSource> jarModels) {
@@ -145,13 +152,34 @@ public final class BetterModelIntegration implements Integration, EntityModels {
         if (entity == null) {
             return;
         }
-        for (Consumer<Entity> hook : createdHooks) {
-            try {
-                hook.accept(entity);
-            } catch (RuntimeException e) {
-                ctx.logger().log(Level.SEVERE, "model re-apply hook failed for " + entity.getUniqueId(), e);
+        EntityTracker previous = creating.get();
+        creating.set(event.tracker());
+        try {
+            for (Consumer<Entity> hook : createdHooks) {
+                try {
+                    hook.accept(entity);
+                } catch (RuntimeException e) {
+                    ctx.logger().log(Level.SEVERE, "model re-apply hook failed for " + entity.getUniqueId(), e);
+                }
+            }
+        } finally {
+            if (previous == null) {
+                creating.remove();
+            } else {
+                creating.set(previous);
             }
         }
+    }
+
+    /** The carrier's registered trackers plus the one being created for it on this thread (see {@link #creating}). */
+    private List<EntityTracker> trackersOf(Entity carrier) {
+        List<EntityTracker> out = new ArrayList<>();
+        BetterModel.registry(carrier.getUniqueId()).ifPresent(r -> out.addAll(r.trackers()));
+        EntityTracker pending = creating.get();
+        if (pending != null && carrier.equals(entityOf(pending)) && !out.contains(pending)) {
+            out.add(pending);
+        }
+        return out;
     }
 
     private static Entity entityOf(EntityTracker tracker) {
@@ -191,14 +219,11 @@ public final class BetterModelIntegration implements Integration, EntityModels {
     @Override
     public boolean tint(Entity carrier, int rgb) {
         ThreadAsserts.owned(carrier);
-        Optional<EntityTrackerRegistry> registry = BetterModel.registry(carrier.getUniqueId());
-        if (registry.isEmpty() || registry.get().trackers().isEmpty()) {
-            return false;
-        }
-        for (EntityTracker t : registry.get().trackers()) {
+        List<EntityTracker> trackers = trackersOf(carrier);
+        for (EntityTracker t : trackers) {
             t.update(TrackerUpdateAction.tint(rgb & 0xFFFFFF), BonePredicate.TRUE);
         }
-        return true;
+        return !trackers.isEmpty();
     }
 
     @Override
@@ -214,8 +239,8 @@ public final class BetterModelIntegration implements Integration, EntityModels {
 
     @Override
     public boolean animate(Entity carrier, String animation, AnimationSpec spec) {
-        Optional<EntityTrackerRegistry> registry = BetterModel.registry(carrier.getUniqueId());
-        if (registry.isEmpty()) {
+        List<EntityTracker> trackers = trackersOf(carrier);
+        if (trackers.isEmpty()) {
             return false;
         }
         AnimationModifier modifier = AnimationModifier.builder()
@@ -224,7 +249,7 @@ public final class BetterModelIntegration implements Integration, EntityModels {
                 .type(spec.once() ? AnimationIterator.Type.PLAY_ONCE : AnimationIterator.Type.LOOP)
                 .build();
         boolean any = false;
-        for (EntityTracker t : registry.get().trackers()) {
+        for (EntityTracker t : trackers) {
             any |= t.animate(animation, modifier);
         }
         return any;

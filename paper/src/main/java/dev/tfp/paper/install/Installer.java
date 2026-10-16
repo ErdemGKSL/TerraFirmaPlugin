@@ -278,7 +278,15 @@ public final class Installer {
                 case OWNER_KEPT -> log.warning("Config edit skipped: " + what + " = " + e.before() + " (" + e.detail()
                         + "); we recommend changing it because " + e.edit().why());
                 case FAILED -> log.warning("Config edit failed: " + what + ": " + e.detail());
-                case FILE_MISSING, UNCHANGED -> {
+                case FILE_MISSING -> {
+                    ConfigEdit.Target t = e.edit().target();
+                    if (t == ConfigEdit.Target.BETTERHUD_CONFIG || t == ConfigEdit.Target.BETTERMODEL_CONFIG) {
+                        // BetterHud/BetterModel enable after us and write their config.yml on their first start.
+                        log.info("Config edit pending: " + what + " (" + e.edit().target().path()
+                                + " does not exist yet; applied at the next start)");
+                    }
+                }
+                case UNCHANGED -> {
                 }
             }
         }
@@ -286,8 +294,11 @@ public final class Installer {
             log.info("The CraftEngine resource pack will be rebuilt once CraftEngine has loaded"
                     + (r.packPlan().reason().isEmpty() ? "" : " (" + r.packPlan().reason() + ")") + ".");
         }
+        // A pending restart alone is the expected first start of a fresh server: WARNING. Setup the owner must
+        // fix (SETUP INCOMPLETE): SEVERE.
+        Level level = r.status().setupIncomplete() ? Level.SEVERE : Level.WARNING;
         for (String line : r.status().banner()) {
-            log.severe(line);
+            log.log(level, line);
         }
     }
 }

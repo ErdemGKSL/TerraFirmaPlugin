@@ -5,6 +5,8 @@
  */
 package dev.tfp.itest.cases;
 
+import dev.tfp.paper.TfpPlugin;
+import dev.tfp.paper.install.PackRebuildTrigger;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.time.Duration;
 import java.util.concurrent.Callable;
@@ -48,6 +50,24 @@ final class OnThread {
         CompletableFuture<T> f = new CompletableFuture<>();
         s.region(world, cx, cz, () -> complete(f, body));
         return await(f, limit, "region task at chunk " + cx + "," + cz);
+    }
+
+    /**
+     * Waits for this run's CraftEngine pack rebuild (M1-INST-03) if one was planned: it is a full CraftEngine
+     * reload, and while it runs CraftEngine's block registry is empty, so CE block cases would see no blocks.
+     */
+    static void awaitPackRebuild(TfpPlugin tfp, Duration limit) throws Exception {
+        PackRebuildTrigger trigger = tfp.packRebuild();
+        if (trigger != null) {
+            await(trigger.settled(), limit, "the CraftEngine pack rebuild");
+        }
+    }
+
+    /** {@code body} on the global region thread (Folia: chunk force-load tickets are changed only there). */
+    static <T> T global(Scheduler s, Duration limit, Callable<T> body) throws Exception {
+        CompletableFuture<T> f = new CompletableFuture<>();
+        s.global(() -> complete(f, body));
+        return await(f, limit, "global region task");
     }
 
     /** {@code body} on {@code entity}'s owning thread; fails if the entity was removed first. */

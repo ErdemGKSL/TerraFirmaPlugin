@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -42,6 +43,8 @@ public final class CraftEngineBlockRoundTripCase implements SelfTestCase {
     static final List<String> CANDIDATES = List.of("tfp:rock/raw/granite", SelfTestPack.MARKER);
     static final int CHUNK_OFFSET = 40;
     private static final Duration STEP = Duration.ofSeconds(20);
+    /** Our first-install pack rebuild (a CraftEngine reload plus pack generation) took about 11 s in the M1 matrix. */
+    static final Duration REBUILD = Duration.ofSeconds(120);
 
     @Override
     public String name() {
@@ -50,7 +53,7 @@ public final class CraftEngineBlockRoundTripCase implements SelfTestCase {
 
     @Override
     public Duration timeout() {
-        return Duration.ofSeconds(60 + cacheSeconds() + 3 * STEP.toSeconds() + 60);
+        return Duration.ofSeconds(REBUILD.toSeconds() + 60 + cacheSeconds() + 4 * STEP.toSeconds() + 60);
     }
 
     static long cacheSeconds() {
@@ -69,12 +72,13 @@ public final class CraftEngineBlockRoundTripCase implements SelfTestCase {
             throw new Skip("CraftEngine is not installed or its adapter is disabled");
         }
         CustomBlocks blocks = tfp.integrations().customBlocks();
-        String id = pick(blocks::exists).orElseThrow(() -> new Skip("none of " + CANDIDATES + " is loaded: neither our "
-                + "pack nor the self-test pack was installed this run (plugins/CraftEngine/resources must exist before "
-                + "the start: run the self-test a second time)"));
-        BlockStateRef state = BlockStateRef.of(id);
         Scheduler s = tfp.scheduler();
         return OnThread.script("ce-roundtrip", () -> {
+            OnThread.awaitPackRebuild(tfp, REBUILD);
+            String id = pick(blocks::exists).orElseThrow(() -> new Skip("none of " + CANDIDATES + " is loaded: neither "
+                    + "our pack nor the self-test pack was installed this run (plugins/CraftEngine/resources must exist "
+                    + "before the start: run the self-test a second time)"));
+            BlockStateRef state = BlockStateRef.of(id);
             List<String> log = new ArrayList<>();
             World world = Bukkit.getWorlds().getFirst();
             Location spawn = world.getSpawnLocation();
@@ -83,19 +87,31 @@ public final class CraftEngineBlockRoundTripCase implements SelfTestCase {
             int x = (cx << 4) + 8;
             int z = (cz << 4) + 8;
             OnThread.await(world.getChunkAtAsync(cx, cz), STEP, "loading chunk " + cx + "," + cz);
-            int y = OnThread.region(s, world, cx, cz, STEP, () -> {
+            // Folia: force-load tickets may only change on the global region thread; the block work stays on
+            // the chunk's owning region thread.
+            OnThread.global(s, STEP, () -> {
                 world.setChunkForceLoaded(cx, cz, true);
+                return null;
+            });
+            AtomicReference<BlockStateRef> placed = new AtomicReference<>();
+            int y = OnThread.region(s, world, cx, cz, STEP, () -> {
                 int top = Math.min(world.getHighestBlockYAt(x, z) + 2, world.getMaxHeight() - 2);
                 Block b = world.getBlockAt(x, top, z);
                 check(blocks.place(b, state, false), "place(" + id + ") returned false");
-                check(state.equals(blocks.stateAt(b).orElse(null)), "after place: " + blocks.stateAt(b));
+                // place(id) puts the block's default state, which carries its properties (raw rock: axis=y), so
+                // the first read is checked by block id and later reads against that exact state.
+                BlockStateRef first = blocks.stateAt(b).orElse(null);
+                check(first != null && first.id().equals(id), "after place: " + blocks.stateAt(b) + ", expected " + id);
+                placed.set(first);
                 check(blocks.remove(b), "remove returned false");
                 check(blocks.stateAt(b).isEmpty(), "after remove still custom: " + blocks.stateAt(b));
                 check(blocks.place(b, state, false), "second place(" + id + ") returned false");
-                check(state.equals(blocks.stateAt(b).orElse(null)), "after second place: " + blocks.stateAt(b));
+                check(first.equals(blocks.stateAt(b).orElse(null)), "after second place: " + blocks.stateAt(b)
+                        + ", expected " + first);
                 return top;
             });
-            log.add(id + " at " + world.getName() + " " + x + "," + y + "," + z + ": place/read/break/place ok");
+            BlockStateRef expected = placed.get();
+            log.add(expected + " at " + world.getName() + " " + x + "," + y + "," + z + ": place/read/break/place ok");
 
             CompletableFuture<Void> unloaded = new CompletableFuture<>();
             Listener listener = new Listener() {
@@ -108,7 +124,7 @@ public final class CraftEngineBlockRoundTripCase implements SelfTestCase {
             };
             Bukkit.getPluginManager().registerEvents(listener, tfp);
             try {
-                OnThread.region(s, world, cx, cz, STEP, () -> {
+                OnThread.global(s, STEP, () -> {
                     world.setChunkForceLoaded(cx, cz, false);
                     return null;
                 });
@@ -126,13 +142,13 @@ public final class CraftEngineBlockRoundTripCase implements SelfTestCase {
                 Optional<BlockStateRef> read = blocks.stateAt(b);
                 String seen = read.map(String::valueOf).orElse("vanilla " + b.getBlockData().getAsString());
                 blocks.remove(b); // clean up either way
-                return read.filter(state::equals).isPresent() ? null : seen;
+                return read.filter(expected::equals).isPresent() ? null : seen;
             });
             if (after != null) {
                 throw new AssertionError("after unload + " + cacheSeconds() + " s + reload the block is " + after
-                        + ", expected " + id + " (" + String.join("; ", log) + ")");
+                        + ", expected " + expected + " (" + String.join("; ", log) + ")");
             }
-            log.add("still " + id + " after reload (" + cacheSeconds() + " s past unload)");
+            log.add("still " + expected + " after reload (" + cacheSeconds() + " s past unload)");
             return String.join("; ", log);
         });
     }

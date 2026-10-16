@@ -26,6 +26,7 @@ public final class CraftEnginePackIssuesCase implements SelfTestCase {
     /** One generated block per family of M1-DGN-03. */
     static final List<String> FAMILY_SAMPLES = List.of("tfp:rock/raw/granite", "tfp:dirt/alfisol",
             "tfp:ore/rich_hematite/granite");
+    static final Duration REBUILD = CraftEngineBlockRoundTripCase.REBUILD;
 
     @Override
     public String name() {
@@ -34,7 +35,7 @@ public final class CraftEnginePackIssuesCase implements SelfTestCase {
 
     @Override
     public Duration timeout() {
-        return Duration.ofSeconds(10);
+        return REBUILD.plusSeconds(10);
     }
 
     @Override
@@ -51,11 +52,16 @@ public final class CraftEnginePackIssuesCase implements SelfTestCase {
         if (!ctx.liveLog() || ctx.logFindings() == null) {
             throw new Skip("no live Log4j tap; the end-of-run log scan checks the CraftEngine issues instead");
         }
-        if (!tfp.integrations().blockVisuals().isLoaded()) {
-            throw new AssertionError("CraftEngine has not loaded yet (no CraftEngineReloadEvent seen by our adapter)");
-        }
         CustomBlocks blocks = tfp.integrations().customBlocks();
-        return CompletableFuture.completedFuture(check(ctx.logFindings(), blocks::exists));
+        // A first install triggers our pack rebuild, a full CraftEngine reload that empties its block registry
+        // until it ends (start 1 of the M1 matrix ran this case inside that window).
+        return OnThread.script("ce-pack-issues", () -> {
+            OnThread.awaitPackRebuild(tfp, REBUILD);
+            if (!tfp.integrations().blockVisuals().isLoaded()) {
+                throw new AssertionError("CraftEngine has not loaded yet (no CraftEngineReloadEvent seen by our adapter)");
+            }
+            return check(ctx.logFindings(), blocks::exists);
+        });
     }
 
     /** The case body (unit-tested). */

@@ -21,6 +21,8 @@ import java.util.List;
  */
 public record InstallStatus(boolean restartRequired, boolean degraded, boolean packRebuild, List<String> banner) {
     public static final InstallStatus NOTHING = new InstallStatus(false, false, false, List.of());
+    /** First banner line when required setup is not in effect (the owner must act; not just a restart). */
+    public static final String SETUP_INCOMPLETE = "==================== TerraFirmaPlugin: SETUP INCOMPLETE ====================";
 
     public InstallStatus {
         banner = List.copyOf(banner);
@@ -79,7 +81,7 @@ public record InstallStatus(boolean restartRequired, boolean degraded, boolean p
             banner.addAll(restartLines);
         }
         if (!blockingLines.isEmpty()) {
-            banner.add("==================== TerraFirmaPlugin: SETUP INCOMPLETE ====================");
+            banner.add(SETUP_INCOMPLETE);
             banner.add("Required setup is not in effect (fix it, or delete plugins/TerraFirmaPlugin/install/edits.json to let us manage the settings again):");
             banner.addAll(blockingLines);
         }
@@ -88,6 +90,11 @@ public record InstallStatus(boolean restartRequired, boolean degraded, boolean p
             banner.add("============================================================================");
         }
         return new InstallStatus(restart, degraded, packRebuild, banner);
+    }
+
+    /** True when the banner reports setup the owner must fix, not only a pending restart. */
+    public boolean setupIncomplete() {
+        return banner.contains(SETUP_INCOMPLETE);
     }
 
     private static String describe(EditResult r) {

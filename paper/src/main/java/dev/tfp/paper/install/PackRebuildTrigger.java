@@ -14,6 +14,7 @@ import dev.tfp.paper.integration.VisualPools;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -42,6 +43,8 @@ public final class PackRebuildTrigger {
     private final Executor io;
     private final Logger log;
     private final AtomicBoolean requested = new AtomicBoolean();
+    /** Completes when this run's rebuild finished (successfully or not). */
+    private final CompletableFuture<Void> rebuildDone = new CompletableFuture<>();
     private volatile ProfileCheck.Result lastCheck;
 
     /**
@@ -71,6 +74,16 @@ public final class PackRebuildTrigger {
         return requested.get();
     }
 
+    /**
+     * Completes once this run's pack rebuild has finished, or at once when none is planned. The rebuild is a full
+     * CraftEngine reload: while it runs, CraftEngine's block and item registries are empty (M1 self-test matrix).
+     * The returned future is a copy; cancelling it does not affect the rebuild.
+     */
+    public CompletableFuture<Void> settled() {
+        boolean planned = install != null && install.status().packRebuild() && rebuilder.available();
+        return planned || requested.get() ? rebuildDone.copy() : CompletableFuture.completedFuture(null);
+    }
+
     /** On the thread that delivered the CraftEngine reload. Never throws. */
     public void onCraftEngineReload() {
         try {
@@ -85,7 +98,16 @@ public final class PackRebuildTrigger {
         PackBuild.Fingerprint built = install.packFingerprint();
         String reason = install.packPlan().reason();
         log.info("Rebuilding the CraftEngine resource pack" + (reason.isEmpty() ? "" : " (" + reason + ")") + ".");
-        rebuilder.rebuild().whenComplete((ok, err) -> {
+        CompletableFuture<Boolean> rebuild;
+        try {
+            rebuild = rebuilder.rebuild();
+        } catch (RuntimeException e) {
+            rebuildDone.complete(null);
+            log.log(Level.WARNING, "The CraftEngine pack rebuild failed; players keep the old pack. Run /ce reload all", e);
+            return;
+        }
+        rebuild.whenComplete((ok, err) -> {
+            rebuildDone.complete(null);
             if (err != null) {
                 log.log(Level.WARNING, "The CraftEngine pack rebuild failed; players keep the old pack. Run /ce reload all", err);
             } else if (!ok) {

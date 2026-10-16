@@ -6,6 +6,7 @@
 package dev.tfp.itest.cases;
 
 import dev.tfp.core.config.ConfigCodec;
+import dev.tfp.core.install.ConfigEdit;
 import dev.tfp.core.install.InstallStatus;
 import dev.tfp.core.install.ThirdPartyEdits;
 import dev.tfp.itest.SelfTestCase;
@@ -21,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +33,8 @@ import java.util.concurrent.CompletableFuture;
  * Our {@code config.yml} parses without warnings (M1-BOOT-03) and the third-party config edits of
  * M1-INST-02 are present in the CraftEngine/BetterHud/BetterModel files. Read-only. A pending restart
  * (first start of a fresh server: RESTART-effect keys were just written) is reported, not failed; blocking
- * install problems (degraded without a pending restart) fail.
+ * install problems (degraded without a pending restart) fail. Edits whose file did not exist when the
+ * installer ran (BetterHud writes its config.yml on its own first start, after our onLoad) are noted, not checked.
  */
 public final class ConfigCase implements SelfTestCase {
     @Override
@@ -67,22 +70,34 @@ public final class ConfigCase implements SelfTestCase {
                 installed.add(name);
             }
         }
-        Path contentRoot = RegistryService.jarDataRoot(TfpPlugin.class.getClassLoader()).getParent();
-        ConfigEditsCheck.Result edits = ConfigEditsCheck.check(ThirdPartyEdits.all(Installer.ceStates(contentRoot)),
-                installed, path -> read(plugins.resolve(path)));
-        if (!edits.problems().isEmpty()) {
-            throw new AssertionError("config edits not in effect: " + String.join("; ", edits.problems()));
-        }
-
         Installer.Result install = tfp.install();
         if (install == null) {
             throw new AssertionError("the installer did not run");
+        }
+        // Edits whose file did not exist when the installer ran (our onLoad): a plugin that enables after us
+        // (BetterHud, BetterModel) writes its default config.yml on its first start, so the edit lands next start.
+        Set<String> pending = new HashSet<>();
+        for (InstallStatus.EditResult r : install.edits()) {
+            if (r.outcome() == ConfigEdit.Outcome.FILE_MISSING) {
+                pending.add(r.edit().id());
+            }
+        }
+        Path contentRoot = RegistryService.jarDataRoot(TfpPlugin.class.getClassLoader()).getParent();
+        List<ConfigEdit> checked = ThirdPartyEdits.all(Installer.ceStates(contentRoot)).stream()
+                .filter(e -> !pending.contains(e.id())).toList();
+        ConfigEditsCheck.Result edits = ConfigEditsCheck.check(checked, installed, path -> read(plugins.resolve(path)));
+        if (!edits.problems().isEmpty()) {
+            throw new AssertionError("config edits not in effect: " + String.join("; ", edits.problems()));
         }
         InstallStatus status = install.status();
         if (status.degraded() && !status.restartRequired()) {
             throw new AssertionError("install degraded: " + String.join(" / ", status.banner()));
         }
-        List<String> notes = edits.notes();
+        List<String> notes = new ArrayList<>(edits.notes());
+        if (!pending.isEmpty()) {
+            notes.add("not checked, file missing at install (first start of that plugin; applied next start): "
+                    + pending.stream().sorted().toList());
+        }
         return "config.yml ok; " + edits.checked() + " edit(s) present for " + installed
                 + (status.restartRequired() ? "; restart required (first start: RESTART keys take effect next start)" : "")
                 + (notes.isEmpty() ? "" : "; notes: " + String.join("; ", notes));
