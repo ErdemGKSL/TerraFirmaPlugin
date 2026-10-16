@@ -1,0 +1,6 @@
+name: TerraFirmaPlugin
+version: '${version}'
+main: dev.tfp.paper.TfpPlugin
+api-version: '1.21.11'
+load: STARTUP
+folia-supported: true

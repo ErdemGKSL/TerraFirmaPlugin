@@ -4,7 +4,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 
 ## Build & project
 
-- [ ] **M1-BUILD-01 Gradle multi-module setup** · deps: M0 done · skills: plugin-testing
+- [x] **M1-BUILD-01 Gradle multi-module setup** · deps: M0 done · skills: plugin-testing
   - Do: Gradle Kotlin DSL with `build-logic` conventions:
     - Java 25 toolchain;
     - modules `api`, `core`, `worldgen`, `paper`, `integration/{craftengine,bettermodel,betterhud}`, `content`, `tools/datagen`, `itest`, `dist`;

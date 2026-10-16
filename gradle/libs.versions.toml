@@ -1,0 +1,35 @@
+# Versions pinned 2026-10-16. Paper API: the lowest supported MC (one jar runs on 1.21.11 and 26.x, see M0-JAR-01).
+[versions]
+paper-api = "1.21.11-R0.1-SNAPSHOT"
+# Modrinth version ids (maven.modrinth:<slug>:<id>); the plugin jars carry their APIs.
+craftengine = "mwFiNxVO"   # 26.9.2
+bettermodel = "RZkXlsnV"   # 3.5.1
+betterhud = "VHVKage9"     # 2.2.0-SNAPSHOT-449
+packetevents = "m78nFxYg"  # 2.14.0+spigot
+caffeine = "3.2.2"
+jctools = "4.0.5"
+junit = "5.13.4"
+assertj = "3.27.6"
+archunit = "1.4.1"
+gson = "2.13.2"
+shadow = "9.6.1"
+run-paper = "3.1.0"
+
+[libraries]
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
+craftengine = { module = "maven.modrinth:craftengine", version.ref = "craftengine" }
+bettermodel = { module = "maven.modrinth:bettermodel", version.ref = "bettermodel" }
+betterhud = { module = "maven.modrinth:betterhud2", version.ref = "betterhud" }
+packetevents = { module = "maven.modrinth:packetevents", version.ref = "packetevents" }
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
+jctools = { module = "org.jctools:jctools-core", version.ref = "jctools" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+archunit = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-paper" }
