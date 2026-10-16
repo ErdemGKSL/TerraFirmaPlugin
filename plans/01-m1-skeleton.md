@@ -20,6 +20,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 - [ ] **M1-BUILD-03 CI pipeline** · deps: M1-BUILD-01 · skills: plugin-testing
   - Do: GitHub Actions: `check` (unit tests, data-load test, header check), then the self-test matrix {Paper, Folia} × {1.21.11, 26.3} on Java 25 with pinned plugin versions. Upload artifacts and logs.
   - Done when: a green run on main, with a failing self-test making the job red.
+  - Status: workflow written, no run yet (GitHub Actions can't run here). `.github/workflows/ci.yml`: `check` (fetch TFC @ pinned commit, `generateContent`, `check`, `verifyContent` as determinism gate), `content` (verifies a committed `content/generated/` is up to date; skipped while it is gitignored), `selftest` matrix {paper, folia} × {1.21.11, 26.3} → `:itest:runSelfTest` (added in `itest/build.gradle.kts`, run-paper, Modrinth ids from `libs.versions.toml`; fails fast without the M1-TEST-01 plugin, fails unless `selftest-report.xml` has no failures) + log upload. Verified locally: YAML parses, tasks exist, the `check` job's commands pass on a clean HEAD worktree + these changes. Fixed `.gitignore`: `**/build/` was hiding `build-logic/src/main/kotlin/dev/tfp/build/` (CheckLicenseHeaders/CheckNotice), so a fresh checkout did not compile. Unverified: an Actions run, the shallow fetch of TFC by SHA, the matrix (red until M1-TEST-01).
 
 ## Plugin bootstrap & lifecycle
 
@@ -113,29 +114,33 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Done when: the CE pack for these families loads with zero `Found N issue(s)` lines (checked by the self-test).
   - Status: 1353 cube blocks + templates + lang (13 locales) generated and statically checked; CE load not verified yet (self-test). Not emitted yet (listed in `reports/datagen-summary.json`): connected grass (multipart), slabs/stairs/walls, loose rocks, spikes, buttons, plates, anvils, aqueducts, rope anchors, small ores.
 
-- [ ] **M1-DGN-04 Visual allocator with profiles** · deps: M1-DGN-03, M0-VIS-01 · skills: craftengine-visuals-pack
+- [x] **M1-DGN-04 Visual allocator with profiles** · deps: M1-DGN-03, M0-VIS-01 · skills: craftengine-visuals-pack
   - Do: implement profiles `level-0…level-3b` × MC version families. Sources, in order: CE `solid` → identity duplicates → (Nether/End) → absent-in-TFC (CSV allowlist). Also:
     - emit `block_state_mappings` that hide the repurposed blocks;
     - write allocation reports (used/free per pool and version);
     - CI fails on overflow.
   - Done when: reports exist for every profile; defaults (`1.21: level-3a`, `26: level-2`) leave ≥ the target reserve.
+  - Status: done (datagen level). `tools/datagen` `dev.tfp.datagen.visuals` (`VisualAllocator`, `Profile`, `VersionFamily`, `VanillaSupply` over the per-state `visuals/fullcube-states.csv` exported by `tools/datagen/scripts/export_fullcube_states.py`, `HideTargets`, `VisualOutputs`, `AllocationReport`); 20 allocations (5 profiles × {1.21, 26} × Nether/End off/on) under `visuals/`, reports `reports/visual-allocation-<profile>-<family>.md`, `visuals/index.json`. Order: identity → Nether/End → absent clean → absent minor → solid (§9.1: non-pool first). Block entries now call `tfp:visual/<id>` templates (the old `tfp:block_state/cube|random_pillar` are gone). Free solid slots with the current demand (1353 blocks, 1437 appearances), N/E off (on): 1.21 level-0 509 (576), level-2 698 (765), **level-3a 950 (1017)**, level-3b 1202 (1269); 26 level-0 713 (780), **level-2 902 (969)**, level-3a 1154 (1221), level-3b 1406 (1473). `PinnedCheckoutTest.defaultProfilesLeaveTheSolidReserveFree` asserts ≥ 500 for both defaults; `VisualAllocatorTest` covers order, sharing, profiles, mappings, overflow. **Not verified in game:** CE expanding a template inside `appearances`, and the profile switch (M1-INST-03/M1-TEST-01). Gem-ore overlay renderer (level-2+) is not built yet, so gem ores currently look like raw rock.
 
-- [ ] **M1-DGN-05 Vanilla-block suppression data** · deps: M1-DGN-04
+- [x] **M1-DGN-05 Vanilla-block suppression data** · deps: M1-DGN-04
   - Do: list the repurposed vanilla blocks per profile so that our runtime (M1-INST-04) blocks their creation paths. Generate the datapack tag edits (ambient sounds, `#crystal_sound_blocks`, `#impermeable`).
   - Done when: the lists ship in the jar; the datapack loads.
+  - Status: done (static). Per allocation `visuals/<family>/<profile>/nether-end-<off|on>/suppressed_blocks.json` (`suppress`: absent/Nether blocks with their states and `creation_paths` such as `lava_water`, `concrete_powder_water`, `copper_weathering_scraping_waxing`; `identity_duplicates`: need no suppression). Datapack `datapack/tfp_visuals/` (edits `#crystal_sound_blocks`, `#triggers_ambient_desert_dry_vegetation_block_sounds`, `#triggers_ambient_dried_ghast_block_sounds`; `#impermeable` needs no edit because no waterlogged state is claimed). Both are in the `:content` jar under `/content` (checked with `unzip -l`). `VisualContentCheck` (fixture + full checkout) parses every list and datapack file. **Not verified:** the datapack loading on a server (it is not registered yet: M1-INST-04 must discover `/content/datapack/tfp_visuals`), and that clients honour the synced tags.
 
 ## Installer & integrations
 
-- [ ] **M1-INST-01 Install manifest engine** · deps: M1-BOOT-01 · skills: dependency-bootstrap
+- [x] **M1-INST-01 Install manifest engine** · deps: M1-BOOT-01 · skills: dependency-bootstrap
   - Do: write to the CE `resources/tfp/` and BetterHud `packs/tfp/` folders. Hash manifest (untouched → overwrite; edited → `.tfp-new`; deleted → respect), atomic writes, opt-outs.
   - Done when: unit tests for all three cases pass.
+  - Status: done at unit level. Pure rule `core/install/FileDecision` + `InstallManifest` (`<target>/.tfp-manifest.json`, sha256 + tombstones); `paper/install/ContentInstaller` (writes only changed files, temp + atomic move, deletes no-longer-shipped files only if untouched, cleans crash temps), `AtomicFiles`, `Installer` (called from `TfpPlugin.onLoad`; never creates `CraftEngine/resources/`; opt-outs `auto-install.craftengine|betterhud`, BetterHud `packs/-tfp`). Tests: `FileDecisionTest`, `ContentInstallerTest` (temp dir, incl. jar file system, failed write keeps the old file), `InstallerTest`. The jar ships no `/content/betterhud/tfp` yet (skipped with a log line). Triggering the CE pack rebuild after a change is M1-INST-03 (`InstallStatus.packRebuild` is computed). `/tfp reload content` still answers "not available" (needs INST-03's CE/BM reload). In-server run: M1-TEST-01.
 
-- [ ] **M1-INST-02 Config edits in CE/BH/BM** · deps: M1-INST-01 · skills: dependency-bootstrap
+- [x] **M1-INST-02 Config edits in CE/BH/BM** · deps: M1-INST-01 · skills: dependency-bootstrap
   - Do: comment-preserving single-key edits from the `dependency-bootstrap` §6 table:
     - CE: `delay-configuration-load: false`, `serverside-blocks` sizing, `supported-version.min`, `exclude-core-shaders: false`, disable `remove_shulker_head`;
     - BetterHud: remove `test_hud`, merge settings.
     Show a restart banner and degraded mode when needed.
   - Done when: the fresh-server self-test (first start → restart → ready) passes.
+  - Status: unit level done (the fresh-server self-test moves to M1-TEST-01). `core/install/YamlKeyEditor` (line-based, comment-preserving single-key/list-item edits; refuses what it can't parse), `ThirdPartyEdits` (the §6 table: CE `delay-configuration-load`, `cache-system` (M0-CE-01), `storage-type` ≠ none, `serverside-blocks` sized from the datagen report, `supported-version.min` ≥ 1.21.4 (`server`/`latest` accepted), `exclude-core-shaders`, `merge-external-zip-files` keeps BetterModel, `remove_shulker_head` disabled; BetterHud `test_hud` removed, merge/pack-type/self-host; BetterModel `pack-type: zip`), `ConfigEdit` (owner's third value wins, recorded in `plugins/TerraFirmaPlugin/install/edits.json`), `InstallStatus.decide` (pure restart banner / degraded / pack rebuild). `paper/install/ThirdPartyConfigEditor` writes atomically and only if the result parses. Tests: `ThirdPartyEditsTest` (every key on fixtures copied from `spikes/run/paper-26.3/plugins/...`, trimmed, origin named), `YamlKeyEditorTest`, `InstallStatusTest`, `InstallerTest` (first start → restart banner → second start normal). Open: datagen reports no CE state count yet (`counts.ce_states`), so `serverside-blocks` is sized from `ce_blocks` (a lower bound); `chunk-system.blacklisted-worlds` is not checked; degraded mode has no consumer until the M2 generator.
 
 - [ ] **M1-INST-03 Visual profile selection & pack rebuild** · deps: M1-DGN-04, M1-INST-01
   - Do: pick the allocation for `visuals.profile` and the running version. Trigger a CE pack rebuild when content or profile changed. Check pool capacity at runtime (fail and name the higher profile, or warn below the reserve).

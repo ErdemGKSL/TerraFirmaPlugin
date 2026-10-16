@@ -1,0 +1,87 @@
+# TEST FIXTURE (M1-INST-02): trimmed copy of the CraftEngine 26.9.2 default config.yml as written on a
+# real server (spikes/run/paper-26.3/plugins/CraftEngine/config.yml, Paper 26.3). Only the sections our
+# edits touch are kept, with their original comments and indentation; the rest was removed.
+# Do not modify this value
+___version___: '114'
+# Enables or disables metrics collection via BStats
+metrics: true
+# Enables automatic update checks
+update-checker: true
+# Forces a specific locale (e.g., zh_cn)
+forced-locale: ''
+
+resource-pack:
+  # Run a workflow explicitly with /ce workflow <name>, or set its trigger below.
+  # https://xiao-momi.github.io/craft-engine-wiki/getting_start/workflows
+  workflows:
+    default:
+      trigger: reload_pack
+  # The minimum client version supported by CraftEngine is 1.16. If you need to provide support for lower client versions, please modify the resource pack yourself.
+  # Allowed values:
+  # - 1.20.1, 1.21, 1.21.8, 26.1, etc.
+  # - latest: the latest client version
+  # - server: the current server version
+  supported-version:
+    min: server
+    max: latest
+
+  # The description of your resource pack
+  description: "<gray>CraftEngine ResourcePack</gray>"
+  # Define the name of the overlay folders
+  overlay-format: "ce_overlay_{version}"
+  # Generate assets for CraftEngine fabric mod
+  # Note: fabric mod is used for clientside Axiom/WorldEdit mod
+  generate-mod-assets: false
+
+  # Merge other packs
+  merge-external-folders:
+    - "ModelEngine/resource pack"
+  merge-external-zip-files:
+    - "CustomNameplates/resourcepack.zip"
+    - "BetterModel/build.zip"
+  exclude-file-extensions: [ "md", "psd", "bbmodel", "db", "ini", "DS_Store", "zip", "gz", "tar", "jar" ]
+  # Cache the resource files in memory to speed up pack generation.
+  cache-resource-files: true
+
+  # Remove 1.21.5+ tinted_leaves particles
+  remove-tinted-leaves-particle: true
+  # Should those images in minecraft:default font also work in minecraft:uniform
+  override-uniform-font: true
+  # Exclude the shaders when generating the resource pack
+  exclude-core-shaders: false
+
+block:
+  # This decides the amount of real blocks on serverside. You should only consider increasing this value when your server state is insufficient.
+  # It is recommended to increase it by 1000 each time. A restart is required to apply the changes.
+  serverside-blocks: 2000
+
+chunk-system:
+  # Storage format for chunk data persistence
+  #
+  # mca: Minecraft Anvil format
+  # linear: Linear format
+  # pdc: Persistent Data Container provided by Bukkit
+  # none: No persistent storage
+  #
+  # Slime worlds will automatically use the Slime format for storage without requiring any configuration.
+  #
+  # To migrate world storage, run the command: /ce feature migrate-world-storage [world] [from|to] [type]
+  # 'to' migrates from the current storage type to the specified one; 'from' is the reverse.
+  # After a 'to' migration, switch the storage type in the configuration and restart the server.
+  #
+  storage-type: linear
+  # Worlds whose name matches any of these regex patterns will always use 'none' storage mode (in-memory only)
+  # Useful for temporary or frequently reset worlds where persistence is unnecessary
+  blacklisted-worlds: []
+  # Caches decoded chunk data to reduce I/O overhead for frequently loaded/unloaded chunks
+  cache-system: true
+
+misc:
+  # Suppresses connection logs during server configuration phase
+  filter-configuration-phase-disconnect: false
+  # Defers CraftEngine configuration loading until after all plugins have initialized
+  # ENABLED (true) : Recommended - Ensures plugin interoperability
+  # DISABLED (false): Only disable if you require datapack-generated spawn chunks
+  delay-configuration-load: true
+  # Loading configuration files using multiple threads.
+  multi-threaded-configuration-load: true

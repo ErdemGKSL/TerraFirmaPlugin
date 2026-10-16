@@ -4,6 +4,8 @@ __pycache__/
 spikes/run/
 spikes/logs/
 **/build/
+# ...but not the build-logic source package dev.tfp.build (CheckLicenseHeaders, CheckNotice).
+!build-logic/src/main/kotlin/dev/tfp/build/
 **/.gradle/
 .kotlin/
 content/generated/

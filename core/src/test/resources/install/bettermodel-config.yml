@@ -1,0 +1,14 @@
+# TEST FIXTURE (M1-INST-02): BetterModel 3.5.1's generated config.yml (spikes/run/paper-26.3/plugins/BetterModel/config.yml,
+# Paper 26.3), trimmed to the header and the pack settings.
+# BetterModel Configuration
+#
+# This file contains all the configuration options for the BetterModel plugin.
+# For detailed information on each option, please refer to the official documentation.
+
+# The format of the generated resource pack.
+# 'zip': A standard .zip file.
+# 'folder': A raw folder structure (useful for merging or debugging).
+pack-type: zip
+
+# The location where the resource pack file or folder will be generated, relative to the server root.
+build-folder-location: BetterModel/build

@@ -15,6 +15,7 @@ import dev.tfp.paper.boot.TfpCommands.Reply;
 import dev.tfp.paper.config.ConfigService;
 import dev.tfp.paper.data.RegistryService;
 import dev.tfp.paper.i18n.Messages;
+import dev.tfp.paper.install.Installer;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.integration.IntegrationContext;
 import dev.tfp.paper.integration.Integrations;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -73,6 +75,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     private static final int DEBUG_REACH = 8;
 
     private final ReadyGate readyGate = new ReadyGate();
+    private volatile Installer.Result install;
     private CompatGate.Report compat;
     private ConfigService config;
     private volatile Scheduler scheduler;
@@ -102,7 +105,9 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         }
         config = new ConfigService(getDataPath().resolve("config.yml"), this::defaultConfigText);
         logConfig(config.load());
-        // M1-INST-01..03: install our content into CraftEngine/BetterHud, config edits, visual profile.
+        // M1-INST-01/02: our content into CraftEngine/BetterHud, then the config edits (before CraftEngine's
+        // onEnable parses its configs). M1-INST-03 (visual profile, pack rebuild trigger) builds on the result.
+        install = runInstaller();
         // M1-INT-01..04: discover the adapters of the installed plugins; CraftEngine registers its
         // behaviours/functions/conditions here (must happen in onLoad).
         IntegrationContext ctx = new IntegrationContext(this, getLogger(), readyGate, () -> scheduler, hudCache,
@@ -110,6 +115,26 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         integrations = Integrations.discover(ctx, name -> getServer().getPluginManager().getPlugin(name) != null,
                 TfpPlugin.class.getClassLoader());
         integrations.onLoad();
+    }
+
+    private Installer.Result runInstaller() {
+        Path pluginsDir = getDataPath().toAbsolutePath().getParent();
+        Path contentRoot;
+        try {
+            contentRoot = RegistryService.jarDataRoot(TfpPlugin.class.getClassLoader()).getParent();
+        } catch (RuntimeException e) {
+            getLogger().log(Level.SEVERE, "Cannot open the plugin jar's /content", e);
+            contentRoot = null;
+        }
+        Set<String> installed = new HashSet<>();
+        for (String name : new String[] {Installer.CRAFTENGINE, "BetterModel", Installer.BETTERHUD}) {
+            if (getServer().getPluginManager().getPlugin(name) != null) {
+                installed.add(name);
+            }
+        }
+        return Installer.run(new Installer.Inputs(config.current().autoInstall(), pluginsDir,
+                getDataPath().resolve("install"), contentRoot, getPluginMeta().getVersion(), installed,
+                Installer.ceStates(contentRoot)), getLogger());
     }
 
     @Override
@@ -217,6 +242,14 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         }
     }
 
+    /**
+     * The install step's outcome: {@code status().degraded()} means TFC worlds must not be generated in this
+     * run (restart pending or a required CraftEngine setting is not in effect). Null until {@link #onLoad()} passed.
+     */
+    public Installer.Result install() {
+        return install;
+    }
+
     public ReadyGate readyGate() {
         return readyGate;
     }
@@ -270,6 +303,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                     .append(p == null ? "not installed" : p.getPluginMeta().getVersion() + (p.isEnabled() ? "" : " (disabled)"));
         }
         sb.append("\n  packet layer: ").append(packetLayer.describe());
+        Installer.Result inst = install;
+        if (inst != null && inst.status().degraded()) {
+            sb.append("\n  install: DEGRADED").append(inst.status().restartRequired() ? " (restart required)" : "");
+        }
         sb.append("\n  status: ").append(readyGate.describe());
         return sb.toString();
     }

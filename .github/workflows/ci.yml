@@ -1,0 +1,137 @@
+# CI (M1-BUILD-03). Jobs:
+#   check    - generates content/ from TFC at the pinned commit (content/generated/ is not committed), then
+#              unit tests, data-load tests, license/NOTICE/platform-free/architecture checks (`./gradlew check`),
+#              then `verifyContent`: a second datagen run must be byte-identical (determinism gate)
+#   content  - fails when a committed content/generated/content is out of date with the pinned TFC commit;
+#              skipped while content/generated/ is gitignored
+#   selftest - in-server self-test on {Paper, Folia} x {1.21.11, 26.3}, Java 25, plugin versions pinned in
+#              gradle/libs.versions.toml (needs the self-test plugin from M1-TEST-01; red until it exists)
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Must match the commit pinned in docs/porting/ledger.md (datagen refuses any other checkout).
+  TFC_REPO: https://github.com/TerraFirmaCraft/TerraFirmaCraft.git
+  TFC_COMMIT: c3b4d9536b82e5a9746dd793c586720a74108057
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Fetch TFC at the pinned commit
+        run: |
+          git init -q "$RUNNER_TEMP/tfc"
+          git -C "$RUNNER_TEMP/tfc" fetch -q --depth 1 "$TFC_REPO" "$TFC_COMMIT"
+          git -C "$RUNNER_TEMP/tfc" checkout -q --detach FETCH_HEAD
+          echo "TFC_ROOT=$RUNNER_TEMP/tfc" >> "$GITHUB_ENV"
+          echo "TFC_CHECKOUT=$RUNNER_TEMP/tfc" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Generate content
+        run: ./gradlew :tools:datagen:generateContent
+      - name: Check
+        run: ./gradlew check --continue
+      - name: Verify content (second datagen run is identical)
+        run: ./gradlew :tools:datagen:verifyContent
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: check-reports
+          path: |
+            **/build/reports/
+            **/build/test-results/
+          if-no-files-found: ignore
+
+  content:
+    name: content up to date
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Is generated content committed?
+        id: committed
+        run: |
+          if git ls-files --error-unmatch content/generated/content/.datagen-manifest.json >/dev/null 2>&1; then
+            echo "yes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "content/generated/ is not committed (gitignored): nothing can be out of date; the check job regenerates it."
+          fi
+      - if: steps.committed.outputs.yes == 'true'
+        name: Fetch TFC at the pinned commit
+        run: |
+          git init -q "$RUNNER_TEMP/tfc"
+          git -C "$RUNNER_TEMP/tfc" fetch -q --depth 1 "$TFC_REPO" "$TFC_COMMIT"
+          git -C "$RUNNER_TEMP/tfc" checkout -q --detach FETCH_HEAD
+          echo "TFC_ROOT=$RUNNER_TEMP/tfc" >> "$GITHUB_ENV"
+          echo "TFC_CHECKOUT=$RUNNER_TEMP/tfc" >> "$GITHUB_ENV"
+      - if: steps.committed.outputs.yes == 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+      - if: steps.committed.outputs.yes == 'true'
+        uses: gradle/actions/setup-gradle@v6
+      - if: steps.committed.outputs.yes == 'true'
+        name: Verify committed content
+        run: ./gradlew :tools:datagen:verifyContent
+      - name: How to fix
+        if: failure()
+        run: echo "::error::content/generated/content is out of date. Run ./gradlew :tools:datagen:generateContent -Ptfc.checkout=<TFC @ $TFC_COMMIT> and commit the result."
+
+  selftest:
+    needs: [check, content]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [paper, folia]
+        mc: ["1.21.11", "26.3"]
+    name: selftest (${{ matrix.platform }} ${{ matrix.mc }})
+    steps:
+      - uses: actions/checkout@v7
+      - name: Fetch TFC at the pinned commit
+        run: |
+          git init -q "$RUNNER_TEMP/tfc"
+          git -C "$RUNNER_TEMP/tfc" fetch -q --depth 1 "$TFC_REPO" "$TFC_COMMIT"
+          git -C "$RUNNER_TEMP/tfc" checkout -q --detach FETCH_HEAD
+          echo "TFC_ROOT=$RUNNER_TEMP/tfc" >> "$GITHUB_ENV"
+          echo "TFC_CHECKOUT=$RUNNER_TEMP/tfc" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Generate content (shipped in the plugin jar)
+        run: ./gradlew :tools:datagen:generateContent
+      - name: Self-test
+        timeout-minutes: 20
+        run: ./gradlew :itest:runSelfTest -Pmc=${{ matrix.mc }} -Pplatform=${{ matrix.platform }}
+      - name: Upload report and logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: selftest-${{ matrix.platform }}-${{ matrix.mc }}
+          path: |
+            itest/build/selftest-run/${{ matrix.platform }}-${{ matrix.mc }}/selftest-report.xml
+            itest/build/selftest-run/${{ matrix.platform }}-${{ matrix.mc }}/logs/
+            itest/build/selftest-run/${{ matrix.platform }}-${{ matrix.mc }}/crash-reports/
+          if-no-files-found: warn

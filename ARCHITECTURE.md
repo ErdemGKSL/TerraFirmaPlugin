@@ -195,7 +195,12 @@ visuals:
 ```
 
 **Mechanics:**
-- `tools/datagen` precomputes one visual allocation per (profile × MC version family) and ships them all in the jar.
+- `tools/datagen` precomputes one visual allocation per (profile × MC version family × Nether/End off/on) and ships them all in the jar (M1-DGN-04, `dev.tfp.datagen.visuals`):
+  - Supply: `tools/datagen/src/main/resources/dev/tfp/datagen/visuals/fullcube-states.csv`, the per-state export of `docs/research/vanilla-fullcube-supply.csv` (same classification; a test checks the per-block counts agree). A state counts for a family only if it is a free full cube in every researched version (1.21: 1.21.4 + 1.21.11; 26: 26.1.2 + 26.3). Terrain-grade only (clean, minor caveat).
+  - Order: identity duplicates → Nether/End (when on) → absent-in-TFC clean → absent minor → CE `auto_state: solid` (with a stable share `id`). Non-pool sources go first so the solid pool stays free for other packs; overflow fails datagen.
+  - Demand: every emitted appearance; profile rules make an appearance reuse another's look; byte-identical model sets share one state (hardened = raw).
+  - Block entries are profile-independent: `state: {template: tfp:visual/<id>}` or `states.appearances: {template: tfp:visual/<id>}`. Each allocation dir `visuals/<family>/<profile>/nether-end-<off|on>/` holds `visual_templates.yml` (those templates), `visual_mappings.yml` (`block_state_mappings`: identity duplicate → its twin if unclaimed, else a family look-alike: stone/dirt/oak_planks are reserved for this, coloured blocks → concrete powder, sandstone → sand) and `suppressed_blocks.json` (M1-DGN-05). `visuals/index.json` lists pool use per allocation. Reports: `reports/visual-allocation-<profile>-<family>.md`.
+  - Datapack `datapack/tfp_visuals/` (one for all profiles; tags are global): ambient-sound tags and `#crystal_sound_blocks` minus every vanilla block used as a visual in any allocation; `#impermeable` only if a waterlogged state is ever claimed (none today).
 - At `onLoad` the installer writes the selected allocation into our CE pack, then the installer flow rebuilds the CE pack.
 - At runtime, after `CraftEngineReloadEvent`, we read the real free counts of the CE pools (the installed `mappings.yml` may differ per server):
   - fail with a clear message, naming the next higher profile, if the selected profile doesn't fit;
@@ -222,7 +227,7 @@ TFC checkout @ pinned commit ──▶ tools/datagen ──▶ content/
 
 Deterministic and re-runnable. Hand fixes go in `tools/datagen/overrides/`. See `.claude/skills/tfc-asset-migration/`.
 
-- **Location:** `content/` above is the content root `content/generated/content` in the repo, shipped as `/content` in the jar. Datagen owns `data/`, `craftengine/`, `reports/`, `.datagen-manifest.json` and `third-party.json` there and rewrites them wholesale.
+- **Location:** `content/` above is the content root `content/generated/content` in the repo, shipped as `/content` in the jar. Datagen owns `data/`, `craftengine/`, `visuals/` (§9.1 allocations), `datapack/` (visual tag edits), `reports/`, `.datagen-manifest.json` and `third-party.json` there and rewrites them wholesale.
 - **CLI:** `datagen <tfc-checkout> <content-dir> [--check]` refuses a checkout whose HEAD is not the pinned commit. Gradle: `:tools:datagen:generateContent`, and `:tools:datagen:verifyContent` as the CI up-to-date gate.
 - **Manifest:** TFC commit plus aggregate sha256 per input tree and per output tree, no timestamps.
 - **Data (M1-DGN-02):** TFC's generated `data/tfc/{tfc,recipe,tags}` plus every `c:`/`minecraft:` tag file in the checkout are exported to `data/**` with `tfc:` → `tfp:`. Two id tables sit at the top of `data/`:
@@ -235,6 +240,9 @@ Deterministic and re-runnable. Hand fixes go in `tools/datagen/overrides/`. See 
 
 1. **Bootstrap:** datapack discovery (biomes, tags, damage types), Brigadier commands.
 2. **`onLoad`:** version/compat gate → install content into CraftEngine and BetterHud folders (hash manifest protects owner edits) → targeted config edits → register CraftEngine behaviours/functions/conditions.
+   - **Installer (M1-INST-01/02, `paper/install/Installer`):** copies the jar's `/content/craftengine/tfp` → `plugins/CraftEngine/resources/tfp/` and `/content/betterhud/tfp` → `plugins/BetterHud/packs/tfp/`. Each target holds `.tfp-manifest.json` (sha256 per file as we wrote it, tombstones for files the owner deleted). The per-file rule is the pure `core/install/FileDecision`: untouched → overwrite, owner-edited → ours goes to `<name>.tfp-new`, deleted → not recreated (unless `auto-install.restore-deleted`); a file we no longer ship is deleted only if untouched. Writes are temp + atomic move, only for changed files (CE caches by mtime + size). Opt-outs: `auto-install.craftengine|betterhud: false`, BetterHud `packs/-tfp`. The installer never creates `plugins/CraftEngine/resources/` itself (CE extracts its default packs only while it is absent).
+   - **Config edits:** the `dependency-bootstrap` §6 table lives in `core/install/ThirdPartyEdits`; `core/install/YamlKeyEditor` changes single keys/list items line by line (comments and everything else byte-identical), the result must still parse before it is written. What we changed is recorded in `plugins/TerraFirmaPlugin/install/edits.json` (original + ours); a third value set later by the owner is left alone with a warning. `auto-install.config-edits: false` only checks.
+   - **Restart / degraded:** `core/install/InstallStatus.decide` (pure): a changed restart-only CE key (`delay-configuration-load`, `cache-system`, `storage-type`, `serverside-blocks`) → restart banner + degraded; a mandatory key the owner kept wrong, or a failed CE install → "setup incomplete" banner + degraded. Degraded means TFC worlds must not be generated in this run (`TfpPlugin.install().status().degraded()`, consulted by the generator from M2). `packRebuild` is set when our CE content or a pack setting changed; triggering the CE rebuild is M1-INST-03.
 3. **CraftEngine onEnable** (after us in order, but it parses configs immediately because `delay-configuration-load: false`).
 4. **`onEnable`:** BetterModel event subscriptions (`ModelAssetsEvent`, `CreateEntityTrackerEvent`, `PluginEndReloadEvent`), BetterHud placeholders, listeners, scheduler, registries (async load of the jar's `/content/data`, signals the ready gate), player data store, packet layer.
 5. **Ready gate:** CE reloaded ∧ BetterModel models ready ∧ registries loaded. BetterHud placeholder registration is synchronous in `onEnable` and is not a gate condition.
@@ -245,6 +253,8 @@ Details: `.claude/skills/dependency-bootstrap/`.
 ## 13. Testing architecture
 
 Pyramid: pure unit/property/golden-value tests (core, worldgen; ported TFC tests) → data-load validation → worldgen determinism + jcstress → JMH budgets → MockBukkit for glue → in-server self-test harness via run-paper on {Paper, Folia} × {1.21.11, 26.3} → manual visual checklist with `/tfp debug showcase`. Folia is the primary thread-safety detector. Details: `.claude/skills/plugin-testing/`.
+
+CI (`.github/workflows/ci.yml`, M1-BUILD-03): `check` (TFC fetched at the pinned commit as `TFC_ROOT`; `generateContent` because `content/generated/` is gitignored, `check`, then `verifyContent` as a determinism gate), `content` (up-to-date gate, active only if `content/generated/` is ever committed), then `selftest` = `./gradlew :itest:runSelfTest -Pmc=… -Pplatform=…` over {paper, folia} × {1.21.11, 26.3}. `runSelfTest` (itest, run-paper, plugin ids from `gradle/libs.versions.toml`) runs in `itest/build/selftest-run/<platform>-<mc>/`, refuses to start without the self-test plugin, and fails unless `selftest-report.xml` exists with no failures.
 
 ## 14. Open technical questions (spikes before feature work)
 

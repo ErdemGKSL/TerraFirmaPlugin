@@ -6,6 +6,8 @@ dependencies {
     // Paper ships Gson at runtime; core only compiles against it.
     compileOnlyApi(libs.gson)
     testImplementation(libs.gson)
+    // M1-INST-02 tests: check that edited third-party YAML still parses to the expected tree.
+    testImplementation(libs.snakeyaml)
 }
 
 // M1-REG-04: ContentDataLoadTest loads the datagen output in content/generated/content/data (skipped while absent).
