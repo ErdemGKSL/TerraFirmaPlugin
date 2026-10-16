@@ -22,6 +22,24 @@ def stable_uuid(*parts: str) -> str:
     return str(uuid.uuid5(_NS, "/".join(parts)))
 
 
+def box_uv_faces(frm, to, uv):
+    """Per-face UV rectangles of a box-UV cube, in the layout Blockbench itself writes.
+
+    BetterModel reads the stored face UVs (it does not recompute them like Blockbench on load), so a zero
+    rectangle renders the cube invisible. Verified on the TFC Deer and Bear models (120/120 faces match).
+    """
+    w, h, d = to[0] - frm[0], to[1] - frm[1], to[2] - frm[2]
+    u, v = uv
+    return {
+        "up": {"uv": [u + d + w, v + d, u + d, v], "texture": 0},
+        "down": {"uv": [u + d + 2 * w, v, u + d + w, v + d], "texture": 0},
+        "north": {"uv": [u + d, v + d, u + d + w, v + d + h], "texture": 0},
+        "south": {"uv": [u + 2 * d + w, v + d, u + 2 * d + 2 * w, v + d + h], "texture": 0},
+        "west": {"uv": [u + d + w, v + d, u + 2 * d + w, v + d + h], "texture": 0},
+        "east": {"uv": [u, v + d, u + d, v + d + h], "texture": 0},
+    }
+
+
 @dataclass
 class Cube:
     name: str
@@ -89,7 +107,7 @@ class Model:
                 "allow_mirror_modeling": True, "from": list(c.frm), "to": list(c.to), "autouv": 0, "color": 0,
                 "inflate": c.inflate, "origin": list(bone.pivot), "uv_offset": list(c.uv_offset or (0, 0)),
                 "mirror_uv": c.mirror_uv,
-                "faces": {f: {"uv": [0, 0, 0, 0], "texture": 0} for f in ("north", "east", "south", "west", "up", "down")},
+                "faces": box_uv_faces(c.frm, c.to, c.uv_offset or (0, 0)),
                 "type": "cube", "uuid": stable_uuid(name, "cube", bone.name, str(i), c.name),
             }
 
