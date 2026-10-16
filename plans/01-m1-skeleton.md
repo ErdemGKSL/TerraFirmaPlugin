@@ -61,19 +61,22 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 - [ ] **M1-THR-04 Atomic registry & calendar snapshot primitives** · deps: M1-THR-01
   - Do: `AtomicReference`-based snapshot holders; a volatile global clock holder (filled by M2-CAL-01).
   - Done when: jcstress tests for publication pass.
+  - Status: `dev.tfp.core.concurrent.Snapshot<T>` (versioned `AtomicReference`, `publishIfNewer`) added by M1-REG-01 with latch-based JUnit publication tests; jcstress and the clock holder are still open.
 
 ## Data & registries
 
-- [ ] **M1-REG-01 Registry framework in core** · deps: M1-THR-04 · skills: tfc-feature-porting
+- [x] **M1-REG-01 Registry framework in core** · deps: M1-THR-04 · skills: tfc-feature-porting
   - Do: typed registries, a codec layer (JSON, strict: unknown keys/types fail), `RegistrySnapshot`, off-thread load + atomic swap, `/tfp reload data`.
   - Done when: unit tests and a reload-during-use test pass.
+  - Status: core done (`json/`, `registry/`, `RegistriesReloadTest`). The `/tfp reload data` command is Paper glue: it calls `Registries.reload(executor, () -> DataLoader.standard(ids).load(roots))`.
 
-- [ ] **M1-REG-02 Ingredients & output modifiers** · deps: M1-REG-01 · skills: tfc-feature-porting
+- [x] **M1-REG-02 Ingredients & output modifiers** · deps: M1-REG-01 · skills: tfc-feature-porting
   - TFC: `common/recipes/ingredients/`, `common/recipes/outputs/`
   - Do: port all ingredient types (`tfc:and`, `tfc:not_rotten`, `tfc:lacks_trait`, `tfc:has_trait`, `tfc:heat`, `tfc:fluid_content`, ...) and output modifiers (`tfc:copy_input`, `tfc:add_trait`, `tfc:copy_food`, `tfc:meal`, `tfc:add_heat`, ...) as sealed hierarchies with codecs. Their behaviour hooks call into later systems through interfaces (food/heat land in M3).
   - Done when: every type found in TFC data parses (the data-load test), and unit tests cover the matching logic.
+  - Status: `SampleDataTest` (fixed TFC sample in `core/src/test/resources/tfc-sample`) covers every type in TFC data; `TfcDataCoverageTest` loads all ~8.5k upstream files (needs `TFC_ROOT`); `ContentDataLoadTest` parses all datagen output.
 
-- [ ] **M1-REG-03 Tags** · deps: M1-REG-01
+- [x] **M1-REG-03 Tags** · deps: M1-REG-01
   - TFC: `src/generated/resources/data/tfc/tags/**`
   - Do: our tag registry for blocks/items/fluids/entities (CE ids + vanilla), loaded from the datagen output.
   - Done when: TFC tag files load, and lookups are tested.
@@ -81,6 +84,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 - [ ] **M1-REG-04 Data-load test** · deps: M1-REG-02, M1-DGN-02
   - Do: a test loading all of `content/data/**`. It fails on unknown types, unresolved ids/tags or duplicates.
   - Done when: it runs in CI.
+  - Status: `core/.../registry/ContentDataLoadTest` loads `content/generated/content/data` with `id_map.json` in `:core:test` (part of `check`; the folder is a test input). Everything parses and every `tfp:` item/block id resolves, but 99 references to NeoForge `c:` common tags that datagen doesn't export (`c:cobblestones`, `c:feathers`, ...) remain, so the test aborts (skipped) on exactly that error kind and fails on any other. Open until M1-DGN-02 exports those tags. The id map should also list fluids, entity types, food traits and the vanilla ids used, so that those are checked too.
 
 ## Datagen v1 (tools/datagen)
 

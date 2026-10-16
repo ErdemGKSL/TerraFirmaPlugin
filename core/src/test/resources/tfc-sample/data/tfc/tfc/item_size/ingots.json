@@ -1,0 +1,13 @@
+{
+  "ingredient": {
+    "type": "neoforge:difference",
+    "base": {
+      "tag": "c:ingots"
+    },
+    "subtracted": {
+      "tag": "c:bricks"
+    }
+  },
+  "size": "large",
+  "weight": "medium"
+}

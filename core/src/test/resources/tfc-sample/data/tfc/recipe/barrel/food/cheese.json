@@ -1,0 +1,12 @@
+{
+  "type": "tfc:barrel_sealed",
+  "duration": 28800,
+  "input_fluid": {
+    "amount": 625,
+    "fluid": "tfc:curdled_milk"
+  },
+  "output_item": {
+    "count": 1,
+    "id": "tfc:food/cheese"
+  }
+}

@@ -7,6 +7,8 @@ This project reimplements and adapts code, data and assets from TerraFirmaCraft:
   Licensed under the EUPL, Version 1.2.
 
 Ported source files name the TerraFirmaCraft file and commit they derive from in their header.
+core/src/test/resources/tfc-sample/ holds unmodified TerraFirmaCraft data files (EUPL-1.2, commit
+c3b4d9536b82e5a9746dd793c586720a74108057) used as test fixtures; its SOURCES.txt lists each file's TFC path.
 This project is not affiliated with or endorsed by the TerraFirmaCraft team.
 
 Third-party material with other licenses (inherited from TerraFirmaCraft):

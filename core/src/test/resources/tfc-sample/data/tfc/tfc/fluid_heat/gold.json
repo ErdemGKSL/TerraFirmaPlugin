@@ -1,0 +1,5 @@
+{
+  "fluid": "tfc:metal/gold",
+  "melt_temperature": 1060.0,
+  "specific_heat_capacity": 0.005
+}

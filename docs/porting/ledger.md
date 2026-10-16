@@ -8,6 +8,8 @@ Status values: `not started` → `rules` (core logic + tests) → `playable` (wo
 
 | Area | Feature | Status | TFC sources | Tests | Notes |
 |---|---|---|---|---|---|
+| Data & registries | Registry framework, strict JSON codecs, recipe/definition schemas, tags | rules | `common/recipes/TFCRecipeSerializers.java` + each recipe `CODEC`, `util/data/DataManager*.java` + definition `CODEC`s, `world/settings/RockSettings.java`, `data/tfc/tags/**` | `core/src/test/java/dev/tfp/core/{json,tag,registry}/**` | Recipe types and definition kinds decode to `SchemaRecord`s until their feature ports a typed record. `TfcDataCoverageTest` (env `TFC_ROOT`) loads all upstream TFC data |
+| Data & registries | Ingredients & output modifiers | rules | `common/recipes/ingredients/`, `common/recipes/outputs/` | `core/src/test/java/dev/tfp/core/recipe/**`, `SampleDataTest` | Item-data effects go through `recipe/hooks/*` interfaces, implemented by food/heat/forging (M3/M4) |
 | Calendar & climate | Calendar | not started | `util/calendar/` | | |
 | Calendar & climate | Climate model | not started | `util/climate/` | | |
 | World generation | Region / layers / rivers | not started | `world/region/`, `world/layer/`, `world/river/` | | |
@@ -38,4 +40,8 @@ Status values: `not started` → `rules` (core logic + tests) → `playable` (wo
 | Wood/stripped wood blocks have per-axis models | From `level-1`: all axes share one visual (bark on all faces) | Visual budget | Owner-configurable |
 | Metal blocks, mechanical blocks, crates, workbenches are block models | Drawn with `entity_renderer` display entities | Visual budget (approved) | No |
 | Raw/hardened rock drops the raw block when mined while isolated (`tfc:is_isolated` loot condition) | Always drops 1-4 loose rocks | The condition needs our own CE loot condition; not ported yet | Yes, with rock collapse work |
+| Mojang/NeoForge codecs ignore unknown JSON keys; Gson keeps the last of duplicate keys; JSON parsing is lenient | Our data loader rejects unknown keys, duplicate keys and non-strict JSON, and fails the whole load (all errors listed) | Catch datagen and hand-override mistakes at build time (M1-REG-04 test) instead of silently ignoring data | No |
+| Ingredient JSON arrays hold vanilla values only | Arrays may hold any ingredient type | Superset; all TFC data parses unchanged | No |
+| `PreciseIngredient.modifyStackForDisplay` (heat/rot/trait shown on JEI stacks) | Not in core; display stacks are a recipe-viewer/GUI concern | No JEI on vanilla clients; our GUIs add it when needed | When a recipe viewer GUI is built |
+| `RemoveDyeModifier` clears the dye on the input stack and returns it | Hook returns a dye-less copy; inputs are never mutated | Inputs are snapshots under our threading model | No |
 | Custom sky / star map | Not implemented (optional core-shader work later) | Needs core shaders | Optional |

@@ -1,0 +1,14 @@
+{
+  "click_sound": "tfc:item.knapping.clay",
+  "consume_after_complete": true,
+  "has_off_texture": true,
+  "icon": {
+    "count": 1,
+    "id": "minecraft:clay_ball"
+  },
+  "input": {
+    "count": 5,
+    "tag": "tfc:clay_knapping"
+  },
+  "spawns_particles": false
+}

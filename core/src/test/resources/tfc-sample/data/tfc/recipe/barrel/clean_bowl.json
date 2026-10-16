@@ -1,0 +1,26 @@
+{
+  "type": "tfc:barrel_instant",
+  "input_fluid": {
+    "amount": 100,
+    "fluid": "minecraft:water"
+  },
+  "input_item": {
+    "type": "neoforge:compound",
+    "children": [
+      {
+        "tag": "c:foods/soup"
+      },
+      {
+        "tag": "c:foods/salad"
+      }
+    ],
+    "count": 1
+  },
+  "output_item": {
+    "modifiers": [
+      {
+        "type": "tfc:empty_bowl"
+      }
+    ]
+  }
+}

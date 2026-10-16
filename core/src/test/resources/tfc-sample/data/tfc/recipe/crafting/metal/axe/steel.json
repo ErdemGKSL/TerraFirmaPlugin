@@ -1,0 +1,26 @@
+{
+  "type": "tfc:advanced_shaped_crafting",
+  "key": {
+    "S": {
+      "tag": "c:rods/wooden"
+    },
+    "X": {
+      "item": "tfc:metal/axe_head/steel"
+    }
+  },
+  "pattern": [
+    "X",
+    "S"
+  ],
+  "result": {
+    "modifiers": [
+      {
+        "type": "tfc:copy_forging_bonus"
+      }
+    ],
+    "stack": {
+      "count": 1,
+      "id": "tfc:metal/axe/steel"
+    }
+  }
+}
