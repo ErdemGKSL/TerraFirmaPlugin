@@ -81,10 +81,21 @@ prepare)
   fi
   echo "== setup_run.py"; python3 "$HERE/setup_run.py" "$RUN" || exit 1
   echo "== real start"; start_server "$RUN" "$plat" "$mc"
-  echo "== ce reload all"; $RCON "ce reload all"; sleep 30
+  # CE builds the pack once BetterHud has finished its own reload; if BetterHud is still reloading (it is at
+  # startup), its HUD files are missing from the uploaded pack. Rebuild until BetterHud reports the merge after the upload.
+  echo "== ce reload all (until BetterHud merges after the upload)"
+  for attempt in 1 2 3 4; do
+    $RCON "ce reload all" >/dev/null; sleep 40
+    n=$(unzip -l "$RUN/plugins/CraftEngine/generated/resource_pack.zip" 2>/dev/null | grep -c betterhud)
+    [ "$n" -gt 0 ] && break
+  done
+  echo "betterhud entries in CE pack: $n (attempts: $attempt)"
   server_check "$RUN"
   echo "== platform for shots"
+  $RCON "gamerule advance_time false" >/dev/null 2>&1  # 1.21.11 name; 26.x: see AGENT-GUIDE
   $RCON "time set day" >/dev/null
+  $RCON "forceload add -16 -16 16 16" >/dev/null   # without this the fills below silently do nothing ("not loaded")
+  sleep 5
   $RCON "fill -10 150 -10 10 150 10 stone" >/dev/null
   $RCON "fill 2 151 2 6 154 6 water" >/dev/null
   ;;
@@ -92,16 +103,24 @@ shots)
   mc=$1; shift; GAME=$(game_dir bh "$mc")
   for scale in "$@"; do
     echo "== $mc gui $scale"
+    # A bot that died in an earlier session rejoins dead (health 0 saved in playerdata, and no respawn click),
+    # so clear its player data (.dat and .dat_old; the server falls back to .dat_old) while it is offline.
+    rm -f "$(run_dir paper "$mc")"/world/playerdata/*.dat*
     launch_client "$mc" "$GAME" "$scale"
     wait_join || { tail -20 "$GAME/logs/latest.log"; continue; }
+    # Teleport in creative first: the bot spawns in water and drowns if it is in survival during the pack wait.
+    $RCON "gamemode creative Bot" >/dev/null
+    $RCON "tp Bot 0.5 151 0.5 0 0" >/dev/null
     sleep 40   # resource pack download + first frames (software GL is slow)
-    $RCON "gamemode survival Bot" >/dev/null
-    $RCON "tp Bot 0.5 151 0.5 0 0" >/dev/null; sleep 12
+    $RCON "gamemode survival Bot" >/dev/null; sleep 12
+    echo "bot pos (land): $($RCON 'data get entity Bot Pos' 2>/dev/null) health: $($RCON 'data get entity Bot Health' 2>/dev/null)"
     shot "$SHOTS/$mc-gui$scale-land.png"
     if [ "$scale" = 2 ] && [ "$mc" = 26.3 ]; then
       sleep 6; shot "$SHOTS/$mc-gui$scale-land-6s-later.png"
     fi
-    $RCON "tp Bot 4.5 151.5 4.5 0 0" >/dev/null; sleep 12
+    # feet inside the water block at y=151 (stone floor at y=150); y=151.5 floated and got a "flying" kick
+    $RCON "tp Bot 4.5 151 4.5 0 0" >/dev/null; sleep 12
+    echo "bot pos (underwater): $($RCON 'data get entity Bot Pos' 2>/dev/null)"
     shot "$SHOTS/$mc-gui$scale-underwater.png"
     $RCON "tp Bot 0.5 151 0.5 0 0" >/dev/null
     grep -iE "shader|failed to|resource ?pack" "$GAME/logs/latest.log" 2>/dev/null | head -5
