@@ -53,7 +53,7 @@ Test servers: run-paper with CraftEngine 26.9.x, BetterModel 3.5.x and BetterHud
     - Folia tracker creation thread.
   - Done when: everything above is verified or a workaround is documented in the `bettermodel` skill.
 
-- [ ] **M0-BH-01 BetterHud integration** · deps: M0-ENV-01 · skills: betterhud
+- [x] **M0-BH-01 BetterHud integration** · deps: M0-ENV-01 · skills: betterhud
   - Do: our `packs/tfp/` with health "45/50" + thirst bar fed by async-safe placeholders (from a per-player snapshot). Transparent vanilla heart/food/air sprites via our CE pack. CE pack rebuild after HUD changes.
   - Done when: the HUD shows on 1.21.11 and 26.3 at GUI scales 1–4, vanilla bars are hidden, the hotbar is kept, and there are no Folia thread errors.
 
