@@ -6,12 +6,27 @@
 package dev.tfp.paper;
 
 import dev.tfp.core.compat.CompatGate;
+import dev.tfp.core.registry.Registries;
+import dev.tfp.paper.blockdata.ChunkDataStore;
+import dev.tfp.paper.blockdata.PdcChunkDataStore;
 import dev.tfp.paper.boot.CompatCheck;
 import dev.tfp.paper.boot.TfpCommands;
+import dev.tfp.paper.boot.TfpCommands.Reply;
 import dev.tfp.paper.config.ConfigService;
+import dev.tfp.paper.data.RegistryService;
+import dev.tfp.paper.i18n.Messages;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.integration.IntegrationContext;
 import dev.tfp.paper.integration.Integrations;
+import dev.tfp.paper.packet.CreativeReturnHandler;
+import dev.tfp.paper.packet.NoopPacketHandler;
+import dev.tfp.paper.packet.PacketHandlerRegistry;
+import dev.tfp.paper.packet.PacketLayer;
+import dev.tfp.paper.packet.PacketLayers;
+import dev.tfp.paper.player.PlayerData;
+import dev.tfp.paper.player.PlayerDataFiles;
+import dev.tfp.paper.player.PlayerDataListener;
+import dev.tfp.paper.player.PlayerDataStore;
 import dev.tfp.paper.ready.ReadyGate;
 import dev.tfp.paper.ready.ReadyGate.Signal;
 import dev.tfp.paper.scheduler.Scheduler;
@@ -20,9 +35,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -34,18 +59,30 @@ import org.bukkit.plugin.java.JavaPlugin;
  *       config edits → adapters' {@code onLoad} (CraftEngine behaviour registration);</li>
  *   <li>{@link #onEnable()}: refuse if the gate said so; scheduler; ready gate (waive what is missing);
  *       adapters' {@code onEnable} (CraftEngine listeners, BetterModel subscriptions, BetterHud
- *       placeholders); (later) our listeners, packet layer.</li>
+ *       placeholders); registries (first load signals the ready gate); player data store; packet layer.</li>
  * </ol>
  */
 public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     /** Log the pending ready signals if the gate is still closed this long after enable. */
     private static final long READY_WARN_SECONDS = 60;
+    /** Player data autosave interval (ticks): 5 minutes. */
+    private static final long AUTOSAVE_TICKS = 5 * 60 * 20;
+    /** A player loaded at pre-login but not online after this long was refused by another plugin. */
+    private static final long ABSENT_GRACE_NANOS = TimeUnit.SECONDS.toNanos(60);
+    /** Reach of {@code /tfp debug block}. */
+    private static final int DEBUG_REACH = 8;
 
     private final ReadyGate readyGate = new ReadyGate();
     private CompatGate.Report compat;
     private ConfigService config;
     private volatile Scheduler scheduler;
     private volatile Integrations integrations;
+    private final Messages messages = Messages.fromJar();
+    private final ChunkDataStore chunkData = new PdcChunkDataStore();
+    private volatile PacketHandlerRegistry packets;
+    private volatile PacketLayer packetLayer = PacketLayers.none("not enabled");
+    private volatile RegistryService registryService;
+    private volatile PlayerDataStore playerData;
     private final HudSnapshotCache hudCache = new HudSnapshotCache(() -> {
         Integrations i = integrations;
         return i != null && i.activePlugins().contains("BetterHud");
@@ -92,6 +129,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         // CRAFTENGINE_RELOADED is signalled by the CE adapter (M1-INT-02), BETTERMODEL_MODELS_READY by the
         // BetterModel adapter (M1-INT-03), REGISTRIES_LOADED by the registry loader's first swap.
         integrations.onEnable();
+        enableServices();
         getLogger().info("Integrations: " + (integrations.activePlugins().isEmpty() ? "none"
                 : String.join(", ", integrations.activePlugins())));
         readyGate.ready().whenComplete((v, err) -> {
@@ -108,10 +146,71 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         }, CompletableFuture.delayedExecutor(READY_WARN_SECONDS, TimeUnit.SECONDS, scheduler.cpuExecutor()));
     }
 
+    /** M1-SVC-01..03: registries, player data, packet layer. */
+    private void enableServices() {
+        registryService = new RegistryService(() -> RegistryService.jarDataRoot(TfpPlugin.class.getClassLoader()),
+                scheduler.cpuExecutor());
+        registryService.reload().whenComplete((r, err) -> {
+            if (err == null) {
+                getLogger().info("Registries loaded: " + RegistryService.entries(r.snapshot()) + " entries");
+                readyGate.signal(Signal.REGISTRIES_LOADED);
+            } else {
+                getLogger().log(Level.SEVERE, "Cannot load the TerraFirmaPlugin data", err);
+                readyGate.fail(Signal.REGISTRIES_LOADED, err);
+            }
+        });
+
+        PlayerDataFiles files = new PlayerDataFiles(getDataPath().resolve("playerdata"));
+        PlayerDataStore store = new PlayerDataStore(files, scheduler.ioExecutor(), getLogger());
+        playerData = store;
+        scheduler.io(() -> {
+            try {
+                int n = files.deleteStaleTempFiles();
+                if (n > 0) {
+                    getLogger().info("Removed " + n + " unfinished player data write(s) from a crash");
+                }
+            } catch (IOException e) {
+                getLogger().log(Level.WARNING, "Cannot clean up player data temp files", e);
+            }
+        });
+        getServer().getPluginManager().registerEvents(new PlayerDataListener(store, messages, getLogger()), this);
+        scheduler.globalRepeating(AUTOSAVE_TICKS, AUTOSAVE_TICKS, () -> {
+            Set<UUID> online = new HashSet<>();
+            for (Player p : getServer().getOnlinePlayers()) {
+                online.add(p.getUniqueId());
+            }
+            scheduler.io(() -> {
+                store.unloadAbsent(online, ABSENT_GRACE_NANOS);
+                store.saveDirty();
+            });
+        });
+
+        boolean packetEvents = getServer().getPluginManager().isPluginEnabled(PacketLayers.PACKETEVENTS);
+        PacketHandlerRegistry packets = new PacketHandlerRegistry(getLogger());
+        this.packets = packets;
+        packets.register(new NoopPacketHandler());
+        if (packetEvents) {
+            packets.register(new CreativeReturnHandler());
+        }
+        PacketLayer layer = PacketLayers.create(packetEvents);
+        try {
+            layer.install(packets);
+        } catch (RuntimeException | LinkageError e) {
+            getLogger().log(Level.SEVERE, "Cannot install the packet layer; running without it", e);
+            layer = PacketLayers.none("install failed: " + e);
+        }
+        packetLayer = layer;
+        getLogger().info("Packet layer: " + layer.describe());
+    }
+
     @Override
     public void onDisable() {
+        packetLayer.uninstall();
         if (integrations != null) {
             integrations.onDisable();
+        }
+        if (playerData != null) {
+            playerData.close(10, TimeUnit.SECONDS); // needs the io executor: before the scheduler stops
         }
         if (scheduler != null) {
             scheduler.shutdown();
@@ -136,31 +235,171 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         return config;
     }
 
+    /** Our registries (empty until the first load completed). Null until enabled. */
+    public Registries registries() {
+        RegistryService r = registryService;
+        return r == null ? null : r.registries();
+    }
+
+    /** Null until enabled. */
+    public PlayerDataStore playerData() {
+        return playerData;
+    }
+
+    public ChunkDataStore chunkData() {
+        return chunkData;
+    }
+
+    /** Null until enabled. */
+    public PacketHandlerRegistry packets() {
+        return packets;
+    }
+
+    public Messages messages() {
+        return messages;
+    }
+
     @Override
     public String version() {
         StringBuilder sb = new StringBuilder("TerraFirmaPlugin ").append(getPluginMeta().getVersion())
                 .append(" on ").append(getServer().getName()).append(' ').append(getServer().getMinecraftVersion())
                 .append(", Java ").append(Runtime.version().feature());
-        for (String name : new String[] {"CraftEngine", "BetterModel", "BetterHud"}) {
+        for (String name : new String[] {"CraftEngine", "BetterModel", "BetterHud", PacketLayers.PACKETEVENTS}) {
             Plugin p = getServer().getPluginManager().getPlugin(name);
             sb.append("\n  ").append(name).append(": ")
                     .append(p == null ? "not installed" : p.getPluginMeta().getVersion() + (p.isEnabled() ? "" : " (disabled)"));
         }
+        sb.append("\n  packet layer: ").append(packetLayer.describe());
         sb.append("\n  status: ").append(readyGate.describe());
         return sb.toString();
     }
 
     @Override
-    public CompletableFuture<String> reloadSettings() {
+    public CompletableFuture<Reply> reloadSettings() {
         return CompletableFuture.supplyAsync(() -> {
             ConfigService.Outcome o = config.load();
             logConfig(o);
             if (!o.applied()) {
-                return "config.yml not applied: " + String.join("; ", o.warnings());
+                return Reply.error("reload.config.not_applied", String.join("; ", o.warnings()));
             }
-            return "config.yml reloaded" + (o.warnings().isEmpty() ? "" : " with " + o.warnings().size()
-                    + " warning(s), see the console") + ". Profile changes need a restart.";
+            return o.warnings().isEmpty() ? Reply.ok("reload.config.done")
+                    : Reply.ok("reload.config.done_warnings", o.warnings().size());
         }, scheduler.ioExecutor());
+    }
+
+    @Override
+    public CompletableFuture<Reply> reloadData() {
+        return registryService.reload().handle((r, err) -> {
+            if (err != null) {
+                getLogger().log(Level.SEVERE, "Data reload failed; keeping the previous data", err);
+                Throwable c = err.getCause() != null ? err.getCause() : err;
+                return Reply.error("reload.data.failed", c.getMessage() != null ? c.getMessage() : c.toString());
+            }
+            if (!r.published()) {
+                return Reply.ok("reload.data.superseded");
+            }
+            return Reply.ok("reload.data.done", RegistryService.entries(r.snapshot()), r.snapshot().registries().size(),
+                    r.version());
+        });
+    }
+
+    @Override
+    public CompletableFuture<Reply> reloadContent() {
+        // dependency-bootstrap §7: installer -> BetterModel reload -> CraftEngine full reload. The installer
+        // (M1-INST-*) is not built yet, so there is nothing to reload.
+        return CompletableFuture.completedFuture(Reply.error("reload.content.unavailable"));
+    }
+
+    @Override
+    public CompletableFuture<Reply> debugBlock(Player player) {
+        CompletableFuture<Reply> out = new CompletableFuture<>();
+        boolean scheduled = scheduler.entity(player, () -> {
+            Block block = player.getTargetBlockExact(DEBUG_REACH);
+            if (block == null) {
+                out.complete(Reply.error("debug.block.none", DEBUG_REACH));
+                return;
+            }
+            Location loc = block.getLocation();
+            scheduler.region(loc, () -> {
+                try {
+                    List<String> lines = new ArrayList<>();
+                    lines.add("vanilla: " + block.getBlockData().getAsString());
+                    lines.add("custom: " + integrations.customBlocks().stateAt(block).map(String::valueOf).orElse("none"));
+                    out.complete(Reply.ok("debug.block.header", format(loc)).withDetails(lines));
+                } catch (RuntimeException e) {
+                    out.completeExceptionally(e);
+                }
+            });
+        }, () -> out.complete(Reply.error("command.player_only")));
+        if (!scheduled) {
+            out.complete(Reply.error("command.player_only"));
+        }
+        return out;
+    }
+
+    @Override
+    public CompletableFuture<Reply> debugChunk(Player player) {
+        CompletableFuture<Reply> out = new CompletableFuture<>();
+        boolean scheduled = scheduler.entity(player, () -> {
+            World world = player.getWorld();
+            int cx = player.getLocation().getBlockX() >> 4;
+            int cz = player.getLocation().getBlockZ() >> 4;
+            scheduler.region(world, cx, cz, () -> {
+                try {
+                    Chunk chunk = world.getChunkAt(cx, cz);
+                    Set<String> ids = chunkData.ids(chunk);
+                    out.complete(Reply.ok("debug.chunk.header", cx, cz, world.getName()).withDetails(ids.isEmpty()
+                            ? List.of(messages.get(player, "debug.chunk.empty"))
+                            : ids.stream().map(id -> "tfp:" + id).toList()));
+                } catch (RuntimeException e) {
+                    out.completeExceptionally(e);
+                }
+            });
+        }, () -> out.complete(Reply.error("command.player_only")));
+        if (!scheduled) {
+            out.complete(Reply.error("command.player_only"));
+        }
+        return out;
+    }
+
+    @Override
+    public CompletableFuture<Reply> debugPlayer(String name) {
+        Player target = getServer().getPlayerExact(name);
+        if (target == null) {
+            return CompletableFuture.completedFuture(Reply.error("command.player_not_found", name));
+        }
+        return CompletableFuture.completedFuture(playerData.get(target.getUniqueId())
+                .map(d -> Reply.ok("debug.player.header", target.getName()).withDetails(describe(d)))
+                .orElse(Reply.error("debug.player.not_loaded", target.getName())));
+    }
+
+    static List<String> describe(PlayerData d) {
+        return List.of("thirst: " + d.thirst(),
+                "lastDrinkTick: " + tick(d.lastDrinkTick()),
+                "intoxicatedUntil: " + tick(d.intoxicationTick()),
+                "chiselMode: " + d.chiselMode(),
+                "nutrition records: " + d.nutrition().size());
+    }
+
+    private static String tick(long t) {
+        return t == Long.MIN_VALUE ? "never" : Long.toString(t);
+    }
+
+    @Override
+    public CompletableFuture<Reply> debugPackets() {
+        List<String> lines = new ArrayList<>();
+        lines.add("layer: " + packetLayer.describe());
+        PacketHandlerRegistry registry = packets;
+        for (PacketHandlerRegistry.HandlerMetrics m : registry == null ? List.<PacketHandlerRegistry.HandlerMetrics>of() : registry.metrics()) {
+            lines.add(String.format(java.util.Locale.ROOT, "%s: calls=%d avg=%.1fus max=%.1fus modified=%d cancelled=%d errors=%d",
+                    m.name(), m.calls(), m.averageNanos() / 1000.0, m.maxNanos() / 1000.0, m.modified(),
+                    m.cancelled(), m.errors()));
+        }
+        return CompletableFuture.completedFuture(new Reply(true, "debug.packets.header", List.of(), lines));
+    }
+
+    private static String format(Location l) {
+        return l.getWorld().getName() + " " + l.getBlockX() + " " + l.getBlockY() + " " + l.getBlockZ();
     }
 
     private void logConfig(ConfigService.Outcome o) {

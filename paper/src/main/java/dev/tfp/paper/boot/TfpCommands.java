@@ -6,31 +6,88 @@
 package dev.tfp.paper.boot;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import dev.tfp.paper.i18n.Messages;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 /**
- * The {@code /tfp} Brigadier tree, registered by {@link TfpBootstrap}. Built from a supplier because the
- * plugin instance may not be enabled (refused by the compat gate) when a command runs. M1-SVC-05 adds
- * {@code reload data|content} and {@code debug}.
+ * The {@code /tfp} Brigadier tree, registered by {@link TfpBootstrap} (M1-SVC-05). Built from a supplier
+ * because the plugin instance may not be enabled (refused by the compat gate) when a command runs.
+ *
+ * <pre>
+ * /tfp                         version (tfp.command)
+ * /tfp version
+ * /tfp reload                  = reload data (tfp.admin)
+ * /tfp reload config|data|content
+ * /tfp debug block|chunk       the block you look at / your chunk (players, tfp.admin)
+ * /tfp debug player [name]     player data (yours without a name)
+ * /tfp debug packets           packet handler metrics
+ * </pre>
+ * {@code /tfp debug showcase <family>} (variant grid) comes with the visual checklist work.
+ *
+ * <p>Replies are translated with {@link Messages} into the sender's locale. Handlers answer with futures;
+ * the reply is sent from whatever thread completes them ({@code sendMessage} is thread-safe).
  */
 public final class TfpCommands {
     public static final String PERMISSION = "tfp.command";
     public static final String ADMIN_PERMISSION = "tfp.admin";
 
+    /** A translated reply: a message key with arguments, plus untranslated technical detail lines. */
+    public record Reply(boolean ok, String key, List<Object> args, List<String> details) {
+        public Reply {
+            args = List.copyOf(args);
+            details = List.copyOf(details);
+        }
+
+        public static Reply ok(String key, Object... args) {
+            return new Reply(true, key, Arrays.asList(args), List.of());
+        }
+
+        public static Reply error(String key, Object... args) {
+            return new Reply(false, key, Arrays.asList(args), List.of());
+        }
+
+        public Reply withDetails(List<String> lines) {
+            return new Reply(ok, key, args, lines);
+        }
+    }
+
     /** What the commands call into; implemented by the enabled plugin. */
     public interface Handler {
-        /** Multi-line version and status report. */
+        /** Multi-line version and status report (names and versions; not translated). */
         String version();
 
-        /** Reloads config.yml off-thread; completes with a summary for the sender. */
-        CompletableFuture<String> reloadSettings();
+        /** Reloads config.yml off-thread. */
+        CompletableFuture<Reply> reloadSettings();
+
+        /** Reloads our registries off-thread and swaps them in. */
+        CompletableFuture<Reply> reloadData();
+
+        /** Re-installs content into the client plugins and reloads them. */
+        CompletableFuture<Reply> reloadContent();
+
+        /** The block {@code player} looks at: vanilla state, custom state, stored data. */
+        CompletableFuture<Reply> debugBlock(Player player);
+
+        /** {@code player}'s chunk: our chunk-scale data entries. */
+        CompletableFuture<Reply> debugChunk(Player player);
+
+        /** Player data of the online player {@code name}. */
+        CompletableFuture<Reply> debugPlayer(String name);
+
+        /** Packet layer and per-handler metrics. */
+        CompletableFuture<Reply> debugPackets();
     }
 
     private TfpCommands() {
@@ -39,35 +96,83 @@ public final class TfpCommands {
     /**
      * @param pluginVersion our version, from the plugin meta (available even when the plugin is disabled)
      * @param handler       the enabled plugin, or {@code null} while it is not enabled
+     * @param messages      server-side translations
      */
-    public static LiteralCommandNode<CommandSourceStack> build(String pluginVersion, Supplier<Handler> handler) {
+    public static LiteralCommandNode<CommandSourceStack> build(String pluginVersion, Supplier<Handler> handler,
+            Messages messages) {
         Command<CommandSourceStack> version = ctx -> {
             Handler h = handler.get();
-            reply(ctx, h != null ? h.version()
-                    : "TerraFirmaPlugin " + pluginVersion + " (not enabled; see the startup log)", NamedTextColor.GRAY);
+            CommandSender sender = ctx.getSource().getSender();
+            sender.sendMessage(Component.text(h != null ? h.version()
+                    : messages.get(sender, "command.version.not_enabled", pluginVersion), NamedTextColor.GRAY));
             return Command.SINGLE_SUCCESS;
         };
+        Command<CommandSourceStack> reloadData = run(handler, messages, (h, ctx) -> {
+            send(ctx.getSource().getSender(), messages, Reply.ok("reload.data.started"));
+            return h.reloadData();
+        });
         return Commands.literal("tfp")
                 .requires(s -> s.getSender().hasPermission(PERMISSION))
                 .executes(version)
                 .then(Commands.literal("version").executes(version))
                 .then(Commands.literal("reload")
                         .requires(s -> s.getSender().hasPermission(ADMIN_PERMISSION))
-                        .then(Commands.literal("config").executes(ctx -> {
-                            Handler h = handler.get();
-                            if (h == null) {
-                                reply(ctx, "TerraFirmaPlugin is not enabled.", NamedTextColor.RED);
-                                return 0;
-                            }
-                            h.reloadSettings().whenComplete((msg, err) -> reply(ctx,
-                                    err == null ? msg : "Reload failed: " + err.getMessage(),
-                                    err == null ? NamedTextColor.GREEN : NamedTextColor.RED));
-                            return Command.SINGLE_SUCCESS;
-                        })))
+                        .executes(reloadData)
+                        .then(Commands.literal("config").executes(run(handler, messages, (h, ctx) -> h.reloadSettings())))
+                        .then(Commands.literal("data").executes(reloadData))
+                        .then(Commands.literal("content").executes(run(handler, messages, (h, ctx) -> h.reloadContent()))))
+                .then(Commands.literal("debug")
+                        .requires(s -> s.getSender().hasPermission(ADMIN_PERMISSION))
+                        .then(Commands.literal("block").executes(player(handler, messages, Handler::debugBlock)))
+                        .then(Commands.literal("chunk").executes(player(handler, messages, Handler::debugChunk)))
+                        .then(Commands.literal("player")
+                                .executes(player(handler, messages, (h, p) -> h.debugPlayer(p.getName())))
+                                .then(Commands.argument("name", StringArgumentType.word())
+                                        .executes(run(handler, messages, (h, ctx) -> h.debugPlayer(
+                                                StringArgumentType.getString(ctx, "name"))))))
+                        .then(Commands.literal("packets").executes(run(handler, messages, (h, ctx) -> h.debugPackets()))))
                 .build();
     }
 
-    private static void reply(CommandContext<CommandSourceStack> ctx, String text, NamedTextColor color) {
-        ctx.getSource().getSender().sendMessage(Component.text(text, color));
+    @FunctionalInterface
+    private interface Action {
+        CompletableFuture<Reply> apply(Handler handler, CommandContext<CommandSourceStack> ctx);
+    }
+
+    private static Command<CommandSourceStack> run(Supplier<Handler> handler, Messages messages, Action action) {
+        return ctx -> {
+            CommandSender sender = ctx.getSource().getSender();
+            Handler h = handler.get();
+            if (h == null) {
+                send(sender, messages, Reply.error("command.not_enabled"));
+                return 0;
+            }
+            action.apply(h, ctx).whenComplete((r, err) -> send(sender, messages, err == null ? r
+                    : Reply.error("command.failed", rootMessage(err))));
+            return Command.SINGLE_SUCCESS;
+        };
+    }
+
+    private static Command<CommandSourceStack> player(Supplier<Handler> handler, Messages messages,
+            java.util.function.BiFunction<Handler, Player, CompletableFuture<Reply>> action) {
+        return run(handler, messages, (h, ctx) -> ctx.getSource().getSender() instanceof Player p ? action.apply(h, p)
+                : CompletableFuture.completedFuture(Reply.error("command.player_only")));
+    }
+
+    static String rootMessage(Throwable t) {
+        Throwable c = t;
+        while ((c instanceof java.util.concurrent.CompletionException || c instanceof java.util.concurrent.ExecutionException)
+                && c.getCause() != null) {
+            c = c.getCause();
+        }
+        return c.getMessage() != null ? c.getMessage() : c.toString();
+    }
+
+    static void send(CommandSender sender, Messages messages, Reply reply) {
+        sender.sendMessage(Component.text(messages.get(sender, reply.key(), reply.args().toArray()),
+                reply.ok() ? NamedTextColor.GREEN : NamedTextColor.RED));
+        for (String line : reply.details()) {
+            sender.sendMessage(Component.text("  " + line, NamedTextColor.GRAY));
+        }
     }
 }

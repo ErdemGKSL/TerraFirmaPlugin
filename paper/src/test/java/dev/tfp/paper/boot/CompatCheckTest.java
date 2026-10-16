@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 /** M1-BOOT-02, Bukkit side: the shipped compat.yml, environment reading, and the refusal banner. */
 class CompatCheckTest {
     static final Map<String, String> PINNED = Map.of(
-            "CraftEngine", "26.9.2", "BetterModel", "3.5.1", "BetterHud", "2.2.0-SNAPSHOT-449");
+            "CraftEngine", "26.9.2", "BetterModel", "3.5.1", "BetterHud", "2.2.0-SNAPSHOT-449", "packetevents", "2.14.0");
 
     static final class Capture extends Handler {
         final List<LogRecord> records = new ArrayList<>();
@@ -61,7 +61,7 @@ class CompatCheckTest {
         assertThat(spec.lowestMinecraft()).isEqualTo(Version.parse("1.21.11"));
         assertThat(spec.minecraft()).extracting(CompatSpec.Range::toString).containsExactly("1.21.11-1.21.11", "26.3-26.3");
         assertThat(spec.tested()).extracting(Version::toString).containsExactly("1.21.11", "26.3");
-        assertThat(spec.plugins()).containsOnlyKeys("CraftEngine", "BetterModel", "BetterHud");
+        assertThat(spec.plugins()).containsOnlyKeys("CraftEngine", "BetterModel", "BetterHud", "packetevents");
         // Minimums are at least the plan's floor (CE 26.9.1, BM 3.5.0, BH 2.0.0) and never above what the spikes pinned.
         assertThat(spec.plugins().get("CraftEngine").min()).isGreaterThanOrEqualTo(Version.parse("26.9.1"));
         assertThat(spec.plugins().get("BetterModel").min()).isGreaterThanOrEqualTo(Version.parse("3.5.0"));
@@ -95,7 +95,8 @@ class CompatCheckTest {
     @Test
     void missingPluginsLogDegradedMode() {
         Capture c = new Capture();
-        CompatGate.Report r = CompatCheck.run(Fakes.server("26.3", Map.of("CraftEngine", "26.9.2")), logger(c));
+        CompatGate.Report r = CompatCheck.run(Fakes.server("26.3", Map.of("CraftEngine", "26.9.2",
+                "packetevents", "2.14.0")), logger(c));
         assertThat(r.refused()).isFalse();
         assertThat(r.missing()).containsExactly("BetterModel", "BetterHud");
         assertThat(c.at(Level.WARNING)).anyMatch(m -> m.startsWith("[compat] Degraded mode: BetterModel, BetterHud"));

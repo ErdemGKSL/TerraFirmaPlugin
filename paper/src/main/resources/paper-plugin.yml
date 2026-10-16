@@ -17,10 +17,12 @@ dependencies:
     CraftEngine: { load: BEFORE, required: false, join-classpath: true }
     BetterModel: { load: BEFORE, required: false, join-classpath: true }
     BetterHud: { load: BEFORE, required: false, join-classpath: true }
+    # M1-SVC-03: the packet layer (dev.tfp.paper.packet) links against PacketEvents (M0-NET-01).
+    packetevents: { load: BEFORE, required: false, join-classpath: true }
 permissions:
   tfp.command:
     description: Use /tfp and /tfp version.
     default: true
   tfp.admin:
-    description: Use /tfp reload.
+    description: Use /tfp reload and /tfp debug.
     default: op

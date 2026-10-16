@@ -67,6 +67,18 @@ class ArchitectureTest {
                 .check(classes);
     }
 
+    /**
+     * M1-SVC-03: PacketEvents is optional at runtime, so only dev.tfp.paper.packet links against it, and
+     * TfpPlugin reaches its PacketEvents classes only through PacketLayers (reflective) when it is installed.
+     */
+    @Test
+    void onlyThePacketLayerTouchesPacketEvents() {
+        noClasses().that().resideInAPackage("dev.tfp..").and().resideOutsideOfPackage("dev.tfp.paper.packet..")
+                .should().dependOnClassesThat().resideInAnyPackage("com.github.retrooper..", "io.github.retrooper..")
+                .because("PacketEvents is an optional plugin; its types stay inside the packet layer (ARCHITECTURE.md §10)")
+                .check(classes);
+    }
+
     /** Feature code sees the interfaces, never an adapter class (adapters are found by ServiceLoader). */
     @Test
     void featureCodeDoesNotDependOnAdapters() {

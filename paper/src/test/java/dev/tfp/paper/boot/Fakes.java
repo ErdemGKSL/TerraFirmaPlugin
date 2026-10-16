@@ -15,6 +15,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
@@ -54,6 +55,28 @@ final class Fakes {
         return proxy(Plugin.class, (p, m, a) -> {
             if (m.getName().equals("getPluginMeta")) {
                 return meta;
+            }
+            throw new UnsupportedOperationException(m.getName());
+        });
+    }
+
+    /** A command source whose sender is a player with a client locale (proxy implementing {@link Player}). */
+    static CommandSourceStack playerSource(String name, java.util.Locale locale, Set<String> permissions, List<String> out) {
+        Player player = proxy(Player.class, (p, m, a) -> switch (m.getName()) {
+            case "hasPermission" -> permissions.contains(String.valueOf(a[0]));
+            case "sendMessage" -> {
+                if (a.length == 1 && a[0] instanceof Component c) {
+                    out.add(PlainTextComponentSerializer.plainText().serialize(c));
+                }
+                yield null;
+            }
+            case "getName" -> name;
+            case "locale" -> locale;
+            default -> throw new UnsupportedOperationException(m.getName());
+        });
+        return proxy(CommandSourceStack.class, (p, m, a) -> {
+            if (m.getName().equals("getSender")) {
+                return player;
             }
             throw new UnsupportedOperationException(m.getName());
         });

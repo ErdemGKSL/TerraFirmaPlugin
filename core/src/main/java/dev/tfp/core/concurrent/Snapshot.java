@@ -61,6 +61,23 @@ public final class Snapshot<T> {
     }
 
     /**
+     * Publishes {@code fn(current)} with version = current + 1, retrying if another writer published in
+     * between (so no update is lost). {@code fn} may run more than once: it must be pure and cheap.
+     *
+     * @return the published value with its version
+     */
+    public Versioned<T> update(java.util.function.UnaryOperator<T> fn) {
+        Objects.requireNonNull(fn, "fn");
+        while (true) {
+            Versioned<T> old = ref.get();
+            Versioned<T> next = new Versioned<>(old.version() + 1, fn.apply(old.value()));
+            if (ref.compareAndSet(old, next)) {
+                return next;
+            }
+        }
+    }
+
+    /**
      * Publishes {@code value} as {@code version} only if that is greater than the current version.
      *
      * @return {@code true} if published, {@code false} if a newer (or equal) version is already there

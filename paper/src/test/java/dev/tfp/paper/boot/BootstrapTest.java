@@ -12,7 +12,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.tree.CommandNode;
 import dev.tfp.paper.TfpPlugin;
+import dev.tfp.paper.boot.TfpCommands.Reply;
+import dev.tfp.paper.i18n.Messages;
 import dev.tfp.paper.config.Yamls;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
@@ -30,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.jupiter.api.Test;
 
@@ -98,26 +102,65 @@ class BootstrapTest {
         assertThat(TfpLoader.resolver(List.of("com.github.ben-manes.caffeine:caffeine:3.2.2"))).isPresent();
     }
 
-    static final class FakeHandler implements TfpCommands.Handler {
-        int reloads;
+    static final Messages MESSAGES = Messages.fromJar();
+
+    static class FakeHandler implements TfpCommands.Handler {
+        final List<String> calls = new ArrayList<>();
 
         @Override
         public String version() {
             return "TerraFirmaPlugin 1.2.3\n  status: ready";
         }
 
+        private CompletableFuture<Reply> call(String name, Reply reply) {
+            calls.add(name);
+            return CompletableFuture.completedFuture(reply);
+        }
+
         @Override
-        public CompletableFuture<String> reloadSettings() {
-            reloads++;
-            return CompletableFuture.completedFuture("config.yml reloaded");
+        public CompletableFuture<Reply> reloadSettings() {
+            return call("reloadSettings", Reply.ok("reload.config.done"));
+        }
+
+        @Override
+        public CompletableFuture<Reply> reloadData() {
+            return call("reloadData", Reply.ok("reload.data.done", 10, 2, 3));
+        }
+
+        @Override
+        public CompletableFuture<Reply> reloadContent() {
+            return call("reloadContent", Reply.error("reload.content.unavailable"));
+        }
+
+        @Override
+        public CompletableFuture<Reply> debugBlock(Player player) {
+            return call("debugBlock " + player.getName(), Reply.ok("debug.block.header", "world 1 2 3")
+                    .withDetails(List.of("vanilla: minecraft:stone")));
+        }
+
+        @Override
+        public CompletableFuture<Reply> debugChunk(Player player) {
+            return call("debugChunk " + player.getName(), Reply.ok("debug.chunk.header", 0, 0, "world"));
+        }
+
+        @Override
+        public CompletableFuture<Reply> debugPlayer(String name) {
+            return call("debugPlayer " + name, Reply.ok("debug.player.header", name));
+        }
+
+        @Override
+        public CompletableFuture<Reply> debugPackets() {
+            return call("debugPackets", new Reply(true, "debug.packets.header", List.of(), List.of("noop: calls=0")));
         }
     }
 
     static CommandDispatcher<CommandSourceStack> dispatcher(TfpCommands.Handler handler) {
         CommandDispatcher<CommandSourceStack> d = new CommandDispatcher<>();
-        d.getRoot().addChild(TfpCommands.build("1.2.3", () -> handler));
+        d.getRoot().addChild(TfpCommands.build("1.2.3", () -> handler, MESSAGES));
         return d;
     }
+
+    static final Set<String> ADMIN = Set.of(TfpCommands.PERMISSION, TfpCommands.ADMIN_PERMISSION);
 
     @Test
     void tfpVersionAnswers() throws CommandSyntaxException {
@@ -125,7 +168,7 @@ class BootstrapTest {
         CommandDispatcher<CommandSourceStack> d = dispatcher(new FakeHandler());
         assertThat(d.execute("tfp version", Fakes.source(Set.of(TfpCommands.PERMISSION), out))).isEqualTo(1);
         assertThat(d.execute("tfp", Fakes.source(Set.of(TfpCommands.PERMISSION), out))).isEqualTo(1);
-        assertThat(out).hasSize(2).allMatch(s -> s.startsWith("TerraFirmaPlugin 1.2.3"));
+        assertThat(out).hasSize(2).allMatch(s -> s.equals("TerraFirmaPlugin 1.2.3\n  status: ready"));
     }
 
     @Test
@@ -134,6 +177,11 @@ class BootstrapTest {
         CommandDispatcher<CommandSourceStack> d = dispatcher(null);
         d.execute("tfp version", Fakes.source(Set.of(TfpCommands.PERMISSION), out));
         assertThat(out).singleElement().asString().contains("1.2.3", "not enabled");
+        // a Turkish client gets the Turkish text
+        out.clear();
+        d.execute("tfp version", Fakes.playerSource("Ayşe", java.util.Locale.forLanguageTag("tr-TR"),
+                Set.of(TfpCommands.PERMISSION), out));
+        assertThat(out).containsExactly("TerraFirmaPlugin 1.2.3 (etkin değil; başlangıç günlüğüne bakın)");
     }
 
     @Test
@@ -143,11 +191,94 @@ class BootstrapTest {
         List<String> out = new ArrayList<>();
         assertThatThrownBy(() -> d.execute("tfp reload config", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
                 .isInstanceOf(CommandSyntaxException.class);
-        assertThat(h.reloads).isZero();
-        d.execute("tfp reload config", Fakes.source(Set.of(TfpCommands.PERMISSION, TfpCommands.ADMIN_PERMISSION), out));
-        assertThat(h.reloads).isEqualTo(1);
-        assertThat(out).containsExactly("config.yml reloaded");
+        assertThat(h.calls).isEmpty();
+        d.execute("tfp reload config", Fakes.source(ADMIN, out));
+        assertThat(h.calls).containsExactly("reloadSettings");
+        assertThat(out).containsExactly("config.yml reloaded.");
         assertThatThrownBy(() -> d.execute("tfp version", Fakes.source(Set.of(), out)))
                 .isInstanceOf(CommandSyntaxException.class);
+    }
+
+    /** M1-SVC-05: the Brigadier tree itself. */
+    @Test
+    void commandTreeStructure() {
+        CommandDispatcher<CommandSourceStack> d = dispatcher(new FakeHandler());
+        CommandNode<CommandSourceStack> tfp = d.getRoot().getChild("tfp");
+        assertThat(children(tfp)).containsExactlyInAnyOrder("version", "reload", "debug");
+        assertThat(children(tfp.getChild("reload"))).containsExactlyInAnyOrder("config", "data", "content");
+        assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "player", "packets");
+        assertThat(children(tfp.getChild("debug").getChild("player"))).containsExactly("name");
+        assertThat(tfp.getCommand()).isNotNull();
+        assertThat(tfp.getChild("reload").getCommand()).as("bare /tfp reload = reload data").isNotNull();
+        assertThat(tfp.getChild("debug").getCommand()).as("bare /tfp debug is incomplete").isNull();
+        // permissions: /tfp for everyone with tfp.command, reload/debug for admins only
+        CommandSourceStack user = Fakes.source(Set.of(TfpCommands.PERMISSION), new ArrayList<>());
+        CommandSourceStack admin = Fakes.source(ADMIN, new ArrayList<>());
+        assertThat(tfp.canUse(user)).isTrue();
+        assertThat(tfp.getChild("version").canUse(user)).isTrue();
+        assertThat(tfp.getChild("reload").canUse(user)).isFalse();
+        assertThat(tfp.getChild("debug").canUse(user)).isFalse();
+        assertThat(tfp.getChild("reload").canUse(admin)).isTrue();
+        assertThat(tfp.getChild("debug").canUse(admin)).isTrue();
+    }
+
+    static List<String> children(CommandNode<CommandSourceStack> node) {
+        return node.getChildren().stream().map(CommandNode::getName).toList();
+    }
+
+    @Test
+    void reloadVariantsCallTheHandlerAndReplyTranslated() throws CommandSyntaxException {
+        FakeHandler h = new FakeHandler();
+        CommandDispatcher<CommandSourceStack> d = dispatcher(h);
+        List<String> out = new ArrayList<>();
+        d.execute("tfp reload", Fakes.source(ADMIN, out));
+        d.execute("tfp reload data", Fakes.source(ADMIN, out));
+        d.execute("tfp reload content", Fakes.source(ADMIN, out));
+        assertThat(h.calls).containsExactly("reloadData", "reloadData", "reloadContent");
+        assertThat(out).containsExactly("Reloading data...", "Data reloaded: 10 entries in 2 registries (version 3).",
+                "Reloading data...", "Data reloaded: 10 entries in 2 registries (version 3).",
+                MESSAGES.get("en_us", "reload.content.unavailable"));
+
+        out.clear();
+        d.execute("tfp reload data", Fakes.playerSource("Ayşe", java.util.Locale.forLanguageTag("tr-TR"), ADMIN, out));
+        assertThat(out).containsExactly("Veriler yeniden yükleniyor...", "Veriler yeniden yüklendi: 2 kayıt defterinde 10 girdi (sürüm 3).");
+    }
+
+    @Test
+    void debugSubcommands() throws CommandSyntaxException {
+        FakeHandler h = new FakeHandler();
+        CommandDispatcher<CommandSourceStack> d = dispatcher(h);
+        List<String> out = new ArrayList<>();
+        // console: block/chunk need a player, player needs a name
+        d.execute("tfp debug block", Fakes.source(ADMIN, out));
+        d.execute("tfp debug player Steve", Fakes.source(ADMIN, out));
+        d.execute("tfp debug packets", Fakes.source(ADMIN, out));
+        assertThat(out).containsExactly("Only a player can use this command.", "Player data of Steve:", "Packet layer:",
+                "  noop: calls=0");
+        out.clear();
+        CommandSourceStack alex = Fakes.playerSource("Alex", java.util.Locale.US, ADMIN, out);
+        d.execute("tfp debug block", alex);
+        d.execute("tfp debug chunk", alex);
+        d.execute("tfp debug player", alex);
+        assertThat(h.calls).containsExactly("debugPlayer Steve", "debugPackets", "debugBlock Alex", "debugChunk Alex",
+                "debugPlayer Alex");
+        assertThat(out).containsExactly("Block at world 1 2 3:", "  vanilla: minecraft:stone", "Chunk 0, 0 in world:",
+                "Player data of Alex:");
+        assertThatThrownBy(() -> d.execute("tfp debug block", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
+                .isInstanceOf(CommandSyntaxException.class);
+    }
+
+    @Test
+    void handlerFailureIsReported() throws CommandSyntaxException {
+        FakeHandler failing = new FakeHandler() {
+            @Override
+            public CompletableFuture<Reply> reloadData() {
+                return CompletableFuture.failedFuture(new java.util.concurrent.CompletionException(
+                        new IllegalStateException("disk on fire")));
+            }
+        };
+        List<String> out = new ArrayList<>();
+        dispatcher(failing).execute("tfp reload data", Fakes.source(ADMIN, out));
+        assertThat(out).containsExactly("Reloading data...", "Command failed: disk on fire");
     }
 }

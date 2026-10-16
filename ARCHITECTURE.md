@@ -126,14 +126,17 @@ Forbidden everywhere (Folia): `BukkitScheduler`, scoreboards, runtime `createWor
 | State | Where | Format / notes |
 |---|---|---|
 | Custom block identity + properties | CraftEngine storage (`<world>/craftengine/`) | Managed by CE, keyed by CE id |
-| Per-block data (crop planted time, device inventories, heat timestamps) | **Decision pending spike:** CE `BlockEntityController` (persisted per chunk by CE, sleeping tickers) **or** our per-chunk store in chunk PDC | Compact, versioned codec; (de)serialize off-thread |
+| Per-block data (crop planted time, device inventories, heat timestamps) | CE block-entity controller: `integration/craftengine/TfpBlockEntityController<T>` (persisted per chunk by CE, no ticker) | One immutable `T` in a volatile field, `VersionedCodec<T>` → NBT under `tfp:<name>`; unreadable/newer data is kept verbatim and written back |
+| Chunk-scale data (climate overrides, support maps, soil nutrients) | Chunk PDC: `paper/blockdata/ChunkDataStore` (`PdcChunkDataStore`; in-memory fake in tests) | `byte[]` per `ChunkDataKey` under `tfp:<id>`; copy on the region thread, decode off-thread. Never per-block state |
 | Item state (heat, food, forging, contents) | ItemStack PDC (our namespace) | Base values + timestamps only; derived values never stored |
 | Entity state (age, gender, familiarity, variant, sheared, pregnancy) | Entity PDC | BetterModel only persists model id/scale, so we re-apply visuals on tracker creation |
-| Player state (thirst, nutrition, intoxication, chisel mode) | Player data store | Async load at pre-login, async save |
+| Player state (thirst, nutrition, intoxication, chisel mode) | Player data store (`paper/player`) | `<plugin>/playerdata/<uuid>.dat` (CRC32-framed, temp file + atomic move, `.bak` fallback). Load at `AsyncPlayerPreLoginEvent` (unreadable or newer data refuses the login, nothing is overwritten); save async on quit and every 5 min; per-player writes ordered, a rejoin waits for the pending save |
 | Calendar / world climate offsets | World PDC / plugin data | Written on the global scheduler |
 | Chunk climate/rock data | **Not stored**: recomputed from the seed (bounded cache), unless gameplay modified it | |
 
-All codecs carry a version number and have migration tests.
+All codecs carry a version number and have migration tests. The shared layer is `core/persist`: `VersionedCodec<T>` (version key `v`, one migration per older version, newer versions refused with `PersistException.NewerVersion`) over `DataMap`, a neutral NBT-shaped tree with two storage forms: `DataMapBinary` (bytes: player files, chunk PDC) and CE NBT (`NbtDataMaps`).
+
+The global clock is `core/clock/GlobalClockHolder`: one volatile immutable `ClockSnapshot` (player ticks, calendar ticks, month length, running), published by the calendar on the global scheduler (M2), read lock-free anywhere.
 
 ## 8. World generation
 
@@ -201,9 +204,10 @@ visuals:
 
 ## 10. Packet layer
 
-- Candidate: PacketEvents 2.14.x (supports 1.21–26.3, Folia). Alternative: Paper's unofficial channel-initializer hook + per-version NMS.
-- Responsibilities: biome palette remap (season), lore + custom-model-data injection for items, stripping client-only lore on creative echo.
-- Constraints: runs on netty threads; never touches world state; allocation-light; reads only volatile snapshots (calendar, season tables, per-item caches).
+- Library: **PacketEvents 2.14.x** (M0-NET-01), as an optional plugin dependency (`packetevents` in `paper-plugin.yml` and `compat.yml`). Without it the server runs without seasonal colours and item tooltips.
+- Structure (`paper/packet`): one PacketEvents listener (`PacketEventsLayer`, NORMAL priority) feeds a `PacketHandlerRegistry` (lock-free dispatch by direction + packet type name, per-handler metrics: calls, total/max ns, modified, cancelled, errors). Features implement `PacketHandler` (`onSend`/`onReceive` → `PacketDecision` PASS/MODIFIED/CANCEL). Only `dev.tfp.paper.packet` imports PacketEvents (ArchitectureTest); `PacketLayers` loads it reflectively.
+- Responsibilities: biome palette remap (season), lore + custom-model-data injection for items, stripping client-only lore on creative echo (`CreativeReturnHandler` calls every registered `ClientItemDecoration.strip`).
+- Constraints: runs on netty threads; never touches world state; allocation-light; reads only volatile snapshots (calendar, season tables, per-item caches). A throwing handler is counted, logged (rate-limited) and the packet passes. `/tfp debug packets` shows the metrics.
 
 ## 11. Content pipeline (datagen)
 
@@ -232,9 +236,9 @@ Deterministic and re-runnable. Hand fixes go in `tools/datagen/overrides/`. See 
 1. **Bootstrap:** datapack discovery (biomes, tags, damage types), Brigadier commands.
 2. **`onLoad`:** version/compat gate → install content into CraftEngine and BetterHud folders (hash manifest protects owner edits) → targeted config edits → register CraftEngine behaviours/functions/conditions.
 3. **CraftEngine onEnable** (after us in order, but it parses configs immediately because `delay-configuration-load: false`).
-4. **`onEnable`:** BetterModel event subscriptions (`ModelAssetsEvent`, `CreateEntityTrackerEvent`, `PluginEndReloadEvent`), BetterHud placeholders, listeners, scheduler, packet layer.
+4. **`onEnable`:** BetterModel event subscriptions (`ModelAssetsEvent`, `CreateEntityTrackerEvent`, `PluginEndReloadEvent`), BetterHud placeholders, listeners, scheduler, registries (async load of the jar's `/content/data`, signals the ready gate), player data store, packet layer.
 5. **Ready gate:** CE reloaded ∧ BetterModel models ready ∧ registries loaded. BetterHud placeholder registration is synchronous in `onEnable` and is not a gate condition.
-6. **`/tfp reload data`:** registries only. **`/tfp reload content`:** installer → BetterModel reload → CraftEngine full reload (BetterHud merges inside it). Never hot-reload CE itself.
+6. **`/tfp reload data`** (also bare `/tfp reload`): registries only. **`/tfp reload config`:** config.yml. **`/tfp reload content`:** installer → BetterModel reload → CraftEngine full reload (BetterHud merges inside it); answers "not available" until the installer (M1-INST) exists. Never hot-reload CE itself. Command replies are translated server-side (`paper/i18n/Messages`, `lang/<locale>.properties`, fallback `en_us`).
 
 Details: `.claude/skills/dependency-bootstrap/`.
 

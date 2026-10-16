@@ -32,3 +32,8 @@ plugins:
     min: "2.2.0-SNAPSHOT-449"
     tested: ["2.2.0-SNAPSHOT-449"]
     provides: "the HUD (health, thirst, hunger, temperature)"
+  # M1-SVC-03 / M0-NET-01: the packet layer (not a client-visual plugin, but optional the same way).
+  packetevents:
+    min: "2.14.0"
+    tested: ["2.14.0"]
+    provides: "seasonal grass colours and item tooltips (packet rewriting)"

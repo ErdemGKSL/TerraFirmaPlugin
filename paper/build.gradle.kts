@@ -5,6 +5,8 @@ dependencies {
     api(project(":api"))
     api(project(":core"))
     api(project(":worldgen"))
+    // M1-SVC-03: the packet layer (dev.tfp.paper.packet only) links against the PacketEvents plugin (M0-NET-01).
+    compileOnly(libs.packetevents)
     testImplementation(libs.archunit)
 }
 tasks.processResources {
@@ -13,4 +15,12 @@ tasks.processResources {
     filesMatching("paper-plugin.yml") { expand(props) }
     // M1-BOOT-02: the compatibility table lives with the other content sources; shipped at the jar root.
     from(rootProject.layout.projectDirectory.file("content/compat.yml"))
+}
+// M1-SVC-01 (RegistryService test) and M1-REG: the datagen output, read like the jar's /content/data.
+val contentData = rootProject.layout.projectDirectory.dir("content/generated/content/data")
+tasks.test {
+    systemProperty("tfp.contentData", contentData.asFile.absolutePath)
+    inputs.files(rootProject.fileTree(contentData))
+        .withPropertyName("contentData")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
 }

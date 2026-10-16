@@ -1,0 +1,3 @@
+# Locales of our server-side messages (Minecraft locale codes). en_us is the fallback and must list every key.
+en_us
+tr_tr

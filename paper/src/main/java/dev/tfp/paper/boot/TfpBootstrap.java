@@ -6,6 +6,7 @@
 package dev.tfp.paper.boot;
 
 import dev.tfp.paper.TfpPlugin;
+import dev.tfp.paper.i18n.Messages;
 import io.papermc.paper.plugin.bootstrap.BootstrapContext;
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
 import io.papermc.paper.plugin.bootstrap.PluginProviderContext;
@@ -39,11 +40,12 @@ public final class TfpBootstrap implements PluginBootstrap {
             }
         }));
         String version = context.getConfiguration().getVersion();
+        Messages messages = Messages.fromJar();
         context.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS.newHandler(event ->
                 event.registrar().register(TfpCommands.build(version, () -> {
                     TfpPlugin p = plugin;
                     return p != null && p.isEnabled() ? p : null;
-                }), "TerraFirmaPlugin commands")));
+                }, messages), "TerraFirmaPlugin commands")));
     }
 
     @Override

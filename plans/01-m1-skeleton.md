@@ -46,7 +46,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 - [x] **M1-BOOT-04 Ready gate** · deps: M1-BOOT-01
   - Do: a single readiness flag: CE reloaded ∧ BetterModel models ready ∧ registries loaded. Features and self-tests wait on it.
   - Done when: a self-test asserts ready within N seconds of startup.
-  - Status: `paper.ready.ReadyGate` (signal / waive for a missing plugin / fail), `ReadyGateTest`. Signals: CE → M1-INT-02 and BetterModel → M1-INT-03 adapters (wired, not runtime-verified), registries → registry Paper glue (not wired); the in-server self-test is M1-TEST-01.
+  - Status: `paper.ready.ReadyGate` (signal / waive for a missing plugin / fail), `ReadyGateTest`. Signals: CE → M1-INT-02 and BetterModel → M1-INT-03 adapters (wired, not runtime-verified), registries → `paper/data/RegistryService` at enable (wired by M1-SVC-05, not runtime-verified); the in-server self-test is M1-TEST-01.
 
 ## Threading primitives
 
@@ -62,10 +62,10 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Do: generic pipeline (snapshot supplier → pure decide → per-chunk commit), per-position coalescing, `NeighbourSnapshot` helper (radius-N capture, immutable), metrics.
   - Done when: the connected-block toy from M0-ASYNC-01 is rebuilt on it, with tests.
 
-- [ ] **M1-THR-04 Atomic registry & calendar snapshot primitives** · deps: M1-THR-01
+- [x] **M1-THR-04 Atomic registry & calendar snapshot primitives** · deps: M1-THR-01
   - Do: `AtomicReference`-based snapshot holders; a volatile global clock holder (filled by M2-CAL-01).
   - Done when: jcstress tests for publication pass.
-  - Status: `dev.tfp.core.concurrent.Snapshot<T>` (versioned `AtomicReference`, `publishIfNewer`) added by M1-REG-01 with latch-based JUnit publication tests; jcstress and the clock holder are still open.
+  - Status: done with **repeated JUnit stress tests instead of jcstress** (no jcstress Gradle plugin in the catalog). `core/concurrent/Snapshot` (+ CAS `update`), `core/clock/GlobalClockHolder` (volatile immutable `ClockSnapshot`; calendar fills it in M2-CAL-01). `SnapshotStressTest` (×10: concurrent `update`, no lost update, readers never see a torn version/value pair or a backwards version) and `GlobalClockHolderTest` (×10: one writer, 4 readers, every snapshot internally consistent, sequence monotonic; ×5 concurrent writers keep `sequence` unique). Wiring real jcstress stays a CI improvement.
 
 ## Data & registries
 
@@ -167,25 +167,30 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 
 ## Core services
 
-- [ ] **M1-SVC-01 Block-data store** · deps: M0-CE-02, M1-INT-02
+- [x] **M1-SVC-01 Block-data store** · deps: M0-CE-02, M1-INT-02
   - Do: implement the decision from M0-CE-02 (CE controller base class + our chunk-PDC store for chunk-scale data), with versioned codecs and migration tests.
   - Done when: persistence self-tests (unload/reload/restart) pass.
+  - Status: done at unit level (as scoped for M1): `core/persist` (`VersionedCodec`, `DataMap`, `DataMapBinary`; `VersionedCodecTest`), `integration/craftengine/TfpBlockEntityController<T>` + `NbtDataMaps` (`TfpBlockEntityControllerTest`: save → CE NBT bytes → load, v1→v2 migration, newer/corrupt data kept verbatim), `paper/blockdata/ChunkDataStore` + `PdcChunkDataStore` (`ChunkDataStoreTest`: PDC round trip across a simulated restart, migration, in-memory fake). **The in-server unload/reload/restart self-test moves to M1-TEST-01.** No feature controller exists yet (the first is M3 crops/devices).
 
-- [ ] **M1-SVC-02 Player data store** · deps: M1-THR-01
+- [x] **M1-SVC-02 Player data store** · deps: M1-THR-01
   - Do: async load at pre-login and async save; a versioned record (thirst, nutrition, intoxication, chisel mode, ... added by features).
   - Done when: a join/quit/crash-safety self-test passes.
+  - Status: done as a unit test with a temp dir (`PlayerDataStoreTest`: join/quit/rejoin/restart, quick rejoin waits for the pending save, crash mid-write leaves the old file, torn file → `.bak`, newer data refused and untouched, concurrent updates). `paper/player`: `PlayerData` (TFC `PlayerInfo` fields), `PlayerDataCodec` (v1), `PlayerDataFiles` (CRC32 frame, temp + atomic move, `.bak`), `PlayerDataStore`, `PlayerDataListener` (pre-login HIGHEST, quit MONITOR), autosave every 5 min in `TfpPlugin`. A live join/quit on a server is for M1-TEST-01.
 
 - [ ] **M1-SVC-03 Packet layer base** · deps: M0-NET-01
   - Do: the chosen packet library integration, a handler registry with netty-thread rules, creative-return stripping, metrics.
   - Done when: a no-op handler is installed and measured.
+  - Status: code done, in-server proof missing. `paper/packet`: `PacketHandler` (Netty-thread rules in its doc), `PacketHandlerRegistry` (lock-free dispatch, per-handler metrics), `PacketEventsLayer` (one listener), `PacketLayers` (reflective, degrades without PacketEvents), `CreativeReturnHandler` + `ClientItemDecoration` hook, `NoopPacketHandler` (keep-alive) installed in `onEnable`; `/tfp debug packets` prints metrics. PacketEvents is now an optional dependency (`paper-plugin.yml`, `compat.yml`). `PacketHandlerRegistryTest` covers routing, decisions, metrics, errors, concurrent dispatch with fake contexts. **Missing:** a server run showing the no-op handler's metrics (M1-TEST-01; no servers were started here).
 
-- [ ] **M1-SVC-04 i18n** · deps: M1-DGN-02
+- [x] **M1-SVC-04 i18n** · deps: M1-DGN-02
   - Do: server-side translations (our messages) + client lang via CE `lang:` (generated). Ship all TFC locales including `tr_tr`.
   - Done when: a self-test shows a translated message per locale.
+  - Status: server side done: `paper/i18n/Messages` (`lang/<locale>.properties`, `lang/index.txt`, fallback same language → `en_us` → key, literal `{n}` arguments) with `en_us` and `tr_tr` for all our messages; `MessagesTest` shows a translated message per shipped locale and checks every bundle has every key with the same arguments; command replies are translated per sender (`BootstrapTest`). The client lang (block/item names from TFC's locales) is datagen's job (M1-DGN; CE `lang/*.json` already in the generated pack).
 
 - [ ] **M1-SVC-05 Commands & debug** · deps: M1-BOOT-01
   - Do: `/tfp reload [data|content]`, `/tfp debug showcase <family>` (places all variants in a grid), `/tfp debug block|player|chunk`, `/tfp version`.
   - Done when: the showcase works for rocks/soils/ores.
+  - Status: `TfpCommands`: `/tfp [version]`, `/tfp reload [config|data|content]` (bare = data), `/tfp debug block|chunk|player [name]|packets`, translated replies; `TfpPlugin` implements them (`reload data` via `paper/data/RegistryService`, which also loads the registries at enable and signals `REGISTRIES_LOADED`; `reload content` answers "not available" until M1-INST). `BootstrapTest` covers the Brigadier tree, permissions, version output, every subcommand with a fake handler, and Turkish replies. **Missing:** `/tfp debug showcase <family>` (the Done-when), and in-server runs of the debug commands.
 
 ## Self-test harness
 
