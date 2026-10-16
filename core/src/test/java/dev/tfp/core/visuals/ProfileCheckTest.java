@@ -11,8 +11,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import dev.tfp.core.config.TfpConfig.Profile;
 import dev.tfp.core.visuals.ProfileCheck.PoolUsage;
 import dev.tfp.core.visuals.ProfileCheck.Verdict;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /** M1-INST-03: the runtime CraftEngine solid-pool check after a reload. */
@@ -107,5 +111,122 @@ class ProfileCheckTest {
     @Test
     void rejectsImpossibleCounts() {
         assertThatThrownBy(() -> new PoolUsage(10, 5, 6)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void rejectsStaleBeyondUsed() {
+        assertThatThrownBy(() -> new PoolUsage(10, 5, 3, 3)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void staleClaimsAreOurUnusedCacheEntriesOnly() {
+        Map<String, Integer> cache = new LinkedHashMap<>();
+        cache.put("solid[id=tfp_clay_alfisol]", 1);   // ours, shown
+        cache.put("solid[id=tfp_ore_rich_x]", 2);     // ours, not shown: stale
+        cache.put("tfp:old_block[appearance=a]", 3);  // ours (block key), not shown: stale
+        cache.put("solid[id=other_pack]", 4);         // foreign
+        cache.put("solid[id=tfpx_lookalike]", 5);     // foreign (other namespace)
+        cache.put("othermod:block", 6);               // foreign
+        assertThat(ProfileCheck.staleClaims(cache, Set.of(1), "tfp"))
+                .containsExactly("solid[id=tfp_ore_rich_x]", "tfp:old_block[appearance=a]");
+    }
+
+    /**
+     * Regression (checks-1.21.11 server run): level-3a -> level-0 -> level-3a reported 476 slots "used by other
+     * packs" instead of 35, because CraftEngine's allocation cache keeps (and marks used) the 441 share ids level-0
+     * added. The check after the switch back must equal a fresh level-3a start.
+     */
+    @Test
+    void profileSwitchBackGivesTheFreshForeignCount() {
+        Map<Profile, Integer> demand = demand(780, 780, 591, 339, 87);
+        VisualSelection l3a = new VisualSelection("1.21", Profile.LEVEL_3A, false);
+        VisualSelection l0 = new VisualSelection("1.21", Profile.LEVEL_0, false);
+        List<String> ids3a = shareIds(0, 339);
+        List<String> ids0 = new ArrayList<>(ids3a);
+        ids0.addAll(shareIds(339, 780));
+
+        ProfileCheck.Result fresh = new FakeCeCache().start(ids3a).check(l3a, demand);
+        assertThat(fresh.othersUsed()).isEqualTo(35);
+        assertThat(fresh.needed()).isEqualTo(339);
+        assertThat(fresh.free()).isEqualTo(915);
+
+        FakeCeCache ce = new FakeCeCache();
+        ce.start(ids3a).check(l3a, demand);
+        ProfileCheck.Result level0 = ce.start(ids0).check(l0, demand);
+        assertThat(level0.othersUsed()).isEqualTo(35);
+        assertThat(level0.needed()).isEqualTo(780);
+        assertThat(level0.free()).isEqualTo(474);
+        FakeCeCache.Run back = ce.start(ids3a);
+        // The defect: counting from the pool alone, the stale level-0 ids look foreign.
+        assertThat(ProfileCheck.check(l3a, demand, new PoolUsage(back.capacity, back.used, back.ours), 500).othersUsed())
+                .isEqualTo(476);
+        ProfileCheck.Result switched = back.check(l3a, demand);
+        assertThat(switched.othersUsed()).isEqualTo(fresh.othersUsed());
+        assertThat(switched.needed()).isEqualTo(fresh.needed());
+        assertThat(switched.free()).isEqualTo(fresh.free());
+        assertThat(switched.verdict()).isEqualTo(fresh.verdict());
+        assertThat(switched.lines()).first().asString().contains("Released 441");
+        // The stale ids were dropped from the cache: the next CraftEngine reload is identical to a fresh start.
+        FakeCeCache.Run reload = ce.start(ids3a);
+        assertThat(reload.used).isEqualTo(35 + 339);
+        assertThat(reload.check(l3a, demand).lines()).isEqualTo(fresh.lines());
+    }
+
+    private static List<String> shareIds(int from, int to) {
+        List<String> out = new ArrayList<>();
+        for (int i = from; i < to; i++) {
+            out.add("tfp_v" + i);
+        }
+        return out;
+    }
+
+    /**
+     * CraftEngine's {@code VisualBlockStateAllocator} as read from its bytecode (CE 26.9.2): the cache survives
+     * restarts, every cached entry is marked used on load whether requested or not, new requests take the next free
+     * candidate. The 35 foreign slots are CraftEngine's and other packs' own.
+     */
+    private static final class FakeCeCache {
+        static final int CAPACITY = 1289;
+        final Map<String, Integer> cache = new LinkedHashMap<>();
+
+        FakeCeCache() {
+            for (int i = 0; i < 35; i++) {
+                cache.put("solid[id=other_" + i + "]", i);
+            }
+        }
+
+        Run start(List<String> ourIds) {
+            boolean[] used = new boolean[CAPACITY];
+            cache.values().forEach(v -> used[v] = true);
+            Set<Integer> shown = new HashSet<>();
+            int next = 0;
+            for (String id : ourIds) {
+                String key = "solid[id=" + id + "]";
+                Integer slot = cache.get(key);
+                if (slot == null) {
+                    while (used[next]) {
+                        next++;
+                    }
+                    slot = next;
+                    used[slot] = true;
+                    cache.put(key, slot);
+                }
+                shown.add(slot);
+            }
+            int usedCount = 0;
+            for (boolean u : used) {
+                usedCount += u ? 1 : 0;
+            }
+            // What CraftEnginePackAdapter.solid() does: count and release our stale entries.
+            Set<String> stale = ProfileCheck.staleClaims(cache, shown, "tfp");
+            stale.forEach(cache::remove);
+            return new Run(CAPACITY, usedCount, shown.size(), stale.size());
+        }
+
+        record Run(int capacity, int used, int ours, int stale) {
+            ProfileCheck.Result check(VisualSelection selection, Map<Profile, Integer> demand) {
+                return ProfileCheck.check(selection, demand, new PoolUsage(capacity, used, ours, stale), 500);
+            }
+        }
     }
 }

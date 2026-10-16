@@ -205,6 +205,7 @@ visuals:
 - At runtime, after every `CraftEngineReloadEvent`, we read the real counts of the CE `solid` pool (`paper.integration.VisualPools`; the installed `mappings.yml` may differ per server) and run the pure `core/visuals/ProfileCheck`:
   - fail with a clear message, naming the next higher profile (the first one that fits), if the selected profile doesn't fit;
   - warn if the free solid slots are below `solid-reserve-warning`.
+  - CE's visual-state allocation cache survives restarts and marks every cached share id used, so after a profile switch the previous profile's `tfp_` ids keep their slots. `ProfileCheck.staleClaims` finds them; the CE adapter counts them as ours (`stale`, never "other packs") and drops them from the cache, so they are free from the next CE reload (the switch's pack rebuild) on.
 - Vanilla-block suppression (M1-INST-04): `core/visuals/Suppression` decides per creation path from the allocation's `suppressed_blocks.json` + mappings (lava + water → the look-alike, e.g. `stone`; everything else cancelled); `paper/suppression/SuppressionListener` applies it in TFC worlds (form/spread/fade/fertilize/entity-change/place events, drops, loot, crafting, smelting; dispensers and `/setblock`/`/fill` best effort).
 - **Switching profiles is safe for existing worlds.** It only changes client-side visual mappings. CE block ids and saved data stay the same. It needs a restart and a pack rebuild, both done automatically.
 

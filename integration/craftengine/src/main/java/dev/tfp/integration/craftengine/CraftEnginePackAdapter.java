@@ -5,11 +5,14 @@
  */
 package dev.tfp.integration.craftengine;
 
+import dev.tfp.core.visuals.ProfileCheck;
 import dev.tfp.core.visuals.ProfileCheck.PoolUsage;
 import dev.tfp.paper.integration.IntegrationContext;
 import dev.tfp.paper.integration.PackRebuilder;
 import dev.tfp.paper.integration.VisualPools;
 import dev.tfp.paper.scheduler.Scheduler;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -18,11 +21,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
+import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.core.block.AutoStateGroup;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.pack.allocator.BlockStateCandidate;
+import net.momirealms.craftengine.core.pack.allocator.VisualBlockStateAllocator;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
 
@@ -111,6 +116,12 @@ final class CraftEnginePackAdapter implements PackRebuilder, VisualPools {
                 });
     }
 
+    /**
+     * Also drops our stale entries from CraftEngine's visual-state allocation cache ({@link ProfileCheck#staleClaims}):
+     * CraftEngine keeps every share id it ever assigned and marks it used on load, so after a profile switch the
+     * previous profile's ids would hold their slots (and count as other packs') for good. Dropping them frees the
+     * slots at the next CraftEngine reload; this run keeps them (counted as {@code stale}).
+     */
     @Override
     public Optional<PoolUsage> solid() {
         AutoStateGroup group = AutoStateGroup.SOLID;
@@ -125,18 +136,47 @@ final class CraftEnginePackAdapter implements PackRebuilder, VisualPools {
         if (capacity == 0) {
             return Optional.empty();
         }
-        Set<Integer> ours = new HashSet<>();
+        Set<Integer> shown = new HashSet<>();
         for (Map.Entry<Key, BlockDefinition> e : CraftEngineBlocks.loadedBlocks().entrySet()) {
             if (!namespace.equals(e.getKey().namespace())) {
                 continue;
             }
             for (ImmutableBlockState s : e.getValue().variantProvider().states()) {
                 BlockStateWrapper visual = s.visualBlockState();
-                if (visual != null && usedIds.contains(visual.registryId())) {
-                    ours.add(visual.registryId());
+                if (visual != null) {
+                    shown.add(visual.registryId());
                 }
             }
         }
-        return Optional.of(new PoolUsage(capacity, usedIds.size(), ours.size()));
+        Set<Integer> ours = new HashSet<>(shown);
+        ours.retainAll(usedIds);
+        Set<Integer> stale = releaseStale(shown);
+        stale.retainAll(usedIds);
+        stale.removeAll(ours);
+        return Optional.of(new PoolUsage(capacity, usedIds.size(), ours.size(), stale.size()));
+    }
+
+    /** Drops our cache entries no loaded block of ours shows; returns their registry ids. */
+    private Set<Integer> releaseStale(Set<Integer> shown) {
+        VisualBlockStateAllocator allocator = BukkitBlockManager.instance().visualBlockStateAllocator();
+        Map<String, Integer> cache = new HashMap<>();
+        for (Map.Entry<String, BlockStateWrapper> e : allocator.cachedBlockStates().entrySet()) {
+            cache.put(e.getKey(), e.getValue().registryId());
+        }
+        Set<Integer> staleIds = new HashSet<>();
+        for (String k : ProfileCheck.staleClaims(cache, shown, namespace)) {
+            staleIds.add(cache.get(k));
+        }
+        if (staleIds.isEmpty()) {
+            return staleIds;
+        }
+        allocator.cleanupUnusedIds(state -> staleIds.contains(state.registryId()));
+        try {
+            allocator.saveToCache();
+        } catch (IOException e) {
+            ctx.logger().log(Level.WARNING, "Cannot save CraftEngine's visual-state cache; stale TerraFirmaPlugin "
+                    + "states stay held until it is saved", e);
+        }
+        return staleIds;
     }
 }

@@ -7,9 +7,12 @@ package dev.tfp.core.visuals;
 
 import dev.tfp.core.config.TfpConfig.Profile;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * The runtime capacity check of the CraftEngine {@code solid} pool after a CraftEngine reload
@@ -30,13 +33,45 @@ public final class ProfileCheck {
      * @param capacity candidate states in the pool ({@code AutoStateGroup.SOLID.candidateCount()})
      * @param used     candidates in use by anyone
      * @param ours     candidates in use by our ({@code tfp}) blocks
+     * @param stale    candidates CraftEngine still holds for our share ids that no loaded block uses any more
+     *                 (its allocation cache keeps every id it ever assigned, e.g. those of the previous visual
+     *                 profile; {@link #staleClaims}). They are ours, not other packs', and are released by
+     *                 dropping them from the cache: free again after the next CraftEngine reload.
      */
-    public record PoolUsage(int capacity, int used, int ours) {
+    public record PoolUsage(int capacity, int used, int ours, int stale) {
         public PoolUsage {
-            if (capacity < 0 || used < 0 || ours < 0 || ours > used) {
-                throw new IllegalArgumentException("bad pool usage: capacity=" + capacity + " used=" + used + " ours=" + ours);
+            if (capacity < 0 || used < 0 || ours < 0 || stale < 0 || ours + stale > used) {
+                throw new IllegalArgumentException("bad pool usage: capacity=" + capacity + " used=" + used + " ours=" + ours
+                        + " stale=" + stale);
             }
         }
+
+        public PoolUsage(int capacity, int used, int ours) {
+            this(capacity, used, ours, 0);
+        }
+    }
+
+    /**
+     * The entries of CraftEngine's visual-state allocation cache ({@code VisualBlockStateAllocator}, persisted
+     * across restarts) that are ours but no loaded block of ours uses. CraftEngine marks every cached entry as
+     * used on load, requested or not, so after a profile switch the previous profile's share ids keep their pool
+     * slots. Ours: a share id {@code <group>[id=<namespace>_...]} (datagen's {@code auto_state.id}) or a block
+     * key {@code <namespace>:...}.
+     *
+     * @param cache     CraftEngine's cache: key to the visual state's registry id
+     * @param inUse     registry ids our loaded blocks show
+     * @param namespace our namespace ({@code tfp})
+     * @return the stale keys, in cache order
+     */
+    public static Set<String> staleClaims(Map<String, Integer> cache, Set<Integer> inUse, String namespace) {
+        Pattern ours = Pattern.compile("^(?:[a-z0-9_]+\\[id=" + Pattern.quote(namespace + "_") + "|" + Pattern.quote(namespace + ":") + ")");
+        Set<String> out = new LinkedHashSet<>();
+        for (Map.Entry<String, Integer> e : cache.entrySet()) {
+            if (ours.matcher(e.getKey()).find() && !inUse.contains(e.getValue())) {
+                out.add(e.getKey());
+            }
+        }
+        return out;
     }
 
     public enum Verdict {
@@ -70,12 +105,20 @@ public final class ProfileCheck {
      */
     public static Result check(VisualSelection selection, Map<Profile, Integer> demand, PoolUsage pool, int reserve) {
         int needed = demand.getOrDefault(selection.profile(), pool.ours());
-        int others = pool.used() - pool.ours();
+        int others = pool.used() - pool.ours() - pool.stale();
         int free = pool.capacity() - others - needed;
         String key = "visuals.profile.\"" + selection.family() + "\"";
         List<String> lines = new ArrayList<>();
         String counts = "CraftEngine solid pool: " + pool.capacity() + " states, " + others + " used by other packs, "
                 + needed + " needed by " + selection.profile().id() + " (" + pool.ours() + " allocated)";
+        if (pool.stale() > 0) {
+            lines.add("Released " + pool.stale() + " CraftEngine solid state(s) still held for an earlier TerraFirmaPlugin "
+                    + "visual profile; they are free after the next CraftEngine reload or restart.");
+            if (free >= 0 && pool.ours() < needed) {
+                lines.add(counts + ". " + (needed - pool.ours()) + " TerraFirmaPlugin block visual(s) are missing until then.");
+                return new Result(Verdict.WARN, needed, others, free, Optional.empty(), lines);
+            }
+        }
         if (free < 0) {
             Optional<Profile> fitting = higher(selection.profile()).stream()
                     .filter(p -> demand.containsKey(p) && pool.capacity() - others - demand.get(p) >= 0)
