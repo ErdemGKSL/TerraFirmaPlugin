@@ -11,6 +11,33 @@ Folia shapes everything: there is **no single main thread**. Each region of load
 
 `references/folia-api.md` has the exact scheduler APIs and the list of forbidden Bukkit calls. `references/patterns.md` has code sketches for each pattern below.
 
+## The mindset: decide async, apply sync (project-wide default)
+
+Every gameplay reaction follows the same shape. Write it this way **by default**, without being asked:
+
+```
+event / callback (owner thread)  →  capture a minimal snapshot, enqueue, return immediately
+async runner (worker pool)       →  decide: compute whether and what must change (pure, on the snapshot)
+sync runner (owner region)       →  apply: re-validate against the live world, then write, under a tick budget
+```
+
+Example: **connected blocks** (TFC support beams, fences/walls, connected grass, wattle, rope, ingot piles). A block is placed:
+1. The place event/behaviour callback stores the block with a **provisional state** (e.g. "unconnected", or whatever is cheapest to know), snapshots the affected neighbourhood, and submits a `ConnectionJob`. It does no neighbour scanning itself.
+2. The **async runner** computes the connection states for the placed block and every affected neighbour, from the snapshot. It also cascades if one change implies another (e.g. a support beam span becoming valid or invalid). The output is a list of `BlockChange(pos, expectedOld, new)`.
+3. If the list is empty, nothing touches the world. Otherwise the **sync runner** for each affected chunk's region applies the changes under its tick budget. A change whose `expectedOld` no longer matches the live block is dropped, and that position is re-queued for async re-evaluation.
+
+The same shape applies to collapse/landslide checks, snow/ice accumulation, crop/plant updates, mechanical-network recomputation, fluid spreading, tree felling and multiblock validation (bloomery, blast furnace, charcoal pit, pit kiln).
+
+Rules that come with it:
+- **Callbacks stay thin.** CE behaviour callbacks (`updateShape`, `neighborChanged`, `onPlace`, `useOnBlock`), Paper events and Mob Goal ticks only snapshot, enqueue and return. Never put loops over neighbours or recursion in them.
+- **When an API demands a synchronous answer** (e.g. `updateStateForPlacement` must return a state now), return a cheap provisional value and schedule the async refinement. Don't compute the full answer inline.
+- **Coalesce:** several triggers for the same position within a tick become one job (dedupe by position in the queue). This prevents event storms (explosions, WorldEdit, piston chains).
+- **Async is pure:** async code never calls Bukkit/CE world APIs. It reads only the snapshot plus immutable registries.
+- **The sync side never decides.** It only validates and writes. If validation fails, it re-queues, rather than recomputing on the region thread.
+- **Visible latency is acceptable** (one or a few ticks before a beam connects). Region-thread spikes aren't.
+
+`references/patterns.md` §9 has the code skeleton (`AsyncDecisionPipeline`).
+
 ## The five rules
 
 ### 1. Never use `BukkitScheduler`, use our `Scheduler`

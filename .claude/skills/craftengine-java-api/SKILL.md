@@ -36,6 +36,7 @@ Reload unbinds every custom block from an **async** thread. During it, `getCusto
 ## Custom block behaviour (§3)
 - Extend CE's Bukkit block behaviour base. The factory has the form `(BlockDefinition block, ConfigSection section) -> behaviour`. Register with `BlockBehaviors.register(Key.of("tfp", "crop"), FACTORY)`. Use it in YAML as `type: tfp:crop`.
 - NMS-level callbacks receive `(Object thisBlock, Object[] args)`; the arg layouts are in report §3.2. Higher-level hooks: `updateStateForPlacement`, `useOnBlock`, `useWithoutItem`, `canBeReplaced`.
+- **Callbacks run on the owner thread (or worldgen threads), so keep them thin:** snapshot + submit to our `AsyncDecisionPipeline`, then return the current or provisional state. Neighbour scans, connection logic and cascades are decided async and applied by the region-thread commit queue (`paper-folia-threading` → "decide async, apply sync").
 - Find our behaviour with `state.behavior().getFirst(TfpCrop.class)`. **Never cast**: `facing`/`axis`/`waterlogged` silently wrap ours in a composite.
 - Don't implement `RandomTickBlock` for lazy TFC blocks (it turns on vanilla random ticks).
 - `onPlace` is **not** called for worldgen writes. Initialize generated block data in the controller's `onLoad`, or in our chunk-load catch-up.

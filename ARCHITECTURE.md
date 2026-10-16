@@ -86,7 +86,8 @@ Reality check (2026-10): Paper supports 26.2/26.3. Folia 26.3 is alpha and Folia
 3. **Faithful numbers.** TFC constants and formulas are kept exactly. Every deviation is listed in `docs/porting/ledger.md` → Divergences.
 4. **Server authority, vanilla clients.** All visuals go through CraftEngine/BetterModel/BetterHud or our packet rewriting. There is no client mod.
 5. **Adapters at the edges.** Feature code never imports third-party plugin APIs directly.
-6. **Data-driven.** TFC's JSON schemas are our on-disk format, so TFC data (and addon datapacks) can be re-imported mechanically.
+6. **Decide async, apply sync.** Every reaction to a world event follows: owner-thread callback (snapshot + enqueue, nothing else) → async runner (pure decision on the snapshot, may cascade) → sync runner on the owning region (re-validate, write under a budget, re-queue if stale). Synchronous API answers (e.g. placement state) return a cheap provisional value, and the async pass refines it.
+7. **Data-driven.** TFC's JSON schemas are our on-disk format, so TFC data (and addon datapacks) can be re-imported mechanically.
 
 ## 5. Threading model
 

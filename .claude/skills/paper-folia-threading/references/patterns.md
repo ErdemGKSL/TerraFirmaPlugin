@@ -11,6 +11,7 @@ These are design sketches, not final code. Adapt the names to the real modules o
 6. Packet rewrite: seasonal biome remap
 7. Packet rewrite: item lore
 8. Throttled, staggered entity checks
+9. Async decision pipeline (connected blocks example)
 
 ## 1. Lazy calendar value
 
@@ -135,3 +136,55 @@ Bucket times (e.g. temperature to the nearest 10°C, expiry to the nearest in-ga
     // cheap decision using lazily-evaluated animal state
 }
 ```
+
+## 9. Async decision pipeline (connected blocks example)
+
+The project-wide "decide async, apply sync" shape (see SKILL.md). One pipeline instance per job kind (connections, collapse, snow, ...).
+
+```java
+/** Generic: S = snapshot type. Lives in paper/, decisions come from core/ (pure). */
+public final class AsyncDecisionPipeline<S> {
+    private final Scheduler scheduler;
+    private final Function<S, List<BlockChange>> decide;        // pure, from core/
+    private final Set<Long> pendingPositions = ConcurrentHashMap.newKeySet(); // coalescing
+
+    /** Called from an event/behaviour callback on the owner thread: O(1)-ish, no scanning. */
+    public void submit(World world, long packedPos, Supplier<S> captureSnapshot) {
+        if (!pendingPositions.add(packedPos)) return;            // already queued this tick → coalesce
+        S snap = captureSnapshot.get();                          // small: the block + neighbours it needs
+        scheduler.async(() -> {
+            List<BlockChange> changes;
+            try { changes = decide.apply(snap); }                // DECIDE (worker thread)
+            finally { pendingPositions.remove(packedPos); }
+            if (changes.isEmpty()) return;                       // nothing to do → world untouched
+            for (var group : BlockChange.groupByChunk(changes)) {
+                scheduler.region(world, group.chunkX(), group.chunkZ(),
+                    () -> commitQueue(world).enqueue(group, this::resubmit)); // APPLY (owner, budgeted)
+            }
+        });
+    }
+
+    /** Commit found the world changed since the snapshot → re-decide, never decide inline. */
+    private void resubmit(World w, BlockChange stale) { submit(w, stale.packedPos(), () -> snapshotAround(w, stale.packedPos())); }
+}
+```
+
+```java
+// Example wiring: a TFC support beam behaviour (CraftEngine callback runs on the owner thread)
+@Override public Object updateShape(Object thisBlock, Object[] args) {
+    connections.submit(world(args), packedPos(args), () -> NeighbourSnapshot.capture(args, 1)); // radius 1
+    return args[0];                                              // keep current state; async decides later
+}
+
+// core/: pure decision function
+public static List<BlockChange> decideConnections(NeighbourSnapshot s) {
+    var out = new ArrayList<BlockChange>();
+    for (var pos : s.positionsToEvaluate()) {
+        var want = SupportRules.connectionState(s, pos);         // TFC rules ported verbatim
+        if (!want.equals(s.stateAt(pos))) out.add(new BlockChange(pos, s.stateAt(pos), want));
+    }
+    return out;
+}
+```
+
+Checklist for each pipeline: the snapshot is minimal and immutable; `decide` is pure and unit-tested in `core/`; changes carry `expectedOld`; the commit is budgeted per region; stale changes are re-submitted; submission is coalesced per position; there is a self-test for the "world changed between decide and apply" race.

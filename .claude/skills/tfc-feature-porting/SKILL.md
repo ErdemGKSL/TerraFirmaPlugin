@@ -50,6 +50,8 @@ TFC runs on one server thread and ticks block entities. We do not. Apply `paper-
 - Anything that must actively scan the world (snow accumulation, crop random checks, collapse propagation) runs on a **snapshot off-thread** and commits block changes back on the owning region thread under a per-tick time budget.
 - No passive/ambient custom particles. Particles only as feedback for an explicit action (pouring metal, hammering, a fire being lit).
 
+- Anything TFC computes inside `updateShape`/`neighborChanged`/`onPlace`/block-entity ticks (connections, support checks, multiblock validation, spreading) becomes **decide async, apply sync**: the callback snapshots and submits, a pure `core/` function decides, and the region commit queue applies.
+
 Write down which parts run where before writing code.
 
 ### 4. Port the data
