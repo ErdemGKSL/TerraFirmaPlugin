@@ -42,6 +42,7 @@ Skills live in `.claude/skills/`. Load the matching skill **before** acting; mor
 | Scheduling, async, Folia, packets, persistence, performance | `paper-folia-threading` |
 | Tests, CI, benchmarks, profiling, "is this feature done?" | `plugin-testing` |
 | Needing a 2D image (texture, GUI, HUD art, icon) that doesn't exist | `image-requests` |
+| Creating or changing 3D models (entity `.bbmodel`, block/item model JSON), animations, converting TFC Java animations | `model-authoring` |
 
 ## Working rules
 - **Decide async, apply sync. This is the default for all gameplay code.** Events and callbacks only snapshot and enqueue. An async runner decides whether and what must change (pure code). A sync runner on the owning region re-validates and writes under a tick budget. Example: placing a connectable block (support beam, wattle, connected grass) stores a provisional state; the async runner computes the connections for the block and its neighbours; only real changes are applied by the sync runner. Details: `paper-folia-threading` → "decide async, apply sync".

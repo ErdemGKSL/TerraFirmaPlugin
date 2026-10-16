@@ -1,0 +1,16 @@
+{
+  "id": "tfp_example_bovine",
+  "rig": "quadruped",
+  "body":  {"w": 12, "h": 10, "d": 18},
+  "leg":   {"w": 4, "h": 12, "d": 4, "inset_x": 0, "inset_z": 1},
+  "neck":  {"w": 6, "h": 4, "d": 4, "angle": 0},
+  "head":  {"w": 8, "h": 8, "d": 6},
+  "snout": {"w": 6, "h": 4, "d": 2},
+  "ear":   {"w": 3, "h": 2, "d": 1},
+  "tail":  {"w": 2, "h": 10, "d": 2, "angle": 10},
+  "extras": [
+    {"attach": "h_head", "name": "horn", "mirror": true, "offset": [4, 4, -3], "size": [2, 4, 2], "rotation": [0, 0, -20]},
+    {"attach": "body", "name": "hump", "offset": [0, 5, -4], "size": [8, 3, 8]}
+  ],
+  "anim": {"walk_period": 1.0, "walk_amp": 25}
+}
