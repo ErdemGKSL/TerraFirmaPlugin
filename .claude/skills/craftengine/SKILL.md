@@ -5,7 +5,18 @@ description: How this plugin uses CraftEngine (Xiao-MoMi) for every custom block
 
 # CraftEngine in this project
 
-Facts here come from `references/research-report.md` (CE 26.9.2 @ `b3079c5`, researched 2026-10). Read the relevant report section before doing anything unusual; it has the exact source paths.
+This is the **hub**: the mental model and decision order. The details live in focused sub-skills. Load the one for your task:
+
+| Task | Sub-skill |
+|---|---|
+| Block YAML, properties, variants, settings, built-in behaviours, TFC family → built-in vs custom | `craftengine-blocks` |
+| Appearances, pools, `block_state_mappings`, repurposed vanilla states, item model definitions, resource pack build/merge/hosting | `craftengine-visuals-pack` |
+| Items, tools/tiers, recipes, loot, events/functions/conditions, item packets vs our tooltips | `craftengine-items` |
+| entity_renderer contents, furniture, images/fonts, textured GUIs, the outside-inventory button | `craftengine-gui-furniture` |
+| Java API, custom behaviours, block-entity controllers, storage, worldgen placement, startup order, threads | `craftengine-java-api` |
+| How datagen should emit CE config (templates, YAML extensions, what never to emit) | `craftengine-config-generation` |
+
+Facts here come from `references/research-report.md` (CE 26.9.2 @ `b3079c5`, researched 2026-10) and the sub-skills' reports. Read the relevant report section before doing anything unusual; it has the exact source paths.
 
 ## Mental model (get this right first)
 
@@ -52,7 +63,8 @@ Two custom blocks may share one explicit state only with the **identical** model
 - Dependency: `compileOnly("net.momirealms:craft-engine-core:<v>")` and `craft-engine-bukkit:<v>` from `https://repo.momirealms.net/releases/`. Check `maven-metadata.xml`; Maven can lag Modrinth. CE's API jars **relocate Adventure and NBT** (`net.momirealms.craftengine.libraries.*`), so never pass Paper `Component`s into CE APIs.
 - `paper-plugin.yml`: depend on CraftEngine with `load: BEFORE` (CE loads first).
 - **Register our behaviours in `onLoad()`**: `BlockBehaviors.register(Key.of("tfp","crop"), factory)`, `ItemBehaviors.register`, `BlockEntityElementConfigs.register`, `CommonFunctions/CommonConditions.register`. The registration must exist before CE parses configs.
-- **Per-block data and tickers:** a behaviour can implement `EntityBlock` and provide a `BlockEntityController` (`save/loadCustomData`, `onLoad/onUnload`, sync ticker on the region thread, async ticker that must not mutate the world, `SleepingBlockEntityTicker`). This is a strong candidate for our per-chunk block-data store. CE already persists and loads it per chunk. Decide in the first spike (report §8.4) and keep our lazy calendar model on top: tickers sleep unless something is actively happening.
+- **Per-block data and tickers:** a behaviour can implement `EntityBlock` and provide a `BlockEntityController` (`save/loadCustomData`, `onLoad/onUnload`, sync ticker on the region thread, async ticker that must not mutate the world). Sleeping tickers exist only on CE's dev branch, not in 26.9.x. Use controllers for devices and player-planted crops, with no ticker and lazy calendar catch-up. Wild worldgen blocks are property-only. Details: `craftengine-java-api`.
+- Published API version: **26.9.1** (26.9.2 isn't on the Maven repo yet).
 - Lookups: `CraftEngineBlocks.getCustomBlockState(block)`, `byId(key)`, `place(...)`/`remove(...)`, which run **on the owning region thread only**. `CraftEngineItems.byId(...).buildBukkitItem()`, `getCustomItemId(stack)`. `Block#getType()` returns a fake material (`deceive-bukkit-material`), so never identify blocks by Material.
 - `loadedBlocks()` etc. are empty until the first `CraftEngineReloadEvent`, and definitions are recreated on each reload. Cache `ImmutableBlockState`s and refresh them on every `CraftEngineReloadEvent`.
 - Events: `CustomBlockPlaceEvent`, `CustomBlockBreakEvent`, `CustomBlockInteractEvent`, furniture events, `AsyncResourcePackCacheEvent` (`registerExternalResourcePack(Path)`), `AsyncResourcePackGenerateEvent`.
