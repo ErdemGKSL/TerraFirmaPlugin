@@ -23,3 +23,9 @@ tasks.shadowJar {
 }
 tasks.jar { enabled = false }
 tasks.assemble { dependsOn(tasks.shadowJar) }
+
+// Architecture rules over every module's classes (they are all on this classpath).
+dependencies {
+    testImplementation(libs.archunit)
+    testImplementation(libs.paper.api)
+}

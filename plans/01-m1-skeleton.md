@@ -46,7 +46,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 
 ## Threading primitives
 
-- [ ] **M1-THR-01 Scheduler abstraction** · deps: M1-BUILD-01 · skills: paper-folia-threading
+- [x] **M1-THR-01 Scheduler abstraction** · deps: M1-BUILD-01 · skills: paper-folia-threading
   - Do: the `Scheduler` interface (region / entity with retired / global / async CPU pool / io on virtual threads) + Folia-scheduler implementation + `ThreadAsserts` (`-Dtfp.assertThreads`).
   - Done when: unit + self-tests on Paper and Folia; no `BukkitScheduler` usage (enforced by an ArchUnit-style check).
 
