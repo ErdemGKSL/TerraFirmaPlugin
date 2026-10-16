@@ -9,6 +9,9 @@ import dev.tfp.core.compat.CompatGate;
 import dev.tfp.paper.boot.CompatCheck;
 import dev.tfp.paper.boot.TfpCommands;
 import dev.tfp.paper.config.ConfigService;
+import dev.tfp.paper.integration.HudSnapshotCache;
+import dev.tfp.paper.integration.IntegrationContext;
+import dev.tfp.paper.integration.Integrations;
 import dev.tfp.paper.ready.ReadyGate;
 import dev.tfp.paper.ready.ReadyGate.Signal;
 import dev.tfp.paper.scheduler.Scheduler;
@@ -28,9 +31,10 @@ import org.bukkit.plugin.java.JavaPlugin;
  * <ol>
  *   <li>bootstrap ({@link dev.tfp.paper.boot.TfpBootstrap}): datapack, Brigadier commands;</li>
  *   <li>{@link #onLoad()}: compat gate → config → (M1-INST-*) install content into CE/BetterHud,
- *       config edits → (M1-INT-02) register CE behaviours;</li>
+ *       config edits → adapters' {@code onLoad} (CraftEngine behaviour registration);</li>
  *   <li>{@link #onEnable()}: refuse if the gate said so; scheduler; ready gate (waive what is missing);
- *       (M1-INT-03, later) BetterModel subscriptions, BetterHud placeholders, listeners, packet layer.</li>
+ *       adapters' {@code onEnable} (CraftEngine listeners, BetterModel subscriptions, BetterHud
+ *       placeholders); (later) our listeners, packet layer.</li>
  * </ol>
  */
 public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
@@ -40,7 +44,12 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     private final ReadyGate readyGate = new ReadyGate();
     private CompatGate.Report compat;
     private ConfigService config;
-    private Scheduler scheduler;
+    private volatile Scheduler scheduler;
+    private volatile Integrations integrations;
+    private final HudSnapshotCache hudCache = new HudSnapshotCache(() -> {
+        Integrations i = integrations;
+        return i != null && i.activePlugins().contains("BetterHud");
+    });
 
     @Override
     public void onLoad() {
@@ -57,7 +66,13 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         config = new ConfigService(getDataPath().resolve("config.yml"), this::defaultConfigText);
         logConfig(config.load());
         // M1-INST-01..03: install our content into CraftEngine/BetterHud, config edits, visual profile.
-        // M1-INT-02: register CraftEngine behaviours/functions/conditions (must happen in onLoad).
+        // M1-INT-01..04: discover the adapters of the installed plugins; CraftEngine registers its
+        // behaviours/functions/conditions here (must happen in onLoad).
+        IntegrationContext ctx = new IntegrationContext(this, getLogger(), readyGate, () -> scheduler, hudCache,
+                getDataPath().toAbsolutePath().getParent());
+        integrations = Integrations.discover(ctx, name -> getServer().getPluginManager().getPlugin(name) != null,
+                TfpPlugin.class.getClassLoader());
+        integrations.onLoad();
     }
 
     @Override
@@ -76,6 +91,9 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         }
         // CRAFTENGINE_RELOADED is signalled by the CE adapter (M1-INT-02), BETTERMODEL_MODELS_READY by the
         // BetterModel adapter (M1-INT-03), REGISTRIES_LOADED by the registry loader's first swap.
+        integrations.onEnable();
+        getLogger().info("Integrations: " + (integrations.activePlugins().isEmpty() ? "none"
+                : String.join(", ", integrations.activePlugins())));
         readyGate.ready().whenComplete((v, err) -> {
             if (err == null) {
                 getLogger().info("TerraFirmaPlugin " + readyGate.describe());
@@ -92,6 +110,9 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
 
     @Override
     public void onDisable() {
+        if (integrations != null) {
+            integrations.onDisable();
+        }
         if (scheduler != null) {
             scheduler.shutdown();
         }
@@ -103,6 +124,11 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
 
     public Scheduler scheduler() {
         return scheduler;
+    }
+
+    /** The client-plugin services (degraded when a plugin is missing). Null until {@link #onLoad()} passed. */
+    public Integrations integrations() {
+        return integrations;
     }
 
     /** Null until {@link #onLoad()} passed the compat gate. */

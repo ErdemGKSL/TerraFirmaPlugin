@@ -1,0 +1,4 @@
+# Models registered with BetterModel from the plugin jar (ModelAssetsEvent), one id per line; the file is
+# <id>.bbmodel next to this index. tfp_example_bovine is the M1 placeholder from
+# tools/models/species/tfp_example_bovine.json (generated, copied from spikes/bm-01); datagen replaces this list.
+tfp_example_bovine

@@ -46,7 +46,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 - [x] **M1-BOOT-04 Ready gate** · deps: M1-BOOT-01
   - Do: a single readiness flag: CE reloaded ∧ BetterModel models ready ∧ registries loaded. Features and self-tests wait on it.
   - Done when: a self-test asserts ready within N seconds of startup.
-  - Status: `paper.ready.ReadyGate` (signal / waive for a missing plugin / fail), `ReadyGateTest`. Signals are not wired yet: CE → M1-INT-02, BetterModel → M1-INT-03, registries → registry Paper glue; the in-server self-test is M1-TEST-01.
+  - Status: `paper.ready.ReadyGate` (signal / waive for a missing plugin / fail), `ReadyGateTest`. Signals: CE → M1-INT-02 and BetterModel → M1-INT-03 adapters (wired, not runtime-verified), registries → registry Paper glue (not wired); the in-server self-test is M1-TEST-01.
 
 ## Threading primitives
 
@@ -145,21 +145,25 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Do: block/convert the creation of repurposed vanilla blocks in TFC worlds: `BlockFormEvent` (lava+water → stone/cobble/obsidian/basalt), concrete powder hardening, copper oxidation/waxing, vanilla recipes/loot producing them (via CE `disable-vanilla-recipes` list + our loot hooks), and dispensers/commands (best effort).
   - Done when: self-tests confirm no repurposed vanilla block can appear through the covered paths.
 
-- [ ] **M1-INT-01 Integration adapter interfaces** · deps: M1-BUILD-01
+- [x] **M1-INT-01 Integration adapter interfaces** · deps: M1-BUILD-01
   - Do: interfaces in `paper` (`BlockVisuals`, `CustomBlocks`, `CustomItems`, `EntityModels`, `HudBridge`) + implementations in `integration/*` + fakes for tests.
   - Done when: feature code compiles against interfaces only (enforced by an architecture test).
+  - Status: `paper.integration.*` (interfaces, `BlockStateRef`, `HudSnapshot`/`HudSnapshotCache`, `Integration`/`IntegrationProvider` SPI, `Integrations` with degraded fallbacks, wired in `TfpPlugin`); adapters found by `ServiceLoader` (`:dist:verifyIntegrationServices` checks the merged service file). Fakes in `paper/src/test/.../integration/Fake*` (a `java-test-fixtures` source set broke `BootstrapTest`, which reads the datapack as a directory). `ArchitectureTest`: only `dev.tfp.integration..` imports `net.momirealms..`/`kr.toxicity..`, nothing outside it depends on an adapter, each adapter imports only its own plugin.
 
 - [ ] **M1-INT-02 CraftEngine adapter base** · deps: M1-INT-01 · skills: craftengine-java-api
   - Do: behaviour registration in `onLoad`, state cache refreshed on every `CraftEngineReloadEvent`, region-thread-only wrappers, listener priorities (≥ LOW on load, ≤ HIGH on unload), log appender detecting CE config issues for our pack.
   - Done when: self-test: our test block places, breaks, persists; zero CE issues logged.
+  - Status: compiled, not runtime-verified. `integration/craftengine`: `CraftEngineIntegration` (behaviours via `CraftEngineBehaviours` in onLoad, state cache rebuilt on every `CraftEngineReloadEvent` + `CRAFTENGINE_RELOADED` signal, owner-thread-checked `stateAt/place/remove`, chunk hooks LOW/HIGH), `CraftEngineItemAdapter`, `CraftEngineIssueLog` over the pure `core.diagnostics.CraftEngineIssueMatcher` (unit-tested). Appender wiring deferred to M1-TEST-01: on Paper CE logs through SLF4J/Log4j (`Slf4jPluginLogger`, javap), so a JUL handler sees nothing and a Log4j appender needs log4j-core. Open: the self-test (needs a test block in the CE pack).
 
 - [ ] **M1-INT-03 BetterModel adapter base** · deps: M1-INT-01 · skills: bettermodel
   - Do: `ModelAssetsEvent` registration from the jar, a guarded subscriber wrapper (try/catch), `PluginEndReloadEvent` → ready, `CreateEntityTrackerEvent` re-apply hook.
   - Done when: the bovine example model spawns in the self-test.
+  - Status: compiled, not runtime-verified. `integration/bettermodel`: `BetterModelIntegration` (guarded `ModelAssetsEvent`/`PluginEndReloadEvent`/`CreateEntityTrackerEvent` subscribers, Success → `BETTERMODEL_MODELS_READY`, Failure → waived), jar models from `bettermodel/models/index.txt` (placeholder `tfp_example_bovine` from the BM-01 spike). Unit tests: guard, jar index, service file. Open: the spawn self-test (M1-TEST-01).
 
 - [ ] **M1-INT-04 BetterHud adapter base** · deps: M1-INT-01 · skills: betterhud
   - Do: placeholder/listener registration in `onEnable`, the per-player `HudSnapshot` cache (published from the player's thread), pack folder install.
   - Done when: a placeholder evaluates from the snapshot in the self-test with no Folia errors.
+  - Status: compiled, not runtime-verified. `integration/betterhud`: `BetterHudIntegration` registers `tfp_health/max_health/thirst/hunger/held_temp` placeholders and `tfp_health/thirst/hunger` listeners in onEnable, all reading `HudSnapshotCache`; `BetterHudPackTarget` computes `plugins/BetterHud/packs/tfp/` (and the `-tfp` opt-out); writing is M1-INST-01. Not a ready-gate signal (§12 gate = CE ∧ BM ∧ registries). Open: the Folia self-test (M1-TEST-01).
 
 ## Core services
 

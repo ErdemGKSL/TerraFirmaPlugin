@@ -79,6 +79,8 @@ Reality check (2026-10): Paper supports 26.2/26.3. Folia 26.3 is alpha and Folia
 | `itest` | `paper` | In-server self-test plugin | Runs in CI under run-paper |
 | `dist` | all | Shaded plugin jar | Relocate Caffeine/JCTools (or use the loader); never shade fastutil/Adventure |
 
+**Adapter wiring (M1-INT-01).** `paper` defines the interfaces (`dev.tfp.paper.integration`: `BlockVisuals`, `CustomBlocks`, `CustomItems`, `EntityModels`, `HudBridge`) and an `IntegrationProvider` SPI. Because `integration/*` depend on `paper`, `TfpPlugin` finds the adapters with `ServiceLoader` (the shaded jar merges their service files; `:dist:verifyIntegrationServices` checks it) and creates one only when its plugin is installed. A missing or failed adapter yields a degraded no-op service and waives its ready signal. `ArchitectureTest` enforces that only `dev.tfp.integration..` imports CE/BetterModel/BetterHud and nothing else depends on an adapter class.
+
 ## 4. Core design principles
 
 1. **Lazy, calendar-based simulation.** State that changes over time is stored as *(start/last time, parameters)* and evaluated on access. TFC already does this for food (`creationDate`) and heat (`lastTemperature` + `lastTick`). We extend it to crops, saplings, barrels, drying, charcoal pits, animal aging and devices. Unloaded chunks and inventories cost nothing.
@@ -231,7 +233,7 @@ Deterministic and re-runnable. Hand fixes go in `tools/datagen/overrides/`. See 
 2. **`onLoad`:** version/compat gate → install content into CraftEngine and BetterHud folders (hash manifest protects owner edits) → targeted config edits → register CraftEngine behaviours/functions/conditions.
 3. **CraftEngine onEnable** (after us in order, but it parses configs immediately because `delay-configuration-load: false`).
 4. **`onEnable`:** BetterModel event subscriptions (`ModelAssetsEvent`, `CreateEntityTrackerEvent`, `PluginEndReloadEvent`), BetterHud placeholders, listeners, scheduler, packet layer.
-5. **Ready gate:** CE reloaded ∧ BetterModel models ready ∧ registries loaded.
+5. **Ready gate:** CE reloaded ∧ BetterModel models ready ∧ registries loaded. BetterHud placeholder registration is synchronous in `onEnable` and is not a gate condition.
 6. **`/tfp reload data`:** registries only. **`/tfp reload content`:** installer → BetterModel reload → CraftEngine full reload (BetterHud merges inside it). Never hot-reload CE itself.
 
 Details: `.claude/skills/dependency-bootstrap/`.
