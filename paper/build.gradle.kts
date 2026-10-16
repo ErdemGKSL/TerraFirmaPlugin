@@ -18,8 +18,12 @@ tasks.processResources {
 }
 // M1-SVC-01 (RegistryService test) and M1-REG: the datagen output, read like the jar's /content/data.
 val contentData = rootProject.layout.projectDirectory.dir("content/generated/content/data")
+val compatFile = rootProject.layout.projectDirectory.file("content/compat.yml")
 tasks.test {
     systemProperty("tfp.contentData", contentData.asFile.absolutePath)
+    // M1-BOOT-01: BootstrapTest compares paper-plugin.yml's dependencies with the repository's compat table.
+    systemProperty("tfp.compatFile", compatFile.asFile.absolutePath)
+    inputs.file(compatFile).withPropertyName("compatFile").withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.files(rootProject.fileTree(contentData))
         .withPropertyName("contentData")
         .withPathSensitivity(PathSensitivity.RELATIVE)

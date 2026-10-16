@@ -142,6 +142,11 @@ public final class Integrations {
         return find(EntityModels.class).orElse(Absent.ENTITY_MODELS);
     }
 
+    /** M1-INT-04: our placeholders as registered in BetterHud (absent: none registered). */
+    public HudPlaceholders hudPlaceholders() {
+        return find(HudPlaceholders.class).orElse(Absent.HUD_PLACEHOLDERS);
+    }
+
     /** Always the shared snapshot cache; {@link HudBridge#isActive()} says whether anything renders it. */
     public HudBridge hud() {
         return context.hudCache();

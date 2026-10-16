@@ -31,6 +31,7 @@ public final class FakeEntityModels implements EntityModels {
     private final Map<String, ModelSource> sources = new ConcurrentHashMap<>();
     private final Map<UUID, Attached> attached = new ConcurrentHashMap<>();
     private final Map<UUID, List<Played>> played = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> tints = new ConcurrentHashMap<>();
     private final List<Consumer<Entity>> hooks = new CopyOnWriteArrayList<>();
     private volatile boolean ready;
 
@@ -50,9 +51,15 @@ public final class FakeEntityModels implements EntityModels {
         return List.copyOf(played.getOrDefault(entity, List.of()));
     }
 
-    /** Simulates the model being re-created (chunk load, restart, reload): animations are lost, hooks run. */
+    /** The last tint applied to the carrier's model since it was (re)created. */
+    public Optional<Integer> tintOf(UUID entity) {
+        return Optional.ofNullable(tints.get(entity));
+    }
+
+    /** Simulates the model being re-created (chunk load, restart, reload): animations and tint are lost, hooks run. */
     public void recreate(Entity entity) {
         played.remove(entity.getUniqueId());
+        tints.remove(entity.getUniqueId());
         hooks.forEach(h -> h.accept(entity));
     }
 
@@ -78,7 +85,22 @@ public final class FakeEntityModels implements EntityModels {
     }
 
     @Override
+    public boolean tint(Entity carrier, int rgb) {
+        if (!attached.containsKey(carrier.getUniqueId())) {
+            return false;
+        }
+        tints.put(carrier.getUniqueId(), rgb & 0xFFFFFF);
+        return true;
+    }
+
+    @Override
+    public int modelCount(Entity carrier) {
+        return attached.containsKey(carrier.getUniqueId()) ? 1 : 0;
+    }
+
+    @Override
     public void detach(Entity carrier) {
+        tints.remove(carrier.getUniqueId());
         attached.remove(carrier.getUniqueId());
         played.remove(carrier.getUniqueId());
     }

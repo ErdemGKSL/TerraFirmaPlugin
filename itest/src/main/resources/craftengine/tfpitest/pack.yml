@@ -1,0 +1,6 @@
+# Self-test pack (M1-INT-02): installed into plugins/CraftEngine/resources/tfpitest by the self-test plugin
+# (only while -Dtfp.selftest=true). Format as in the M0-CE-01 spike pack.
+author: tfp-selftest
+version: 1.0
+description: TerraFirmaPlugin self-test blocks
+namespace: tfpitest

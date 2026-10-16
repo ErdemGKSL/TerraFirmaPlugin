@@ -22,4 +22,14 @@ public interface SelfTestContext {
 
     /** Wall-clock start of the server JVM (ms since the epoch): "startup" for the ready-time check. */
     long jvmStartMillis();
+
+    /** The server-log findings collected so far (M1-INT-02, M1-DGN-03), or null if nothing watches the log. */
+    default LogFindings logFindings() {
+        return null;
+    }
+
+    /** Whether the live Log4j tap is attached (findings are current, not only scanned at the end). */
+    default boolean liveLog() {
+        return false;
+    }
 }

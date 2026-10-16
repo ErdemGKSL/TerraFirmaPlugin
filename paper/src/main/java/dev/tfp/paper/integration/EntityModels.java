@@ -33,6 +33,18 @@ public interface EntityModels {
      */
     boolean attach(Entity carrier, String modelId, float scale);
 
+    /**
+     * Tints every bone of the carrier's models ({@code 0xRRGGBB}; {@code 0xFFFFFF} = untinted). Not persisted
+     * by the model plugin: features store the colour (entity PDC) and re-apply it from {@link #onModelCreated}.
+     * Owning thread.
+     *
+     * @return false if the carrier has no model
+     */
+    boolean tint(Entity carrier, int rgb);
+
+    /** How many models are attached to {@code carrier} (0 if none). Any thread. */
+    int modelCount(Entity carrier);
+
     /** Removes every model from {@code carrier}. Owning thread. */
     void detach(Entity carrier);
 

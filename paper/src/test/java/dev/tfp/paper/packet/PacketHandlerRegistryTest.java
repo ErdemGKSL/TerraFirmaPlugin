@@ -231,6 +231,7 @@ class PacketHandlerRegistryTest {
     void layerFactoryDegradesWithoutPacketEvents() {
         PacketLayer none = PacketLayers.create(false);
         none.install(new PacketHandlerRegistry(LOG));
+        assertThat(none.installed()).isFalse();
         none.uninstall();
         assertThat(none.describe()).startsWith("none");
     }

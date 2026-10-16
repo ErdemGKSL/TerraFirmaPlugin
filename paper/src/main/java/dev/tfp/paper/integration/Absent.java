@@ -104,6 +104,16 @@ final class Absent {
         }
 
         @Override
+        public boolean tint(Entity carrier, int rgb) {
+            return false;
+        }
+
+        @Override
+        public int modelCount(Entity carrier) {
+            return 0;
+        }
+
+        @Override
         public void detach(Entity carrier) {
         }
 
@@ -118,6 +128,18 @@ final class Absent {
 
         @Override
         public void onModelCreated(Consumer<Entity> hook) {
+        }
+    };
+
+    static final HudPlaceholders HUD_PLACEHOLDERS = new HudPlaceholders() {
+        @Override
+        public java.util.Set<String> registered() {
+            return java.util.Set.of();
+        }
+
+        @Override
+        public java.util.OptionalDouble evaluate(String name, java.util.UUID player) {
+            return java.util.OptionalDouble.empty();
         }
     };
 

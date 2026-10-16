@@ -44,6 +44,11 @@ final class PacketEventsLayer implements PacketLayer {
     }
 
     @Override
+    public synchronized boolean installed() {
+        return listener != null;
+    }
+
+    @Override
     public String describe() {
         return "PacketEvents " + PacketEvents.getAPI().getVersion();
     }

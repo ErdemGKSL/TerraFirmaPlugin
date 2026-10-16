@@ -12,6 +12,8 @@ import dev.tfp.core.visuals.SuppressionSet;
 import dev.tfp.core.visuals.VisualIndex;
 import dev.tfp.core.visuals.VisualSelection;
 import dev.tfp.core.registry.Registries;
+import dev.tfp.core.showcase.Showcase;
+import dev.tfp.paper.debug.ShowcasePlacer;
 import dev.tfp.paper.blockdata.ChunkDataStore;
 import dev.tfp.paper.blockdata.PdcChunkDataStore;
 import dev.tfp.paper.boot.CompatCheck;
@@ -97,6 +99,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     private volatile PacketLayer packetLayer = PacketLayers.none("not enabled");
     private volatile RegistryService registryService;
     private volatile PlayerDataStore playerData;
+    /** {@code /tfp debug showcase}: our block ids from the shipped id_map.json, read once. */
+    private volatile CompletableFuture<List<String>> showcaseIds;
     private final HudSnapshotCache hudCache = new HudSnapshotCache(() -> {
         Integrations i = integrations;
         return i != null && i.activePlugins().contains("BetterHud");
@@ -345,6 +349,16 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         return packets;
     }
 
+    /** M1-SVC-03: the packet library bridge ({@code none} without PacketEvents). */
+    public PacketLayer packetLayer() {
+        return packetLayer;
+    }
+
+    /** M1-INT-04: the per-player HUD snapshots our placeholders read. */
+    public HudSnapshotCache hudCache() {
+        return hudCache;
+    }
+
     public Messages messages() {
         return messages;
     }
@@ -490,6 +504,57 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                     m.cancelled(), m.errors()));
         }
         return CompletableFuture.completedFuture(new Reply(true, "debug.packets.header", List.of(), lines));
+    }
+
+    @Override
+    public CompletableFuture<Reply> debugShowcase(Player player, String familyArg) {
+        java.util.Optional<Showcase.Family> family = Showcase.Family.byArgument(familyArg);
+        if (family.isEmpty()) {
+            return CompletableFuture.completedFuture(Reply.error("debug.showcase.unknown", familyArg,
+                    String.join(", ", Showcase.Family.arguments())));
+        }
+        String name = family.get().argument();
+        dev.tfp.paper.integration.CustomBlocks blocks = integrations.customBlocks();
+        return showcaseIds().thenCompose(all -> {
+            // Only what CraftEngine actually loaded (datagen v1 does not emit every TFC block yet).
+            List<String> ids = Showcase.select(all, family.get()).stream().filter(blocks::exists).toList();
+            if (ids.isEmpty()) {
+                return CompletableFuture.completedFuture(Reply.error("debug.showcase.none", name));
+            }
+            CompletableFuture<Location> origin = new CompletableFuture<>();
+            boolean scheduled = scheduler.entity(player, () -> origin.complete(player.getLocation()),
+                    () -> origin.completeExceptionally(new IllegalStateException(player.getName() + " left")));
+            if (!scheduled) {
+                origin.completeExceptionally(new IllegalStateException(player.getName() + " is not online"));
+            }
+            ShowcasePlacer placer = new ShowcasePlacer(blocks, scheduler::region);
+            return origin.thenCompose(at -> {
+                // corner 2 blocks south-east of the player, at their feet
+                int ox = at.getBlockX() + 2;
+                int oz = at.getBlockZ() + 2;
+                return placer.place(at.getWorld(), ox, at.getBlockY(), oz, ids).thenApply(r -> Reply.ok("debug.showcase.done",
+                        name, r.placed(), r.total(), r.extent().dx(), r.extent().dz(),
+                        at.getWorld().getName() + " " + ox + " " + at.getBlockY() + " " + oz)
+                        .withDetails(ShowcasePlacer.details(r)));
+            });
+        });
+    }
+
+    private CompletableFuture<List<String>> showcaseIds() {
+        CompletableFuture<List<String>> f = showcaseIds;
+        if (f == null || f.isCompletedExceptionally()) {
+            f = CompletableFuture.supplyAsync(() -> {
+                Path idMap = RegistryService.jarDataRoot(TfpPlugin.class.getClassLoader()).resolve("id_map.json");
+                try {
+                    return Showcase.blockIds(com.google.gson.JsonParser.parseString(
+                            java.nio.file.Files.readString(idMap, StandardCharsets.UTF_8)));
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }, scheduler.ioExecutor());
+            showcaseIds = f;
+        }
+        return f;
     }
 
     private static String format(Location l) {

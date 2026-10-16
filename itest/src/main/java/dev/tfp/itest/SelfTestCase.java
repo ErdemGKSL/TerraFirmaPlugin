@@ -25,6 +25,17 @@ public interface SelfTestCase {
 
     CompletableFuture<String> run(SelfTestContext ctx);
 
+    /**
+     * Thrown from {@link #run} (or completing its future) when a prerequisite is missing at run time (a plugin
+     * not installed, our pack not installed this run): the case is reported as skipped with the message as the
+     * reason, never as passed.
+     */
+    final class Skip extends RuntimeException {
+        public Skip(String reason) {
+            super(reason, null, false, false);
+        }
+    }
+
     /** Present: the case is reported as skipped with this reason and not run. */
     default Optional<String> skipReason() {
         return Optional.empty();

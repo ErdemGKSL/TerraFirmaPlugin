@@ -152,6 +152,12 @@ class BootstrapTest {
         public CompletableFuture<Reply> debugPackets() {
             return call("debugPackets", new Reply(true, "debug.packets.header", List.of(), List.of("noop: calls=0")));
         }
+
+        @Override
+        public CompletableFuture<Reply> debugShowcase(Player player, String family) {
+            return call("debugShowcase " + player.getName() + " " + family,
+                    Reply.ok("debug.showcase.done", family, 3, 4, 5, 3, "world 2 64 2"));
+        }
     }
 
     static CommandDispatcher<CommandSourceStack> dispatcher(TfpCommands.Handler handler) {
@@ -206,7 +212,9 @@ class BootstrapTest {
         CommandNode<CommandSourceStack> tfp = d.getRoot().getChild("tfp");
         assertThat(children(tfp)).containsExactlyInAnyOrder("version", "reload", "debug");
         assertThat(children(tfp.getChild("reload"))).containsExactlyInAnyOrder("config", "data", "content");
-        assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "player", "packets");
+        assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "player", "packets", "showcase");
+        assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
+        assertThat(tfp.getChild("debug").getChild("showcase").getCommand()).as("showcase needs a family").isNull();
         assertThat(children(tfp.getChild("debug").getChild("player"))).containsExactly("name");
         assertThat(tfp.getCommand()).isNotNull();
         assertThat(tfp.getChild("reload").getCommand()).as("bare /tfp reload = reload data").isNotNull();
@@ -266,6 +274,43 @@ class BootstrapTest {
                 "Player data of Alex:");
         assertThatThrownBy(() -> d.execute("tfp debug block", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
                 .isInstanceOf(CommandSyntaxException.class);
+    }
+
+    /** M1-SVC-05: {@code /tfp debug showcase <family>} reaches the handler for players only; families are suggested. */
+    @Test
+    void debugShowcase() throws Exception {
+        FakeHandler h = new FakeHandler();
+        CommandDispatcher<CommandSourceStack> d = dispatcher(h);
+        List<String> out = new ArrayList<>();
+        d.execute("tfp debug showcase ores", Fakes.source(ADMIN, out));
+        assertThat(out).containsExactly("Only a player can use this command.");
+        out.clear();
+        d.execute("tfp debug showcase rocks", Fakes.playerSource("Alex", java.util.Locale.US, ADMIN, out));
+        assertThat(h.calls).containsExactly("debugShowcase Alex rocks");
+        assertThat(out).containsExactly("Showcase rocks: placed 3 of 4 blocks in a 5 x 3 grid at world 2 64 2.");
+        CommandSourceStack alex = Fakes.playerSource("Alex", java.util.Locale.US, ADMIN, out);
+        var suggestions = d.getCompletionSuggestions(d.parse("tfp debug showcase ", alex)).get();
+        assertThat(suggestions.getList()).extracting(com.mojang.brigadier.suggestion.Suggestion::getText)
+                .containsExactly("ores", "rocks", "soils");
+        assertThatThrownBy(() -> d.execute("tfp debug showcase", alex)).isInstanceOf(CommandSyntaxException.class);
+    }
+
+    /**
+     * M1-BOOT-01: every {@code server} dependency in paper-plugin.yml is a plugin of content/compat.yml (the
+     * repository file, not only the jar copy) and the reverse, so the gate checks exactly what we load before.
+     */
+    @Test
+    void paperPluginDependenciesMatchTheCompatTable() throws Exception {
+        Path compat = Path.of(System.getProperty("tfp.compatFile", "../content/compat.yml"));
+        assertThat(compat).isRegularFile();
+        Map<?, ?> table = Yamls.load(Files.readString(compat));
+        Set<Object> compatPlugins = new java.util.HashSet<>(((Map<?, ?>) table.get("plugins")).keySet());
+        Map<?, ?> server = (Map<?, ?>) ((Map<?, ?>) descriptor().get("dependencies")).get("server");
+        assertThat(new java.util.HashSet<Object>(server.keySet())).isEqualTo(compatPlugins);
+        // the jar's copy (what CompatCheck reads at runtime) is the same file
+        try (InputStream in = BootstrapTest.class.getClassLoader().getResourceAsStream(CompatCheck.RESOURCE)) {
+            assertThat(new String(in.readAllBytes(), StandardCharsets.UTF_8)).isEqualTo(Files.readString(compat));
+        }
     }
 
     @Test

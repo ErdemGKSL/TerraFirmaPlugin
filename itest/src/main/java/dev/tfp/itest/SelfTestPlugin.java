@@ -37,11 +37,12 @@ import org.bukkit.plugin.java.JavaPlugin;
  * <ol>
  *   <li>{@code onLoad}: attaches {@link Log4jTap} to the server's root logger (before any plugin is
  *       enabled, so CraftEngine's config load is seen). If that fails, {@code logs/latest.log} is scanned
- *       at the end instead.</li>
+ *       at the end instead. Installs the self-test CraftEngine pack ({@link SelfTestPack}).</li>
  *   <li>{@link ServerLoadEvent} (startup): starts the {@code tfp-selftest} thread, which runs
  *       {@link SelfTestSuite} with {@link CaseRunner} (the ready gate first), adds the two log cases
- *       ({@link LogFindings}), writes {@code selftest-report.xml} (JUnit) in the server folder and shuts the
- *       server down from the global region thread.</li>
+ *       ({@link LogFindings}), writes {@code selftest-report.xml} (JUnit, skipped cases with their reasons)
+ *       in the server folder and shuts the server down from the global region thread; if any case failed the
+ *       process exits with status 1 ({@link ExitStatus}), 2 if the report could not be written.</li>
  * </ol>
  * Properties: {@code tfp.selftest.readySeconds} (default 180), {@code tfp.selftest.report} (report path).
  */
@@ -49,10 +50,12 @@ public final class SelfTestPlugin extends JavaPlugin implements Listener {
     static final String ACTIVE = "tfp.selftest";
     private static final String MAIN_PLUGIN = "TerraFirmaPlugin";
 
-    private final LogFindings findings = new LogFindings(new ThreadAssertMatcher(), new CraftEngineIssueMatcher("tfp"));
+    private final LogFindings findings = new LogFindings(new ThreadAssertMatcher(), new CraftEngineIssueMatcher("tfp"),
+            new CraftEngineIssueMatcher(SelfTestPack.NAMESPACE));
     private final AtomicBoolean started = new AtomicBoolean();
     private volatile Log4jTap tap;
     private volatile LoggerContext tapContext;
+    private volatile Thread serverThread;
 
     static boolean active() {
         return Boolean.getBoolean(ACTIVE);
@@ -73,6 +76,14 @@ public final class SelfTestPlugin extends JavaPlugin implements Listener {
             findings.source("logs/latest.log scan at the end (no Log4j appender: " + e + ")");
             getLogger().log(Level.WARNING, "Cannot attach the self-test log appender; will scan logs/latest.log", e);
         }
+        // M1-INT-02: our test block pack, before CraftEngine enables and reads its packs.
+        try {
+            getLogger().info("Self-test CraftEngine pack: " + SelfTestPack.install(getDataPath().toAbsolutePath().getParent(),
+                    SelfTestPlugin.class.getClassLoader(), getPluginMeta().getVersion()));
+        } catch (IOException | RuntimeException | LinkageError e) {
+            getLogger().log(Level.WARNING, "Cannot install the self-test CraftEngine pack; ce.block_roundtrip uses our "
+                    + "generated blocks only", e);
+        }
     }
 
     @Override
@@ -81,6 +92,7 @@ public final class SelfTestPlugin extends JavaPlugin implements Listener {
             getLogger().info("Self-test plugin inactive (start the server with -D" + ACTIVE + "=true to run it)");
             return;
         }
+        serverThread = Thread.currentThread();
         getServer().getPluginManager().registerEvents(this, this);
         getLogger().info("Self-test armed; it runs after server startup (log source: " + findings.source() + ")");
     }
@@ -105,32 +117,33 @@ public final class SelfTestPlugin extends JavaPlugin implements Listener {
     private void runAndStop() {
         Duration readyLimit = Duration.ofSeconds(Long.getLong("tfp.selftest.readySeconds", 180));
         Path report = Path.of(System.getProperty("tfp.selftest.report", "selftest-report.xml"));
-        List<CaseResult> results = new ArrayList<>();
+        CaseRunner runner = new CaseRunner(line -> getLogger().info("[selftest] " + line));
+        int code = CaseRunner.EXIT_FAILED;
         try {
-            results.addAll(new CaseRunner(line -> getLogger().info("[selftest] " + line))
-                    .runAll(SelfTestSuite.cases(readyLimit), new ServerContext()));
+            CaseRunner.Outcome outcome = runner.runAndReport(SelfTestSuite.cases(readyLimit), new ServerContext(),
+                    this::logCases, report, properties(), Instant.now());
+            code = outcome.exitCode();
         } catch (Throwable t) {
-            results.add(CaseResult.error("self-test runner", t.toString(), CaseRunner.stackTrace(t), Duration.ZERO));
+            getLogger().log(Level.SEVERE, "[selftest] the run itself failed", t);
+        } finally {
+            // M1-TEST-01: a failing run makes the server process exit non-zero (after its normal stop).
+            ExitStatus.arrange(code, serverThread, getLogger());
+            getServer().getGlobalRegionScheduler().execute(this, () -> getServer().shutdown());
         }
+    }
+
+    /** The two log cases, after the cases ran (scanning logs/latest.log first if no appender was attached). */
+    private List<CaseResult> logCases() {
+        List<CaseResult> out = new ArrayList<>();
         if (tap == null) {
             try {
                 findings.scan(Files.readAllLines(Path.of("logs", "latest.log"), StandardCharsets.UTF_8));
             } catch (IOException | RuntimeException e) {
-                results.add(CaseResult.error("read logs/latest.log", e.toString(), "", Duration.ZERO));
+                out.add(CaseResult.error("read logs/latest.log", e.toString(), "", Duration.ZERO));
             }
         }
-        results.addAll(findings.results());
-        try {
-            JUnitXmlReport.write(report, JUnitXmlReport.toXml(SelfTestSuite.NAME, results, properties(), Instant.now()));
-            long bad = results.stream().filter(r -> r.status() == CaseResult.Status.FAILED
-                    || r.status() == CaseResult.Status.ERROR).count();
-            getLogger().info("[selftest] " + results.size() + " case(s), " + bad + " failing; report: "
-                    + report.toAbsolutePath());
-        } catch (IOException | RuntimeException e) {
-            getLogger().log(Level.SEVERE, "[selftest] cannot write " + report.toAbsolutePath(), e);
-        } finally {
-            getServer().getGlobalRegionScheduler().execute(this, () -> getServer().shutdown());
-        }
+        out.addAll(findings.results());
+        return out;
     }
 
     private Map<String, String> properties() {
@@ -179,6 +192,16 @@ public final class SelfTestPlugin extends JavaPlugin implements Listener {
         @Override
         public long jvmStartMillis() {
             return jvmStart;
+        }
+
+        @Override
+        public LogFindings logFindings() {
+            return findings;
+        }
+
+        @Override
+        public boolean liveLog() {
+            return tap != null;
         }
     }
 }

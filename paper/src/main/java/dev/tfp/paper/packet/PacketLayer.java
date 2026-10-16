@@ -17,6 +17,9 @@ public interface PacketLayer {
     /** Removes the listener (plugin disable). Idempotent. */
     void uninstall();
 
+    /** True while exactly one listener of ours is registered with the packet library (M1-SVC-03). */
+    boolean installed();
+
     /** For {@code /tfp version}/{@code debug packets}: which library, or why there is none. */
     String describe();
 }

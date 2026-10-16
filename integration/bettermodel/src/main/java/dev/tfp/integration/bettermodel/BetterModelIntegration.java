@@ -38,6 +38,8 @@ import kr.toxicity.model.api.tracker.EntityTracker;
 import kr.toxicity.model.api.tracker.EntityTrackerRegistry;
 import kr.toxicity.model.api.tracker.ModelScaler;
 import kr.toxicity.model.api.tracker.TrackerModifier;
+import kr.toxicity.model.api.tracker.TrackerUpdateAction;
+import kr.toxicity.model.api.util.function.BonePredicate;
 import org.bukkit.entity.Entity;
 
 /**
@@ -183,6 +185,25 @@ public final class BetterModelIntegration implements Integration, EntityModels {
         ModelScaler scaler = scale == 1f ? ModelScaler.entity() : ModelScaler.entity().multiply(scale);
         renderer.get().getOrCreate(BukkitAdapter.adapt(carrier), TrackerModifier.DEFAULT, t -> t.scaler(scaler));
         return true;
+    }
+
+    /** {@code TrackerUpdateAction.tint} on every bone, as in the M0-BM-01 spike (there on the body bone and its children). */
+    @Override
+    public boolean tint(Entity carrier, int rgb) {
+        ThreadAsserts.owned(carrier);
+        Optional<EntityTrackerRegistry> registry = BetterModel.registry(carrier.getUniqueId());
+        if (registry.isEmpty() || registry.get().trackers().isEmpty()) {
+            return false;
+        }
+        for (EntityTracker t : registry.get().trackers()) {
+            t.update(TrackerUpdateAction.tint(rgb & 0xFFFFFF), BonePredicate.TRUE);
+        }
+        return true;
+    }
+
+    @Override
+    public int modelCount(Entity carrier) {
+        return BetterModel.registry(carrier.getUniqueId()).map(r -> r.trackers().size()).orElse(0);
     }
 
     @Override

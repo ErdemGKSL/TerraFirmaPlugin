@@ -5,7 +5,12 @@
  */
 package dev.tfp.itest;
 
+import dev.tfp.itest.cases.BetterHudPlaceholderCase;
+import dev.tfp.itest.cases.BetterModelSpawnCase;
 import dev.tfp.itest.cases.ConfigCase;
+import dev.tfp.itest.cases.CraftEngineBlockRoundTripCase;
+import dev.tfp.itest.cases.CraftEnginePackIssuesCase;
+import dev.tfp.itest.cases.PacketNoopCase;
 import dev.tfp.itest.cases.PlayerDataCase;
 import dev.tfp.itest.cases.ReadyCase;
 import dev.tfp.itest.cases.RegionSchedulerCase;
@@ -13,7 +18,10 @@ import dev.tfp.itest.cases.VersionCommandCase;
 import java.time.Duration;
 import java.util.List;
 
-/** The registered cases, in run order. Add new cases here. */
+/**
+ * The registered cases, in run order. Add new cases here. A case whose plugin or content is missing in this
+ * run throws {@link SelfTestCase.Skip} and is reported as skipped with the reason.
+ */
 public final class SelfTestSuite {
     /** JUnit suite and class name in the report. */
     public static final String NAME = "tfp.selftest";
@@ -29,11 +37,10 @@ public final class SelfTestSuite {
                 new VersionCommandCase(),
                 new PlayerDataCase(),
                 new RegionSchedulerCase(),
-                SelfTestCase.skipped("CraftEngine test block places, breaks and persists (M1-INT-02)",
-                        "pending: the tfp CraftEngine pack has no test block yet and the CraftEngine adapter "
-                                + "(CustomBlocks place/stateAt/remove) has not been verified in a server"),
-                SelfTestCase.skipped("BetterModel example bovine spawns (M1-INT-03)",
-                        "pending: the BetterModel adapter (jar model registration, EntityModels.attach to a "
-                                + "carrier) has not been verified in a server"));
+                new CraftEnginePackIssuesCase(),
+                new CraftEngineBlockRoundTripCase(),
+                new BetterModelSpawnCase(),
+                new BetterHudPlaceholderCase(),
+                new PacketNoopCase());
     }
 }

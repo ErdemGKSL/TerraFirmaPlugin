@@ -11,12 +11,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.tfp.itest.CaseResult.Status;
 import dev.tfp.paper.ready.ReadyGate;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /** M1-TEST-01: the runner's rules (outcomes, timeouts, skips, gate). */
 class CaseRunnerTest {
@@ -83,6 +88,76 @@ class CaseRunnerTest {
         assertThat(r.get(0).message()).isEqualTo("adapter not verified");
         assertThat(r.get(2).message()).contains("gate case 'gate' did not pass");
         assertThat(ranDependent).isFalse();
+    }
+
+    @Test
+    void aSkipThrownAtRunTimeIsASkipWithItsReason() {
+        List<CaseResult> r = runner.runAll(List.of(
+                of("sync skip", SHORT, c -> {
+                    throw new SelfTestCase.Skip("BetterHud is not installed");
+                }),
+                of("async skip", SHORT, c -> CompletableFuture.supplyAsync(() -> {
+                    throw new SelfTestCase.Skip("no pack this run");
+                }))), ctx);
+        assertThat(r).extracting(CaseResult::status).containsExactly(Status.SKIPPED, Status.SKIPPED);
+        assertThat(r).extracting(CaseResult::message).containsExactly("BetterHud is not installed", "no pack this run");
+        assertThat(CaseRunner.exitCode(r)).isZero();
+    }
+
+    /** M1-TEST-01: the whole run with fake cases: report with skip reasons, and the exit status. */
+    @Test
+    void runAndReportWritesTheReportWithSkipsAndAFailingExitStatus(@TempDir Path dir) throws Exception {
+        Path report = dir.resolve("selftest-report.xml");
+        CaseRunner.Outcome o = runner.runAndReport(List.of(
+                of("passes", SHORT, c -> CompletableFuture.completedFuture("fine")),
+                SelfTestCase.skipped("declared skip", "adapter not verified"),
+                of("runtime skip", SHORT, c -> {
+                    throw new SelfTestCase.Skip("CraftEngine is not installed");
+                }),
+                of("fails", SHORT, c -> CompletableFuture.failedFuture(new AssertionError("expected 1, got 2")))),
+                ctx, () -> List.of(CaseResult.passed("log case", "none", Duration.ZERO)), report,
+                Map.of("server", "fake"), Instant.parse("2026-10-16T12:00:00Z"));
+
+        assertThat(o.exitCode()).isEqualTo(CaseRunner.EXIT_FAILED);
+        assertThat(o.failing()).isEqualTo(1);
+        assertThat(o.results()).extracting(CaseResult::name).containsExactly("passes", "declared skip", "runtime skip",
+                "fails", "log case");
+        String xml = Files.readString(report);
+        assertThat(xml).contains("tests=\"5\" failures=\"1\" errors=\"0\" skipped=\"2\"",
+                "<skipped message=\"adapter not verified\"/>", "<skipped message=\"CraftEngine is not installed\"/>",
+                "<failure message=\"expected 1, got 2\"", "<property name=\"server\" value=\"fake\"/>");
+        assertThat(progress.getLast()).contains("5 case(s), 1 failing, 2 skipped; exit status 1");
+    }
+
+    @Test
+    void runAndReportExitsZeroWhenNothingFailsAndTwoWithoutAReport(@TempDir Path dir) throws Exception {
+        List<SelfTestCase> fine = List.of(of("passes", SHORT, c -> CompletableFuture.completedFuture(null)),
+                SelfTestCase.skipped("skipped", "why"));
+        CaseRunner.Outcome ok = runner.runAndReport(fine, ctx, List::of, dir.resolve("r.xml"), Map.of(), Instant.now());
+        assertThat(ok.exitCode()).isEqualTo(CaseRunner.EXIT_OK);
+        assertThat(dir.resolve("r.xml")).exists();
+
+        // log cases that throw are an error, not a crash of the run
+        CaseRunner.Outcome broken = runner.runAndReport(fine, ctx, () -> {
+            throw new IllegalStateException("log gone");
+        }, dir.resolve("b.xml"), Map.of(), Instant.now());
+        assertThat(broken.exitCode()).isEqualTo(CaseRunner.EXIT_FAILED);
+        assertThat(broken.results().getLast().status()).isEqualTo(Status.ERROR);
+
+        // the report path is a directory: nothing can be written
+        Files.createDirectories(dir.resolve("taken.xml"));
+        Files.writeString(dir.resolve("taken.xml").resolve("x"), "x");
+        CaseRunner.Outcome lost = runner.runAndReport(fine, ctx, List::of, dir.resolve("taken.xml"), Map.of(), Instant.now());
+        assertThat(lost.exitCode()).isEqualTo(CaseRunner.EXIT_NO_REPORT);
+    }
+
+    @Test
+    void exitCodeCountsFailuresAndErrorsOnly() {
+        assertThat(CaseRunner.exitCode(List.of())).isZero();
+        assertThat(CaseRunner.exitCode(List.of(CaseResult.skipped("s", "r"), CaseResult.passed("p", "", Duration.ZERO))))
+                .isZero();
+        assertThat(CaseRunner.exitCode(List.of(CaseResult.error("e", "boom", "", Duration.ZERO)))).isEqualTo(1);
+        assertThat(CaseRunner.exitCode(List.of(CaseResult.failed("f", "no", "", Duration.ZERO)))).isEqualTo(1);
     }
 
     @Test

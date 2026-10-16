@@ -1,0 +1,9 @@
+# The CraftEngine marker block of ce.block_roundtrip, used when our generated pack has no rock block loaded.
+blocks:
+  tfpitest:marker:
+    settings:
+      hardness: 1.0
+      resistance: 1.0
+    state:
+      auto_state: solid
+      texture: minecraft:block/gold_block

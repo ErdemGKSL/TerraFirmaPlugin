@@ -9,6 +9,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import dev.tfp.core.showcase.Showcase;
 import dev.tfp.paper.i18n.Messages;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
@@ -33,8 +34,8 @@ import org.bukkit.entity.Player;
  * /tfp debug block|chunk       the block you look at / your chunk (players, tfp.admin)
  * /tfp debug player [name]     player data (yours without a name)
  * /tfp debug packets           packet handler metrics
+ * /tfp debug showcase &lt;family&gt; every variant of rocks|soils|ores in a grid at your position (players)
  * </pre>
- * {@code /tfp debug showcase <family>} (variant grid) comes with the visual checklist work.
  *
  * <p>Replies are translated with {@link Messages} into the sender's locale. Handlers answer with futures;
  * the reply is sent from whatever thread completes them ({@code sendMessage} is thread-safe).
@@ -88,6 +89,9 @@ public final class TfpCommands {
 
         /** Packet layer and per-handler metrics. */
         CompletableFuture<Reply> debugPackets();
+
+        /** Places every loaded variant of {@code family} ({@code rocks|soils|ores}) in a grid next to {@code player}. */
+        CompletableFuture<Reply> debugShowcase(Player player, String family);
     }
 
     private TfpCommands() {
@@ -130,7 +134,17 @@ public final class TfpCommands {
                                 .then(Commands.argument("name", StringArgumentType.word())
                                         .executes(run(handler, messages, (h, ctx) -> h.debugPlayer(
                                                 StringArgumentType.getString(ctx, "name"))))))
-                        .then(Commands.literal("packets").executes(run(handler, messages, (h, ctx) -> h.debugPackets()))))
+                        .then(Commands.literal("packets").executes(run(handler, messages, (h, ctx) -> h.debugPackets())))
+                        .then(Commands.literal("showcase")
+                                .then(Commands.argument("family", StringArgumentType.word())
+                                        .suggests((c, b) -> {
+                                            Showcase.Family.arguments().forEach(b::suggest);
+                                            return b.buildFuture();
+                                        })
+                                        .executes(run(handler, messages, (h, ctx) ->
+                                                ctx.getSource().getSender() instanceof Player p
+                                                        ? h.debugShowcase(p, StringArgumentType.getString(ctx, "family"))
+                                                        : CompletableFuture.completedFuture(Reply.error("command.player_only")))))))
                 .build();
     }
 

@@ -31,15 +31,27 @@ public final class LogFindings {
 
     private final ThreadAssertMatcher threads;
     private final CraftEngineIssueMatcher craftEngine;
+    /** Further packs checked the same way (the self-test's own {@code tfpitest} pack). */
+    private final List<CraftEngineIssueMatcher> otherPacks;
     private final AtomicInteger threadCount = new AtomicInteger();
     private final AtomicInteger ceCount = new AtomicInteger();
     private final List<String> threadLines = new ArrayList<>();
     private final List<String> ceLines = new ArrayList<>();
     private volatile String source = "none";
 
-    public LogFindings(ThreadAssertMatcher threads, CraftEngineIssueMatcher craftEngine) {
+    public LogFindings(ThreadAssertMatcher threads, CraftEngineIssueMatcher craftEngine,
+            CraftEngineIssueMatcher... otherPacks) {
         this.threads = threads;
         this.craftEngine = craftEngine;
+        this.otherPacks = List.of(otherPacks);
+    }
+
+    /** The CraftEngine namespaces whose issues are counted ({@code tfp} first). */
+    public List<String> namespaces() {
+        List<String> out = new ArrayList<>();
+        out.add(craftEngine.namespace());
+        otherPacks.forEach(m -> out.add(m.namespace()));
+        return out;
     }
 
     /** Where the log events came from (shown in the report). */
@@ -77,9 +89,14 @@ public final class LogFindings {
             threadCount.incrementAndGet();
             keep(threadLines, "[" + rule.get() + "] " + firstLines(msg, extra));
         }
-        craftEngine.match(level, LOGGER_PREFIX.matcher(msg).replaceFirst("")).ifPresent(issue -> {
-            ceCount.addAndGet(issue.count());
-            keep(ceLines, issue.message());
+        String bare = LOGGER_PREFIX.matcher(msg).replaceFirst("");
+        Optional<CraftEngineIssueMatcher.Issue> issue = craftEngine.match(level, bare);
+        for (int i = 0; issue.isEmpty() && i < otherPacks.size(); i++) {
+            issue = otherPacks.get(i).match(level, bare);
+        }
+        issue.ifPresent(found -> {
+            ceCount.addAndGet(found.count());
+            keep(ceLines, found.message());
         });
     }
 
@@ -114,12 +131,19 @@ public final class LogFindings {
         return ceCount.get();
     }
 
+    /** The CraftEngine issue lines kept so far (at most {@value #KEEP}). */
+    public List<String> craftEngineLines() {
+        synchronized (ceLines) {
+            return List.copyOf(ceLines);
+        }
+    }
+
     /** The two log cases for the report. */
     public List<CaseResult> results() {
         return List.of(
                 result("server log has no thread-ownership violations", threadCount.get(), "thread-ownership violation(s)",
                         threadLines),
-                result("server log has no CraftEngine issues for '" + craftEngine.namespace() + "' (M1-INT-02)",
+                result("server log has no CraftEngine issues for '" + String.join("', '", namespaces()) + "' (M1-INT-02)",
                         ceCount.get(), "CraftEngine issue(s) for our pack", ceLines));
     }
 

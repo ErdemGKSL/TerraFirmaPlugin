@@ -15,16 +15,20 @@ import org.junit.jupiter.api.Test;
 /** The registered case list (M1-TEST-01). */
 class SelfTestSuiteTest {
     @Test
-    void readyGateRunsFirstNamesAreUniqueAndPendingCasesSayWhy() {
+    void readyGateRunsFirstNamesAreUniqueAndEveryCaseRuns() {
         List<SelfTestCase> cases = SelfTestSuite.cases(Duration.ofSeconds(180));
         assertThat(cases.getFirst()).isInstanceOf(ReadyCase.class);
         assertThat(cases.getFirst().gate()).isTrue();
         assertThat(cases.getFirst().name()).contains("180 s");
         assertThat(cases).extracting(SelfTestCase::name).doesNotHaveDuplicates();
-        assertThat(cases).filteredOn(c -> c.skipReason().isPresent()).extracting(SelfTestCase::name)
-                .containsExactly("CraftEngine test block places, breaks and persists (M1-INT-02)",
-                        "BetterModel example bovine spawns (M1-INT-03)");
-        assertThat(cases).filteredOn(c -> c.skipReason().isEmpty()).hasSize(5)
-                .allSatisfy(c -> assertThat(c.timeout()).isPositive());
+        // Missing prerequisites are decided at run time (SelfTestCase.Skip), so nothing is skipped up front.
+        assertThat(cases).allSatisfy(c -> {
+            assertThat(c.skipReason()).isEmpty();
+            assertThat(c.timeout()).isPositive();
+        });
+        assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("ce.pack_issues"))
+                .anyMatch(n -> n.startsWith("ce.block_roundtrip")).anyMatch(n -> n.startsWith("bm.spawn_persist"))
+                .anyMatch(n -> n.startsWith("bh.placeholder")).anyMatch(n -> n.startsWith("packet.noop_measured"));
+        assertThat(cases).hasSize(10);
     }
 }

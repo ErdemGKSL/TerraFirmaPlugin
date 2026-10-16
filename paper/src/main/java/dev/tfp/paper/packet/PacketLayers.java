@@ -44,6 +44,11 @@ public final class PacketLayers {
             }
 
             @Override
+            public boolean installed() {
+                return false;
+            }
+
+            @Override
             public String describe() {
                 return "none (" + reason + ")";
             }

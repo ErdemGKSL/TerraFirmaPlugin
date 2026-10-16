@@ -5,12 +5,17 @@
  */
 package dev.tfp.integration.betterhud;
 
+import dev.tfp.paper.integration.HudPlaceholders;
 import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.integration.Integration;
 import dev.tfp.paper.integration.IntegrationContext;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.OptionalDouble;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.function.ToDoubleFunction;
 import kr.toxicity.hud.api.BetterHud;
 import kr.toxicity.hud.api.BetterHudAPI;
@@ -28,7 +33,7 @@ import kr.toxicity.hud.api.placeholder.PlaceholderContainer;
  * <p>Not a ready-gate condition (ARCHITECTURE.md §12: ready = CraftEngine ∧ BetterModel ∧ registries);
  * {@link #isRegistered()} reports the registration instead.
  */
-public final class BetterHudIntegration implements Integration {
+public final class BetterHudIntegration implements Integration, HudPlaceholders {
     private final IntegrationContext ctx;
     private volatile boolean registered;
 
@@ -47,9 +52,7 @@ public final class BetterHudIntegration implements Integration {
         HudSnapshotCache cache = ctx.hudCache();
         PlaceholderContainer<Number> numbers = api.getPlaceholderManager().getNumberContainer();
         for (Map.Entry<String, ToDoubleFunction<HudSnapshot>> e : HudValues.NUMBERS.entrySet()) {
-            ToDoubleFunction<HudSnapshot> read = e.getValue();
-            numbers.addPlaceholder(e.getKey(),
-                    HudPlaceholder.<Number>of((args, reason) -> player -> read.applyAsDouble(cache.snapshot(player.uuid()))));
+            numbers.addPlaceholder(e.getKey(), numberPlaceholder(cache, e.getValue()));
         }
         for (Map.Entry<String, ToDoubleFunction<HudSnapshot>> e : HudValues.LISTENERS.entrySet()) {
             ToDoubleFunction<HudSnapshot> read = e.getValue();
@@ -63,10 +66,40 @@ public final class BetterHudIntegration implements Integration {
                 + (BetterHudPackTarget.optedOut(ctx.pluginsDirectory()) ? " (disabled by the owner: packs/-tfp exists)" : ""));
     }
 
+    /** One of our number placeholders: reads {@code cache} by the player's uuid, nothing else. */
+    static HudPlaceholder<Number> numberPlaceholder(HudSnapshotCache cache, ToDoubleFunction<HudSnapshot> read) {
+        return HudPlaceholder.<Number>of((args, reason) -> player -> read.applyAsDouble(cache.snapshot(player.uuid())));
+    }
+
     @Override
     public void onDisable() {
         // BetterHud has no API to remove placeholders; they read the cache, which simply stops changing.
         registered = false;
+    }
+
+    // ---- HudPlaceholders: through BetterHud's registry, not our table ---------------------------------
+
+    @Override
+    public Set<String> registered() {
+        if (!registered) {
+            return Set.of();
+        }
+        Set<String> out = new TreeSet<>();
+        for (String name : BetterHudAPI.inst().getPlaceholderManager().getNumberContainer().getAllPlaceholders().keySet()) {
+            if (HudValues.NUMBERS.containsKey(name)) {
+                out.add(name);
+            }
+        }
+        return out;
+    }
+
+    @Override
+    public OptionalDouble evaluate(String name, UUID player) {
+        if (!registered) {
+            return OptionalDouble.empty();
+        }
+        return PlaceholderProbe.evaluate(BetterHudAPI.inst().getPlaceholderManager().getNumberContainer().getAllPlaceholders(),
+                name, player);
     }
 
     public boolean isRegistered() {
