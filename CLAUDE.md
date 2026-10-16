@@ -9,8 +9,9 @@ The repository is in the planning phase: no production code yet. Skills in `.cla
 | Topic | Decision |
 |---|---|
 | Platform | **Paper + Folia only** (no Spigot). Use Paper-specific APIs freely. Every feature must run on Folia. |
-| MC versions | **1.21.x and 26.x** |
-| Language / build | Java (21 for 1.21.x; check the 26.x requirement in `plugin-testing`/`paper-folia-threading`), Gradle Kotlin DSL multi-module |
+| MC versions | **1.21.x and 26.x**. In practice: 1.21.4+ (BetterModel/BetterHud floor), tested on 1.21.11 + 26.2/26.3. Compile shared code against the lowest supported Paper API and keep `api-version` at that lowest version. |
+| Language / build | **Java 25 everywhere** (toolchain and server runtime, 1.21.x servers included), because BetterModel 3.x and BetterHud 2.x ship Java 25 class files and require Java 25. Gradle Kotlin DSL multi-module. Avoid NMS; isolate unavoidable NMS per MC version. |
+| Platform reality (2026-10) | Paper supports 26.2/26.3. Folia 26.3 is alpha and Folia 1.21.11 is the last stable line. Test both; log upstream Folia issues in the ledger. |
 | License | **EUPL-1.2** (same as TFC). TFC code/data/assets may be reused with attribution. Don't use the TFC name/logo as branding. |
 | Client visuals | CraftEngine + BetterModel + BetterHud, installed and configured **automatically by our plugin** (`dependency-bootstrap` skill) |
 | Blocks | Unlimited server-side blocks (CraftEngine). Full-cube terrain uses `auto_state` pools + repurposed vanilla states that never occur in a TFC world. Small shapes reuse matching vanilla hitboxes (e.g. button for small ore pieces). Rare decorative blocks use `entity_renderer`. Ore grades keep distinct textures. |

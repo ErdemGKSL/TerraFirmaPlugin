@@ -29,6 +29,8 @@ public interface Scheduler {
 
 The implementation uses Folia's region/entity/global/async schedulers. They exist in the Paper API too, so a single implementation serves both platforms. `entity(...)` needs the `retired` callback because the entity may be removed before the task runs.
 
+Also forbidden on Folia, and therefore everywhere in this project: scoreboards, `createWorld`/`unloadWorld` (TFC worlds must be the configured default worlds, so set `load: STARTUP`), and sync `teleport` (use `teleportAsync`). Full list and signatures: `references/folia-api.md`.
+
 ### 2. Compute lazily from the calendar; don't tick
 TFC already models most change as "value at time t" (food rot from `creationDate`, item heat from `lastTemperature` + `lastTick`). Generalize this:
 - Store **start time + parameters**, never a counter you increment each tick.
@@ -56,7 +58,7 @@ On Folia a multi-chunk result may span several regions. That's why commits are s
 - No `synchronized` on hot paths. If you need a lock, the design probably needs another snapshot.
 
 ### 5. Packets: async, allocation-light, precomputed
-Packet rewriting runs on netty event-loop threads. It must never call Bukkit world APIs and must stay cheap per packet:
+Paper has no packet API. The candidate is **PacketEvents** (2.14.x, MC 1.21–26.3, Folia-ready, version-independent chunk/biome-palette wrappers). The alternatives are Paper's unofficial `ChannelInitializeListenerHolder` + NMS, or per-version NMS modules (comparison: `references/tooling-report.md` §3.8). Before committing to one, run a spike that answers the open questions: which thread PacketEvents listeners run on, and how to get biome network ids without NMS. Outgoing handlers run on the connection's netty event-loop thread. They must never call Bukkit world APIs and must stay cheap per packet:
 - **Seasonal biome colours:** precompute `int[] remap[season][biomeId]` when the season changes. In the chunk data packet, rewrite only the biome palette entries. Don't decode and re-encode whole sections if the palette rewrite suffices.
 - **Item lore (heat, food expiry, size/weight):** compute from the item's PDC timestamps against the calendar clock and build the Adventure component off-thread. Cache by `(itemTypeId, bucketedValue)` where possible. The server-side stack is never modified.
 - Never block a netty thread on I/O or on a region-thread future.
