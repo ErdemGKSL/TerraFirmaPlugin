@@ -16,11 +16,13 @@ import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -82,14 +84,14 @@ public final class SuppressionListener implements Listener {
         }
         String from = event.getBlock().getBlockData().getAsString();
         String to = event.getNewState().getBlockData().getAsString();
-        apply(rules.decide(Suppression.classifyForm(from, to), from, to), event, event.getNewState());
+        apply(rules.decide(Suppression.classifyForm(from, to), from, to), event, event.getNewState(), event.getBlock());
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onSpread(BlockSpreadEvent event) {
         if (tfcWorld.test(event.getBlock().getWorld())) {
             apply(rules.decide(Path.SPREAD, event.getSource().getBlockData().getAsString(),
-                    event.getNewState().getBlockData().getAsString()), event, event.getNewState());
+                    event.getNewState().getBlockData().getAsString()), event, event.getNewState(), event.getBlock());
         }
     }
 
@@ -98,7 +100,7 @@ public final class SuppressionListener implements Listener {
     public void onFade(BlockFadeEvent event) {
         if (tfcWorld.test(event.getBlock().getWorld())) {
             apply(rules.decide(Path.FADE, event.getBlock().getBlockData().getAsString(),
-                    event.getNewState().getBlockData().getAsString()), event, event.getNewState());
+                    event.getNewState().getBlockData().getAsString()), event, event.getNewState(), event.getBlock());
         }
     }
 
@@ -122,7 +124,7 @@ public final class SuppressionListener implements Listener {
     public void onEntityChange(EntityChangeBlockEvent event) {
         if (tfcWorld.test(event.getBlock().getWorld())) {
             apply(rules.decide(Path.ENTITY_CHANGE, event.getBlock().getBlockData().getAsString(),
-                    event.getBlockData().getAsString()), event, null);
+                    event.getBlockData().getAsString()), event, null, event.getBlock());
         }
     }
 
@@ -137,14 +139,15 @@ public final class SuppressionListener implements Listener {
         // ultrawarm flag is deprecated API; the Nether environment is the vanilla ultrawarm dimension.
         String to = placed.getMaterial() == Material.WET_SPONGE && world.getEnvironment() == World.Environment.NETHER
                 ? "minecraft:sponge" : placed.getAsString();
-        apply(rules.decide(Path.PLACE, event.getBlockReplacedState().getBlockData().getAsString(), to), event, null);
+        apply(rules.decide(Path.PLACE, event.getBlockReplacedState().getBlockData().getAsString(), to), event, null,
+                event.getBlock());
     }
 
     /** Best effort: a dispenser never ejects or places a repurposed block item. */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDispense(BlockDispenseEvent event) {
         if (tfcWorld.test(event.getBlock().getWorld()) && repurposed(event.getItem())) {
-            apply(rules.decide(Path.DISPENSE, null, id(event.getItem())), event, null);
+            apply(rules.decide(Path.DISPENSE, null, id(event.getItem())), event, null, event.getBlock());
         }
     }
 
@@ -222,7 +225,11 @@ public final class SuppressionListener implements Listener {
         return stack.getType().getKey().toString();
     }
 
-    private void apply(Verdict v, Cancellable event, BlockState newState) {
+    /**
+     * Applies the verdict. A replacement is logged once at INFO ({@code suppress: ...}); allowed and
+     * cancelled events are not logged.
+     */
+    private <E extends Event & Cancellable> void apply(Verdict v, E event, BlockState newState, Block at) {
         switch (v) {
             case Verdict.Allow a -> {
             }
@@ -234,12 +241,22 @@ public final class SuppressionListener implements Listener {
                 Optional<BlockData> data = blockData(r.state());
                 if (newState != null && data.isPresent()) {
                     newState.setBlockData(data.get());
+                    log.info(suppressLine(event.getEventName(), at.getWorld().getName(), at.getX(), at.getY(),
+                            at.getZ(), at.getType().getKey().toString(), r.state()));
                 } else {
                     event.setCancelled(true);
                 }
                 suppressed.incrementAndGet();
             }
         }
+    }
+
+    /**
+     * The INFO line for a replaced block: {@code suppress: <event kind> at <world> <x>,<y>,<z>: <original> -> <replacement>}.
+     * Pure; the format is grepped in server logs, so keep it stable.
+     */
+    static String suppressLine(String kind, String world, int x, int y, int z, String original, String replacement) {
+        return "suppress: " + kind + " at " + world + " " + x + "," + y + "," + z + ": " + original + " -> " + replacement;
     }
 
     private Optional<BlockData> blockData(String state) {
