@@ -1,0 +1,10 @@
+import { createRequire } from 'module';
+const require = createRequire('/opt/node22/lib/node_modules/');
+const { chromium } = require('playwright');
+const b = await chromium.launch({ args: ['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'] });
+const p = await b.newPage();
+p.on('pageerror', e => console.log('pageerror', e.message.slice(0,200)));
+await p.goto('https://web.blockbench.net/', { waitUntil: 'load', timeout: 90000 });
+await p.waitForFunction(() => typeof Blockbench !== 'undefined' && typeof Codecs !== 'undefined', null, { timeout: 90000 });
+console.log(await p.evaluate(() => ({ v: Blockbench.version, codecs: Object.keys(Codecs), formats: Object.keys(Formats) })));
+await b.close();
