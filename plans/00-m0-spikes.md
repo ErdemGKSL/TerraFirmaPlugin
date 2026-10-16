@@ -26,7 +26,7 @@ Test servers: run-paper with CraftEngine 26.9.x, BetterModel 3.5.x and BetterHud
     4. Read the CE pool capacities at runtime after `CraftEngineReloadEvent`.
   - Done when: the client checklist passes on 1.21.11 and 26.3, the runtime pool-count read works, and problem blocks are removed from the CSV allowlist.
 
-- [ ] **M0-VIS-02 Exposed-only gem overlay** · deps: M0-VIS-01 · skills: craftengine-gui-furniture
+- [x] **M0-VIS-02 Exposed-only gem overlay** · deps: M0-VIS-01 · skills: craftengine-gui-furniture
   - Do: a gem ore whose visual equals the host rock. On exposure, place one `item_display` per exposed face in the air cell, translated back 0.01. Check lighting, z-fighting and packet count. Count exposed faces/chunk with vanilla caves as a proxy (re-measure with TFC worldgen in M2-GEN-15).
   - Done when: screenshots are OK at day, night and in caves, and the cost per exposed gem is documented.
 
@@ -40,7 +40,7 @@ Test servers: run-paper with CraftEngine 26.9.x, BetterModel 3.5.x and BetterHud
     6. Record which thread runs the listeners.
   - Done when: a grass colour switch is visible after a chunk resend, the lore never persists into the server stack, and the timings are documented. Decide PacketEvents vs alternative.
 
-- [ ] **M0-GUI-01 Outside-inventory button** · deps: M0-VIS-01 · skills: craftengine-gui-furniture
+- [x] **M0-GUI-01 Outside-inventory button** · deps: M0-VIS-01 · skills: craftengine-gui-furniture
   - Do: CE `lang` override of `container.crafting` with a `minecraft:default` glyph (the `ui-inventory-tab-button` placeholder, see `image-generation` backlog). Check whether an empty-cursor click outside the player inventory sends a slot −999 click on 1.21.11 and 26.3 clients. Try the alternative trigger (`PlayerRecipeBookSettingsChangeEvent`). Check a textured chest GUI using the alignment math.
   - Done when: the chosen trigger works on both versions, a textured 6-row GUI aligns pixel-perfect at GUI scales 1–4, and the caveats (crafting table title, creative inventory) are documented.
 

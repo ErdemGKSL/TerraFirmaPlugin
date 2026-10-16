@@ -39,12 +39,16 @@ client)
   # Bot's data is cleared while offline so an earlier death doesn't stick (the spawn is teleported in creative).
   rm -f "$(run "$MC")"/world/playerdata/*.dat*
   python3 "$HERE/launch_client.py" "$MC" "localhost:$PORT" "$G" $DISP "$SCALE" > "$G/client.pid"
-  for i in $(seq 1 120); do case "$($RC list 2>/dev/null)" in *Bot*) echo "joined after ~$((i*3))s"; exit 0;; esac; sleep 3; done
+  for i in $(seq 1 120); do case "$($RC list 2>/dev/null)" in *Bot*)
+    # Reset player data spawns the bot high and it can fall to death before any command: teleport in creative first.
+    echo "joined after ~$((i*3))s"; $RC "gamemode creative Bot" >/dev/null; $RC "tp Bot 0.5 150 0.5 0 0" >/dev/null
+    sleep 25; exit 0;;   # stays in creative: alignment checks need no survival, and creative takes no fall damage
+    esac; sleep 3; done
   echo "no join"; tail -20 "$G/client.log"; exit 1
   ;;
 chest)  # chest <mc> <shot-name> [items]: teleport, open /gui01 chest, screenshot, pixel check (scale in name)
   MC=$2; NAME=$3; export DISPLAY=$DISP; SHOTS=/tmp/claude-0/gui01-shots; mkdir -p "$SHOTS"
-  $RC "gamemode survival Bot" >/dev/null; $RC "tp Bot 0.5 150 0.5 0 0" >/dev/null; sleep 20
+  $RC "gamemode creative Bot" >/dev/null; $RC "tp Bot 0.5 150 0.5 0 0" >/dev/null; sleep 20
   # close any screen left open by the last run: a click outside a container closes it (empty cursor)
   xdotool mousemove 300 300 click 1; sleep 2
   xdotool key t; sleep 2; xdotool type --delay 80 "/gui01 chest ${4:-}"; sleep 1
