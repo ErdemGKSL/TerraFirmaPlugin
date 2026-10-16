@@ -9,10 +9,7 @@ RES=$REPO/spikes/bm-01/src/main/resources/models
 mkdir -p "$OUT" "$RES"
 cd "$REPO/tools/models"
 python3 -m tfpmodels.generate species/tfp_example_bovine.json "$OUT"
-# Spike-local workaround: the generator writes zero face UVs for box_uv cubes (BetterModel renders them invisible).
-HERE=$(cd "$(dirname "$0")" && pwd)
-python3 -I "$HERE/fill_box_uv.py" "$OUT/tfp_example_bovine.bbmodel" "$OUT/tfp_example_bovine.uv.bbmodel"
-mv "$OUT/tfp_example_bovine.uv.bbmodel" "$OUT/tfp_example_bovine.bbmodel"
+# The generator writes box UVs now (fill_box_uv.py workaround no longer needed).
 python3 -I tfc_anim/convert.py /opt/tfc/resources/entity_models/Deer-Bedrock.bbmodel \
   /opt/tfc/src/main/java/net/dries007/tfc/client/model/entity/DeerModel.java "$OUT/tfp_deer.bbmodel" \
   DEER_WALK=walk DEER_RUN=run
