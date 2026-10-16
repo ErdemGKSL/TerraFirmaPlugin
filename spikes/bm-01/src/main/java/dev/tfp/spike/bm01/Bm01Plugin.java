@@ -146,6 +146,11 @@ public final class Bm01Plugin extends JavaPlugin implements Listener {
         for (String id : MODEL_IDS) {
             Report.line("  model " + id + " present=" + BetterModel.model(id).isPresent());
         }
+        // Carriers that loaded before the models were registered have no tracker (EntitiesLoadEvent runs first
+        // on restart). Re-attach them once the models exist. attach() is idempotent (getOrCreate).
+        for (Carrier c : new ArrayList<>(carriers.values())) {
+            onCarrier(c, "reattach-on-reload", entity -> attach(entity, kindOf(entity)));
+        }
     }
 
     void onTrackerCreated(CreateEntityTrackerEvent e) {

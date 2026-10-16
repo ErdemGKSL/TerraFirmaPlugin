@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Spike-local model prep (M0-BM-01). Generates the bovine example, converts the TFC deer with
+# Spike-local model prep (M0-BM-01). Run from anywhere. Generates the bovine example, converts the TFC deer with
 # tools/models/tfc_anim/convert.py, drops the TFC-named animation.deer.* entries (the converter
 # keeps them; the README says to delete them), validates, and copies the files into the plugin jar's resources.
 set -eu
@@ -9,6 +9,10 @@ RES=$REPO/spikes/bm-01/src/main/resources/models
 mkdir -p "$OUT" "$RES"
 cd "$REPO/tools/models"
 python3 -m tfpmodels.generate species/tfp_example_bovine.json "$OUT"
+# Spike-local workaround: the generator writes zero face UVs for box_uv cubes (BetterModel renders them invisible).
+HERE=$(cd "$(dirname "$0")" && pwd)
+python3 -I "$HERE/fill_box_uv.py" "$OUT/tfp_example_bovine.bbmodel" "$OUT/tfp_example_bovine.uv.bbmodel"
+mv "$OUT/tfp_example_bovine.uv.bbmodel" "$OUT/tfp_example_bovine.bbmodel"
 python3 -I tfc_anim/convert.py /opt/tfc/resources/entity_models/Deer-Bedrock.bbmodel \
   /opt/tfc/src/main/java/net/dries007/tfc/client/model/entity/DeerModel.java "$OUT/tfp_deer.bbmodel" \
   DEER_WALK=walk DEER_RUN=run
