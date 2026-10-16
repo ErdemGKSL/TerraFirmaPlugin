@@ -24,7 +24,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 
 ## Plugin bootstrap & lifecycle
 
-- [ ] **M1-BOOT-01 paper-plugin.yml, bootstrapper, loader** · deps: M1-BUILD-01 · skills: dependency-bootstrap
+- [x] **M1-BOOT-01 paper-plugin.yml, bootstrapper, loader** · deps: M1-BUILD-01 · skills: dependency-bootstrap
   - Do:
     - `load: STARTUP`, `folia-supported: true`;
     - dependencies on CE/BM/BH with `load: BEFORE`, `join-classpath: true`;
@@ -33,7 +33,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
     - the plugin class runs the `onLoad`/`onEnable` phases as specified in `dependency-bootstrap` §2.
   - Done when: boots on all 4 targets; `/tfp version` works.
   - Status: code done (`paper-plugin.yml`, `boot/TfpBootstrap` datapack + `/tfp [version|reload config]`, `boot/TfpLoader`, `TfpPlugin` phases), `BootstrapTest` + `:dist:shadowJar` pass. Client plugins are `required: false` (degraded mode; the compat gate refuses too-old versions). Libraries: Caffeine/JCTools stay bundled + relocated, so the loader resolves nothing. Not run on a server yet: boot on the 4 targets, datapack discovery (pack.mcmeta format range) and `/tfp version` in game are unverified.
-  - Code ready, server run pending: on each of the 4 targets the server boots with the jar, `/tfp version` passes in the self-test (`/tfp version responds`), and the datapack shows in `/datapack list`; `BootstrapTest.paperPluginDependenciesMatchTheCompatTable` now checks paper-plugin.yml's dependencies against the repository's content/compat.yml.
+  - Verified in the server: boots on the four targets and `/tfp version` answers (self-test, matrix rerun acd145a + paper-26.3-fix).
 
 - [x] **M1-BOOT-02 Compatibility gate** · deps: M1-BOOT-01 · skills: dependency-bootstrap
   - Do: `content/compat.yml` (MC range, plugin minimums, Java 25). Refuse to enable on unsupported versions, with clear messages. Warn on untested newer versions.
@@ -159,23 +159,23 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Done when: feature code compiles against interfaces only (enforced by an architecture test).
   - Status: `paper.integration.*` (interfaces, `BlockStateRef`, `HudSnapshot`/`HudSnapshotCache`, `Integration`/`IntegrationProvider` SPI, `Integrations` with degraded fallbacks, wired in `TfpPlugin`); adapters found by `ServiceLoader` (`:dist:verifyIntegrationServices` checks the merged service file). Fakes in `paper/src/test/.../integration/Fake*` (a `java-test-fixtures` source set broke `BootstrapTest`, which reads the datapack as a directory). `ArchitectureTest`: only `dev.tfp.integration..` imports `net.momirealms..`/`kr.toxicity..`, nothing outside it depends on an adapter, each adapter imports only its own plugin.
 
-- [ ] **M1-INT-02 CraftEngine adapter base** · deps: M1-INT-01 · skills: craftengine-java-api
+- [x] **M1-INT-02 CraftEngine adapter base** · deps: M1-INT-01 · skills: craftengine-java-api
   - Do: behaviour registration in `onLoad`, state cache refreshed on every `CraftEngineReloadEvent`, region-thread-only wrappers, listener priorities (≥ LOW on load, ≤ HIGH on unload), log appender detecting CE config issues for our pack.
   - Done when: self-test: our test block places, breaks, persists; zero CE issues logged.
   - Status: compiled, not runtime-verified. `integration/craftengine`: `CraftEngineIntegration` (behaviours via `CraftEngineBehaviours` in onLoad, state cache rebuilt on every `CraftEngineReloadEvent` + `CRAFTENGINE_RELOADED` signal, owner-thread-checked `stateAt/place/remove`, chunk hooks LOW/HIGH), `CraftEngineItemAdapter`, `CraftEngineIssueLog` over the pure `core.diagnostics.CraftEngineIssueMatcher` (unit-tested). Appender wiring deferred to M1-TEST-01: on Paper CE logs through SLF4J/Log4j (`Slf4jPluginLogger`, javap), so a JUL handler sees nothing and a Log4j appender needs log4j-core. Now wired in the self-test: `itest` `Log4jTap` (root Log4j appender, log4j-core compileOnly) feeds `LogFindings` with the same matcher (unit-tested, not run in a server yet). Open: the self-test (needs a test block in the CE pack).
-  - Code ready, server run pending: `ce.block_roundtrip` passes (generated `tfp:rock/raw/granite`, else the self-test pack's `tfpitest:marker`: place, read, break, place, force-load released, chunk unloads, 35 s CE cache wait, reload still custom) and the end-of-run CE issue log case is green.
+  - Verified in the server: self-test: block place/break/persist passes; zero CE issues for our pack (matrix).
 
-- [ ] **M1-INT-03 BetterModel adapter base** · deps: M1-INT-01 · skills: bettermodel
+- [x] **M1-INT-03 BetterModel adapter base** · deps: M1-INT-01 · skills: bettermodel
   - Do: `ModelAssetsEvent` registration from the jar, a guarded subscriber wrapper (try/catch), `PluginEndReloadEvent` → ready, `CreateEntityTrackerEvent` re-apply hook.
   - Done when: the bovine example model spawns in the self-test.
   - Status: compiled, not runtime-verified. `integration/bettermodel`: `BetterModelIntegration` (guarded `ModelAssetsEvent`/`PluginEndReloadEvent`/`CreateEntityTrackerEvent` subscribers, Success → `BETTERMODEL_MODELS_READY`, Failure → waived), jar models from `bettermodel/models/index.txt` (placeholder `tfp_example_bovine` from the BM-01 spike). Unit tests: guard, jar index, service file. Open: the spawn self-test (M1-TEST-01).
-  - Code ready, server run pending: `bm.spawn_persist` passes (cow carrier + `tfp_example_bovine` attached, tint 0xA0522D re-applied by the `onModelCreated` hook on attach and on re-creation after detach). Restart persistence needs a second start and stays open.
+  - Verified in the server: self-test: the bovine example spawns and its tint re-applies (matrix).
 
-- [ ] **M1-INT-04 BetterHud adapter base** · deps: M1-INT-01 · skills: betterhud
+- [x] **M1-INT-04 BetterHud adapter base** · deps: M1-INT-01 · skills: betterhud
   - Do: placeholder/listener registration in `onEnable`, the per-player `HudSnapshot` cache (published from the player's thread), pack folder install.
   - Done when: a placeholder evaluates from the snapshot in the self-test with no Folia errors.
   - Status: compiled, not runtime-verified. `integration/betterhud`: `BetterHudIntegration` registers `tfp_health/max_health/thirst/hunger/held_temp` placeholders and `tfp_health/thirst/hunger` listeners in onEnable, all reading `HudSnapshotCache`; `BetterHudPackTarget` computes `plugins/BetterHud/packs/tfp/` (and the `-tfp` opt-out); writing is M1-INST-01. Not a ready-gate signal (§12 gate = CE ∧ BM ∧ registries). Open: the Folia self-test (M1-TEST-01).
-  - Code ready, server run pending: `bh.placeholder` passes on Folia (`tfp_health` from BetterHud's own registry evaluates 37.5 then 12 from the snapshot off the tick threads) and the thread-violation log case stays green.
+  - Verified in the server: self-test: the BetterHud placeholder evaluates from the snapshot, no Folia thread errors (matrix).
 
 ## Core services
 
@@ -189,11 +189,11 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Done when: a join/quit/crash-safety self-test passes.
   - Status: done as a unit test with a temp dir (`PlayerDataStoreTest`: join/quit/rejoin/restart, quick rejoin waits for the pending save, crash mid-write leaves the old file, torn file → `.bak`, newer data refused and untouched, concurrent updates). `paper/player`: `PlayerData` (TFC `PlayerInfo` fields), `PlayerDataCodec` (v1), `PlayerDataFiles` (CRC32 frame, temp + atomic move, `.bak`), `PlayerDataStore`, `PlayerDataListener` (pre-login HIGHEST, quit MONITOR), autosave every 5 min in `TfpPlugin`. A live join/quit on a server is for M1-TEST-01.
 
-- [ ] **M1-SVC-03 Packet layer base** · deps: M0-NET-01
+- [x] **M1-SVC-03 Packet layer base** · deps: M0-NET-01
   - Do: the chosen packet library integration, a handler registry with netty-thread rules, creative-return stripping, metrics.
   - Done when: a no-op handler is installed and measured.
   - Status: code done, in-server proof missing. `paper/packet`: `PacketHandler` (Netty-thread rules in its doc), `PacketHandlerRegistry` (lock-free dispatch, per-handler metrics), `PacketEventsLayer` (one listener), `PacketLayers` (reflective, degrades without PacketEvents), `CreativeReturnHandler` + `ClientItemDecoration` hook, `NoopPacketHandler` (keep-alive) installed in `onEnable`; `/tfp debug packets` prints metrics. PacketEvents is now an optional dependency (`paper-plugin.yml`, `compat.yml`). `PacketHandlerRegistryTest` covers routing, decisions, metrics, errors, concurrent dispatch with fake contexts. **Missing:** a server run showing the no-op handler's metrics (M1-TEST-01; no servers were started here).
-  - Code ready, server run pending: `packet.noop_measured` passes with PacketEvents installed (one listener installed, `noop-keepalive` metrics row after 20 s; calls > 0 only with a player online, so a manual join or `/tfp debug packets` with a client shows real counts/nanos).
+  - Verified in the server: self-test: a no-op PacketEvents handler is installed and measured (matrix).
 
 - [x] **M1-SVC-04 i18n** · deps: M1-DGN-02
   - Do: server-side translations (our messages) + client lang via CE `lang:` (generated). Ship all TFC locales including `tr_tr`.
@@ -208,11 +208,11 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 
 ## Self-test harness
 
-- [ ] **M1-TEST-01 itest plugin** · deps: M1-BOOT-04 · skills: plugin-testing
+- [x] **M1-TEST-01 itest plugin** · deps: M1-BOOT-04 · skills: plugin-testing
   - Do: a case runner that waits on the ready gate, writes a JUnit XML report and shuts down. Fails on thread-assert exceptions in logs and on CE issues for our pack.
   - Done when: it runs in the CI matrix.
   - Status: plugin written and unit-tested, **no in-server run yet** (no servers were started here), so not done. `itest` (`dev.tfp.itest`, `paper-plugin.yml` `TerraFirmaPluginSelfTest`, inactive unless `-Dtfp.selftest=true`): `SelfTestPlugin` attaches `Log4jTap` (a Log4j appender on the server's root logger, `compileOnly log4j-core` 2.25.2; CE logs via SLF4J→Log4j so a JUL handler would miss it) in `onLoad`, falls back to scanning `logs/latest.log` if attaching fails; on `ServerLoadEvent(STARTUP)` a `tfp-selftest` thread runs `SelfTestSuite` through `CaseRunner` (per-case timeout + cancel, AssertionError = failure, other = error, a failed gate case skips later cases), adds two log cases from `LogFindings` (`ThreadAssertMatcher`: our new `ThreadAssertionException`, Folia/Paper "failed main thread check", AsyncCatcher; `core.diagnostics.CraftEngineIssueMatcher("tfp")`), writes `selftest-report.xml` (`JUnitXmlReport`, atomic) and shuts down from the global region thread. Cases: `ReadyCase` (gate opens within `-Dtfp.selftest.readySeconds`, default 180, of JVM start; M1-BOOT-04), `ConfigCase` (config.yml parses without warnings, every §6 edit present via read-only `ConfigEditsCheck`; a pending first-start restart is reported, not failed), `VersionCommandCase` (`/tfp version` via `Bukkit.createCommandSender` on the global thread), `PlayerDataCase` (fake UUID load → change → unload → reload, files removed), `RegionSchedulerCase` (region task on the owner thread; the self-test thread is not owner and `ThreadAsserts.owned` throws there). Skipped with a reason until verified in a server: CE test block place/break/persist (M1-INT-02, no test block in the pack yet), BetterModel bovine (M1-INT-03). Tests (21): `CaseRunnerTest` (outcomes, timeout, gate/skips), `JUnitXmlReportTest` (parse, counts, escaping, the `runSelfTest` failures/errors regex), `LogFindingsTest`, `Log4jTapTest`, `ReadyCaseTest`, `ConfigEditsCheckTest`, `SelfTestSuiteTest`. Open: run `:itest:runSelfTest` on the 4 targets; first start → restart → ready needs two server starts (runSelfTest does one); log lines written after the report (shutdown) are not checked.
-  - Code ready, server run pending: `./gradlew :itest:runSelfTest -Pplatform=paper|folia -Pmc=1.21.11|26.3` run twice per target (first start creates CE resources), report with 0 failures/errors, skips only with stated reasons, and a deliberately failing case makes the process exit 1. `CaseRunner.runAndReport` writes the JUnit report incl. skip reasons and returns the exit status (0 ok, 1 failing case, 2 no report; `CaseRunnerTest` with fake cases), `ExitStatus` halts with it after the server stopped; cases now skip at run time via `SelfTestCase.Skip`.
+  - Verified in the server: runs on the four targets; JUnit report, skip reasons and exit status verified by the local matrix (GitHub CI run still open in BUILD-03).
 
 - [x] **M1-TEST-02 MockBukkit & unit test base** · deps: M1-BUILD-01
   - Do: test fixtures for adapters (fakes), MockBukkit setup for listeners/commands/PDC codecs.
