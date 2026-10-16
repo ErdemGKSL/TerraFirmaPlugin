@@ -57,7 +57,7 @@ Test servers: run-paper with CraftEngine 26.9.x, BetterModel 3.5.x and BetterHud
   - Do: our `packs/tfp/` with health "45/50" + thirst bar fed by async-safe placeholders (from a per-player snapshot). Transparent vanilla heart/food/air sprites via our CE pack. CE pack rebuild after HUD changes.
   - Done when: the HUD shows on 1.21.11 and 26.3 at GUI scales 1–4, vanilla bars are hidden, the hotbar is kept, and there are no Folia thread errors.
 
-- [ ] **M0-JAR-01 One jar for 1.21.11 + 26.x** · deps: M0-ENV-01 · skills: plugin-testing
+- [x] **M0-JAR-01 One jar for 1.21.11 + 26.x** · deps: M0-ENV-01 · skills: plugin-testing
   - Do: compile against the lowest Paper API with Java 25. Check: the `api-version` string, Adventure 4.x code running on 5.x, `ServerBuildInfo` version switch, and whether any NMS is needed (from M0-NET-01).
   - Done when: the same jar runs on all 4 targets.
 
