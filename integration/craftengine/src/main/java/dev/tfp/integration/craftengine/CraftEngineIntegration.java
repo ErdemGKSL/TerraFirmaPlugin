@@ -242,11 +242,19 @@ public final class CraftEngineIntegration implements Integration, BlockVisuals, 
         return state == null || state.isEmpty() ? Optional.empty() : Optional.of(toRef(state));
     }
 
+    /** Vanilla Block.UPDATE_NEIGHBORS | UPDATE_CLIENTS. */
+    static final int UPDATE_ALL = 3;
+    /** Vanilla Block.UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE. */
+    static final int UPDATE_NO_PHYSICS = 2 | 16;
+
     @Override
     public boolean place(Block block, BlockStateRef state, boolean applyPhysics) {
         requireOwner(block, "place a custom block");
         ImmutableBlockState resolved = resolve(state);
-        return resolved != null && CraftEngineBlocks.place(block.getLocation(), resolved, applyPhysics);
+        // CraftEngineBlocks.place(Location, state, boolean) takes playSound, not physics, and always uses flags 3;
+        // pass the flags ourselves: 3 = neighbours + clients, 2|16 = clients + known shape (Bukkit's physics off).
+        return resolved != null && CraftEngineBlocks.place(block.getLocation(), resolved,
+                applyPhysics ? UPDATE_ALL : UPDATE_NO_PHYSICS, false, false);
     }
 
     @Override

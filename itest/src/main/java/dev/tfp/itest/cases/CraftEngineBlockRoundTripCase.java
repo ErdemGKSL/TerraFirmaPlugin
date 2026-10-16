@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -79,7 +80,6 @@ public final class CraftEngineBlockRoundTripCase implements SelfTestCase {
                     + "our pack nor the self-test pack was installed this run (plugins/CraftEngine/resources must exist "
                     + "before the start: run the self-test a second time)"));
             BlockStateRef state = BlockStateRef.of(id);
-            List<String> log = new ArrayList<>();
             World world = Bukkit.getWorlds().getFirst();
             Location spawn = world.getSpawnLocation();
             int cx = (spawn.getBlockX() >> 4) + CHUNK_OFFSET;
@@ -93,64 +93,113 @@ public final class CraftEngineBlockRoundTripCase implements SelfTestCase {
                 world.setChunkForceLoaded(cx, cz, true);
                 return null;
             });
-            AtomicReference<BlockStateRef> placed = new AtomicReference<>();
-            int y = OnThread.region(s, world, cx, cz, STEP, () -> {
-                int top = Math.min(world.getHighestBlockYAt(x, z) + 2, world.getMaxHeight() - 2);
-                Block b = world.getBlockAt(x, top, z);
-                check(blocks.place(b, state, false), "place(" + id + ") returned false");
-                // place(id) puts the block's default state, which carries its properties (raw rock: axis=y), so
-                // the first read is checked by block id and later reads against that exact state.
-                BlockStateRef first = blocks.stateAt(b).orElse(null);
-                check(first != null && first.id().equals(id), "after place: " + blocks.stateAt(b) + ", expected " + id);
-                placed.set(first);
-                check(blocks.remove(b), "remove returned false");
-                check(blocks.stateAt(b).isEmpty(), "after remove still custom: " + blocks.stateAt(b));
-                check(blocks.place(b, state, false), "second place(" + id + ") returned false");
-                check(first.equals(blocks.stateAt(b).orElse(null)), "after second place: " + blocks.stateAt(b)
-                        + ", expected " + first);
-                return top;
-            });
-            BlockStateRef expected = placed.get();
-            log.add(expected + " at " + world.getName() + " " + x + "," + y + "," + z + ": place/read/break/place ok");
-
-            CompletableFuture<Void> unloaded = new CompletableFuture<>();
-            Listener listener = new Listener() {
-                @EventHandler
-                public void onUnload(ChunkUnloadEvent e) {
-                    if (e.getWorld().equals(world) && e.getChunk().getX() == cx && e.getChunk().getZ() == cz) {
-                        unloaded.complete(null);
-                    }
-                }
-            };
-            Bukkit.getPluginManager().registerEvents(listener, tfp);
+            AtomicBoolean forced = new AtomicBoolean(true);
             try {
-                OnThread.global(s, STEP, () -> {
-                    world.setChunkForceLoaded(cx, cz, false);
-                    return null;
-                });
-                OnThread.await(unloaded, Duration.ofSeconds(60), "unloading chunk " + cx + "," + cz
-                        + " after removing the force-load ticket");
+                return roundTrip(tfp, blocks, s, world, id, state, cx, cz, x, z, forced);
             } finally {
-                HandlerList.unregisterAll(listener);
+                // An earlier run that failed here left its block and a persistent force-load ticket behind
+                // (paper-26.3 M1 rerun: "place returned false" on the leftover); never leave either again.
+                if (forced.get()) {
+                    OnThread.global(s, STEP, () -> {
+                        world.setChunkForceLoaded(cx, cz, false);
+                        return null;
+                    });
+                }
             }
-            log.add("chunk unloaded");
-            Thread.sleep(cacheSeconds() * 1000);
-
-            OnThread.await(world.getChunkAtAsync(cx, cz), STEP, "reloading chunk " + cx + "," + cz);
-            String after = OnThread.region(s, world, cx, cz, STEP, () -> {
-                Block b = world.getBlockAt(x, y, z);
-                Optional<BlockStateRef> read = blocks.stateAt(b);
-                String seen = read.map(String::valueOf).orElse("vanilla " + b.getBlockData().getAsString());
-                blocks.remove(b); // clean up either way
-                return read.filter(expected::equals).isPresent() ? null : seen;
-            });
-            if (after != null) {
-                throw new AssertionError("after unload + " + cacheSeconds() + " s + reload the block is " + after
-                        + ", expected " + expected + " (" + String.join("; ", log) + ")");
-            }
-            log.add("still " + expected + " after reload (" + cacheSeconds() + " s past unload)");
-            return String.join("; ", log);
         });
+    }
+
+    /** Lowest free spot at or above {@code fromY}: air with no custom block, removing a custom leftover first. */
+    static int freeY(World world, CustomBlocks blocks, int x, int fromY, int z, List<String> log) {
+        int maxY = world.getMaxHeight() - 2;
+        for (int y = Math.min(fromY, maxY); y <= maxY; y++) {
+            Block b = world.getBlockAt(x, y, z);
+            Optional<BlockStateRef> leftover = blocks.stateAt(b);
+            if (leftover.isPresent()) {
+                // CraftEngine's server block may not count for the motion-blocking heightmap, so a block left
+                // by an aborted earlier run can sit exactly at highest + 2; placing the same state there is a
+                // no-op and CraftEngine reports false.
+                blocks.remove(b);
+                log.add("removed leftover " + leftover.get() + " at y " + y);
+            }
+            if (b.getType().isAir()) {
+                return y;
+            }
+        }
+        throw new AssertionError("no free block above y " + fromY + " at " + x + "," + z);
+    }
+
+    private String roundTrip(TfpPlugin tfp, CustomBlocks blocks, Scheduler s, World world, String id,
+            BlockStateRef state, int cx, int cz, int x, int z, AtomicBoolean forced) throws Exception {
+        List<String> log = new ArrayList<>();
+        AtomicReference<BlockStateRef> placed = new AtomicReference<>();
+        int y = OnThread.region(s, world, cx, cz, STEP, () -> {
+            int top = freeY(world, blocks, x, world.getHighestBlockYAt(x, z) + 2, z, log);
+            Block b = world.getBlockAt(x, top, z);
+            try {
+                placeReadBreakPlace(blocks, b, id, state, placed);
+            } catch (RuntimeException | Error e) {
+                blocks.remove(b); // leave nothing behind for the next run
+                throw e;
+            }
+            return top;
+        });
+        BlockStateRef expected = placed.get();
+        log.add(expected + " at " + world.getName() + " " + x + "," + y + "," + z + ": place/read/break/place ok");
+
+        CompletableFuture<Void> unloaded = new CompletableFuture<>();
+        Listener listener = new Listener() {
+            @EventHandler
+            public void onUnload(ChunkUnloadEvent e) {
+                if (e.getWorld().equals(world) && e.getChunk().getX() == cx && e.getChunk().getZ() == cz) {
+                    unloaded.complete(null);
+                }
+            }
+        };
+        Bukkit.getPluginManager().registerEvents(listener, tfp);
+        try {
+            OnThread.global(s, STEP, () -> {
+                world.setChunkForceLoaded(cx, cz, false);
+                return null;
+            });
+            forced.set(false);
+            OnThread.await(unloaded, Duration.ofSeconds(60), "unloading chunk " + cx + "," + cz
+                    + " after removing the force-load ticket");
+        } finally {
+            HandlerList.unregisterAll(listener);
+        }
+        log.add("chunk unloaded");
+        Thread.sleep(cacheSeconds() * 1000);
+
+        OnThread.await(world.getChunkAtAsync(cx, cz), STEP, "reloading chunk " + cx + "," + cz);
+        String after = OnThread.region(s, world, cx, cz, STEP, () -> {
+            Block b = world.getBlockAt(x, y, z);
+            Optional<BlockStateRef> read = blocks.stateAt(b);
+            String seen = read.map(String::valueOf).orElse("vanilla " + b.getBlockData().getAsString());
+            blocks.remove(b); // clean up either way
+            return read.filter(expected::equals).isPresent() ? null : seen;
+        });
+        if (after != null) {
+            throw new AssertionError("after unload + " + cacheSeconds() + " s + reload the block is " + after
+                    + ", expected " + expected + " (" + String.join("; ", log) + ")");
+        }
+        log.add("still " + expected + " after reload (" + cacheSeconds() + " s past unload)");
+        return String.join("; ", log);
+    }
+
+    private static void placeReadBreakPlace(CustomBlocks blocks, Block b, String id, BlockStateRef state,
+            AtomicReference<BlockStateRef> placed) {
+        check(blocks.place(b, state, false), "place(" + id + ") returned false");
+        // place(id) puts the block's default state, which carries its properties (raw rock: axis=y), so
+        // the first read is checked by block id and later reads against that exact state.
+        BlockStateRef first = blocks.stateAt(b).orElse(null);
+        check(first != null && first.id().equals(id), "after place: " + blocks.stateAt(b) + ", expected " + id);
+        placed.set(first);
+        check(blocks.remove(b), "remove returned false");
+        check(blocks.stateAt(b).isEmpty(), "after remove still custom: " + blocks.stateAt(b));
+        check(blocks.place(b, state, false), "second place(" + id + ") returned false");
+        check(first.equals(blocks.stateAt(b).orElse(null)), "after second place: " + blocks.stateAt(b)
+                + ", expected " + first);
     }
 
     private static void check(boolean condition, String message) {
