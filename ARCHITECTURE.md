@@ -212,6 +212,11 @@ TFC checkout @ pinned commit ──▶ tools/datagen ──▶ content/
 
 Deterministic and re-runnable. Hand fixes go in `tools/datagen/overrides/`. See `.claude/skills/tfc-asset-migration/`.
 
+- **Location:** `content/` above is the content root `content/generated/content` in the repo, shipped as `/content` in the jar. Datagen owns `data/`, `craftengine/`, `reports/`, `.datagen-manifest.json` and `third-party.json` there and rewrites them wholesale.
+- **CLI:** `datagen <tfc-checkout> <content-dir> [--check]` refuses a checkout whose HEAD is not the pinned commit. Gradle: `:tools:datagen:generateContent`, and `:tools:datagen:verifyContent` as the CI up-to-date gate.
+- **Manifest:** TFC commit plus aggregate sha256 per input tree and per output tree, no timestamps.
+- **Assets:** TFC blockstates drive the CE `state(s)` sections and are not copied (vanilla clients never load blockstates for `tfp:` blocks). Two-layer ore models (`tfc:block/ore`, `tfc:block/ore_column`) are flattened into one PNG per ore × rock (Java `javax.imageio`, so no Python in CI) and a plain `cube_all`/`cube_column` model.
+
 ## 12. Startup and reload lifecycle
 
 1. **Bootstrap:** datapack discovery (biomes, tags, damage types), Brigadier commands.

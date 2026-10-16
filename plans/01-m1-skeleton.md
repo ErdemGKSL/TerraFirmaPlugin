@@ -84,14 +84,16 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 
 ## Datagen v1 (tools/datagen)
 
-- [ ] **M1-DGN-01 TFC checkout pin & manifest** · deps: M1-BUILD-01 · skills: tfc-asset-migration
+- [x] **M1-DGN-01 TFC checkout pin & manifest** · deps: M1-BUILD-01 · skills: tfc-asset-migration
   - Do: CLI that clones/reads TFC at the commit pinned in the ledger, hashes its inputs and writes `content/.datagen-manifest.json`. The output must be deterministic (byte-identical).
   - Done when: two runs produce identical output; CI verifies `content/` is up to date.
+  - Status: done. Output dir `content/generated/content` (jar `/content`). Determinism: unit test + two real runs diffed. CI gate: `./gradlew :tools:datagen:verifyContent` (wire into the workflow in M1-BUILD-03).
 
 - [ ] **M1-DGN-02 Data export** · deps: M1-DGN-01 · skills: tfc-feature-porting
   - TFC: `src/generated/resources/data/tfc/{tfc/**,recipe/**,tags/**}`
   - Do: rename `tfc:` → `tfp:`, maintain the item/block id mapping table, write `content/data/**` in TFC schemas.
   - Done when: M1-REG-04 passes.
+  - Status: export + `data/id_map.json` generated (generated `data/tfc/{tfc,recipe,tags}`, `c:`/`minecraft:` tags, hand-written worldgen tags). Open until M1-REG-04 exists.
 
 - [ ] **M1-DGN-03 Asset pipeline v1: rocks, soils, ores** · deps: M1-DGN-01 · skills: tfc-asset-migration, craftengine-config-generation, craftengine-blocks
   - TFC: `assets/tfc/{blockstates,models,textures}/{rock,ore,dirt,grass,clay,sand,...}`
@@ -101,6 +103,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
     3. Emit literal CE YAML per id calling `tfp:` templates (author `tfp:settings/*`, `tfp:block_state/*`, `tfp:loot_table/*`).
     4. Generate lang for all locales.
   - Done when: the CE pack for these families loads with zero `Found N issue(s)` lines (checked by the self-test).
+  - Status: 1353 cube blocks + templates + lang (13 locales) generated and statically checked; CE load not verified yet (self-test). Not emitted yet (listed in `reports/datagen-summary.json`): connected grass (multipart), slabs/stairs/walls, loose rocks, spikes, buttons, plates, anvils, aqueducts, rope anchors, small ores.
 
 - [ ] **M1-DGN-04 Visual allocator with profiles** · deps: M1-DGN-03, M0-VIS-01 · skills: craftengine-visuals-pack
   - Do: implement profiles `level-0…level-3b` × MC version families. Sources, in order: CE `solid` → identity duplicates → (Nether/End) → absent-in-TFC (CSV allowlist). Also:

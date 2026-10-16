@@ -12,6 +12,7 @@ junit = "5.13.4"
 assertj = "3.27.6"
 archunit = "1.4.1"
 gson = "2.13.2"
+snakeyaml = "2.2"   # datagen tests only: parse generated CE YAML
 shadow = "9.6.1"
 run-paper = "3.1.0"
 
@@ -24,6 +25,7 @@ packetevents = { module = "maven.modrinth:packetevents", version.ref = "packetev
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 jctools = { module = "org.jctools:jctools-core", version.ref = "jctools" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }

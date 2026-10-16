@@ -1,0 +1,49 @@
+# tfp: block settings templates (re-authored for this project; no CraftEngine default: templates are used).
+# Argument names carry their template's domain as prefix, because the caller's argument always wins.
+templates#settings:
+  # Full opaque cube: suffocates, blocks view, conducts redstone, occludes.
+  tfp:settings/solid_cube:
+    is_suffocating: true
+    is_view_blocking: true
+    is_redstone_conductor: true
+    can_occlude: true
+    replaceable: false
+  # Vanilla sound group by block type name (stone, gravel, sand, grass, ...). Blocks are silent without it.
+  tfp:settings/sound:
+    sounds:
+      break: minecraft:block.${sound_block_type}.break
+      step: minecraft:block.${sound_block_type}.step
+      place: minecraft:block.${sound_block_type}.place
+      hit: minecraft:block.${sound_block_type}.hit
+      fall: minecraft:block.${sound_block_type}.fall
+  # Rock-like blocks (raw/hardened/cobble/bricks/smooth/..., ores, magma): stone sounds, pickaxe required for drops.
+  # rock_hardness, rock_resistance: numbers. rock_map_color: vanilla MapColor id. rock_luminance: 0-15.
+  tfp:settings/rock:
+    template:
+      - tfp:settings/sound
+      - tfp:settings/solid_cube
+    arguments:
+      sound_block_type: stone
+    overrides:
+      hardness: ${rock_hardness}
+      resistance: ${rock_resistance}
+      luminance: ${rock_luminance:-0}
+      instrument: basedrum
+      map_color: ${rock_map_color}
+      tags:
+        - minecraft:mineable/pickaxe
+      correct_tools:
+        - '#minecraft:pickaxes'
+  # Loose granular blocks (dirt, clay, sand, gravel): shovel-mineable, no tool required.
+  # sound_block_type: gravel|sand|grass. granular_instrument: note block instrument name.
+  tfp:settings/granular:
+    template:
+      - tfp:settings/sound
+      - tfp:settings/solid_cube
+    overrides:
+      hardness: ${granular_hardness}
+      resistance: ${granular_resistance}
+      instrument: ${granular_instrument}
+      map_color: ${granular_map_color}
+      tags:
+        - minecraft:mineable/shovel

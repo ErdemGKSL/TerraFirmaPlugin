@@ -1,0 +1,77 @@
+# tfp: loot table templates, mirroring the shapes of TFC's block loot tables.
+templates#loot_tables:
+  # Drops the block itself (TFC: single item entry naming the block).
+  tfp:loot_table/self:
+    pools:
+      - rolls: 1
+        conditions:
+          - type: survives_explosion
+        entries:
+          - type: item
+            item: ${__NAMESPACE__}:${__ID__}
+  # Drops one other item (TFC ores drop their ore item). loot_item: item id.
+  tfp:loot_table/item:
+    pools:
+      - rolls: 1
+        conditions:
+          - type: survives_explosion
+        entries:
+          - type: item
+            item: ${loot_item}
+  # Drops a uniform count of another item (TFC clay → clay balls). loot_count_min/max: ints.
+  tfp:loot_table/item_count:
+    pools:
+      - rolls: 1
+        conditions:
+          - type: survives_explosion
+        entries:
+          - type: item
+            item: ${loot_item}
+            functions:
+              - type: set_count
+                count:
+                  type: uniform
+                  min: ${loot_count_min}
+                  max: ${loot_count_max}
+  # TFC raw/hardened rock: 1-4 loose rocks. TFC's `tfc:is_isolated` branch (drop the raw block when it has no
+  # neighbours) needs our own loot condition and is not ported yet (ledger divergence).
+  tfp:loot_table/rock_to_loose:
+    pools:
+      - rolls: 1
+        conditions:
+          - type: survives_explosion
+        entries:
+          - type: item
+            item: ${loot_loose_rock}
+            functions:
+              - type: set_count
+                count:
+                  type: uniform
+                  min: 1
+                  max: 4
+  # TFC gravel: silk touch drops the block; otherwise flint with fortune-scaled chance, else the block.
+  tfp:loot_table/gravel:
+    pools:
+      - rolls: 1
+        conditions:
+          - type: survives_explosion
+        entries:
+          - type: alternatives
+            children:
+              - type: item
+                item: ${__NAMESPACE__}:${__ID__}
+                conditions:
+                  - type: enchantment
+                    predicate: minecraft:silk_touch>=1
+              - type: item
+                item: minecraft:flint
+                conditions:
+                  - type: table_bonus
+                    enchantment: minecraft:fortune
+                    chances:
+                      - 0.1
+                      - 0.14285715
+                      - 0.25
+                      - 1.0
+              - type: item
+                item: ${__NAMESPACE__}:${__ID__}

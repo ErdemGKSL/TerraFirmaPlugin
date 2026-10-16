@@ -6,3 +6,4 @@ spikes/logs/
 **/build/
 **/.gradle/
 .kotlin/
+content/generated/

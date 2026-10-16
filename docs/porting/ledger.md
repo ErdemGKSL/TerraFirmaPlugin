@@ -11,7 +11,7 @@ Status values: `not started` → `rules` (core logic + tests) → `playable` (wo
 | Calendar & climate | Calendar | not started | `util/calendar/` | | |
 | Calendar & climate | Climate model | not started | `util/climate/` | | |
 | World generation | Region / layers / rivers | not started | `world/region/`, `world/layer/`, `world/river/` | | |
-| Geology | Rocks, ores, soils | not started | `common/blocks/rock/`, `common/blocks/soil/` | | |
+| Geology | Rocks, ores, soils | not started | `common/blocks/rock/`, `common/blocks/soil/` | `tools/datagen` DatagenTest, PinnedCheckoutTest | Assets + CE YAML for full-cube rock/ore/dirt/clay/sand blocks generated (M1-DGN-03). Grass, slabs/stairs/walls and other shapes pending. |
 | Geology | Collapse & landslide | not started | `util/tracker/Collapse.java` | | |
 | Flora | Crops | not started | `common/blocks/crop/` | | |
 | Fauna | Livestock | not started | `common/entities/livestock/` | | |
@@ -37,4 +37,5 @@ Status values: `not started` → `rules` (core logic + tests) → `playable` (wo
 | Deposits (gravel per mineral × rock) | From `level-2`: one gravel+specks visual per mineral, rock-agnostic | Visual budget | Owner-configurable |
 | Wood/stripped wood blocks have per-axis models | From `level-1`: all axes share one visual (bark on all faces) | Visual budget | Owner-configurable |
 | Metal blocks, mechanical blocks, crates, workbenches are block models | Drawn with `entity_renderer` display entities | Visual budget (approved) | No |
+| Raw/hardened rock drops the raw block when mined while isolated (`tfc:is_isolated` loot condition) | Always drops 1-4 loose rocks | The condition needs our own CE loot condition; not ported yet | Yes, with rock collapse work |
 | Custom sky / star map | Not implemented (optional core-shader work later) | Needs core shaders | Optional |

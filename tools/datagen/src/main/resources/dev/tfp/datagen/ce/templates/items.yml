@@ -1,0 +1,17 @@
+# tfp: item templates.
+templates#items:
+  # Item that places the block with the same id. item_lang_key: client translation key (TFC's, renamed).
+  tfp:item/block_item:
+    material: paper
+    data:
+      item_name: <!i><lang:${item_lang_key}>
+    model: ${__NAMESPACE__}:item/${__ID__}
+    behavior:
+      type: block_item
+      block: ${__NAMESPACE__}:${__ID__}
+  # Plain item (block drops such as ore pieces and loose rocks, until their own features land).
+  tfp:item/simple:
+    material: paper
+    data:
+      item_name: <!i><lang:${item_lang_key}>
+    model: ${__NAMESPACE__}:item/${__ID__}
