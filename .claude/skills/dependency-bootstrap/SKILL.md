@@ -52,6 +52,8 @@ java: 25
 - Untested newer version → warn once and continue.
 - Java < 25 → refuse, because BetterModel and BetterHud can't run anyway.
 
+> **Verified (M0-VIS-01):** CE extracts its own default packs (`internal` with the mappings that create every `auto_state` pool, `default_templates`, ...) **only if `plugins/CraftEngine/resources/` doesn't exist yet**. Never create that folder before CE's first start (e.g. from an external installer or a test script). Writing `resources/tfp/` from our `onLoad()` is safe, because CE has initialised the folder by then.
+
 ## 4. Optional auto-download of missing dependencies
 Only if `auto-install.download-missing: true` (opt-in, default **false**: downloading executable code needs the owner's explicit consent).
 - Sources: Modrinth version ids pinned in `compat.yml` with **SHA-512** hashes. Verify the hash before saving the jar into `plugins/`. Never fetch "latest".

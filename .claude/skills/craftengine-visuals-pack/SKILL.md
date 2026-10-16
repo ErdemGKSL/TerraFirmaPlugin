@@ -32,6 +32,14 @@ Sources: `references/research-report.md` (CE @ `b3079c5` + vanilla client jars 1
   - 26.1+: the render layer is per texture, but occlusion still follows the vanilla block, so a see-through texture on a solid visual gives x-ray.
   - ≤1.21.11: the layer is per block. For cutout or translucent TFC blocks on 1.21.x, use leaves/grate/glass-type visuals or `transparent` + renderer.
 
+**Verified in game (M0-VIS-01, `docs/spikes/M0-VIS-01.md`, 1.21.11 + 26.3 clients):**
+- explicit absent states, double-slab identity duplicates, button states and `auto_state` all render our textures;
+- `block_state_mappings` hide the vanilla originals;
+- one model on two different vanilla states is accepted (hardened = raw);
+- flattened ore PNGs look right;
+- runtime pool counts via `AutoStateGroup.candidateCount()`/`candidates()` match 1289/1489;
+- `auto_state: solid` takes `brown_mushroom_block` states first.
+
 ## Budget and allocation (researched: `docs/research/block-budget-workarounds.md`, per-block data in `docs/research/vanilla-fullcube-supply.csv`)
 
 **Supply** of opaque full-cube visual states (CE default-mapping states excluded):

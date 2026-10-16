@@ -1,0 +1,9 @@
+name: TfpSpikeVis01
+version: '0.0.0-spike'
+main: dev.tfp.spike.vis01.Vis01Plugin
+api-version: '1.21.11'
+load: STARTUP
+folia-supported: true
+dependencies:
+  server:
+    CraftEngine: { load: BEFORE, required: true, join-classpath: true }

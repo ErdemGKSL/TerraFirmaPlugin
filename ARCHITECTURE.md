@@ -233,7 +233,7 @@ Pyramid: pure unit/property/golden-value tests (core, worldgen; ported TFC tests
 2. Per-block data: CE `BlockEntityController` vs our own chunk-PDC store (persistence cost, reload behaviour, Folia safety).
 3. A datapack biome returned from `BiomeProvider` works and persists; obtaining biome network ids for the packet remap without NMS.
 4. PacketEvents listener thread and chunk biome palette rewriting cost.
-5. Total CE state count vs `block.serverside-blocks`, and visual pool budgets per MC version. **Researched** (`docs/research/block-budget-workarounds.md`): supply is 1957 (1.21.11) / 2217 (26.3) opaque full-cube visuals vs ≈1790 core terrain + ≈150 deco demand. Remaining: implement the datagen allocator, measure exposed ore faces per chunk, and decide on Nether/End.
+5. Total CE state count vs `block.serverside-blocks`, and visual pool budgets per MC version. **Researched** (`docs/research/block-budget-workarounds.md`): supply is 1957 (1.21.11) / 2217 (26.3) opaque full-cube visuals vs ≈1790 core terrain + ≈150 deco demand. In-game check done (M0-VIS-01): every visual source renders on 1.21.11 and 26.3 clients, mappings hide the originals, and runtime pool counts match. Remaining: implement the datagen allocator, measure exposed ore faces per chunk, decide on Nether/End, and test client prediction (buttons, redstone_ore).
 6. The fake "outside the inventory" button: how the pack draws it, and which click packet the server receives.
 7. BetterModel carrier choices per animal family (hitbox/seat alignment), and baby scale behaviour.
 8. Single jar across 1.21.11 and 26.x (Adventure 4 vs 5 binary compatibility).

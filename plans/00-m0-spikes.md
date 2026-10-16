@@ -18,7 +18,7 @@ Test servers: run-paper with CraftEngine 26.9.x, BetterModel 3.5.x and BetterHud
   - Do: implement a toy "crop" two ways: (a) CE `BlockEntityController` with a planted timestamp, no ticker; (b) our chunk-PDC store. Measure for 10k blocks/chunk area: load/save time, memory, behaviour across `/ce reload`, Folia region access, block replaced by vanilla means (piston, explosion, WorldEdit).
   - Done when: a decision is recorded in `ARCHITECTURE.md` §7 (expected: CE controllers for devices/player crops, properties-only for wild blocks) with the numbers.
 
-- [ ] **M0-VIS-01 Visual allocator prototype + in-game checks** · deps: M0-ENV-01 · skills: craftengine-visuals-pack, craftengine-config-generation
+- [x] **M0-VIS-01 Visual allocator prototype + in-game checks** · deps: M0-ENV-01 · skills: craftengine-visuals-pack, craftengine-config-generation
   - Do:
     1. Script the allocation for profiles `level-2` and `level-3a` from `docs/research/vanilla-fullcube-supply.csv` + the TFC demand script.
     2. Emit CE YAML for 1 rock × all variants, 3 ores × grades (flattened textures), and a button-state small ore. Include the `block_state_mappings` that hide the repurposed vanilla blocks.
