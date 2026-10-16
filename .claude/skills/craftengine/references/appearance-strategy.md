@@ -65,44 +65,49 @@ block_state_mappings:
 
 Mapped-away states also become `auto_state` candidates **only** if they belong to a CE `AutoStateGroup`. Otherwise reference them with explicit `state:`. Conflicting mappings are load errors.
 
-## 4. Example: graded ores via config_factory
+## 4. Example: graded ores (datagen literal entry + our template)
 
-Our design, using syntax verified against CE's `tree.yml`/`topaz_ore.yml`. Treat it as the starting template for the datagen tool.
+We don't use `config_factory` for shipped content (see `craftengine-config-generation`). Datagen writes one small entry per id, and a `tfp:` template carries the shared structure.
 
 ```yaml
-config_factory#graded_ores:
-  instances:
-    - { ore: hematite, grade: rich, rock: granite }
-    # ... one instance per (ore, grade, rock), emitted by tools/datagen
-  blueprint:
-    items:
-      tfp:ore/${grade}_${ore}/${rock}:
-        data:
-          item_name: <!i><lang:block.tfp.ore.${grade}_${ore}.${rock}>
-        model: tfp:block/ore/${grade}_${ore}/${rock}
-        behavior:
-          type: block_item
-          block: tfp:ore/${grade}_${ore}/${rock}
-    blocks:
-      tfp:ore/${grade}_${ore}/${rock}:
-        settings:
-          template: default:settings/ore
-          arguments: { break_power: 1 }
-        behavior:
-          type: tfp:ore_block             # our behaviour: TFC collapse trigger, prospecting data
-        state:
-          auto_state: solid               # datagen switches to an explicit vanilla state once the pool is spent
-          model:
-            path: tfp:block/ore/${grade}_${ore}/${rock}
-            generation:
-              parent: tfp:block/ore       # copied from TFC assets/tfc/models/block/ore.json (base + overlay layers)
-              textures:
-                all: tfp:block/rock/raw/${rock}
-                overlay: tfp:block/ore/${grade}_${ore}
-                particle: tfp:block/rock/raw/${rock}
+# configuration/ore/hematite.yml (generated): one entry per (grade, rock)
+items:
+  tfp:ore/rich_hematite/granite:
+    template: tfp:item/ore_block
+    arguments:
+      ore_id: rich_hematite
+      ore_rock: granite
+      ore_break_power: 1
+      ore_visual: { auto_state: solid }        # or { state: "minecraft:diorite" }, chosen by the allocator
 ```
 
-Datagen should emit `auto_state` vs explicit `state:` itself, from the allocation plan (§7), so the result is deterministic and doesn't depend on CE's allocation order.
+```yaml
+# configuration/templates/ore.yml (shipped once; our template)
+templates:
+  tfp:item/ore_block:
+    data:
+      item_name: <!i><lang:block.tfp.ore.${ore_id}.${ore_rock}>
+    model: tfp:block/ore/${ore_id}/${ore_rock}
+    behavior:
+      type: block_item
+      block:
+        settings:
+          template: tfp:settings/ore
+          arguments: { ore_break_power: "${ore_break_power}" }
+        behavior:
+          type: tfp:ore_block                  # our behaviour: collapse trigger, prospecting data
+        state:
+          template: tfp:block_state/ore_overlay
+          arguments:
+            ore_state_visual: ${ore_visual}
+            ore_overlay_model: tfp:block/ore/${ore_id}/${ore_rock}
+            ore_rock_texture: tfp:block/rock/raw/${ore_rock}
+            ore_overlay_texture: tfp:block/ore/${ore_id}
+```
+
+`tfp:block_state/ore_overlay` merges the visual (`auto_state` or explicit `state:`) with a model whose `generation.parent` is `tfp:block/ore` (copied from TFC `assets/tfc/models/block/ore.json`, base + overlay layers). This is a design sketch; verify the template merge behaviour with `debug: true` on one entry before generating thousands.
+
+Datagen decides between `auto_state` and an explicit `state:` itself, from the allocation plan (§7), so the result is deterministic and doesn't depend on CE's allocation order.
 
 ## 5. Example: small ore piece on a button state
 
