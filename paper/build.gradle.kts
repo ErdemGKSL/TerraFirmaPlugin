@@ -24,3 +24,5 @@ tasks.test {
         .withPropertyName("contentData")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }
+// M1-TEST-02: MockBukkit for listener/command/PDC tests (fakes of our adapter interfaces live in src/test).
+dependencies { testImplementation(libs.mockbukkit) }

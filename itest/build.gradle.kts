@@ -9,14 +9,25 @@ plugins {
     id("tfp.paper-conventions")
     id("xyz.jpenilla.run-paper")
 }
-dependencies { compileOnly(project(":paper")) }
+dependencies {
+    compileOnly(project(":paper"))
+    // Provided by the server; the Log4j appender that watches the server log (Log4jTap).
+    compileOnly(libs.log4j.core)
+    testImplementation(project(":paper"))
+    testImplementation(libs.log4j.core)
+}
+tasks.processResources {
+    val props = mapOf("version" to project.version.toString())
+    inputs.properties(props)
+    filesMatching("paper-plugin.yml") { expand(props) }
+}
 
 val mc = providers.gradleProperty("mc").orElse("26.3")
 val platform = providers.gradleProperty("platform").orElse("paper")
 val java25 = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
 val runDir = layout.buildDirectory.dir(mc.zip(platform) { v, p -> "selftest-run/$p-$v" })
 val pluginJar = project(":dist").tasks.named<Jar>("shadowJar")
-// The self-test plugin descriptor; absent until M1-TEST-01 lands.
+// The self-test plugin descriptor (M1-TEST-01).
 val selfTestDescriptor = layout.projectDirectory.file("src/main/resources/paper-plugin.yml")
 
 val runSelfTest = tasks.register<RunServer>("runSelfTest") {

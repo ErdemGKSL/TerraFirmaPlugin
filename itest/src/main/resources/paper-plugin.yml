@@ -1,0 +1,10 @@
+name: TerraFirmaPluginSelfTest
+version: '${version}'
+main: dev.tfp.itest.SelfTestPlugin
+api-version: '1.21.11'
+folia-supported: true
+description: In-server self-test (M1-TEST-01). Inactive unless the server runs with -Dtfp.selftest=true.
+# join-classpath: the cases call TfpPlugin's services directly. The client plugins load before the main plugin.
+dependencies:
+  server:
+    TerraFirmaPlugin: { load: BEFORE, required: true, join-classpath: true }
