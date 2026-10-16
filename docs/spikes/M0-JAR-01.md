@@ -61,6 +61,6 @@ Static (`spikes/run/jar01/static-nms.txt`): no `net/minecraft` or `craftbukkit` 
 ## Open / UNVERIFIED
 - Adventure 5.x behaviour is not proven as a version fact (see above).
 - `MAP_COLOR` / `SWING_ANIMATION` not checked.
-- The `LimitedRegion` Vector-method claim conflicts with the probe. Re-check on 26.3 by hand before writing code that depends on either result.
+- **Resolved in favour of the runtime probe:** the Vector block methods on `LimitedRegion` are present on 26.3 (reflection, all four targets). The static reading that they were missing was wrong. Do not write code that relies on the static reading.
 - Folia 1.21.11 needed one rerun; the first attempt's timeouts were not diagnosed. The rerun did not reproduce them, so the cause (machine load) is not proven.
 - Only one rerun was done. The result is a single 54/54 pass on the rerun target.
