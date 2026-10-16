@@ -13,17 +13,30 @@ The principle: **the visual vanilla state decides the hitbox, outline, client mo
 
 ## 1. Budget sources
 
-| Source | Approx. states | Shape | How |
-|---|---|---|---|
-| `auto_state: solid` (note_block + mushroom blocks) | ~1290 (1.21.x), ~1490 (26.1+) | full cube | auto, stable allocation cached in `cache/visual_block_states.json` |
-| Explicit unused vanilla full cubes | several hundred | full cube | `state: minecraft:<block>[...]` + `model` |
-| `tintable_leaves` / `leaves` / `non_tintable_leaves` pools | ~26 per leaf type × 11 | leaves (biome-tinted if tintable) | `auto_state` |
-| `lower_tripwire` / `higher_tripwire` | 126 | no collision, low outline | `auto_state` |
-| `sapling`, `sugar_cane`, `cactus`, `kelp`, vines pools | small | plant shapes | `auto_state` |
-| Buttons (explicit) | 14 types × 24 states | tiny, no collision | explicit state + model (buttons use `variants`, not multipart) |
-| `transparent` + `entity_renderer` | unlimited | the chosen base's shape | shared `auto_state: {type: sugar_cane, id: transparent}` or barrier |
+Verified counts (default `mappings.yml`, fresh install; `research-report.md` §0, §10):
 
-Counts are from the CE research report §5. Re-check them with `/ce debug auto-state-usage <group>` on each supported MC version.
+| Source | 1.21.4–1.21.11 | 26.1+ | Shape | How |
+|---|---|---|---|---|
+| `auto_state: solid` (note_block 1100/1300 + mushroom 189, **same objects**, not additive) | 1289 | 1489 | full cube | auto |
+| Explicit verified full cubes: stone family 44, ores 24 states (redstone ores ×2 `lit`), wool 16, concrete 16, concrete powder 16, terracotta 17, glazed terracotta 64 | **197** | 197 | full cube, own SoundType | `state:` + model, plus mappings to hide real ones |
+| More explicit full cubes (vanilla planks, logs/wood × axis, bricks, quartz, prismarine, copper blocks, coral blocks, mud bricks, ...) | not yet audited | | full cube | Datagen keeps a **curated, audited list**. Check each one for client prediction and render layer first |
+| Leaves pools (dry + waterlogged) | 117 + 117 (tintable 65 + 65) | same | full, cutout | auto |
+| Tripwire (lower + higher) | 63 + 63 | same | no collision | auto |
+| Plant pools: cave_vines 48, kelp 25, weeping 25, twisting 25, sugar_cane 15, cactus 15, pressure_plate 28, sapling 8; chorus **0** | | | plant shapes | auto |
+| Buttons (explicit) | 336 states, but **pair `powered=false/true` with the same model** → 168 looks | same | tiny, no collision | explicit |
+| Carpets 17 (not pale_moss), wood/stone pressure plates 28 | | | 1/16, flat | explicit |
+| Vanilla crop ages (wheat, carrots, potatoes, beetroots, stems, nether wart, torchflower, pitcher, cocoa; **not** sweet_berry_bush) | ~80 | same | crop outlines, no collision | explicit; map the vanilla crops away |
+| Freed states in no auto group (doors, trapdoors, gates, copper slabs/stairs/grates/bars/chains/lanterns, anvils...) | 1900 | 2164 (26.3: 2242) | per block | explicit full state string |
+| `transparent` + `entity_renderer` | 1 state for unlimited blocks | | of the chosen visual | `auto_state: {type: sugar_cane, id: transparent}`, or `barrier` for full collision |
+
+**Budget warning:** TFC's full cubes are ~1125 graded ores + ~210 rock variants + soils/sand + wood. That exceeds solid (1289) + the verified explicit cubes (197) on 1.21.x. The datagen allocator must:
+1. reuse identical models (hardened = raw);
+2. audit additional vanilla full-cube blocks;
+3. report the shortfall per MC version.
+
+Only if it still doesn't fit, raise it with the user (e.g. merge ore grades visually on 1.21.x only). Never decide silently.
+
+The installed `mappings.yml` is frozen at first extraction, so pool sizes vary per server. Read `AutoStateGroup` candidate counts at runtime after `CraftEngineReloadEvent` and warn on shortfall.
 
 ## 2. TFC family → visual base
 

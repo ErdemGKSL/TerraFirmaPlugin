@@ -77,11 +77,18 @@ Edit with a comment-preserving YAML editor that changes the single key and leave
 | CraftEngine | `misc.delay-configuration-load` | `false` | Spawn chunks of the TFC world must generate with CE configs loaded and worldgen hooked | yes |
 | CraftEngine | `block.serverside-blocks` | ≥ our state count + margin (from the datagen report) | Enough real server blocks for every TFC state | yes |
 | CraftEngine | `resource-pack.merge-external-zip-files` | contains `BetterModel/build.zip` (default already) | BetterModel pack merged into CE's pack | no |
+| CraftEngine | `resource-pack` `supported-version.min` | ≥ `1.21.4` | Otherwise CE allocates custom-model-data and claims `floats[0]`, which we use for item state visuals | no (pack rebuild) |
+| CraftEngine | `exclude-core-shaders` | `false` | `true` would delete BetterHud's text shader | no (pack rebuild) |
+| CraftEngine | `resources/remove_shulker_head/pack.yml` `enable` | `false` | Its old-format core shader may break 1.21.6+/26.x clients | no (pack rebuild) |
+| CraftEngine | `chunk-system.cache-system` | `true` (default) | Populator writes into neighbour chunks must not be lost | yes |
+| CraftEngine | `chunk-system` storage for TFC worlds | not `none`, worlds not blacklisted | Block-entity data would be lost on unload | yes |
 | BetterHud | `default-hud` | remove `test_hud` | Demo HUD otherwise shown to everyone | no (reload) |
 | BetterHud | `merge-with-external-resources` | `true` (default) | BetterHud merges into CE's pack | no |
 | BetterHud | `pack-type` | `zip` or `folder` (not `none`) | Required for CE merge | no |
 | BetterHud | `enable-self-host` | `false` | CE hosts the single merged pack | no |
 | BetterModel | `pack-type` | `zip`, `build-folder-location` default | Path CE merges by default | no |
+
+**CraftEngine never builds the resource pack at startup.** After the installer writes or changes our CE pack (first install, plugin update), trigger a full CE reload/pack build once CE has finished loading (after the first `CraftEngineReloadEvent`), so players actually receive the new pack.
 
 If a restart-requiring key changed, log a clear "restart required" banner, and run in a degraded mode that doesn't generate TFC chunks until the restart.
 

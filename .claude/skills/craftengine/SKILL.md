@@ -37,7 +37,7 @@ resource pack: that vanilla state's blockstate variant → our model
    - `auto_state: solid` takes from note block (~1100, +200 on 26.1+) + mushroom blocks (189).
    - **Explicit `state: minecraft:<vanilla>` + `model`** on vanilla blocks that never exist in a TFC world: stone family, deepslate, vanilla ores, wool ×16, concrete ×16, terracotta ×17, glazed terracotta (×4 facings), concrete powder, vanilla planks/logs (each axis is a state). This **rewrites that vanilla state for everyone**, so also add `block_state_mappings` sending real instances elsewhere if they could ever appear (other worlds, creative), and remove them from recipes/loot.
    - Ore grades (poor/normal/rich) × 21 rocks get **separate textures**. The budget allows it with the two pools above. Keep a running count with `/ce debug auto-state-usage solid` and the datagen allocation report.
-2. **Small or odd shapes:** pick the vanilla state with the right hitbox (table in `references/appearance-strategy.md`).
+2. **Small or odd shapes:** pick the vanilla state with the right hitbox (table in `craftengine-visuals-pack` → `references/appearance-strategy.md`).
    - Button (tiny, no collision): small ore pieces, loose rocks, twigs, shells
    - Carpet (1/16): fallen leaves, thin layers
    - lower/higher tripwire (no collision): groundcover, low plants
@@ -46,7 +46,7 @@ resource pack: that vanilla state's blockstate variant → our model
    - Cactus, sugar cane, saplings, crop-like pools: plants
    - Barrier (full, invisible) + renderer: devices that need a full hitbox
    - Bed foot (9/16): low devices
-   Buttons/fences/walls are **multipart or need many states**. CE drops `multipart` when it overrides a blockstate file, so for those use the template pattern: real vanilla state as hitbox + `entity_renderer` drawing the look (`default:block_state/button`, `default:block_state/fence`).
+   Overriding one state works even on vanilla *multipart* blocks: the client merges blockstates per state (verified on 26.1.2). CE only drops `multipart` from *other packs'* files for that block. Fences/walls are still impractical as explicit visuals because they have many connection states, so for those use the template pattern: a real vanilla state as hitbox + `entity_renderer` drawing the look. For buttons, give `powered=false/true` the same model, otherwise client prediction flashes the powered model. Details: `craftengine-visuals-pack`.
 3. **Rare, decorative or dynamic blocks** (anvil top with items, ingot/sheet piles, tool racks, placed items, barrel/pot contents): `entity_renderer` (`item_display`, `text_display`, `block_display`). Use `transparent: true` with a shared `auto_state: {type: sugar_cane, id: transparent}` when the vanilla look must vanish. Prefer `translation`/`rotation` over `position`/`yaw`. Every element is a packet entity per viewer, and entity culling is Premium-only, so keep counts per chunk low.
 
 Two custom blocks may share one explicit state only with the **identical** model; otherwise CE raises a load error.

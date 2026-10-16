@@ -78,7 +78,7 @@ We write the float (e.g. heat fraction from the lazily computed temperature) int
 - Rock walls (189), wood fences/gates (121), plants (74), alabaster/wattle/mud bricks, connected grass sides (`grass`, `clay_grass`, `duff`).
 - **Flatten** when feasible: enumerate the property combinations, take the union of matching `when` parts, and merge their elements into one baked model per combination (apply each part's x/y rotation to its elements; skip combinations that are impossible in game). Good for connected grass (≤16 combos per block).
 - **Renderer** when not: CE templates `default:block_state/fence`/`wall`-style. A real vanilla base state provides the shape, and `entity_renderer` draws post + sides.
-- Never use a vanilla *multipart* block as an explicit visual with a model override.
+- Overriding a single state of a vanilla multipart block works (the client merges blockstates per state; verified on 26.1.2). The practical limit is the number of states you'd have to cover, so fences and walls stay renderer-based.
 
 ## 9. Two-layer models
 TFC's `tfc:block/ore` stacks a base cube (`#all`) and an overlay cube (`#overlay`, cutout). Copy the parent model as `tfp:block/ore` and keep using it via CE `generation.parent`. Vanilla clients render two-layer cubes fine. Check render type: vanilla chooses cutout from the texture alpha, and the TFC `render_type` field (14 models) is ignored by vanilla. Verify those 14 visually.
