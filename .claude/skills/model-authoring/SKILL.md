@@ -5,7 +5,7 @@ description: How Claude creates and fixes 3D models for this project (BetterMode
 
 # Model authoring (generate → validate → render → look → fix)
 
-Toolchain: `tools/models/`. Research and alternatives: `docs/research/3d-model-generation.md`. Runtime rules for entity models: the `bettermodel` skill. Textures: the `image-requests` skill.
+Toolchain: `tools/models/`. Research and alternatives: `docs/research/3d-model-generation.md`. Runtime rules for entity models: the `bettermodel` skill. Textures: the `image-generation` skill.
 
 ## Principles
 1. **Never hand-write `.bbmodel`/model JSON.** Write or extend a *generator* (`tfpmodels/`) plus a small *parameter file*. Generators give symmetry, consistent bone names, packed UVs, deterministic UUIDs and clean diffs, and a fix in one place fixes every species.
@@ -22,7 +22,7 @@ node render/render.mjs out/<id>.bbmodel out/render walk 0,0.25,0.5,0.75
 - **Species file** (`species/<id>.json`): `id` (BetterModel id `[a-z0-9_.]+`, prefix `tfp_`), `rig`, part sizes (`body`, `leg`, `neck`, `head`, `snout`, `ear`, `tail`), `extras` (`attach`: bone, `name`, `mirror`, `offset` **relative to the attach bone's pivot**, `size`, `rotation`) and `anim` tuning. The example is `species/tfp_example_bovine.json`.
 - **Rigs** (`tfpmodels/rigs.py`) and their **bone-name contract**: `root → body → neck → h_head` (the `h_` prefix makes BetterModel follow look direction), legs `leg_fl/fr/bl/br`, `tail`; `*_l`/`*_r` pairs are mirrored and share UV (`uv_key`). Only `quadruped` exists so far. Add `biped_bird`, `fish`, `serpentine` the same way, keeping the naming contract, because the animation library and BetterModel rely on it.
 - **Never name a bone with BetterModel hitbox tags** (`b_`, `ob_`, `p_`, `sp_`, `hitbox`); the validator rejects them.
-- **UVs:** `uv.pack_box_uv` shelf-packs box UVs into a power-of-two texture. `generate` writes `<id>_uv_template.png` (one colour per face direction) and embeds it as the placeholder texture. To get the real texture, file an `IMAGES.md` request that attaches the template, size, face colours and TFC palette references, then embed the result.
+- **UVs:** `uv.pack_box_uv` shelf-packs box UVs into a power-of-two texture. `generate` writes `<id>_uv_template.png` (one colour per face direction) and embeds it as the placeholder texture. To get the real texture, generate it with the imagegen MCP (`image-generation` skill), passing the template as a reference with size, face colours and TFC palette references, then embed the result.
 - **Animation library** (`tfpmodels/anims.py`): `idle`, `walk` (diagonal gait), `eat` (`override: true`, so it layers over walk). Use BetterModel's exact names (`idle`, `walk`, `run`, `eat`, `sleep`, `attack`, `swim`, ...).
 - **Rotation sense (Blockbench 5, verified by render):** `-x` tilts an upward part forward (−z) and pitches a forward-facing part down. Check signs with a render rather than reasoning about them.
 
@@ -54,4 +54,4 @@ Current TFC state: 28/44 pass `--lenient`. The rest have stale animation channel
 Same principle: a small Python box DSL → JSON → render. Rotation limits depend on the oldest supported client. For **1.21.4**, use a single axis, 22.5° steps, within ±45°. Free angles arrived in 1.21.6, multi-axis rotation in 1.21.11. Prefer TFC's existing models (`tfc-asset-migration`). CraftEngine wiring: `craftengine-visuals-pack`.
 
 ## Definition of done for a model
-Validator clean → renders reviewed at the relevant angles and times → texture from `IMAGES.md` embedded and re-rendered → in-game check through the `plugin-testing` self-test/showcase (BetterModel scale, pivots, Molang) → the generator inputs and outputs committed together.
+Validator clean → renders reviewed at the relevant angles and times → generated texture embedded and re-rendered → in-game check through the `plugin-testing` self-test/showcase (BetterModel scale, pivots, Molang) → the generator inputs and outputs committed together.

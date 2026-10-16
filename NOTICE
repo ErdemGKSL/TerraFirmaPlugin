@@ -15,3 +15,8 @@ Third-party material with other licenses (inherited from TerraFirmaCraft):
   - rock_slide_long_3: CC-BY-4.0, modified from https://freesound.org/people/Benboncan/sounds/60085/
   - bsc5p_radec_min.json star catalog: CC-BY-4.0, from https://github.com/frostoven/BSC5P-JSON-XYZ
 Add an entry here whenever an asset with a different license is copied into content/.
+
+.claude/skills/imagegen-mcp/ is the Agent Skill shipped by codex-imagegen-mcp
+(https://github.com/ShalomObongo/codex-imagegen-mcp), Apache-2.0, itself adapted from
+OpenAI Codex's imagegen skill (Apache-2.0). See its LICENSE.txt. Installed unmodified by
+`npx codex-imagegen-mcp install claude-code --project`.

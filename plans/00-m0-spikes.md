@@ -41,7 +41,7 @@ Test servers: run-paper with CraftEngine 26.9.x, BetterModel 3.5.x and BetterHud
   - Done when: a grass colour switch is visible after a chunk resend, the lore never persists into the server stack, and the timings are documented. Decide PacketEvents vs alternative.
 
 - [ ] **M0-GUI-01 Outside-inventory button** · deps: M0-VIS-01 · skills: craftengine-gui-furniture
-  - Do: CE `lang` override of `container.crafting` with a `minecraft:default` glyph (the IMAGES.md placeholder). Check whether an empty-cursor click outside the player inventory sends a slot −999 click on 1.21.11 and 26.3 clients. Try the alternative trigger (`PlayerRecipeBookSettingsChangeEvent`). Check a textured chest GUI using the alignment math.
+  - Do: CE `lang` override of `container.crafting` with a `minecraft:default` glyph (the `ui-inventory-tab-button` placeholder, see `image-generation` backlog). Check whether an empty-cursor click outside the player inventory sends a slot −999 click on 1.21.11 and 26.3 clients. Try the alternative trigger (`PlayerRecipeBookSettingsChangeEvent`). Check a textured chest GUI using the alignment math.
   - Done when: the chosen trigger works on both versions, a textured 6-row GUI aligns pixel-perfect at GUI scales 1–4, and the caveats (crafting table title, creative inventory) are documented.
 
 - [ ] **M0-BM-01 BetterModel carrier & lifecycle** · deps: M0-ENV-01 · skills: bettermodel, model-authoring

@@ -31,8 +31,8 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
   - Do: inventory/container restrictions (e.g. large items not in small vessels), overburdened effect from heavy items, tooltip lines.
   - Done when: rules tested; self-test inventory restrictions.
 
-- [ ] **M3-SURV-06 Survival HUD** · deps: M3-SURV-02, M3-SURV-03, M3-SURV-04, M1-INT-04 · skills: betterhud, image-requests
-  - Do: BetterHud layouts: health bar + "45/50", hunger, thirst, held-item temperature popup (M3-HEAT-01). Hide vanilla hearts/food/air. Art from TFC `textures/gui/icons*`; extra art via `IMAGES.md`.
+- [ ] **M3-SURV-06 Survival HUD** · deps: M3-SURV-02, M3-SURV-03, M3-SURV-04, M1-INT-04 · skills: betterhud, image-generation
+  - Do: BetterHud layouts: health bar + "45/50", hunger, thirst, held-item temperature popup (M3-HEAT-01). Hide vanilla hearts/food/air. Art from TFC `textures/gui/icons*`; extra art via `image-generation`.
   - Done when: visual checklist at GUI scales 1–4 on 1.21.11 and 26.3.
 
 ## Heat & fire

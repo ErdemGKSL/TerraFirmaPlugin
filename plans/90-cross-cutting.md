@@ -4,12 +4,12 @@ Work that runs alongside every milestone. These tasks are continuous: tick them 
 
 ## Art & models
 
-- [ ] **X-ART-01 Image request flow per milestone** · skills: image-requests
-  - Do: at the start of each milestone, list the 2D art that TFC doesn't provide (GUI overlays, HUD frames, buttons, icons) and file the `IMAGES.md` requests with exact sizes and slot coordinates. Use placeholders in `content/art/_placeholder/` until approved.
+- [ ] **X-ART-01 Image list per milestone** · skills: image-generation
+  - Do: at the start of each milestone, list the 2D art that TFC doesn't provide (GUI overlays, HUD frames, buttons, icons) and add them to the `image-generation` skill's `references/backlog.md` with exact sizes and slot coordinates, then generate them through the imagegen MCP. Use placeholders in `content/art/_placeholder/` until approved.
   - Done when (per milestone): no placeholder art remains in the milestone's features.
 
-- [ ] **X-ART-02 Codex workflow upkeep**
-  - Do: keep `AGENTS.md`, `.agents/skills/generate-required-images` and `tools/images/postprocess.py` working. Add post-process options when new art types need them (animation strips, GUI sheets).
+- [ ] **X-ART-02 Image pipeline upkeep**
+  - Do: keep the `imagegen` entry in `.mcp.json`, the `image-generation` skill and `tools/images/postprocess.py` working. Add post-process options when new art types need them (animation strips, GUI sheets).
 
 - [ ] **X-MOD-01 Model generator coverage** · skills: model-authoring
   - Do: add rigs as they become needed (`biped_bird` for M5 poultry, `fish`, `serpentine`), extend the animation library (`run`, `sleep`, `attack`, `swim`), keep the validator in CI for `content/` models.

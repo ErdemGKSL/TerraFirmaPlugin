@@ -38,7 +38,7 @@ From the `plugin-testing` skill:
 3. Time-based state is **lazy** (calendar timestamps), with a lazy-vs-stepped equivalence test.
 4. World reactions use **decide async, apply sync** (`AsyncDecisionPipeline`). Callbacks only snapshot and enqueue.
 5. Self-test cases pass on **Paper and Folia** (1.21.11 and 26.3).
-6. Visuals: `/tfp debug showcase <feature>` exists, and the visual checklist is done. Art requests go in `IMAGES.md`, models through `model-authoring`.
+6. Visuals: `/tfp debug showcase <feature>` exists, and the visual checklist is done. 2D art through the `image-generation` skill (imagegen MCP), models through `model-authoring`.
 7. `docs/porting/ledger.md` row updated. Divergences recorded.
 
 ## How agents pick work

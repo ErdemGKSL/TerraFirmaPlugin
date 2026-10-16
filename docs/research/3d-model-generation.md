@@ -225,9 +225,9 @@ Searches for "AI blockbench model generator" / "minecraft model AI" returned onl
 
 - **Box UV:** each cube's texture footprint is the vanilla skin "cross" layout at `uv_offset`, width `2(w+d)`, height `d+h`. Easy to paint, but one texture size per model and no meshes ([Figura wiki](https://wiki.figuramc.org/index.php/Blockbench)). All 44 TFC models use box UV (local scan).
 - **Per-face UV:** arbitrary rectangles per face, multiple textures. Better for blocks (CraftEngine models reference vanilla-style 16×16 block textures by face).
-- **Feeding an image model** (the Codex/ChatGPT workflow, see the `image-requests` skill) **[Opinion]:**
+- **Feeding an image model** (the imagegen MCP, see the `image-generation` skill) **[Opinion]:**
   1. Claude renders a **UV template PNG** at the final size with each face rectangle filled with a flat, distinct colour and labelled (e.g. "head-front"), plus an upscaled (×16) copy for the image model.
-  2. The request in `IMAGES.md` includes the template, the face list, and a palette drawn from existing TFC textures of similar animals.
+  2. The image spec (`art/raw/<id>/notes.md`) includes the template, the face list, and a palette drawn from existing TFC textures of similar animals.
   3. After generation, Claude **downscales with nearest-neighbour or area averaging to the exact size**, quantizes to the palette (≤ ~32 colours), and re-imposes alpha outside UV islands.
   4. Claude re-renders the model headlessly and inspects for seams.
 - **OpenAI image API facts** ([developers.openai.com image guide](https://developers.openai.com/api/docs/guides/image-generation), fetched 2026-10-16):
@@ -346,7 +346,7 @@ Use a loop length equal to one stride (0.8–1.2 s for livestock), legs ±25–3
 1. **Research:** read TFC's `XxxModel.java` (part sizes from `CubeListBuilder`, `PartPose` offsets) and any similar TFC bbmodel. Collect 2–3 real-animal reference images (or ask the image workflow for an orthographic concept sheet: side/front/top at a 1:1 pixel grid).
 2. **Parametric build:** fill a species parameter file. The generator emits the `.bbmodel` with box UV auto-packed, plus a **UV template PNG**.
 3. **Render and review loop** (max ~5 iterations): headless Blockbench contact sheet, then validators, then Claude inspects images against the references, then adjusts parameters.
-4. **Texture request:** append an `IMAGES.md` entry (`image-requests` skill) with exact size, UV template, face labels, palette references and the "pixel art, hard edges, no AA" constraints.
+4. **Texture request:** generate it with the imagegen MCP (`image-generation` skill) from a spec with exact size, UV template, face labels, palette references and the "pixel art, hard edges, no AA" constraints.
 5. **Texture integration:** downscale, palette-snap, mask to islands, embed in the bbmodel (`source` data URL) and re-render. Reject and re-request if seams or misplacement show.
 6. **Animations:** convert TFC `AnimationDefinition`s if present. Otherwise instantiate library animations (`idle`, `walk`, `run`, `eat`, `sleep`, `attack`, + `swim` for aquatic) with species tuning. Render walk frames at ¼-cycle steps; check feet and loop seams.
 7. **In-engine check:** run-paper self-test spawns each animal (see the `plugin-testing` skill). A human eyeballs it in the client; BetterModel issues (scale, pivots, Molang) surface only there.

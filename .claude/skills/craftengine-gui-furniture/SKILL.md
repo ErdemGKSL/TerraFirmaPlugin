@@ -47,7 +47,7 @@ Furniture is a real persisted `ItemDisplay` entity + packet elements + hitboxes 
   - Dispenser/furnace titles are **centred**: balance the total advance to 0. Hopper: titleLabelX 8, slots at `(44+18i, 20)`.
   - These vanilla constants are from client knowledge. Verify in-game on 1.21.11 and 26.x before mass-producing art.
 - Buttons are items in slots (an empty/transparent model + tooltip). Overlays (progress, forging markers) are extra glyphs. Change them with `InventoryView#setTitle` (one `OpenScreen` packet; no more than a few per second).
-- Knapping 5×5 fits a 6-row chest (columns 2–6, rows 0–4). Anvil and other screens likewise. Request the art via `image-requests` with exact slot coordinates.
+- Knapping 5×5 fits a 6-row chest (columns 2–6, rows 0–4). Anvil and other screens likewise. Generate the art via `image-generation` with exact slot coordinates.
 
 ## The "outside the inventory" button (§4.5–4.6)
 - A click outside any window arrives as slot **−999** (`SlotType.OUTSIDE`). The server **can't tell where** outside the click was, so "anywhere outside opens TFC screens" (accepted in the design).

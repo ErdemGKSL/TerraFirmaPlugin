@@ -12,8 +12,7 @@ A from-scratch reimplementation of the **TerraFirmaCraft** mod (TFC, MC 1.21.1 N
 | `ARCHITECTURE.md` | System design: runtime topology, modules, threading model, data/persistence, worldgen, client-visual pipeline, packet layer, lifecycle, testing, open spikes | Before writing or reviewing any code. Keep it updated when the design changes. |
 | `plans/` | Phased TODO plans (M0 spikes → M6 release) with task IDs, deps, skills, TFC refs, and done-criteria. Start at `plans/README.md` | Picking or finishing work |
 | `docs/porting/ledger.md` | Per-feature port status + every **divergence** from TFC | Starting or finishing a feature; whenever behaviour differs from TFC |
-| `IMAGES.md` | Queue of 2D images we need generated (textures, GUI, HUD, icons) | You need art that TFC doesn't have. See the `image-requests` skill. |
-| `AGENTS.md` | Instructions for Codex/ChatGPT, which generates the images listed in `IMAGES.md` | Not for Claude; don't follow it |
+| `.mcp.json` | Project MCP servers: `imagegen` (codex-imagegen-mcp, image generation on the user's ChatGPT plan) | You need art that TFC doesn't have. See the `image-generation` skill. |
 | `NOTICE`, `LICENSE` | Attribution and EUPL-1.2 | Copying any TFC/third-party file |
 
 ## Locked decisions (summary; details in `ARCHITECTURE.md`)
@@ -42,7 +41,7 @@ Skills live in `.claude/skills/`. Load the matching skill **before** acting; mor
 | Plugin startup, load order, installing content into the three plugins, their config edits, `/tfp reload` | `dependency-bootstrap` |
 | Scheduling, async, Folia, packets, persistence, performance | `paper-folia-threading` |
 | Tests, CI, benchmarks, profiling, "is this feature done?" | `plugin-testing` |
-| Needing a 2D image (texture, GUI, HUD art, icon) that doesn't exist | `image-requests` |
+| Needing a 2D image (texture, GUI, HUD art, icon) that doesn't exist | `image-generation` (+ `imagegen-mcp` for the tool details) |
 | Creating or changing 3D models (entity `.bbmodel`, block/item model JSON), animations, converting TFC Java animations | `model-authoring` |
 
 ## Working rules
@@ -52,5 +51,5 @@ Skills live in `.claude/skills/`. Load the matching skill **before** acting; mor
 - Never edit generated content by hand. Fix `tools/datagen` or add an override.
 - Every behaviour that differs from TFC gets a row in the ledger's Divergences table.
 - Ported files carry the EUPL + "Ported from TerraFirmaCraft ... @ commit" header.
-- Don't generate images yourself. Request them in `IMAGES.md` (`image-requests` skill).
+- Generate 2D art only through the imagegen MCP and the `image-generation` skill (style guide, post-processing, raws + prompt kept in `art/raw/<id>/`). Never hand-draw pixels in code.
 - When a design decision changes, update `ARCHITECTURE.md` (and `PRD.md` if scope changes) in the same change.

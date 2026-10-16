@@ -5,7 +5,7 @@
 | Product | TerraFirmaPlugin (working name; final name must be distinct from "TerraFirmaCraft") |
 | Status | Draft, planning phase |
 | License | EUPL-1.2 (open source) |
-| Related | `ARCHITECTURE.md` (how), `docs/porting/ledger.md` (feature status + divergences), `IMAGES.md` (art requests) |
+| Related | `ARCHITECTURE.md` (how), `docs/porting/ledger.md` (feature status + divergences), `.claude/skills/image-generation` (2D art via the imagegen MCP) |
 
 ## 1. Vision
 Bring the full **TerraFirmaCraft** survival experience to **vanilla Minecraft clients** on Paper/Folia servers: no client mods and no modpack, just join the server and accept the resource pack. Everything TFC adds (geology, climate, seasons, primitive technology, metallurgy, food and nutrition, animal husbandry) is rebuilt server-side, with visuals delivered through CraftEngine, BetterModel and BetterHud.
