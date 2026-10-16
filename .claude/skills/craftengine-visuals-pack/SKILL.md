@@ -32,7 +32,31 @@ Sources: `references/research-report.md` (CE @ `b3079c5` + vanilla client jars 1
   - 26.1+: the render layer is per texture, but occlusion still follows the vanilla block, so a see-through texture on a solid visual gives x-ray.
   - ≤1.21.11: the layer is per block. For cutout or translucent TFC blocks on 1.21.x, use leaves/grate/glass-type visuals or `transparent` + renderer.
 
-## Budget and allocation (§10, appearance-strategy.md)
+## Budget and allocation (researched: `docs/research/block-budget-workarounds.md`, per-block data in `docs/research/vanilla-fullcube-supply.csv`)
+
+**Supply** of opaque full-cube visual states (CE default-mapping states excluded):
+
+| | 1.21.4 | 1.21.11 | 26.1.2 | 26.3 |
+|---|---|---|---|---|
+| CE `solid` pool | 1289 | 1289 | 1489 | 1489 |
+| Identity duplicates: render identical to another state, so they're safe even if the vanilla block exists (beehive honey 1–4, target power, double slab → full block, infested, waxed copper, tnt) | 126 | 126 | 126 | 165 |
+| Absent from a TFC world: map real ones away, block vanilla mechanics that create them | 471 | 475 | 475 | 496 |
+| Nether/End only: usable only if those dimensions are disabled | 67 | 67 | 67 | 67 |
+| **Total** | 1953 | 1957 | 2157 | 2217 |
+
+**Demand** (TFC, deduped by model content; `scratchpad` scripts reproduced in the report):
+- ores 1113 (53 ore types × 21 rocks; flatten base+overlay into one texture per ore×rock, because ≤1.21.11 solid-layer visuals ignore alpha);
+- rock ~190 (hardened **shares** raw's visual);
+- logs/wood 240, planks 21, soils ~65, connected grass ~48, sand/sandstone ~28, deposits 84;
+- deco: metal blocks 61, alabaster 51, crate/workbench 40.
+
+Mechanical blocks (clutch/encased axle, 180) are rare, so they go to `entity_renderer` and take no budget. Core terrain ≈ 1790 fits every version. With deco ≈ 1940, it fits 26.x with ~250 spare, but 1.21.x is ~0–70 short depending on Nether/End. Close that gap by moving the rarest deco (metal blocks) to renderers or the leaves pool (sparse blocks only). **Merging ore grades is not needed.**
+
+Allocation order: `solid` → identity duplicates → (Nether/End) → absent-in-TFC (clean ones before minor-caveat ones) → leaves pool for sparse cubes → `transparent` + renderer. Reserve option: exposed-only overlay for the rarest gem ores. It works if each exposed face gets a display positioned in the air cell and shifted back 0.01 (inside the block the light is 0, so it renders black), but Community CE has no culling, so it's only for rare ores. Measure exposed faces per chunk first.
+
+Also required: a datapack that edits client-relevant tags for repurposed blocks (ambient-sound tags, `#crystal_sound_blocks`, `#impermeable` for waterlogged double slabs). Also intercept vanilla mechanics that would create repurposed blocks in a TFC world: lava+water → cobblestone/stone/obsidian/basalt, concrete-powder hardening, copper oxidation, recipes and loot.
+
+### Allocator rules (from the earlier analysis)
 - The verified explicit full cubes total only **197** (stone family, ores, wool, concrete, concrete powder, terracotta, glazed terracotta). TFC's full cubes (≈1125 graded ores + ≈210 rock variants + soils + wood) **exceed solid + 197 on 1.21.x**. The datagen allocator must:
   1. dedupe identical models;
   2. use an **audited, curated** list of further vanilla full-cube blocks (planks, logs/wood × axis, bricks, copper, coral, quartz, prismarine...), each checked for prediction and render layer;
