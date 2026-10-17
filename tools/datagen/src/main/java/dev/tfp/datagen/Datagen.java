@@ -76,6 +76,7 @@ public final class Datagen {
             throw new DatagenException("unresolved model/texture references: " + report.missing());
         }
         VisualOutputs.run(out, demand, model -> modelContent(out, model));
+        BetterHudPack.write(out);
         out.put("third-party.json", "[]\n"); // no non-EUPL file is copied yet (checked by :checkNotice)
         out.put("reports/datagen-summary.json", Json.write(report.toJson()));
         out.put(Manifest.FILE, Manifest.build(tfc.head(), tfc.inputs(), out.files()));
