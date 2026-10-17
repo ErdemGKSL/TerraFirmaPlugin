@@ -5,6 +5,8 @@
  */
 package dev.tfp.paper.integration;
 
+import dev.tfp.core.weather.PrecipitationType;
+
 /**
  * The values one player's HUD shows, as an immutable snapshot. Features publish a new snapshot from the
  * player's own thread when a value changes; HUD placeholders read the latest one from any thread
@@ -16,11 +18,18 @@ package dev.tfp.paper.integration;
  * @param hunger 0..20 (vanilla food scale)
  * @param heldTemperature temperature of the held item in °C, 0 if none or cold
  * @param ambientTemperature the player's ambient temperature in °C (M2-CLIM-03), NaN until the first reading
+ * @param precipitation what falls at the player's position (M2-WTH-01), NONE until the first decision
  */
 public record HudSnapshot(double health, double maxHealth, double thirst, double hunger, double heldTemperature,
-        double ambientTemperature) {
+        double ambientTemperature, PrecipitationType precipitation) {
     /** Shown before the first publish. */
     public static final HudSnapshot DEFAULT = new HudSnapshot(50, 50, 100, 20, 0);
+
+    /** A snapshot with no precipitation decision yet. */
+    public HudSnapshot(double health, double maxHealth, double thirst, double hunger, double heldTemperature,
+            double ambientTemperature) {
+        this(health, maxHealth, thirst, hunger, heldTemperature, ambientTemperature, PrecipitationType.NONE);
+    }
 
     /** A snapshot with no ambient temperature yet. */
     public HudSnapshot(double health, double maxHealth, double thirst, double hunger, double heldTemperature) {
@@ -28,22 +37,26 @@ public record HudSnapshot(double health, double maxHealth, double thirst, double
     }
 
     public HudSnapshot withThirst(double value) {
-        return new HudSnapshot(health, maxHealth, value, hunger, heldTemperature, ambientTemperature);
+        return new HudSnapshot(health, maxHealth, value, hunger, heldTemperature, ambientTemperature, precipitation);
     }
 
     public HudSnapshot withHealth(double value, double max) {
-        return new HudSnapshot(value, max, thirst, hunger, heldTemperature, ambientTemperature);
+        return new HudSnapshot(value, max, thirst, hunger, heldTemperature, ambientTemperature, precipitation);
     }
 
     public HudSnapshot withHunger(double value) {
-        return new HudSnapshot(health, maxHealth, thirst, value, heldTemperature, ambientTemperature);
+        return new HudSnapshot(health, maxHealth, thirst, value, heldTemperature, ambientTemperature, precipitation);
     }
 
     public HudSnapshot withHeldTemperature(double value) {
-        return new HudSnapshot(health, maxHealth, thirst, hunger, value, ambientTemperature);
+        return new HudSnapshot(health, maxHealth, thirst, hunger, value, ambientTemperature, precipitation);
     }
 
     public HudSnapshot withAmbientTemperature(double value) {
-        return new HudSnapshot(health, maxHealth, thirst, hunger, heldTemperature, value);
+        return new HudSnapshot(health, maxHealth, thirst, hunger, heldTemperature, value, precipitation);
+    }
+
+    public HudSnapshot withPrecipitation(PrecipitationType value) {
+        return new HudSnapshot(health, maxHealth, thirst, hunger, heldTemperature, ambientTemperature, value);
     }
 }

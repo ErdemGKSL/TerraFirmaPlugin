@@ -39,6 +39,9 @@ public final class OverworldClimate {
 
     private static final long CLIMATE_SEED_SALT = 719283741234L;
     private static final long DAILY_SALT = 1986239412341L;
+    private static final long RAIN_LENGTH_SALT = 8917234598231321L;
+    private static final long RAIN_INTENSITY_SALT = 9797234798136713L;
+    private static final long RAIN_SEGMENT_LENGTH = 66_000;
 
     private final long climateSeed;
     private final float temperatureScale;
@@ -101,6 +104,44 @@ public final class OverworldClimate {
         final float rainAverage = chunk.averageRainfall();
         final float fractionOfYear = CalendarPhase.of(calendarTicks, daysInMonth).fractionOfYear();
         return rainVariance == 0 ? rainAverage : TfcMath.triangle(rainVariance * rainAverage, rainAverage, 1f, fractionOfYear + 0.75f);
+    }
+
+    /**
+     * TFC {@code OverworldClimateModel.getRain}: the rain intensity at {@code calendarTicks}, or {@code -1} when no rain
+     * segment covers that time. Time is split into segments of 66,000 ticks, each holding one rain window of 12,000 to
+     * 24,000 ticks, placed away from the neighbouring segments' windows. Inside a window the value is the average of a
+     * per-segment random intensity and a triangle that peaks at the window's centre, so it is in [0, 1]. The rain
+     * decision also needs the local rainfall ({@code PrecipitationType.decide}); this value alone does not mean rain.
+     */
+    public float rainIntensity(long calendarTicks) {
+        final long segmentId = Math.floorDiv(calendarTicks, RAIN_SEGMENT_LENGTH);
+        final long segmentLeft = segmentId * RAIN_SEGMENT_LENGTH;
+
+        // The next segment's window, to keep this one from merging with it
+        final XoroshiroRandom nextSegment = seededRandom(segmentId + 1, RAIN_LENGTH_SALT);
+        final int nextLength = nextSegment.nextIntBetweenInclusive(12_000, 24_000);
+        final int nextLeft = (int) (nextSegment.nextFloat() * (RAIN_SEGMENT_LENGTH - 12_000 - nextLength));
+
+        // The boundary left on the right, computed exactly as TFC does (Math.min over the next window's offset)
+        final int boundaryRight = Math.min(0, 12_000 - nextLeft);
+
+        // This segment's window
+        final XoroshiroRandom segment = seededRandom(segmentId, RAIN_LENGTH_SALT);
+        final int length = segment.nextIntBetweenInclusive(12_000, 24_000);
+        final int left = (int) (segment.nextFloat() * (RAIN_SEGMENT_LENGTH - boundaryRight - nextLength));
+
+        if (calendarTicks < segmentLeft + left || calendarTicks > segmentLeft + left + length) {
+            return -1f;
+        }
+
+        // A separate source for the intensity, so it stays consistent across calls for the same segment
+        final XoroshiroRandom intensity = seededRandom(segmentId, RAIN_INTENSITY_SALT);
+        final int halfLength = length / 2;
+        final float rainIntensity = intensity.nextFloat();
+        final float timeIntensity = 1f - Math.abs((segmentLeft + left + halfLength) - calendarTicks) / (float) halfLength;
+
+        // Average the two factors
+        return 0.5f * (rainIntensity + timeIntensity);
     }
 
     /** TFC {@code getAverageGroundwater}: base groundwater plus average rainfall, clamped to [0, 500] mm. */

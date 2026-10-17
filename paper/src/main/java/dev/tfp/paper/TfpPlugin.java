@@ -24,6 +24,7 @@ import dev.tfp.paper.blockdata.PdcChunkDataStore;
 import dev.tfp.paper.boot.CompatCheck;
 import dev.tfp.paper.calendar.CalendarService;
 import dev.tfp.paper.climate.PlayerClimateService;
+import dev.tfp.paper.weather.PrecipitationService;
 import dev.tfp.paper.boot.TfpCommands;
 import dev.tfp.paper.boot.TfpCommands.Reply;
 import dev.tfp.paper.config.ConfigService;
@@ -119,6 +120,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     private volatile CalendarService calendar;
     /** M2-CLIM-03: the player's ambient temperature for the HUD, and the reading for {@code /tfp debug chunk}. */
     private volatile PlayerClimateService climate;
+    /** M2-WTH-01: what falls at the player's position (rain or snow), for {@code /tfp debug chunk}. */
+    private volatile PrecipitationService precipitation;
     /** {@code /tfp debug showcase}: our block ids from the shipped id_map.json, read once. */
     private volatile CompletableFuture<List<String>> showcaseIds;
     private final HudSnapshotCache hudCache = new HudSnapshotCache(() -> {
@@ -332,6 +335,12 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         getServer().getPluginManager().registerEvents(playerClimate, this);
         playerClimate.start(() -> getServer().getOnlinePlayers());
 
+        // M2-WTH-01: rain or snow at each player's position, decided off-thread (no world change yet).
+        PrecipitationService playerPrecipitation = new PrecipitationService(clock, scheduler, hudCache);
+        precipitation = playerPrecipitation;
+        getServer().getPluginManager().registerEvents(playerPrecipitation, this);
+        playerPrecipitation.start(() -> getServer().getOnlinePlayers());
+
         // We load at STARTUP, PacketEvents at POSTWORLD: it is loaded (its API exists after its onLoad) but not yet
         // enabled here. Registering the listener now is what the M0-NET-01 spike did; isPluginEnabled is false here.
         boolean packetEvents = getServer().getPluginManager().getPlugin(PacketLayers.PACKETEVENTS) != null;
@@ -543,7 +552,21 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         if (!scheduled) {
             out.complete(Reply.error("command.player_only"));
         }
-        return out.thenCompose(base -> withClimate(player, base));
+        return out.thenCompose(base -> withClimate(player, base)).thenCompose(base -> withPrecipitation(player, base));
+    }
+
+    /** {@code /tfp debug chunk}, weather part (M2-WTH-01): the precipitation decided now at the player's position. */
+    private CompletableFuture<Reply> withPrecipitation(Player player, Reply base) {
+        PrecipitationService service = precipitation;
+        if (!base.ok() || service == null) {
+            return CompletableFuture.completedFuture(base);
+        }
+        return service.readNow(player).thenApply(now -> {
+            List<String> lines = new ArrayList<>(base.details());
+            lines.add(now.map(type -> "precipitation here: " + type.name())
+                    .orElse("precipitation here: the player left"));
+            return base.withDetails(lines);
+        });
     }
 
     /** {@code /tfp debug chunk}, climate part (M2-CLIM-03): the value computed now next to what the HUD shows. */
