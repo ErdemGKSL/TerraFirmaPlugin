@@ -98,7 +98,7 @@ class InstallerTest {
         assertThat(Files.readString(plugins.resolve("BetterHud/packs/tfp/huds/tfp.yml"))).isEqualTo("tfp_hud: {}\n");
         assertThat(Files.readString(plugins.resolve("CraftEngine/config.yml")))
                 .isEqualTo(CE_CONFIG.replace("delay-configuration-load: true", "delay-configuration-load: false"));
-        assertThat(Files.readString(plugins.resolve("BetterHud/config.yml"))).contains("default-hud: []\nmerge-with");
+        assertThat(Files.readString(plugins.resolve("BetterHud/config.yml"))).contains("default-hud: [tfp_date_hud]\nmerge-with");
         assertThat(Files.readString(plugins.resolve("CraftEngine/resources/remove_shulker_head/pack.yml"))).contains("enable: false");
         assertThat(first.status().restartRequired()).isTrue();
         assertThat(first.status().degraded()).isTrue();
@@ -343,6 +343,56 @@ class InstallerTest {
         assertThat(hud.reloads()).isZero(); // we only wait; the build reloads BetterHud itself
     }
 
+    /** BetterHud merged inside the first build (not reloading when it finished): no second build. */
+    @Test
+    void noSecondRebuildWhenBetterHudMergedIntoTheFirstBuild() throws Exception {
+        shipAllocation(L3A);
+        FakeHudReloader hud = new FakeHudReloader();
+        FakePackRebuilder ce = new FakePackRebuilder();
+        PackRebuildTrigger t = new PackRebuildTrigger(run(L3A), stateDir(), ce, hud, new FakeVisualPools(), null, null,
+                500, Runnable::run, LOG);
+        t.onCraftEngineReload();
+        t.onCraftEngineReload(); // the rebuild's own CraftEngine reload
+        t.settled().get(5, java.util.concurrent.TimeUnit.SECONDS);
+        Thread.sleep(1200); // nothing else is scheduled
+        assertThat(ce.requests()).isEqualTo(1);
+    }
+
+    /**
+     * m2 date-paper-1.21.11: BetterHud started its reload after our wait, the build skipped the merge and BetterHud
+     * merged only after "CraftEngine resource pack rebuilt.". Exactly one more build follows the merge.
+     */
+    @Test
+    void oneMoreRebuildAfterBetterHudMergesBehindTheFirstBuild() throws Exception {
+        shipAllocation(L3A);
+        FakeHudReloader hud = new FakeHudReloader();
+        FakePackRebuilder ce = new FakePackRebuilder();
+        ce.onRebuild(() -> {
+            if (ce.requests() == 1) {
+                hud.reloading(true); // still reloading when the first build finishes
+            }
+        });
+        PackRebuildTrigger t = new PackRebuildTrigger(run(L3A), stateDir(), ce, hud, new FakeVisualPools(), null, null,
+                500, Runnable::run, LOG);
+        t.onCraftEngineReload();
+        assertThat(ce.requests()).isEqualTo(1);
+        Thread.sleep(1200); // a few polls
+        assertThat(ce.requests()).isEqualTo(1);
+        assertThat(t.settled()).isNotDone();
+        hud.reloading(false); // BetterHud's reload ends: "Successfully merged with CraftEngine"
+        t.settled().get(5, java.util.concurrent.TimeUnit.SECONDS);
+        assertThat(ce.requests()).isEqualTo(2);
+
+        // At most once per run: a later build that BetterHud misses again is not retried.
+        ce.onRebuild(() -> hud.reloading(true));
+        t.onCraftEngineReload();
+        t.requestRebuild("test");
+        t.settled().get(5, java.util.concurrent.TimeUnit.SECONDS);
+        hud.reloading(false);
+        Thread.sleep(1200);
+        assertThat(ce.requests()).isEqualTo(3); // requestRebuild's own build only
+    }
+
     @Test
     void failedRebuildIsRetriedAtTheNextStart() throws IOException {
         shipAllocation(L3A);
@@ -422,7 +472,7 @@ class InstallerTest {
         List<EditResult> edits = pending.betterHudEnabled("BetterHud").join();
         assertThat(edits).filteredOn(e -> e.edit().key().equals("default-hud"))
                 .singleElement().extracting(EditResult::outcome).isEqualTo(Outcome.APPLIED);
-        assertThat(Files.readString(plugins.resolve("BetterHud/config.yml"))).contains("default-hud: []");
+        assertThat(Files.readString(plugins.resolve("BetterHud/config.yml"))).contains("default-hud: [tfp_date_hud]");
         assertThat(Files.readString(stateDir().resolve(ThirdPartyConfigEditor.RECORD_FILE)))
                 .contains(ThirdPartyEdits.all(1353).stream().filter(e -> e.key().equals("default-hud")).findFirst().orElseThrow().id());
         // no direct BetterHud reload while it is still starting: the CraftEngine build reloads it (hud-paper-* logs)

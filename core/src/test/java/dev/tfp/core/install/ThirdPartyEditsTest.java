@@ -132,10 +132,27 @@ class ThirdPartyEditsTest {
     }
 
     @Test
-    void betterHudTestHudRemoved() throws IOException {
+    void betterHudTestHudRemovedAndDateHudAdded() throws IOException {
         Plan p = applyOne(edit(Target.BETTERHUD_CONFIG, "default-hud"), fixture("betterhud-config.yml"), 2);
-        assertThat(get(p.text(), "default-hud")).isEqualTo(List.of());
-        assertThat(p.text()).contains("default-hud: []\ndefault-popup: []");
+        assertThat(get(p.text(), "default-hud")).isEqualTo(List.of("tfp_date_hud"));
+        assertThat(p.text()).contains("default-hud: [tfp_date_hud]\ndefault-popup: []");
+    }
+
+    @Test
+    void betterHudDateHudListCases() {
+        ConfigEdit e = edit(Target.BETTERHUD_CONFIG, "default-hud");
+        // empty flow list -> [tfp_date_hud]
+        Plan empty = applyOne(e, "default-hud: []\ndefault-popup: []\n", 1);
+        assertThat(get(empty.text(), "default-hud")).isEqualTo(List.of("tfp_date_hud"));
+        // only the demo HUD -> [tfp_date_hud]
+        Plan demo = applyOne(e, "default-hud:\n- test_hud\n", 2);
+        assertThat(get(demo.text(), "default-hud")).isEqualTo(List.of("tfp_date_hud"));
+        // another HUD is kept, ours is appended
+        Plan other = applyOne(e, "default-hud:\n- other\n", 1);
+        assertThat(get(other.text(), "default-hud")).isEqualTo(List.of("other", "tfp_date_hud"));
+        // already present: nothing to do
+        assertThat(e.plan("default-hud:\n- tfp_date_hud\n", null).outcome()).isEqualTo(Outcome.UNCHANGED);
+        assertThat(e.plan("default-hud: [tfp_date_hud]\n", null).outcome()).isEqualTo(Outcome.UNCHANGED);
     }
 
     @Test

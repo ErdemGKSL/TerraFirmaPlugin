@@ -84,7 +84,7 @@ Edit with a comment-preserving YAML editor that changes the single key and leave
 | CraftEngine | `resources/remove_shulker_head/pack.yml` `enable` | `false` | Its old-format core shader may break 1.21.6+/26.x clients | no (pack rebuild) |
 | CraftEngine | `chunk-system.cache-system` | `true` (default) | Populator writes into neighbour chunks must not be lost | yes |
 | CraftEngine | `chunk-system` storage for TFC worlds | not `none`, worlds not blacklisted | Block-entity data would be lost on unload | yes |
-| BetterHud | `default-hud` | remove `test_hud` | Demo HUD otherwise shown to everyone | no (reload) |
+| BetterHud | `default-hud` | remove `test_hud`, add `tfp_date_hud` | Demo HUD otherwise shown to everyone; date HUD must be listed | no (reload) |
 | BetterHud | `merge-with-external-resources` | `true` (default) | BetterHud merges into CE's pack | no |
 | BetterHud | `pack-type` | `zip` or `folder` (not `none`) | Required for CE merge | no |
 | BetterHud | `enable-self-host` | `false` | CE hosts the single merged pack | no |

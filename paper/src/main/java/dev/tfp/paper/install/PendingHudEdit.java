@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 
 /**
  * M1-INST-02 on a fresh server (ARCHITECTURE.md §12 step 4): BetterHud writes its {@code config.yml} only on its
- * first start, after our {@code onLoad}, so its edits (e.g. {@code default-hud} without {@code test_hud}) end as
+ * first start, after our {@code onLoad}, so its edits (e.g. {@code default-hud} without {@code test_hud}, with {@code tfp_date_hud}) end as
  * {@code FILE_MISSING}. Once BetterHud has enabled ({@code PluginEnableEvent}, or {@code ServerLoadEvent} if it
  * already was), {@link #betterHudEnabled} applies them on the io executor, then asks {@link PackRebuildTrigger} for the
  * CraftEngine pack build, which reloads BetterHud inside it (M0-BH-01). Only without CraftEngine is BetterHud

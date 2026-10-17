@@ -42,6 +42,14 @@ public final class FakePackRebuilder implements PackRebuilder {
         return this;
     }
 
+    private volatile Runnable onRebuild = () -> { };
+
+    /** Runs at every {@link #rebuild()} before it completes (e.g. BetterHud starting a reload during the build). */
+    public FakePackRebuilder onRebuild(Runnable r) {
+        this.onRebuild = r;
+        return this;
+    }
+
     public int requests() {
         return requests.get();
     }
@@ -59,6 +67,7 @@ public final class FakePackRebuilder implements PackRebuilder {
     @Override
     public CompletableFuture<Boolean> rebuild() {
         requests.incrementAndGet();
+        onRebuild.run();
         Throwable f = failure;
         return f != null ? CompletableFuture.failedFuture(f) : CompletableFuture.completedFuture(outcome);
     }

@@ -249,6 +249,33 @@ public record ConfigEdit(Target target, String key, Rule rule, Effect effect, bo
             }
         }
 
+        /**
+         * Every rule must hold. {@link #apply} applies them in order, so one key can need two list changes
+         * (e.g. remove the demo HUD and add ours) and still be one edit with one record.
+         */
+        record All(List<Rule> rules) implements Rule {
+            public All {
+                rules = List.copyOf(rules);
+            }
+
+            @Override
+            public String current(YamlKeyEditor ed, String key) {
+                return rules.getFirst().current(ed, key);
+            }
+
+            @Override
+            public boolean satisfied(YamlKeyEditor ed, String key) {
+                return rules.stream().allMatch(r -> r.satisfied(ed, key));
+            }
+
+            @Override
+            public void apply(YamlKeyEditor ed, String key) {
+                for (Rule r : rules) {
+                    r.apply(ed, key);
+                }
+            }
+        }
+
         /** The list must contain {@code item}; an absent key is fine (the plugin's default contains it). */
         record ListWith(String item) implements Rule {
             @Override

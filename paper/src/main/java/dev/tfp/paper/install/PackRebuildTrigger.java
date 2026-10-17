@@ -37,6 +37,10 @@ import java.util.logging.Logger;
  * Every rebuild starts only once BetterHud is not reloading ({@link #rebuildAfterHud}): BetterHud merges into the
  * pack from a reload it runs inside CraftEngine's build and skips the merge ("still on reload") when CraftEngine's
  * startup asset cache already started one, so a build started then is served without BetterHud's fonts.
+ * BetterHud can also start that reload after our wait but before the build's merge point (m2 date-paper-1.21.11:
+ * "Successfully merged with CraftEngine" 3 s after "CraftEngine resource pack rebuilt."), so if BetterHud is still
+ * reloading when a build has finished, that build missed the merge: once the reload (and with it the merge) ends,
+ * the pack is built <b>one</b> more time ({@link #rebuildWithHudMerge}, at most once per run).
  * Every check's figures are also written to {@code <stateDir>/}{@value #POOL_CHECK_FILE} (io executor), so a
  * restart can be compared with the previous run (self-test {@code inst.profile_restart}).
  */
@@ -59,6 +63,8 @@ public final class PackRebuildTrigger {
     /** Completes when this run's rebuild finished (successfully or not). */
     private final CompletableFuture<Void> rebuildDone = new CompletableFuture<>();
     private final AtomicBoolean extraRequested = new AtomicBoolean();
+    /** Set once this run rebuilt again because BetterHud merged after a build ({@link #rebuildWithHudMerge}). */
+    private final AtomicBoolean mergeRetried = new AtomicBoolean();
     /** Completes when the {@link #requestRebuild} rebuild finished. */
     private final CompletableFuture<Void> extraDone = new CompletableFuture<>();
     private volatile ProfileCheck.Result lastCheck;
@@ -126,7 +132,7 @@ public final class PackRebuildTrigger {
             return;
         }
         log.info("Rebuilding the CraftEngine resource pack (" + reason + ").");
-        rebuildAfterHud().whenComplete((ok, err) -> {
+        rebuildWithHudMerge().whenComplete((ok, err) -> {
             extraDone.complete(null);
             if (err != null || !ok) {
                 log.log(Level.WARNING, "The CraftEngine pack rebuild failed; players keep the old pack. Run /ce reload all", err);
@@ -150,7 +156,7 @@ public final class PackRebuildTrigger {
         PackBuild.Fingerprint built = install.packFingerprint();
         String reason = install.packPlan().reason();
         log.info("Rebuilding the CraftEngine resource pack" + (reason.isEmpty() ? "" : " (" + reason + ")") + ".");
-        rebuildAfterHud().whenComplete((ok, err) -> {
+        rebuildWithHudMerge().whenComplete((ok, err) -> {
             rebuildDone.complete(null);
             if (err != null) {
                 log.log(Level.WARNING, "The CraftEngine pack rebuild failed; players keep the old pack. Run /ce reload all", err);
@@ -168,6 +174,25 @@ public final class PackRebuildTrigger {
                     });
                 }
             }
+        });
+    }
+
+    /**
+     * {@link #rebuildAfterHud}, then, if BetterHud is still reloading after that build finished, one more
+     * {@link #rebuildAfterHud} (which waits for that reload to end). BetterHud merges only from
+     * CraftEngine's pack-cache event, synchronously: our build's own merge reload has ended before the build
+     * completes, so a reload still running then is one that made the build skip the merge ("still on reload!"),
+     * and its end is the merge that missed the pack. At most once per run (with {@link #requestRebuild});
+     * the returned future follows the last build. Never throws.
+     */
+    private CompletableFuture<Boolean> rebuildWithHudMerge() {
+        return rebuildAfterHud().thenCompose(ok -> {
+            if (!ok || !hudReloading() || !mergeRetried.compareAndSet(false, true)) {
+                return CompletableFuture.completedFuture(ok);
+            }
+            log.info("CraftEngine resource pack rebuilt, but BetterHud was still reloading, so its merge missed the pack; "
+                    + "rebuilding once more after BetterHud's merge.");
+            return rebuildAfterHud();
         });
     }
 
