@@ -5,6 +5,7 @@
  */
 package dev.tfp.paper;
 
+import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.compat.CompatGate;
 import dev.tfp.core.compat.Version;
 import dev.tfp.core.visuals.Suppression;
@@ -17,6 +18,7 @@ import dev.tfp.paper.debug.ShowcasePlacer;
 import dev.tfp.paper.blockdata.ChunkDataStore;
 import dev.tfp.paper.blockdata.PdcChunkDataStore;
 import dev.tfp.paper.boot.CompatCheck;
+import dev.tfp.paper.calendar.CalendarService;
 import dev.tfp.paper.boot.TfpCommands;
 import dev.tfp.paper.boot.TfpCommands.Reply;
 import dev.tfp.paper.config.ConfigService;
@@ -106,6 +108,9 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     private volatile PacketLayer packetLayer = PacketLayers.none("not enabled");
     private volatile RegistryService registryService;
     private volatile PlayerDataStore playerData;
+    /** M2-CAL-01: the published clock (lock-free reads anywhere) and the service that advances it. */
+    private final GlobalClockHolder clock = new GlobalClockHolder();
+    private volatile CalendarService calendar;
     /** {@code /tfp debug showcase}: our block ids from the shipped id_map.json, read once. */
     private volatile CompletableFuture<List<String>> showcaseIds;
     private final HudSnapshotCache hudCache = new HudSnapshotCache(() -> {
@@ -305,6 +310,14 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             });
         });
 
+        // M2-CAL-01: the calendar loads from the first world's PDC on its first global tick (no worlds yet here).
+        CalendarService cal = new CalendarService(clock, () -> {
+            List<World> worlds = getServer().getWorlds();
+            return worlds.isEmpty() ? null : worlds.get(0);
+        }, () -> !getServer().getOnlinePlayers().isEmpty(), getLogger());
+        calendar = cal;
+        cal.start(scheduler);
+
         // We load at STARTUP, PacketEvents at POSTWORLD: it is loaded (its API exists after its onLoad) but not yet
         // enabled here. Registering the listener now is what the M0-NET-01 spike did; isPluginEnabled is false here.
         boolean packetEvents = getServer().getPluginManager().getPlugin(PacketLayers.PACKETEVENTS) != null;
@@ -330,6 +343,9 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         packetLayer.uninstall();
         if (integrations != null) {
             integrations.onDisable();
+        }
+        if (calendar != null) {
+            calendar.shutdown(); // before the worlds are saved
         }
         if (playerData != null) {
             playerData.close(10, TimeUnit.SECONDS); // needs the io executor: before the scheduler stops
@@ -374,6 +390,16 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     /** Null until enabled. */
     public PlayerDataStore playerData() {
         return playerData;
+    }
+
+    /** M2-CAL-01: the global clock; take one snapshot per operation. */
+    public GlobalClockHolder clock() {
+        return clock;
+    }
+
+    /** M2-CAL-01: the calendar service (null until enabled). */
+    public CalendarService calendar() {
+        return calendar;
     }
 
     public ChunkDataStore chunkData() {

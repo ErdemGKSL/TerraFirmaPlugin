@@ -29,7 +29,7 @@ class SelfTestSuiteTest {
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("ce.pack_issues"))
                 .anyMatch(n -> n.startsWith("ce.block_roundtrip")).anyMatch(n -> n.startsWith("bm.spawn_persist"))
                 .anyMatch(n -> n.startsWith("bh.placeholder")).anyMatch(n -> n.startsWith("packet.noop_measured"))
-                .anyMatch(n -> n.startsWith("inst.profile_restart")).anyMatch(n -> n.startsWith("inst.suppression"));
-        assertThat(cases).hasSize(12);
+                .anyMatch(n -> n.startsWith("inst.profile_restart")).anyMatch(n -> n.startsWith("inst.suppression")).anyMatch(n -> n.startsWith("calendar.persist"));
+        assertThat(cases).hasSize(13);
     }
 }

@@ -7,6 +7,7 @@ package dev.tfp.itest;
 
 import dev.tfp.itest.cases.BetterHudPlaceholderCase;
 import dev.tfp.itest.cases.BetterModelSpawnCase;
+import dev.tfp.itest.cases.CalendarPersistCase;
 import dev.tfp.itest.cases.ConfigCase;
 import dev.tfp.itest.cases.CraftEngineBlockRoundTripCase;
 import dev.tfp.itest.cases.CraftEnginePackIssuesCase;
@@ -39,6 +40,7 @@ public final class SelfTestSuite {
                 new VersionCommandCase(),
                 new PlayerDataCase(),
                 new RegionSchedulerCase(),
+                new CalendarPersistCase(),
                 new CraftEnginePackIssuesCase(),
                 new CraftEngineBlockRoundTripCase(),
                 new ProfileRestartCase(),
