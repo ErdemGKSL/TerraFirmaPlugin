@@ -78,9 +78,10 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - TFC: `world/noise/` (incl. MIT FastNoiseLite: keep its license note)
   - Done when: noise outputs equal TFC for fixed seeds (golden arrays).
 
-- [ ] **M2-GEN-02 Layer framework & layers** · deps: M2-GEN-01
+- [x] **M2-GEN-02 Layer framework & layers** · deps: M2-GEN-01
   - TFC: `world/layer/framework/`, `world/layer/*`
   - Done when: layer outputs match TFC test vectors.
+  - Status: done for the framework and the basic layers (`core/worldgen/layer/`: `AreaContext`, `Area`, `ConcurrentArea`, `TypedArea` and the layer interfaces, `ZoomLayer`, `UniformLayer`, `SmoothLayer`; `worldgen/random/XoroshiroRandomSource`). 18 golden grids and helper goldens from TFC's classes at c3b4d9536 match exactly; 8 property tests green. The forest, biome, shore, river and rock layers and `RegionLayer` belong to M2-GEN-03 (ledger row). TFC has no voronoi or mutate layer at this commit.
 
 - [ ] **M2-GEN-03 Region generator** · deps: M2-GEN-02
   - TFC: `world/region/` (`RegionGenerator` + tasks `Init`, `AddContinentsAndSetOceanDepths`, `AnnotateClimate`, `ChooseBiomes`, `ChooseRocks`, `AddRiversAndLakes`, ...)
