@@ -403,11 +403,12 @@ class InstallerTest {
         assertThat(Files.readString(plugins.resolve("BetterHud/config.yml"))).contains("default-hud: []");
         assertThat(Files.readString(stateDir().resolve(ThirdPartyConfigEditor.RECORD_FILE)))
                 .contains(ThirdPartyEdits.all(1353).stream().filter(e -> e.key().equals("default-hud")).findFirst().orElseThrow().id());
-        assertThat(hud.reloads()).isEqualTo(1);
-        assertThat(ce.requests()).isEqualTo(2); // the pack is built again after BetterHud's reload
+        // no direct BetterHud reload while it is still starting: the CraftEngine build reloads it (hud-paper-* logs)
+        assertThat(hud.reloads()).isZero();
+        assertThat(ce.requests()).isEqualTo(2); // the pack is built again, BetterHud merging the edited config
 
         assertThat(pending.betterHudEnabled("BetterHud").join()).isEmpty(); // a second enable does nothing
-        assertThat(hud.reloads()).isEqualTo(1);
+        assertThat(hud.reloads()).isZero();
         assertThat(ce.requests()).isEqualTo(2);
     }
 
@@ -436,6 +437,25 @@ class InstallerTest {
         assertThat(pending.betterHudEnabled("BetterHud").join()).allMatch(e -> e.outcome() == Outcome.FILE_MISSING);
         write(plugins.resolve("BetterHud/config.yml"), BH_CONFIG);
         assertThat(pending.betterHudEnabled("BetterHud").join()).anyMatch(e -> e.outcome() == Outcome.APPLIED);
+        assertThat(hud.reloads()).isZero();
+        assertThat(ce.requests()).isZero(); // CraftEngine has not loaded: its planned rebuild covers the edit
+    }
+
+    @Test
+    void betterHudIsReloadedDirectlyOnlyWithoutCraftEngine() throws IOException {
+        Installer.Result r = runWithoutBetterHudConfig();
+        FakeHudReloader hud = new FakeHudReloader();
+        FakePackRebuilder ce = new FakePackRebuilder().available(false);
+        PackRebuildTrigger t = new PackRebuildTrigger(r, stateDir(), ce, new FakeVisualPools(), null, null, 500,
+                Runnable::run, LOG);
+        pendingHudEdit(r, hud, ce, t).betterHudEnabled("BetterHud").join();
         assertThat(hud.reloads()).isEqualTo(1);
+        assertThat(ce.requests()).isZero();
+
+        Installer.Result r2 = runWithoutBetterHudConfig();
+        FakeHudReloader busyHud = new FakeHudReloader().reloading(true);
+        pendingHudEdit(r2, busyHud, ce, new PackRebuildTrigger(r2, stateDir(), ce, new FakeVisualPools(), null, null,
+                500, Runnable::run, LOG)).betterHudEnabled("BetterHud").join();
+        assertThat(busyHud.reloads()).isZero(); // never a second reload while BetterHud is on reload
     }
 }

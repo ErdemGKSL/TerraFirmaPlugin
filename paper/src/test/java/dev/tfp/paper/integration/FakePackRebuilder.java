@@ -28,6 +28,13 @@ public final class FakePackRebuilder implements PackRebuilder {
     }
 
     private volatile boolean busy;
+    private volatile boolean available = true;
+
+    /** What {@link #available()} reports from now on (false: CraftEngine absent). */
+    public FakePackRebuilder available(boolean a) {
+        this.available = a;
+        return this;
+    }
 
     /** What {@link #busy()} reports from now on. */
     public FakePackRebuilder busy(boolean b) {
@@ -41,7 +48,7 @@ public final class FakePackRebuilder implements PackRebuilder {
 
     @Override
     public boolean available() {
-        return true;
+        return available;
     }
 
     @Override

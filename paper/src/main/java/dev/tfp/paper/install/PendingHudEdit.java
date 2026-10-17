@@ -20,9 +20,9 @@ import java.util.logging.Logger;
  * M1-INST-02 on a fresh server (ARCHITECTURE.md §12 step 4): BetterHud writes its {@code config.yml} only on its
  * first start, after our {@code onLoad}, so its edits (e.g. {@code default-hud} without {@code test_hud}) end as
  * {@code FILE_MISSING}. Once BetterHud has enabled ({@code PluginEnableEvent}, or {@code ServerLoadEvent} if it
- * already was), {@link #betterHudEnabled} applies them on the io executor, then reloads BetterHud (skipped while
- * BetterHud or CraftEngine is reloading: BetterHud reloads inside CraftEngine's build, M0-BH-01) and asks
- * {@link PackRebuildTrigger} for the CraftEngine pack build, so the pack is built after BetterHud's merge.
+ * already was), {@link #betterHudEnabled} applies them on the io executor, then asks {@link PackRebuildTrigger} for the
+ * CraftEngine pack build, which reloads BetterHud inside it (M0-BH-01). Only without CraftEngine is BetterHud
+ * reloaded directly (skipped while it is already reloading).
  *
  * <p>Runs once per server run; tried again only if the file was still missing.
  */
@@ -68,11 +68,18 @@ public final class PendingHudEdit {
         });
     }
 
-    /** On the io executor, after the edits were written. */
+    /**
+     * On the io executor, after the edits were written. With CraftEngine present we do not reload BetterHud
+     * ourselves: BetterHud reloads inside every CraftEngine pack build (M0-BH-01), and that build is deferred until
+     * CraftEngine is idle. A direct reload here ran while BetterHud and BetterModel were still starting and failed
+     * ("Unable to make a resource pack", {@code GraphicsEnvironment$LocalGE}), and the failed AWT class init then
+     * broke BetterHud's merge in the following CraftEngine build too (spikes/run/m1/hud-paper-*).
+     */
     private void reload() {
-        if (hud.isReloading() || craftEngine.busy()) {
-            log.info("BetterHud config edited while BetterHud or CraftEngine is reloading; not reloading BetterHud now"
-                    + " (the CraftEngine pack build reloads it)");
+        if (craftEngine.available()) {
+            log.info("BetterHud config edited on its first start; the CraftEngine pack build reloads BetterHud");
+        } else if (hud.isReloading()) {
+            log.info("BetterHud config edited while BetterHud is reloading; not reloading BetterHud again");
         } else if (hud.available()) {
             log.info("BetterHud config edited on its first start; reloading BetterHud");
             try {
