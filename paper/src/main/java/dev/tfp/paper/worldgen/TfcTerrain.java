@@ -25,6 +25,9 @@ import dev.tfp.core.worldgen.groundcover.VeinIndicators;
 import dev.tfp.core.worldgen.noise.Noise2D;
 import dev.tfp.core.worldgen.ore.OreVeins;
 import dev.tfp.core.worldgen.ore.VeinBlock;
+import dev.tfp.core.worldgen.plant.PlantBlock;
+import dev.tfp.core.worldgen.plant.PlantState;
+import dev.tfp.core.worldgen.plant.Plants;
 import dev.tfp.core.worldgen.random.PositionalRandom;
 import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
 import dev.tfp.core.worldgen.region.RegionGenerator;
@@ -52,7 +55,11 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.block.Biome;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.type.SeaPickle;
 import org.bukkit.block.data.FaceAttachable;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.block.data.type.Leaves;
@@ -101,6 +108,8 @@ final class TfcTerrain {
     private volatile Map.Entry<RockPalette<BlockData>, Map<BlockData, DepositMaterial>> depositMaterials;
     /** The trees of this world (M2-GEN-12): TFC's forest of {@code #tfp:forest_trees}. */
     private final Forest forest;
+    /** The plants, wild crops and corals of this world (M2-GEN-13). */
+    private final Plants plants;
     /** The placeholder block data by material and waterlogging. */
     private final Map<String, BlockData> placeholders = new ConcurrentHashMap<>();
 
@@ -123,6 +132,7 @@ final class TfcTerrain {
         this.shoreCover = new ShoreGroundcover(seed);
         this.looseRocks = new LooseRocks(seed);
         this.forest = new Forest(seed, TreeResources.fromJar(TfcTerrain.class.getClassLoader()));
+        this.plants = new Plants(seed, PlantResources.fromJar(TfcTerrain.class.getClassLoader()));
     }
 
     /** The palette ids of a world: the raw rocks, then the ore blocks. Any unknown id refuses the palette (no stone fallback). */
@@ -189,9 +199,9 @@ final class TfcTerrain {
      * grass, dirt, sand, gravel, snow and ice, or the rock itself), and water up to sea level over the columns below it. The
      * rock layers come from the chunk data, so the rock blocks are the CraftEngine rock palette. Rock positions that a vein
      * claims get the CraftEngine ore block of their grade and rock instead (the veins of neighbouring chunks reach in, but only
-     * this chunk's positions are decided). Then the decorations of M2-GEN-11 and M2-GEN-12, in TFC's step order: the deposits
-     * (ore deposits in riverbeds, clay and peat), the vein indicators, the trees, the shore groundcover and the loose rocks (see
-     * {@link #decorate}).
+     * this chunk's positions are decided). Then the decorations of M2-GEN-11 to M2-GEN-13, in TFC's step order: the deposits
+     * (ore deposits in riverbeds, clay and peat), the vein indicators, the trees, the corals, the plants and wild crops, the
+     * shore groundcover and the loose rocks (see {@link #decorate}).
      * Requires a resolved palette. Writes only this chunk's blocks, and only from the worldgen worker.
      */
     void fill(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, RockPalette<BlockData> palette) {
@@ -235,13 +245,15 @@ final class TfcTerrain {
     }
 
     /**
-     * The groundcover, deposits and trees of one chunk (M2-GEN-11, M2-GEN-12). The decisions are pure (core {@code groundcover},
+     * The groundcover, deposits, trees, plants and corals of one chunk (M2-GEN-11, M2-GEN-12, M2-GEN-13). The decisions are pure (core {@code groundcover},
      * {@code deposit} and {@code tree}); they read the terrain through a {@link Ground} view of the neighbouring columns and
      * only return blocks of this chunk. The deposits replace the terrain block they name when it is still that material; each
      * groundcover block goes on its position only while that is air or water, so an earlier feature keeps a contested
      * position. The trees are TFC's large features, between the vein indicators and the shore groundcover: the trees of this
      * chunk and its 8 neighbours are decided, and only their blocks inside this chunk are written ({@link TreeBlocks#write}).
-     * Every block is a vanilla placeholder ({@link GroundcoverBlocks}, {@link TreeBlocks}).
+     * The corals (large features) and the plants, grasses and wild crops (surface decoration) follow the trees, decided the
+     * same way ({@link Plants}: this chunk and its 8 neighbours, only this chunk's blocks written, {@link PlantBlocks#write}).
+     * Every block is a vanilla placeholder ({@link GroundcoverBlocks}, {@link TreeBlocks}, {@link PlantBlocks}).
      */
     private void decorate(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, int[] heights, ChunkData climate,
                           RockPalette<BlockData> palette) {
@@ -282,6 +294,24 @@ final class TfcTerrain {
                 data.setBlock(localX, y, localZ, treeData(block));
             }
         });
+        // M2-GEN-13: the corals (large features, after the forest), then the plants of the surface decoration step, which
+        // shore biomes list before their shore groundcover
+        final PlantBlocks.Target plantTarget = new PlantBlocks.Target() {
+            @Override
+            public Material type(int localX, int y, int localZ) {
+                return data.getType(localX, y, localZ);
+            }
+
+            @Override
+            public void place(int localX, int y, int localZ, PlantBlock block, Material material, boolean upperHalf) {
+                data.setBlock(localX, y, localZ, plantData(block.state(), material, upperHalf));
+            }
+        };
+        for (Plants.Step step : Plants.Step.values()) {
+            final List<PlantBlock> placed = new ArrayList<>();
+            plants.place(chunkX, chunkZ, view, step, placed::add);
+            PlantBlocks.write(placed, chunkX, chunkZ, minY, maxY, plantTarget);
+        }
         covers.clear();
         shoreCover.place(chunkX, chunkZ, view, covers);
         looseRocks.place(chunkX, chunkZ, view, covers);
@@ -305,6 +335,35 @@ final class TfcTerrain {
             }
             if (out instanceof Leaves leaves) {
                 leaves.setPersistent(true);
+            }
+            return out;
+        });
+    }
+
+    /**
+     * The block data of a plant placeholder: the half of a two-block plant, water in a waterloggable block that holds water
+     * (corals, sea pickles), a wall fan's facing and a sea pickle's count.
+     */
+    private BlockData plantData(PlantState state, Material material, boolean upperHalf) {
+        final boolean water = state.fluid() != PlantState.Fluid.EMPTY;
+        return placeholders.computeIfAbsent("plant/" + material.name() + "/" + upperHalf + "/" + water + "/" + state.extra(), k -> {
+            final BlockData out = material.createBlockData();
+            if (out instanceof Bisected bisected) {
+                bisected.setHalf(upperHalf ? Bisected.Half.TOP : Bisected.Half.BOTTOM);
+            }
+            if (out instanceof Waterlogged w) {
+                w.setWaterlogged(water);
+            }
+            if (out instanceof Directional directional && state.kind() == PlantState.Kind.CORAL_WALL_FAN) {
+                directional.setFacing(switch (state.extra()) {
+                    case 0 -> BlockFace.NORTH;
+                    case 1 -> BlockFace.EAST;
+                    case 2 -> BlockFace.SOUTH;
+                    default -> BlockFace.WEST;
+                });
+            }
+            if (out instanceof SeaPickle pickle && state.extra() >= 1) {
+                pickle.setPickles(state.extra());
             }
             return out;
         });
@@ -514,7 +573,8 @@ final class TfcTerrain {
                 case MUD -> TreeGround.MUD;
                 case GRAVEL -> TreeGround.GRAVEL;
                 case SAND -> TreeGround.SAND;
-                case SANDSTONE, SNOW, PACKED_ICE -> TreeGround.SOLID;
+                case SANDSTONE -> TreeGround.SANDSTONE;
+                case SNOW, PACKED_ICE -> TreeGround.SOLID;
             };
         }
 

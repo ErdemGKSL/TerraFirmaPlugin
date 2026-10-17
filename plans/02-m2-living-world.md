@@ -137,6 +137,7 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
 - [ ] **M2-GEN-13 Plants, wild crops & coral** · deps: M2-GEN-12
   - TFC: `world/feature/plant/`, `world/feature/coral/`, `common/blocks/plant/`, `common/blocks/crop/WildCropBlock.java`
   - Done when: plant distribution by climate range matches TFC samples.
+  - Status (@claude): rules and glue done for 133 of the biome lists' features (plants, grasses, water plants, wild crops, corals). `core/worldgen/plant/` (`Plants`, `PlantData`, `PlantPlacer`, `PlantLevel`, `Corals`, `PlantFeature`, `PlantState`, `PlantType`, `WildCrop`) interprets TFC's exported placed/configured features per chunk through a `TreeView`; `TfcTerrain.decorate` writes corals then plants for its own chunk only, as vanilla placeholders (`PlantBlocks`). `PlantGoldenTest` matches TFC's oracle exactly (160 golden hashes + vanilla noise/random); property and Paper wiring tests green. Open: the CE plant/crop/coral blocks, vines, kelp, epiphytes, creeping plants, cacti (barrel, saguaro), rotatable ocean plants, algae, atoll corals, fruit trees and berry bushes, forest groundcover, the server check and the visual checklist. Divergences in the ledger.
 
 - [ ] **M2-GEN-14 Volcanoes, hot springs, other features** · deps: M2-GEN-08
   - TFC: `world/volcano/`, `world/feature/*` (hot springs, ice/glaciers, etc.), `world/placement/`, `world/blockpredicate/`, `world/stateprovider/`

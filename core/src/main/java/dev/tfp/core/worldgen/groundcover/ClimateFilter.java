@@ -16,8 +16,9 @@ import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
  * groundwater, rain variance and height lie in the ranges, and, for a fuzzy filter, when a random draw beats the distance
  * from the middle of the ranges. Immutable.
  *
- * <p>Not ported: the forest density and forest types (the chunk data has no forest yet, so only filters without a forest
- * bound are used), and the southern hemisphere (the rain variance is not flipped). See the ledger.
+ * <p>The forest density bounds are checked by {@link #isValid(GroundView, int, int, int, XoroshiroRandomSource, int)} with the
+ * density of the origin's forest type (M2-GEN-13). Not ported: the forest type list (no ported feature uses one) and the
+ * southern hemisphere (the rain variance is not flipped). See the ledger.
  */
 public final class ClimateFilter {
     /** {@code OverworldClimateModel.SEA_LEVEL}. */
@@ -37,10 +38,23 @@ public final class ClimateFilter {
     private final int maxElevation;
     private final boolean fuzzy;
     private final boolean ignoreRivers;
+    private final int minForest;
+    private final int maxForest;
 
+    /** A filter without forest bounds (the codec's defaults 0 and 4). */
     public ClimateFilter(float minTemp, float maxTemp, float minGroundwater, float maxGroundwater, float minRainVariance,
                          float maxRainVariance, boolean rainVarianceAbsolute, int minElevation, int maxElevation, boolean fuzzy,
                          boolean ignoreRivers) {
+        this(minTemp, maxTemp, minGroundwater, maxGroundwater, minRainVariance, maxRainVariance, rainVarianceAbsolute, 0, 4,
+            minElevation, maxElevation, fuzzy, ignoreRivers);
+    }
+
+    /** A filter with all of the codec's fields except the forest types, in the codec's order. */
+    public ClimateFilter(float minTemp, float maxTemp, float minGroundwater, float maxGroundwater, float minRainVariance,
+                         float maxRainVariance, boolean rainVarianceAbsolute, int minForest, int maxForest, int minElevation,
+                         int maxElevation, boolean fuzzy, boolean ignoreRivers) {
+        this.minForest = minForest;
+        this.maxForest = maxForest;
         this.minTemp = minTemp;
         this.maxTemp = maxTemp;
         this.targetTemp = (minTemp + maxTemp) / 2f;
@@ -62,6 +76,11 @@ public final class ClimateFilter {
         return new ClimateFilter(minTemp, maxTemp, minGroundwater, maxGroundwater, -1f, 1f, false, -64, 320, false, false);
     }
 
+    /** Whether the filter bounds the forest density (a bound other than the codec's defaults 0 and 4). */
+    public boolean hasForestBounds() {
+        return minForest != 0 || maxForest != 4;
+    }
+
     /** {@code EnvironmentHelpers.adjustAvgTempForElev}: -1.6 degrees per 10 blocks above sea level, at most 17.822. */
     public static float adjustAvgTempForElev(int y, float averageTemp) {
         if (y > SEA_LEVEL) {
@@ -71,13 +90,25 @@ public final class ClimateFilter {
         return averageTemp;
     }
 
-    /** {@code ClimatePlacement.isValid} at a position of the northern hemisphere. Draws two floats when fuzzy and in range. */
+    /**
+     * {@code ClimatePlacement.isValid} at a position of the northern hemisphere, without the forest bounds (for the callers
+     * whose filters keep the defaults). Draws two floats when fuzzy and in range.
+     */
     public boolean isValid(GroundView view, int x, int y, int z, XoroshiroRandomSource random) {
+        return isValid(view, x, y, z, random, -1);
+    }
+
+    /**
+     * {@code ClimatePlacement.isValid} at a position of the northern hemisphere, with the forest density of the position's
+     * chunk ({@code ForestType.getDensity}), or -1 to skip the forest bounds. Draws two floats when fuzzy and in range.
+     */
+    public boolean isValid(GroundView view, int x, int y, int z, XoroshiroRandomSource random, int forestDensity) {
         final float rainVar = rainVarianceAbsolute ? Math.abs(view.rainVariance(x, z)) : view.rainVariance(x, z);
         final float temperature = adjustAvgTempForElev(y, view.averageTemperature(x, z));
         final float groundwater = ignoreRivers ? view.averageRainfall(x, z) : view.groundwater(x, z);
         if (y >= minElevation && y <= maxElevation && minTemp <= temperature && temperature <= maxTemp && minGroundwater <= groundwater
-            && groundwater <= maxGroundwater && minRainVariance <= rainVar && maxRainVariance >= rainVar) {
+            && groundwater <= maxGroundwater && minRainVariance <= rainVar && maxRainVariance >= rainVar
+            && (forestDensity < 0 || minForest <= forestDensity && forestDensity <= maxForest)) {
             if (fuzzy) {
                 final float normTempDelta = Math.abs(temperature - targetTemp) / (maxTemp - minTemp);
                 final float normGroundwaterDelta = Math.abs(groundwater - targetGroundwater) / (maxGroundwater - minGroundwater);

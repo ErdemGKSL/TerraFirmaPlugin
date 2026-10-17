@@ -38,6 +38,11 @@ public final class DataExport {
     static final String VEIN_DIR = "worldgen/configured_feature/vein";
     /** The tree and forest entry configured features (M2-GEN-12), below {@code data/<ns>/}. */
     static final String TREE_DIR = "worldgen/configured_feature/tree";
+    /** The plant, wild crop and coral features (M2-GEN-13): the plant folders, below {@code data/<ns>/}. */
+    static final List<String> PLANT_DIRS = List.of("worldgen/configured_feature/plant", "worldgen/placed_feature/plant");
+    /** The plant and coral features outside the plant folders (placed and configured), by file name. */
+    static final List<String> PLANT_FILES = List.of("surface_grasses", "coral_tree", "coral_mushroom", "coral_claw",
+        "atoll_coral_tree", "atoll_coral_mushroom", "atoll_coral_claw");
 
     private DataExport() {
     }
@@ -64,6 +69,15 @@ public final class DataExport {
         exportTree(tfc, out, main + Json.FROM_NS + "/" + VEIN_DIR + "/", Json.FROM_NS, VEIN_DIR, counts);
         // M2-GEN-12: the tree features, forest entries and tree structure templates (also hand-written, under src/main).
         exportTree(tfc, out, main + Json.FROM_NS + "/" + TREE_DIR + "/", Json.FROM_NS, TREE_DIR, counts);
+        // M2-GEN-13: the plant, wild crop and coral features, placed and configured (hand-written, under src/main).
+        for (String dir : PLANT_DIRS) {
+            exportTree(tfc, out, main + Json.FROM_NS + "/" + dir + "/", Json.FROM_NS, dir, counts);
+        }
+        for (String name : PLANT_FILES) {
+            for (String kind : List.of("worldgen/configured_feature", "worldgen/placed_feature")) {
+                exportFile(tfc, out, main + Json.FROM_NS + "/" + kind + "/" + name + ".json", Json.FROM_NS, kind, name + ".json", counts);
+            }
+        }
         final int templates = TreeStructures.run(tfc, out);
         if (templates > 0) {
             counts.put(Json.TO_NS + "/worldgen/tree_structure", templates);
@@ -86,6 +100,16 @@ public final class DataExport {
             out.put(target, Json.write(json));
             counts.merge(rename(ns) + "/" + rename(kind), 1, Integer::sum);
         }
+    }
+
+    private static void exportFile(TfcCheckout tfc, OutputTree out, String file, String ns, String kind, String rest,
+                                   Map<String, Integer> counts) {
+        if (!tfc.exists(file)) {
+            return; // like exportTree on a missing folder (the test fixtures hold only part of the checkout)
+        }
+        String target = "data/" + rename(ns) + "/" + rename(kind) + "/" + rest;
+        out.put(target, Json.write(Json.rename(Json.parse(tfc.readString(file), file))));
+        counts.merge(rename(ns) + "/" + rename(kind), 1, Integer::sum);
     }
 
     private static String rename(String segment) {

@@ -29,7 +29,9 @@ public enum TreeGround {
     GRAVEL,
     /** Raw rock and other stone ({@code c:stones}). */
     STONE,
-    /** Any other solid block (sandstone, snow, ice). */
+    /** TFC's raw sandstone ({@code tfc:raw_sandstone/<colour>}): solid for the trees, plantable for dry plants (M2-GEN-13). */
+    SANDSTONE,
+    /** Any other solid block (snow, ice). */
     SOLID,
     /** A log or wood block a tree placed. */
     LOG,
