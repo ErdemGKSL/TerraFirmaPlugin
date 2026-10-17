@@ -21,37 +21,38 @@ import org.junit.jupiter.api.Test;
  * ocean depth, hotspot age, rock id, rainfall, rainfall variance, temperature and divergence, floats as raw bits).
  * <p>
  * The values come from TerraFirmaCraft at c3b4d9536 (the pinned commit). An oracle harness compiled TFC's own region
- * classes unchanged (the biome choice, rivers and lakes, karst and chunk data are removed from the task list, and the
- * biome noise file keeps only the hotspot, plate and continent methods). It ran with Minecraft 1.21.11's {@code Mth} and
+ * classes unchanged (the biome choice, karst and chunk data are removed from the task list, and the biome noise file
+ * keeps only the hotspot, plate and continent methods). The river task is kept, so the rainfall in the hash includes the
+ * river and lake increase; {@link RiverGoldenTest} checks the river edges. It ran with Minecraft 1.21.11's {@code Mth} and
  * {@code XoroshiroRandomSource}, and the overworld world preset settings (continentalness 0.5, scales 20000, constants 0).
  * Seeds 42 and -7 use the default finite-continents setting; seed 20260917 has finite continents on.
  */
 class RegionGeneratorGoldenTest {
     private static final String[] GOLDEN = {
-        "seed=42 finite=false grid=(-400,-60) cell=(-4,-1) bounds=[-471,-334]x[-106,-6] points=10476 land=5434 island=104 mountain=260 rockSum=-1563044422 hash=-323357163910330906L",
-        "seed=42 finite=false grid=(-100,25) cell=(-1,0) bounds=[-141,-41]x[-98,41] points=6713 land=2696 island=124 mountain=185 rockSum=1627483405 hash=7892486926328993090L",
-        "seed=42 finite=false grid=(0,0) cell=(0,0) bounds=[-52,131]x[-23,54] points=9278 land=3542 island=147 mountain=317 rockSum=-934038577 hash=-667552928061599630L",
-        "seed=42 finite=false grid=(60,200) cell=(1,2) bounds=[16,134]x[112,236] points=8719 land=3423 island=113 mountain=359 rockSum=-1022587526 hash=-429563709674919049L",
-        "seed=42 finite=false grid=(350,-400) cell=(4,-4) bounds=[337,481]x[-479,-318] points=14406 land=5978 island=74 mountain=244 rockSum=-493199565 hash=2736209286102155243L",
-        "seed=42 finite=false grid=(-250,350) cell=(-3,3) bounds=[-319,-187]x[237,366] points=9012 land=3789 island=90 mountain=267 rockSum=-1379697138 hash=4682223377600383416L",
-        "seed=42 finite=false grid=(120,-120) cell=(1,-1) bounds=[79,180]x[-150,24] points=10809 land=4503 island=123 mountain=330 rockSum=831273691 hash=5459940837445969038L",
-        "seed=42 finite=false grid=(-5,-5) cell=(0,0) bounds=[-52,131]x[-23,54] points=9278 land=3542 island=147 mountain=317 rockSum=-934038577 hash=-667552928061599630L",
-        "seed=-7 finite=false grid=(-400,-60) cell=(-5,0) bounds=[-516,-384]x[-70,46] points=12454 land=6371 island=67 mountain=300 rockSum=1311566488 hash=-6341152280384340761L",
-        "seed=-7 finite=false grid=(-100,25) cell=(-1,0) bounds=[-191,-75]x[-42,47] points=7986 land=4510 island=103 mountain=260 rockSum=-1410558689 hash=-6634080695837743917L",
-        "seed=-7 finite=false grid=(0,0) cell=(0,0) bounds=[-87,62]x[-77,33] points=11170 land=5125 island=116 mountain=320 rockSum=1792418966 hash=4594275951401804449L",
-        "seed=-7 finite=false grid=(60,200) cell=(0,2) bounds=[-15,79]x[154,249] points=6296 land=3514 island=73 mountain=258 rockSum=2050608179 hash=-2630607513657074361L",
-        "seed=-7 finite=false grid=(350,-400) cell=(4,-4) bounds=[268,398]x[-419,-336] points=8054 land=4128 island=103 mountain=250 rockSum=1970381680 hash=4413773504988967385L",
-        "seed=-7 finite=false grid=(-250,350) cell=(-3,3) bounds=[-347,-205]x[225,365] points=12868 land=5311 island=123 mountain=270 rockSum=1351255360 hash=6778802226322335963L",
-        "seed=-7 finite=false grid=(120,-120) cell=(1,-1) bounds=[48,194]x[-134,-38] points=11069 land=4843 island=89 mountain=306 rockSum=-507493347 hash=-6306845386027131245L",
-        "seed=-7 finite=false grid=(-5,-5) cell=(0,0) bounds=[-87,62]x[-77,33] points=11170 land=5125 island=116 mountain=320 rockSum=1792418966 hash=4594275951401804449L",
+        "seed=42 finite=false grid=(-400,-60) cell=(-4,-1) bounds=[-471,-334]x[-106,-6] points=10476 land=5434 island=104 mountain=260 rockSum=-1563044422 hash=-3374110076040463725L",
+        "seed=42 finite=false grid=(-100,25) cell=(-1,0) bounds=[-141,-41]x[-98,41] points=6713 land=2696 island=124 mountain=185 rockSum=1627483405 hash=-5488510251271036569L",
+        "seed=42 finite=false grid=(0,0) cell=(0,0) bounds=[-52,131]x[-23,54] points=9278 land=3542 island=147 mountain=317 rockSum=-934038577 hash=-58831121069667031L",
+        "seed=42 finite=false grid=(60,200) cell=(1,2) bounds=[16,134]x[112,236] points=8719 land=3423 island=113 mountain=359 rockSum=-1022587526 hash=6502149422676582332L",
+        "seed=42 finite=false grid=(350,-400) cell=(4,-4) bounds=[337,481]x[-479,-318] points=14406 land=5978 island=74 mountain=244 rockSum=-493199565 hash=3352363387266231535L",
+        "seed=42 finite=false grid=(-250,350) cell=(-3,3) bounds=[-319,-187]x[237,366] points=9012 land=3789 island=90 mountain=267 rockSum=-1379697138 hash=4010164439232520522L",
+        "seed=42 finite=false grid=(120,-120) cell=(1,-1) bounds=[79,180]x[-150,24] points=10809 land=4503 island=123 mountain=330 rockSum=831273691 hash=-4767286448403289291L",
+        "seed=42 finite=false grid=(-5,-5) cell=(0,0) bounds=[-52,131]x[-23,54] points=9278 land=3542 island=147 mountain=317 rockSum=-934038577 hash=-58831121069667031L",
+        "seed=-7 finite=false grid=(-400,-60) cell=(-5,0) bounds=[-516,-384]x[-70,46] points=12454 land=6371 island=67 mountain=300 rockSum=1311566488 hash=7597129546133325732L",
+        "seed=-7 finite=false grid=(-100,25) cell=(-1,0) bounds=[-191,-75]x[-42,47] points=7986 land=4510 island=103 mountain=260 rockSum=-1410558689 hash=3909962952130407558L",
+        "seed=-7 finite=false grid=(0,0) cell=(0,0) bounds=[-87,62]x[-77,33] points=11170 land=5125 island=116 mountain=320 rockSum=1792418966 hash=-7265519621210164844L",
+        "seed=-7 finite=false grid=(60,200) cell=(0,2) bounds=[-15,79]x[154,249] points=6296 land=3514 island=73 mountain=258 rockSum=2050608179 hash=6827225351150998665L",
+        "seed=-7 finite=false grid=(350,-400) cell=(4,-4) bounds=[268,398]x[-419,-336] points=8054 land=4128 island=103 mountain=250 rockSum=1970381680 hash=668301787901268913L",
+        "seed=-7 finite=false grid=(-250,350) cell=(-3,3) bounds=[-347,-205]x[225,365] points=12868 land=5311 island=123 mountain=270 rockSum=1351255360 hash=-728215103412809223L",
+        "seed=-7 finite=false grid=(120,-120) cell=(1,-1) bounds=[48,194]x[-134,-38] points=11069 land=4843 island=89 mountain=306 rockSum=-507493347 hash=-1198374119660326054L",
+        "seed=-7 finite=false grid=(-5,-5) cell=(0,0) bounds=[-87,62]x[-77,33] points=11170 land=5125 island=116 mountain=320 rockSum=1792418966 hash=-7265519621210164844L",
         "seed=20260917 finite=true grid=(-400,-60) cell=(-4,-1) bounds=[-480,-354]x[-151,11] points=11942 land=0 island=0 mountain=0 rockSum=1600964492 hash=2293348428464881058L",
-        "seed=20260917 finite=true grid=(-100,25) cell=(-1,0) bounds=[-164,-21]x[-93,48] points=11525 land=5461 island=87 mountain=397 rockSum=1582516892 hash=5577663875533808139L",
-        "seed=20260917 finite=true grid=(0,0) cell=(0,0) bounds=[-56,72]x[-47,89] points=9142 land=2368 island=102 mountain=272 rockSum=-1705006723 hash=2631830201199456605L",
-        "seed=20260917 finite=true grid=(60,200) cell=(0,2) bounds=[-36,100]x[93,241] points=13440 land=6221 island=110 mountain=281 rockSum=-490751352 hash=-4587803770019840091L",
+        "seed=20260917 finite=true grid=(-100,25) cell=(-1,0) bounds=[-164,-21]x[-93,48] points=11525 land=5461 island=87 mountain=397 rockSum=1582516892 hash=-3839423874258018402L",
+        "seed=20260917 finite=true grid=(0,0) cell=(0,0) bounds=[-56,72]x[-47,89] points=9142 land=2368 island=102 mountain=272 rockSum=-1705006723 hash=-3575120035409922007L",
+        "seed=20260917 finite=true grid=(60,200) cell=(0,2) bounds=[-36,100]x[93,241] points=13440 land=6221 island=110 mountain=281 rockSum=-490751352 hash=-5414217894605826484L",
         "seed=20260917 finite=true grid=(350,-400) cell=(4,-4) bounds=[291,436]x[-452,-313] points=11715 land=0 island=0 mountain=0 rockSum=170143112 hash=6774669283781185499L",
         "seed=20260917 finite=true grid=(-250,350) cell=(-2,4) bounds=[-294,-144]x[291,410] points=10914 land=0 island=0 mountain=0 rockSum=-1851883796 hash=-8915170942019985142L",
-        "seed=20260917 finite=true grid=(120,-120) cell=(1,-1) bounds=[72,182]x[-169,-61] points=6074 land=555 island=40 mountain=200 rockSum=2095684297 hash=3768972841425082145L",
-        "seed=20260917 finite=true grid=(-5,-5) cell=(0,0) bounds=[-56,72]x[-47,89] points=9142 land=2368 island=102 mountain=272 rockSum=-1705006723 hash=2631830201199456605L",
+        "seed=20260917 finite=true grid=(120,-120) cell=(1,-1) bounds=[72,182]x[-169,-61] points=6074 land=555 island=40 mountain=200 rockSum=2095684297 hash=98404393238256567L",
+        "seed=20260917 finite=true grid=(-5,-5) cell=(0,0) bounds=[-56,72]x[-47,89] points=9142 land=2368 island=102 mountain=272 rockSum=-1705006723 hash=-3575120035409922007L",
     };
 
     @Test

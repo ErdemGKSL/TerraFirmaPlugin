@@ -6,9 +6,9 @@
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/world/region/RegionGenerator.java @ c3b4d9536
  *
- * Scope of this port: the continent, ocean, island, mountain, distance, climate and rock annotations. The biome choice
- * (ChooseBiomes), rivers and lakes (AddRiversAndLakes, RiverEdge, RegionPartition), karst surface rocks and chunk data
- * are not ported yet; see docs/porting/ledger.md (World generation, region).
+ * Scope of this port: the continent, ocean, island, mountain, distance, climate and rock annotations, and the rivers and
+ * lakes (AddRiversAndLakes, RiverEdge, RegionPartition). The biome choice (ChooseBiomes), karst surface rocks and chunk
+ * data are not ported yet; see docs/porting/ledger.md (World generation, region).
  */
 package dev.tfp.core.worldgen.region;
 
@@ -22,6 +22,8 @@ import dev.tfp.core.worldgen.noise.Cellular2D;
 import dev.tfp.core.worldgen.noise.Noise2D;
 import dev.tfp.core.worldgen.noise.OpenSimplex2D;
 import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Builds the region map from a level seed: for each grid point, the cell (region) it belongs to and the annotations of
@@ -58,6 +60,8 @@ public final class RegionGenerator {
 
     private final Seed seed;
     private final FastConcurrentCache<Region> cellCache;
+    /** The river lookup partitions, one per cell. Built from the rivers of the 3 x 3 regions around the cell. */
+    private final FastConcurrentCache<RegionPartition> partitionCache;
 
     public RegionGenerator(RegionSettings settings, Seed seed) {
         this.settings = settings;
@@ -67,6 +71,7 @@ public final class RegionGenerator {
 
         // Regions are large (about 12 km), so a small concurrent cache holds the recently used ones.
         this.cellCache = new FastConcurrentCache<>(256);
+        this.partitionCache = new FastConcurrentCache<>(256);
 
         final float min = settings.continentalness() * 10f - 2.5f; // range [0, 1], default 0.5 -> 2.5 continentalness
         this.continentNoise = cellNoise.then(c -> 1 - c.f1() / (0.37f + c.f2()))
@@ -198,6 +203,52 @@ public final class RegionGenerator {
         return entry;
     }
 
+    /** @return The river partition point at the grid coordinates, building the cell's partition if needed. */
+    public RegionPartition.Point getOrCreatePartitionPoint(int gridX, int gridZ) {
+        return getOrCreatePartition(gridX, gridZ).get(gridX, gridZ);
+    }
+
+    private RegionPartition getOrCreatePartition(int gridX, int gridZ) {
+        final int cellX = Units.gridToCell(gridX);
+        final int cellZ = Units.gridToCell(gridZ);
+
+        RegionPartition entry = partitionCache.getIfPresent(cellX, cellZ);
+        if (entry == null) {
+            entry = createPartition(cellX, cellZ);
+            partitionCache.set(cellX, cellZ, entry);
+        }
+        return entry;
+    }
+
+    private RegionPartition createPartition(int cellX, int cellZ) {
+        final List<Region> nearbyRegions = getAllRegionsIn3x3CellArea(cellX, cellZ);
+        final RegionPartition partition = new RegionPartition(cellX, cellZ);
+
+        for (Region region : nearbyRegions) {
+            for (RiverEdge edge : region.rivers()) {
+                for (int partX = edge.minPartX; partX <= edge.maxPartX; partX++) {
+                    for (int partZ = edge.minPartZ; partZ <= edge.maxPartZ; partZ++) {
+                        if (partition.isIn(partX, partZ)) {
+                            partition.getFromPart(partX, partZ).rivers().add(edge);
+                        }
+                    }
+                }
+            }
+        }
+        return partition;
+    }
+
+    private List<Region> getAllRegionsIn3x3CellArea(int cellX, int cellZ) {
+        final List<Region> regions = new ArrayList<>(9);
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                final Cellular2D.Cell regionCell = sampleCell(Units.cellToGrid(cellX + dx), Units.cellToGrid(cellZ + dz));
+                regions.add(getOrCreateRegion(regionCell));
+            }
+        }
+        return regions;
+    }
+
     private Region createRegion(Cellular2D.Cell regionCell) {
         return new Context(regionCell).runTasks().region;
     }
@@ -223,6 +274,7 @@ public final class RegionGenerator {
         ADD_ISLANDS(AddIslands.INSTANCE),
         ANNOTATE_CLIMATE(AnnotateClimate.INSTANCE),
         CHOOSE_ROCKS(ChooseRocks.INSTANCE),
+        ADD_RIVERS_AND_LAKES(AddRiversAndLakes.INSTANCE),
         ;
 
         private static final Task[] VALUES = values();

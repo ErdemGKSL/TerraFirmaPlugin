@@ -71,6 +71,24 @@ public final class XoroshiroRandomSource {
         return (nextLong() & 1L) != 0;
     }
 
+    /** {@code XoroshiroRandomSource.nextFloat()}: 24 random bits, converted through {@code long -> float} as in the 1.21.11 bytecode. */
+    public float nextFloat() {
+        return (float) nextBits(24) * 5.9604645E-8f;
+    }
+
+    /**
+     * {@code XoroshiroRandomSource.nextDouble()}: 53 random bits, converted through {@code long -> float} (so only 24 bits
+     * of precision survive), as in the 1.21.11 bytecode.
+     */
+    public double nextDouble() {
+        return (double) ((float) nextBits(53) * 1.110223E-16f);
+    }
+
+    /** {@code nextBits(bits)}: the top {@code bits} bits of one {@link #nextLong()} step. */
+    private long nextBits(int bits) {
+        return nextLong() >>> (64 - bits);
+    }
+
     /** {@code RandomSupport.mixStafford13}. */
     static long mixStafford13(long z) {
         z = (z ^ (z >>> 30)) * -4658895280553007687L;

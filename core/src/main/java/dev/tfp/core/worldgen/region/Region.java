@@ -5,7 +5,8 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/world/region/Region.java @ c3b4d9536 (the land, island, shore, mountain, volcanic and
- * barrier flags, and the annotations of the in-scope tasks; rivers, lakes, biomes and biome altitude are not ported yet)
+ * barrier flags, the river and lake flags with the river edges, and the annotations of the in-scope tasks; biomes and
+ * biome altitude are not ported yet)
  */
 package dev.tfp.core.worldgen.region;
 
@@ -13,6 +14,7 @@ import dev.tfp.core.worldgen.noise.Cellular2D;
 import dev.tfp.core.worldgen.noise.FastNoiseLite;
 import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -30,6 +32,8 @@ public final class Region {
     private int sizeX;
     private int sizeZ;
     private Point[] data;
+    /** The river edges of this region, in build order. Set once by {@link AddRiversAndLakes}. */
+    private List<RiverEdge> rivers;
 
     Region(Cellular2D.Cell cell) {
         this.cellX = cell.x();
@@ -147,6 +151,22 @@ public final class Region {
         return sizeX * sizeZ;
     }
 
+    /** Used by {@link AddRiversAndLakes}: sets the river edges once. */
+    void setRivers(List<RiverEdge> rivers) {
+        if (this.rivers != null) {
+            throw new IllegalStateException("Rivers already set for " + this);
+        }
+        this.rivers = rivers;
+    }
+
+    /** @return The river edges of this region. Only valid after the river task has run. */
+    public List<RiverEdge> rivers() {
+        if (rivers == null) {
+            throw new IllegalStateException("Rivers not yet built for " + this);
+        }
+        return rivers;
+    }
+
     @Override
     public String toString() {
         return "Region [%d, %d] x [%d, %d] at cell (%f, %f)".formatted(minX, maxX, minZ, maxZ, cellX, cellY);
@@ -203,6 +223,8 @@ public final class Region {
         static final short FLAG_COASTAL_MOUNTAIN = 0b1000;
         static final short FLAG_VOLCANIC = 0b10000;
         static final short FLAG_BARRIER_ISLAND = 0b100000;
+        static final short FLAG_RIVER = 0b1000000;
+        static final short FLAG_LAKE = 0b10000000;
 
         /** Distance to the nearest ocean. Negative values are ocean; {@code -2} is an ocean adjacent to land. */
         public byte distanceToOcean = 0;
@@ -263,6 +285,16 @@ public final class Region {
             return (flags & FLAG_BARRIER_ISLAND) != 0;
         }
 
+        /** @return {@code true} if a river edge was cut through this point (a land point only). */
+        public boolean river() {
+            return (flags & FLAG_RIVER) != 0;
+        }
+
+        /** @return {@code true} if a lake was placed on this point (a land point only). */
+        public boolean lake() {
+            return (flags & FLAG_LAKE) != 0;
+        }
+
         void setLand() {
             flags |= FLAG_LAND;
         }
@@ -289,6 +321,14 @@ public final class Region {
 
         void setBarrierIsland() {
             flags |= FLAG_BARRIER_ISLAND;
+        }
+
+        void setRiver() {
+            flags |= FLAG_RIVER;
+        }
+
+        void setLake() {
+            flags |= FLAG_LAKE;
         }
     }
 }
