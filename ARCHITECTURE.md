@@ -54,7 +54,7 @@ Server-authoritative everything. Clients are vanilla: every visual is a resource
 | Item | Target |
 |---|---|
 | Server | Paper and Folia (no Spigot) |
-| Minecraft | 1.21.x (1.21.4+, tested on 1.21.11) and 26.x (26.2/26.3) |
+| Minecraft | 1.21.11 and 26.3 only (`content/compat.yml`). 1.21.1-1.21.3 are refused by the DATAPACK_DISCOVERY bootstrap; 1.21.4-1.21.10 are unsupported because BetterHud 2.2.0-SNAPSHOT-449 (Java 25 bytecode) never loads on the Paper 1.21.4 remapper |
 | Java | **25** everywhere: BetterModel 3.x and BetterHud 2.x ship Java 25 bytecode |
 | Plugin format | `paper-plugin.yml` with bootstrapper + loader, `folia-supported: true`, `load: STARTUP` |
 | NMS | Avoided. Unavoidable code goes in per-version `nms-*` modules (26.x is unobfuscated, with no reobf) |
