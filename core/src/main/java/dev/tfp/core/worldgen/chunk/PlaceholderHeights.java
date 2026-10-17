@@ -38,25 +38,31 @@ public final class PlaceholderHeights {
         final int blockX = chunkX << 4;
         final int blockZ = chunkZ << 4;
         for (int lz = 0; lz < 16; lz++) {
-            final int z = blockZ + lz;
-            final int gridZ = Units.blockToGrid(z);
-            final float v = (z - Units.gridToBlock(gridZ)) / (float) Units.GRID_WIDTH_IN_BLOCK;
             for (int lx = 0; lx < 16; lx++) {
-                final int x = blockX + lx;
-                final int gridX = Units.blockToGrid(x);
-                final float u = (x - Units.gridToBlock(gridX)) / (float) Units.GRID_WIDTH_IN_BLOCK;
-
-                final float h00 = target(regions.getOrCreateRegionPoint(gridX, gridZ));
-                final float h10 = target(regions.getOrCreateRegionPoint(gridX + 1, gridZ));
-                final float h01 = target(regions.getOrCreateRegionPoint(gridX, gridZ + 1));
-                final float h11 = target(regions.getOrCreateRegionPoint(gridX + 1, gridZ + 1));
-
-                final float along0 = h00 + u * (h10 - h00);
-                final float along1 = h01 + u * (h11 - h01);
-                heights[lx + 16 * lz] = Math.round(along0 + v * (along1 - along0));
+                heights[lx + 16 * lz] = heightAt(regions, blockX + lx, blockZ + lz);
             }
         }
         return heights;
+    }
+
+    /**
+     * @return The placeholder surface height (absolute Y of the top solid block) of the block column at {@code (x, z)}: the four
+     *         grid points around it, interpolated bilinearly. The same value {@link #heights} gives for that column.
+     */
+    public static int heightAt(RegionGenerator regions, int x, int z) {
+        final int gridX = Units.blockToGrid(x);
+        final int gridZ = Units.blockToGrid(z);
+        final float v = (z - Units.gridToBlock(gridZ)) / (float) Units.GRID_WIDTH_IN_BLOCK;
+        final float u = (x - Units.gridToBlock(gridX)) / (float) Units.GRID_WIDTH_IN_BLOCK;
+
+        final float h00 = target(regions.getOrCreateRegionPoint(gridX, gridZ));
+        final float h10 = target(regions.getOrCreateRegionPoint(gridX + 1, gridZ));
+        final float h01 = target(regions.getOrCreateRegionPoint(gridX, gridZ + 1));
+        final float h11 = target(regions.getOrCreateRegionPoint(gridX + 1, gridZ + 1));
+
+        final float along0 = h00 + u * (h10 - h00);
+        final float along1 = h01 + u * (h11 - h01);
+        return Math.round(along0 + v * (along1 - along0));
     }
 
     /** @return The surface height at one grid point, before interpolation. */

@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/util/Helpers.java @ c3b4d9536 (mix64, hashDouble)
+ * file: src/main/java/net/dries007/tfc/util/Helpers.java @ c3b4d9536 (mix64, hashDouble, hash)
  */
 package dev.tfp.core.worldgen;
 
@@ -20,6 +20,15 @@ public final class Hash {
         x *= 0xc4ceb9fe1a85ec53L;
         x ^= x >>> 33;
         return x;
+    }
+
+    /**
+     * {@code Helpers.hash(long, int, int, int)}: a per-block hash, used for the dithering of the surface rules. The {@code z}
+     * is sign-extended to a long, as in TFC, and the result is the low 32 bits.
+     */
+    public static int hash(long salt, int x, int y, int z) {
+        final long hash = salt ^ ((long) x * 501125321) ^ ((long) y * 1136930381) ^ z;
+        return (int) (hash * 0x27d4eb2d);
     }
 
     /** {@code Helpers.hashDouble}: a value in [0, 1) derived from the bits of {@code input} and {@code index}. */

@@ -52,6 +52,15 @@ public final class PlaceholderRocks {
     }
 
     /**
+     * @param index an index of {@link #names()}
+     * @return Whether the rock is mafic, as TFC's rock settings mark it: basalt and gabbro. Used for the beach sand colour.
+     */
+    public static boolean isMafic(int index) {
+        final String name = NAMES[index];
+        return name.equals("basalt") || name.equals("gabbro");
+    }
+
+    /**
      * The index in {@link #names()} of the rock at a region rock id and a rock layer. The supertype (lower two bits) picks the
      * category; the upper bits and the layer pick the rock inside it, so the layers of one point differ.
      *

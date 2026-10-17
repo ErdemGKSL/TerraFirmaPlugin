@@ -11,8 +11,15 @@ import dev.tfp.core.worldgen.chunk.ChunkData;
 import dev.tfp.core.worldgen.chunk.ChunkDataGenerator;
 import dev.tfp.core.worldgen.chunk.PlaceholderHeights;
 import dev.tfp.core.worldgen.chunk.PlaceholderRocks;
+import dev.tfp.core.worldgen.noise.Noise2D;
 import dev.tfp.core.worldgen.region.RegionGenerator;
 import dev.tfp.core.worldgen.region.RegionSettings;
+import dev.tfp.core.worldgen.surface.ColumnSurface;
+import dev.tfp.core.worldgen.surface.SurfaceColumn;
+import dev.tfp.core.worldgen.surface.SurfaceFamily;
+import dev.tfp.core.worldgen.surface.SurfaceKind;
+import dev.tfp.core.worldgen.surface.SurfaceNoise;
+import dev.tfp.core.worldgen.surface.SurfaceSlope;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.BlockVisuals;
 import java.util.Arrays;
@@ -36,10 +43,12 @@ final class TfcTerrain {
 
     private final RegionGenerator regions;
     private final ChunkDataGenerator chunks;
+    private final Noise2D shoreTide;
     private final Biome[] biomes;
     private final List<Biome> biomeList;
     private final BlockData bedrock = Material.BEDROCK.createBlockData();
     private final BlockData water = Material.WATER.createBlockData();
+    private final BlockData[] surfaceBlocks = surfaceBlocks();
     private volatile RockPalette<BlockData> palette;
 
     /**
@@ -50,17 +59,23 @@ final class TfcTerrain {
         Seed stream = Seed.of(seed);
         this.regions = new RegionGenerator(RegionSettings.OVERWORLD, stream);
         this.chunks = new ChunkDataGenerator(regions, stream);
+        this.shoreTide = SurfaceNoise.shoreTide(seed);
         this.biomes = vanillaBiomes();
         this.biomeList = Arrays.stream(biomes).distinct().toList();
     }
 
-    /** The biome of a block column, from the region point at its grid cell. Any thread. */
-    Biome biomeAt(int x, int z) {
+    /** The TFC biome id of a block column, from the region point at its grid cell. Any thread. */
+    int biomeId(int x, int z) {
         int id = BiomeKeys.biomeIdAt((gx, gz) -> regions.getOrCreateRegionPoint(gx, gz).biome, x, z);
         if (id < 0 || id >= TfcBiomes.COUNT) {
             id = TfcBiomes.PLAINS;
         }
-        return biomes[id];
+        return id;
+    }
+
+    /** The biome of a block column, as a vanilla biome. Any thread. */
+    Biome biomeAt(int x, int z) {
+        return biomes[biomeId(x, z)];
     }
 
     /** The distinct vanilla biomes this terrain can return. */
@@ -86,11 +101,16 @@ final class TfcTerrain {
     }
 
     /**
-     * Writes one chunk: bedrock at the bottom, rock from the floor up to the surface (layers from the chunk data), and water
-     * up to sea level over ocean columns. Requires a resolved palette. Writes only this chunk's blocks.
+     * Writes one chunk: bedrock at the bottom, the surface of each column over the rock (the kinds of the column's biome builder:
+     * grass, dirt, sand, gravel, snow and ice, or the rock itself), and water up to sea level over the columns below it. The
+     * rock layers come from the chunk data, so the rock blocks are the CraftEngine rock palette. Requires a resolved palette.
+     * Writes only this chunk's blocks, and only from the worldgen worker.
      */
     void fill(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, RockPalette<BlockData> palette) {
         final int[] heights = PlaceholderHeights.heights(regions, chunkX, chunkZ);
+        // The climate of the chunk, with the groundwater that the surface heights remove from the rivers' share
+        final ChunkData climate = chunks.generate(chunkX, chunkZ).modifyBaseGroundwater(heights);
+        final double[] slopes = SurfaceSlope.slopeMap(chunkX << 4, chunkZ << 4, (x, z) -> PlaceholderHeights.heightAt(regions, x, z));
         final int minY = data.getMinHeight();
         final int sea = ChunkData.SEA_LEVEL_Y;
         for (int lz = 0; lz < 16; lz++) {
@@ -98,16 +118,54 @@ final class TfcTerrain {
             for (int lx = 0; lx < 16; lx++) {
                 final int x = (chunkX << 4) + lx;
                 final int top = heights[lx + 16 * lz];
+                final ColumnSurface surface = ColumnSurface.build(SurfaceFamily.forBiome(biomeId(x, z)).builder(),
+                    column(x, z, top, climate, SurfaceSlope.sample(slopes, lx, lz)), top, minY);
                 data.setBlock(lx, minY, lz, bedrock);
                 for (int y = minY + 1; y <= top; y++) {
-                    ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, top);
-                    data.setBlock(lx, y, lz, palette.block(PlaceholderRocks.index(rock.point(), rock.layer())));
+                    final SurfaceKind kind = surface.kind(y);
+                    if (kind == null || kind == SurfaceKind.ROCK_SURFACE) {
+                        ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, top);
+                        data.setBlock(lx, y, lz, palette.block(PlaceholderRocks.index(rock.point(), rock.layer())));
+                    } else {
+                        data.setBlock(lx, y, lz, surfaceBlocks[kind.ordinal()]);
+                    }
                 }
                 for (int y = top + 1; y <= sea; y++) {
                     data.setBlock(lx, y, lz, water);
                 }
             }
         }
+    }
+
+    /** The inputs of a column for its surface builder: the climate of its chunk, its slope, its tide and its sea-level rock. */
+    private SurfaceColumn column(int x, int z, int top, ChunkData climate, double slope) {
+        final int sea = ChunkData.SEA_LEVEL_Y;
+        final ChunkDataGenerator.RockSample seaRock = chunks.generateRock(x, sea, z, top);
+        return new SurfaceColumn(x, z, sea, slope,
+            climate.averageSeaLevelTemperature(x, z), climate.averageRainfall(x, z), climate.baseGroundwater(x, z),
+            climate.rainVariance(x, z), (int) shoreTide.noise(x, z),
+            PlaceholderRocks.isMafic(PlaceholderRocks.index(seaRock.point(), seaRock.layer())));
+    }
+
+    /** The block of each surface kind, indexed by {@link SurfaceKind#ordinal}. Rock has no entry: it is the palette's. */
+    private static BlockData[] surfaceBlocks() {
+        final BlockData[] out = new BlockData[SurfaceKind.values().length];
+        for (SurfaceKind kind : SurfaceKind.values()) {
+            final Material material = switch (kind) {
+                case ROCK_SURFACE -> null;
+                case GRASS -> Material.GRASS_BLOCK;
+                case DIRT -> Material.DIRT;
+                case COARSE_DIRT -> Material.COARSE_DIRT;
+                case MUD -> Material.MUD;
+                case GRAVEL -> Material.GRAVEL;
+                case SAND -> Material.SAND;
+                case SANDSTONE -> Material.SANDSTONE;
+                case SNOW -> Material.SNOW_BLOCK;
+                case PACKED_ICE -> Material.PACKED_ICE;
+            };
+            out[kind.ordinal()] = material == null ? null : material.createBlockData();
+        }
+        return out;
     }
 
     private static Biome[] vanillaBiomes() {

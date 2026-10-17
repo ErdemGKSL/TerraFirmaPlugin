@@ -94,4 +94,23 @@ class PlaceholderTerrainTest {
         }
         return out;
     }
+
+    @Test
+    void heightAtIsTheHeightsOfItsColumn() {
+        RegionGenerator regions = new RegionGenerator(RegionSettings.OVERWORLD, Seed.of(42L));
+        int[] heights = PlaceholderHeights.heights(regions, -4, 7);
+        for (int lz = 0; lz < 16; lz++) {
+            for (int lx = 0; lx < 16; lx++) {
+                assertThat(PlaceholderHeights.heightAt(regions, (-4 << 4) + lx, (7 << 4) + lz)).isEqualTo(heights[lx + 16 * lz]);
+            }
+        }
+    }
+
+    @Test
+    void onlyBasaltAndGabbroAreMafic() {
+        for (int i = 0; i < PlaceholderRocks.count(); i++) {
+            String name = PlaceholderRocks.names().get(i);
+            assertThat(PlaceholderRocks.isMafic(i)).isEqualTo(name.equals("basalt") || name.equals("gabbro"));
+        }
+    }
 }

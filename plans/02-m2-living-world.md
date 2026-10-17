@@ -106,11 +106,12 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
 - [~] **M2-GEN-07 Bukkit ChunkGenerator & BiomeProvider** · deps: M2-GEN-06, M0-CE-01 · skills: craftengine-java-api, paper-folia-threading (@claude)
   - Do: `paper` glue that calls `worldgen` and writes cached CE `BlockData` for rock/soil/sand/gravel. `getDefaultWorldGenerator` + `bukkit.yml` docs. Thread-safe, no CE lookups per block.
   - Done when: worlds generate on Paper/Folia; CE tracks the blocks (self-test from the M0-CE-01 plan); JMH chunk budget recorded.
-  - Status (@claude): code and unit tests done, server check and JMH budget open. `paper/worldgen/` (`TfcChunkGenerator`, `TfcTerrain`, `RockPalette`, `BiomeKeys`) with `core/worldgen/chunk/PlaceholderHeights` and `PlaceholderRocks`; `TfpPlugin.getDefaultWorldGenerator` (`bukkit.yml`: `generator: TerraFirmaPlugin[:seed]`). Placeholder terrain: region-map heights, rock layers from the chunk data, water to sea level, vanilla placeholder biomes; soil, decorations and the real TFC heights are M2-GEN-06/08 and later. A chunk with unresolved CE rock states is refused (logged, throws, nothing written). Divergences in the ledger.
+  - Status (@claude): code and unit tests done, server check and JMH budget open. `paper/worldgen/` (`TfcChunkGenerator`, `TfcTerrain`, `RockPalette`, `BiomeKeys`) with `core/worldgen/chunk/PlaceholderHeights` and `PlaceholderRocks`; `TfpPlugin.getDefaultWorldGenerator` (`bukkit.yml`: `generator: TerraFirmaPlugin[:seed]`). Placeholder terrain: region-map heights, rock layers from the chunk data, water to sea level, vanilla placeholder biomes; soil is M2-GEN-08 (done in core, written by `TfcTerrain.fill`); decorations and the real TFC heights are M2-GEN-06 and later. A chunk with unresolved CE rock states is refused (logged, throws, nothing written). Divergences in the ledger.
 
-- [ ] **M2-GEN-08 Surface builders & shores** · deps: M2-GEN-07
+- [~] **M2-GEN-08 Surface builders & shores** · deps: M2-GEN-07 (@claude)
   - TFC: `world/surface/`, `world/surface/builder/`, `world/shore/`
   - Done when: surface materials per biome match TFC (golden column checks).
+  - Status (@claude): core rules done and checked against a TFC oracle (`SurfaceGoldenTest`: 300 columns and 16 noise points, bit-exact at c3b4d9536). `core/worldgen/surface/` ports the soil tables by climate (grass, dirt, coarse dirt, mud, snow, packed ice), the normal and rocky builders, the shore and ocean builders, the slope map and the biome table (46 biomes with their builder, the rest use the normal builder). `TfcTerrain.fill` writes the kinds on the worldgen worker. Open: the TFC block set (rock gravel, soil variants), ice sheets and sea ice, lava flows, the other biome builders, and the server check (ledger Divergences).
 
 - [ ] **M2-GEN-09 Aquifer, carvers & caves** · deps: M2-GEN-07
   - TFC: `world/TFCAquifer.java`, `world/carver/`, `world/feature/cave/`
