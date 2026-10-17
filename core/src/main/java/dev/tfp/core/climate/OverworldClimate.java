@@ -95,6 +95,21 @@ public final class OverworldClimate {
     }
 
     /**
+     * TFC {@code getAverageMonthlyTemperature}: the temperature of a month with the given modifier (1 is the warmest
+     * month, -1 the coldest) at height {@code y}, without the daily swing. With {@code ignoreHemispheres} the modifier
+     * flips in the southern hemisphere, so 1 is the warmest month on either side.
+     *
+     * @param averageTemperature the annual average at sea level ({@link ChunkClimate#averageSeaLevelTemperature()})
+     */
+    public float averageMonthlyTemperature(int z, int y, float averageTemperature, float monthFactor, boolean ignoreHemispheres) {
+        if (ignoreHemispheres && !Solar.inNorthernHemisphere(z, hemisphereScale())) {
+            monthFactor = -monthFactor;
+        }
+        final float monthlyTemperature = monthlyTemperature(z, monthFactor);
+        return adjustTemperatureByElevation(y, averageTemperature, monthlyTemperature, 0);
+    }
+
+    /**
      * TFC {@code getInstantRainfall}: the rainfall rate at {@code calendarTicks}, mm/year. A variance of zero gives the
      * average; otherwise the rate is a triangle wave around the average over the year, peaking at July 1 for positive
      * variance (dry January) and at January 1 for negative variance (dry summer).

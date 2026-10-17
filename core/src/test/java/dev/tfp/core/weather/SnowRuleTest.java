@@ -5,169 +5,217 @@
  */
 package dev.tfp.core.weather;
 
-import static dev.tfp.core.weather.SnowRule.Cover;
-import static dev.tfp.core.weather.SnowRule.SnowChange;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import dev.tfp.core.weather.SnowRule.Block;
+import dev.tfp.core.weather.SnowRule.Cell;
+import dev.tfp.core.weather.SnowRule.Change;
+import dev.tfp.core.weather.SnowRule.Event;
+import dev.tfp.core.weather.SnowRule.Kind;
+import dev.tfp.core.world.BlockPos;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import org.junit.jupiter.api.Test;
 
 /**
- * Golden values for {@link SnowRule#decide}, from TFC's {@code WeatherHelpers.onTickChunk} and the placement and removal
- * helpers it calls. TFC has no unit tests for these. The thresholds are the strict comparisons in lines 248, 252, 283,
- * 285 and 293 of {@code WeatherHelpers}: accumulation below -2, melting above 2. Boundaries use the float neighbours of
- * each threshold.
+ * Hand-checked cases of {@link SnowRule}, read off TFC's {@code WeatherHelpers} at c3b4d9536. The event thresholds are
+ * the strict comparisons of {@code onTickChunk} lines 284 and 293; the block rules are covered in bulk by
+ * {@link SnowRuleGoldenTest}.
  */
 class SnowRuleTest {
-    private static final float COLD = -10f;
-    private static final float WARM = 10f;
-    private static final PrecipitationType SNOWING = PrecipitationType.SNOW;
-    private static final PrecipitationType DRY = PrecipitationType.NONE;
+    private static final BlockPos SURFACE = new BlockPos(5, 70, 5);
 
-    /** A column that accumulates when nothing blocks it: cold, snowing, sky visible, ground top. */
-    private static SnowRule.Column coldGround() {
-        return column(Cover.GROUND, 0, false, false, true, COLD, SNOWING);
-    }
-
-    private static SnowRule.Column column(Cover top, int layers, boolean supported, boolean waterEdge, boolean sky,
-            float temperature, PrecipitationType precipitation) {
-        return new SnowRule.Column(top, layers, supported, waterEdge, sky, temperature, precipitation);
+    @Test
+    void accumulationIsStrictlyBelowMinusTwoAndNeedsPrecipitation() {
+        assertThat(SnowRule.event(-2f, PrecipitationType.SNOW)).isEqualTo(Event.NONE);
+        assertThat(SnowRule.event(Math.nextDown(-2f), PrecipitationType.SNOW)).isEqualTo(Event.ACCUMULATE);
+        assertThat(SnowRule.event(Math.nextDown(-2f), PrecipitationType.RAIN)).isEqualTo(Event.ACCUMULATE);
+        assertThat(SnowRule.event(-30f, PrecipitationType.NONE)).isEqualTo(Event.NONE);
     }
 
     @Test
-    void freezingThresholdIsStrictlyBelowMinusTwo() {
-        assertThat(SnowRule.decide(column(Cover.GROUND, 0, false, false, true, -2f, SNOWING))).isEqualTo(SnowChange.NONE);
-        assertThat(SnowRule.decide(column(Cover.GROUND, 0, false, false, true, Math.nextUp(-2f), SNOWING))).isEqualTo(SnowChange.NONE);
-        assertThat(SnowRule.decide(column(Cover.GROUND, 0, false, false, true, Math.nextDown(-2f), SNOWING)))
-                .isEqualTo(SnowChange.ADD_SNOW_LAYER);
-    }
-
-    @Test
-    void meltingThresholdIsStrictlyAboveTwo() {
-        assertThat(SnowRule.decide(column(Cover.SNOW, 3, false, false, true, 2f, DRY))).isEqualTo(SnowChange.NONE);
-        assertThat(SnowRule.decide(column(Cover.SNOW, 3, false, false, true, Math.nextDown(2f), DRY))).isEqualTo(SnowChange.NONE);
-        assertThat(SnowRule.decide(column(Cover.SNOW, 3, false, false, true, Math.nextUp(2f), DRY)))
-                .isEqualTo(SnowChange.REMOVE_SNOW_LAYER);
-    }
-
-    @Test
-    void betweenTheThresholdsNothingChanges() {
-        float[] temps = {Math.nextUp(-2f), -1f, 0f, -0f, 1f, Math.nextDown(2f)};
-        for (float t : temps) {
-            for (Cover top : Cover.values()) {
-                int layers = top == Cover.SNOW ? 4 : 0;
-                for (PrecipitationType p : PrecipitationType.values()) {
-                    assertThat(SnowRule.decide(column(top, layers, true, true, true, t, p)))
-                            .as("top %s at %s, %s", top, t, p)
-                            .isEqualTo(SnowChange.NONE);
-                }
+    void meltingIsStrictlyAboveTwoWhateverFalls() {
+        assertThat(SnowRule.event(2f, PrecipitationType.NONE)).isEqualTo(Event.NONE);
+        assertThat(SnowRule.event(Math.nextUp(2f), PrecipitationType.NONE)).isEqualTo(Event.MELT);
+        assertThat(SnowRule.event(Math.nextUp(2f), PrecipitationType.RAIN)).isEqualTo(Event.MELT);
+        for (float t : new float[] {Math.nextUp(-2f), -1f, 0f, -0f, 1f, 2f}) {
+            for (PrecipitationType p : PrecipitationType.values()) {
+                assertThat(SnowRule.event(t, p)).as("%s %s", t, p).isEqualTo(Event.NONE);
             }
         }
     }
 
     @Test
-    void noPrecipitationNoAccumulation() {
-        assertThat(SnowRule.decide(column(Cover.GROUND, 0, false, false, true, COLD, DRY))).isEqualTo(SnowChange.NONE);
-        assertThat(SnowRule.decide(column(Cover.WATER, 0, false, true, true, COLD, DRY))).isEqualTo(SnowChange.NONE);
+    void snowGoesOnTheAirAboveGroundUnderTheSky() {
+        Grid g = new Grid().ground(SURFACE.offset(0, -1, 0));
+        assertThat(SnowRule.accumulate(g, SURFACE, new Random(1), SnowRule.UNLIMITED))
+                .startsWith(change(SURFACE, Kind.PLACE_SNOW));
     }
 
     @Test
-    void snowLayerGoesOnGroundWithSky() {
-        assertThat(SnowRule.decide(coldGround())).isEqualTo(SnowChange.ADD_SNOW_LAYER);
-        assertThat(SnowRule.decide(coldGround()).placedAboveTop()).isTrue();
+    void noSkyNoSnowButStillTheIceStep() {
+        Grid g = new Grid().ground(SURFACE.offset(0, -1, 0));
+        g.put(SURFACE, cell(Block.AIR, true, false));
+        assertThat(SnowRule.accumulate(g, SURFACE, new Random(1), SnowRule.UNLIMITED))
+                .noneMatch(c -> c.kind() == Kind.PLACE_SNOW);
     }
 
     @Test
-    void noSkyNoSnowLayer() {
-        assertThat(SnowRule.decide(column(Cover.GROUND, 0, false, false, false, COLD, SNOWING))).isEqualTo(SnowChange.NONE);
+    void snowOnSnowMovesSidewaysAndNeverStacks() {
+        Grid g = new Grid();
+        g.put(SURFACE, new Cell(Block.SNOW, 8, false, true, true, false, true));
+        BlockPos east = SURFACE.offset(1, 0, 0);
+        g.put(east, cell(Block.AIR, true, true));
+        List<Change> out = SnowRule.accumulate(g, SURFACE, new Random(1), SnowRule.UNLIMITED);
+        assertThat(out).startsWith(change(east, Kind.PLACE_SNOW));
+        // Nowhere to go: TFC does not add a layer to the snow (placeSnowOrSnowPileAt only fills air or a pileable block)
+        g.put(east, cell(Block.OTHER, false, true));
+        assertThat(SnowRule.accumulate(g, SURFACE, new Random(1), SnowRule.UNLIMITED))
+                .noneMatch(c -> c.kind() == Kind.PLACE_SNOW || c.kind() == Kind.SET_SNOW_LAYERS);
     }
 
     @Test
-    void fullSnowTopCarriesALayerButPartialSnowDoesNot() {
-        // Vanilla SnowLayerBlock.canSurvive: a layer rests on an eight-layer snow block, not on a shorter one
-        assertThat(SnowRule.decide(column(Cover.SNOW, 8, false, false, true, COLD, SNOWING))).isEqualTo(SnowChange.ADD_SNOW_LAYER);
-        for (int layers = 1; layers <= 7; layers++) {
-            assertThat(SnowRule.decide(column(Cover.SNOW, layers, false, false, true, COLD, SNOWING)))
-                    .as("layers %d", layers)
-                    .isEqualTo(SnowChange.NONE);
+    void aPlantIsPiledWithTheTopHalfAbsorbed() {
+        Grid g = new Grid();
+        g.put(SURFACE, cell(Block.SNOW_PILEABLE, true, true));
+        g.put(SURFACE.offset(0, 1, 0), cell(Block.SNOW_PILEABLE, false, true));
+        assertThat(SnowRule.accumulate(g, SURFACE, new Random(1), SnowRule.UNLIMITED))
+                .startsWith(new Change(SURFACE, Kind.PLACE_SNOW_PILE, 0, true));
+    }
+
+    @Test
+    void stillWaterAtAShoreFreezesButOpenWaterDoesNot() {
+        Grid g = new Grid();
+        BlockPos water = SURFACE.offset(0, -1, 0);
+        g.put(water, water());
+        g.put(water.offset(1, 0, 0), water());
+        g.put(water.offset(-1, 0, 0), water());
+        g.put(water.offset(0, 0, 1), water());
+        g.put(water.offset(0, 0, -1), water());
+        assertThat(SnowRule.accumulate(g, SURFACE, new Random(1), SnowRule.UNLIMITED)).noneMatch(c -> c.kind() == Kind.FREEZE);
+        g.put(water.offset(0, 0, -1), cell(Block.OTHER, false, true));
+        assertThat(SnowRule.accumulate(g, SURFACE, new Random(1), SnowRule.UNLIMITED)).startsWith(change(water, Kind.FREEZE));
+    }
+
+    @Test
+    void saltWaterAndFlowingWaterNeverFreeze() {
+        Grid g = new Grid();
+        BlockPos sea = SURFACE.offset(0, -1, 0);
+        g.put(sea, new Cell(Block.LIQUID, 0, true, false, false, true, true));
+        assertThat(SnowRule.accumulate(g, SURFACE, new Random(1), SnowRule.UNLIMITED)).noneMatch(c -> c.kind() == Kind.FREEZE);
+    }
+
+    @Test
+    void meltRemovesOneLayerThenTheSnowAndGivesPilesBack() {
+        Grid g = new Grid();
+        g.put(SURFACE, new Cell(Block.SNOW, 3, false, true, false, false, true));
+        assertThat(SnowRule.melt(g, SURFACE, 8)).containsExactly(new Change(SURFACE, Kind.SET_SNOW_LAYERS, 2, false));
+        g.put(SURFACE, new Cell(Block.SNOW, 1, false, true, false, false, true));
+        assertThat(SnowRule.melt(g, SURFACE, 8)).containsExactly(change(SURFACE, Kind.REMOVE));
+        g.put(SURFACE, new Cell(Block.SNOW_PILE, 1, false, true, false, false, true));
+        assertThat(SnowRule.melt(g, SURFACE, 8)).containsExactly(new Change(SURFACE, Kind.RESTORE_PILE, 0, true));
+    }
+
+    @Test
+    void iceMeltsToWaterWhenHeldAndSeaIceNeverMelts() {
+        Grid g = new Grid();
+        BlockPos top = SURFACE.offset(0, -1, 0);
+        g.put(top, new Cell(Block.ICE, 0, false, false, true, true, true));
+        g.put(top.offset(0, -1, 0), new Cell(Block.WATER, 0, true, false, false, true, false));
+        assertThat(SnowRule.melt(g, SURFACE, 8)).containsExactly(change(top, Kind.MELT_TO_WATER));
+        g.put(top.offset(0, -1, 0), cell(Block.AIR, false, false));
+        assertThat(SnowRule.melt(g, SURFACE, 8)).containsExactly(change(top, Kind.REMOVE));
+        g.put(top, new Cell(Block.SEA_ICE, 0, false, false, true, true, true));
+        assertThat(SnowRule.melt(g, SURFACE, 8)).isEmpty();
+    }
+
+    @Test
+    void meltTakesTheLowestIcicleOfAHangingColumn() {
+        Grid g = new Grid().ground(SURFACE.offset(0, -1, 0));
+        BlockPos a = SURFACE.offset(0, -2, 0);
+        g.put(a, cell(Block.ICICLE, false, false));
+        g.put(a.offset(0, -1, 0), cell(Block.ICICLE, false, false));
+        assertThat(SnowRule.melt(g, SURFACE, 8))
+                .containsExactly(change(a.offset(0, -1, 0), Kind.REMOVE), change(a, Kind.ICICLE_TO_TIP));
+    }
+
+    @Test
+    void unknownBlocksDecideNothing() {
+        SnowRule.View unknown = new SnowRule.View() {
+            @Override
+            public Cell at(BlockPos pos) {
+                return null;
+            }
+
+            @Override
+            public int height(int x, int z) {
+                return Integer.MIN_VALUE;
+            }
+        };
+        assertThat(SnowRule.accumulate(unknown, SURFACE, new Random(1), 16)).isEmpty();
+        assertThat(SnowRule.melt(unknown, SURFACE, 16)).isEmpty();
+    }
+
+    @Test
+    void theIcicleLengthHashKeepsJavasNegativeRemainder() {
+        // TFC: maxLength = 1 + (Helpers.hash(7189237951231L, x, 0, z) % 3); a negative hash gives 0 or -1
+        int negatives = 0;
+        for (int x = -50; x < 50; x++) {
+            int h = SnowRule.hash(SnowRule.ICICLE_LENGTH_SALT, x, 0, 7);
+            negatives += h < 0 ? 1 : 0;
+            assertThat(1 + h % 3).isBetween(-1, 3);
         }
+        assertThat(negatives).isPositive();
     }
 
     @Test
-    void notRestingTopsGetNoSnowLayer() {
-        assertThat(SnowRule.decide(column(Cover.ICE, 0, false, false, true, COLD, SNOWING))).isEqualTo(SnowChange.NONE);
-        assertThat(SnowRule.decide(column(Cover.OTHER, 0, false, false, true, COLD, SNOWING))).isEqualTo(SnowChange.NONE);
-        assertThat(SnowRule.decide(column(Cover.AIR, 0, false, false, true, COLD, SNOWING))).isEqualTo(SnowChange.NONE);
+    void invalidCellsAreRejected() {
+        assertThatThrownBy(() -> new Cell(Block.SNOW, 0, false, false, false, false, false))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new Cell(Block.SNOW_PILE, 9, false, false, false, false, false))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new Cell(Block.ICE, 1, false, false, false, false, false))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Test
-    void waterFreezesWhenANeighbourIsNotWater() {
-        assertThat(SnowRule.decide(column(Cover.WATER, 0, false, true, true, COLD, SNOWING))).isEqualTo(SnowChange.FREEZE_WATER);
-        assertThat(SnowRule.decide(column(Cover.WATER, 0, false, false, true, COLD, SNOWING))).isEqualTo(SnowChange.NONE);
+    private static Change change(BlockPos pos, Kind kind) {
+        return new Change(pos, kind, 0, false);
     }
 
-    @Test
-    void waterFreezesUnderAnOverhangWithoutSky() {
-        // TFC's ice path is not behind the sky gate: only snow placement checks canSeeSky
-        assertThat(SnowRule.decide(column(Cover.WATER, 0, false, true, false, COLD, SNOWING))).isEqualTo(SnowChange.FREEZE_WATER);
-        assertThat(SnowRule.decide(column(Cover.WATER, 0, false, true, false, COLD, SNOWING)).placedAboveTop()).isFalse();
+    private static Cell cell(Block b, boolean snowSurvives, boolean sky) {
+        return new Cell(b, 0, false, snowSurvives, false, false, sky);
     }
 
-    @Test
-    void groundTopIsNeverFrozenEvenWithAWaterEdge() {
-        // Ice only forms on water: a ground top with a water-side neighbour gets snow (TFC tries the snow placement first)
-        assertThat(SnowRule.decide(column(Cover.GROUND, 0, false, true, true, COLD, SNOWING))).isEqualTo(SnowChange.ADD_SNOW_LAYER);
+    private static Cell water() {
+        return new Cell(Block.WATER, 0, true, false, false, true, true);
     }
 
-    @Test
-    void meltingRemovesOneSnowLayerAtEveryCount() {
-        for (int layers = 1; layers <= 8; layers++) {
-            assertThat(SnowRule.decide(column(Cover.SNOW, layers, false, false, true, WARM, DRY)))
-                    .as("layers %d", layers)
-                    .isEqualTo(SnowChange.REMOVE_SNOW_LAYER);
+    /** Air with sky everywhere, except where put; no snow survives on air. Heights are 0 (no icicle search). */
+    static final class Grid implements SnowRule.View {
+        private final Map<BlockPos, Cell> cells = new HashMap<>();
+
+        Grid put(BlockPos p, Cell c) {
+            cells.put(p, c);
+            return this;
         }
-    }
 
-    @Test
-    void meltingIgnoresSkyAndPrecipitation() {
-        assertThat(SnowRule.decide(column(Cover.SNOW, 2, true, true, false, WARM, SNOWING))).isEqualTo(SnowChange.REMOVE_SNOW_LAYER);
-    }
-
-    @Test
-    void layersAfterRemoveCountsDownToZero() {
-        assertThat(SnowRule.layersAfterRemove(8)).isEqualTo(7);
-        assertThat(SnowRule.layersAfterRemove(2)).isEqualTo(1);
-        // A single layer goes to air (TFC removeBlock), which is 0 here
-        assertThat(SnowRule.layersAfterRemove(1)).isZero();
-        assertThatThrownBy(() -> SnowRule.layersAfterRemove(0)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> SnowRule.layersAfterRemove(9)).isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void iceMeltsToWaterOnlyWhenHeldFromBelow() {
-        assertThat(SnowRule.decide(column(Cover.ICE, 0, true, false, true, WARM, DRY))).isEqualTo(SnowChange.MELT_ICE_TO_WATER);
-        assertThat(SnowRule.decide(column(Cover.ICE, 0, false, false, true, WARM, DRY))).isEqualTo(SnowChange.MELT_ICE_TO_AIR);
-    }
-
-    @Test
-    void nothingMeltsWhenTheTopCannotMelt() {
-        assertThat(SnowRule.decide(column(Cover.WATER, 0, true, true, true, WARM, DRY))).isEqualTo(SnowChange.NONE);
-        assertThat(SnowRule.decide(column(Cover.GROUND, 0, true, true, true, WARM, DRY))).isEqualTo(SnowChange.NONE);
-        assertThat(SnowRule.decide(column(Cover.OTHER, 0, true, true, true, WARM, DRY))).isEqualTo(SnowChange.NONE);
-        assertThat(SnowRule.decide(column(Cover.AIR, 0, true, true, true, WARM, DRY))).isEqualTo(SnowChange.NONE);
-    }
-
-    @Test
-    void placedAboveTopOnlyForAddedLayers() {
-        for (SnowChange change : SnowChange.values()) {
-            assertThat(change.placedAboveTop()).isEqualTo(change == SnowChange.ADD_SNOW_LAYER);
+        /** A solid block at {@code p}; the air above it holds snow. */
+        Grid ground(BlockPos p) {
+            put(p, new Cell(Block.OTHER, 0, false, false, true, true, false));
+            return put(p.offset(0, 1, 0), cell(Block.AIR, true, true));
         }
-    }
 
-    @Test
-    void invalidColumnsAreRejected() {
-        assertThatThrownBy(() -> column(Cover.SNOW, 0, false, false, true, COLD, SNOWING)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> column(Cover.SNOW, 9, false, false, true, COLD, SNOWING)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> column(Cover.GROUND, 3, false, false, true, COLD, SNOWING)).isInstanceOf(IllegalArgumentException.class);
+        @Override
+        public Cell at(BlockPos pos) {
+            return cells.getOrDefault(pos, cell(Block.AIR, false, true));
+        }
+
+        @Override
+        public int height(int x, int z) {
+            return 0;
+        }
     }
 }

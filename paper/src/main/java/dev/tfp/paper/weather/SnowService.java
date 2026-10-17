@@ -11,21 +11,26 @@ import dev.tfp.core.climate.OverworldClimate;
 import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.weather.PrecipitationType;
+import dev.tfp.core.weather.SeaIce;
 import dev.tfp.core.weather.SnowRule;
-import dev.tfp.core.weather.SnowRule.Cover;
-import dev.tfp.core.weather.SnowRule.SnowChange;
+import dev.tfp.core.weather.SnowRule.Cell;
+import dev.tfp.core.weather.SnowRule.Change;
 import dev.tfp.core.world.BlockPos;
+import dev.tfp.core.world.ChunkPos;
 import dev.tfp.paper.pipeline.AsyncDecisionPipeline;
-import dev.tfp.paper.pipeline.BlockAccess;
 import dev.tfp.paper.pipeline.BlockChange;
 import dev.tfp.paper.pipeline.CommitBudget;
-import dev.tfp.paper.pipeline.NeighbourSnapshot;
 import dev.tfp.paper.pipeline.PipelineMetrics;
 import dev.tfp.paper.pipeline.RegionExecutor;
 import dev.tfp.paper.scheduler.Scheduler;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,28 +39,45 @@ import java.util.function.Supplier;
 import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.World;
+import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockSupport;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.FaceAttachable;
+import org.bukkit.block.data.Levelled;
+import org.bukkit.block.data.Waterlogged;
+import org.bukkit.block.data.type.PointedDripstone;
 import org.bukkit.block.data.type.Snow;
 import org.bukkit.entity.Player;
 
 /**
- * Snow layers, ice and melting in the overworld (M2-WTH-02), decide async, apply sync.
+ * Snow, snow piles, ice, ice piles, icicles and sea ice in the overworld (M2-WTH-02, M2-WTH-03), decide async, apply sync.
  * <ol>
  *   <li><b>Sample (global, then player thread).</b> Every {@value #PERIOD_TICKS} ticks each online player gets
  *       {@value #COLUMNS_PER_PLAYER_PER_PERIOD} random columns within {@value #RADIUS_CHUNKS} chunks. The player thread
  *       picks the columns; each one is handed to the region that owns it.</li>
- *   <li><b>Capture (region thread).</b> The column's top is the highest motion-blocking block. The pipeline takes a
- *       snapshot of its six face neighbours, and the sky test at the air above the top.</li>
- *   <li><b>Decide (worker pool).</b> The climate at the air above gives the temperature and the precipitation (sky gate
- *       left out, as TFC's {@code isPrecipitating}). {@link SnowRule#decide} gives the change. Pure.</li>
- *   <li><b>Apply (region thread).</b> {@link AsyncDecisionPipeline} validates each change against the live block and
- *       writes it under {@link CommitBudget}. A change whose block has changed is dropped and the column re-decided.</li>
+ *   <li><b>Capture (region thread, and the regions of the neighbour columns).</b> The column's surface is TFC's heightmap
+ *       position: the first block above the highest motion-blocking one (a snow layer or a plant is at the surface, the
+ *       ground under it is the top). The snapshot holds the column from {@value #MELT_DEPTH} blocks under the top to one
+ *       above the surface, the four neighbour columns from three under the surface to {@value #ICICLE_SCAN} above it,
+ *       their heightmaps, the sky light of the three positions TFC tests, the pile memory of snow and ice blocks, and
+ *       whether the column's water is salt (an ocean biome).</li>
+ *   <li><b>Decide (worker pool).</b> The climate at the surface gives the temperature and the precipitation (sky gate
+ *       left out, as TFC's {@code isPrecipitating}); {@link SnowRule#event} picks accumulation or melting, and
+ *       {@link SnowRule#accumulate} or {@link SnowRule#melt} gives the changes over the classified blocks. Salt water at
+ *       sea level gets {@link SeaIce}. Pure.</li>
+ *   <li><b>Apply (region thread).</b> {@link AsyncDecisionPipeline} validates each change against the live block (with
+ *       its pile memory) and writes it under {@link CommitBudget}. A change whose block has changed is dropped and the
+ *       column re-decided. Nothing is written in a chunk that is not loaded.</li>
  * </ol>
  * One pipeline per world, sharing one budget. Only the overworld has the climate model.
+ *
+ * <p>Placeholders (ledger): a snow pile is a vanilla snow layer and an ice pile is ice, both with their memory in the
+ * chunk; sea ice is blue ice (a block TFC's world does not otherwise have, so it is told apart from lake ice and never
+ * melted by the weather, as in TFC); an icicle is downward pointed dripstone.
  */
 public final class SnowService {
     /** One sample round per second, as the calendar advances. */
@@ -66,6 +88,22 @@ public final class SnowService {
     static final int RADIUS_CHUNKS = 4;
     /** Region-thread time per tick for applying changes (ARCHITECTURE: 1 to 2 ms). */
     static final long BUDGET_NANOS = 1_000_000L;
+    /** How far above the surface the icicle search looks (TFC: up to the neighbour's heightmap height; ledger). */
+    static final int ICICLE_SCAN = 16;
+    /** How far under the top the melt looks for a hanging icicle. */
+    static final int MELT_DEPTH = 16;
+
+    /** The vanilla placeholders TFC's snow-pileable blocks are written as (plants, groundcover; see the worldgen rows). */
+    private static final Set<Material> SNOW_PILEABLE = EnumSet.of(Material.SHORT_GRASS, Material.FERN, Material.TALL_GRASS,
+            Material.LARGE_FERN, Material.DEAD_BUSH, Material.PINK_PETALS, Material.SUNFLOWER, Material.PEONY, Material.LILAC,
+            Material.ROSE_BUSH, Material.SEA_PICKLE, Material.BROWN_CARPET);
+    /** Blocks a snow layer cannot rest on: vanilla's tag (ice, packed ice, barrier) and TFC's additions (sea ice, magma). */
+    private static final Set<Material> SNOW_CANNOT_SURVIVE_ON = EnumSet.of(Material.ICE, Material.PACKED_ICE,
+            Material.BARRIER, Material.BLUE_ICE, Material.MAGMA_BLOCK);
+    /** Blocks a snow layer always rests on: vanilla's tag (honey, soul sand, mud). */
+    private static final Set<Material> SNOW_CAN_SURVIVE_ON = EnumSet.of(Material.HONEY_BLOCK, Material.SOUL_SAND, Material.MUD);
+    private static final Set<Material> WATER_PLANTS = EnumSet.of(Material.KELP, Material.KELP_PLANT, Material.SEAGRASS,
+            Material.TALL_SEAGRASS, Material.BUBBLE_COLUMN);
 
     private final GlobalClockHolder clock;
     private final Scheduler scheduler;
@@ -74,7 +112,12 @@ public final class SnowService {
     private final BlockData air = Material.AIR.createBlockData();
     private final BlockData water = Material.WATER.createBlockData();
     private final BlockData ice = Material.ICE.createBlockData();
+    private final BlockData seaIce = Material.BLUE_ICE.createBlockData();
     private final BlockData snowOneLayer = Material.SNOW.createBlockData(d -> ((Snow) d).setLayers(1));
+    private final BlockData icicleTip = Material.POINTED_DRIPSTONE.createBlockData(d -> {
+        ((PointedDripstone) d).setVerticalDirection(BlockFace.DOWN);
+        ((PointedDripstone) d).setThickness(PointedDripstone.Thickness.TIP);
+    });
 
     public SnowService(GlobalClockHolder clock, Scheduler scheduler) {
         this.clock = clock;
@@ -109,140 +152,346 @@ public final class SnowService {
         }, null);
     }
 
-    /** The snapshot of one decision: the neighbours of the top, plus what the world knows about the sky and its seed. */
-    record SnowSample(NeighbourSnapshot<BlockData> neighbours, long worldSeed, boolean skyAbove) {}
+    /**
+     * The snapshot of one decision.
+     *
+     * @param surface    TFC's heightmap position of the column
+     * @param blocks     the blocks read (unloaded chunks are missing: unknown)
+     * @param heights    the {@code MOTION_BLOCKING} heights of the neighbour columns that were loaded, by column key
+     * @param sky        sky light 15 at the surface and the two positions under it (vanilla {@code canSeeSky})
+     * @param salty      the column is in an ocean biome: its water is salt water
+     * @param randomSeed the seed of TFC's {@code level.random} for this decision
+     */
+    record SnowSample(BlockPos surface, Map<BlockPos, SnowBlock> blocks, Map<Long, Integer> heights, boolean[] sky,
+            boolean salty, long worldSeed, long randomSeed, long capturedNanos) {}
 
     /** The pipeline of one world. Its region work runs on that world's region threads. */
     private final class WorldSnow {
         private final World world;
-        private final AsyncDecisionPipeline<BlockData, SnowSample> pipeline;
+        private final SeaIce seaIcePattern;
+        private final AsyncDecisionPipeline<SnowBlock, SnowSample> pipeline;
 
         WorldSnow(World world) {
             this.world = world;
+            this.seaIcePattern = SeaIce.forLevelSeed(world.getSeed());
             RegionExecutor regions = new WorldRegions(world, scheduler);
-            BlockAccess<BlockData> blocks = new WorldBlocks(world);
+            WorldBlocks blocks = new WorldBlocks(world);
             PipelineMetrics[] metrics = new PipelineMetrics[1];
             this.pipeline = new AsyncDecisionPipeline<>("snow:" + world.getName(), regions, blocks,
                     scheduler.cpuExecutor(), budget,
                     (pos, now) -> capture(world, pos, now, regions, blocks, metrics[0]),
-                    SnowService.this::decide);
+                    s -> decide(s, seaIcePattern));
             metrics[0] = pipeline.metrics();
         }
 
-        /** Region thread of the column's chunk: finds the top and submits it. */
+        /** Region thread of the column's chunk: finds the surface and submits it. */
         void submitColumn(int x, int z) {
             if (!world.isChunkLoaded(x >> 4, z >> 4)) {
                 return;
             }
             Block top = world.getHighestBlockAt(x, z, HeightMap.MOTION_BLOCKING);
-            if (top.getY() < world.getMinHeight()) {
+            if (top.getY() < world.getMinHeight() || top.getY() + 1 >= world.getMaxHeight()) {
                 return;
             }
-            pipeline.submit(new BlockPos(x, top.getY(), z));
+            pipeline.submit(new BlockPos(x, top.getY() + 1, z));
         }
     }
 
     /**
-     * The snapshot source. The pipeline calls it on the owner of {@code pos}'s chunk, so reading the sky test here is safe.
+     * The snapshot source, on the owner of the surface's chunk. The neighbour columns in other chunks are read on their
+     * owners; a chunk that is not loaded is left out (unknown), never loaded.
      */
-    private static CompletableFuture<SnowSample> capture(World world, BlockPos top, long nowNanos,
-            RegionExecutor regions, BlockAccess<BlockData> blocks, PipelineMetrics metrics) {
-        // Vanilla canSeeSky of the air above the top: above the highest block of the world surface
-        int aboveY = top.y() + 1;
-        boolean sky = aboveY > world.getHighestBlockAt(top.x(), top.z(), HeightMap.WORLD_SURFACE).getY();
+    private static CompletableFuture<SnowSample> capture(World world, BlockPos surface, long nowNanos,
+            RegionExecutor regions, WorldBlocks blocks, PipelineMetrics metrics) {
+        int x = surface.x();
+        int y = surface.y();
+        int z = surface.z();
+        boolean[] sky = new boolean[3];
+        for (int i = 0; i < 3; i++) {
+            sky[i] = world.getBlockAt(x, y - i, z).getLightFromSky() >= 15;
+        }
+        boolean salty = isOcean(world.getBiome(x, y - 1, z));
+
+        Map<Long, List<BlockPos>> byChunk = new HashMap<>();
+        for (int dy = -2 - MELT_DEPTH - 2; dy <= 1; dy++) {
+            add(byChunk, surface.offset(0, dy, 0));
+        }
+        int[][] sides = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
+        Map<Long, List<int[]>> columnsByChunk = new HashMap<>();
+        for (int[] d : sides) {
+            for (int dy = -3; dy <= ICICLE_SCAN + 3; dy++) {
+                add(byChunk, surface.offset(d[0], dy, d[1]));
+            }
+            int cx = (x + d[0]) >> 4;
+            int cz = (z + d[1]) >> 4;
+            columnsByChunk.computeIfAbsent(ChunkPos.key(cx, cz), k -> new ArrayList<>()).add(new int[] {x + d[0], z + d[1]});
+            byChunk.computeIfAbsent(ChunkPos.key(cx, cz), k -> new ArrayList<>());
+        }
+
+        Map<BlockPos, SnowBlock> out = new ConcurrentHashMap<>();
+        Map<Long, Integer> heights = new ConcurrentHashMap<>();
+        List<CompletableFuture<Void>> remote = new ArrayList<>();
+        for (Map.Entry<Long, List<BlockPos>> e : byChunk.entrySet()) {
+            ChunkPos chunk = ChunkPos.fromKey(e.getKey());
+            int cx = chunk.x();
+            int cz = chunk.z();
+            List<int[]> columns = columnsByChunk.getOrDefault(e.getKey(), List.of());
+            Runnable read = () -> {
+                if (!world.isChunkLoaded(cx, cz)) {
+                    return;
+                }
+                for (BlockPos p : e.getValue()) {
+                    SnowBlock b = blocks.read(p);
+                    if (b != null) {
+                        out.put(p, b);
+                    }
+                }
+                for (int[] c : columns) {
+                    heights.put(columnKey(c[0], c[1]), world.getHighestBlockYAt(c[0], c[1], HeightMap.MOTION_BLOCKING) + 1);
+                }
+            };
+            if (regions.isOwner(cx, cz)) {
+                read.run();
+            } else {
+                if (metrics != null) {
+                    metrics.remoteCaptures.increment();
+                }
+                CompletableFuture<Void> f = new CompletableFuture<>();
+                regions.run(cx, cz, () -> {
+                    try {
+                        read.run();
+                        f.complete(null);
+                    } catch (Throwable t) {
+                        f.completeExceptionally(t);
+                    }
+                });
+                remote.add(f);
+            }
+        }
         long seed = world.getSeed();
-        return NeighbourSnapshot.capture(top, 1, NeighbourSnapshot.Shape.MANHATTAN, regions, blocks, nowNanos, metrics)
-                .thenApply(n -> new SnowSample(n, seed, sky));
+        long randomSeed = ThreadLocalRandom.current().nextLong();
+        Supplier<SnowSample> done = () -> new SnowSample(surface, Map.copyOf(out), Map.copyOf(heights), sky, salty, seed,
+                randomSeed, nowNanos);
+        if (remote.isEmpty()) {
+            return CompletableFuture.completedFuture(done.get());
+        }
+        return CompletableFuture.allOf(remote.toArray(CompletableFuture[]::new)).thenApply(v -> done.get());
+    }
+
+    private static void add(Map<Long, List<BlockPos>> byChunk, BlockPos p) {
+        byChunk.computeIfAbsent(p.chunkKey(), k -> new ArrayList<>()).add(p);
+    }
+
+    static long columnKey(int x, int z) {
+        return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
+    }
+
+    /** The placeholder biomes of TFC's salty biomes (BiomeKeys maps every ocean to ocean or deep ocean). */
+    static boolean isOcean(Biome biome) {
+        @SuppressWarnings("deprecation")
+        String key = biome.getKey().getKey();
+        return key.contains("ocean");
     }
 
     /** Worker thread. Pure: reads the snapshot and the clock, and returns the changes to apply. */
-    List<BlockChange<BlockData>> decide(SnowSample s) {
-        NeighbourSnapshot<BlockData> n = s.neighbours();
-        BlockPos top = n.center();
-        BlockPos above = top.offset(0, 1, 0);
-        BlockPos below = top.offset(0, -1, 0);
-        BlockPos[] sides = {top.offset(1, 0, 0), top.offset(-1, 0, 0), top.offset(0, 0, 1), top.offset(0, 0, -1)};
-        if (!allKnown(n, top, above, below, sides)) {
-            return List.of(); // a chunk is not loaded: unknown, not air
-        }
+    List<BlockChange<SnowBlock>> decide(SnowSample s, SeaIce seaIcePattern) {
         ClockSnapshot now = clock.get();
-        if (!now.isSet()) {
+        if (!now.isSet() || !s.blocks().containsKey(s.surface())) {
             return List.of();
         }
+        BlockPos surface = s.surface();
+        BlockPos top = surface.offset(0, -1, 0);
+        SnowView view = new SnowView(s);
+        long at = s.capturedNanos();
 
-        BlockData topState = n.at(top);
-        BlockData aboveState = n.at(above);
+        // Sea ice: TFC places it at generation on salt water at sea level (ShoreAndOceanSurfaceBuilder.placeSeaIce);
+        // the worldgen here does not, so a sampled ocean column gets it once (ledger).
+        SnowBlock topBlock = s.blocks().get(top);
+        if (s.salty() && top.y() == SeaIce.SEA_LEVEL_Y - 1 && topBlock != null && isWaterSource(topBlock.data())) {
+            OverworldClimate climate = OverworldClimate.forWorldSeed(s.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+            float warmest = SeaIce.warmestMonth(climate, ChunkClimate.NEUTRAL, top.z());
+            if (seaIcePattern.placesIce(top.x(), top.z(), warmest)) {
+                return List.of(new BlockChange<>(top, topBlock, SnowBlock.of(seaIce), at));
+            }
+        }
+
         OverworldClimate climate = OverworldClimate.forWorldSeed(s.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
-        ClimateReading reading = ClimateReading.of(climate, ChunkClimate.NEUTRAL, above, now);
+        ClimateReading reading = ClimateReading.of(climate, ChunkClimate.NEUTRAL, surface, now);
         PrecipitationType precipitation = PrecipitationType.decide(reading.temperature(), reading.rainfall(),
                 climate.rainIntensity(reading.calendarTicks()), true);
-
-        Cover cover = cover(topState);
-        int layers = cover == Cover.SNOW ? ((Snow) topState).getLayers() : 0;
-        boolean waterEdge = false;
-        for (BlockPos side : sides) {
-            waterEdge |= n.at(side).getMaterial() != Material.WATER;
-        }
-        SnowRule.Column column = new SnowRule.Column(cover, layers, holdsAbove(n.at(below)), waterEdge, s.skyAbove(),
-                reading.temperature(), precipitation);
-
-        long at = n.capturedNanos();
-        SnowChange change = SnowRule.decide(column);
-        return switch (change) {
+        List<Change> changes = switch (SnowRule.event(reading.temperature(), precipitation)) {
             case NONE -> List.of();
-            case ADD_SNOW_LAYER -> List.of(new BlockChange<>(above, aboveState, snowOneLayer, at));
-            case FREEZE_WATER -> List.of(new BlockChange<>(top, topState, ice, at));
-            case MELT_ICE_TO_WATER -> List.of(new BlockChange<>(top, topState, water, at));
-            case MELT_ICE_TO_AIR -> List.of(new BlockChange<>(top, topState, air, at));
-            case REMOVE_SNOW_LAYER -> {
-                int after = SnowRule.layersAfterRemove(layers);
-                BlockData next;
-                if (after == 0) {
-                    next = air;
-                } else {
-                    Snow less = (Snow) topState.clone();
-                    less.setLayers(after);
-                    next = less;
-                }
-                yield List.of(new BlockChange<>(top, topState, next, at));
-            }
+            case ACCUMULATE -> SnowRule.accumulate(view, surface, new Random(s.randomSeed()), ICICLE_SCAN);
+            case MELT -> SnowRule.melt(view, surface, MELT_DEPTH);
         };
+        List<BlockChange<SnowBlock>> out = new ArrayList<>(changes.size());
+        for (Change c : changes) {
+            BlockChange<SnowBlock> change = toBlockChange(c, s, at);
+            if (change == null) {
+                return List.of(); // the rule only names blocks it has read, so this is a block the glue cannot write
+            }
+            out.add(change);
+        }
+        return out;
     }
 
-    /** The column's top, as TFC's snow code sees it: air, a snow layer, ice, water, a resting ground or anything else. */
-    static Cover cover(BlockData d) {
+    /** The write of one decided change, with its placeholder block. */
+    private BlockChange<SnowBlock> toBlockChange(Change c, SnowSample s, long at) {
+        BlockPos pos = c.pos();
+        SnowBlock old = s.blocks().get(pos);
+        if (old == null) {
+            return null;
+        }
+        SnowBlock above = s.blocks().get(pos.offset(0, 1, 0));
+        SnowBlock next = switch (c.kind()) {
+            case PLACE_SNOW -> SnowBlock.of(snowOneLayer);
+            case PLACE_SNOW_PILE -> new SnowBlock(snowOneLayer,
+                    new SnowBlock.Pile(old.data(), c.withAbove() && above != null ? above.data() : null), null);
+            case FREEZE -> SnowBlock.of(ice);
+            case PLACE_ICE_PILE -> new SnowBlock(ice, new SnowBlock.Pile(isIcePileable(old.data()) ? old.data() : water,
+                    c.withAbove() && above != null ? above.data() : null), null);
+            case PLACE_ICICLE -> SnowBlock.of(icicleTip);
+            case ICICLE_TO_BASE, ICICLE_TO_TIP -> {
+                if (!(old.data() instanceof PointedDripstone d)) {
+                    yield null;
+                }
+                PointedDripstone n = (PointedDripstone) d.clone();
+                n.setThickness(c.kind() == SnowRule.Kind.ICICLE_TO_TIP ? PointedDripstone.Thickness.TIP
+                        : PointedDripstone.Thickness.FRUSTUM);
+                yield SnowBlock.of(n);
+            }
+            case SET_SNOW_LAYERS -> {
+                if (!(old.data() instanceof Snow d)) {
+                    yield null;
+                }
+                Snow n = (Snow) d.clone();
+                n.setLayers(c.layers());
+                yield new SnowBlock(n, old.pile(), null); // a pile with fewer layers is still a pile
+            }
+            case REMOVE -> SnowBlock.of(air);
+            case RESTORE_PILE -> old.pile() == null ? null : new SnowBlock(old.pile().ground(), null,
+                    c.withAbove() ? old.pile().above() : null);
+            case MELT_TO_WATER -> SnowBlock.of(water);
+        };
+        return next == null ? null : new BlockChange<>(pos, old, next, at);
+    }
+
+    /** The snapshot as the rule's view: each block classified the way TFC's tags and {@code canSurvive} would. */
+    private static final class SnowView implements SnowRule.View {
+        private final SnowSample s;
+
+        SnowView(SnowSample s) {
+            this.s = s;
+        }
+
+        @Override
+        public Cell at(BlockPos pos) {
+            SnowBlock b = s.blocks().get(pos);
+            SnowBlock below = s.blocks().get(pos.offset(0, -1, 0));
+            if (b == null || below == null) {
+                return null;
+            }
+            boolean sky = false;
+            if (pos.x() == s.surface().x() && pos.z() == s.surface().z()) {
+                int i = s.surface().y() - pos.y();
+                sky = i >= 0 && i < 3 && s.sky()[i];
+            }
+            return cell(b, below.data(), s.salty(), sky);
+        }
+
+        @Override
+        public int height(int x, int z) {
+            Integer h = s.heights().get(columnKey(x, z));
+            return h == null ? Integer.MIN_VALUE : h;
+        }
+    }
+
+    /** The class of a placeholder block for {@link SnowRule}. */
+    static Cell cell(SnowBlock b, BlockData below, boolean salty, boolean sky) {
+        BlockData d = b.data();
         Material m = d.getMaterial();
+        int layers = 0;
+        SnowRule.Block kind;
         if (m.isAir()) {
-            return Cover.AIR;
+            kind = SnowRule.Block.AIR;
+        } else if (m == Material.SNOW) {
+            kind = b.pile() != null ? SnowRule.Block.SNOW_PILE : SnowRule.Block.SNOW;
+            layers = ((Snow) d).getLayers();
+        } else if (m == Material.ICE) {
+            kind = b.pile() != null ? SnowRule.Block.ICE_PILE : SnowRule.Block.ICE;
+        } else if (m == Material.BLUE_ICE) {
+            kind = SnowRule.Block.SEA_ICE;
+        } else if (m == Material.PACKED_ICE || m == Material.FROSTED_ICE) {
+            kind = SnowRule.Block.OTHER_ICE;
+        } else if (d instanceof PointedDripstone p && p.getVerticalDirection() == BlockFace.DOWN) {
+            kind = SnowRule.Block.ICICLE;
+        } else if (m == Material.WATER) {
+            kind = !salty && isWaterSource(d) ? SnowRule.Block.WATER : SnowRule.Block.LIQUID;
+        } else if (m == Material.LAVA) {
+            kind = SnowRule.Block.LIQUID;
+        } else if (isSnowPileable(d)) {
+            kind = SnowRule.Block.SNOW_PILEABLE;
+        } else if (m == Material.LILY_PAD) {
+            kind = SnowRule.Block.ICE_PILEABLE;
+        } else if (m == Material.SEAGRASS || m == Material.TALL_SEAGRASS) {
+            kind = salty ? SnowRule.Block.OTHER : SnowRule.Block.ICE_PILEABLE_WATER;
+        } else if (d instanceof Waterlogged w && w.isWaterlogged()) {
+            kind = salty ? SnowRule.Block.OTHER : SnowRule.Block.WATERLOGGED;
+        } else {
+            kind = SnowRule.Block.OTHER;
+        }
+        return new Cell(kind, layers, isWaterFluid(d), snowSurvivesOn(below), d.isFaceSturdy(BlockFace.DOWN, BlockSupport.FULL),
+                holdsAbove(d), sky);
+    }
+
+    static boolean isWaterSource(BlockData d) {
+        return d.getMaterial() == Material.WATER && (!(d instanceof Levelled l) || l.getLevel() == 0);
+    }
+
+    /** Any water fluid ({@code tfc:any_infinite_water}: fresh, salt, source or flowing). */
+    static boolean isWaterFluid(BlockData d) {
+        Material m = d.getMaterial();
+        return m == Material.WATER || WATER_PLANTS.contains(m) || (d instanceof Waterlogged w && w.isWaterlogged());
+    }
+
+    static boolean isSnowPileable(BlockData d) {
+        Material m = d.getMaterial();
+        if (SNOW_PILEABLE.contains(m) || Tag.SMALL_FLOWERS.isTagged(m)) {
+            return !(d instanceof Waterlogged w && w.isWaterlogged());
+        }
+        // Loose rocks, small ores, sticks and driftwood are floor buttons (GroundcoverBlocks)
+        return Tag.BUTTONS.isTagged(m) && d instanceof FaceAttachable f && f.getAttachedFace() == FaceAttachable.AttachedFace.FLOOR;
+    }
+
+    private static boolean isIcePileable(BlockData d) {
+        Material m = d.getMaterial();
+        return m == Material.LILY_PAD || m == Material.SEAGRASS || m == Material.TALL_SEAGRASS;
+    }
+
+    /**
+     * Vanilla {@code SnowLayerBlock.canSurvive} on the block below, with TFC's tags and its mixin that lets a single layer
+     * rest on leaves.
+     */
+    static boolean snowSurvivesOn(BlockData below) {
+        Material m = below.getMaterial();
+        if (SNOW_CANNOT_SURVIVE_ON.contains(m)) {
+            return false;
+        }
+        if (SNOW_CAN_SURVIVE_ON.contains(m)) {
+            return true;
         }
         if (m == Material.SNOW) {
-            return Cover.SNOW;
+            return ((Snow) below).getLayers() == SnowRule.MAX_SNOW_LAYERS;
         }
-        if (m == Material.ICE) {
-            return Cover.ICE;
+        if (Tag.LEAVES.isTagged(m)) {
+            return true; // the weather places single layers only
         }
-        if (m == Material.WATER) {
-            return Cover.WATER;
-        }
-        return d.isFaceSturdy(BlockFace.UP, BlockSupport.FULL) ? Cover.GROUND : Cover.OTHER;
+        return below.isFaceSturdy(BlockFace.UP, BlockSupport.FULL);
     }
 
     /** TFC {@code IcePileBlock.removeIcePileOrIce}: the block below blocks motion or is liquid. */
     static boolean holdsAbove(BlockData d) {
         Material m = d.getMaterial();
-        return !m.isAir() && (m.isSolid() || m == Material.WATER);
-    }
-
-    private static boolean allKnown(NeighbourSnapshot<BlockData> n, BlockPos top, BlockPos above, BlockPos below,
-            BlockPos[] sides) {
-        if (!n.known(top) || !n.known(above) || !n.known(below)) {
-            return false;
-        }
-        for (BlockPos side : sides) {
-            if (!n.known(side)) {
-                return false;
-            }
-        }
-        return true;
+        return !m.isAir() && (m.isSolid() || m == Material.WATER || m == Material.LAVA);
     }
 }

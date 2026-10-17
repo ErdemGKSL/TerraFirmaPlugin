@@ -34,6 +34,20 @@ public final class Solar {
     }
 
     /**
+     * TFC {@code SolarCalculator.getInNorthernHemisphere}: whether {@code z} is in a northern hemisphere band (always true
+     * for a scale of zero).
+     */
+    public static boolean inNorthernHemisphere(int z, float hemisphereScale) {
+        if (hemisphereScale == 0) {
+            return true;
+        }
+        final int adjustedZ = z - (int) (hemisphereScale / 2);
+        final int poleToPoleDistance = (int) (hemisphereScale * 2);
+        final int normalizedZ = Math.floorMod(adjustedZ, poleToPoleDistance * 2);
+        return normalizedZ > poleToPoleDistance;
+    }
+
+    /**
      * The sun's position at {@code z} for the given fraction of the year (January 1 is 0) and of the day (midnight is 0).
      */
     public static SunPosition sunPosition(int z, float hemisphereScale, float fractionOfYear, float fractionOfDay) {
