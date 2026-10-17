@@ -74,7 +74,7 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
 
 ## World generation (worldgen module, pure Java)
 
-- [ ] **M2-GEN-01 Noise library port** · deps: M1-BUILD-01 · skills: tfc-feature-porting
+- [x] **M2-GEN-01 Noise library port** · deps: M1-BUILD-01 · skills: tfc-feature-porting
   - TFC: `world/noise/` (incl. MIT FastNoiseLite: keep its license note)
   - Done when: noise outputs equal TFC for fixed seeds (golden arrays).
 
