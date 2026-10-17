@@ -15,24 +15,35 @@ package dev.tfp.paper.integration;
  * @param thirst 0..100
  * @param hunger 0..20 (vanilla food scale)
  * @param heldTemperature temperature of the held item in °C, 0 if none or cold
+ * @param ambientTemperature the player's ambient temperature in °C (M2-CLIM-03), NaN until the first reading
  */
-public record HudSnapshot(double health, double maxHealth, double thirst, double hunger, double heldTemperature) {
+public record HudSnapshot(double health, double maxHealth, double thirst, double hunger, double heldTemperature,
+        double ambientTemperature) {
     /** Shown before the first publish. */
     public static final HudSnapshot DEFAULT = new HudSnapshot(50, 50, 100, 20, 0);
 
+    /** A snapshot with no ambient temperature yet. */
+    public HudSnapshot(double health, double maxHealth, double thirst, double hunger, double heldTemperature) {
+        this(health, maxHealth, thirst, hunger, heldTemperature, Double.NaN);
+    }
+
     public HudSnapshot withThirst(double value) {
-        return new HudSnapshot(health, maxHealth, value, hunger, heldTemperature);
+        return new HudSnapshot(health, maxHealth, value, hunger, heldTemperature, ambientTemperature);
     }
 
     public HudSnapshot withHealth(double value, double max) {
-        return new HudSnapshot(value, max, thirst, hunger, heldTemperature);
+        return new HudSnapshot(value, max, thirst, hunger, heldTemperature, ambientTemperature);
     }
 
     public HudSnapshot withHunger(double value) {
-        return new HudSnapshot(health, maxHealth, thirst, value, heldTemperature);
+        return new HudSnapshot(health, maxHealth, thirst, value, heldTemperature, ambientTemperature);
     }
 
     public HudSnapshot withHeldTemperature(double value) {
-        return new HudSnapshot(health, maxHealth, thirst, hunger, value);
+        return new HudSnapshot(health, maxHealth, thirst, hunger, value, ambientTemperature);
+    }
+
+    public HudSnapshot withAmbientTemperature(double value) {
+        return new HudSnapshot(health, maxHealth, thirst, hunger, heldTemperature, value);
     }
 }

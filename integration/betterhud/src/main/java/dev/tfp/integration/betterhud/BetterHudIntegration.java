@@ -73,10 +73,15 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
             // Reads the published clock only: no world, no snapshot cache, the same value for every player.
             texts.addPlaceholder(e.getKey(), HudPlaceholder.<String>of((args, reason) -> player -> read.apply(clock.get())));
         }
+        for (Map.Entry<String, Function<HudSnapshot, String>> e : HudClimateValues.TEXTS.entrySet()) {
+            Function<HudSnapshot, String> read = e.getValue();
+            // The player's published snapshot only (M2-CLIM-03): the climate service writes it from the player's thread.
+            texts.addPlaceholder(e.getKey(), HudPlaceholder.<String>of((args, reason) -> player -> read.apply(cache.snapshot(player.uuid()))));
+        }
         registered = true;
         Path pack = BetterHudPackTarget.packFolder(ctx.pluginsDirectory());
         ctx.logger().info("BetterHud: registered " + HudValues.NUMBERS.size() + " number placeholder(s), "
-                + HudClockValues.TEXTS.size() + " text placeholder(s) and " + HudValues.LISTENERS.size()
+                + (HudClockValues.TEXTS.size() + HudClimateValues.TEXTS.size()) + " text placeholder(s) and " + HudValues.LISTENERS.size()
                 + " listener(s); pack folder " + pack
                 + (BetterHudPackTarget.optedOut(ctx.pluginsDirectory()) ? " (disabled by the owner: packs/-tfp exists)" : ""));
     }
@@ -124,7 +129,7 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
         }
         Set<String> out = new TreeSet<>();
         for (String name : BetterHudAPI.inst().getPlaceholderManager().getStringContainer().getAllPlaceholders().keySet()) {
-            if (HudClockValues.TEXTS.containsKey(name)) {
+            if (HudClockValues.TEXTS.containsKey(name) || HudClimateValues.TEXTS.containsKey(name)) {
                 out.add(name);
             }
         }

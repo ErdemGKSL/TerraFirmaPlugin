@@ -17,4 +17,11 @@ package dev.tfp.core.climate;
  * @param rainfallVariance           the seasonal variance of rainfall, in [-1, 1]; positive means a dry January
  * @param baseGroundwater            the groundwater added by nearby fresh water, mm
  */
-public record ChunkClimate(float averageSeaLevelTemperature, float averageRainfall, float rainfallVariance, float baseGroundwater) {}
+public record ChunkClimate(float averageSeaLevelTemperature, float averageRainfall, float rainfallVariance, float baseGroundwater) {
+    /**
+     * The chunk input used until chunk data exists (M2-GEN-05): a temperate 20 C average at sea level, mid-range
+     * rainfall (250 mm), no seasonal rainfall variance and no groundwater. These are not TFC's values for any chunk;
+     * readouts computed from this are placeholders until the chunk source lands.
+     */
+    public static final ChunkClimate NEUTRAL = new ChunkClimate(20f, 250f, 0f, 0f);
+}

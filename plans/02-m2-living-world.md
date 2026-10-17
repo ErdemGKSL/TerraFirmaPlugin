@@ -32,7 +32,7 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - Done when: the data loads and unit tests pass.
   - Status: done. Typed `ClimateRange` and `ClimateRanges.check` in `core/climate/` (TFC arithmetic, inclusive bounds); `climate_range` is a typed registry (`DefinitionKinds.CLIMATE_RANGE`); golden tests and a data-load test over all 49 shipped files. Network `STREAM_CODEC` and the crop/plant/fauna callers are left to their features.
 
-- [ ] **M2-CLIM-03 Player climate readout** · deps: M2-CLIM-01, M1-INT-04
+- [~] **M2-CLIM-03 Player climate readout** · deps: M2-CLIM-01, M1-INT-04
   - Do: `tfp_ambient_temp` placeholder (snapshot updated on movement throttle); climate page data for the player tabs GUI (M3-GUI-01).
   - Done when: the HUD value matches `/tfp debug chunk`.
 

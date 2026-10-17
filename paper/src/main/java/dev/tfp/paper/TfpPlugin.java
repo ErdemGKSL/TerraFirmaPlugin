@@ -6,6 +6,8 @@
 package dev.tfp.paper;
 
 import dev.tfp.core.calendar.CalendarFormat;
+import dev.tfp.core.climate.ClimateFormat;
+import dev.tfp.core.climate.ClimateReading;
 import dev.tfp.core.calendar.TimeCommand;
 import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.compat.CompatGate;
@@ -21,6 +23,7 @@ import dev.tfp.paper.blockdata.ChunkDataStore;
 import dev.tfp.paper.blockdata.PdcChunkDataStore;
 import dev.tfp.paper.boot.CompatCheck;
 import dev.tfp.paper.calendar.CalendarService;
+import dev.tfp.paper.climate.PlayerClimateService;
 import dev.tfp.paper.boot.TfpCommands;
 import dev.tfp.paper.boot.TfpCommands.Reply;
 import dev.tfp.paper.config.ConfigService;
@@ -54,6 +57,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -113,6 +117,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     /** M2-CAL-01: the published clock (lock-free reads anywhere) and the service that advances it. */
     private final GlobalClockHolder clock = new GlobalClockHolder();
     private volatile CalendarService calendar;
+    /** M2-CLIM-03: the player's ambient temperature for the HUD, and the reading for {@code /tfp debug chunk}. */
+    private volatile PlayerClimateService climate;
     /** {@code /tfp debug showcase}: our block ids from the shipped id_map.json, read once. */
     private volatile CompletableFuture<List<String>> showcaseIds;
     private final HudSnapshotCache hudCache = new HudSnapshotCache(() -> {
@@ -319,6 +325,12 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         }, () -> !getServer().getOnlinePlayers().isEmpty(), getLogger());
         calendar = cal;
         cal.start(scheduler);
+
+        // M2-CLIM-03: the player's ambient temperature, throttled on the global thread and computed off-thread.
+        PlayerClimateService playerClimate = new PlayerClimateService(clock, scheduler, hudCache);
+        climate = playerClimate;
+        getServer().getPluginManager().registerEvents(playerClimate, this);
+        playerClimate.start(() -> getServer().getOnlinePlayers());
 
         // We load at STARTUP, PacketEvents at POSTWORLD: it is loaded (its API exists after its onLoad) but not yet
         // enabled here. Registering the listener now is what the M0-NET-01 spike did; isPluginEnabled is false here.
@@ -531,7 +543,31 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         if (!scheduled) {
             out.complete(Reply.error("command.player_only"));
         }
-        return out;
+        return out.thenCompose(base -> withClimate(player, base));
+    }
+
+    /** {@code /tfp debug chunk}, climate part (M2-CLIM-03): the value computed now next to what the HUD shows. */
+    private CompletableFuture<Reply> withClimate(Player player, Reply base) {
+        PlayerClimateService service = climate;
+        if (!base.ok() || service == null) {
+            return CompletableFuture.completedFuture(base);
+        }
+        return service.readNow(player).thenApply(now -> {
+            List<String> lines = new ArrayList<>(base.details());
+            lines.add(now.map(r -> r.isKnown()
+                    ? "climate now: temperature " + ClimateFormat.temperature(r.temperature())
+                            + ", average " + ClimateFormat.temperature(r.averageTemperature())
+                            + ", rainfall " + ClimateFormat.rainfall(r.rainfall())
+                            + " (calendar tick " + r.calendarTicks() + ")"
+                    : "climate now: unknown (no calendar reading yet, or not the overworld)")
+                    .orElse("climate now: the player left"));
+            String hudValue = hudCache.isActive()
+                    ? ClimateFormat.temperature(hudCache.snapshot(player.getUniqueId()).ambientTemperature())
+                    : "not shown (no HUD plugin renders it)";
+            lines.add("HUD tfp_ambient_temp: " + hudValue);
+            lines.add("chunk input: neutral, until chunk data exists (M2-GEN-05)");
+            return base.withDetails(lines);
+        });
     }
 
     @Override

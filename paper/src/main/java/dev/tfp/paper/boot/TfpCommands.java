@@ -34,7 +34,7 @@ import org.bukkit.entity.Player;
  * /tfp version
  * /tfp reload                  = reload data (tfp.admin)
  * /tfp reload config|data|content
- * /tfp debug block|chunk       the block you look at / your chunk (players, tfp.admin)
+ * /tfp debug block|chunk       the block you look at / your chunk and its climate (players, tfp.admin)
  * /tfp debug player [name]     player data (yours without a name)
  * /tfp debug packets           packet handler metrics
  * /tfp debug showcase &lt;family&gt; every variant of rocks|soils|ores in a grid at your position (players)
@@ -86,7 +86,7 @@ public final class TfpCommands {
         /** The block {@code player} looks at: vanilla state, custom state, stored data. */
         CompletableFuture<Reply> debugBlock(Player player);
 
-        /** {@code player}'s chunk: our chunk-scale data entries. */
+        /** {@code player}'s chunk: our chunk-scale data entries, then the climate at the player (M2-CLIM-03). */
         CompletableFuture<Reply> debugChunk(Player player);
 
         /** Player data of the online player {@code name}. */
