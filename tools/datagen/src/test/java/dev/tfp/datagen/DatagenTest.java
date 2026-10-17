@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.tfp.core.climate.SeasonalColour;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -113,6 +114,31 @@ class DatagenTest {
     }
 
     @Test
+    void seasonalBiomesAreOneVariantPerBiomeAndBandWithColormapColours() throws IOException {
+        SortedMap<String, byte[]> files = run().tree().files();
+        String base = "datapack/tfp_seasonal_biomes/data/tfp/worldgen/biome/seasonal/plains/";
+        assertThat(files.keySet().stream().filter(p -> p.startsWith(base))).hasSize(SeasonalColour.BAND_COUNT);
+        assertThat(text(files, "datapack/tfp_seasonal_biomes/pack.mcmeta")).contains("\"pack_format\": 61");
+
+        // band t2r3 is centred on temperature index 160 (x) and groundwater index 224 (y) of the fixture colormap
+        JsonObject v = JsonParser.parseString(text(files, base + "t2r3.json")).getAsJsonObject();
+        int colour = (160 << 16) | (224 << 8) | 0x40;
+        JsonObject e = v.getAsJsonObject("effects");
+        assertThat(e.get("grass_color").getAsInt()).isEqualTo(colour);
+        assertThat(e.get("foliage_color").getAsInt()).isEqualTo(colour);
+        assertThat(e.get("water_color").getAsInt()).isEqualTo(colour);
+        // the TFC biome's climate and its sky, fog and water-fog colours are kept
+        assertThat(e.get("sky_color").getAsInt()).isEqualTo(8709887);
+        assertThat(e.get("fog_color").getAsInt()).isEqualTo(12638463);
+        assertThat(e.get("water_fog_color").getAsInt()).isEqualTo(329011);
+        assertThat(v.get("temperature").getAsFloat()).isEqualTo(0.8f);
+        assertThat(v.get("has_precipitation").getAsBoolean()).isTrue();
+        // features and spawners are empty: the variant is a palette id, never a generator
+        assertThat(v.getAsJsonArray("features")).hasSize(SeasonalBiomes.FEATURE_STEPS);
+        assertThat(v.getAsJsonObject("spawners").size()).isZero();
+    }
+
+        @Test
     void exportsDataWithRenamedIdsInTfcSchemas() throws IOException {
         SortedMap<String, byte[]> files = run().tree().files();
         String heat = text(files, "data/tfp/tfp/item_heat/hematite.json");

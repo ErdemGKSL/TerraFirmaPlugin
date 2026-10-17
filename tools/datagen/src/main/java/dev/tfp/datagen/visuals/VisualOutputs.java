@@ -8,6 +8,7 @@ package dev.tfp.datagen.visuals;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.tfp.datagen.CeBlockStates;
+import dev.tfp.datagen.Datapacks;
 import dev.tfp.datagen.Json;
 import dev.tfp.datagen.OutputTree;
 import dev.tfp.datagen.Yaml;
@@ -239,18 +240,7 @@ public final class VisualOutputs {
                 }
             }
         }
-        JsonObject pack = new JsonObject();
-        JsonObject p = new JsonObject();
-        p.addProperty("description", "TerraFirmaPlugin visual-state tag edits (generated)");
-        p.addProperty("pack_format", 61);
-        JsonObject sf = new JsonObject();
-        sf.addProperty("min_inclusive", 61);
-        sf.addProperty("max_inclusive", 1000);
-        p.add("supported_formats", sf);
-        p.addProperty("min_format", 61);
-        p.addProperty("max_format", 1000);
-        pack.add("pack", p);
-        out.put(DATAPACK + "pack.mcmeta", Json.write(pack));
+        out.put(DATAPACK + "pack.mcmeta", Datapacks.packMcmeta("TerraFirmaPlugin visual-state tag edits (generated)"));
         for (Map.Entry<String, List<String>> tag : VANILLA_TAGS.entrySet()) {
             List<String> values = editedTag(tag.getValue(), used);
             if (!values.equals(tag.getValue())) {

@@ -58,7 +58,7 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - Do: store the last-tick calendar time per chunk; on chunk load or first sample, catch up the snow and ice of a column in one computation over the elapsed time, using the time-average rainfall, instead of replaying ticks.
   - Done when: a lazy-vs-stepped equivalence test over the same climate sequence, and the rain and melt divergence rows in the ledger are closed.
 
-- [ ] **M2-SEA-01 Seasonal colour biomes** · deps: M0-NET-01, M2-CLIM-01 · skills: paper-folia-threading
+- [~] **M2-SEA-01 Seasonal colour biomes** · deps: M0-NET-01, M2-CLIM-01 · skills: paper-folia-threading
   - TFC: `client/overworld/`, `assets/tfc/textures/colormap/`, `world/biome/`
   - Do:
     1. Datagen emits datapack biomes: each TFC biome × colour band (from TFC colormaps by temperature/rainfall/season), with grass, foliage and water colours.
@@ -66,6 +66,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
     3. The packet layer remaps to the seasonal variant using precomputed tables.
     4. On season change, resend chunks with rate limiting.
   - Done when: colours change across seasons, packet rewrite cost is within budget (JMH), and there's a visual checklist entry.
+  - Status (@claude): in progress. Done: step 1 (`tools/datagen` `SeasonalBiomes` writes 2,000 datapack biomes `tfp:seasonal/<biome>/t<T>r<R>` = 125 TFC biomes x 16 colour bands; grass, foliage and water from the colormaps at the band centre), step 2 (`core/climate/SeasonalColour`, golden tests), and the remap decision (`paper/climate/SeasonalBiomeRemap`, pure, CPU pool). Open: the packet rewrite, the resend at season change, installing the datapack, the base `BiomeProvider` (M2-GEN-07), the JMH budget, the visual checklist. Divergences in the ledger.
+- [ ] **M2-SEA-02 Seasonal biome packet rewrite** · deps: M2-SEA-01, M2-GEN-07, M0-NET-01 · skills: paper-folia-threading, dependency-bootstrap, plugin-testing
+  - TFC: `client/TFCColors.java` (what the client shows per block), `client/overworld/` (the instant climate the client samples)
+  - Do: a `PacketHandler` on the chunk data packet (PacketEvents) that swaps each biome palette entry for the variant's network id from `SeasonalBiomeRemap.variantId`, using a precomputed table per season; datapack installed through the bootstrap; resend loaded chunks at each season change, rate limited; decide the band edge at 0 C for the client's snow look (ledger divergence); the JMH budget for the palette rewrite and the registry size of 2,000 variants (or a smaller grid if the budget fails).
+  - Done when: the server check shows the grass colour of a chunk changing between two seasons on a client, the JMH budget is recorded, and the visual checklist entry is done.
 
 ## World generation (worldgen module, pure Java)
 

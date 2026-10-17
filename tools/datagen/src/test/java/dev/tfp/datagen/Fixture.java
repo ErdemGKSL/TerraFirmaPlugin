@@ -35,6 +35,9 @@ final class Fixture {
         write(root, D + "tfc/loot_table/ignored.json", "{}");
         write(root, D + "c/tags/item/ores/hematite.json", "{\"values\": [\"tfc:ore/normal_hematite\"]}");
         write(root, M + "tfc/tags/worldgen/biome/is_ocean.json", "{\"values\": [\"tfc:ocean\"]}");
+        write(root, M + "tfc/worldgen/biome/plains.json", "{\"has_precipitation\": true, \"temperature\": 0.8, \"downfall\": 0.4, "
+            + "\"effects\": {\"fog_color\": 12638463, \"sky_color\": 8709887, \"water_color\": 4159204, \"water_fog_color\": 329011}, "
+            + "\"carvers\": {\"air\": [\"tfc:cave\"], \"liquid\": []}, \"features\": [\"#tfc:in_biome/veins\"], \"spawners\": {}}");
 
         // loot tables
         String pool = "{\"type\":\"minecraft:block\",\"pools\":[{\"name\":\"loot_pool\",\"rolls\":1,\"entries\":[%s],"
@@ -115,6 +118,9 @@ final class Fixture {
             png(root, A + "textures/" + t + ".png", ROCK, ROCK);
         }
         png(root, A + "textures/block/ore/normal_hematite.png", ORE, 0x00000000);
+        for (String map : new String[] {"grass", "foliage", "water"}) {
+            colormap(root, A + "textures/colormap/" + map + ".png");
+        }
         write(root, A + "textures/block/rock/raw/granite.png.mcmeta", "{\"animation\": {}}");
 
         // Java registrations (TfcRegistries), in the shapes used at the pinned commit
@@ -194,6 +200,19 @@ final class Fixture {
         for (int y = 0; y < 16; y++) {
             for (int x = 0; x < 16; x++) {
                 img.setRGB(x, y, x < 8 ? left : right);
+            }
+        }
+        Path p = root.resolve(rel);
+        Files.createDirectories(p.getParent());
+        ImageIO.write(img, "png", p.toFile());
+    }
+
+    /** 256 x 256 colormap whose colour at (x, y) is {@code (x << 16) | (y << 8) | 0x40}, so an index pair is visible. */
+    static void colormap(Path root, String rel) throws IOException {
+        BufferedImage img = new BufferedImage(256, 256, BufferedImage.TYPE_INT_RGB);
+        for (int y = 0; y < 256; y++) {
+            for (int x = 0; x < 256; x++) {
+                img.setRGB(x, y, (x << 16) | (y << 8) | 0x40);
             }
         }
         Path p = root.resolve(rel);
