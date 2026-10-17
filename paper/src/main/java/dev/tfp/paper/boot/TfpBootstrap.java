@@ -32,6 +32,10 @@ public final class TfpBootstrap implements PluginBootstrap {
 
     @Override
     public void bootstrap(BootstrapContext context) {
+        // CraftEngine and BetterHud render pack images with AWT. A server has no display, so AWT must run headless before anything touches it.
+        if (System.getProperty("java.awt.headless") == null) {
+            System.setProperty("java.awt.headless", "true");
+        }
         context.getLifecycleManager().registerEventHandler(LifecycleEvents.DATAPACK_DISCOVERY.newHandler(event -> {
             try {
                 event.registrar().discoverPack(datapackUri(), DATAPACK_ID);
