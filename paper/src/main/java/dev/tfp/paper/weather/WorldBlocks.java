@@ -75,6 +75,13 @@ final class WorldBlocks implements BlockAccess<SnowBlock> {
         }
     }
 
+    /** The pile entries the chunk holds (the snow this system placed and still tracks), for TFC's per-chunk snow cap. */
+    int pileCount(int chunkX, int chunkZ) {
+        PersistentDataContainer piles = world.getChunkAt(chunkX, chunkZ).getPersistentDataContainer()
+                .get(PILES, PersistentDataType.TAG_CONTAINER);
+        return piles == null ? 0 : piles.getKeys().size();
+    }
+
     private SnowBlock.Pile readPile(BlockPos pos) {
         PersistentDataContainer piles = world.getChunkAt(pos.chunkX(), pos.chunkZ()).getPersistentDataContainer()
                 .get(PILES, PersistentDataType.TAG_CONTAINER);

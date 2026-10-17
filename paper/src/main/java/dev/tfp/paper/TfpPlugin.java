@@ -381,8 +381,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         playerPrecipitation.start(() -> getServer().getOnlinePlayers());
 
         // M2-WTH-02: snow layers, ice and melting near the players, decided off-thread and applied per region under budget.
+        // M2-WTH-04: the same service catches up the snow of a chunk on load, from the chunk's stamp (lazy, not replayed).
         SnowService snow = new SnowService(clock, scheduler);
         snow.start(() -> getServer().getOnlinePlayers());
+        getServer().getPluginManager().registerEvents(snow, this);
 
         // We load at STARTUP, PacketEvents at POSTWORLD: it is loaded (its API exists after its onLoad) but not yet
         // enabled here. Registering the listener now is what the M0-NET-01 spike did; isPluginEnabled is false here.

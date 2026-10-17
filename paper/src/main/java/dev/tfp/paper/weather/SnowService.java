@@ -12,6 +12,7 @@ import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.weather.PrecipitationType;
 import dev.tfp.core.weather.SeaIce;
+import dev.tfp.core.weather.SnowCatchUp;
 import dev.tfp.core.weather.SnowRule;
 import dev.tfp.core.weather.SnowRule.Cell;
 import dev.tfp.core.weather.SnowRule.Change;
@@ -36,6 +37,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.bukkit.Chunk;
 import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -52,6 +56,10 @@ import org.bukkit.block.data.Waterlogged;
 import org.bukkit.block.data.type.PointedDripstone;
 import org.bukkit.block.data.type.Snow;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 
 /**
  * Snow, snow piles, ice, ice piles, icicles and sea ice in the overworld (M2-WTH-02, M2-WTH-03), decide async, apply sync.
@@ -75,13 +83,22 @@ import org.bukkit.entity.Player;
  * </ol>
  * One pipeline per world, sharing one budget. Only the overworld has the climate model.
  *
+ * <p><b>Lazy catch-up (M2-WTH-04).</b> A chunk stores the calendar tick it was last updated at ({@link ChunkSnowTime}).
+ * Loading it runs {@link SnowCatchUp#plan} on the worker pool for the time since then (TFC's catch-up branch: one
+ * computation, not a replay of ticks), and the counts come back as forced accumulation or melt steps at columns of that
+ * chunk, through the same pipeline and budget. Unloading stamps the chunk, so the time it was loaded and sampled is not
+ * caught up again. Chunks that are not loaded are never written.
+ *
  * <p>Placeholders (ledger): a snow pile is a vanilla snow layer and an ice pile is ice, both with their memory in the
  * chunk; sea ice is blue ice (a block TFC's world does not otherwise have, so it is told apart from lake ice and never
  * melted by the weather, as in TFC); an icicle is downward pointed dripstone.
  */
-public final class SnowService {
+public final class SnowService implements Listener {
+    private static final Logger LOG = Logger.getLogger(SnowService.class.getName());
     /** One sample round per second, as the calendar advances. */
     public static final long PERIOD_TICKS = 20;
+    /** Catch-up steps applied per region hop, so one hop does not capture the whole chunk's worth at once. */
+    static final int STEPS_PER_HOP = 8;
     /** Columns picked per player per round. The commit budget and the pipeline's coalescing bound the rest. */
     static final int COLUMNS_PER_PLAYER_PER_PERIOD = 4;
     /** Columns are picked within this many chunks of the player. */
@@ -161,25 +178,31 @@ public final class SnowService {
      * @param sky        sky light 15 at the surface and the two positions under it (vanilla {@code canSeeSky})
      * @param salty      the column is in an ocean biome: its water is salt water
      * @param randomSeed the seed of TFC's {@code level.random} for this decision
+     * @param forced     the event a catch-up step applies, or {@code null} for the event the climate gives now
      */
     record SnowSample(BlockPos surface, Map<BlockPos, SnowBlock> blocks, Map<Long, Integer> heights, boolean[] sky,
-            boolean salty, long worldSeed, long randomSeed, long capturedNanos) {}
+            boolean salty, long worldSeed, long randomSeed, long capturedNanos, SnowRule.Event forced) {}
 
     /** The pipeline of one world. Its region work runs on that world's region threads. */
     private final class WorldSnow {
         private final World world;
         private final SeaIce seaIcePattern;
+        private final SnowCatchUpSchedule schedule;
+        /** Catch-up steps waiting for their capture, by surface position (the capture takes its entry). */
+        private final Map<BlockPos, SnowRule.Event> forced = new ConcurrentHashMap<>();
+        private final WorldBlocks blocks;
         private final AsyncDecisionPipeline<SnowBlock, SnowSample> pipeline;
 
         WorldSnow(World world) {
             this.world = world;
             this.seaIcePattern = SeaIce.forLevelSeed(world.getSeed());
+            this.schedule = new SnowCatchUpSchedule(() -> clock.get().calendarTicks());
             RegionExecutor regions = new WorldRegions(world, scheduler);
-            WorldBlocks blocks = new WorldBlocks(world);
+            this.blocks = new WorldBlocks(world);
             PipelineMetrics[] metrics = new PipelineMetrics[1];
-            this.pipeline = new AsyncDecisionPipeline<>("snow:" + world.getName(), regions, blocks,
+            this.pipeline = new AsyncDecisionPipeline<>("snow:" + world.getName(), regions, this.blocks,
                     scheduler.cpuExecutor(), budget,
-                    (pos, now) -> capture(world, pos, now, regions, blocks, metrics[0]),
+                    (pos, now) -> capture(world, pos, now, regions, this.blocks, metrics[0], forced.remove(pos)),
                     s -> decide(s, seaIcePattern));
             metrics[0] = pipeline.metrics();
         }
@@ -189,12 +212,143 @@ public final class SnowService {
             if (!world.isChunkLoaded(x >> 4, z >> 4)) {
                 return;
             }
+            BlockPos surface = surfaceOf(x, z);
+            if (surface != null) {
+                pipeline.submit(surface);
+            }
+        }
+
+        /** Region thread of the column's chunk: the surface position (TFC's heightmap), or {@code null} at the world's edge. */
+        private BlockPos surfaceOf(int x, int z) {
             Block top = world.getHighestBlockAt(x, z, HeightMap.MOTION_BLOCKING);
             if (top.getY() < world.getMinHeight() || top.getY() + 1 >= world.getMaxHeight()) {
+                return null;
+            }
+            return new BlockPos(x, top.getY() + 1, z);
+        }
+
+        /**
+         * Region thread of the chunk, on load: stamps the chunk and, when its last stamp is due, runs the catch-up. The
+         * plan is computed on the worker pool; its steps are then handed back to this region in hops.
+         */
+        void onLoad(int cx, int cz) {
+            ClockSnapshot now = clock.get();
+            if (!now.isSet() || !world.isChunkLoaded(cx, cz)) {
                 return;
             }
-            pipeline.submit(new BlockPos(x, top.getY() + 1, z));
+            SnowCatchUpSchedule.Load load = schedule.onLoad(world.getChunkAt(cx, cz).getPersistentDataContainer());
+            if (!load.catchUp()) {
+                return;
+            }
+            // The two columns stand for TFC's two sampled positions (the random surface and the sequential one).
+            BlockPos a = surfaceOf(cx * 16 + 8, cz * 16 + 8);
+            BlockPos b = surfaceOf(cx * 16 + 3, cz * 16 + 11);
+            if (a == null || b == null) {
+                return;
+            }
+            int existing = blocks.pileCount(cx, cz);
+            int days = now.daysInMonth();
+            long last = load.lastCalendarTick();
+            long calendar = load.calendarTick();
+            CompletableFuture
+                    .supplyAsync(() -> {
+                        OverworldClimate climate = OverworldClimate.forWorldSeed(world.getSeed(),
+                                OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+                        float rainfall = SnowCatchUp.averageRainfall(SnowCatchUp.averagingFrom(last, calendar), calendar,
+                                t -> climate.instantRainfall(ChunkClimate.NEUTRAL, t, days));
+                        return SnowCatchUp.plan(last, calendar, new SnowCatchUp.Climate() {
+                            @Override
+                            public float temperature(long t) {
+                                return Math.max(climate.instantTemperature(a, ChunkClimate.NEUTRAL, t, days),
+                                        climate.instantTemperature(b, ChunkClimate.NEUTRAL, t, days));
+                            }
+
+                            @Override
+                            public float rainIntensity(long t) {
+                                return climate.rainIntensity(t);
+                            }
+                        }, rainfall, existing, SnowCatchUp.DEFAULT_MAX_UPDATES);
+                    }, scheduler.cpuExecutor())
+                    .whenComplete((plan, error) -> {
+                        if (error != null) {
+                            LOG.log(Level.SEVERE, "[snow:" + world.getName() + "] catch-up plan failed", error);
+                            return;
+                        }
+                        if (plan.isEmpty()) {
+                            return;
+                        }
+                        SnowRule.Event kind = plan.accumulate() > 0 ? SnowRule.Event.ACCUMULATE : SnowRule.Event.MELT;
+                        int total = plan.accumulate() + plan.melt();
+                        scheduler.region(world, cx, cz, () -> catchUpHop(cx, cz, kind, total, 0));
+                    });
         }
+
+        /** Region thread of the chunk: submits the steps {@code from..} of one hop, then asks for the next hop. */
+        private void catchUpHop(int cx, int cz, SnowRule.Event kind, int total, int from) {
+            if (!world.isChunkLoaded(cx, cz)) {
+                return; // never write a chunk that is not loaded
+            }
+            int end = Math.min(total, from + STEPS_PER_HOP);
+            for (int i = from; i < end; i++) {
+                BlockPos surface = surfaceOf(columnX(cx, cz, i), columnZ(cx, cz, i));
+                if (surface == null) {
+                    continue;
+                }
+                forced.put(surface, kind);
+                pipeline.submit(surface);
+                // A submit that coalesced into a job already in flight did not capture, so the step is dropped here
+                // rather than left for an unrelated sample of that column.
+                forced.remove(surface);
+            }
+            if (end < total) {
+                scheduler.region(world, cx, cz, () -> catchUpHop(cx, cz, kind, total, end));
+            }
+        }
+
+        /** Region thread of the chunk, on unload: stamps it, so the time it was loaded is not caught up again. */
+        void onUnload(Chunk chunk) {
+            if (clock.get().isSet()) {
+                schedule.onUnload(chunk.getPersistentDataContainer());
+            }
+        }
+    }
+
+    /** The column a catch-up step works on: a fixed scatter over the chunk, so one chunk's steps spread out. */
+    static int columnX(int cx, int cz, int step) {
+        return (cx << 4) + (int) (scatter(cx, cz, step) & 15);
+    }
+
+    static int columnZ(int cx, int cz, int step) {
+        return (cz << 4) + (int) ((scatter(cx, cz, step) >>> 4) & 15);
+    }
+
+    private static long scatter(int cx, int cz, int step) {
+        long z = ((long) cx << 40) ^ ((long) cz << 16) ^ step;
+        z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+        z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+        return z ^ (z >>> 31);
+    }
+
+    @EventHandler
+    public void onChunkLoad(ChunkLoadEvent event) {
+        World world = event.getWorld();
+        if (world.getEnvironment() != World.Environment.NORMAL) {
+            return;
+        }
+        int cx = event.getChunk().getX();
+        int cz = event.getChunk().getZ();
+        WorldSnow snow = worlds.computeIfAbsent(world.getUID(), id -> new WorldSnow(world));
+        scheduler.region(world, cx, cz, () -> snow.onLoad(cx, cz));
+    }
+
+    @EventHandler
+    public void onChunkUnload(ChunkUnloadEvent event) {
+        World world = event.getWorld();
+        if (world.getEnvironment() != World.Environment.NORMAL) {
+            return;
+        }
+        WorldSnow snow = worlds.computeIfAbsent(world.getUID(), id -> new WorldSnow(world));
+        snow.onUnload(event.getChunk());
     }
 
     /**
@@ -202,7 +356,7 @@ public final class SnowService {
      * owners; a chunk that is not loaded is left out (unknown), never loaded.
      */
     private static CompletableFuture<SnowSample> capture(World world, BlockPos surface, long nowNanos,
-            RegionExecutor regions, WorldBlocks blocks, PipelineMetrics metrics) {
+            RegionExecutor regions, WorldBlocks blocks, PipelineMetrics metrics, SnowRule.Event forced) {
         int x = surface.x();
         int y = surface.y();
         int z = surface.z();
@@ -271,7 +425,7 @@ public final class SnowService {
         long seed = world.getSeed();
         long randomSeed = ThreadLocalRandom.current().nextLong();
         Supplier<SnowSample> done = () -> new SnowSample(surface, Map.copyOf(out), Map.copyOf(heights), sky, salty, seed,
-                randomSeed, nowNanos);
+                randomSeed, nowNanos, forced);
         if (remote.isEmpty()) {
             return CompletableFuture.completedFuture(done.get());
         }
@@ -304,6 +458,16 @@ public final class SnowService {
         SnowView view = new SnowView(s);
         long at = s.capturedNanos();
 
+        if (s.forced() != null) {
+            // A catch-up step (M2-WTH-04): the plan already decided the event, so the climate is not read here.
+            List<Change> changes = switch (s.forced()) {
+                case ACCUMULATE -> SnowRule.accumulate(view, surface, new Random(s.randomSeed()), ICICLE_SCAN);
+                case MELT -> SnowRule.melt(view, surface, MELT_DEPTH);
+                case NONE -> List.of();
+            };
+            return toBlockChanges(changes, s, at);
+        }
+
         // Sea ice: TFC places it at generation on salt water at sea level (ShoreAndOceanSurfaceBuilder.placeSeaIce);
         // the worldgen here does not, so a sampled ocean column gets it once (ledger).
         SnowBlock topBlock = s.blocks().get(top);
@@ -324,6 +488,11 @@ public final class SnowService {
             case ACCUMULATE -> SnowRule.accumulate(view, surface, new Random(s.randomSeed()), ICICLE_SCAN);
             case MELT -> SnowRule.melt(view, surface, MELT_DEPTH);
         };
+        return toBlockChanges(changes, s, at);
+    }
+
+    /** The writes of the rule's changes; empty when one names a block the glue cannot write (the decision is dropped). */
+    private List<BlockChange<SnowBlock>> toBlockChanges(List<Change> changes, SnowSample s, long at) {
         List<BlockChange<SnowBlock>> out = new ArrayList<>(changes.size());
         for (Change c : changes) {
             BlockChange<SnowBlock> change = toBlockChange(c, s, at);
