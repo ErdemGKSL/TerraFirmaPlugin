@@ -1,6 +1,6 @@
-# Versions pinned 2026-10-16. Paper API: compiled against the lowest supported MC, 1.21.4 (the jar runs on 1.21.4 through 1.21.11 and 26.x, see M0-JAR-01).
+# Versions pinned 2026-10-16. Paper API: the lowest supported MC (one jar runs on 1.21.11 and 26.x, see M0-JAR-01).
 [versions]
-paper-api = "1.21.4-R0.1-SNAPSHOT"
+paper-api = "1.21.11-R0.1-SNAPSHOT"
 # Modrinth version ids (maven.modrinth:<slug>:<id>); the plugin jars carry their APIs.
 craftengine = "mwFiNxVO"   # 26.9.2
 bettermodel = "RZkXlsnV"   # 3.5.1

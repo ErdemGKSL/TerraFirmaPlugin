@@ -3,9 +3,8 @@ version: '${version}'
 main: dev.tfp.paper.TfpPlugin
 bootstrapper: dev.tfp.paper.boot.TfpBootstrap
 loader: dev.tfp.paper.boot.TfpLoader
-# The jar is compiled against the 1.21.4 API and runs on 1.21.4 through 1.21.11 and 26.x.
-# 1.21.1-1.21.3 are not supported: the bootstrap uses LifecycleEvents.DATAPACK_DISCOVERY, which is missing before 1.21.4.
-api-version: '1.21.4'
+# The jar is compiled against the 1.21.11 API (M0-JAR-01: one jar runs on 1.21.11 and 26.x).
+api-version: '1.21.11'
 # STARTUP: our generator must apply to the default worlds.
 load: STARTUP
 folia-supported: true
