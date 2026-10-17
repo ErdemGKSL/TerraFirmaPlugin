@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
  * <p>
  * The values come from TerraFirmaCraft at c3b4d9536 (the pinned commit). An oracle harness compiled TFC's
  * {@code RegionChunkDataGenerator} and {@code LerpFloatLayer} unchanged, with the region generator of
- * {@link dev.tfp.core.worldgen.region.RegionGeneratorGoldenTest} (the same rivers and lakes; the biome, karst and forest
- * stages removed). Its {@code ChunkData} is a stub that keeps the getters verbatim, and the datapack rock settings are
+ * {@link dev.tfp.core.worldgen.region.RegionGeneratorGoldenTest} (the same rivers and lakes, and the biome altitude task; the
+ * biome choice, karst and forest stages removed). Its {@code ChunkData} is a stub that keeps the getters verbatim, and the datapack rock settings are
  * replaced by the rock point and layer. It ran against Minecraft 1.21.11's {@code Mth}, {@code RandomSource} and
  * {@code XoroshiroRandomSource} classes, with the registries bootstrapped and no server started. Seeds 42 and -7 are
  * infinite continents, seed 20260917 has finite continents on, as in the region golden test. Every chunk is three block
@@ -44,8 +44,8 @@ class ChunkDataGoldenTest {
         "seed=42 chunk=(-25,-3) pos=(-385,-33) temp=6.3130345 rain=232.90851 var=-0.8056842 gw=0.0 rock=-51489288/0 surface=-51489288/0 deep=-51489286/2",
         "seed=42 chunk=(-25,-3) pos=(-393,-39) temp=6.2846127 rain=233.00276 var=-0.8028772 gw=0.0 rock=-51489288/0 surface=-51489288/0 deep=-51489286/2",
         "seed=42 chunk=(0,0) pos=(0,0) temp=5.0 rain=263.75 var=-0.65 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
-        "seed=42 chunk=(0,0) pos=(15,15) temp=4.9033613 rain=266.44238 var=-0.6454945 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489288/2",
-        "seed=42 chunk=(0,0) pos=(7,9) temp=4.955455 rain=265.04382 var=-0.647628 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
+        "seed=42 chunk=(0,0) pos=(15,15) temp=4.9033613 rain=266.94724 var=-0.6454945 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489288/2",
+        "seed=42 chunk=(0,0) pos=(7,9) temp=4.955455 rain=265.18518 var=-0.647628 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
         "seed=42 chunk=(-1,-1) pos=(-16,-16) temp=5.1051264 rain=260.87753 var=-0.66331303 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
         "seed=42 chunk=(-1,-1) pos=(-1,-1) temp=5.0066104 rain=263.56952 var=-0.65083325 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
         "seed=42 chunk=(-1,-1) pos=(-9,-7) temp=5.060007 rain=262.16492 var=-0.65710807 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
@@ -55,24 +55,24 @@ class ChunkDataGoldenTest {
         "seed=42 chunk=(-14,9) pos=(-224,144) temp=6.154756 rain=241.25282 var=-0.7493788 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
         "seed=42 chunk=(-14,9) pos=(-209,159) temp=6.0919223 rain=243.05006 var=-0.7411466 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
         "seed=42 chunk=(-14,9) pos=(-217,153) temp=6.1232066 rain=242.2094 var=-0.7453711 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
-        "seed=42 chunk=(40,30) pos=(640,480) temp=6.99688 rain=271.6882 var=-0.46896148 gw=96.043335 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
-        "seed=42 chunk=(40,30) pos=(655,495) temp=7.116812 rain=271.20288 var=-0.46961278 gw=56.551193 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
-        "seed=42 chunk=(40,30) pos=(647,489) temp=7.0643463 rain=271.38754 var=-0.4691996 gw=79.63693 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
+        "seed=42 chunk=(40,30) pos=(640,480) temp=6.99688 rain=271.6882 var=-0.46896148 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
+        "seed=42 chunk=(40,30) pos=(655,495) temp=7.116812 rain=271.20288 var=-0.46961278 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
+        "seed=42 chunk=(40,30) pos=(647,489) temp=7.0643463 rain=271.38754 var=-0.4691996 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
         "seed=42 chunk=(-100,55) pos=(-1600,880) temp=7.3671374 rain=214.97617 var=-0.4839968 gw=0.0 rock=-1340730515/0 surface=-1340730515/0 deep=-1340730515/2",
         "seed=42 chunk=(-100,55) pos=(-1585,895) temp=7.373145 rain=214.45169 var=-0.48207012 gw=0.0 rock=-1340730515/0 surface=-1340730515/0 deep=-1340730515/2",
         "seed=42 chunk=(-100,55) pos=(-1593,889) temp=7.364909 rain=214.7523 var=-0.48250958 gw=0.0 rock=-1340730515/0 surface=-1340730515/0 deep=-1340730515/2",
         "seed=42 chunk=(3,-300) pos=(48,-4800) temp=-6.058498 rain=307.69107 var=-0.6234193 gw=0.0 rock=998838160/0 surface=998838160/0 deep=998838160/2",
         "seed=42 chunk=(3,-300) pos=(63,-4785) temp=-5.9959173 rain=309.29718 var=-0.62981105 gw=0.0 rock=998838160/0 surface=998838160/0 deep=998838160/2",
         "seed=42 chunk=(3,-300) pos=(55,-4791) temp=-6.0261974 rain=308.557 var=-0.62777096 gw=0.0 rock=998838160/0 surface=998838160/0 deep=998838160/2",
-        "seed=42 chunk=(18,-6) pos=(288,-96) temp=3.7003052 rain=289.77448 var=-0.5649182 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489288/2",
-        "seed=42 chunk=(18,-6) pos=(303,-81) temp=3.7261183 rain=290.40283 var=-0.5620035 gw=124.21875 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
-        "seed=42 chunk=(18,-6) pos=(295,-87) temp=3.7132714 rain=290.166 var=-0.56351644 gw=53.78125 rock=-51489286/0 surface=-51489286/0 deep=-51489288/2",
-        "seed=42 chunk=(18,-3) pos=(288,-48) temp=3.7329028 rain=292.1416 var=-0.56252784 gw=44.95496 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
-        "seed=42 chunk=(18,-3) pos=(303,-33) temp=3.766228 rain=292.7761 var=-0.5586195 gw=106.6618 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
-        "seed=42 chunk=(18,-3) pos=(295,-39) temp=3.7493746 rain=292.53598 var=-0.5606623 gw=67.24087 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
-        "seed=42 chunk=(21,-6) pos=(336,-96) temp=3.7427974 rain=289.41193 var=-0.5589753 gw=39.999996 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
-        "seed=42 chunk=(21,-6) pos=(351,-81) temp=3.7761228 rain=290.04636 var=-0.55506694 gw=43.28125 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
-        "seed=42 chunk=(21,-6) pos=(343,-87) temp=3.7602708 rain=289.8071 var=-0.5569773 gw=62.71875 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
+        "seed=42 chunk=(6,6) pos=(96,96) temp=4.4094 rain=301.3455 var=-0.5985149 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
+        "seed=42 chunk=(6,6) pos=(111,111) temp=4.32309 rain=310.88834 var=-0.5856205 gw=3.0528722 rock=-51489286/0 surface=-51489286/0 deep=-51489288/2",
+        "seed=42 chunk=(6,6) pos=(103,105) temp=4.370363 rain=306.165 var=-0.59166884 gw=0.8548042 rock=-51489286/0 surface=-51489286/0 deep=-51489288/2",
+        "seed=42 chunk=(6,9) pos=(96,144) temp=4.4546127 rain=308.64508 var=-0.5813371 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
+        "seed=42 chunk=(6,9) pos=(111,159) temp=4.3849735 rain=315.20395 var=-0.57242465 gw=0.11678092 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
+        "seed=42 chunk=(6,9) pos=(103,153) temp=4.4245586 rain=311.707 var=-0.57698417 gw=0.38148415 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
+        "seed=42 chunk=(6,12) pos=(96,192) temp=4.523437 rain=308.52496 var=-0.5754529 gw=0.0 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
+        "seed=42 chunk=(6,12) pos=(111,207) temp=4.461057 rain=314.97885 var=-0.5656592 gw=116.535904 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
+        "seed=42 chunk=(6,12) pos=(103,201) temp=4.496771 rain=311.53787 var=-0.5706888 gw=44.288383 rock=-51489286/0 surface=-51489286/0 deep=-51489286/2",
         "seed=-7 chunk=(-25,-3) pos=(-400,-48) temp=4.2284255 rain=241.89392 var=0.18318611 gw=0.0 rock=-1506881344/0 surface=-1506881344/0 deep=-1506881344/2",
         "seed=-7 chunk=(-25,-3) pos=(-385,-33) temp=4.3360972 rain=240.49792 var=0.16829836 gw=0.0 rock=-1506881344/0 surface=-1506881344/0 deep=-1506881344/2",
         "seed=-7 chunk=(-25,-3) pos=(-393,-39) temp=4.288932 rain=241.10724 var=0.17488018 gw=0.0 rock=-1506881344/0 surface=-1506881344/0 deep=-1506881344/2",
@@ -97,15 +97,15 @@ class ChunkDataGoldenTest {
         "seed=-7 chunk=(3,-300) pos=(48,-4800) temp=-5.119334 rain=290.55542 var=0.8570064 gw=0.0 rock=-1497150211/0 surface=-1497150211/0 deep=-1497150211/2",
         "seed=-7 chunk=(3,-300) pos=(63,-4785) temp=-5.0347834 rain=291.08484 var=0.8586336 gw=0.0 rock=-1497150211/0 surface=-1497150211/0 deep=-1497150211/2",
         "seed=-7 chunk=(3,-300) pos=(55,-4791) temp=-5.070506 rain=290.85306 var=0.8584628 gw=0.0 rock=-1497150211/0 surface=-1497150211/0 deep=-1497150211/2",
-        "seed=-7 chunk=(-45,-60) pos=(-720,-960) temp=2.8536742 rain=228.39476 var=0.84539163 gw=91.51318 rock=1019255830/0 surface=1019255830/0 deep=-690196682/2",
-        "seed=-7 chunk=(-45,-60) pos=(-705,-945) temp=2.8738873 rain=227.97192 var=0.85598814 gw=84.32638 rock=-690196682/0 surface=-690196682/0 deep=-690196682/2",
-        "seed=-7 chunk=(-45,-60) pos=(-713,-951) temp=2.860092 rain=228.1182 var=0.85040027 gw=84.96384 rock=-690196682/0 surface=1019255830/0 deep=-690196682/2",
-        "seed=-7 chunk=(-45,-57) pos=(-720,-912) temp=2.7864497 rain=226.45177 var=0.84709096 gw=0.0 rock=-690196682/0 surface=-690196682/0 deep=-690196682/2",
-        "seed=-7 chunk=(-45,-57) pos=(-705,-897) temp=2.8103316 rain=225.99933 var=0.8578112 gw=0.2764991 rock=-690196682/0 surface=-690196682/0 deep=-690196682/2",
-        "seed=-7 chunk=(-45,-57) pos=(-713,-903) temp=2.7945795 rain=226.16139 var=0.85215735 gw=0.90323037 rock=-690196682/0 surface=-690196682/0 deep=-690196682/2",
-        "seed=-7 chunk=(-42,-60) pos=(-672,-960) temp=2.9819121 rain=229.01428 var=0.8774775 gw=85.77288 rock=-690196682/0 surface=-690196682/0 deep=-690196682/2",
-        "seed=-7 chunk=(-42,-60) pos=(-657,-945) temp=3.0057938 rain=228.56183 var=0.8881977 gw=121.621475 rock=-690196682/0 surface=-690196682/0 deep=-690196682/2",
-        "seed=-7 chunk=(-42,-60) pos=(-665,-951) temp=2.9905312 rain=228.71996 var=0.8825603 gw=103.130165 rock=-690196682/0 surface=-690196682/0 deep=-690196682/2",
+        "seed=-7 chunk=(-60,-39) pos=(-960,-624) temp=2.4060483 rain=243.7023 var=0.70345485 gw=0.0 rock=1019255830/0 surface=1019255830/0 deep=1019255830/2",
+        "seed=-7 chunk=(-60,-39) pos=(-945,-609) temp=2.4465466 rain=242.96986 var=0.7129209 gw=12.683114 rock=1019255830/0 surface=1019255830/0 deep=1019255830/2",
+        "seed=-7 chunk=(-60,-39) pos=(-953,-615) temp=2.4288042 rain=243.44958 var=0.7082833 gw=10.4792 rock=1019255830/0 surface=1019255830/0 deep=1019255830/2",
+        "seed=-7 chunk=(-60,-36) pos=(-960,-576) temp=2.4984112 rain=245.95627 var=0.71293366 gw=99.39124 rock=1019255830/0 surface=1019255830/0 deep=1019255830/2",
+        "seed=-7 chunk=(-60,-36) pos=(-945,-561) temp=2.5387661 rain=245.30653 var=0.72212535 gw=93.89346 rock=1019255830/0 surface=1019255830/0 deep=1019255830/2",
+        "seed=-7 chunk=(-60,-36) pos=(-953,-567) temp=2.5211003 rain=245.74214 var=0.7176341 gw=95.280334 rock=1019255830/0 surface=1019255830/0 deep=1019255830/2",
+        "seed=-7 chunk=(-60,-33) pos=(-960,-528) temp=2.590774 rain=248.21024 var=0.72241247 gw=30.670448 rock=1019255830/0 surface=1019255830/0 deep=1019255830/2",
+        "seed=-7 chunk=(-60,-33) pos=(-945,-513) temp=2.6309857 rain=247.6432 var=0.73132986 gw=2.7008424 rock=1019255830/0 surface=1019255830/0 deep=1019255830/2",
+        "seed=-7 chunk=(-60,-33) pos=(-953,-519) temp=2.6133964 rain=248.0347 var=0.72698486 gw=15.97919 rock=1019255830/0 surface=1019255830/0 deep=1019255830/2",
         "seed=20260917 chunk=(-25,-3) pos=(-400,-48) temp=5.330193 rain=252.96585 var=-0.6993968 gw=0.0 rock=-1318825455/0 surface=-1318825455/0 deep=-1318825455/2",
         "seed=20260917 chunk=(-25,-3) pos=(-385,-33) temp=5.375626 rain=253.9958 var=-0.7039485 gw=0.0 rock=-1318825455/0 surface=-1318825455/0 deep=-1318825455/2",
         "seed=20260917 chunk=(-25,-3) pos=(-393,-39) temp=5.3558717 rain=253.65811 var=-0.70141757 gw=0.0 rock=-1318825455/0 surface=-1318825455/0 deep=-1318825455/2",
@@ -122,23 +122,23 @@ class ChunkDataGoldenTest {
         "seed=20260917 chunk=(-14,9) pos=(-209,159) temp=5.4454083 rain=267.31555 var=-0.69628686 gw=0.0 rock=-1318825455/0 surface=-1318825455/0 deep=-1318825455/3",
         "seed=20260917 chunk=(-14,9) pos=(-217,153) temp=5.461116 rain=266.7679 var=-0.6993363 gw=0.0 rock=-1318825455/0 surface=-1318825455/0 deep=-1318825455/3",
         "seed=20260917 chunk=(40,30) pos=(640,480) temp=6.7232485 rain=266.16724 var=-0.59889007 gw=0.0 rock=-1318825453/0 surface=-73928817/0 deep=-1318825453/2",
-        "seed=20260917 chunk=(40,30) pos=(655,495) temp=6.76862 rain=265.33566 var=-0.59561646 gw=0.0 rock=-1318825453/0 surface=-1318825453/0 deep=-1318825453/3",
-        "seed=20260917 chunk=(40,30) pos=(647,489) temp=6.7494273 rain=265.65567 var=-0.59748024 gw=0.0 rock=-1318825453/0 surface=-1318825453/0 deep=-1318825453/2",
+        "seed=20260917 chunk=(40,30) pos=(655,495) temp=6.76862 rain=265.65036 var=-0.59561646 gw=0.0 rock=-1318825453/0 surface=-1318825453/0 deep=-1318825453/3",
+        "seed=20260917 chunk=(40,30) pos=(647,489) temp=6.7494273 rain=265.85434 var=-0.59748024 gw=0.0 rock=-1318825453/0 surface=-1318825453/0 deep=-1318825453/2",
         "seed=20260917 chunk=(-100,55) pos=(-1600,880) temp=5.39555 rain=206.15991 var=-0.49517924 gw=0.0 rock=-1559392939/0 surface=-1559392939/0 deep=-1559392939/2",
         "seed=20260917 chunk=(-100,55) pos=(-1585,895) temp=5.40416 rain=206.3775 var=-0.4925396 gw=0.0 rock=-1559392939/0 surface=-1559392939/0 deep=-1559392939/2",
         "seed=20260917 chunk=(-100,55) pos=(-1593,889) temp=5.398994 rain=206.2406 var=-0.49348384 gw=0.0 rock=-1559392939/0 surface=-1559392939/0 deep=-1559392939/2",
         "seed=20260917 chunk=(3,-300) pos=(48,-4800) temp=-4.4147573 rain=292.41785 var=-0.07570676 gw=0.0 rock=-450652060/0 surface=-450652060/0 deep=-450652060/2",
         "seed=20260917 chunk=(3,-300) pos=(63,-4785) temp=-4.3363857 rain=292.7305 var=-0.07846591 gw=0.0 rock=-450652060/0 surface=-450652060/0 deep=-450652060/2",
         "seed=20260917 chunk=(3,-300) pos=(55,-4791) temp=-4.3672314 rain=292.59995 var=-0.07730262 gw=0.0 rock=-450652060/0 surface=-450652060/0 deep=-450652060/2",
-        "seed=20260917 chunk=(57,54) pos=(912,864) temp=7.453676 rain=263.9389 var=-0.48188955 gw=0.0 rock=-73928819/0 surface=-73928819/0 deep=-421487343/2",
-        "seed=20260917 chunk=(57,54) pos=(927,879) temp=7.4666624 rain=261.66727 var=-0.47459134 gw=21.32946 rock=-73928819/0 surface=-73928819/0 deep=-421487343/2",
-        "seed=20260917 chunk=(57,54) pos=(919,873) temp=7.46015 rain=262.34384 var=-0.47823074 gw=5.972249 rock=-73928819/0 surface=-73928819/0 deep=-421487343/2",
-        "seed=20260917 chunk=(57,57) pos=(912,912) temp=7.4543705 rain=253.85289 var=-0.48047206 gw=27.327253 rock=-421487343/0 surface=-421487343/0 deep=-421487343/2",
-        "seed=20260917 chunk=(57,57) pos=(927,927) temp=7.45646 rain=254.01877 var=-0.47636497 gw=162.65773 rock=-421487343/0 surface=-421487343/0 deep=-421487343/2",
-        "seed=20260917 chunk=(57,57) pos=(919,921) temp=7.4543414 rain=253.72661 var=-0.4787482 gw=101.61218 rock=-421487343/0 surface=-421487343/0 deep=-421487343/2",
-        "seed=20260917 chunk=(57,60) pos=(912,960) temp=7.430172 rain=248.91719 var=-0.48503053 gw=116.59125 rock=-421487343/0 surface=-421487343/0 deep=-421487343/2",
-        "seed=20260917 chunk=(57,60) pos=(927,975) temp=7.43219 rain=249.04933 var=-0.48087475 gw=148.40553 rock=-421487343/0 surface=-421487343/0 deep=-421487343/2",
-        "seed=20260917 chunk=(57,60) pos=(919,969) temp=7.4301095 rain=248.77516 var=-0.48328394 gw=134.00215 rock=-421487343/0 surface=-421487343/0 deep=-421487343/2"
+        "seed=20260917 chunk=(-15,60) pos=(-240,960) temp=6.1743145 rain=277.56073 var=-0.638553 gw=0.0 rock=1273130279/0 surface=1273130279/0 deep=1273130279/2",
+        "seed=20260917 chunk=(-15,60) pos=(-225,975) temp=6.232297 rain=277.50925 var=-0.6408244 gw=59.062496 rock=1273130279/0 surface=1273130279/0 deep=1273130279/2",
+        "seed=20260917 chunk=(-15,60) pos=(-233,969) temp=6.2044034 rain=277.45557 var=-0.63972235 gw=35.4375 rock=1273130279/0 surface=1273130279/0 deep=1273130279/2",
+        "seed=20260917 chunk=(-12,57) pos=(-192,912) temp=6.119906 rain=282.29358 var=-0.6402365 gw=0.0 rock=1273130279/0 surface=1273130279/0 deep=1273130279/2",
+        "seed=20260917 chunk=(-12,57) pos=(-177,927) temp=6.177888 rain=282.2421 var=-0.6425079 gw=59.062496 rock=1273130279/0 surface=1273130279/0 deep=1273130279/2",
+        "seed=20260917 chunk=(-12,57) pos=(-185,921) temp=6.151795 rain=282.1693 var=-0.64141226 gw=48.9375 rock=1273130279/0 surface=1273130279/0 deep=1273130279/2",
+        "seed=20260917 chunk=(-12,60) pos=(-192,960) temp=6.2547317 rain=279.6871 var=-0.6430814 gw=300.0 rock=1273130279/0 surface=1273130279/0 deep=1273130279/2",
+        "seed=20260917 chunk=(-12,60) pos=(-177,975) temp=6.326214 rain=279.4923 var=-0.64540046 gw=293.7212 rock=1273130279/0 surface=1273130279/0 deep=1273130279/2",
+        "seed=20260917 chunk=(-12,60) pos=(-185,969) temp=6.2929206 rain=279.49597 var=-0.64427936 gw=285.65103 rock=1273130279/0 surface=1273130279/0 deep=1273130279/2",
     };
 
     @Test
@@ -175,8 +175,8 @@ class ChunkDataGoldenTest {
             assertThat(surface).as(line).isEqualTo(new ChunkDataGenerator.RockSample(Integer.parseInt(m.group(12)), Integer.parseInt(m.group(13))));
         }
         assertThat(GOLDEN).hasSize(99);
-        // The river path is exercised: nine chunks with groundwater, three positions each
-        assertThat(riverPositions).isEqualTo(27);
+        // The river path is exercised: seven chunks with groundwater, three positions each (the biome altitude task changed which)
+        assertThat(riverPositions).isEqualTo(21);
     }
 
     private static ChunkDataGenerator generatorFor(long seed) {

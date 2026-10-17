@@ -4,12 +4,13 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/world/chunkdata/ChunkData.java @ c3b4d9536 (the climate getters and the
- * PARTIAL layers; the forest type, the surface heights and the rock cache are not here, see the ledger)
+ * file: src/main/java/net/dries007/tfc/world/chunkdata/ChunkData.java @ c3b4d9536 (the climate getters, the PARTIAL layers and
+ * modifyBaseGroundwater; the forest type and the rock cache are not here, see the ledger)
  */
 package dev.tfp.core.worldgen.chunk;
 
 import dev.tfp.core.climate.ChunkClimate;
+import dev.tfp.core.worldgen.Mth;
 
 /**
  * The climate inputs of one chunk, as TFC stores them in its chunk data: the bilinear layers of sea-level temperature,
@@ -34,6 +35,12 @@ public record ChunkData(
 ) {
     /** The cap of total groundwater, mm, as in TFC's {@code getAverageGroundwater}. */
     public static final float MAX_GROUNDWATER = 500f;
+
+    /** {@code TFCChunkGenerator.SEA_LEVEL_Y}: the groundwater of a column falls off from 10 to 25 blocks above it. */
+    public static final int SEA_LEVEL_Y = 63;
+
+    /** The number of block columns in a chunk: {@code surfaceHeight} has {@code 16 * 16} entries, indexed {@code x + 16z}. */
+    public static final int COLUMNS = 16 * 16;
 
     /**
      * The climate input of a block position: the chunk's values, or {@link ChunkClimate#NEUTRAL} when {@code data} is null
@@ -66,6 +73,35 @@ public record ChunkData(
     /** @return The time-invariant total groundwater (rivers and rainfall) at the block position, mm, capped at 500. */
     public float averageGroundwater(int x, int z) {
         return Math.min(baseGroundwater(x, z) + averageRainfall(x, z), MAX_GROUNDWATER);
+    }
+
+    /**
+     * TFC's {@code modifyBaseGroundwater}: the groundwater from rivers falls to zero on high ground. Each of the four corners
+     * of the chunk's layer is lowered by its own column's surface height, so the layer keeps the bilinear shape of the
+     * river groundwater. TFC applies this once the chunk has its surface heights; the result is a new record.
+     *
+     * @param surfaceHeight The surface height of each column, {@code 256} entries indexed {@code x + 16z} (chunk-local).
+     * @return The chunk data with the modified base groundwater; the other layers are the same.
+     */
+    public ChunkData modifyBaseGroundwater(int[] surfaceHeight) {
+        if (surfaceHeight.length != COLUMNS) {
+            throw new IllegalArgumentException("Expected " + COLUMNS + " surface heights, got " + surfaceHeight.length);
+        }
+        // The corner columns, as TFC picks them: constant = x + 16z
+        final float groundwater00 = modifyBaseGroundwaterPoint(surfaceHeight[0], baseGroundwater.value00());
+        final float groundwater10 = modifyBaseGroundwaterPoint(surfaceHeight[15], baseGroundwater.value10());
+        final float groundwater01 = modifyBaseGroundwaterPoint(surfaceHeight[240], baseGroundwater.value01());
+        final float groundwater11 = modifyBaseGroundwaterPoint(surfaceHeight[255], baseGroundwater.value11());
+        return new ChunkData(chunkX, chunkZ, rainfall, rainVariance,
+            new LerpFloatLayer(groundwater00, groundwater01, groundwater10, groundwater11), temperature);
+    }
+
+    /**
+     * TFC's {@code modifyBaseGroundwaterPoint}: the starting groundwater, scaled from 1 at {@code SEA_LEVEL_Y + 10} to 0 at
+     * {@code SEA_LEVEL_Y + 25}, and clamped outside that range.
+     */
+    public static float modifyBaseGroundwaterPoint(int height, float startingWater) {
+        return startingWater * Mth.clampedMap((float) height, SEA_LEVEL_Y + 10, SEA_LEVEL_Y + 25, 1f, 0f);
     }
 
     /** @return The climate input of the block position, as the climate model reads it. */

@@ -5,11 +5,12 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/world/region/Region.java @ c3b4d9536 (the land, island, shore, mountain, volcanic and
- * barrier flags, the river and lake flags with the river edges, and the annotations of the in-scope tasks; biomes and
- * biome altitude are not ported yet)
+ * barrier flags, the river and lake flags with the river edges, the biome altitude and the biome of each point, and the
+ * annotations of the in-scope tasks; karst surface rocks are not ported yet)
  */
 package dev.tfp.core.worldgen.region;
 
+import dev.tfp.core.worldgen.biome.BiomeAltitude;
 import dev.tfp.core.worldgen.noise.Cellular2D;
 import dev.tfp.core.worldgen.noise.FastNoiseLite;
 import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
@@ -246,6 +247,16 @@ public final class Region {
         public int rock = 0;
         public byte hotSpotAge = 0;
 
+        /** The biome altitude, 0 to {@code 3 * BiomeAltitude.WIDTH}; see {@link BiomeAltitude}. */
+        public byte biomeAltitude = 0;
+        /** The biome: a {@code dev.tfp.core.worldgen.biome.TfcBiomes} id. Ocean (0) until the biome task runs. */
+        public int biome = 0;
+        /**
+         * TFC's karst surface rock flag. Karst is not ported (the rock settings are datapack data), so this stays false and
+         * the karst branch of the biome choice never runs.
+         */
+        public boolean isSurfaceRockKarst = false;
+
         private short flags;
 
         public final int x, z;
@@ -259,6 +270,11 @@ public final class Region {
 
         public boolean land() {
             return (flags & FLAG_LAND) != 0;
+        }
+
+        /** @return The discrete biome altitude, 0 (low) to 3 (mountain), that picks the biome lists. */
+        public int discreteBiomeAltitude() {
+            return Math.floorDiv(biomeAltitude, BiomeAltitude.WIDTH);
         }
 
         public boolean island() {

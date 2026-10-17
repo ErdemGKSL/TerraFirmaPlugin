@@ -7,8 +7,8 @@
  * file: src/main/java/net/dries007/tfc/world/region/RegionGenerator.java @ c3b4d9536
  *
  * Scope of this port: the continent, ocean, island, mountain, distance, climate and rock annotations, and the rivers and
- * lakes (AddRiversAndLakes, RiverEdge, RegionPartition). The biome choice (ChooseBiomes), karst surface rocks and chunk
- * data are not ported yet; see docs/porting/ledger.md (World generation, region).
+ * lakes (AddRiversAndLakes, RiverEdge, RegionPartition), the biome altitude and the biome choice (ChooseBiomes). Karst
+ * surface rocks are not ported yet; see docs/porting/ledger.md (World generation, region).
  */
 package dev.tfp.core.worldgen.region;
 
@@ -54,6 +54,9 @@ public final class RegionGenerator {
     final Noise2D hotSpotAgeNoise;
     final Noise2D hotSpotIntensityNoise;
     final Cellular2D plateRegionNoise;
+
+    /** The biome blob field that groups points into biome choices. Each thread builds its own {@link Area}. */
+    final ThreadLocal<Area> biomeArea;
 
     /** The rock layer stack. Each thread builds its own {@link Area} from the factory, because {@link Area} is not synchronised. */
     final ThreadLocal<Area> rockArea;
@@ -106,8 +109,8 @@ public final class RegionGenerator {
         this.hotSpotIntensityNoise = BiomeNoise.hotSpotIntensity(seed.seed()).spread(128);
         this.plateRegionNoise = BiomeNoise.plateRegions(seed.seed()).spread(128);
 
-        // The biome stack (ChooseBiomes, not ported) is built here only to take its seeds in TFC's order, so the rock stack's seeds match.
-        RegionLayers.createUniformLayer(seed, 2);
+        // The biome field is built before the rock field, so the seeds are taken in TFC's order.
+        this.biomeArea = ThreadLocal.withInitial(RegionLayers.createUniformLayer(seed, 2));
         this.rockArea = ThreadLocal.withInitial(RegionLayers.createUniformLayer(seed, 3));
     }
 
@@ -272,9 +275,11 @@ public final class RegionGenerator {
         ANNOTATE_DISTANCE_TO_WEST_COAST(AnnotateDistanceToWestCoast.INSTANCE),
         ADD_MOUNTAINS(AddMountainsAndBarrierIslands.INSTANCE),
         ADD_ISLANDS(AddIslands.INSTANCE),
+        ANNOTATE_BIOME_ALTITUDE(AnnotateBiomeAltitude.INSTANCE),
         ANNOTATE_CLIMATE(AnnotateClimate.INSTANCE),
         CHOOSE_ROCKS(ChooseRocks.INSTANCE),
         ADD_RIVERS_AND_LAKES(AddRiversAndLakes.INSTANCE),
+        CHOOSE_BIOMES(ChooseBiomes.INSTANCE),
         ;
 
         private static final Task[] VALUES = values();

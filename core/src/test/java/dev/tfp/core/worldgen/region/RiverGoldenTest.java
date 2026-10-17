@@ -29,37 +29,37 @@ import org.junit.jupiter.api.Test;
  * hash of the edge's source, drain and width), and the flow of the nearest edge at that point ({@code none} if empty).
  * <p>
  * The values come from TerraFirmaCraft at c3b4d9536 (the pinned commit). An oracle harness compiled TFC's own region
- * and river classes unchanged, with the same trimmed task list as {@link RegionGeneratorGoldenTest} plus the river task
- * (karst, biome choice and chunk data are removed). It ran with Minecraft 1.21.11's {@code Mth}, {@code XoroshiroRandomSource}
+ * and river classes unchanged, with the task list of {@link RegionGeneratorGoldenTest} (the biome altitude task included, since it draws before the rivers;
+ * karst and chunk data are removed) plus the river task. It ran with Minecraft 1.21.11's {@code Mth}, {@code XoroshiroRandomSource}
  * and {@code RandomSource}, and the overworld settings. {@link #MTH_ATAN2} and {@link #MTH_TRIG} are Minecraft's own values.
  */
 class RiverGoldenTest {
     /** The oracle lines: 3 seeds x 8 grid points = 24 regions. */
     private static final String[] RIVER_GOLDEN = {
-        "RIVER seed=42 finite=false grid=(-400,-60) rivers=741 riverPts=503 lakePts=199 edgeHash=3369293401887856603L flagHash=7116561773920790446L samples=[48 4026852954824344118 nnw][42 1152561196169133182 n][62 -6379694363557757264 s]",
-        "RIVER seed=42 finite=false grid=(-100,25) rivers=338 riverPts=287 lakePts=69 edgeHash=-6139323679556768974L flagHash=3317234964239747552L samples=[0 3 none][0 3 none][0 3 none]",
-        "RIVER seed=42 finite=false grid=(0,0) rivers=518 riverPts=426 lakePts=129 edgeHash=1771728910322691526L flagHash=-8660639614508070352L samples=[13 -3539578033128558402 nnw][7 4961702899268719027 n][0 3 none]",
-        "RIVER seed=42 finite=false grid=(60,200) rivers=387 riverPts=167 lakePts=100 edgeHash=-2796093851242678746L flagHash=-6845562571620097098L samples=[8 1965398312101783320 n][4 -7593802120149759569 see][0 3 none]",
-        "RIVER seed=42 finite=false grid=(350,-400) rivers=713 riverPts=537 lakePts=169 edgeHash=-7442090451960872374L flagHash=1630008873519545395L samples=[0 3 none][0 3 none][0 3 none]",
-        "RIVER seed=42 finite=false grid=(-250,350) rivers=351 riverPts=94 lakePts=76 edgeHash=-2882482488157399501L flagHash=-1567826592245991492L samples=[0 3 none][1 -3953923965155971753 s][0 3 none]",
-        "RIVER seed=42 finite=false grid=(120,-120) rivers=638 riverPts=495 lakePts=183 edgeHash=-5277894601035212346L flagHash=-99710927863725805L samples=[9 4117522533435974168 nw][0 3 none][26 -8571472111350418028 nnw]",
-        "RIVER seed=42 finite=false grid=(-5,-5) rivers=518 riverPts=426 lakePts=129 edgeHash=1771728910322691526L flagHash=-8660639614508070352L samples=[0 3 none][0 3 none][0 3 none]",
-        "RIVER seed=-7 finite=false grid=(-400,-60) rivers=1071 riverPts=966 lakePts=288 edgeHash=2338070889683443393L flagHash=5613197530291612125L samples=[0 3 none][0 3 none][0 3 none]",
-        "RIVER seed=-7 finite=false grid=(-100,25) rivers=560 riverPts=481 lakePts=98 edgeHash=6744828853867670043L flagHash=1234211434792950732L samples=[6 5135367888831462688 nee][3 -7369145454439990226 ne][10 4517532664806197310 se]",
-        "RIVER seed=-7 finite=false grid=(0,0) rivers=624 riverPts=427 lakePts=174 edgeHash=8233631706542907186L flagHash=6041962283429845978L samples=[0 3 none][15 2090090763560795608 se][0 3 none]",
-        "RIVER seed=-7 finite=false grid=(60,200) rivers=522 riverPts=453 lakePts=135 edgeHash=5394784970689712795L flagHash=-8242928110116673910L samples=[28 6814654089650715135 se][9 -1438029462919086044 n][44 -4163536393262512990 e]",
-        "RIVER seed=-7 finite=false grid=(350,-400) rivers=538 riverPts=315 lakePts=113 edgeHash=2711952651642624481L flagHash=5321559582005213984L samples=[7 -8440262245627363529 nww][5 -1549958023606161184 n][8 2517710090213228262 nw]",
-        "RIVER seed=-7 finite=false grid=(-250,350) rivers=644 riverPts=518 lakePts=160 edgeHash=7663892031542007520L flagHash=3510182392527790973L samples=[11 1481995839685885767 e][9 239935024772330929 se][0 3 none]",
-        "RIVER seed=-7 finite=false grid=(120,-120) rivers=586 riverPts=176 lakePts=150 edgeHash=4341919460593612894L flagHash=-1675410382763450801L samples=[33 -8403420702763919069 nne][12 5377036770646724274 see][12 -391542220230740033 nnw]",
-        "RIVER seed=-7 finite=false grid=(-5,-5) rivers=624 riverPts=427 lakePts=174 edgeHash=8233631706542907186L flagHash=6041962283429845978L samples=[10 2616301501402393750 sse][24 -5559953752563050316 sse][11 -3456264345315591916 sw]",
+        "RIVER seed=42 finite=false grid=(-400,-60) rivers=729 riverPts=527 lakePts=178 edgeHash=-6265006055916850182L flagHash=-3361464813015277765L samples=[20 -5125519756074473553 nnw][40 6787272646477464362 nw][30 -1313140739491035790 nw]",
+        "RIVER seed=42 finite=false grid=(-100,25) rivers=328 riverPts=186 lakePts=77 edgeHash=-6193818022069359219L flagHash=4601135280408033293L samples=[0 3 none][0 3 none][0 3 none]",
+        "RIVER seed=42 finite=false grid=(0,0) rivers=486 riverPts=396 lakePts=140 edgeHash=8432408096995590672L flagHash=-1379693867850620807L samples=[14 -1250576042594772029 n][2 933631229442811319 n][0 3 none]",
+        "RIVER seed=42 finite=false grid=(60,200) rivers=376 riverPts=136 lakePts=98 edgeHash=7150000502470311693L flagHash=8529183913661033480L samples=[0 3 none][0 3 none][0 3 none]",
+        "RIVER seed=42 finite=false grid=(350,-400) rivers=711 riverPts=457 lakePts=190 edgeHash=-4729422256539132998L flagHash=-6591801712229738524L samples=[0 3 none][0 3 none][0 3 none]",
+        "RIVER seed=42 finite=false grid=(-250,350) rivers=429 riverPts=137 lakePts=85 edgeHash=8935166121644808829L flagHash=1563863222956125049L samples=[0 3 none][1 -3173608438098952002 sse][0 3 none]",
+        "RIVER seed=42 finite=false grid=(120,-120) rivers=620 riverPts=506 lakePts=128 edgeHash=-3250921027149942605L flagHash=-5484906741585816675L samples=[16 8341282620911482547 n][0 3 none][28 -9108634695190224577 nne]",
+        "RIVER seed=42 finite=false grid=(-5,-5) rivers=486 riverPts=396 lakePts=140 edgeHash=8432408096995590672L flagHash=-1379693867850620807L samples=[1 601790625034206499 nne][0 3 none][0 3 none]",
+        "RIVER seed=-7 finite=false grid=(-400,-60) rivers=934 riverPts=899 lakePts=257 edgeHash=7067306515677461423L flagHash=-2504122768160450375L samples=[0 3 none][0 3 none][0 3 none]",
+        "RIVER seed=-7 finite=false grid=(-100,25) rivers=664 riverPts=459 lakePts=158 edgeHash=7574989328897240238L flagHash=2628487680207385320L samples=[5 7560506398707574785 se][0 3 none][5 7566422033313939032 nww]",
+        "RIVER seed=-7 finite=false grid=(0,0) rivers=566 riverPts=366 lakePts=135 edgeHash=541312297411173720L flagHash=-1887678524606789338L samples=[1 -6396152011254886334 se][6 3966132891689612558 ne][9 -9049554840196227939 s]",
+        "RIVER seed=-7 finite=false grid=(60,200) rivers=479 riverPts=341 lakePts=135 edgeHash=2711238623276212548L flagHash=6097507782107910655L samples=[23 -6409482619550608387 sse][4 8023616353429744986 nww][27 619355115879273503 e]",
+        "RIVER seed=-7 finite=false grid=(350,-400) rivers=540 riverPts=321 lakePts=125 edgeHash=7037130397158014116L flagHash=-2647245068580162596L samples=[16 -7560669935112113108 nnw][7 -5433271881915737044 se][5 5379193772219000444 nne]",
+        "RIVER seed=-7 finite=false grid=(-250,350) rivers=630 riverPts=473 lakePts=179 edgeHash=-2332322774619414292L flagHash=7007853031268147288L samples=[5 2685485814774850123 e][23 -4665438404215521568 ne][0 3 none]",
+        "RIVER seed=-7 finite=false grid=(120,-120) rivers=578 riverPts=208 lakePts=161 edgeHash=6265836326331333461L flagHash=7150379452006487621L samples=[28 -4088331910055558430 n][16 -352573428453607960 sse][10 7795525894756041489 nw]",
+        "RIVER seed=-7 finite=false grid=(-5,-5) rivers=566 riverPts=366 lakePts=135 edgeHash=541312297411173720L flagHash=-1887678524606789338L samples=[14 -2486455949768113085 see][16 -1416096309918261266 nw][19 -6108796597983801705 s]",
         "RIVER seed=20260917 finite=true grid=(-400,-60) rivers=0 riverPts=0 lakePts=0 edgeHash=0L flagHash=1613579465433893511L samples=[0 3 none][0 3 none][0 3 none]",
-        "RIVER seed=20260917 finite=true grid=(-100,25) rivers=663 riverPts=458 lakePts=154 edgeHash=1786237926897679895L flagHash=-3587609013068513433L samples=[0 3 none][11 -5855749584201697520 nne][0 3 none]",
-        "RIVER seed=20260917 finite=true grid=(0,0) rivers=231 riverPts=132 lakePts=32 edgeHash=-2834032738634231954L flagHash=-274115518008737562L samples=[4 3914317948708577918 sww][0 3 none][0 3 none]",
-        "RIVER seed=20260917 finite=true grid=(60,200) rivers=737 riverPts=495 lakePts=195 edgeHash=2120846630643085302L flagHash=-3231172934398209702L samples=[1 8280495117016240520 sse][0 3 none][0 3 none]",
+        "RIVER seed=20260917 finite=true grid=(-100,25) rivers=612 riverPts=477 lakePts=126 edgeHash=7794691734052233252L flagHash=-7913431596645380784L samples=[0 3 none][4 -3563864104550757037 sw][0 3 none]",
+        "RIVER seed=20260917 finite=true grid=(0,0) rivers=215 riverPts=130 lakePts=48 edgeHash=-3970852045739889119L flagHash=-6444582204926885588L samples=[8 6776094536123866511 nne][0 3 none][0 3 none]",
+        "RIVER seed=20260917 finite=true grid=(60,200) rivers=702 riverPts=386 lakePts=157 edgeHash=5699721671361132515L flagHash=6052178728543993954L samples=[0 3 none][0 3 none][0 3 none]",
         "RIVER seed=20260917 finite=true grid=(350,-400) rivers=0 riverPts=0 lakePts=0 edgeHash=0L flagHash=-994525036724224920L samples=[0 3 none][0 3 none][0 3 none]",
         "RIVER seed=20260917 finite=true grid=(-250,350) rivers=0 riverPts=0 lakePts=0 edgeHash=0L flagHash=-3651927158436471550L samples=[0 3 none][0 3 none][0 3 none]",
-        "RIVER seed=20260917 finite=true grid=(120,-120) rivers=48 riverPts=4 lakePts=6 edgeHash=-8872492574492127279L flagHash=8331738708493510480L samples=[0 3 none][0 3 none][0 3 none]",
-        "RIVER seed=20260917 finite=true grid=(-5,-5) rivers=231 riverPts=132 lakePts=32 edgeHash=-2834032738634231954L flagHash=-274115518008737562L samples=[0 3 none][0 3 none][0 3 none]",
+        "RIVER seed=20260917 finite=true grid=(120,-120) rivers=30 riverPts=0 lakePts=5 edgeHash=2249805086095505990L flagHash=2917470478067607497L samples=[0 3 none][0 3 none][0 3 none]",
+        "RIVER seed=20260917 finite=true grid=(-5,-5) rivers=215 riverPts=130 lakePts=48 edgeHash=-3970852045739889119L flagHash=-6444582204926885588L samples=[0 3 none][0 3 none][0 3 none]",
     };
 
     /** Minecraft's {@code Mth.atan2(y, x)}: {y, x, result} as exact doubles. */
