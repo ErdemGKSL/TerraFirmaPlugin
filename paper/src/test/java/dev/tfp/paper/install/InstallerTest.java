@@ -349,5 +349,13 @@ class InstallerTest {
         pools.solid(1289, 691, 591);
         t.onCraftEngineReload();
         assertThat(t.lastCheck().verdict()).isEqualTo(dev.tfp.core.visuals.ProfileCheck.Verdict.OK);
+        java.util.Properties rec = new java.util.Properties();
+        try (var in = java.nio.file.Files.newBufferedReader(stateDir().resolve(PackRebuildTrigger.POOL_CHECK_FILE))) {
+            rec.load(in);
+        }
+        assertThat(rec.getProperty("verdict")).isEqualTo("OK");
+        assertThat(rec.getProperty("free")).isEqualTo(Integer.toString(t.lastCheck().free()));
+        assertThat(rec.getProperty("others")).isEqualTo("100");
+        assertThat(rec.getProperty("line")).contains(" fits: ");
     }
 }

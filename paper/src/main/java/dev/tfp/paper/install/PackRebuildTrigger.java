@@ -12,6 +12,7 @@ import dev.tfp.core.visuals.VisualSelection;
 import dev.tfp.paper.integration.PackRebuilder;
 import dev.tfp.paper.integration.VisualPools;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -31,8 +32,12 @@ import java.util.logging.Logger;
  *       start with the same content and profile does not rebuild again.</li>
  * </ol>
  * The rebuild's own CraftEngine reload calls this again: the check runs again, the rebuild is not repeated.
+ * Every check's figures are also written to {@code <stateDir>/}{@value #POOL_CHECK_FILE} (io executor), so a
+ * restart can be compared with the previous run (self-test {@code inst.profile_restart}).
  */
 public final class PackRebuildTrigger {
+    /** The last pool check's figures, {@link java.util.Properties} text ({@link #poolCheckRecord}). */
+    public static final String POOL_CHECK_FILE = "pool-check.properties";
     private final Installer.Result install;
     private final Path stateDir;
     private final PackRebuilder rebuilder;
@@ -138,6 +143,14 @@ public final class PackRebuildTrigger {
         ProfileCheck.Result r = ProfileCheck.check(selection, index.solidDemand(selection.family(), selection.netherEnd()),
                 usage.get(), reserve);
         lastCheck = r;
+        String record = poolCheckRecord(selection, usage.get(), reserve, r);
+        io.execute(() -> {
+            try {
+                AtomicFiles.write(stateDir.resolve(POOL_CHECK_FILE), record.getBytes(StandardCharsets.UTF_8));
+            } catch (IOException | RuntimeException e) {
+                log.log(Level.FINE, "Cannot record the pool check", e);
+            }
+        });
         Level level = switch (r.verdict()) {
             case OK -> Level.INFO;
             case WARN -> Level.WARNING;
@@ -146,5 +159,37 @@ public final class PackRebuildTrigger {
         for (String line : r.lines()) {
             log.log(level, line);
         }
+    }
+
+    /**
+     * The persisted figures of one pool check. Pure; keys are read by the self-test, keep them stable:
+     * {@code selection, profile, verdict, capacity, used, ours, stale, needed, others, free, reserve, line}
+     * ({@code line}: the capacity message, the one with "fits", "Only ... free" or "does not fit").
+     */
+    public static String poolCheckRecord(VisualSelection selection, ProfileCheck.PoolUsage usage, int reserve,
+            ProfileCheck.Result r) {
+        String line = r.lines().stream()
+                .filter(l -> l.contains(" fits: ") || l.startsWith("Only ") || l.contains("does not fit"))
+                .findFirst().orElse(r.lines().isEmpty() ? "" : r.lines().getLast());
+        java.util.Properties p = new java.util.Properties();
+        p.setProperty("selection", selection.id());
+        p.setProperty("profile", selection.profile().id());
+        p.setProperty("verdict", r.verdict().name());
+        p.setProperty("capacity", Integer.toString(usage.capacity()));
+        p.setProperty("used", Integer.toString(usage.used()));
+        p.setProperty("ours", Integer.toString(usage.ours()));
+        p.setProperty("stale", Integer.toString(usage.stale()));
+        p.setProperty("needed", Integer.toString(r.needed()));
+        p.setProperty("others", Integer.toString(r.othersUsed()));
+        p.setProperty("free", Integer.toString(r.free()));
+        p.setProperty("reserve", Integer.toString(reserve));
+        p.setProperty("line", line);
+        java.io.StringWriter w = new java.io.StringWriter();
+        try {
+            p.store(w, "TerraFirmaPlugin: last CraftEngine solid pool check (M1-INST-03)");
+        } catch (IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+        return w.toString();
     }
 }

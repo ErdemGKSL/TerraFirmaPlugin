@@ -6,6 +6,7 @@
 package dev.tfp.itest;
 
 import dev.tfp.core.diagnostics.CraftEngineIssueMatcher;
+import dev.tfp.itest.cases.SuppressionCase;
 import dev.tfp.paper.TfpPlugin;
 import dev.tfp.paper.ready.ReadyGate;
 import java.io.IOException;
@@ -52,6 +53,11 @@ public final class SelfTestPlugin extends JavaPlugin implements Listener {
 
     private final LogFindings findings = new LogFindings(new ThreadAssertMatcher(), new CraftEngineIssueMatcher("tfp"),
             new CraftEngineIssueMatcher(SelfTestPack.NAMESPACE));
+
+    {
+        // inst.suppression (M1-INST-04) asserts these lines; registered before the tap attaches in onLoad.
+        findings.keepLinesContaining(SuppressionCase.STARTUP_LINE, SuppressionCase.FORM_LINE);
+    }
     private final AtomicBoolean started = new AtomicBoolean();
     private volatile Log4jTap tap;
     private volatile LoggerContext tapContext;
@@ -202,6 +208,11 @@ public final class SelfTestPlugin extends JavaPlugin implements Listener {
         @Override
         public boolean liveLog() {
             return tap != null;
+        }
+
+        @Override
+        public Path dataDir() {
+            return getDataPath();
         }
     }
 }

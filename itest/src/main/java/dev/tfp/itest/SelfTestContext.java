@@ -7,6 +7,7 @@ package dev.tfp.itest;
 
 import dev.tfp.paper.TfpPlugin;
 import dev.tfp.paper.ready.ReadyGate;
+import java.nio.file.Path;
 
 /** What cases may use. The in-server implementation is {@link SelfTestPlugin}'s; unit tests pass their own. */
 public interface SelfTestContext {
@@ -31,5 +32,10 @@ public interface SelfTestContext {
     /** Whether the live Log4j tap is attached (findings are current, not only scanned at the end). */
     default boolean liveLog() {
         return false;
+    }
+
+    /** The self-test plugin's data folder (markers kept across the matrix's two starts), or null if none. */
+    default Path dataDir() {
+        return null;
     }
 }

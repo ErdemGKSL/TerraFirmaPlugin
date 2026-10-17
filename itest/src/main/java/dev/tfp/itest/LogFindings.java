@@ -9,7 +9,9 @@ import dev.tfp.core.diagnostics.CraftEngineIssueMatcher;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,6 +25,8 @@ import java.util.regex.Pattern;
 public final class LogFindings {
     /** Lines kept per kind in the report. */
     static final int KEEP = 20;
+    /** Lines kept per watched text ({@link #keepLinesContaining}). */
+    static final int WATCH_KEEP = 500;
     /** Paper's file layout: {@code [HH:mm:ss] [thread/LEVEL]: message}. */
     private static final Pattern FILE_LINE = Pattern.compile(
             "^\\[\\d{2}:\\d{2}:\\d{2}] \\[(.*)/(TRACE|DEBUG|INFO|WARN|ERROR|FATAL)]: (.*)$");
@@ -38,6 +42,8 @@ public final class LogFindings {
     private final List<String> threadLines = new ArrayList<>();
     private final List<String> ceLines = new ArrayList<>();
     private volatile String source = "none";
+    /** Watched text to the bare messages containing it, in log order. */
+    private final Map<String, List<String>> watched = new ConcurrentHashMap<>();
 
     public LogFindings(ThreadAssertMatcher threads, CraftEngineIssueMatcher craftEngine,
             CraftEngineIssueMatcher... otherPacks) {
@@ -52,6 +58,27 @@ public final class LogFindings {
         out.add(craftEngine.namespace());
         otherPacks.forEach(m -> out.add(m.namespace()));
         return out;
+    }
+
+    /**
+     * Also keep the bare messages (without Paper's logger prefix) that contain any of {@code needles}, for cases
+     * that assert a server log line ({@code inst.suppression}). Register before the log is fed.
+     */
+    public void keepLinesContaining(String... needles) {
+        for (String n : needles) {
+            watched.putIfAbsent(n, new ArrayList<>());
+        }
+    }
+
+    /** The kept messages containing {@code needle} so far (at most {@value #WATCH_KEEP}); empty if not watched. */
+    public List<String> linesContaining(String needle) {
+        List<String> lines = watched.get(needle);
+        if (lines == null) {
+            return List.of();
+        }
+        synchronized (lines) {
+            return List.copyOf(lines);
+        }
     }
 
     /** Where the log events came from (shown in the report). */
@@ -90,6 +117,17 @@ public final class LogFindings {
             keep(threadLines, "[" + rule.get() + "] " + firstLines(msg, extra));
         }
         String bare = LOGGER_PREFIX.matcher(msg).replaceFirst("");
+        if (!watched.isEmpty()) {
+            watched.forEach((needle, lines) -> {
+                if (bare.contains(needle)) {
+                    synchronized (lines) {
+                        if (lines.size() < WATCH_KEEP) {
+                            lines.add(bare);
+                        }
+                    }
+                }
+            });
+        }
         Optional<CraftEngineIssueMatcher.Issue> issue = craftEngine.match(level, bare);
         for (int i = 0; issue.isEmpty() && i < otherPacks.size(); i++) {
             issue = otherPacks.get(i).match(level, bare);

@@ -12,8 +12,10 @@ import dev.tfp.itest.cases.CraftEngineBlockRoundTripCase;
 import dev.tfp.itest.cases.CraftEnginePackIssuesCase;
 import dev.tfp.itest.cases.PacketNoopCase;
 import dev.tfp.itest.cases.PlayerDataCase;
+import dev.tfp.itest.cases.ProfileRestartCase;
 import dev.tfp.itest.cases.ReadyCase;
 import dev.tfp.itest.cases.RegionSchedulerCase;
+import dev.tfp.itest.cases.SuppressionCase;
 import dev.tfp.itest.cases.VersionCommandCase;
 import java.time.Duration;
 import java.util.List;
@@ -39,6 +41,8 @@ public final class SelfTestSuite {
                 new RegionSchedulerCase(),
                 new CraftEnginePackIssuesCase(),
                 new CraftEngineBlockRoundTripCase(),
+                new ProfileRestartCase(),
+                new SuppressionCase(),
                 new BetterModelSpawnCase(),
                 new BetterHudPlaceholderCase(),
                 new PacketNoopCase());
