@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.UUID;
 import java.util.function.Function;
@@ -27,16 +28,24 @@ final class PlaceholderProbe {
     }
 
     static OptionalDouble evaluate(Map<String, HudPlaceholder<?>> placeholders, String name, UUID player) {
-        HudPlaceholder<?> p = placeholders.get(name);
-        if (p == null) {
+        Optional<Object> value = value(placeholders, name, player);
+        if (value.isEmpty()) {
             return OptionalDouble.empty();
         }
-        Function<HudPlayer, ?> f = p.invoke(List.of(), UpdateEvent.EMPTY);
-        Object value = f.apply(player(player));
-        if (!(value instanceof Number n)) {
-            throw new IllegalStateException("placeholder " + name + " returned " + value + " instead of a number");
+        if (!(value.get() instanceof Number n)) {
+            throw new IllegalStateException("placeholder " + name + " returned " + value.get() + " instead of a number");
         }
         return OptionalDouble.of(n.doubleValue());
+    }
+
+    /** The value of any placeholder for {@code player}; empty if {@code placeholders} has no such name. */
+    static Optional<Object> value(Map<String, HudPlaceholder<?>> placeholders, String name, UUID player) {
+        HudPlaceholder<?> p = placeholders.get(name);
+        if (p == null) {
+            return Optional.empty();
+        }
+        Function<HudPlayer, ?> f = p.invoke(List.of(), UpdateEvent.EMPTY);
+        return Optional.ofNullable(f.apply(player(player)));
     }
 
     static HudPlayer player(UUID id) {

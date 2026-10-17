@@ -12,11 +12,15 @@ import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.integration.Integration;
 import dev.tfp.paper.integration.IntegrationContext;
 import java.nio.file.Path;
+import dev.tfp.core.clock.ClockSnapshot;
+import dev.tfp.core.clock.GlobalClockHolder;
 import java.util.Map;
+import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 import java.util.logging.Level;
 import kr.toxicity.hud.api.BetterHud;
@@ -62,10 +66,18 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
             HudListener listener = player -> read.applyAsDouble(cache.snapshot(player.uuid()));
             api.getListenerManager().addListener(e.getKey(), yaml -> event -> listener);
         }
+        PlaceholderContainer<String> texts = api.getPlaceholderManager().getStringContainer();
+        GlobalClockHolder clock = ctx.clock();
+        for (Map.Entry<String, Function<ClockSnapshot, String>> e : HudClockValues.TEXTS.entrySet()) {
+            Function<ClockSnapshot, String> read = e.getValue();
+            // Reads the published clock only: no world, no snapshot cache, the same value for every player.
+            texts.addPlaceholder(e.getKey(), HudPlaceholder.<String>of((args, reason) -> player -> read.apply(clock.get())));
+        }
         registered = true;
         Path pack = BetterHudPackTarget.packFolder(ctx.pluginsDirectory());
-        ctx.logger().info("BetterHud: registered " + HudValues.NUMBERS.size() + " placeholder(s) and "
-                + HudValues.LISTENERS.size() + " listener(s); pack folder " + pack
+        ctx.logger().info("BetterHud: registered " + HudValues.NUMBERS.size() + " number placeholder(s), "
+                + HudClockValues.TEXTS.size() + " text placeholder(s) and " + HudValues.LISTENERS.size()
+                + " listener(s); pack folder " + pack
                 + (BetterHudPackTarget.optedOut(ctx.pluginsDirectory()) ? " (disabled by the owner: packs/-tfp exists)" : ""));
     }
 
@@ -103,6 +115,29 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
         }
         return PlaceholderProbe.evaluate(BetterHudAPI.inst().getPlaceholderManager().getNumberContainer().getAllPlaceholders(),
                 name, player);
+    }
+
+    @Override
+    public Set<String> registeredText() {
+        if (!registered) {
+            return Set.of();
+        }
+        Set<String> out = new TreeSet<>();
+        for (String name : BetterHudAPI.inst().getPlaceholderManager().getStringContainer().getAllPlaceholders().keySet()) {
+            if (HudClockValues.TEXTS.containsKey(name)) {
+                out.add(name);
+            }
+        }
+        return out;
+    }
+
+    @Override
+    public Optional<String> evaluateText(String name, UUID player) {
+        if (!registered) {
+            return Optional.empty();
+        }
+        return PlaceholderProbe.value(BetterHudAPI.inst().getPlaceholderManager().getStringContainer().getAllPlaceholders(),
+                name, player).map(String::valueOf);
     }
 
     public boolean isRegistered() {

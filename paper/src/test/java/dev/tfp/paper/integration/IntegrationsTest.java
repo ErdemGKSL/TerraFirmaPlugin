@@ -45,7 +45,8 @@ class IntegrationsTest {
             public void close() {
             }
         });
-        ctx = new IntegrationContext(null, logger, gate, () -> null, new HudSnapshotCache(() -> false), Path.of("plugins"));
+        ctx = new IntegrationContext(null, logger, gate, () -> null, new HudSnapshotCache(() -> false),
+                new dev.tfp.core.clock.GlobalClockHolder(), Path.of("plugins"));
     }
 
     /** A fake adapter that provides the fake services and records its lifecycle. */

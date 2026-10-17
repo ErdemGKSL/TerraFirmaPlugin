@@ -10,6 +10,7 @@ package dev.tfp.paper.calendar;
 
 import dev.tfp.core.calendar.CalendarCodec;
 import dev.tfp.core.calendar.CalendarState;
+import dev.tfp.core.calendar.TimeCommand;
 import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.persist.PersistException;
 import dev.tfp.paper.scheduler.Scheduler;
@@ -164,6 +165,29 @@ public final class CalendarService {
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "Cannot save the calendar", e);
         }
+    }
+
+    /** The result of {@link #skip}: the calendar ticks moved and the state after the move. */
+    public record Skipped(long ticks, CalendarState state) {
+    }
+
+    /**
+     * {@code /tfp time}: moves the calendar forward by the ticks {@code delta} computes from the current state (TFC
+     * {@code skipForwardBy}), whether or not it runs. Publishes and saves at once. Global thread only.
+     *
+     * @return the move, or null before the first load
+     */
+    public Skipped skip(TimeCommand.Delta delta) {
+        CalendarState s = state;
+        if (s == null) {
+            return null;
+        }
+        long ticks = delta.ticksFrom(s);
+        CalendarState next = s.skipForward(ticks);
+        state = next;
+        next.publishTo(clock);
+        save();
+        return new Skipped(ticks, next);
     }
 
     /** Runs the calendar even with no player online; returns the previous value. */

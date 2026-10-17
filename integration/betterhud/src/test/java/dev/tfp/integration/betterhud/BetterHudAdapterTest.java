@@ -7,6 +7,7 @@ package dev.tfp.integration.betterhud;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.integration.IntegrationProvider;
@@ -39,6 +40,20 @@ class BetterHudAdapterTest {
         assertThat(HudValues.LISTENERS.get("tfp_health").applyAsDouble(s)).isEqualTo(0.9);
         assertThat(HudValues.LISTENERS.get("tfp_thirst").applyAsDouble(s)).isEqualTo(0.3);
         assertThat(HudValues.LISTENERS.get("tfp_hunger").applyAsDouble(s)).isEqualTo(0.5);
+    }
+
+    /** M2-CAL-02: the clock text placeholders read the published clock only, and show a dash before the first reading. */
+    @Test
+    void clockTextPlaceholdersFormatThePublishedClock() {
+        assertThat(HudClockValues.TEXTS.keySet()).containsExactly("tfp_date", "tfp_season");
+        assertThat(HudClockValues.TEXTS.get("tfp_date").apply(ClockSnapshot.UNSET)).isEqualTo("-");
+        assertThat(HudClockValues.TEXTS.get("tfp_season").apply(ClockSnapshot.UNSET)).isEqualTo("-");
+        ClockSnapshot june = new ClockSnapshot(1, 0, 966_000L, 8, true);
+        assertThat(HudClockValues.TEXTS.get("tfp_date").apply(june)).isEqualTo("June 1, 1000");
+        assertThat(HudClockValues.TEXTS.get("tfp_season").apply(june)).isEqualTo("Summer");
+        ClockSnapshot december = new ClockSnapshot(2, 0, 2_112_000L, 8, false);
+        assertThat(HudClockValues.TEXTS.get("tfp_date").apply(december)).isEqualTo("December 1, 1000");
+        assertThat(HudClockValues.TEXTS.get("tfp_season").apply(december)).isEqualTo("Winter");
     }
 
     @Test

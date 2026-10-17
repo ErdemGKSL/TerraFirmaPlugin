@@ -6,9 +6,12 @@
 package dev.tfp.paper.boot;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import dev.tfp.core.calendar.CalendarFormat;
+import dev.tfp.core.calendar.TimeCommand;
 import dev.tfp.core.showcase.Showcase;
 import dev.tfp.paper.i18n.Messages;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -35,6 +38,8 @@ import org.bukkit.entity.Player;
  * /tfp debug player [name]     player data (yours without a name)
  * /tfp debug packets           packet handler metrics
  * /tfp debug showcase &lt;family&gt; every variant of rocks|soils|ores in a grid at your position (players)
+ * /tfp time set day|noon|night|midnight|hour &lt;0-24&gt;   next time of day (tfp.admin, TFC TimeCommand)
+ * /tfp time add years|months|days|hours &lt;n&gt; | ticks &lt;n&gt;   skip forward (tfp.admin)
  * </pre>
  *
  * <p>Replies are translated with {@link Messages} into the sender's locale. Handlers answer with futures;
@@ -92,6 +97,12 @@ public final class TfpCommands {
 
         /** Places every loaded variant of {@code family} ({@code rocks|soils|ores}) in a grid next to {@code player}. */
         CompletableFuture<Reply> debugShowcase(Player player, String family);
+
+        /**
+         * {@code /tfp time}: moves the calendar forward by {@code delta}'s ticks, on the calendar's thread. The reply
+         * is {@code key} with the label, the ticks moved and the new date.
+         */
+        CompletableFuture<Reply> skipTime(String key, String label, TimeCommand.Delta delta);
     }
 
     private TfpCommands() {
@@ -145,7 +156,47 @@ public final class TfpCommands {
                                                 ctx.getSource().getSender() instanceof Player p
                                                         ? h.debugShowcase(p, StringArgumentType.getString(ctx, "family"))
                                                         : CompletableFuture.completedFuture(Reply.error("command.player_only")))))))
+                .then(Commands.literal("time")
+                        .requires(s -> s.getSender().hasPermission(ADMIN_PERMISSION))
+                        .then(Commands.literal("set")
+                                .then(Commands.literal("day").executes(timeSet(handler, messages, "day",
+                                        TimeCommand.DAY_TICKS_OF_DAY)))
+                                .then(Commands.literal("noon").executes(timeSet(handler, messages, "noon",
+                                        TimeCommand.NOON_TICKS_OF_DAY)))
+                                .then(Commands.literal("night").executes(timeSet(handler, messages, "night",
+                                        TimeCommand.NIGHT_TICKS_OF_DAY)))
+                                .then(Commands.literal("midnight").executes(timeSet(handler, messages, "midnight",
+                                        TimeCommand.MIDNIGHT_TICKS_OF_DAY)))
+                                .then(Commands.literal("hour")
+                                        .then(Commands.argument("hour", IntegerArgumentType.integer(0, 24))
+                                                .executes(run(handler, messages, (h, ctx) -> {
+                                                    int hour = IntegerArgumentType.getInteger(ctx, "hour");
+                                                    return h.skipTime("time.set.done", "hour " + hour,
+                                                            TimeCommand.setTimeOfDay(TimeCommand.hourTicksOfDay(hour)));
+                                                })))))
+                        .then(Commands.literal("add")
+                                .then(timeAdd(handler, messages, TimeCommand.Unit.YEARS, "years"))
+                                .then(timeAdd(handler, messages, TimeCommand.Unit.MONTHS, "months"))
+                                .then(timeAdd(handler, messages, TimeCommand.Unit.DAYS, "days"))
+                                .then(timeAdd(handler, messages, TimeCommand.Unit.HOURS, "hours"))
+                                .then(timeAdd(handler, messages, TimeCommand.Unit.TICKS, "ticks"))))
                 .build();
+    }
+
+    private static Command<CommandSourceStack> timeSet(Supplier<Handler> handler, Messages messages, String label,
+            int ticksOfDay) {
+        return run(handler, messages, (h, ctx) -> h.skipTime("time.set.done", label,
+                TimeCommand.setTimeOfDay(ticksOfDay)));
+    }
+
+    /** {@code add <unit> <n>}: a literal {@code unit} with an integer argument {@code name} of at least 1. */
+    private static com.mojang.brigadier.builder.ArgumentBuilder<CommandSourceStack, ?> timeAdd(Supplier<Handler> handler,
+            Messages messages, TimeCommand.Unit unit, String name) {
+        return Commands.literal(name).then(Commands.argument(name, IntegerArgumentType.integer(1))
+                .executes(run(handler, messages, (h, ctx) -> {
+                    int n = IntegerArgumentType.getInteger(ctx, name);
+                    return h.skipTime("time.add.done", n + " " + name, TimeCommand.add(unit, n));
+                })));
     }
 
     @FunctionalInterface

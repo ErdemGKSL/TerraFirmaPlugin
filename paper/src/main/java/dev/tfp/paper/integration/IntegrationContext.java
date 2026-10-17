@@ -5,6 +5,7 @@
  */
 package dev.tfp.paper.integration;
 
+import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.paper.ready.ReadyGate;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.nio.file.Path;
@@ -21,15 +22,17 @@ import org.bukkit.plugin.Plugin;
  * @param readyGate the ready gate the adapter signals
  * @param scheduler our scheduler; {@code null} until our {@code onEnable()}
  * @param hudCache the shared per-player HUD snapshots
+ * @param clock the published global clock (volatile reads; HUD date placeholders)
  * @param pluginsDirectory the server's {@code plugins/} folder (install targets are computed from it)
  */
 public record IntegrationContext(Plugin plugin, Logger logger, ReadyGate readyGate, Supplier<Scheduler> scheduler,
-        HudSnapshotCache hudCache, Path pluginsDirectory) {
+        HudSnapshotCache hudCache, GlobalClockHolder clock, Path pluginsDirectory) {
     public IntegrationContext {
         Objects.requireNonNull(logger, "logger");
         Objects.requireNonNull(readyGate, "readyGate");
         Objects.requireNonNull(scheduler, "scheduler");
         Objects.requireNonNull(hudCache, "hudCache");
+        Objects.requireNonNull(clock, "clock");
         Objects.requireNonNull(pluginsDirectory, "pluginsDirectory");
     }
 

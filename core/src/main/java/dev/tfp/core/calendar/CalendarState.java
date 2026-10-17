@@ -102,6 +102,29 @@ public record CalendarState(long playerTicks, long calendarTicks, long partialNu
     }
 
     /**
+     * TFC {@code ServerCalendar.skipForwardBy}: moves the calendar forward by {@code calendarTicks} whether or not it is
+     * running (the time commands and sleep skipping). The player ticks advance by {@code calendarTicks / rate}, where
+     * {@code rate = 20 / dayLengthMinutes}, computed as an integer floor (TFC uses float). The fractional carry is kept.
+     *
+     * @param ticks calendar ticks to skip, at least 0
+     */
+    public CalendarState skipForward(long ticks) {
+        if (ticks < 0) {
+            throw new IllegalArgumentException("ticks < 0: " + ticks);
+        }
+        long player = Math.addExact(playerTicks,
+            Math.multiplyExact(ticks, (long) dayLengthMinutes) / CalendarTicks.PLAYER_TICKS_PER_SECOND);
+        return new CalendarState(
+            player,
+            Math.addExact(calendarTicks, ticks),
+            partialNumerator,
+            dayLengthMinutes,
+            daysInMonth,
+            running
+        );
+    }
+
+    /**
      * The calendar tick that is {@code offsetTicks} player ticks from now (TFC {@code getCalendarTickFromOffset}),
      * whether or not the calendar is running. Uses the same arithmetic as {@link #advance}, so
      * {@code calendarTickAfter(n) == advance(n).calendarTicks()} when running.

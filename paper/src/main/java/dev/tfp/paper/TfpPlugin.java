@@ -5,6 +5,8 @@
  */
 package dev.tfp.paper;
 
+import dev.tfp.core.calendar.CalendarFormat;
+import dev.tfp.core.calendar.TimeCommand;
 import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.compat.CompatGate;
 import dev.tfp.core.compat.Version;
@@ -137,7 +139,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         install = runInstaller();
         // M1-INT-01..04: discover the adapters of the installed plugins; CraftEngine registers its
         // behaviours/functions/conditions here (must happen in onLoad).
-        IntegrationContext ctx = new IntegrationContext(this, getLogger(), readyGate, () -> scheduler, hudCache,
+        IntegrationContext ctx = new IntegrationContext(this, getLogger(), readyGate, () -> scheduler, hudCache, clock,
                 getDataPath().toAbsolutePath().getParent());
         integrations = Integrations.discover(ctx, name -> getServer().getPluginManager().getPlugin(name) != null,
                 TfpPlugin.class.getClassLoader());
@@ -553,6 +555,27 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
 
     private static String tick(long t) {
         return t == Long.MIN_VALUE ? "never" : Long.toString(t);
+    }
+
+    @Override
+    public CompletableFuture<Reply> skipTime(String key, String label, TimeCommand.Delta delta) {
+        CalendarService cal = calendar;
+        if (cal == null) {
+            return CompletableFuture.completedFuture(Reply.error("command.not_enabled"));
+        }
+        // The calendar state is written on the global thread only (CalendarService): hop there, reply from there.
+        CompletableFuture<Reply> out = new CompletableFuture<>();
+        scheduler.global(() -> {
+            try {
+                CalendarService.Skipped moved = cal.skip(delta);
+                out.complete(moved == null ? Reply.error("time.not_loaded")
+                        : Reply.ok(key, label, moved.ticks(), CalendarFormat.dateTime(moved.state().calendarTicks(),
+                                moved.state().daysInMonth())));
+            } catch (RuntimeException e) {
+                out.completeExceptionally(e);
+            }
+        });
+        return out;
     }
 
     @Override

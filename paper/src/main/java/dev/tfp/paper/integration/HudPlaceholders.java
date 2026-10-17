@@ -5,6 +5,7 @@
  */
 package dev.tfp.paper.integration;
 
+import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.UUID;
@@ -25,4 +26,17 @@ public interface HudPlaceholders {
      * @return empty if the HUD plugin has no placeholder of that name
      */
     OptionalDouble evaluate(String name, UUID player);
+
+    /**
+     * Text placeholders we registered (the date and season, M2-CAL-02). They read the published clock, never the
+     * world. Empty by default, for a HUD plugin without text support.
+     */
+    default Set<String> registeredText() {
+        return Set.of();
+    }
+
+    /** Evaluates the text placeholder {@code name} the way {@link #evaluate} does; empty if not registered. */
+    default Optional<String> evaluateText(String name, UUID player) {
+        return Optional.empty();
+    }
 }

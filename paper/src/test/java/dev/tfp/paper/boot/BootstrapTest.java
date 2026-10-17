@@ -158,6 +158,14 @@ class BootstrapTest {
             return call("debugShowcase " + player.getName() + " " + family,
                     Reply.ok("debug.showcase.done", family, 3, 4, 5, 3, "world 2 64 2"));
         }
+
+        @Override
+        public CompletableFuture<Reply> skipTime(String key, String label, dev.tfp.core.calendar.TimeCommand.Delta delta) {
+            // the default calendar (06:00, June 1, 1000) gives the delta; the reply is the fixed date text
+            long ticks = delta.ticksFrom(dev.tfp.core.calendar.CalendarState.defaults());
+            return call("skipTime " + key + " " + label + " " + ticks,
+                    Reply.ok(key, label, String.valueOf(ticks), "June 1, 1000 12:00"));
+        }
     }
 
     static CommandDispatcher<CommandSourceStack> dispatcher(TfpCommands.Handler handler) {
@@ -210,7 +218,10 @@ class BootstrapTest {
     void commandTreeStructure() {
         CommandDispatcher<CommandSourceStack> d = dispatcher(new FakeHandler());
         CommandNode<CommandSourceStack> tfp = d.getRoot().getChild("tfp");
-        assertThat(children(tfp)).containsExactlyInAnyOrder("version", "reload", "debug");
+        assertThat(children(tfp)).containsExactlyInAnyOrder("version", "reload", "debug", "time");
+        assertThat(children(tfp.getChild("time"))).containsExactlyInAnyOrder("set", "add");
+        assertThat(children(tfp.getChild("time").getChild("set"))).containsExactlyInAnyOrder("day", "noon", "night", "midnight", "hour");
+        assertThat(children(tfp.getChild("time").getChild("add"))).containsExactlyInAnyOrder("years", "months", "days", "hours", "ticks");
         assertThat(children(tfp.getChild("reload"))).containsExactlyInAnyOrder("config", "data", "content");
         assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "player", "packets", "showcase");
         assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
@@ -226,6 +237,8 @@ class BootstrapTest {
         assertThat(tfp.getChild("version").canUse(user)).isTrue();
         assertThat(tfp.getChild("reload").canUse(user)).isFalse();
         assertThat(tfp.getChild("debug").canUse(user)).isFalse();
+        assertThat(tfp.getChild("time").canUse(user)).isFalse();
+        assertThat(tfp.getChild("time").canUse(admin)).isTrue();
         assertThat(tfp.getChild("reload").canUse(admin)).isTrue();
         assertThat(tfp.getChild("debug").canUse(admin)).isTrue();
     }
@@ -274,6 +287,44 @@ class BootstrapTest {
                 "Player data of Alex:");
         assertThatThrownBy(() -> d.execute("tfp debug block", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
                 .isInstanceOf(CommandSyntaxException.class);
+    }
+
+    /** M2-CAL-02: {@code /tfp time set|add} needs tfp.admin, parses TFC's arguments and moves the calendar by TFC's delta. */
+    @Test
+    void timeCommandsNeedAdminAndSkipTheCalendar() throws CommandSyntaxException {
+        FakeHandler h = new FakeHandler();
+        CommandDispatcher<CommandSourceStack> d = dispatcher(h);
+        List<String> out = new ArrayList<>();
+        d.execute("tfp time set noon", Fakes.source(ADMIN, out));
+        d.execute("tfp time set hour 13", Fakes.source(ADMIN, out));
+        d.execute("tfp time set hour 24", Fakes.source(ADMIN, out));
+        d.execute("tfp time set midnight", Fakes.source(ADMIN, out));
+        d.execute("tfp time add days 3", Fakes.source(ADMIN, out));
+        d.execute("tfp time add ticks 5", Fakes.source(ADMIN, out));
+        assertThat(h.calls).containsExactly(
+                "skipTime time.set.done noon 6000",
+                "skipTime time.set.done hour 13 7000",
+                "skipTime time.set.done hour 24 18000",
+                "skipTime time.set.done midnight 18000",
+                "skipTime time.add.done 3 days 72000",
+                "skipTime time.add.done 5 ticks 5");
+        assertThat(out).containsExactly(
+                "Time set to noon: moved 6000 calendar ticks forward, now June 1, 1000 12:00.",
+                "Time set to hour 13: moved 7000 calendar ticks forward, now June 1, 1000 12:00.",
+                "Time set to hour 24: moved 18000 calendar ticks forward, now June 1, 1000 12:00.",
+                "Time set to midnight: moved 18000 calendar ticks forward, now June 1, 1000 12:00.",
+                "Added 3 days: moved 72000 calendar ticks forward, now June 1, 1000 12:00.",
+                "Added 5 ticks: moved 5 calendar ticks forward, now June 1, 1000 12:00.");
+        // admin only, and TFC's argument rules
+        assertThatThrownBy(() -> d.execute("tfp time set day", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
+                .isInstanceOf(CommandSyntaxException.class);
+        assertThatThrownBy(() -> d.execute("tfp time set hour 25", Fakes.source(ADMIN, out)))
+                .isInstanceOf(CommandSyntaxException.class);
+        assertThatThrownBy(() -> d.execute("tfp time add days 0", Fakes.source(ADMIN, out)))
+                .isInstanceOf(CommandSyntaxException.class);
+        assertThatThrownBy(() -> d.execute("tfp time add weeks 1", Fakes.source(ADMIN, out)))
+                .isInstanceOf(CommandSyntaxException.class);
+        assertThat(h.calls).hasSize(6);
     }
 
     /** M1-SVC-05: {@code /tfp debug showcase <family>} reaches the handler for players only; families are suggested. */
