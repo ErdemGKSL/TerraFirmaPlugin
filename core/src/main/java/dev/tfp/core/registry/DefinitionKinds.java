@@ -11,6 +11,7 @@ package dev.tfp.core.registry;
 import static dev.tfp.core.json.ObjectSchema.optional;
 import static dev.tfp.core.json.ObjectSchema.required;
 
+import dev.tfp.core.climate.ClimateRange;
 import dev.tfp.core.json.Codec;
 import dev.tfp.core.json.Codecs;
 import dev.tfp.core.json.ObjectSchema;
@@ -29,9 +30,10 @@ import java.util.List;
 /**
  * The standard data kinds: recipes plus every TFC definition manager ({@code data/tfc/tfc/<kind>}),
  * with strict schemas taken from each class's {@code CODEC} (HeatDefinition, FoodDefinition, Fuel,
- * ItemSizeDefinition, ClimateRange, Deposit, Fertilizer, Drinkable, EntityDamageResistance,
+ * ItemSizeDefinition, Deposit, Fertilizer, Drinkable, EntityDamageResistance,
  * ItemDamageResistance, FluidHeat, KnappingType, LampFuel, Support, Fauna, RockSettings). Feature
- * tasks swap a {@link SchemaRecord} kind for a typed record when they port it.
+ * tasks swap a {@link SchemaRecord} kind for a typed record when they port it: {@code climate_range} is
+ * typed ({@link ClimateRange}, {@link #CLIMATE_RANGE}).
  */
 public final class DefinitionKinds {
     private DefinitionKinds() {
@@ -82,11 +84,6 @@ public final class DefinitionKinds {
                     required("ingredient", Ingredient.CODEC),
                     required("size", Codecs.oneOf("tiny", "very_small", "small", "normal", "large", "very_large", "huge")),
                     required("weight", Codecs.oneOf("very_light", "light", "medium", "heavy", "very_heavy"))),
-            ObjectSchema.of("climate_range",
-                    optional("min_hydration", Codecs.INT), optional("max_hydration", Codecs.INT),
-                    optional("hydration_wiggle_range", Codecs.INT),
-                    optional("min_temperature", Codecs.FLOAT), optional("max_temperature", Codecs.FLOAT),
-                    optional("temperature_wiggle_range", Codecs.FLOAT)),
             ObjectSchema.of("deposit",
                     required("ingredient", Ingredient.CODEC),
                     required("loot_table", Codecs.ID),
@@ -144,6 +141,9 @@ public final class DefinitionKinds {
                     optional("mossy_loose", Codecs.ref(BLOCK)),
                     optional("karst", Codecs.BOOL), optional("mafic", Codecs.BOOL)));
 
+    /** Typed registry of {@code data/<ns>/tfp/climate_range/**} (crop and plant windows). */
+    public static final RegistryKey<ClimateRange> CLIMATE_RANGE = RegistryKey.of("climate_range", ClimateRange.class);
+
     /** Registry key of a definition kind, e.g. {@code key("item_heat")}. */
     public static RegistryKey<SchemaRecord> key(String kind) {
         return RegistryKey.of(kind, SchemaRecord.class);
@@ -153,6 +153,7 @@ public final class DefinitionKinds {
     public static List<DataKind<?>> standard() {
         List<DataKind<?>> kinds = new ArrayList<>();
         kinds.add(new DataKind<>(RECIPE, "recipe", false, RecipeSchemas.CODEC));
+        kinds.add(new DataKind<>(CLIMATE_RANGE, "climate_range", true, ClimateRange.CODEC));
         for (ObjectSchema s : SCHEMAS) {
             kinds.add(new DataKind<>(key(s.name()), s.name(), true, s.codec()));
         }

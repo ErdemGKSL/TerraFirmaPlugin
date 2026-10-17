@@ -26,10 +26,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - Done when: golden values vs TFC for sample positions, and property tests (continuity, bounds) pass.
   - Status: done as pure core math (`core/climate/`: OverworldClimate, Solar, CalendarPhase, ChunkClimate, TfcMath, XoroshiroRandom). Golden and property tests green; sampled outputs match TFC bit-for-bit (oracle run against TFC's own methods). Follow-ups: chunk-data inputs (M2-GEN-05), rain/thunder (M2-WTH-01), ClimateRange(s) and the render cache (M2-CLIM-02).
 
-- [ ] **M2-CLIM-02 Climate ranges** · deps: M2-CLIM-01, M1-REG-01
+- [x] **M2-CLIM-02 Climate ranges** · deps: M2-CLIM-01, M1-REG-01
   - TFC: `util/climate/ClimateRange(s)`, data `climate_range/**`
   - Do: the registry plus checks used by crops, plants and fauna.
   - Done when: the data loads and unit tests pass.
+  - Status: done. Typed `ClimateRange` and `ClimateRanges.check` in `core/climate/` (TFC arithmetic, inclusive bounds); `climate_range` is a typed registry (`DefinitionKinds.CLIMATE_RANGE`); golden tests and a data-load test over all 49 shipped files. Network `STREAM_CODEC` and the crop/plant/fauna callers are left to their features.
 
 - [ ] **M2-CLIM-03 Player climate readout** · deps: M2-CLIM-01, M1-INT-04
   - Do: `tfp_ambient_temp` placeholder (snapshot updated on movement throttle); climate page data for the player tabs GUI (M3-GUI-01).
