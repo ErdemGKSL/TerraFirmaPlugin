@@ -44,10 +44,19 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - Do: server-side precipitation decisions per position. The client sees snow vs rain through the biome temperature in our seasonal biome variants (M2-SEA-01).
   - Done when: snow falls where TFC would, at the right season.
 
-- [ ] **M2-WTH-02 Snow & ice accumulation/melting** · deps: M2-WTH-01, M1-THR-03
+- [~] **M2-WTH-02 Snow & ice accumulation/melting** · deps: M2-WTH-01, M1-THR-03
   - TFC: `util/EnvironmentHelpers.java`, `common/blocks/SnowPileBlock.java`, `IcePileBlock.java`, `SeaIceBlock.java`
   - Do: an async pipeline that samples loaded chunks at a throttled rate, decides snow layers / snow piles (remembering the covered block) / ice / sea ice / melting from the climate snapshot, and commits budgeted.
   - Done when: lazy-vs-stepped test for accumulation, region budget held, visual checklist.
+  - Status (@claude): in progress. Done: the per-column rule (`core/weather/SnowRule`, golden tests in `SnowRuleTest`), and `paper/weather/SnowService` on `AsyncDecisionPipeline` with the 1 ms budget. Open: the server check (snow layers on cold ground at the right season, melting when warm), snow piles and sea ice (M2-WTH-03), the lazy catch-up and its test (M2-WTH-04), the visual checklist.
+- [ ] **M2-WTH-03 Snow piles, icicles and sea ice** · deps: M2-WTH-02, M2-SEA-01 · skills: tfc-feature-porting, craftengine-blocks
+  - TFC: `common/blocks/SnowPileBlock.java`, `IcePileBlock.java`, `SeaIceBlock.java`, `common/blocks/ThinSpikeBlock.java` (icicles), `util/tracker/WeatherHelpers.java` (`findOptimalSnowLocation`, `findIcicleLocation`, `handleSnowAccumulation`)
+  - Do: snow piles over vegetation and loose rocks (remember the covered block), icicles under overhangs, sideways smoothing of accumulation, ice under a solid top, and sea ice. Extends `core/weather/SnowRule` with a wider neighbour snapshot.
+  - Done when: each rule has golden tests from the TFC lines above, and the server check shows a pile melting back to its covered block.
+- [ ] **M2-WTH-04 Lazy snow catch-up** · deps: M2-WTH-02, M2-CAL-01 · skills: paper-folia-threading, plugin-testing
+  - TFC: `util/tracker/WeatherHelpers.java` (`onTickChunk`: the catch-up branch for chunks not ticked for over 4000 ticks, the fuzz on the accumulation temperature, the melt factor)
+  - Do: store the last-tick calendar time per chunk; on chunk load or first sample, catch up the snow and ice of a column in one computation over the elapsed time, using the time-average rainfall, instead of replaying ticks.
+  - Done when: a lazy-vs-stepped equivalence test over the same climate sequence, and the rain and melt divergence rows in the ledger are closed.
 
 - [ ] **M2-SEA-01 Seasonal colour biomes** · deps: M0-NET-01, M2-CLIM-01 · skills: paper-folia-threading
   - TFC: `client/overworld/`, `assets/tfc/textures/colormap/`, `world/biome/`
