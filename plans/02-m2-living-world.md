@@ -6,10 +6,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
 
 ## Calendar
 
-- [ ] **M2-CAL-01 Calendar core** · deps: M1-THR-04 · skills: tfc-feature-porting, paper-folia-threading
+- [x] **M2-CAL-01 Calendar core** · deps: M1-THR-04 · skills: tfc-feature-porting, paper-folia-threading
   - TFC: `util/calendar/` (`ICalendar` constants, `Calendar`, `ServerCalendar`, `Month`, `Season`, `Day`, `CalendarTransaction`)
   - Do: port to `core` (pure). Run a global clock service on the global region scheduler (tick advance, `daysInMonth` config, doDaylightCycle sync, sleep skipping via `CalendarTransaction`). Publish a volatile snapshot. Persist in the world PDC.
   - Done when: golden tests (date ↔ tick, month/season boundaries), the Folia self-test and a persistence test pass.
+  - Status: done. Golden tests (`CalendarTicksTest`, `CalendarStateTest`, `CalendarCodecTest`), `calendar.persist` self-test passes on paper and folia, 1.21.11 and 26.3 (single start each; `scratchpad/cal`). Follow-ups not in this task: M2-CAL-03 config (start day, daysInMonth, day length, reject startDay -1); sleep skipping and doDaylightCycle sync (TFC `ServerCalendar`/`CalendarTransaction`), to be a new task in M2-CAL.
 
 - [ ] **M2-CAL-02 Calendar commands & HUD date** · deps: M2-CAL-01, M1-INT-04 · skills: betterhud
   - TFC: `common/commands/TimeCommand.java`
