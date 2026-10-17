@@ -25,8 +25,15 @@ public final class XoroshiroRandomSource {
         setSeed(seed);
     }
 
-    /** {@code new XoroshiroRandomSource(seedLo, seedHi)}: the 128-bit state is taken as given, with no upgrade. */
+    /**
+     * {@code new XoroshiroRandomSource(seedLo, seedHi)}: the 128-bit state is taken as given, with no upgrade, except that an
+     * all-zero state becomes the golden and silver ratios ({@code Xoroshiro128PlusPlus(long, long)}).
+     */
     public XoroshiroRandomSource(long seedLo, long seedHi) {
+        if ((seedLo | seedHi) == 0L) {
+            seedLo = GOLDEN_RATIO_64;
+            seedHi = SILVER_RATIO_64;
+        }
         this.lo = seedLo;
         this.hi = seedHi;
     }

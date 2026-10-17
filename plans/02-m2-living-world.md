@@ -118,10 +118,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - Done when: cave/aquifer layout matches TFC samples; no floating fluids.
   - Progress: the aquifer and carve decision are ported and golden-tested (`core/.../worldgen/carver/`), and wired in `TfcTerrain.fill`. Open: vanilla cave tunnels (the shape, `IN_CAVE` is false), canyons, the aquifer barrier noise (zero for now), the grass rule under carved surfaces, the server check.
 
-- [ ] **M2-GEN-10 Ore veins (graded)** · deps: M2-GEN-07, M1-DGN-04
+- [~] **M2-GEN-10 Ore veins (graded)** · deps: M2-GEN-07, M1-DGN-04
   - TFC: `world/feature/vein/`, `common/blocks/rock/Ore.java`, worldgen JSON for veins
   - Do: vein placement writing graded ore states per host rock. Gem ores use the host-rock visual + exposure property (profile ≥ level-2).
   - Done when: ore distribution stats match TFC (counts per vein type per 100 chunks, ±10%).
+  - Status (@claude): cluster veins done at rules level and wired. `core/worldgen/ore/` (`ClusterVeins`, `OreVeins`, `Metaballs3D`, `Weighted`, `VeinBlock`, `OreGrade`, `VeinData`); datagen exports `data/tfp/worldgen/configured_feature/vein/`; `TfcTerrain.fill` writes the graded CE ore ids (palette = rocks + ores, refuse rule) at kept rock positions of the generating chunk. `OreVeinGoldenTest` matches TFC's oracle exactly (33 seeds, 132 vein lists, 792 placement masks of TFC's `place()`, 1056 picks); property and Paper wiring tests green. Open: disc/pipe/kaolin veins (new task), the montane second pass, deposits and indicators (M2-GEN-11), the 100-chunk distribution stats, the server check and the visual checklist. Divergences in the ledger.
 
 - [ ] **M2-GEN-11 Loose rocks, groundcover & deposits** · deps: M2-GEN-10
   - TFC: `world/feature/` (groundcover/boulders), `common/blocks/GroundcoverBlock(Type).java`, `common/blocks/rock/LooseRockBlock.java`, data `deposit/`

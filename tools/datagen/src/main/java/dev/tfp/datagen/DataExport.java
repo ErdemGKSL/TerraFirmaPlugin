@@ -34,6 +34,8 @@ import java.util.TreeMap;
 public final class DataExport {
     /** Kinds exported from data/tfc of the generated tree. */
     static final List<String> TFC_KINDS = List.of("tfc", "recipe", "tags");
+    /** The ore vein configured features, below {@code data/<ns>/}. */
+    static final String VEIN_DIR = "worldgen/configured_feature/vein";
 
     private DataExport() {
     }
@@ -55,6 +57,9 @@ public final class DataExport {
         for (String ns : tfc.childDirs(main)) {
             exportTree(tfc, out, main + ns + "/tags/", ns, "tags", counts);
         }
+        // M2-GEN-10: the ore vein features (hand-written by TFC's mcresources, so under src/main). The runtime reads
+        // them through the vein tag order above; the DataLoader leaves worldgen/ to the datapack.
+        exportTree(tfc, out, main + Json.FROM_NS + "/" + VEIN_DIR + "/", Json.FROM_NS, VEIN_DIR, counts);
         DataReferences refs = DataReferences.collect(out);
         out.put("data/" + KnownIds.ID_MAP_FILE, Json.write(idMap(tfc, refs)));
         out.put("data/" + KnownIds.EXTERNAL_TAGS_FILE, Json.write(externalTags(refs)));

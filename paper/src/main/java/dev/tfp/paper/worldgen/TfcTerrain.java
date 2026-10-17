@@ -15,6 +15,8 @@ import dev.tfp.core.worldgen.chunk.ChunkDataGenerator;
 import dev.tfp.core.worldgen.chunk.PlaceholderHeights;
 import dev.tfp.core.worldgen.chunk.PlaceholderRocks;
 import dev.tfp.core.worldgen.noise.Noise2D;
+import dev.tfp.core.worldgen.ore.OreVeins;
+import dev.tfp.core.worldgen.ore.VeinBlock;
 import dev.tfp.core.worldgen.random.PositionalRandom;
 import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
 import dev.tfp.core.worldgen.region.RegionGenerator;
@@ -27,6 +29,7 @@ import dev.tfp.core.worldgen.surface.SurfaceNoise;
 import dev.tfp.core.worldgen.surface.SurfaceSlope;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.BlockVisuals;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -66,6 +69,10 @@ final class TfcTerrain {
     /** The positional random factory of TFC's noise sampler for this seed: {@code new XoroshiroRandomSource(seed).forkPositional()}. */
     private final PositionalRandom aquiferFork;
     private final BlockData[] surfaceBlocks = surfaceBlocks();
+    /** The ore decision of this world (M2-GEN-10): TFC's cluster veins, in the vein tag's order. */
+    private final OreVeins ores;
+    /** The palette ids: {@link #ROCK_IDS}, then the ore blocks ({@link OreVeins#oreIds()}) from index {@code ROCK_IDS.size()}. */
+    private final List<String> paletteIds;
     private volatile RockPalette<BlockData> palette;
 
     /**
@@ -80,6 +87,30 @@ final class TfcTerrain {
         this.aquiferFork = PositionalRandom.fork(new XoroshiroRandomSource(seed));
         this.biomes = vanillaBiomes();
         this.biomeList = Arrays.stream(biomes).distinct().toList();
+        this.ores = new OreVeins(seed, OreVeinResources.fromJar(TfcTerrain.class.getClassLoader()), ROCK_IDS);
+        this.paletteIds = paletteIds(ores);
+    }
+
+    /** The palette ids of a world: the raw rocks, then the ore blocks. Any unknown id refuses the palette (no stone fallback). */
+    static List<String> paletteIds(OreVeins ores) {
+        final List<String> ids = new ArrayList<>(ROCK_IDS);
+        ids.addAll(ores.oreIds());
+        return List.copyOf(ids);
+    }
+
+    /**
+     * The palette index of the block at a rock position: the ore the veins decide there, or the rock itself. A deposit pick
+     * keeps the rock: the deposit blocks are not generated yet (ledger).
+     */
+    static int blockIndex(OreVeins ores, OreVeins.Chunk veins, int x, int y, int z, int rockIndex) {
+        final VeinBlock ore = veins.decide(x, y, z, rockIndex);
+        if (ore != null) {
+            final int index = ores.oreIndex(ore);
+            if (index >= 0) {
+                return ROCK_IDS.size() + index;
+            }
+        }
+        return rockIndex;
     }
 
     /** The TFC biome id of a block column, from the region point at its grid cell. Any thread. */
@@ -102,7 +133,8 @@ final class TfcTerrain {
     }
 
     /**
-     * The palette of the placeholder rocks for the CraftEngine state table {@code visuals} (null before the plugin enabled).
+     * The palette of the placeholder rocks and the ore blocks for the CraftEngine state table {@code visuals} (null before the
+     * plugin enabled).
      * Re-resolved only when the table's generation changed or the last attempt was refused.
      */
     RockPalette<BlockData> palette(BlockVisuals visuals) {
@@ -112,7 +144,7 @@ final class TfcTerrain {
             return current;
         }
         boolean loaded = visuals != null && visuals.isLoaded();
-        RockPalette<BlockData> next = RockPalette.resolve(generation, loaded, ROCK_IDS,
+        RockPalette<BlockData> next = RockPalette.resolve(generation, loaded, paletteIds,
             id -> visuals.blockData(BlockStateRef.parse(id)));
         palette = next;
         return next;
@@ -121,8 +153,10 @@ final class TfcTerrain {
     /**
      * Writes one chunk: bedrock at the bottom, the surface of each column over the rock (the kinds of the column's biome builder:
      * grass, dirt, sand, gravel, snow and ice, or the rock itself), and water up to sea level over the columns below it. The
-     * rock layers come from the chunk data, so the rock blocks are the CraftEngine rock palette. Requires a resolved palette.
-     * Writes only this chunk's blocks, and only from the worldgen worker.
+     * rock layers come from the chunk data, so the rock blocks are the CraftEngine rock palette. Rock positions that a vein
+     * claims get the CraftEngine ore block of their grade and rock instead (the veins of neighbouring chunks reach in, but only
+     * this chunk's positions are decided). Requires a resolved palette. Writes only this chunk's blocks, and only from the
+     * worldgen worker.
      */
     void fill(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, RockPalette<BlockData> palette) {
         final int[] heights = PlaceholderHeights.heights(regions, chunkX, chunkZ);
@@ -132,6 +166,7 @@ final class TfcTerrain {
         final int minY = data.getMinHeight();
         final int sea = ChunkData.SEA_LEVEL_Y;
         final Aquifer aquifer = new Aquifer(chunkX, chunkZ, minY, sea, aquiferFork, NO_BARRIER, aquiferSurfaceHeights(chunkX, chunkZ, heights));
+        final OreVeins.Chunk veins = ores.chunk(chunkX, chunkZ);
         for (int lz = 0; lz < 16; lz++) {
             final int z = (chunkZ << 4) + lz;
             for (int lx = 0; lx < 16; lx++) {
@@ -146,7 +181,8 @@ final class TfcTerrain {
                         final Carve carve = CaveCarver.carve(aquifer, x, y, z, inCave(x, y, z));
                         if (carve == Carve.KEEP) {
                             ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, top);
-                            data.setBlock(lx, y, lz, palette.block(PlaceholderRocks.index(rock.point(), rock.layer())));
+                            final int rockIndex = PlaceholderRocks.index(rock.point(), rock.layer());
+                            data.setBlock(lx, y, lz, palette.block(veins.isEmpty() ? rockIndex : blockIndex(ores, veins, x, y, z, rockIndex)));
                         } else {
                             data.setBlock(lx, y, lz, carvedBlock(carve));
                         }

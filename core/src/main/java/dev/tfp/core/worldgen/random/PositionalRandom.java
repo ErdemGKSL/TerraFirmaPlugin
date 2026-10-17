@@ -41,10 +41,14 @@ public final class PositionalRandom {
 
     /** {@code fromHashOf(name)}: a new stream seeded from the MD5 of the name (UTF-8), xored with the factory's longs. */
     public XoroshiroRandomSource fromHashOf(String name) {
+        final long[] seed = seedFromHashOf(name);
+        return new XoroshiroRandomSource(seed[0] ^ seedLo, seed[1] ^ seedHi);
+    }
+
+    /** {@code RandomSupport.seedFromHashOf(name)}: the MD5 of the name (UTF-8) as {@code {seedLo, seedHi}}, big-endian. */
+    public static long[] seedFromHashOf(String name) {
         final ByteBuffer digest = ByteBuffer.wrap(md5(name));
-        final long lo = digest.getLong(0);
-        final long hi = digest.getLong(8);
-        return new XoroshiroRandomSource(lo ^ seedLo, hi ^ seedHi);
+        return new long[] {digest.getLong(0), digest.getLong(8)};
     }
 
     /** {@code Mth.getSeed(x, y, z)}: the position hashed to a long, as Minecraft does it. */
