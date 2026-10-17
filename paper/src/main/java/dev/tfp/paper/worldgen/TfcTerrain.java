@@ -6,12 +6,17 @@
 package dev.tfp.paper.worldgen;
 
 import dev.tfp.core.worldgen.Seed;
+import dev.tfp.core.worldgen.carver.Aquifer;
+import dev.tfp.core.worldgen.carver.Carve;
+import dev.tfp.core.worldgen.carver.CaveCarver;
 import dev.tfp.core.worldgen.biome.TfcBiomes;
 import dev.tfp.core.worldgen.chunk.ChunkData;
 import dev.tfp.core.worldgen.chunk.ChunkDataGenerator;
 import dev.tfp.core.worldgen.chunk.PlaceholderHeights;
 import dev.tfp.core.worldgen.chunk.PlaceholderRocks;
 import dev.tfp.core.worldgen.noise.Noise2D;
+import dev.tfp.core.worldgen.random.PositionalRandom;
+import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
 import dev.tfp.core.worldgen.region.RegionGenerator;
 import dev.tfp.core.worldgen.region.RegionSettings;
 import dev.tfp.core.worldgen.surface.ColumnSurface;
@@ -41,6 +46,14 @@ final class TfcTerrain {
     /** The raw rock ids of the content, in {@link PlaceholderRocks#names()} order. */
     static final List<String> ROCK_IDS = PlaceholderRocks.names().stream().map(n -> "tfp:rock/raw/" + n).toList();
 
+    /**
+     * The tunnel shape of the caves. TFC's vanilla {@code CaveWorldCarver} tunnels are not ported yet (M2-GEN-09 is open), so
+     * no position is inside one and the carve never changes a block. The decision in {@link CaveCarver} is wired and tested.
+     */
+    private static final boolean IN_CAVE = false;
+    /** The aquifer barrier noise: TFC's vanilla {@code aquifer_barrier} is not ported, so the barrier is zero (see the ledger). */
+    private static final Aquifer.BarrierNoise NO_BARRIER = (x, y, z) -> 0.0;
+
     private final RegionGenerator regions;
     private final ChunkDataGenerator chunks;
     private final Noise2D shoreTide;
@@ -48,6 +61,10 @@ final class TfcTerrain {
     private final List<Biome> biomeList;
     private final BlockData bedrock = Material.BEDROCK.createBlockData();
     private final BlockData water = Material.WATER.createBlockData();
+    private final BlockData air = Material.AIR.createBlockData();
+    private final BlockData lava = Material.LAVA.createBlockData();
+    /** The positional random factory of TFC's noise sampler for this seed: {@code new XoroshiroRandomSource(seed).forkPositional()}. */
+    private final PositionalRandom aquiferFork;
     private final BlockData[] surfaceBlocks = surfaceBlocks();
     private volatile RockPalette<BlockData> palette;
 
@@ -60,6 +77,7 @@ final class TfcTerrain {
         this.regions = new RegionGenerator(RegionSettings.OVERWORLD, stream);
         this.chunks = new ChunkDataGenerator(regions, stream);
         this.shoreTide = SurfaceNoise.shoreTide(seed);
+        this.aquiferFork = PositionalRandom.fork(new XoroshiroRandomSource(seed));
         this.biomes = vanillaBiomes();
         this.biomeList = Arrays.stream(biomes).distinct().toList();
     }
@@ -113,6 +131,7 @@ final class TfcTerrain {
         final double[] slopes = SurfaceSlope.slopeMap(chunkX << 4, chunkZ << 4, (x, z) -> PlaceholderHeights.heightAt(regions, x, z));
         final int minY = data.getMinHeight();
         final int sea = ChunkData.SEA_LEVEL_Y;
+        final Aquifer aquifer = new Aquifer(chunkX, chunkZ, minY, sea, aquiferFork, NO_BARRIER, aquiferSurfaceHeights(chunkX, chunkZ, heights));
         for (int lz = 0; lz < 16; lz++) {
             final int z = (chunkZ << 4) + lz;
             for (int lx = 0; lx < 16; lx++) {
@@ -124,8 +143,13 @@ final class TfcTerrain {
                 for (int y = minY + 1; y <= top; y++) {
                     final SurfaceKind kind = surface.kind(y);
                     if (kind == null || kind == SurfaceKind.ROCK_SURFACE) {
-                        ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, top);
-                        data.setBlock(lx, y, lz, palette.block(PlaceholderRocks.index(rock.point(), rock.layer())));
+                        final Carve carve = CaveCarver.carve(aquifer, x, y, z, inCave(x, y, z));
+                        if (carve == Carve.KEEP) {
+                            ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, top);
+                            data.setBlock(lx, y, lz, palette.block(PlaceholderRocks.index(rock.point(), rock.layer())));
+                        } else {
+                            data.setBlock(lx, y, lz, carvedBlock(carve));
+                        }
                     } else {
                         data.setBlock(lx, y, lz, surfaceBlocks[kind.ordinal()]);
                     }
@@ -135,6 +159,40 @@ final class TfcTerrain {
                 }
             }
         }
+    }
+
+    /** Whether a rock position is inside a cave's tunnel shape. See {@link #IN_CAVE}. */
+    private static boolean inCave(int x, int y, int z) {
+        return IN_CAVE;
+    }
+
+    /** The vanilla block of a carve decision (air, water or lava); {@link Carve#KEEP} never reaches here. */
+    private BlockData carvedBlock(Carve carve) {
+        return switch (carve) {
+            case AIR -> air;
+            case WATER -> water;
+            case LAVA -> lava;
+            case KEEP -> throw new IllegalArgumentException("a kept block is not carved");
+        };
+    }
+
+    /**
+     * TFC's 4 x 4 aquifer surface heights for a chunk: index {@code sx + 4 * sz} holds the lowest surface of the chunk at offset
+     * {@code (sx - 1, sz - 1)} from this one, which is the section the aquifer's indices name.
+     */
+    private int[] aquiferSurfaceHeights(int chunkX, int chunkZ, int[] own) {
+        final int[] out = new int[16];
+        for (int dz = -1; dz <= 1; dz++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                final int[] h = dx == 0 && dz == 0 ? own : PlaceholderHeights.heights(regions, chunkX + dx, chunkZ + dz);
+                int min = Integer.MAX_VALUE;
+                for (int v : h) {
+                    min = Math.min(min, v);
+                }
+                out[(dx + 1) + 4 * (dz + 1)] = min;
+            }
+        }
+        return out;
     }
 
     /** The inputs of a column for its surface builder: the climate of its chunk, its slope, its tide and its sea-level rock. */

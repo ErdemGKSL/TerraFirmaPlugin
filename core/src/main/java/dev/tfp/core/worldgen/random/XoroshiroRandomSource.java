@@ -25,6 +25,12 @@ public final class XoroshiroRandomSource {
         setSeed(seed);
     }
 
+    /** {@code new XoroshiroRandomSource(seedLo, seedHi)}: the 128-bit state is taken as given, with no upgrade. */
+    public XoroshiroRandomSource(long seedLo, long seedHi) {
+        this.lo = seedLo;
+        this.hi = seedHi;
+    }
+
     /** {@code RandomSource.setSeed}: resets the state exactly as the constructor does. */
     public void setSeed(long seed) {
         final long l = seed ^ SILVER_RATIO_64;

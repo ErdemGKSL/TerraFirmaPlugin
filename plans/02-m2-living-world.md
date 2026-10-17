@@ -113,9 +113,10 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - Done when: surface materials per biome match TFC (golden column checks).
   - Status (@claude): core rules done and checked against a TFC oracle (`SurfaceGoldenTest`: 300 columns and 16 noise points, bit-exact at c3b4d9536). `core/worldgen/surface/` ports the soil tables by climate (grass, dirt, coarse dirt, mud, snow, packed ice), the normal and rocky builders, the shore and ocean builders, the slope map and the biome table (46 biomes with their builder, the rest use the normal builder). `TfcTerrain.fill` writes the kinds on the worldgen worker. Open: the TFC block set (rock gravel, soil variants), ice sheets and sea ice, lava flows, the other biome builders, and the server check (ledger Divergences).
 
-- [ ] **M2-GEN-09 Aquifer, carvers & caves** · deps: M2-GEN-07
+- [~] **M2-GEN-09 Aquifer, carvers & caves** · deps: M2-GEN-07
   - TFC: `world/TFCAquifer.java`, `world/carver/`, `world/feature/cave/`
   - Done when: cave/aquifer layout matches TFC samples; no floating fluids.
+  - Progress: the aquifer and carve decision are ported and golden-tested (`core/.../worldgen/carver/`), and wired in `TfcTerrain.fill`. Open: vanilla cave tunnels (the shape, `IN_CAVE` is false), canyons, the aquifer barrier noise (zero for now), the grass rule under carved surfaces, the server check.
 
 - [ ] **M2-GEN-10 Ore veins (graded)** · deps: M2-GEN-07, M1-DGN-04
   - TFC: `world/feature/vein/`, `common/blocks/rock/Ore.java`, worldgen JSON for veins
