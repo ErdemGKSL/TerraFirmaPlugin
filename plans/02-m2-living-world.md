@@ -143,7 +143,7 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - TFC: `world/volcano/`, `world/feature/*` (hot springs, ice/glaciers, etc.), `world/placement/`, `world/blockpredicate/`, `world/stateprovider/`
   - Done when: each feature is generated; showcase seeds documented.
 
-- [ ] **M2-GEN-15 Worldgen performance & exposed-gem measurement** · deps: M2-GEN-10, M0-VIS-02 · skills: plugin-testing
+- [~] **M2-GEN-15 Worldgen performance & exposed-gem measurement** · deps: M2-GEN-10, M0-VIS-02 · skills: plugin-testing
   - Do: JMH per-chunk pipeline at N threads; pre-generate 10k chunks under spark; count exposed gem faces per chunk (validates the `level-2` overlay cost).
   - Done when: budgets are recorded in `docs/perf/`, and the overlay decision is confirmed or adjusted.
 
