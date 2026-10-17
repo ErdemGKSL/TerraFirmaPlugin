@@ -17,7 +17,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Do: EUPL header check (Spotless or similar). A ported-file header template with a TFC path + commit field. A NOTICE consistency check (e.g. every asset with a non-EUPL license is listed).
   - Done when: CI fails on missing headers.
 
-- [ ] **M1-BUILD-03 CI pipeline** · deps: M1-BUILD-01 · skills: plugin-testing
+- [x] **M1-BUILD-03 CI pipeline** · deps: M1-BUILD-01 · skills: plugin-testing
   - Do: GitHub Actions: `check` (unit tests, data-load test, header check), then the self-test matrix {Paper, Folia} × {1.21.11, 26.3} on Java 25 with pinned plugin versions. Upload artifacts and logs.
   - Done when: a green run on main, with a failing self-test making the job red.
   - Status: first GitHub run is green on main (run 18, 9ebbdce): check, content-up-to-date and the four self-test jobs all passed. Still open: a failing self-test turning the job red has been shown only locally (rc=1), not in a CI run.
@@ -25,6 +25,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
 
 ## Plugin bootstrap & lifecycle
 
+  - Closed (user decision, 2026-10-17): the green main run 18 is the CI proof; the red-on-failure behaviour is shown by the local self-test matrix (exit status 1 when a case fails), not by a deliberate red CI run on main.
 - [x] **M1-BOOT-01 paper-plugin.yml, bootstrapper, loader** · deps: M1-BUILD-01 · skills: dependency-bootstrap
   - Do:
     - `load: STARTUP`, `folia-supported: true`;
