@@ -321,6 +321,28 @@ class InstallerTest {
         assertThat(none.settled()).isDone();
     }
 
+    /**
+     * client-paper-1.21.11: CraftEngine's startup asset cache started BetterHud's first reload; a build started
+     * meanwhile got "BetterHud is still on reload!" and was served without assets/betterhud/.
+     */
+    @Test
+    void rebuildWaitsUntilBetterHudIsNotReloading() throws Exception {
+        shipAllocation(L3A);
+        FakeHudReloader hud = new FakeHudReloader().reloading(true);
+        FakePackRebuilder ce = new FakePackRebuilder();
+        PackRebuildTrigger t = new PackRebuildTrigger(run(L3A), stateDir(), ce, hud, new FakeVisualPools(), null, null,
+                500, Runnable::run, LOG);
+        t.onCraftEngineReload();
+        assertThat(t.rebuildRequested()).isTrue();
+        Thread.sleep(1200); // a few polls
+        assertThat(ce.requests()).isZero();
+        assertThat(t.settled()).isNotDone();
+        hud.reloading(false); // BetterHud's merge is done
+        t.settled().get(5, java.util.concurrent.TimeUnit.SECONDS);
+        assertThat(ce.requests()).isEqualTo(1);
+        assertThat(hud.reloads()).isZero(); // we only wait; the build reloads BetterHud itself
+    }
+
     @Test
     void failedRebuildIsRetriedAtTheNextStart() throws IOException {
         shipAllocation(L3A);

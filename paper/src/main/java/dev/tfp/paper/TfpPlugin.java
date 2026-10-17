@@ -211,7 +211,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
      */
     private void enableVisuals() {
         PackRebuildTrigger trigger = new PackRebuildTrigger(install, getDataPath().resolve("install"),
-                integrations.packRebuilder(), integrations.visualPools(), visualIndex, visualSelection,
+                integrations.packRebuilder(), integrations.hudReloader(), integrations.visualPools(), visualIndex, visualSelection,
                 config.current().visuals().solidReserveWarning(), scheduler.ioExecutor(), getLogger());
         packRebuild = trigger;
         integrations.blockVisuals().onReload(trigger::onCraftEngineReload);

@@ -9,6 +9,7 @@ import dev.tfp.core.visuals.PackBuild;
 import dev.tfp.core.visuals.ProfileCheck;
 import dev.tfp.core.visuals.VisualIndex;
 import dev.tfp.core.visuals.VisualSelection;
+import dev.tfp.paper.integration.HudReloader;
 import dev.tfp.paper.integration.PackRebuilder;
 import dev.tfp.paper.integration.VisualPools;
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,15 +34,21 @@ import java.util.logging.Logger;
  *       start with the same content and profile does not rebuild again.</li>
  * </ol>
  * The rebuild's own CraftEngine reload calls this again: the check runs again, the rebuild is not repeated.
+ * Every rebuild starts only once BetterHud is not reloading ({@link #rebuildAfterHud}): BetterHud merges into the
+ * pack from a reload it runs inside CraftEngine's build and skips the merge ("still on reload") when CraftEngine's
+ * startup asset cache already started one, so a build started then is served without BetterHud's fonts.
  * Every check's figures are also written to {@code <stateDir>/}{@value #POOL_CHECK_FILE} (io executor), so a
  * restart can be compared with the previous run (self-test {@code inst.profile_restart}).
  */
 public final class PackRebuildTrigger {
     /** The last pool check's figures, {@link java.util.Properties} text ({@link #poolCheckRecord}). */
     public static final String POOL_CHECK_FILE = "pool-check.properties";
+    private static final long HUD_POLL_MILLIS = 500;
+    private static final int HUD_MAX_POLLS = 1200; // 10 minutes
     private final Installer.Result install;
     private final Path stateDir;
     private final PackRebuilder rebuilder;
+    private final HudReloader hud;
     private final VisualPools pools;
     private final VisualIndex index;
     private final VisualSelection selection;
@@ -61,9 +69,16 @@ public final class PackRebuildTrigger {
      */
     public PackRebuildTrigger(Installer.Result install, Path stateDir, PackRebuilder rebuilder, VisualPools pools,
             VisualIndex index, VisualSelection selection, int reserve, Executor io, Logger log) {
+        this(install, stateDir, rebuilder, null, pools, index, selection, reserve, io, log);
+    }
+
+    /** @param hud BetterHud; every rebuild waits until it is not reloading (null: no wait) */
+    public PackRebuildTrigger(Installer.Result install, Path stateDir, PackRebuilder rebuilder, HudReloader hud,
+            VisualPools pools, VisualIndex index, VisualSelection selection, int reserve, Executor io, Logger log) {
         this.install = install;
         this.stateDir = stateDir;
         this.rebuilder = rebuilder;
+        this.hud = hud;
         this.pools = pools;
         this.index = index;
         this.selection = selection;
@@ -111,13 +126,7 @@ public final class PackRebuildTrigger {
             return;
         }
         log.info("Rebuilding the CraftEngine resource pack (" + reason + ").");
-        CompletableFuture<Boolean> rebuild;
-        try {
-            rebuild = rebuilder.rebuild();
-        } catch (RuntimeException e) {
-            rebuild = CompletableFuture.failedFuture(e);
-        }
-        rebuild.whenComplete((ok, err) -> {
+        rebuildAfterHud().whenComplete((ok, err) -> {
             extraDone.complete(null);
             if (err != null || !ok) {
                 log.log(Level.WARNING, "The CraftEngine pack rebuild failed; players keep the old pack. Run /ce reload all", err);
@@ -141,15 +150,7 @@ public final class PackRebuildTrigger {
         PackBuild.Fingerprint built = install.packFingerprint();
         String reason = install.packPlan().reason();
         log.info("Rebuilding the CraftEngine resource pack" + (reason.isEmpty() ? "" : " (" + reason + ")") + ".");
-        CompletableFuture<Boolean> rebuild;
-        try {
-            rebuild = rebuilder.rebuild();
-        } catch (RuntimeException e) {
-            rebuildDone.complete(null);
-            log.log(Level.WARNING, "The CraftEngine pack rebuild failed; players keep the old pack. Run /ce reload all", e);
-            return;
-        }
-        rebuild.whenComplete((ok, err) -> {
+        rebuildAfterHud().whenComplete((ok, err) -> {
             rebuildDone.complete(null);
             if (err != null) {
                 log.log(Level.WARNING, "The CraftEngine pack rebuild failed; players keep the old pack. Run /ce reload all", err);
@@ -168,6 +169,45 @@ public final class PackRebuildTrigger {
                 }
             }
         });
+    }
+
+    /**
+     * {@link PackRebuilder#rebuild()} once BetterHud is not reloading (polled on the io executor; after
+     * {@value #HUD_MAX_POLLS} polls the build starts anyway). Never throws: failures complete the future.
+     */
+    private CompletableFuture<Boolean> rebuildAfterHud() {
+        CompletableFuture<Boolean> out = new CompletableFuture<>();
+        awaitHud(out, 0);
+        return out;
+    }
+
+    private void awaitHud(CompletableFuture<Boolean> out, int polls) {
+        if (hudReloading() && polls < HUD_MAX_POLLS) {
+            if (polls == 0) {
+                log.info("Waiting for BetterHud's reload to finish before the CraftEngine pack build, so its merge lands in the pack.");
+            }
+            CompletableFuture.delayedExecutor(HUD_POLL_MILLIS, TimeUnit.MILLISECONDS, io).execute(() -> awaitHud(out, polls + 1));
+            return;
+        }
+        try {
+            rebuilder.rebuild().whenComplete((ok, err) -> {
+                if (err != null) {
+                    out.completeExceptionally(err);
+                } else {
+                    out.complete(ok);
+                }
+            });
+        } catch (RuntimeException e) {
+            out.completeExceptionally(e);
+        }
+    }
+
+    private boolean hudReloading() {
+        try {
+            return hud != null && hud.available() && hud.isReloading();
+        } catch (RuntimeException | LinkageError e) {
+            return false;
+        }
     }
 
     private void check() {
