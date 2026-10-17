@@ -103,9 +103,10 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - TFC: `world/biome/`, `world/BiomeNoiseSampler.java`, `ChunkHeightFiller.java`, `ChunkNoiseFiller.java`, `world/density/`; test `BiomeNoiseTest`
   - Done when: height/biome samples match TFC.
 
-- [ ] **M2-GEN-07 Bukkit ChunkGenerator & BiomeProvider** · deps: M2-GEN-06, M0-CE-01 · skills: craftengine-java-api, paper-folia-threading
+- [~] **M2-GEN-07 Bukkit ChunkGenerator & BiomeProvider** · deps: M2-GEN-06, M0-CE-01 · skills: craftengine-java-api, paper-folia-threading (@claude)
   - Do: `paper` glue that calls `worldgen` and writes cached CE `BlockData` for rock/soil/sand/gravel. `getDefaultWorldGenerator` + `bukkit.yml` docs. Thread-safe, no CE lookups per block.
   - Done when: worlds generate on Paper/Folia; CE tracks the blocks (self-test from the M0-CE-01 plan); JMH chunk budget recorded.
+  - Status (@claude): code and unit tests done, server check and JMH budget open. `paper/worldgen/` (`TfcChunkGenerator`, `TfcTerrain`, `RockPalette`, `BiomeKeys`) with `core/worldgen/chunk/PlaceholderHeights` and `PlaceholderRocks`; `TfpPlugin.getDefaultWorldGenerator` (`bukkit.yml`: `generator: TerraFirmaPlugin[:seed]`). Placeholder terrain: region-map heights, rock layers from the chunk data, water to sea level, vanilla placeholder biomes; soil, decorations and the real TFC heights are M2-GEN-06/08 and later. A chunk with unresolved CE rock states is refused (logged, throws, nothing written). Divergences in the ledger.
 
 - [ ] **M2-GEN-08 Surface builders & shores** · deps: M2-GEN-07
   - TFC: `world/surface/`, `world/surface/builder/`, `world/shore/`

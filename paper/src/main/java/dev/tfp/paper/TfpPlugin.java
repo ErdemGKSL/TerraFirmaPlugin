@@ -34,6 +34,7 @@ import dev.tfp.paper.i18n.Messages;
 import dev.tfp.paper.install.Installer;
 import dev.tfp.paper.install.PackRebuildTrigger;
 import dev.tfp.paper.install.PendingHudEdit;
+import dev.tfp.paper.integration.BlockVisuals;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.integration.IntegrationContext;
 import dev.tfp.paper.integration.Integrations;
@@ -51,6 +52,7 @@ import dev.tfp.paper.ready.ReadyGate.Signal;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ServerScheduler;
 import dev.tfp.paper.suppression.SuppressionListener;
+import dev.tfp.paper.worldgen.TfcChunkGenerator;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -60,6 +62,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -75,6 +78,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.event.server.ServerLoadEvent;
+import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -220,6 +224,36 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 getLogger().warning("Not ready after " + READY_WARN_SECONDS + " s, " + readyGate.describe());
             }
         }, CompletableFuture.delayedExecutor(READY_WARN_SECONDS, TimeUnit.SECONDS, scheduler.cpuExecutor()));
+    }
+
+    /**
+     * M2-GEN-07: the TFC overworld for a default world. Paper calls this when the world loads, after STARTUP plugins are
+     * enabled. Set it in {@code bukkit.yml} (the same way as the M0-CE-01 spike):
+     * <pre>
+     * worlds:
+     *   world:
+     *     generator: TerraFirmaPlugin          # the seed is the world's seed
+     *     # generator: TerraFirmaPlugin:12345  # or an explicit seed
+     * </pre>
+     * Folia cannot create worlds at runtime, so TFC worlds are the server's default worlds. A bad id logs a warning and
+     * uses the world's seed.
+     */
+    @Override
+    public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
+        OptionalLong seed;
+        try {
+            seed = TfcChunkGenerator.parseSeed(id);
+        } catch (IllegalArgumentException e) {
+            getLogger().warning("world " + worldName + ": " + e.getMessage() + "; using the world's seed");
+            seed = OptionalLong.empty();
+        }
+        return new TfcChunkGenerator(seed, this::blockVisuals, getLogger());
+    }
+
+    /** The CraftEngine state table, or null before {@link #onLoad()} built the integrations. */
+    private BlockVisuals blockVisuals() {
+        Integrations current = integrations;
+        return current == null ? null : current.blockVisuals();
     }
 
     /**
