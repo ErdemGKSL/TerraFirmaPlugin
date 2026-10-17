@@ -24,6 +24,7 @@ import dev.tfp.paper.data.RegistryService;
 import dev.tfp.paper.i18n.Messages;
 import dev.tfp.paper.install.Installer;
 import dev.tfp.paper.install.PackRebuildTrigger;
+import dev.tfp.paper.install.PendingHudEdit;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.integration.IntegrationContext;
 import dev.tfp.paper.integration.Integrations;
@@ -59,6 +60,11 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.server.PluginEnableEvent;
+import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -85,6 +91,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
 
     private final ReadyGate readyGate = new ReadyGate();
     private volatile Installer.Result install;
+    private Installer.Inputs installInputs;
     private Path contentRoot;
     private VisualSelection visualSelection;
     private VisualIndex visualIndex;
@@ -157,9 +164,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 installed.add(name);
             }
         }
-        return Installer.run(new Installer.Inputs(config.current().autoInstall(), pluginsDir,
+        installInputs = new Installer.Inputs(config.current().autoInstall(), pluginsDir,
                 getDataPath().resolve("install"), contentRoot, getPluginMeta().getVersion(), installed,
-                Installer.ceStates(contentRoot), visualSelection), getLogger());
+                Installer.ceStates(contentRoot), visualSelection);
+        return Installer.run(installInputs, getLogger());
     }
 
     @Override
@@ -207,6 +215,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 config.current().visuals().solidReserveWarning(), scheduler.ioExecutor(), getLogger());
         packRebuild = trigger;
         integrations.blockVisuals().onReload(trigger::onCraftEngineReload);
+        enablePendingHudEdit(trigger);
 
         if (contentRoot == null || visualSelection == null) {
             getLogger().warning("No visual allocation: vanilla-block suppression is off");
@@ -225,6 +234,31 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         } catch (IOException | RuntimeException e) {
             getLogger().log(Level.SEVERE, "Cannot load the vanilla-block suppression list; suppression is off", e);
         }
+    }
+
+    /**
+     * M1-INST-02: BetterHud enables after us and writes its config.yml then; apply its pending edits once it has
+     * enabled ({@link PendingHudEdit}), or at ServerLoad if it already was.
+     */
+    private void enablePendingHudEdit(PackRebuildTrigger trigger) {
+        if (!Installer.pending(install, dev.tfp.core.install.ConfigEdit.Target.BETTERHUD_CONFIG)) {
+            return;
+        }
+        PendingHudEdit pending = new PendingHudEdit(installInputs, install, integrations.hudReloader(),
+                integrations.packRebuilder(), trigger, scheduler.ioExecutor(), getLogger());
+        getServer().getPluginManager().registerEvents(new Listener() {
+            @EventHandler(priority = EventPriority.MONITOR)
+            public void onPluginEnable(PluginEnableEvent event) {
+                pending.betterHudEnabled(event.getPlugin().getName());
+            }
+
+            @EventHandler(priority = EventPriority.MONITOR)
+            public void onServerLoad(ServerLoadEvent event) {
+                if (getServer().getPluginManager().isPluginEnabled(Installer.BETTERHUD)) {
+                    pending.betterHudEnabled(Installer.BETTERHUD);
+                }
+            }
+        }, this);
     }
 
     /** M1-INST-03: the pack rebuild / pool check state (null until enabled). */

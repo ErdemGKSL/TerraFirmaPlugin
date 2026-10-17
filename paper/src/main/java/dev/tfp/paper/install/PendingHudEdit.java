@@ -1,0 +1,86 @@
+/*
+ * Licensed under the EUPL, Version 1.2.
+ * You may obtain a copy of the Licence at:
+ * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ */
+package dev.tfp.paper.install;
+
+import dev.tfp.core.install.ConfigEdit;
+import dev.tfp.core.install.InstallStatus.EditResult;
+import dev.tfp.paper.integration.HudReloader;
+import dev.tfp.paper.integration.PackRebuilder;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * M1-INST-02 on a fresh server (ARCHITECTURE.md §12 step 4): BetterHud writes its {@code config.yml} only on its
+ * first start, after our {@code onLoad}, so its edits (e.g. {@code default-hud} without {@code test_hud}) end as
+ * {@code FILE_MISSING}. Once BetterHud has enabled ({@code PluginEnableEvent}, or {@code ServerLoadEvent} if it
+ * already was), {@link #betterHudEnabled} applies them on the io executor, then reloads BetterHud (skipped while
+ * BetterHud or CraftEngine is reloading: BetterHud reloads inside CraftEngine's build, M0-BH-01) and asks
+ * {@link PackRebuildTrigger} for the CraftEngine pack build, so the pack is built after BetterHud's merge.
+ *
+ * <p>Runs once per server run; tried again only if the file was still missing.
+ */
+public final class PendingHudEdit {
+    private static final ConfigEdit.Target TARGET = ConfigEdit.Target.BETTERHUD_CONFIG;
+    private final Installer.Inputs inputs;
+    private final Installer.Result install;
+    private final HudReloader hud;
+    private final PackRebuilder craftEngine;
+    private final PackRebuildTrigger trigger;
+    private final Executor io;
+    private final Logger log;
+    private final AtomicBoolean started = new AtomicBoolean();
+
+    public PendingHudEdit(Installer.Inputs inputs, Installer.Result install, HudReloader hud, PackRebuilder craftEngine,
+            PackRebuildTrigger trigger, Executor io, Logger log) {
+        this.inputs = inputs;
+        this.install = install;
+        this.hud = hud;
+        this.craftEngine = craftEngine;
+        this.trigger = trigger;
+        this.io = io;
+        this.log = log;
+    }
+
+    /** From the {@code PluginEnableEvent} of {@code plugin} (and the {@code ServerLoadEvent} fallback). Any thread. */
+    public CompletableFuture<List<EditResult>> betterHudEnabled(String plugin) {
+        if (!Installer.BETTERHUD.equals(plugin) || inputs == null || !Installer.pending(install, TARGET)
+                || !started.compareAndSet(false, true)) {
+            return CompletableFuture.completedFuture(List.of());
+        }
+        return CompletableFuture.supplyAsync(() -> {
+            List<EditResult> edits = Installer.applyPending(inputs, TARGET, log);
+            if (!edits.isEmpty() && edits.stream().allMatch(e -> e.outcome() == ConfigEdit.Outcome.FILE_MISSING)) {
+                started.set(false); // not written yet: the ServerLoadEvent fallback tries again
+            } else if (edits.stream().anyMatch(e -> e.outcome() == ConfigEdit.Outcome.APPLIED)) {
+                reload();
+            }
+            return edits;
+        }, io).exceptionally(e -> {
+            log.log(Level.WARNING, "Cannot apply the pending " + TARGET.path() + " edits", e);
+            return List.of();
+        });
+    }
+
+    /** On the io executor, after the edits were written. */
+    private void reload() {
+        if (hud.isReloading() || craftEngine.busy()) {
+            log.info("BetterHud config edited while BetterHud or CraftEngine is reloading; not reloading BetterHud now"
+                    + " (the CraftEngine pack build reloads it)");
+        } else if (hud.available()) {
+            log.info("BetterHud config edited on its first start; reloading BetterHud");
+            try {
+                hud.reload();
+            } catch (RuntimeException | LinkageError e) {
+                log.log(Level.WARNING, "BetterHud reload failed", e);
+            }
+        }
+        trigger.requestRebuild("BetterHud config edited on its first start");
+    }
+}

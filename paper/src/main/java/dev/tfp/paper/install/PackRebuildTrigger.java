@@ -50,6 +50,9 @@ public final class PackRebuildTrigger {
     private final AtomicBoolean requested = new AtomicBoolean();
     /** Completes when this run's rebuild finished (successfully or not). */
     private final CompletableFuture<Void> rebuildDone = new CompletableFuture<>();
+    private final AtomicBoolean extraRequested = new AtomicBoolean();
+    /** Completes when the {@link #requestRebuild} rebuild finished. */
+    private final CompletableFuture<Void> extraDone = new CompletableFuture<>();
     private volatile ProfileCheck.Result lastCheck;
 
     /**
@@ -86,7 +89,42 @@ public final class PackRebuildTrigger {
      */
     public CompletableFuture<Void> settled() {
         boolean planned = install != null && install.status().packRebuild() && rebuilder.available();
-        return planned || requested.get() ? rebuildDone.copy() : CompletableFuture.completedFuture(null);
+        CompletableFuture<Void> main = planned || requested.get() ? rebuildDone.copy() : CompletableFuture.completedFuture(null);
+        return extraRequested.get() ? CompletableFuture.allOf(main, extraDone) : main;
+    }
+
+    /**
+     * Asks for one more rebuild in this run because a merged pack changed after startup (BetterHud's first-start
+     * config edits, ARCHITECTURE.md §12 step 4). If the planned rebuild has not been requested yet it covers this
+     * and nothing more is done; otherwise one extra rebuild is requested (at most once per run). The CraftEngine
+     * adapter waits until CraftEngine is idle, so the build runs after BetterHud's merge. Any thread; never throws.
+     */
+    public void requestRebuild(String reason) {
+        if (!rebuilder.available()) {
+            return;
+        }
+        if (install != null && install.status().packRebuild() && !requested.get()) {
+            log.info("The planned CraftEngine pack rebuild also covers: " + reason + ".");
+            return;
+        }
+        if (!extraRequested.compareAndSet(false, true)) {
+            return;
+        }
+        log.info("Rebuilding the CraftEngine resource pack (" + reason + ").");
+        CompletableFuture<Boolean> rebuild;
+        try {
+            rebuild = rebuilder.rebuild();
+        } catch (RuntimeException e) {
+            rebuild = CompletableFuture.failedFuture(e);
+        }
+        rebuild.whenComplete((ok, err) -> {
+            extraDone.complete(null);
+            if (err != null || !ok) {
+                log.log(Level.WARNING, "The CraftEngine pack rebuild failed; players keep the old pack. Run /ce reload all", err);
+            } else {
+                log.info("CraftEngine resource pack rebuilt.");
+            }
+        });
     }
 
     /** On the thread that delivered the CraftEngine reload. Never throws. */

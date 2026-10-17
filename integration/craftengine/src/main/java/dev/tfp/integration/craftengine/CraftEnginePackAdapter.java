@@ -59,6 +59,12 @@ final class CraftEnginePackAdapter implements PackRebuilder, VisualPools {
     }
 
     @Override
+    public boolean busy() {
+        CraftEngine ce = CraftEngine.instance();
+        return ce.isReloading() || ce.isReloadingPack() || ce.resourceOperations().isBusy();
+    }
+
+    @Override
     public CompletableFuture<Boolean> rebuild() {
         CompletableFuture<Boolean> out = new CompletableFuture<>();
         Scheduler scheduler = ctx.requireScheduler();
@@ -71,7 +77,7 @@ final class CraftEnginePackAdapter implements PackRebuilder, VisualPools {
             }
             try {
                 CraftEngine ce = CraftEngine.instance();
-                if (ce.isReloading() || ce.isReloadingPack() || ce.resourceOperations().isBusy()) {
+                if (busy()) {
                     if (++polls[0] >= MAX_POLLS) {
                         cancel(handle);
                         out.completeExceptionally(new IllegalStateException("CraftEngine stayed busy; run /ce reload all"));

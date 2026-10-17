@@ -154,6 +154,32 @@ public final class Installer {
         return result;
     }
 
+    /** True if every edit of {@code target} in {@code r} is still {@link ConfigEdit.Outcome#FILE_MISSING} (pending). */
+    public static boolean pending(Result r, ConfigEdit.Target target) {
+        List<EditResult> of = r == null ? List.of() : r.edits().stream().filter(e -> e.edit().target() == target).toList();
+        return !of.isEmpty() && of.stream().allMatch(e -> e.outcome() == ConfigEdit.Outcome.FILE_MISSING);
+    }
+
+    /**
+     * Applies the edits of {@code target} once more, e.g. BetterHud's after its first start wrote the file
+     * (ARCHITECTURE.md §12 step 4); records them in {@code edits.json} like {@link #run}. Nothing when
+     * {@code auto-install.config-edits} is off. Blocking file I/O: io executor.
+     */
+    public static List<EditResult> applyPending(Inputs in, ConfigEdit.Target target, Logger log) {
+        if (!in.settings().configEdits()) {
+            return List.of();
+        }
+        List<ConfigEdit> of = ThirdPartyEdits.all(in.ceStates()).stream().filter(e -> e.target() == target).toList();
+        try {
+            List<EditResult> edits = new ThirdPartyConfigEditor(in.pluginsDir(), in.stateDir()).apply(of, in.installed());
+            logEdits(edits, log);
+            return edits;
+        } catch (IOException | RuntimeException e) {
+            log.log(Level.SEVERE, "Cannot edit " + target.path(), e);
+            return List.of();
+        }
+    }
+
     /**
      * CraftEngine block states our content defines, from the datagen report ({@code counts.ce_states}, else
      * {@code counts.ce_blocks} as a lower bound); 0 if the report is missing.
@@ -271,25 +297,7 @@ public final class Installer {
         for (String s : r.skipped()) {
             log.info("Skipped " + s);
         }
-        for (EditResult e : r.edits()) {
-            String what = e.edit().target().path() + " " + e.edit().key();
-            switch (e.outcome()) {
-                case APPLIED -> log.info("Config edit: " + what + ": " + e.before() + " -> " + e.after() + " (" + e.edit().why() + ")");
-                case OWNER_KEPT -> log.warning("Config edit skipped: " + what + " = " + e.before() + " (" + e.detail()
-                        + "); we recommend changing it because " + e.edit().why());
-                case FAILED -> log.warning("Config edit failed: " + what + ": " + e.detail());
-                case FILE_MISSING -> {
-                    ConfigEdit.Target t = e.edit().target();
-                    if (t == ConfigEdit.Target.BETTERHUD_CONFIG || t == ConfigEdit.Target.BETTERMODEL_CONFIG) {
-                        // BetterHud/BetterModel enable after us and write their config.yml on their first start.
-                        log.info("Config edit pending: " + what + " (" + e.edit().target().path()
-                                + " does not exist yet; applied at the next start)");
-                    }
-                }
-                case UNCHANGED -> {
-                }
-            }
-        }
+        logEdits(r.edits(), log);
         if (r.status().packRebuild()) {
             log.info("The CraftEngine resource pack will be rebuilt once CraftEngine has loaded"
                     + (r.packPlan().reason().isEmpty() ? "" : " (" + r.packPlan().reason() + ")") + ".");
@@ -299,6 +307,32 @@ public final class Installer {
         Level level = r.status().setupIncomplete() ? Level.SEVERE : Level.WARNING;
         for (String line : r.status().banner()) {
             log.log(level, line);
+        }
+    }
+
+    private static void logEdits(List<EditResult> edits, Logger log) {
+        for (EditResult e : edits) {
+            String what = e.edit().target().path() + " " + e.edit().key();
+            switch (e.outcome()) {
+                case APPLIED -> log.info("Config edit: " + what + ": " + e.before() + " -> " + e.after() + " (" + e.edit().why() + ")");
+                case OWNER_KEPT -> log.warning("Config edit skipped: " + what + " = " + e.before() + " (" + e.detail()
+                        + "); we recommend changing it because " + e.edit().why());
+                case FAILED -> log.warning("Config edit failed: " + what + ": " + e.detail());
+                case FILE_MISSING -> {
+                    ConfigEdit.Target t = e.edit().target();
+                    // BetterHud/BetterModel enable after us and write their config.yml on their first start.
+                    // BetterHud's edits are applied again once it has enabled (PendingHudEdit).
+                    if (t == ConfigEdit.Target.BETTERHUD_CONFIG) {
+                        log.info("Config edit pending: " + what + " (" + t.path()
+                                + " does not exist yet; applied once BetterHud has enabled)");
+                    } else if (t == ConfigEdit.Target.BETTERMODEL_CONFIG) {
+                        log.info("Config edit pending: " + what + " (" + t.path()
+                                + " does not exist yet; applied at the next start)");
+                    }
+                }
+                case UNCHANGED -> {
+                }
+            }
         }
     }
 }

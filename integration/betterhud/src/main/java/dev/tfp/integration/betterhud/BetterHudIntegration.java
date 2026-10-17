@@ -6,6 +6,7 @@
 package dev.tfp.integration.betterhud;
 
 import dev.tfp.paper.integration.HudPlaceholders;
+import dev.tfp.paper.integration.HudReloader;
 import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.integration.Integration;
@@ -17,11 +18,13 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.ToDoubleFunction;
+import java.util.logging.Level;
 import kr.toxicity.hud.api.BetterHud;
 import kr.toxicity.hud.api.BetterHudAPI;
 import kr.toxicity.hud.api.listener.HudListener;
 import kr.toxicity.hud.api.placeholder.HudPlaceholder;
 import kr.toxicity.hud.api.placeholder.PlaceholderContainer;
+import kr.toxicity.hud.api.plugin.ReloadState;
 
 /**
  * BetterHud adapter base (M1-INT-04, {@code betterhud} skill; API as in the compiled M0-BH-01 spike):
@@ -33,7 +36,7 @@ import kr.toxicity.hud.api.placeholder.PlaceholderContainer;
  * <p>Not a ready-gate condition (ARCHITECTURE.md §12: ready = CraftEngine ∧ BetterModel ∧ registries);
  * {@link #isRegistered()} reports the registration instead.
  */
-public final class BetterHudIntegration implements Integration, HudPlaceholders {
+public final class BetterHudIntegration implements Integration, HudPlaceholders, HudReloader {
     private final IntegrationContext ctx;
     private volatile boolean registered;
 
@@ -104,6 +107,27 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders 
 
     public boolean isRegistered() {
         return registered;
+    }
+
+    // ---- HudReloader: M1-INST-02, the first-start config edits ---------------------------------------
+
+    @Override
+    public boolean available() {
+        return true;
+    }
+
+    @Override
+    public boolean isReloading() {
+        return BetterHudAPI.inst().isOnReload();
+    }
+
+    @Override
+    public boolean reload() {
+        ReloadState state = BetterHudAPI.inst().reload();
+        if (state instanceof ReloadState.Failure f) {
+            ctx.logger().log(Level.WARNING, "BetterHud reload failed", f.throwable());
+        }
+        return state instanceof ReloadState.Success;
     }
 
     /** {@code plugins/BetterHud/packs/tfp}, the installer's target (M1-INST-01). */

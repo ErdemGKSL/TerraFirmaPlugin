@@ -10,14 +10,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import dev.tfp.core.config.TfpConfig.AutoInstall;
 import dev.tfp.core.install.ConfigEdit.Outcome;
 import dev.tfp.core.config.TfpConfig.Profile;
+import dev.tfp.core.install.ConfigEdit;
 import dev.tfp.core.install.InstallManifest;
+import dev.tfp.core.install.InstallStatus.EditResult;
+import dev.tfp.core.install.ThirdPartyEdits;
 import dev.tfp.core.visuals.VisualSelection;
+import dev.tfp.paper.integration.FakeHudReloader;
 import dev.tfp.paper.integration.FakePackRebuilder;
 import dev.tfp.paper.integration.PackRebuilder;
 import dev.tfp.paper.integration.FakeVisualPools;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
@@ -291,6 +296,11 @@ class InstallerTest {
             }
 
             @Override
+            public boolean busy() {
+                return false;
+            }
+
+            @Override
             public CompletableFuture<Boolean> rebuild() {
                 return pending;
             }
@@ -357,5 +367,75 @@ class InstallerTest {
         assertThat(rec.getProperty("free")).isEqualTo(Integer.toString(t.lastCheck().free()));
         assertThat(rec.getProperty("others")).isEqualTo("100");
         assertThat(rec.getProperty("line")).contains(" fits: ");
+    }
+
+    // ---- M1-INST-02: BetterHud's edits on its first start (PendingHudEdit) -----------------------------
+
+    /** A fresh server: BetterHud has no config.yml at our onLoad. */
+    Installer.Result runWithoutBetterHudConfig() throws IOException {
+        Files.delete(plugins.resolve("BetterHud/config.yml"));
+        Installer.Result r = run(AutoInstall.DEFAULTS, ALL);
+        assertThat(Installer.pending(r, ConfigEdit.Target.BETTERHUD_CONFIG)).isTrue();
+        write(plugins.resolve("BetterHud/config.yml"), BH_CONFIG); // BetterHud's own first start
+        return r;
+    }
+
+    PendingHudEdit pendingHudEdit(Installer.Result r, FakeHudReloader hud, FakePackRebuilder ce, PackRebuildTrigger t) {
+        return new PendingHudEdit(new Installer.Inputs(AutoInstall.DEFAULTS, plugins, stateDir(), content, "1.0", ALL, 1353),
+                r, hud, ce, t, Runnable::run, LOG);
+    }
+
+    @Test
+    void betterHudEditMissingAtLoadIsAppliedOnceWhenBetterHudEnables() throws IOException {
+        Installer.Result r = runWithoutBetterHudConfig();
+        FakeHudReloader hud = new FakeHudReloader();
+        FakePackRebuilder ce = new FakePackRebuilder();
+        PackRebuildTrigger t = new PackRebuildTrigger(r, stateDir(), ce, new FakeVisualPools(), null, null, 500,
+                Runnable::run, LOG);
+        t.onCraftEngineReload(); // the planned rebuild already ran
+        assertThat(ce.requests()).isEqualTo(1);
+        PendingHudEdit pending = pendingHudEdit(r, hud, ce, t);
+
+        assertThat(pending.betterHudEnabled("CraftEngine").join()).isEmpty();
+        List<EditResult> edits = pending.betterHudEnabled("BetterHud").join();
+        assertThat(edits).filteredOn(e -> e.edit().key().equals("default-hud"))
+                .singleElement().extracting(EditResult::outcome).isEqualTo(Outcome.APPLIED);
+        assertThat(Files.readString(plugins.resolve("BetterHud/config.yml"))).contains("default-hud: []");
+        assertThat(Files.readString(stateDir().resolve(ThirdPartyConfigEditor.RECORD_FILE)))
+                .contains(ThirdPartyEdits.all(1353).stream().filter(e -> e.key().equals("default-hud")).findFirst().orElseThrow().id());
+        assertThat(hud.reloads()).isEqualTo(1);
+        assertThat(ce.requests()).isEqualTo(2); // the pack is built again after BetterHud's reload
+
+        assertThat(pending.betterHudEnabled("BetterHud").join()).isEmpty(); // a second enable does nothing
+        assertThat(hud.reloads()).isEqualTo(1);
+        assertThat(ce.requests()).isEqualTo(2);
+    }
+
+    @Test
+    void betterHudReloadIsSkippedWhileCraftEngineBuildsAndThePlannedRebuildCoversIt() throws IOException {
+        Installer.Result r = runWithoutBetterHudConfig();
+        FakeHudReloader hud = new FakeHudReloader();
+        FakePackRebuilder ce = new FakePackRebuilder().busy(true);
+        PackRebuildTrigger t = new PackRebuildTrigger(r, stateDir(), ce, new FakeVisualPools(), null, null, 500,
+                Runnable::run, LOG);
+        pendingHudEdit(r, hud, ce, t).betterHudEnabled("BetterHud").join();
+        assertThat(hud.reloads()).isZero();
+        assertThat(ce.requests()).isZero(); // CraftEngine has not loaded: its planned rebuild comes later
+        t.onCraftEngineReload();
+        assertThat(ce.requests()).isEqualTo(1);
+    }
+
+    @Test
+    void betterHudConfigStillMissingAtEnableIsTriedAgainAtServerLoad() throws IOException {
+        Installer.Result r = runWithoutBetterHudConfig();
+        Files.delete(plugins.resolve("BetterHud/config.yml"));
+        FakeHudReloader hud = new FakeHudReloader();
+        FakePackRebuilder ce = new FakePackRebuilder();
+        PendingHudEdit pending = pendingHudEdit(r, hud, ce, new PackRebuildTrigger(r, stateDir(), ce,
+                new FakeVisualPools(), null, null, 500, Runnable::run, LOG));
+        assertThat(pending.betterHudEnabled("BetterHud").join()).allMatch(e -> e.outcome() == Outcome.FILE_MISSING);
+        write(plugins.resolve("BetterHud/config.yml"), BH_CONFIG);
+        assertThat(pending.betterHudEnabled("BetterHud").join()).anyMatch(e -> e.outcome() == Outcome.APPLIED);
+        assertThat(hud.reloads()).isEqualTo(1);
     }
 }

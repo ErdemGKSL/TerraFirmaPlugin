@@ -27,6 +27,14 @@ public final class FakePackRebuilder implements PackRebuilder {
         return this;
     }
 
+    private volatile boolean busy;
+
+    /** What {@link #busy()} reports from now on. */
+    public FakePackRebuilder busy(boolean b) {
+        this.busy = b;
+        return this;
+    }
+
     public int requests() {
         return requests.get();
     }
@@ -34,6 +42,11 @@ public final class FakePackRebuilder implements PackRebuilder {
     @Override
     public boolean available() {
         return true;
+    }
+
+    @Override
+    public boolean busy() {
+        return busy;
     }
 
     @Override

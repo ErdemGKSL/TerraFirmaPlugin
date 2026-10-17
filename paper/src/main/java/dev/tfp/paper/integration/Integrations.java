@@ -147,6 +147,11 @@ public final class Integrations {
         return find(HudPlaceholders.class).orElse(Absent.HUD_PLACEHOLDERS);
     }
 
+    /** M1-INST-02: reloads BetterHud after a config edit (absent: {@link HudReloader#available()} is false). */
+    public HudReloader hudReloader() {
+        return find(HudReloader.class).orElse(Absent.HUD_RELOADER);
+    }
+
     /** Always the shared snapshot cache; {@link HudBridge#isActive()} says whether anything renders it. */
     public HudBridge hud() {
         return context.hudCache();

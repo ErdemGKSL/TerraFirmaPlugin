@@ -150,8 +150,30 @@ final class Absent {
         }
 
         @Override
+        public boolean busy() {
+            return false;
+        }
+
+        @Override
         public CompletableFuture<Boolean> rebuild() {
             return CompletableFuture.failedFuture(new IllegalStateException("CraftEngine is not available"));
+        }
+    };
+
+    static final HudReloader HUD_RELOADER = new HudReloader() {
+        @Override
+        public boolean available() {
+            return false;
+        }
+
+        @Override
+        public boolean isReloading() {
+            return false;
+        }
+
+        @Override
+        public boolean reload() {
+            return false;
         }
     };
 

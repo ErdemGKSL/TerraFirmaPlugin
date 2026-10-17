@@ -20,6 +20,9 @@ public interface PackRebuilder {
     /** True if a rebuild can be requested (CraftEngine is installed and its adapter is running). */
     boolean available();
 
+    /** True while CraftEngine reloads or builds its pack (BetterHud reloads inside that build). Any thread. */
+    boolean busy();
+
     /**
      * Starts a full CraftEngine reload + pack build. Completes with {@code true} once the pack workflows
      * ran, {@code false} if CraftEngine reported a failed reload; exceptionally if it could not be started.
