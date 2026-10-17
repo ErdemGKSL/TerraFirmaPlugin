@@ -20,10 +20,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
 
 ## Climate
 
-- [ ] **M2-CLIM-01 Climate model** · deps: M2-CAL-01, M2-GEN-05 · skills: tfc-feature-porting
+- [x] **M2-CLIM-01 Climate model** · deps: M2-CAL-01, M2-GEN-05 · skills: tfc-feature-porting
   - TFC: `util/climate/` (`OverworldClimateModel`, `ClimateModel`, `KoppenClimateClassification`), `world/chunkdata/`
   - Do: pure functions: average/actual temperature, rainfall and groundwater per position, season and time of day, from chunk data. A thread-safe API with a bounded Caffeine cache.
   - Done when: golden values vs TFC for sample positions, and property tests (continuity, bounds) pass.
+  - Status: done as pure core math (`core/climate/`: OverworldClimate, Solar, CalendarPhase, ChunkClimate, TfcMath, XoroshiroRandom). Golden and property tests green; sampled outputs match TFC bit-for-bit (oracle run against TFC's own methods). Follow-ups: chunk-data inputs (M2-GEN-05), rain/thunder (M2-WTH-01), ClimateRange(s) and the render cache (M2-CLIM-02).
 
 - [ ] **M2-CLIM-02 Climate ranges** · deps: M2-CLIM-01, M1-REG-01
   - TFC: `util/climate/ClimateRange(s)`, data `climate_range/**`
