@@ -19,33 +19,27 @@ final class NoiseMath {
 
     /** {@code Mth.clamp(double, double, double)}: {@code value < min ? min : Math.min(value, max)}. */
     static double clamp(double value, double min, double max) {
-        return value < min ? min : Math.min(value, max);
+        return dev.tfp.core.worldgen.Mth.clamp(value, min, max);
     }
 
     /** {@code Mth.inverseLerp(double, double, double)}: {@code (value - min) / (max - min)}. */
     static double inverseLerp(double value, double min, double max) {
-        return (value - min) / (max - min);
+        return dev.tfp.core.worldgen.Mth.inverseLerp(value, min, max);
     }
 
     /** {@code Mth.lerp(double, double, double)}: {@code start + delta * (end - start)}. */
     static double lerp(double delta, double start, double end) {
-        return start + delta * (end - start);
+        return dev.tfp.core.worldgen.Mth.lerp(delta, start, end);
     }
 
     /** {@code Mth.clampedLerp(double, double, double)}: {@code delta} is clamped to [0, 1] before lerping. */
     static double clampedLerp(double delta, double start, double end) {
-        if (delta < 0) {
-            return start;
-        }
-        if (delta > 1) {
-            return end;
-        }
-        return lerp(delta, start, end);
+        return dev.tfp.core.worldgen.Mth.clampedLerp(delta, start, end);
     }
 
     /** {@code Mth.clampedMap(double, double, double, double, double)}. */
     static double clampedMap(double value, double inMin, double inMax, double outMin, double outMax) {
-        return clampedLerp(inverseLerp(value, inMin, inMax), outMin, outMax);
+        return dev.tfp.core.worldgen.Mth.clampedMap(value, inMin, inMax, outMin, outMax);
     }
 
     /**

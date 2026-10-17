@@ -87,6 +87,7 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - TFC: `world/region/` (`RegionGenerator` + tasks `Init`, `AddContinentsAndSetOceanDepths`, `AnnotateClimate`, `ChooseBiomes`, `ChooseRocks`, `AddRiversAndLakes`, ...)
   - Do: port with concurrent caches (`world/FastConcurrentCache.java`). Port the drawing tests (`src/test/.../drawing/RegionGeneratorTests`, `Artist`) to render region maps to `build/worldgen-images/`.
   - Done when: rendered maps match TFC's for 3 seeds (visual + hash), and the determinism-across-threads test passes.
+  - Status (@claude): partial, rules level. Done: the region map's in-scope tasks (cells, continents, oceans, islands, mountains, distances, climate, rock ids) in `core/worldgen/region/`, golden hashes for 3 seeds x 8 regions match TFC at c3b4d9536 exactly (oracle harness), property tests and the four-thread determinism test green. Open: `ChooseBiomes` (biome ids), rivers and lakes (M2-GEN-04), karst and chunk data (M2-GEN-05), and the rendered-map check (`build/worldgen-images/`). Divergences in the ledger.
 
 - [ ] **M2-GEN-04 Rivers** · deps: M2-GEN-03
   - TFC: `world/river/` (`MidpointFractal`, `Flow`, `RiverNoise`); test `FlowTest`
