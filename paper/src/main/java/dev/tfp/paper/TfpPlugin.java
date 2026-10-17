@@ -24,6 +24,7 @@ import dev.tfp.paper.blockdata.PdcChunkDataStore;
 import dev.tfp.paper.boot.CompatCheck;
 import dev.tfp.paper.calendar.CalendarService;
 import dev.tfp.paper.climate.PlayerClimateService;
+import dev.tfp.paper.climate.SeasonalBiomeService;
 import dev.tfp.paper.weather.PrecipitationService;
 import dev.tfp.paper.weather.SnowService;
 import dev.tfp.paper.boot.TfpCommands;
@@ -43,6 +44,7 @@ import dev.tfp.paper.packet.NoopPacketHandler;
 import dev.tfp.paper.packet.PacketHandlerRegistry;
 import dev.tfp.paper.packet.PacketLayer;
 import dev.tfp.paper.packet.PacketLayers;
+import dev.tfp.paper.packet.SeasonalBiomeHandler;
 import dev.tfp.paper.player.PlayerData;
 import dev.tfp.paper.player.PlayerDataFiles;
 import dev.tfp.paper.player.PlayerDataListener;
@@ -127,6 +129,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     private volatile PlayerClimateService climate;
     /** M2-WTH-01: what falls at the player's position (rain or snow), for {@code /tfp debug chunk}. */
     private volatile PrecipitationService precipitation;
+    /** M2-SEA-02: the seasonal biome tables behind the chunk packet rewrite. */
+    private volatile SeasonalBiomeService seasonalBiomes;
     /** {@code /tfp debug showcase}: our block ids from the shipped id_map.json, read once. */
     private volatile CompletableFuture<List<String>> showcaseIds;
     private final HudSnapshotCache hudCache = new HudSnapshotCache(() -> {
@@ -388,6 +392,14 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         packets.register(new NoopPacketHandler());
         if (packetEvents) {
             packets.register(new CreativeReturnHandler());
+            // M2-SEA-02: seasonal grass, foliage and water colours through the chunk biome palette.
+            SeasonalBiomeService seasonal = new SeasonalBiomeService(clock, scheduler, id -> getServer().getWorld(id));
+            seasonalBiomes = seasonal;
+            SeasonalBiomeHandler seasonalHandler = new SeasonalBiomeHandler(seasonal, getLogger());
+            seasonal.onQuit(seasonalHandler::forget);
+            packets.register(seasonalHandler);
+            getServer().getPluginManager().registerEvents(seasonal, this);
+            seasonal.start(() -> getServer().getWorlds(), () -> getServer().getOnlinePlayers());
         }
         PacketLayer layer = PacketLayers.create(packetEvents);
         try {
@@ -687,6 +699,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     public CompletableFuture<Reply> debugPackets() {
         List<String> lines = new ArrayList<>();
         lines.add("layer: " + packetLayer.describe());
+        SeasonalBiomeService seasonal = seasonalBiomes;
+        if (seasonal != null) {
+            lines.add("seasonal biomes: " + seasonal.describe());
+        }
         PacketHandlerRegistry registry = packets;
         for (PacketHandlerRegistry.HandlerMetrics m : registry == null ? List.<PacketHandlerRegistry.HandlerMetrics>of() : registry.metrics()) {
             lines.add(String.format(java.util.Locale.ROOT, "%s: calls=%d avg=%.1fus max=%.1fus modified=%d cancelled=%d errors=%d",

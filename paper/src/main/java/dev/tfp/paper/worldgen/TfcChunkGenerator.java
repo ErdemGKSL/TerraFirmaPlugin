@@ -6,6 +6,7 @@
 package dev.tfp.paper.worldgen;
 
 import dev.tfp.core.worldgen.spawn.SpawnSearch;
+import dev.tfp.paper.climate.SeasonalBiomeRemap;
 import dev.tfp.paper.integration.BlockVisuals;
 import java.util.List;
 import java.util.Optional;
@@ -75,6 +76,26 @@ public final class TfcChunkGenerator extends ChunkGenerator {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("the generator id must be a seed (a long), got '" + id + "'", e);
         }
+    }
+
+    /**
+     * M2-SEA-02: the terrain as the seasonal biome remap reads it (TFC biome ids and chunk climate, pure, from the seed).
+     * Any thread; builds the terrain on first use like {@link #terrain(LongSupplier)}.
+     */
+    public SeasonalBiomeRemap.Terrain seasonalTerrain(LongSupplier worldSeed) {
+        TfcTerrain t = terrain(worldSeed);
+        return new SeasonalBiomeRemap.Terrain() {
+            @Override
+            public int biomeId(int blockX, int blockZ) {
+                return t.biomeId(blockX, blockZ);
+            }
+
+            @Override
+            public SeasonalBiomeRemap.ChunkInputs climates(int chunkX, int chunkZ) {
+                dev.tfp.core.worldgen.chunk.ChunkData data = t.chunkData(chunkX, chunkZ);
+                return (x, z) -> dev.tfp.core.worldgen.chunk.ChunkData.climateOrNeutral(data, x, z);
+            }
+        };
     }
 
     /** The terrain of the world: built on first use, from the configured seed or the world's seed. */

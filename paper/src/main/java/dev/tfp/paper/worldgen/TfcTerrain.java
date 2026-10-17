@@ -192,6 +192,14 @@ final class TfcTerrain {
         return id;
     }
 
+    /**
+     * The chunk data of a chunk, recomputed from the seed (M2-SEA-02 reads its climate). The base groundwater is not
+     * modified by the surface heights here, unlike {@link #fill}. Any thread.
+     */
+    ChunkData chunkData(int chunkX, int chunkZ) {
+        return chunks.generate(chunkX, chunkZ);
+    }
+
     /** The biome of a block column, as a vanilla biome. Any thread. */
     Biome biomeAt(int x, int z) {
         return biomes[biomeId(x, z)];
