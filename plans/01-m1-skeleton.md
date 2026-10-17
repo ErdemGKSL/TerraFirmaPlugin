@@ -179,6 +179,7 @@ Goal: a buildable, installable plugin with all infrastructure that features plug
   - Done when: the bovine example model spawns in the self-test.
   - Status: compiled, not runtime-verified. `integration/bettermodel`: `BetterModelIntegration` (guarded `ModelAssetsEvent`/`PluginEndReloadEvent`/`CreateEntityTrackerEvent` subscribers, Success → `BETTERMODEL_MODELS_READY`, Failure → waived), jar models from `bettermodel/models/index.txt` (placeholder `tfp_example_bovine` from the BM-01 spike). Unit tests: guard, jar index, service file. Open: the spawn self-test (M1-TEST-01).
   - Verified in the server: self-test: the bovine example spawns and its tint re-applies (matrix).
+  - Folia 1.21.11 fix: `bm.spawn_persist` failed on both starts with "entity was removed": the case spawned its carrier in an unforced spawn chunk and Folia unloaded it within ~1.4 s. The case now awaits and force-loads the chunk, and releases it after an awaited cleanup (test-only). Re-run: folia-1.21.11 and paper-1.21.11, both starts, 14/14 (`scratchpad/m1-fix-*`).
 
 - [x] **M1-INT-04 BetterHud adapter base** · deps: M1-INT-01 · skills: betterhud
   - Do: placeholder/listener registration in `onEnable`, the per-player `HudSnapshot` cache (published from the player's thread), pack folder install.

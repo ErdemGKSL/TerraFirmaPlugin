@@ -77,15 +77,22 @@ public final class BetterModelSpawnCase implements SelfTestCase {
             Location at = world.getSpawnLocation().add(0.5, 0, 0.5);
             int cx = at.getBlockX() >> 4;
             int cz = at.getBlockZ() >> 4;
-            Entity cow = OnThread.region(s, world, cx, cz, STEP, () -> world.spawn(at, Cow.class, c -> {
-                c.getPersistentDataContainer().set(tintKey, PersistentDataType.INTEGER, TINT);
-                c.setAI(false);
-                c.setSilent(true);
-                c.setInvulnerable(true);
-                c.setPersistent(false);
-            }));
-            UUID id = cow.getUniqueId();
+            OnThread.await(world.getChunkAtAsync(cx, cz), STEP, "loading chunk " + cx + "," + cz);
+            OnThread.global(s, STEP, () -> {
+                world.setChunkForceLoaded(cx, cz, true);
+                return null;
+            });
+            Entity[] carrier = {null};
             try {
+                Entity cow = OnThread.region(s, world, cx, cz, STEP, () -> world.spawn(at, Cow.class, c -> {
+                    c.getPersistentDataContainer().set(tintKey, PersistentDataType.INTEGER, TINT);
+                    c.setAI(false);
+                    c.setSilent(true);
+                    c.setInvulnerable(true);
+                    c.setPersistent(false);
+                }));
+                carrier[0] = cow;
+                UUID id = cow.getUniqueId();
                 boolean attached = OnThread.entity(s, cow, STEP, () -> models.attach(cow, MODEL, 1f));
                 if (!attached) {
                     throw new AssertionError("attach(" + MODEL + ") returned false: the model is not registered "
@@ -116,11 +123,19 @@ public final class BetterModelSpawnCase implements SelfTestCase {
                 return MODEL + " on cow " + id + ": attached, tint 0x" + Integer.toHexString(TINT) + " re-applied "
                         + count(id) + "x (attach + re-creation)";
             } finally {
-                REAPPLIED.remove(id);
-                s.entity(cow, () -> {
-                    models.detach(cow);
-                    cow.remove();
-                }, () -> { });
+                if (carrier[0] != null) {
+                    Entity cow = carrier[0];
+                    REAPPLIED.remove(cow.getUniqueId());
+                    OnThread.region(s, world, cx, cz, STEP, () -> {
+                        models.detach(cow);
+                        cow.remove();
+                        return null;
+                    });
+                }
+                OnThread.global(s, STEP, () -> {
+                    world.setChunkForceLoaded(cx, cz, false);
+                    return null;
+                });
             }
         });
     }
