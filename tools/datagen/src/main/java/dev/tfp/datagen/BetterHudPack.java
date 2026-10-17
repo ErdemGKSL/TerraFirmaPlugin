@@ -10,7 +10,8 @@ package dev.tfp.datagen;
  * {@code plugins/BetterHud/packs/tfp/}. Written under {@code betterhud/tfp/} of the content tree, which ships
  * as {@code /content/betterhud/tfp} in the jar ({@code dependency-bootstrap} §5).
  *
- * <p>M2-CAL-02: the date and season text, top-left, updated every 20 ticks. The HUD is not {@code default}, so
+ * <p>M2-CAL-02: the date and season text, top-left, updated every 20 ticks. M2-CLIM-03 adds the ambient
+ * temperature line below it (same font, same tick). The HUD is not {@code default}, so
  * it is shown to nobody until a {@code default-hud} edit lists it (the M1 decision keeps the default HUD empty).
  * Every id has the {@code tfp_} prefix; the font is BetterHud's default font (no {@code file}).
  */
@@ -44,6 +45,16 @@ final class BetterHudPack {
                   y: 2
                   scale: 0.5
                   tick: 20
+            tfp_ambient_temp:
+              texts:
+                1:
+                  name: tfp_font
+                  pattern: "[tfp_ambient_temp]"
+                  align: left
+                  x: 2
+                  y: 12
+                  scale: 0.5
+                  tick: 20
             """;
 
     static final String HUDS = """
@@ -51,6 +62,11 @@ final class BetterHudPack {
               layouts:
                 1:
                   name: tfp_date
+                  gui:
+                    x: 0
+                    y: 0
+                2:
+                  name: tfp_ambient_temp
                   gui:
                     x: 0
                     y: 0
