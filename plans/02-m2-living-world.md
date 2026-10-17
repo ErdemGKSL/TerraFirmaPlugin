@@ -93,10 +93,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - TFC: `world/river/` (`MidpointFractal`, `Flow`, `RiverNoise`); test `FlowTest`
   - Done when: `FlowTest` is ported and green, and river maps are rendered.
 
-- [ ] **M2-GEN-05 Chunk data** · deps: M2-GEN-03
+- [x] **M2-GEN-05 Chunk data** · deps: M2-GEN-03
   - TFC: `world/chunkdata/`, `Gen data/tfc/worldgen/rock_settings`
   - Do: rock layers (top/mid/bottom), rainfall/temperature layers, forest type/density, recomputed from the seed (bounded cache, not persisted).
   - Done when: golden checks against TFC.
+  - Status: done as core rules (`core/worldgen/chunk/`: `ChunkDataGenerator`, `ChunkData`, `LerpFloatLayer`, `RockLayers`). The chunk data (sea-level temperature, rainfall, rain variance, base groundwater) and the rock layer stack match TFC at c3b4d9536: 99 golden positions over 3 seeds and 33 chunks (9 river-influenced), property tests green, and the oracle run is recorded in `ChunkDataGoldenTest`. Recomputed from the seed, nothing stored. Not yet: the forest type (M2-GEN-03), the datapack rock lookup and the surface-height groundwater (M2-GEN-06/08), the chunk storage (new task), and wiring `ChunkClimate` into the paper call sites (M2-GEN-07). Divergences in the ledger.
 
 - [ ] **M2-GEN-06 Biomes & heights** · deps: M2-GEN-05
   - TFC: `world/biome/`, `world/BiomeNoiseSampler.java`, `ChunkHeightFiller.java`, `ChunkNoiseFiller.java`, `world/density/`; test `BiomeNoiseTest`

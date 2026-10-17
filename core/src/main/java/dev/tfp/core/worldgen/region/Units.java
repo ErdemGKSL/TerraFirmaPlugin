@@ -52,5 +52,15 @@ public final class Units {
         return Math.floorDiv(grid, PARTITION_WIDTH_IN_GRID);
     }
 
+    /** {@code Units.blockToGrid(int)}: {@code block >> 7}, so the grid coordinate of a negative block floors. */
+    public static int blockToGrid(int block) {
+        return block >> GRID_BITS;
+    }
+
+    /** {@code Units.blockToGridExact(double)}: the fractional grid coordinate of a block coordinate. */
+    public static double blockToGridExact(double block) {
+        return block / GRID_WIDTH_IN_BLOCK;
+    }
+
     private Units() {}
 }

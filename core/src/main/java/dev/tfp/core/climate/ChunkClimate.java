@@ -9,8 +9,8 @@
 package dev.tfp.core.climate;
 
 /**
- * The per-position climate values that TFC stores in chunk data and the climate model reads. They are generated
- * from the seed by the region generator (M2-GEN-05), so this model takes them as inputs.
+ * The per-position climate values that TFC stores in chunk data and the climate model reads. They are built from the
+ * region map by {@code dev.tfp.core.worldgen.chunk.ChunkData} (M2-GEN-05), so this model takes them as inputs.
  *
  * @param averageSeaLevelTemperature the average annual temperature at sea level, degrees Celsius
  * @param averageRainfall            the average annual rainfall, mm, in [0, 500]
@@ -19,9 +19,10 @@ package dev.tfp.core.climate;
  */
 public record ChunkClimate(float averageSeaLevelTemperature, float averageRainfall, float rainfallVariance, float baseGroundwater) {
     /**
-     * The chunk input used until chunk data exists (M2-GEN-05): a temperate 20 C average at sea level, mid-range
-     * rainfall (250 mm), no seasonal rainfall variance and no groundwater. These are not TFC's values for any chunk;
-     * readouts computed from this are placeholders until the chunk source lands.
+     * The fallback for a position without chunk data ({@code ChunkData.climateOrNeutral(null, x, z)}): a temperate 20 C
+     * average at sea level, mid-range rainfall (250 mm), no seasonal rainfall variance and no groundwater. These are not
+     * TFC's values for any chunk. The paper call sites still pass it, because the world's chunk source (its generator and
+     * seed) is installed with the Bukkit chunk generator (M2-GEN-07).
      */
     public static final ChunkClimate NEUTRAL = new ChunkClimate(20f, 250f, 0f, 0f);
 }

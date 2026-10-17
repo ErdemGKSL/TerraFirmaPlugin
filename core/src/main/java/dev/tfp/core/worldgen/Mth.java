@@ -93,6 +93,11 @@ public final class Mth {
         return lerp(delta, start, end);
     }
 
+    /** {@code Mth.map(float, float, float, float, float)}: {@code lerp(inverseLerp(value, inMin, inMax), outMin, outMax)}, not clamped. */
+    public static float map(float value, float inMin, float inMax, float outMin, float outMax) {
+        return lerp(inverseLerp(value, inMin, inMax), outMin, outMax);
+    }
+
     /** {@code Mth.clampedMap(float, float, float, float, float)}. */
     public static float clampedMap(float value, float inMin, float inMax, float outMin, float outMax) {
         return clampedLerp(inverseLerp(value, inMin, inMax), outMin, outMax);
