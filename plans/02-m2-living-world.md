@@ -16,6 +16,7 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - TFC: `common/commands/TimeCommand.java`
   - Do: `/tfp time` (set/add with TFC semantics); `tfp_date` and `tfp_season` placeholders (`tick: 20`).
   - Done when: the HUD shows the date and commands match TFC behaviour.
+  - Status: commands done and checked on a live Paper 1.21.11 server (`/tfp time set|add`: replies non-empty, date moves forward, saved across a restart; `scratchpad/time-check2`). Still open: the on-screen date element (BetterHud text with `tick: 20` is not generated yet, so the HUD date check is not done). Stays [ ] until that is shown in a client screenshot.
 
 ## Climate
 
