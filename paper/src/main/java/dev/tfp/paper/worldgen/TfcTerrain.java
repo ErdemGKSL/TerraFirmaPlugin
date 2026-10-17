@@ -32,6 +32,12 @@ import dev.tfp.core.worldgen.random.PositionalRandom;
 import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
 import dev.tfp.core.worldgen.region.RegionGenerator;
 import dev.tfp.core.worldgen.region.RegionSettings;
+import dev.tfp.core.worldgen.river.RiverBiomes;
+import dev.tfp.core.worldgen.river.RiverBlendType;
+import dev.tfp.core.worldgen.river.RiverChunk;
+import dev.tfp.core.worldgen.river.RiverColumn;
+import dev.tfp.core.worldgen.river.RiverInfo;
+import dev.tfp.core.worldgen.river.RiverNoiseSampler;
 import dev.tfp.core.worldgen.surface.ColumnSurface;
 import dev.tfp.core.worldgen.surface.SurfaceColumn;
 import dev.tfp.core.worldgen.surface.SurfaceFamily;
@@ -116,6 +122,8 @@ final class TfcTerrain {
     private final Volcanoes volcanoes;
     /** The placeholder block data by material and waterlogging. */
     private final Map<String, BlockData> placeholders = new ConcurrentHashMap<>();
+    /** TFC's river noise samplers of this seed (M2-GEN-04), one per blend type; immutable, shared by the workers. */
+    private final Map<RiverBlendType, RiverNoiseSampler> riverSamplers;
 
     /**
      * @param seed the level seed. The region generator and the chunk data generator share one {@link Seed}, in that order,
@@ -138,27 +146,62 @@ final class TfcTerrain {
         this.forest = new Forest(seed, TreeResources.fromJar(TfcTerrain.class.getClassLoader()));
         this.plants = new Plants(seed, PlantResources.fromJar(TfcTerrain.class.getClassLoader()));
         this.volcanoes = new Volcanoes(seed);
+        this.riverSamplers = RiverBlendType.createSamplers(seed);
     }
 
     /**
-     * The surface height of a column: the placeholder height with TFC's cinder cones raised over it (M2-GEN-14; the cones'
-     * biome is the biome at their cell's center). Any thread.
+     * The surface height of a column: the placeholder height carved or banked by TFC's river samplers (M2-GEN-04), with TFC's
+     * cinder cones raised over it (M2-GEN-14; the cones' biome is the region biome at their cell's center), in TFC's order
+     * (rivers, then volcanoes). Any thread.
      */
     int heightAt(int x, int z) {
-        return coneHeight(PlaceholderHeights.heightAt(regions, x, z), x, z);
+        final RiverInfo info = RiverChunk.sampleColumn(regions, x, z);
+        return coneHeight(riverColumn(info, x, z, PlaceholderHeights.heightAt(regions, x, z)).surfaceHeight(), x, z);
     }
 
     /** The surface heights of a chunk, {@code x + 16z}, as {@link #heightAt} gives them. Any thread. */
     int[] heights(int chunkX, int chunkZ) {
+        return columns(chunkX, chunkZ).heights();
+    }
+
+    /**
+     * The columns of one chunk (M2-GEN-04): the final surface heights, the TFC biome ids with the river biome where TFC sets
+     * it, and the river decision of each column ({@code x + 16z}; a column without a river has no change).
+     */
+    record Columns(int[] heights, int[] biomes, RiverColumn[] rivers) {}
+
+    /** The {@link Columns} of a chunk: its rivers are sampled once, from the chunk's partition point as TFC does. Any thread. */
+    Columns columns(int chunkX, int chunkZ) {
         final int[] heights = PlaceholderHeights.heights(regions, chunkX, chunkZ);
+        final int[] biomes = new int[heights.length];
+        final RiverColumn[] rivers = new RiverColumn[heights.length];
+        final RiverChunk riverChunk = RiverChunk.sample(regions, chunkX, chunkZ);
         for (int i = 0; i < heights.length; i++) {
-            heights[i] = coneHeight(heights[i], (chunkX << 4) + (i & 15), (chunkZ << 4) + (i >> 4));
+            final int x = (chunkX << 4) + (i & 15);
+            final int z = (chunkZ << 4) + (i >> 4);
+            final int biome = regionBiomeId(x, z);
+            final RiverColumn river = riverColumn(riverChunk.info(i & 15, i >> 4), x, z, heights[i], biome);
+            rivers[i] = river;
+            heights[i] = coneHeight(river.surfaceHeight(), x, z);
+            biomes[i] = river.isRiverBiome(biome, heights[i]) ? TfcBiomes.RIVER : biome;
         }
-        return heights;
+        return new Columns(heights, biomes, rivers);
+    }
+
+    /** The river decision of a column over its placeholder height, with the region biome's blend type at weight 1. */
+    private RiverColumn riverColumn(RiverInfo info, int x, int z, int placeholderHeight) {
+        return info == null ? RiverColumn.none(placeholderHeight) : riverColumn(info, x, z, placeholderHeight, regionBiomeId(x, z));
+    }
+
+    private RiverColumn riverColumn(RiverInfo info, int x, int z, int placeholderHeight, int regionBiome) {
+        if (info == null) {
+            return RiverColumn.none(placeholderHeight);
+        }
+        return RiverColumn.sample(riverSamplers, RiverBiomes.blendType(regionBiome), info, x, z, placeholderHeight);
     }
 
     private int coneHeight(int height, int x, int z) {
-        return (int) Math.round(volcanoes.cones().adjustHeight(height, x, z, this::biomeId));
+        return (int) Math.round(volcanoes.cones().adjustHeight(height, x, z, this::regionBiomeId));
     }
 
     /** The palette ids of a world: the raw rocks, then the ore blocks. Any unknown id refuses the palette (no stone fallback). */
@@ -183,8 +226,25 @@ final class TfcTerrain {
         return rockIndex;
     }
 
-    /** The TFC biome id of a block column, from the region point at its grid cell. Any thread. */
+    /**
+     * The TFC biome id of a block column: the region biome, or TFC's river biome where a river runs through a column at most
+     * one block above sea level in a biome with rivers (M2-GEN-04). Any thread.
+     */
     int biomeId(int x, int z) {
+        final int biome = regionBiomeId(x, z);
+        if (!RiverBiomes.hasRivers(biome)) {
+            return biome;
+        }
+        final RiverInfo info = RiverChunk.sampleColumn(regions, x, z);
+        if (info == null || info.normDistSq() >= RiverColumn.RIVER_BIOME_NORM_DIST_SQ) {
+            return biome;
+        }
+        final RiverColumn river = riverColumn(info, x, z, PlaceholderHeights.heightAt(regions, x, z), biome);
+        return river.isRiverBiome(biome, coneHeight(river.surfaceHeight(), x, z)) ? TfcBiomes.RIVER : biome;
+    }
+
+    /** The TFC biome id of a block column from the region point at its grid cell, before the rivers. Any thread. */
+    int regionBiomeId(int x, int z) {
         int id = BiomeKeys.biomeIdAt((gx, gz) -> regions.getOrCreateRegionPoint(gx, gz).biome, x, z);
         if (id < 0 || id >= TfcBiomes.COUNT) {
             id = TfcBiomes.PLAINS;
@@ -236,11 +296,14 @@ final class TfcTerrain {
      * this chunk's positions are decided). Then the decorations of M2-GEN-11 to M2-GEN-13, in TFC's step order: the deposits
      * (ore deposits in riverbeds, clay and peat), the vein indicators, the trees, the volcano calderas and fissures and the hot
      * springs (M2-GEN-14), the corals, the plants and wild crops, the shore groundcover and the loose rocks (see
-     * {@link #decorate}). The surface heights carry TFC's cinder cones ({@link #heights}).
+     * {@link #decorate}). The surface heights carry TFC's river valleys and banks and its cinder cones ({@link #columns}); the
+     * blocks a river opens below a column's surface (canyon undercuts, cave rivers) become water up to sea level and air above,
+     * before the decorations, and riverside columns use TFC's river biome (M2-GEN-04).
      * Requires a resolved palette. Writes only this chunk's blocks, and only from the worldgen worker.
      */
     void fill(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, RockPalette<BlockData> palette) {
-        final int[] heights = heights(chunkX, chunkZ);
+        final Columns columns = columns(chunkX, chunkZ);
+        final int[] heights = columns.heights();
         // The climate of the chunk, with the groundwater that the surface heights remove from the rivers' share
         final ChunkData climate = chunks.generate(chunkX, chunkZ).modifyBaseGroundwater(heights);
         final double[] slopes = SurfaceSlope.slopeMap(chunkX << 4, chunkZ << 4, this::heightAt);
@@ -253,10 +316,16 @@ final class TfcTerrain {
             for (int lx = 0; lx < 16; lx++) {
                 final int x = (chunkX << 4) + lx;
                 final int top = heights[lx + 16 * lz];
-                final ColumnSurface surface = ColumnSurface.build(SurfaceFamily.forBiome(biomeId(x, z)).builder(),
+                final RiverColumn river = columns.rivers()[lx + 16 * lz];
+                final ColumnSurface surface = ColumnSurface.build(SurfaceFamily.forBiome(columns.biomes()[lx + 16 * lz]).builder(),
                     column(x, z, top, climate, SurfaceSlope.sample(slopes, lx, lz)), top, minY);
                 data.setBlock(lx, minY, lz, bedrock);
                 for (int y = minY + 1; y <= top; y++) {
+                    final Material opened = riverCarve(river, y, top, sea);
+                    if (opened != null) {
+                        data.setBlock(lx, y, lz, opened == Material.WATER ? water : air);
+                        continue;
+                    }
                     final SurfaceKind kind = surface.kind(y);
                     if (kind == null || kind == SurfaceKind.ROCK_SURFACE) {
                         final Carve carve = CaveCarver.carve(aquifer, x, y, z, inCave(x, y, z));
@@ -276,7 +345,7 @@ final class TfcTerrain {
                 }
             }
         }
-        decorate(data, chunkX, chunkZ, heights, climate, palette);
+        decorate(data, chunkX, chunkZ, columns, climate, palette);
     }
 
     /**
@@ -290,11 +359,11 @@ final class TfcTerrain {
      * same way ({@link Plants}: this chunk and its 8 neighbours, only this chunk's blocks written, {@link PlantBlocks#write}).
      * Every block is a vanilla placeholder ({@link GroundcoverBlocks}, {@link TreeBlocks}, {@link PlantBlocks}).
      */
-    private void decorate(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, int[] heights, ChunkData climate,
+    private void decorate(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, Columns columns, ChunkData climate,
                           RockPalette<BlockData> palette) {
         final int minY = data.getMinHeight();
         final int maxY = data.getMaxHeight();
-        final Ground view = new Ground(chunkX, chunkZ, heights, climate, minY);
+        final Ground view = new Ground(chunkX, chunkZ, columns, climate, minY);
         final Map<BlockData, DepositMaterial> materials = depositMaterials(palette);
         for (DepositBlock block : deposits.chunk(chunkX, chunkZ, view,
             (x, y, z) -> y < minY || y >= maxY ? null : materials.get(data.getBlockData(x & 15, y, z & 15)))) {
@@ -486,15 +555,17 @@ final class TfcTerrain {
         private final int[] ownHeights;
         private final ChunkData ownClimate;
         private final int minY;
-        private final Map<Long, int[]> heights = new HashMap<>();
+        private final Columns ownColumns;
+        private final Map<Long, Columns> columns = new HashMap<>();
         private final Map<Long, ChunkData> climates = new HashMap<>();
         private final Map<Long, double[]> slopes = new HashMap<>();
         private final Map<Long, ColumnSurface> surfaces = new HashMap<>();
 
-        Ground(int chunkX, int chunkZ, int[] ownHeights, ChunkData ownClimate, int minY) {
+        Ground(int chunkX, int chunkZ, Columns ownColumns, ChunkData ownClimate, int minY) {
             this.chunkX = chunkX;
             this.chunkZ = chunkZ;
-            this.ownHeights = ownHeights;
+            this.ownColumns = ownColumns;
+            this.ownHeights = ownColumns.heights();
             this.ownClimate = ownClimate;
             this.minY = minY;
         }
@@ -503,11 +574,23 @@ final class TfcTerrain {
             return ((long) a << 32) | (b & 0xFFFFFFFFL);
         }
 
+        private Columns columnsOf(int cx, int cz) {
+            if (cx == chunkX && cz == chunkZ) {
+                return ownColumns;
+            }
+            return columns.computeIfAbsent(key(cx, cz), k -> columns(cx, cz));
+        }
+
         private int[] heightsOf(int cx, int cz) {
             if (cx == chunkX && cz == chunkZ) {
                 return ownHeights;
             }
-            return heights.computeIfAbsent(key(cx, cz), k -> heights(cx, cz));
+            return columnsOf(cx, cz).heights();
+        }
+
+        /** The TFC biome of a column, with the river biome, as {@link #fill} uses it. */
+        private int biomeOf(int x, int z) {
+            return columnsOf(x >> 4, z >> 4).biomes()[(x & 15) + 16 * (z & 15)];
         }
 
         private ChunkData climateOf(int x, int z) {
@@ -531,7 +614,7 @@ final class TfcTerrain {
                 final double[] slope = slopes.computeIfAbsent(key(cx, cz),
                     s -> SurfaceSlope.slopeMap(cx << 4, cz << 4, TfcTerrain.this::heightAt));
                 final int top = top(x, z);
-                return ColumnSurface.build(SurfaceFamily.forBiome(biomeId(x, z)).builder(),
+                return ColumnSurface.build(SurfaceFamily.forBiome(biomeOf(x, z)).builder(),
                     column(x, z, top, climateOf(x, z), SurfaceSlope.sample(slope, x & 15, z & 15)), top, minY);
             });
         }
@@ -577,7 +660,7 @@ final class TfcTerrain {
 
         @Override
         public boolean saltWater(int x, int z) {
-            return SaltWater.isSalty(biomeId(x, z));
+            return SaltWater.isSalty(biomeOf(x, z));
         }
 
         @Override
@@ -588,7 +671,7 @@ final class TfcTerrain {
 
         @Override
         public int biome(int x, int z) {
-            return biomeId(x, z);
+            return biomeOf(x, z);
         }
 
         @Override
@@ -657,6 +740,18 @@ final class TfcTerrain {
             final ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, top(x, z));
             return PlaceholderRocks.index(rock.point(), rock.layer());
         }
+    }
+
+    /**
+     * The block a river leaves at {@code y} of a column whose surface is {@code top} (M2-GEN-04): null where the river keeps
+     * the terrain (always above {@code top}, so nothing outside the column's own blocks changes), else water up to the
+     * terrain's own water surface (the sea-level block, like the open water over the columns) and air above it.
+     */
+    static Material riverCarve(RiverColumn river, int y, int top, int sea) {
+        if (y > top || !river.opens(y, top)) {
+            return null;
+        }
+        return y <= sea ? Material.WATER : Material.AIR;
     }
 
     /** Whether a rock position is inside a cave's tunnel shape. See {@link #IN_CAVE}. */

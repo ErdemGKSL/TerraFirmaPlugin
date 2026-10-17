@@ -95,6 +95,7 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
 - [ ] **M2-GEN-04 Rivers** · deps: M2-GEN-03
   - TFC: `world/river/` (`MidpointFractal`, `Flow`, `RiverNoise`); test `FlowTest`
   - Done when: `FlowTest` is ported and green, and river maps are rendered.
+  - Status (@claude): partial. Region rivers, lakes, partitions and flows match TFC (`RiverGoldenTest`, `FlowTest`). Chunk river carving done: `core/worldgen/river/` (`RiverNoise` with all ten blend types, `RiverBlendType`, `RiverBiomes`, `RiverInfo`, `RiverChunk`, `RiverColumn`) and `core/worldgen/noise/` (`Noise3D`, `OpenSimplex3D`), bit-exact with TFC at c3b4d9536 (`RiverChunkGoldenTest`: 30 chunks; `Noise3DGoldenTest`: 12 lines), property and Paper wiring tests green; `TfcTerrain` applies the river heights, the river biome and the opened water/air for its own chunk before the decorations. Open: lakes in chunks (lake basins need the M2-GEN-06 biome heights), the biome-weight blending of the river types, the rendered river map, the server check. Divergences in the ledger.
 
 - [x] **M2-GEN-05 Chunk data** · deps: M2-GEN-03
   - TFC: `world/chunkdata/`, `Gen data/tfc/worldgen/rock_settings`
