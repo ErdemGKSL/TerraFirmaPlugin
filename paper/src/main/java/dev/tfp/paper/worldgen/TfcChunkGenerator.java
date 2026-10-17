@@ -5,14 +5,18 @@
  */
 package dev.tfp.paper.worldgen;
 
+import dev.tfp.core.worldgen.spawn.SpawnSearch;
 import dev.tfp.paper.integration.BlockVisuals;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.generator.BiomeProvider;
@@ -42,6 +46,8 @@ public final class TfcChunkGenerator extends ChunkGenerator {
     private final Object buildLock = new Object();
     private final AtomicLong refusals = new AtomicLong();
     private volatile TfcTerrain terrain;
+    /** The spawn of the world, searched once (M2-GEN-16): null until searched, empty when no column is dry land. */
+    private volatile Optional<SpawnSearch.Spawn> spawn;
 
     /**
      * @param seed    the seed given in {@code bukkit.yml} ({@code TerraFirmaPlugin:<seed>}), or empty to use the world's seed
@@ -73,17 +79,52 @@ public final class TfcChunkGenerator extends ChunkGenerator {
 
     /** The terrain of the world: built on first use, from the configured seed or the world's seed. */
     TfcTerrain terrain(WorldInfo info) {
+        return terrain(info::getSeed);
+    }
+
+    /** The terrain of the world, from the configured seed or {@code worldSeed} (see {@link #terrain(WorldInfo)}). */
+    TfcTerrain terrain(LongSupplier worldSeed) {
         TfcTerrain built = terrain;
         if (built == null) {
             synchronized (buildLock) {
                 built = terrain;
                 if (built == null) {
-                    built = new TfcTerrain(seed.orElseGet(info::getSeed));
+                    built = new TfcTerrain(seed.orElseGet(worldSeed));
                     terrain = built;
                 }
             }
         }
         return built;
+    }
+
+    /**
+     * The spawn of the world (M2-GEN-16), searched once from the terrain of this generator and cached. Null when no column of
+     * the search is dry land: then Paper's own search applies, which may land in the sea.
+     */
+    SpawnSearch.Spawn spawn(World world) {
+        Optional<SpawnSearch.Spawn> found = spawn;
+        if (found == null) {
+            synchronized (buildLock) {
+                found = spawn;
+                if (found == null) {
+                    final TfcTerrain t = terrain(world::getSeed);
+                    found = TfcSpawn.search(seed.orElseGet(world::getSeed), t::biomeId, t::heightAt);
+                    if (found.isEmpty()) {
+                        log.warning("TFC spawn: no dry land in the spawn search of " + world.getName()
+                            + "; Paper's default spawn applies");
+                    }
+                    spawn = found;
+                }
+            }
+        }
+        return found.orElse(null);
+    }
+
+    /** The land spawn of the world (M2-GEN-16): TFC's spawn, on dry land, instead of Paper's default search. */
+    @Override
+    public Location getFixedSpawnLocation(World world, Random random) {
+        final SpawnSearch.Spawn spawn = spawn(world);
+        return spawn == null ? null : TfcSpawn.location(world, spawn);
     }
 
     /**
