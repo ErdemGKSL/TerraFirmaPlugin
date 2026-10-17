@@ -15,8 +15,8 @@ gson = "2.13.2"
 snakeyaml = "2.2"   # datagen tests only: parse generated CE YAML
 shadow = "9.6.1"
 run-paper = "3.1.0"
-# MockBukkit for Paper 1.21.4 (newest build whose POM depends on paper-api 1.21.4-R0.1-SNAPSHOT; 4.46.0 is 1.21.5); M1-TEST-02.
-mockbukkit = "4.45.1"
+# MockBukkit for Paper 1.21.11 (jar manifest Paper-Version: 1.21.11-R0.1-SNAPSHOT); M1-TEST-02.
+mockbukkit = "4.116.3"
 # Server-side only (Paper ships 2.25.2 on 1.21.11, 2.26.0 on 26.3): the itest log tap (M1-TEST-01).
 log4j = "2.25.2"
 

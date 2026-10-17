@@ -6,6 +6,7 @@
 package dev.tfp.paper.blockdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import dev.tfp.paper.blockdata.ChunkDataStoreTest.Supports;
 import dev.tfp.paper.scheduler.ThreadAssertionException;
@@ -14,9 +15,7 @@ import org.bukkit.Chunk;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.persistence.PersistentDataType;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
-import org.mockbukkit.mockbukkit.exception.UnimplementedOperationException;
 
 /**
  * M1-TEST-02 sample: the production {@link PdcChunkDataStore} (real {@code ThreadAsserts} owner check) on a
@@ -42,20 +41,12 @@ class PdcChunkDataStoreMockBukkitTest extends MockServerTest {
         assertThat(chunk.getPersistentDataContainer().get(foreign, PersistentDataType.BYTE_ARRAY)).containsExactly(7);
     }
 
-    // MockBukkit 4.45.1 has no Folia region ownership (isOwnedByCurrentRegion unimplemented); the region-thread check is covered by the in-server self-test matrix.
     @Test
     void accessFromANonOwningThreadFailsTheThreadAssertion() {
         Chunk chunk = server.addSimpleWorld("tfp_test").getChunkAt(0, 0);
         PdcChunkDataStore store = new PdcChunkDataStore();
-        RuntimeException thrown = null;
-        try {
-            offMainThread(() -> store.ids(chunk));
-        } catch (UnimplementedOperationException e) {
-            Assumptions.abort("MockBukkit 4.45.1 does not implement region ownership: " + e.getMessage());
-        } catch (ThreadAssertionException e) {
-            thrown = e;
-        }
-        assertThat(thrown).isInstanceOf(ThreadAssertionException.class)
+        assertThatThrownBy(() -> offMainThread(() -> store.ids(chunk)))
+                .isInstanceOf(ThreadAssertionException.class)
                 .hasMessageContaining("not region owner");
     }
 }
