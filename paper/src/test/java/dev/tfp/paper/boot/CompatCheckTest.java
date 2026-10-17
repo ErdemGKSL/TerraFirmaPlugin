@@ -57,9 +57,9 @@ class CompatCheckTest {
     void shippedCompatYmlMatchesThePlan() {
         CompatSpec spec = CompatCheck.loadSpec();
         assertThat(spec.java()).isEqualTo(25);
-        // Only versions run on a real server count as supported (api-version is 1.21.11, see paper-plugin.yml).
-        assertThat(spec.lowestMinecraft()).isEqualTo(Version.parse("1.21.11"));
-        assertThat(spec.minecraft()).extracting(CompatSpec.Range::toString).containsExactly("1.21.11-1.21.11", "26.3-26.3");
+        // Minimum is 1.21.4 (api-version is 1.21.4, see paper-plugin.yml; DATAPACK_DISCOVERY needs it).
+        assertThat(spec.lowestMinecraft()).isEqualTo(Version.parse("1.21.4"));
+        assertThat(spec.minecraft()).extracting(CompatSpec.Range::toString).containsExactly("1.21.4-1.21.11", "26.3-26.3");
         assertThat(spec.tested()).extracting(Version::toString).containsExactly("1.21.11", "26.3");
         assertThat(spec.plugins()).containsOnlyKeys("CraftEngine", "BetterModel", "BetterHud", "packetevents");
         // Minimums are at least the plan's floor (CE 26.9.1, BM 3.5.0, BH 2.0.0) and never above what the spikes pinned.

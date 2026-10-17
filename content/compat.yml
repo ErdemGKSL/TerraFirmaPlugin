@@ -8,12 +8,13 @@
 
 java: 25
 
-# Only versions the M0 spikes ran on a server count as supported. paper-plugin.yml pins
-# api-version to 1.21.11 (the compile API), so older 1.21.x builds can't load the jar until
-# that is verified (see docs/spikes/M0-JAR-01.md); widen this list after such a run.
+# Minimum is 1.21.4: 1.21.1-1.21.3 are refused because the bootstrap uses
+# LifecycleEvents.DATAPACK_DISCOVERY, which is missing before 1.21.4. paper-plugin.yml pins
+# api-version to 1.21.4 (the compile API). Only versions the M0 spikes ran on a server count
+# as tested; widen the supported range after a run on each new version (see docs/spikes/M0-JAR-01.md).
 minecraft:
   supported:
-    - { min: "1.21.11", max: "1.21.11" }
+    - { min: "1.21.4", max: "1.21.11" }
     - { min: "26.3", max: "26.3" }
   tested: ["1.21.11", "26.3"]
 
