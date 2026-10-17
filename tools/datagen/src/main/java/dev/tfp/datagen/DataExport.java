@@ -36,6 +36,8 @@ public final class DataExport {
     static final List<String> TFC_KINDS = List.of("tfc", "recipe", "tags");
     /** The ore vein configured features, below {@code data/<ns>/}. */
     static final String VEIN_DIR = "worldgen/configured_feature/vein";
+    /** The tree and forest entry configured features (M2-GEN-12), below {@code data/<ns>/}. */
+    static final String TREE_DIR = "worldgen/configured_feature/tree";
 
     private DataExport() {
     }
@@ -60,6 +62,12 @@ public final class DataExport {
         // M2-GEN-10: the ore vein features (hand-written by TFC's mcresources, so under src/main). The runtime reads
         // them through the vein tag order above; the DataLoader leaves worldgen/ to the datapack.
         exportTree(tfc, out, main + Json.FROM_NS + "/" + VEIN_DIR + "/", Json.FROM_NS, VEIN_DIR, counts);
+        // M2-GEN-12: the tree features, forest entries and tree structure templates (also hand-written, under src/main).
+        exportTree(tfc, out, main + Json.FROM_NS + "/" + TREE_DIR + "/", Json.FROM_NS, TREE_DIR, counts);
+        final int templates = TreeStructures.run(tfc, out);
+        if (templates > 0) {
+            counts.put(Json.TO_NS + "/worldgen/tree_structure", templates);
+        }
         DataReferences refs = DataReferences.collect(out);
         out.put("data/" + KnownIds.ID_MAP_FILE, Json.write(idMap(tfc, refs)));
         out.put("data/" + KnownIds.EXTERNAL_TAGS_FILE, Json.write(externalTags(refs)));

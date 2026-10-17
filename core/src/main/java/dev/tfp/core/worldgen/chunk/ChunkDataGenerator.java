@@ -5,7 +5,7 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/world/chunkdata/RegionChunkDataGenerator.java @ c3b4d9536 (generate, generateRock,
- * generateSurfaceRock; the forest layer, the datapack rock settings and the rock cache are not ported, see the ledger)
+ * generateSurfaceRock and the forest type lookup; the datapack rock settings and the rock cache are not ported, see the ledger)
  */
 package dev.tfp.core.worldgen.chunk;
 
@@ -21,14 +21,16 @@ import dev.tfp.core.worldgen.region.RegionPartition;
 import dev.tfp.core.worldgen.region.RiverEdge;
 import dev.tfp.core.worldgen.region.Units;
 import dev.tfp.core.worldgen.river.MidpointFractal;
+import dev.tfp.core.worldgen.tree.ForestLayers;
+import dev.tfp.core.worldgen.tree.ForestType;
 
 /**
  * Computes the chunk data of a level from its region map, and the rock layer of any position. Pure and thread-safe: the
  * values depend only on the seed, nothing is cached or persisted, and the rock layer area is built per thread.
  * <p>
  * Construct it once per {@link RegionGenerator}, right after the generator, with the same {@link Seed}: it takes its seeds
- * from that seed in TFC's order (the rock layer, then the three layer noises; TFC's forest seed is last and is not taken),
- * so the rock stack and noises match TFC.
+ * from that seed in TFC's order (the rock layer, the three layer noises, then the forest layer), so the rock stack, the
+ * noises and the forest types match TFC.
  */
 public final class ChunkDataGenerator {
     private static final int MIN_RIVER_WIDTH = 12; // Rivers must be this wide to influence rainfall
@@ -60,6 +62,7 @@ public final class ChunkDataGenerator {
     private final Noise2D layerHeightNoise;
     private final Noise2D layerSkewXNoise;
     private final Noise2D layerSkewZNoise;
+    private final ForestLayers forestLayers;
 
     public ChunkDataGenerator(RegionGenerator regionGenerator, Seed seed) {
         this.regionGenerator = regionGenerator;
@@ -67,6 +70,15 @@ public final class ChunkDataGenerator {
         this.layerHeightNoise = new OpenSimplex2D(seed.next()).octaves(3).scaled(43, 63).spread(0.014f);
         this.layerSkewXNoise = new OpenSimplex2D(seed.next()).octaves(2).scaled(-1.8f, 1.8f).spread(0.01f);
         this.layerSkewZNoise = new OpenSimplex2D(seed.next()).octaves(2).scaled(-1.8f, 1.8f).spread(0.01f);
+        this.forestLayers = new ForestLayers(seed.next());
+    }
+
+    /**
+     * The forest type of a chunk (M2-GEN-12): TFC samples the forest layer once per chunk, at {@code (blockX >> 4, blockZ >> 4)},
+     * and keeps it in the chunk data. Here it is computed on demand; the climate layers of {@link ChunkData} do not carry it.
+     */
+    public ForestType forestType(int chunkX, int chunkZ) {
+        return forestLayers.forestType(chunkX, chunkZ);
     }
 
     /** @return The chunk data of the chunk at {@code (chunkX, chunkZ)}, for any chunk coordinates, negative included. */

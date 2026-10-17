@@ -17,7 +17,6 @@ import dev.tfp.core.worldgen.chunk.PlaceholderRocks;
 import dev.tfp.core.worldgen.deposit.DepositBlock;
 import dev.tfp.core.worldgen.deposit.DepositMaterial;
 import dev.tfp.core.worldgen.deposit.Deposits;
-import dev.tfp.core.worldgen.groundcover.GroundView;
 import dev.tfp.core.worldgen.groundcover.Groundcover;
 import dev.tfp.core.worldgen.groundcover.LooseRocks;
 import dev.tfp.core.worldgen.groundcover.SaltWater;
@@ -36,6 +35,11 @@ import dev.tfp.core.worldgen.surface.SurfaceFamily;
 import dev.tfp.core.worldgen.surface.SurfaceKind;
 import dev.tfp.core.worldgen.surface.SurfaceNoise;
 import dev.tfp.core.worldgen.surface.SurfaceSlope;
+import dev.tfp.core.worldgen.tree.Forest;
+import dev.tfp.core.worldgen.tree.ForestType;
+import dev.tfp.core.worldgen.tree.TreeBlock;
+import dev.tfp.core.worldgen.tree.TreeGround;
+import dev.tfp.core.worldgen.tree.TreeView;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.BlockVisuals;
 import java.util.ArrayList;
@@ -50,6 +54,8 @@ import org.bukkit.Registry;
 import org.bukkit.block.Biome;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.FaceAttachable;
+import org.bukkit.block.data.Orientable;
+import org.bukkit.block.data.type.Leaves;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.generator.ChunkGenerator;
 
@@ -93,6 +99,8 @@ final class TfcTerrain {
     private final LooseRocks looseRocks;
     /** The deposit material of each terrain block, for the palette it was built from. */
     private volatile Map.Entry<RockPalette<BlockData>, Map<BlockData, DepositMaterial>> depositMaterials;
+    /** The trees of this world (M2-GEN-12): TFC's forest of {@code #tfp:forest_trees}. */
+    private final Forest forest;
     /** The placeholder block data by material and waterlogging. */
     private final Map<String, BlockData> placeholders = new ConcurrentHashMap<>();
 
@@ -114,6 +122,7 @@ final class TfcTerrain {
         this.indicators = new VeinIndicators(ores);
         this.shoreCover = new ShoreGroundcover(seed);
         this.looseRocks = new LooseRocks(seed);
+        this.forest = new Forest(seed, TreeResources.fromJar(TfcTerrain.class.getClassLoader()));
     }
 
     /** The palette ids of a world: the raw rocks, then the ore blocks. Any unknown id refuses the palette (no stone fallback). */
@@ -180,8 +189,9 @@ final class TfcTerrain {
      * grass, dirt, sand, gravel, snow and ice, or the rock itself), and water up to sea level over the columns below it. The
      * rock layers come from the chunk data, so the rock blocks are the CraftEngine rock palette. Rock positions that a vein
      * claims get the CraftEngine ore block of their grade and rock instead (the veins of neighbouring chunks reach in, but only
-     * this chunk's positions are decided). Then the decorations of M2-GEN-11, in TFC's step order: the deposits (ore deposits in
-     * riverbeds, clay and peat), the vein indicators, the shore groundcover and the loose rocks (see {@link #decorate}).
+     * this chunk's positions are decided). Then the decorations of M2-GEN-11 and M2-GEN-12, in TFC's step order: the deposits
+     * (ore deposits in riverbeds, clay and peat), the vein indicators, the trees, the shore groundcover and the loose rocks (see
+     * {@link #decorate}).
      * Requires a resolved palette. Writes only this chunk's blocks, and only from the worldgen worker.
      */
     void fill(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, RockPalette<BlockData> palette) {
@@ -225,11 +235,13 @@ final class TfcTerrain {
     }
 
     /**
-     * The groundcover and deposits of one chunk (M2-GEN-11). The decisions are pure (core {@code groundcover} and
-     * {@code deposit}); they read the terrain through a {@link Ground} view of the neighbouring columns and only return
-     * blocks of this chunk. The deposits replace the terrain block they name when it is still that material; each groundcover
-     * block goes on its position only while that is air or water, so an earlier feature keeps a contested position. Every
-     * block is a vanilla placeholder ({@link GroundcoverBlocks}).
+     * The groundcover, deposits and trees of one chunk (M2-GEN-11, M2-GEN-12). The decisions are pure (core {@code groundcover},
+     * {@code deposit} and {@code tree}); they read the terrain through a {@link Ground} view of the neighbouring columns and
+     * only return blocks of this chunk. The deposits replace the terrain block they name when it is still that material; each
+     * groundcover block goes on its position only while that is air or water, so an earlier feature keeps a contested
+     * position. The trees are TFC's large features, between the vein indicators and the shore groundcover: the trees of this
+     * chunk and its 8 neighbours are decided, and only their blocks inside this chunk are written ({@link TreeBlocks#write}).
+     * Every block is a vanilla placeholder ({@link GroundcoverBlocks}, {@link TreeBlocks}).
      */
     private void decorate(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, int[] heights, ChunkData climate,
                           RockPalette<BlockData> palette) {
@@ -242,10 +254,7 @@ final class TfcTerrain {
             data.setBlock(block.x() & 15, block.y(), block.z() & 15, placeholderData(GroundcoverBlocks.placeholder(block), false));
         }
         final List<Groundcover> covers = new ArrayList<>();
-        indicators.place(chunkX, chunkZ, view, view::rock, covers);
-        shoreCover.place(chunkX, chunkZ, view, covers);
-        looseRocks.place(chunkX, chunkZ, view, covers);
-        GroundcoverBlocks.write(covers, chunkX, chunkZ, minY, maxY, new GroundcoverBlocks.Target() {
+        final GroundcoverBlocks.Target coverTarget = new GroundcoverBlocks.Target() {
             @Override
             public boolean free(int localX, int y, int localZ) {
                 final Material type = data.getType(localX, y, localZ);
@@ -257,6 +266,47 @@ final class TfcTerrain {
                 data.setBlock(localX, y, localZ, placeholderData(GroundcoverBlocks.placeholder(cover.kind(), cover.waterlogged()),
                     cover.waterlogged()));
             }
+        };
+        indicators.place(chunkX, chunkZ, view, view::rock, covers);
+        GroundcoverBlocks.write(covers, chunkX, chunkZ, minY, maxY, coverTarget);
+        final List<Forest.Placed> trees = new ArrayList<>();
+        forest.place(chunkX, chunkZ, view, trees::add);
+        TreeBlocks.write(trees, chunkX, chunkZ, minY, maxY, new TreeBlocks.Target() {
+            @Override
+            public Material type(int localX, int y, int localZ) {
+                return data.getType(localX, y, localZ);
+            }
+
+            @Override
+            public void place(int localX, int y, int localZ, TreeBlock block) {
+                data.setBlock(localX, y, localZ, treeData(block));
+            }
+        });
+        covers.clear();
+        shoreCover.place(chunkX, chunkZ, view, covers);
+        looseRocks.place(chunkX, chunkZ, view, covers);
+        GroundcoverBlocks.write(covers, chunkX, chunkZ, minY, maxY, coverTarget);
+    }
+
+    /**
+     * The block data of a tree block's placeholder: logs and wood with their axis; leaves persistent, because vanilla leaves
+     * placed in a chunk keep distance 7 and would decay (TFC's own leaves are not persistent; ledger).
+     */
+    private BlockData treeData(TreeBlock block) {
+        final Material material = TreeBlocks.placeholder(block);
+        return placeholders.computeIfAbsent("tree/" + material.name() + "/" + block.axis(), k -> {
+            final BlockData out = material.createBlockData();
+            if (out instanceof Orientable o) {
+                o.setAxis(switch (block.axis()) {
+                    case X -> org.bukkit.Axis.X;
+                    case Y -> org.bukkit.Axis.Y;
+                    case Z -> org.bukkit.Axis.Z;
+                });
+            }
+            if (out instanceof Leaves leaves) {
+                leaves.setPersistent(true);
+            }
+            return out;
         });
     }
 
@@ -298,11 +348,12 @@ final class TfcTerrain {
     }
 
     /**
-     * The terrain as the groundcover and deposit decisions read it, for any column: the placeholder heights, the chunk data
-     * (with the groundwater modified by the heights, as in {@link #fill}), the biome, the surface of a column and its rocks.
+     * The terrain as the groundcover, deposit and tree decisions read it, for any column: the placeholder heights, the chunk
+     * data (with the groundwater modified by the heights, as in {@link #fill}), the biome, the surface of a column and its
+     * rocks, and the forest type of a chunk.
      * Built per chunk on the worldgen worker and confined to it; the neighbouring chunks' values are computed on demand.
      */
-    private final class Ground implements GroundView {
+    private final class Ground implements TreeView {
         private final int chunkX;
         private final int chunkZ;
         private final int[] ownHeights;
@@ -436,6 +487,40 @@ final class TfcTerrain {
         @Override
         public double tideLevel(int x, int z) {
             return shoreTide.noise(x, z);
+        }
+
+        /**
+         * The terrain block class as {@link #fill} writes it: water (salt in salty biomes, as the groundcover reads it) up to
+         * sea level over the column, the surface kinds, and raw rock ({@code c:stones}) below. Caves are not carved yet.
+         */
+        @Override
+        public TreeGround ground(int x, int y, int z) {
+            final int top = top(x, z);
+            if (y > top) {
+                return y > ChunkData.SEA_LEVEL_Y ? TreeGround.AIR : saltWater(x, z) ? TreeGround.SALT_WATER : TreeGround.WATER;
+            }
+            if (y <= minY) {
+                return TreeGround.SOLID;
+            }
+            final SurfaceKind kind = surface(x, z).kind(y);
+            if (kind == null) {
+                return TreeGround.STONE;
+            }
+            return switch (kind) {
+                case ROCK_SURFACE -> TreeGround.STONE;
+                case GRASS -> TreeGround.GRASS;
+                case DIRT -> TreeGround.DIRT;
+                case COARSE_DIRT -> TreeGround.COARSE_DIRT;
+                case MUD -> TreeGround.MUD;
+                case GRAVEL -> TreeGround.GRAVEL;
+                case SAND -> TreeGround.SAND;
+                case SANDSTONE, SNOW, PACKED_ICE -> TreeGround.SOLID;
+            };
+        }
+
+        @Override
+        public ForestType forestType(int chunkX, int chunkZ) {
+            return chunks.forestType(chunkX, chunkZ);
         }
     }
 
