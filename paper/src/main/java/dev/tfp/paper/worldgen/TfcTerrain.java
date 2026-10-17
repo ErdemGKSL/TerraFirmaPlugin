@@ -42,7 +42,9 @@ import dev.tfp.core.worldgen.tree.Forest;
 import dev.tfp.core.worldgen.tree.ForestType;
 import dev.tfp.core.worldgen.tree.TreeBlock;
 import dev.tfp.core.worldgen.tree.TreeGround;
-import dev.tfp.core.worldgen.tree.TreeView;
+import dev.tfp.core.worldgen.volcano.VolcanoBlock;
+import dev.tfp.core.worldgen.volcano.VolcanoView;
+import dev.tfp.core.worldgen.volcano.Volcanoes;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.BlockVisuals;
 import java.util.ArrayList;
@@ -110,6 +112,8 @@ final class TfcTerrain {
     private final Forest forest;
     /** The plants, wild crops and corals of this world (M2-GEN-13). */
     private final Plants plants;
+    /** The cinder cones, calderas, volcano fissures and hot springs of this world (M2-GEN-14). */
+    private final Volcanoes volcanoes;
     /** The placeholder block data by material and waterlogging. */
     private final Map<String, BlockData> placeholders = new ConcurrentHashMap<>();
 
@@ -133,6 +137,28 @@ final class TfcTerrain {
         this.looseRocks = new LooseRocks(seed);
         this.forest = new Forest(seed, TreeResources.fromJar(TfcTerrain.class.getClassLoader()));
         this.plants = new Plants(seed, PlantResources.fromJar(TfcTerrain.class.getClassLoader()));
+        this.volcanoes = new Volcanoes(seed);
+    }
+
+    /**
+     * The surface height of a column: the placeholder height with TFC's cinder cones raised over it (M2-GEN-14; the cones'
+     * biome is the biome at their cell's center). Any thread.
+     */
+    int heightAt(int x, int z) {
+        return coneHeight(PlaceholderHeights.heightAt(regions, x, z), x, z);
+    }
+
+    /** The surface heights of a chunk, {@code x + 16z}, as {@link #heightAt} gives them. Any thread. */
+    int[] heights(int chunkX, int chunkZ) {
+        final int[] heights = PlaceholderHeights.heights(regions, chunkX, chunkZ);
+        for (int i = 0; i < heights.length; i++) {
+            heights[i] = coneHeight(heights[i], (chunkX << 4) + (i & 15), (chunkZ << 4) + (i >> 4));
+        }
+        return heights;
+    }
+
+    private int coneHeight(int height, int x, int z) {
+        return (int) Math.round(volcanoes.cones().adjustHeight(height, x, z, this::biomeId));
     }
 
     /** The palette ids of a world: the raw rocks, then the ore blocks. Any unknown id refuses the palette (no stone fallback). */
@@ -200,15 +226,16 @@ final class TfcTerrain {
      * rock layers come from the chunk data, so the rock blocks are the CraftEngine rock palette. Rock positions that a vein
      * claims get the CraftEngine ore block of their grade and rock instead (the veins of neighbouring chunks reach in, but only
      * this chunk's positions are decided). Then the decorations of M2-GEN-11 to M2-GEN-13, in TFC's step order: the deposits
-     * (ore deposits in riverbeds, clay and peat), the vein indicators, the trees, the corals, the plants and wild crops, the
-     * shore groundcover and the loose rocks (see {@link #decorate}).
+     * (ore deposits in riverbeds, clay and peat), the vein indicators, the trees, the volcano calderas and fissures and the hot
+     * springs (M2-GEN-14), the corals, the plants and wild crops, the shore groundcover and the loose rocks (see
+     * {@link #decorate}). The surface heights carry TFC's cinder cones ({@link #heights}).
      * Requires a resolved palette. Writes only this chunk's blocks, and only from the worldgen worker.
      */
     void fill(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, RockPalette<BlockData> palette) {
-        final int[] heights = PlaceholderHeights.heights(regions, chunkX, chunkZ);
+        final int[] heights = heights(chunkX, chunkZ);
         // The climate of the chunk, with the groundwater that the surface heights remove from the rivers' share
         final ChunkData climate = chunks.generate(chunkX, chunkZ).modifyBaseGroundwater(heights);
-        final double[] slopes = SurfaceSlope.slopeMap(chunkX << 4, chunkZ << 4, (x, z) -> PlaceholderHeights.heightAt(regions, x, z));
+        final double[] slopes = SurfaceSlope.slopeMap(chunkX << 4, chunkZ << 4, this::heightAt);
         final int minY = data.getMinHeight();
         final int sea = ChunkData.SEA_LEVEL_Y;
         final Aquifer aquifer = new Aquifer(chunkX, chunkZ, minY, sea, aquiferFork, NO_BARRIER, aquiferSurfaceHeights(chunkX, chunkZ, heights));
@@ -294,6 +321,20 @@ final class TfcTerrain {
                 data.setBlock(localX, y, localZ, treeData(block));
             }
         });
+        // M2-GEN-14: the cinder cones' calderas and fissures and the hot springs (large features, after the forest)
+        final List<VolcanoBlock> volcanic = new ArrayList<>();
+        volcanoes.place(chunkX, chunkZ, view, volcanic::add);
+        VolcanoBlocks.write(volcanic, chunkX, chunkZ, minY, maxY, new VolcanoBlocks.Target() {
+            @Override
+            public Material type(int localX, int y, int localZ) {
+                return data.getType(localX, y, localZ);
+            }
+
+            @Override
+            public void place(int localX, int y, int localZ, VolcanoBlock block) {
+                data.setBlock(localX, y, localZ, volcanoData(block, palette));
+            }
+        });
         // M2-GEN-13: the corals (large features, after the forest), then the plants of the surface decoration step, which
         // shore biomes list before their shore groundcover
         final PlantBlocks.Target plantTarget = new PlantBlocks.Target() {
@@ -316,6 +357,25 @@ final class TfcTerrain {
         shoreCover.place(chunkX, chunkZ, view, covers);
         looseRocks.place(chunkX, chunkZ, view, covers);
         GroundcoverBlocks.write(covers, chunkX, chunkZ, minY, maxY, coverTarget);
+    }
+
+    /**
+     * The block data of a volcano block (M2-GEN-14): the palette's rock for the rock kinds (the gem ore when the palette has
+     * it), else the vanilla placeholder ({@link VolcanoBlocks}).
+     */
+    private BlockData volcanoData(VolcanoBlock block, RockPalette<BlockData> palette) {
+        final Material material = VolcanoBlocks.placeholder(block.kind());
+        if (material != null) {
+            return switch (block.kind()) {
+                case AIR -> air;
+                case LAVA -> lava;
+                case SPRING_WATER -> water;
+                default -> placeholderData(material, false);
+            };
+        }
+        final String gem = VolcanoBlocks.gemOreId(block);
+        final int gemIndex = gem == null ? -1 : paletteIds.indexOf(gem);
+        return palette.block(gemIndex >= 0 ? gemIndex : block.rock());
     }
 
     /**
@@ -412,7 +472,7 @@ final class TfcTerrain {
      * rocks, and the forest type of a chunk.
      * Built per chunk on the worldgen worker and confined to it; the neighbouring chunks' values are computed on demand.
      */
-    private final class Ground implements TreeView {
+    private final class Ground implements VolcanoView {
         private final int chunkX;
         private final int chunkZ;
         private final int[] ownHeights;
@@ -439,7 +499,7 @@ final class TfcTerrain {
             if (cx == chunkX && cz == chunkZ) {
                 return ownHeights;
             }
-            return heights.computeIfAbsent(key(cx, cz), k -> PlaceholderHeights.heights(regions, cx, cz));
+            return heights.computeIfAbsent(key(cx, cz), k -> heights(cx, cz));
         }
 
         private ChunkData climateOf(int x, int z) {
@@ -461,7 +521,7 @@ final class TfcTerrain {
                 final int cx = x >> 4;
                 final int cz = z >> 4;
                 final double[] slope = slopes.computeIfAbsent(key(cx, cz),
-                    s -> SurfaceSlope.slopeMap(cx << 4, cz << 4, (hx, hz) -> PlaceholderHeights.heightAt(regions, hx, hz)));
+                    s -> SurfaceSlope.slopeMap(cx << 4, cz << 4, TfcTerrain.this::heightAt));
                 final int top = top(x, z);
                 return ColumnSurface.build(SurfaceFamily.forBiome(biomeId(x, z)).builder(),
                     column(x, z, top, climateOf(x, z), SurfaceSlope.sample(slope, x & 15, z & 15)), top, minY);
@@ -582,6 +642,13 @@ final class TfcTerrain {
         public ForestType forestType(int chunkX, int chunkZ) {
             return chunks.forestType(chunkX, chunkZ);
         }
+
+        /** The rock of the rock layers at a position ({@code RockData.getRock}), whatever block the column holds there. */
+        @Override
+        public int rockAt(int x, int y, int z) {
+            final ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, top(x, z));
+            return PlaceholderRocks.index(rock.point(), rock.layer());
+        }
     }
 
     /** Whether a rock position is inside a cave's tunnel shape. See {@link #IN_CAVE}. */
@@ -607,7 +674,7 @@ final class TfcTerrain {
         final int[] out = new int[16];
         for (int dz = -1; dz <= 1; dz++) {
             for (int dx = -1; dx <= 1; dx++) {
-                final int[] h = dx == 0 && dz == 0 ? own : PlaceholderHeights.heights(regions, chunkX + dx, chunkZ + dz);
+                final int[] h = dx == 0 && dz == 0 ? own : heights(chunkX + dx, chunkZ + dz);
                 int min = Integer.MAX_VALUE;
                 for (int v : h) {
                     min = Math.min(min, v);
