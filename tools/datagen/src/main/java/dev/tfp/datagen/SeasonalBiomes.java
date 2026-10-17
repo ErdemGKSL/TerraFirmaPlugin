@@ -81,10 +81,9 @@ final class SeasonalBiomes {
         e.addProperty("foliage_color", foliage);
         e.addProperty("water_color", water);
         b.add("effects", e);
-        JsonObject carvers = new JsonObject();
-        carvers.add("air", new JsonArray());
-        carvers.add("liquid", new JsonArray());
-        b.add("carvers", carvers);
+        // Minecraft 1.21 reads a biome's carvers as a list of carver ids (a HolderSet), e.g. ["minecraft:cave"] in
+        // vanilla badlands.json; the variants have no terrain, so the empty list is the correct "no carvers" form.
+        b.add("carvers", new JsonArray());
         JsonArray features = new JsonArray();
         for (int i = 0; i < FEATURE_STEPS; i++) {
             features.add(new JsonArray());
