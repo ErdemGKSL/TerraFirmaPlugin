@@ -14,6 +14,15 @@ import dev.tfp.core.worldgen.chunk.ChunkData;
 import dev.tfp.core.worldgen.chunk.ChunkDataGenerator;
 import dev.tfp.core.worldgen.chunk.PlaceholderHeights;
 import dev.tfp.core.worldgen.chunk.PlaceholderRocks;
+import dev.tfp.core.worldgen.deposit.DepositBlock;
+import dev.tfp.core.worldgen.deposit.DepositMaterial;
+import dev.tfp.core.worldgen.deposit.Deposits;
+import dev.tfp.core.worldgen.groundcover.GroundView;
+import dev.tfp.core.worldgen.groundcover.Groundcover;
+import dev.tfp.core.worldgen.groundcover.LooseRocks;
+import dev.tfp.core.worldgen.groundcover.SaltWater;
+import dev.tfp.core.worldgen.groundcover.ShoreGroundcover;
+import dev.tfp.core.worldgen.groundcover.VeinIndicators;
 import dev.tfp.core.worldgen.noise.Noise2D;
 import dev.tfp.core.worldgen.ore.OreVeins;
 import dev.tfp.core.worldgen.ore.VeinBlock;
@@ -34,11 +43,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.block.Biome;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.FaceAttachable;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.generator.ChunkGenerator;
 
 /**
@@ -74,6 +86,15 @@ final class TfcTerrain {
     /** The palette ids: {@link #ROCK_IDS}, then the ore blocks ({@link OreVeins#oreIds()}) from index {@code ROCK_IDS.size()}. */
     private final List<String> paletteIds;
     private volatile RockPalette<BlockData> palette;
+    /** The groundcover and deposit decisions of this world (M2-GEN-11), in TFC's decoration step order. */
+    private final Deposits deposits;
+    private final VeinIndicators indicators;
+    private final ShoreGroundcover shoreCover;
+    private final LooseRocks looseRocks;
+    /** The deposit material of each terrain block, for the palette it was built from. */
+    private volatile Map.Entry<RockPalette<BlockData>, Map<BlockData, DepositMaterial>> depositMaterials;
+    /** The placeholder block data by material and waterlogging. */
+    private final Map<String, BlockData> placeholders = new ConcurrentHashMap<>();
 
     /**
      * @param seed the level seed. The region generator and the chunk data generator share one {@link Seed}, in that order,
@@ -89,6 +110,10 @@ final class TfcTerrain {
         this.biomeList = Arrays.stream(biomes).distinct().toList();
         this.ores = new OreVeins(seed, OreVeinResources.fromJar(TfcTerrain.class.getClassLoader()), ROCK_IDS);
         this.paletteIds = paletteIds(ores);
+        this.deposits = new Deposits(seed);
+        this.indicators = new VeinIndicators(ores);
+        this.shoreCover = new ShoreGroundcover(seed);
+        this.looseRocks = new LooseRocks(seed);
     }
 
     /** The palette ids of a world: the raw rocks, then the ore blocks. Any unknown id refuses the palette (no stone fallback). */
@@ -155,8 +180,9 @@ final class TfcTerrain {
      * grass, dirt, sand, gravel, snow and ice, or the rock itself), and water up to sea level over the columns below it. The
      * rock layers come from the chunk data, so the rock blocks are the CraftEngine rock palette. Rock positions that a vein
      * claims get the CraftEngine ore block of their grade and rock instead (the veins of neighbouring chunks reach in, but only
-     * this chunk's positions are decided). Requires a resolved palette. Writes only this chunk's blocks, and only from the
-     * worldgen worker.
+     * this chunk's positions are decided). Then the decorations of M2-GEN-11, in TFC's step order: the deposits (ore deposits in
+     * riverbeds, clay and peat), the vein indicators, the shore groundcover and the loose rocks (see {@link #decorate}).
+     * Requires a resolved palette. Writes only this chunk's blocks, and only from the worldgen worker.
      */
     void fill(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, RockPalette<BlockData> palette) {
         final int[] heights = PlaceholderHeights.heights(regions, chunkX, chunkZ);
@@ -194,6 +220,222 @@ final class TfcTerrain {
                     data.setBlock(lx, y, lz, water);
                 }
             }
+        }
+        decorate(data, chunkX, chunkZ, heights, climate, palette);
+    }
+
+    /**
+     * The groundcover and deposits of one chunk (M2-GEN-11). The decisions are pure (core {@code groundcover} and
+     * {@code deposit}); they read the terrain through a {@link Ground} view of the neighbouring columns and only return
+     * blocks of this chunk. The deposits replace the terrain block they name when it is still that material; each groundcover
+     * block goes on its position only while that is air or water, so an earlier feature keeps a contested position. Every
+     * block is a vanilla placeholder ({@link GroundcoverBlocks}).
+     */
+    private void decorate(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, int[] heights, ChunkData climate,
+                          RockPalette<BlockData> palette) {
+        final int minY = data.getMinHeight();
+        final int maxY = data.getMaxHeight();
+        final Ground view = new Ground(chunkX, chunkZ, heights, climate, minY);
+        final Map<BlockData, DepositMaterial> materials = depositMaterials(palette);
+        for (DepositBlock block : deposits.chunk(chunkX, chunkZ, view,
+            (x, y, z) -> y < minY || y >= maxY ? null : materials.get(data.getBlockData(x & 15, y, z & 15)))) {
+            data.setBlock(block.x() & 15, block.y(), block.z() & 15, placeholderData(GroundcoverBlocks.placeholder(block), false));
+        }
+        final List<Groundcover> covers = new ArrayList<>();
+        indicators.place(chunkX, chunkZ, view, view::rock, covers);
+        shoreCover.place(chunkX, chunkZ, view, covers);
+        looseRocks.place(chunkX, chunkZ, view, covers);
+        GroundcoverBlocks.write(covers, chunkX, chunkZ, minY, maxY, new GroundcoverBlocks.Target() {
+            @Override
+            public boolean free(int localX, int y, int localZ) {
+                final Material type = data.getType(localX, y, localZ);
+                return type == Material.AIR || type == Material.CAVE_AIR || type == Material.WATER;
+            }
+
+            @Override
+            public void place(int localX, int y, int localZ, Groundcover cover) {
+                data.setBlock(localX, y, localZ, placeholderData(GroundcoverBlocks.placeholder(cover.kind(), cover.waterlogged()),
+                    cover.waterlogged()));
+            }
+        });
+    }
+
+    /**
+     * The deposit material of each terrain block: the rocks and ores of the palette are raw rock (TFC places the deposits
+     * before the veins, so a deep deposit takes the place of an ore), and the vanilla gravel, dirt, grass and mud of the
+     * surface are what they are.
+     */
+    private Map<BlockData, DepositMaterial> depositMaterials(RockPalette<BlockData> palette) {
+        final Map.Entry<RockPalette<BlockData>, Map<BlockData, DepositMaterial>> current = depositMaterials;
+        if (current != null && current.getKey() == palette) {
+            return current.getValue();
+        }
+        final Map<BlockData, DepositMaterial> out = new HashMap<>();
+        for (int i = 0; i < paletteIds.size(); i++) {
+            out.put(palette.block(i), DepositMaterial.RAW_ROCK);
+        }
+        out.put(surfaceBlocks[SurfaceKind.GRAVEL.ordinal()], DepositMaterial.GRAVEL);
+        out.put(surfaceBlocks[SurfaceKind.DIRT.ordinal()], DepositMaterial.DIRT);
+        out.put(surfaceBlocks[SurfaceKind.GRASS.ordinal()], DepositMaterial.GRASS);
+        out.put(surfaceBlocks[SurfaceKind.MUD.ordinal()], DepositMaterial.MUD);
+        final Map<BlockData, DepositMaterial> table = Map.copyOf(out);
+        depositMaterials = Map.entry(palette, table);
+        return table;
+    }
+
+    /** The block data of a placeholder: buttons on the floor, waterloggable blocks filled when the position holds water. */
+    private BlockData placeholderData(Material material, boolean waterlogged) {
+        return placeholders.computeIfAbsent(material.name() + (waterlogged ? "/w" : ""), k -> {
+            final BlockData out = material.createBlockData();
+            if (out instanceof FaceAttachable attachable) {
+                attachable.setAttachedFace(FaceAttachable.AttachedFace.FLOOR);
+            }
+            if (out instanceof Waterlogged w) {
+                w.setWaterlogged(waterlogged);
+            }
+            return out;
+        });
+    }
+
+    /**
+     * The terrain as the groundcover and deposit decisions read it, for any column: the placeholder heights, the chunk data
+     * (with the groundwater modified by the heights, as in {@link #fill}), the biome, the surface of a column and its rocks.
+     * Built per chunk on the worldgen worker and confined to it; the neighbouring chunks' values are computed on demand.
+     */
+    private final class Ground implements GroundView {
+        private final int chunkX;
+        private final int chunkZ;
+        private final int[] ownHeights;
+        private final ChunkData ownClimate;
+        private final int minY;
+        private final Map<Long, int[]> heights = new HashMap<>();
+        private final Map<Long, ChunkData> climates = new HashMap<>();
+        private final Map<Long, double[]> slopes = new HashMap<>();
+        private final Map<Long, ColumnSurface> surfaces = new HashMap<>();
+
+        Ground(int chunkX, int chunkZ, int[] ownHeights, ChunkData ownClimate, int minY) {
+            this.chunkX = chunkX;
+            this.chunkZ = chunkZ;
+            this.ownHeights = ownHeights;
+            this.ownClimate = ownClimate;
+            this.minY = minY;
+        }
+
+        private static long key(int a, int b) {
+            return ((long) a << 32) | (b & 0xFFFFFFFFL);
+        }
+
+        private int[] heightsOf(int cx, int cz) {
+            if (cx == chunkX && cz == chunkZ) {
+                return ownHeights;
+            }
+            return heights.computeIfAbsent(key(cx, cz), k -> PlaceholderHeights.heights(regions, cx, cz));
+        }
+
+        private ChunkData climateOf(int x, int z) {
+            final int cx = x >> 4;
+            final int cz = z >> 4;
+            if (cx == chunkX && cz == chunkZ) {
+                return ownClimate;
+            }
+            return climates.computeIfAbsent(key(cx, cz), k -> chunks.generate(cx, cz).modifyBaseGroundwater(heightsOf(cx, cz)));
+        }
+
+        int top(int x, int z) {
+            return heightsOf(x >> 4, z >> 4)[(x & 15) + 16 * (z & 15)];
+        }
+
+        /** The surface of a column, as {@link #fill} builds it. */
+        private ColumnSurface surface(int x, int z) {
+            return surfaces.computeIfAbsent(key(x, z), k -> {
+                final int cx = x >> 4;
+                final int cz = z >> 4;
+                final double[] slope = slopes.computeIfAbsent(key(cx, cz),
+                    s -> SurfaceSlope.slopeMap(cx << 4, cz << 4, (hx, hz) -> PlaceholderHeights.heightAt(regions, hx, hz)));
+                final int top = top(x, z);
+                return ColumnSurface.build(SurfaceFamily.forBiome(biomeId(x, z)).builder(),
+                    column(x, z, top, climateOf(x, z), SurfaceSlope.sample(slope, x & 15, z & 15)), top, minY);
+            });
+        }
+
+        /** The rock index at a position, or -1 where the column holds no rock there (above the top, or a surface block). */
+        int rock(int x, int y, int z) {
+            final int top = top(x, z);
+            if (y > top || y <= minY) {
+                return -1;
+            }
+            final SurfaceKind kind = surface(x, z).kind(y);
+            if (kind != null && kind != SurfaceKind.ROCK_SURFACE) {
+                return -1;
+            }
+            final ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, top);
+            return PlaceholderRocks.index(rock.point(), rock.layer());
+        }
+
+        @Override
+        public int minY() {
+            return minY;
+        }
+
+        @Override
+        public int seaLevel() {
+            return ChunkData.SEA_LEVEL_Y;
+        }
+
+        @Override
+        public int oceanFloor(int x, int z) {
+            return top(x, z) + 1;
+        }
+
+        @Override
+        public int worldSurface(int x, int z) {
+            return Math.max(top(x, z), ChunkData.SEA_LEVEL_Y) + 1;
+        }
+
+        @Override
+        public boolean onIce(int x, int z) {
+            return surface(x, z).kind(top(x, z)) == SurfaceKind.PACKED_ICE;
+        }
+
+        @Override
+        public boolean saltWater(int x, int z) {
+            return SaltWater.isSalty(biomeId(x, z));
+        }
+
+        @Override
+        public int surfaceRock(int x, int z) {
+            final ChunkDataGenerator.RockSample rock = chunks.generateSurfaceRock(x, z);
+            return PlaceholderRocks.index(rock.point(), rock.layer());
+        }
+
+        @Override
+        public int biome(int x, int z) {
+            return biomeId(x, z);
+        }
+
+        @Override
+        public float averageTemperature(int x, int z) {
+            return climateOf(x, z).averageSeaLevelTemperature(x, z);
+        }
+
+        @Override
+        public float averageRainfall(int x, int z) {
+            return climateOf(x, z).averageRainfall(x, z);
+        }
+
+        @Override
+        public float groundwater(int x, int z) {
+            return climateOf(x, z).averageGroundwater(x, z);
+        }
+
+        @Override
+        public float rainVariance(int x, int z) {
+            return climateOf(x, z).rainVariance(x, z);
+        }
+
+        @Override
+        public double tideLevel(int x, int z) {
+            return shoreTide.noise(x, z);
         }
     }
 

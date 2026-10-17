@@ -127,6 +127,7 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
 - [ ] **M2-GEN-11 Loose rocks, groundcover & deposits** · deps: M2-GEN-10
   - TFC: `world/feature/` (groundcover/boulders), `common/blocks/GroundcoverBlock(Type).java`, `common/blocks/rock/LooseRockBlock.java`, data `deposit/`
   - Done when: surface indicators appear above veins (small ores, loose rocks), and deposits appear in riverbeds.
+  - Status (@claude): rules and glue done. `core/worldgen/groundcover/` (`LooseRocks`, `VeinIndicators`, `ShoreGroundcover`, `ClimateFilter`, `SaltWater`) and `core/worldgen/deposit/` (`Deposits`, `SoilDisc`, `Metaballs2D`): the pure decisions per chunk, read through a `GroundView`; `TfcTerrain.fill` writes them for its own chunk only, in TFC's step order, as vanilla placeholders (no CE groundcover/deposit blocks yet). `GroundcoverGoldenTest` matches TFC's oracle exactly (92 golden hashes); property and Paper wiring tests green. Open: the CE blocks, underground loose rocks and indicators (caves), guano, water clay, rooted dirt and mollisol discs, the server check and the visual checklist. Divergences in the ledger.
 
 - [ ] **M2-GEN-12 Trees** · deps: M2-GEN-07
   - TFC: `world/feature/tree/`, structures `src/main/resources/data/tfc/structure/<wood>{,_dead,_large}/*.nbt`, `common/blocks/wood/`

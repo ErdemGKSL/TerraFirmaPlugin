@@ -23,11 +23,18 @@ import java.util.Map;
  * @param size    the half-size of the vein's box, and the scale of its metaballs
  * @param seed    the vein's seed: {@link #hash} of its {@code random_name}, or the long given there
  * @param blocks  the weighted blocks per replaced block id (the raw rock ids)
+ * @param indicator the surface indicator of the type, or null when it has none
  */
 public record ClusterVeinConfig(String name, int rarity, float density, int minY, int maxY, int size, long seed,
-                                Map<String, Weighted<VeinBlock>> blocks) {
+                                Map<String, Weighted<VeinBlock>> blocks, Indicator indicator) {
     public ClusterVeinConfig {
         blocks = Map.copyOf(blocks);
+    }
+
+    /** A type without an indicator. */
+    public ClusterVeinConfig(String name, int rarity, float density, int minY, int maxY, int size, long seed,
+                             Map<String, Weighted<VeinBlock>> blocks) {
+        this(name, rarity, density, minY, maxY, size, seed, blocks, null);
     }
 
     /** {@code IVeinConfig.chunkRadius}: how many chunks away the vein's centre can be and still reach a chunk. */

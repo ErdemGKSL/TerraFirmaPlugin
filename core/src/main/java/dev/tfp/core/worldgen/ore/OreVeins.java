@@ -121,6 +121,20 @@ public final class OreVeins {
         }
     }
 
+    /**
+     * One vein's box in a chunk, inclusive.
+     *
+     * @param config the index of the vein type in {@link #configs()}
+     * @param vein   the vein
+     */
+    public record Box(int config, ClusterVein vein, int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {}
+
+    /** The rock at a block position, as a rock index, or a negative value where the position holds no rock. */
+    @FunctionalInterface
+    public interface RockAt {
+        int rock(int x, int y, int z);
+    }
+
     /** The decisions of one chunk. Immutable; any thread. */
     public final class Chunk {
         private final int chunkX;
@@ -141,6 +155,43 @@ public final class OreVeins {
         /** The number of (vein, chunk) boxes tried per position, for tests and statistics. */
         public int veinCount() {
             return entries.length;
+        }
+
+        /** The vein boxes of this chunk, in decision order: each covering vein, clipped to the chunk and its type's heights. */
+        public List<Box> boxes() {
+            final List<Box> out = new ArrayList<>(entries.length);
+            for (Entry e : entries) {
+                out.add(new Box(e.config(), e.vein(), e.box()[0], e.box()[1], e.box()[2], e.box()[3], e.box()[4], e.box()[5]));
+            }
+            return out;
+        }
+
+        /**
+         * The highest y of a column of this chunk where the decision is a block of vein type {@code config}, which is TFC's
+         * {@code maxVeinY} of the column; {@link Integer#MIN_VALUE} when the type places nothing there.
+         *
+         * @param rocks the rock index at a position, or a negative value where there is no rock (soil, air, water)
+         */
+        public int highestOre(int config, int x, int z, RockAt rocks) {
+            int top = Integer.MIN_VALUE;
+            int bottom = Integer.MAX_VALUE;
+            for (Entry e : entries) {
+                if (e.config() == config && x >= e.box()[0] && x <= e.box()[1] && z >= e.box()[4] && z <= e.box()[5]) {
+                    top = Math.max(top, e.box()[3]);
+                    bottom = Math.min(bottom, e.box()[2]);
+                }
+            }
+            final String name = configs.get(config).name();
+            for (int y = top; y >= bottom && top != Integer.MIN_VALUE; y--) {
+                final int rock = rocks.rock(x, y, z);
+                if (rock >= 0) {
+                    final VeinBlock block = decide(x, y, z, rock);
+                    if (block != null && block.vein().equals(name)) {
+                        return y;
+                    }
+                }
+            }
+            return Integer.MIN_VALUE;
         }
 
         /**

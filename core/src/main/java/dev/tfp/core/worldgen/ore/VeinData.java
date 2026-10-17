@@ -5,7 +5,7 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/world/feature/vein/VeinConfig.java @ c3b4d9536 (CODEC), with ClusterVeinConfig.java
- * (CODEC) and src/main/java/net/dries007/tfc/world/Codecs.java (BLOCK_TO_WEIGHTED_BLOCKSTATE, weightedCodec).
+ * (CODEC), Indicator.java (CODEC) and src/main/java/net/dries007/tfc/world/Codecs.java (BLOCK_TO_WEIGHTED_BLOCKSTATE, weightedCodec).
  */
 package dev.tfp.core.worldgen.ore;
 
@@ -89,7 +89,31 @@ public final class VeinData {
         final JsonPrimitive randomName = c.getAsJsonPrimitive("random_name");
         final long seed = randomName.isString() ? ClusterVeinConfig.hash(randomName.getAsString()) : randomName.getAsLong();
         return Optional.of(new ClusterVeinConfig(name, rarity, density, c.get("min_y").getAsInt(), c.get("max_y").getAsInt(),
-            size, seed, blocks(name, array(c, "blocks"))));
+            size, seed, blocks(name, array(c, "blocks")), c.has("indicator") ? indicator(name, object(c, "indicator")) : null));
+    }
+
+    private static final Set<String> INDICATOR_KEYS = Set.of("depth", "rarity", "underground_rarity", "underground_count", "blocks");
+
+    /** {@code Indicator.CODEC}: depth and underground rarity positive, the blocks a weighted list of {@code block} entries. */
+    private static Indicator indicator(String name, JsonObject o) {
+        for (String key : o.keySet()) {
+            if (!INDICATOR_KEYS.contains(key)) {
+                throw new IllegalArgumentException(name + ": unknown indicator key " + key);
+            }
+        }
+        final List<String> elements = new ArrayList<>();
+        final List<Double> weights = new ArrayList<>();
+        for (JsonElement e : array(o, "blocks")) {
+            final JsonObject entry = e.getAsJsonObject();
+            elements.add(string(entry, "block"));
+            weights.add(entry.has("weight") ? entry.get("weight").getAsDouble() : 1d);
+        }
+        try {
+            return new Indicator(o.get("depth").getAsInt(), o.get("rarity").getAsInt(), o.get("underground_rarity").getAsInt(),
+                o.get("underground_count").getAsInt(), Weighted.of(elements, weights));
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException(name + ": incomplete indicator", e);
+        }
     }
 
     /** {@code BLOCK_TO_WEIGHTED_BLOCKSTATE}: each entry's {@code replace} blocks map to the weighted list of its {@code with}. */
