@@ -129,7 +129,7 @@ public final class TfcChunkGenerator extends ChunkGenerator {
                 found = spawn;
                 if (found == null) {
                     final TfcTerrain t = terrain(world::getSeed);
-                    found = TfcSpawn.search(seed.orElseGet(world::getSeed), t::biomeId, t::heightAt);
+                    found = TfcSpawn.search(seed.orElseGet(world::getSeed), t::biomeNoRiverId, t::heightAt);
                     if (found.isEmpty()) {
                         log.warning("TFC spawn: no dry land in the spawn search of " + world.getName()
                             + "; Paper's default spawn applies");

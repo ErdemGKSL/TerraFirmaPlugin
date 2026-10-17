@@ -8,13 +8,16 @@
  * src/main/java/net/dries007/tfc/world/volcano/CenteredFeatureNoiseSampler.java (checkCellRarity),
  * src/main/java/net/dries007/tfc/world/ChunkHeightFiller.java (adjustHeightForVolcanic),
  * src/main/java/net/dries007/tfc/world/placement/CenterOrDistanceToPlacement.java and CinderConePlacement.java (the center),
- * src/main/java/net/dries007/tfc/world/biome/TFCBiomes.java (the cinderCones(...) parameters of each biome)
+ * src/main/java/net/dries007/tfc/world/biome/TFCBiomes.java (the cinderCones(...) parameters of each biome), and
+ * src/main/java/net/dries007/tfc/world/biome/BiomeNoise.java (activeShieldVolcano, riftValley: the special base heights)
  */
 package dev.tfp.core.worldgen.volcano;
 
 import dev.tfp.core.worldgen.Mth;
+import dev.tfp.core.worldgen.biome.BiomeNoise;
 import dev.tfp.core.worldgen.biome.TfcBiomes;
 import dev.tfp.core.worldgen.chunk.ChunkData;
+import dev.tfp.core.worldgen.height.HeightNoise;
 import dev.tfp.core.worldgen.noise.Cellular2D;
 import dev.tfp.core.worldgen.noise.Noise2D;
 import dev.tfp.core.worldgen.noise.OpenSimplex2D;
@@ -26,8 +29,7 @@ import java.util.function.IntBinaryOperator;
  * construction and every call's state is its own.
  * <p>
  * The other centered features (tuyas, tuff rings, atolls, stratovolcanoes) are not ported (ledger). The base height of the
- * cones in active shield volcanoes and rift valleys is TFC's biome height noise there, which is not ported: they use
- * {@code SEA_LEVEL_Y + baseHeight} as the other biomes do (ledger).
+ * cones in active shield volcanoes and rift valleys is TFC's biome height noise at the cell's center, minus 11 (M2-GEN-06).
  */
 public final class CinderCones {
     /** {@code ChunkHeightFiller.NOT_PRESENT_RETURN}: the column is not inside a cone. */
@@ -35,11 +37,16 @@ public final class CinderCones {
 
     private final Cellular2D cellNoise;
     private final Noise2D jitterNoise;
+    /** The cone base heights of TFC's two special biomes: their biome height maps, sampled at the cell's center. */
+    private final Noise2D activeShieldVolcanoHeight;
+    private final Noise2D riftValleyHeight;
 
     /** @param levelSeed the world seed ({@code Seed.seed()}, the only seed the cinder sampler reads) */
     public CinderCones(long levelSeed) {
         this.cellNoise = new Cellular2D(levelSeed).spread(0.009f);
         this.jitterNoise = new OpenSimplex2D(levelSeed + 8179234123L).octaves(2).scaled(-0.0016f, 0.0016f).spread(0.128f);
+        this.activeShieldVolcanoHeight = HeightNoise.activeShieldVolcano(levelSeed, BiomeNoise.activeHotSpots(levelSeed));
+        this.riftValleyHeight = HeightNoise.riftValley(levelSeed, 2, 30, false);
     }
 
     /** {@code BiomeExtension.hasCinderCones}. */
@@ -121,8 +128,14 @@ public final class CinderCones {
         if (hasCinderCones(biome)) {
             final float rarity = frequency(biome);
             if (checkCellRarity(cell, rarity)) {
-                // TFC samples the biome height noise of active shield volcanoes and rift valleys here (minus 11); not ported
-                final int baseHeight = ChunkData.SEA_LEVEL_Y + baseHeight(biome);
+                final int baseHeight;
+                if (biome == TfcBiomes.ACTIVE_SHIELD_VOLCANO) {
+                    baseHeight = (int) activeShieldVolcanoHeight.noise(xC, zC) - 11;
+                } else if (biome == TfcBiomes.RIFT_VALLEY) {
+                    baseHeight = (int) riftValleyHeight.noise(xC, zC) - 11;
+                } else {
+                    baseHeight = ChunkData.SEA_LEVEL_Y + baseHeight(biome);
+                }
                 return modifyHeight(cell, x, z, baseHeight, scaleHeight(biome), heightIn);
             }
         }

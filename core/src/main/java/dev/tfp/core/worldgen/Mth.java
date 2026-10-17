@@ -113,6 +113,11 @@ public final class Mth {
         return clampedLerp(inverseLerp(value, inMin, inMax), outMin, outMax);
     }
 
+    /** {@code Mth.positiveModulo(double, double)}: {@code (numerator % denominator + denominator) % denominator}. */
+    public static double positiveModulo(double numerator, double denominator) {
+        return (numerator % denominator + denominator) % denominator;
+    }
+
     /** {@code Mth.PI}: {@code (float) Math.PI}. */
     public static final float PI = (float) Math.PI;
 

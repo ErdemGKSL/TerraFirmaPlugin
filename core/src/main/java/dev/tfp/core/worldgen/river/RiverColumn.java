@@ -18,8 +18,9 @@ import java.util.Map;
  * The river decision of one block column: the river-adjusted surface height, and per y whether the river leaves the block
  * solid or opens it (air, or water below the sea level). Pure and immutable.
  *
- * <p>TFC blends the samplers of every biome around the column by their weights; the plugin has no biome blending yet, so
- * {@link #sample(Map, RiverBlendType, RiverInfo, int, int, double)} gives the column's own biome type the weight 1 (ledger).
+ * <p>TFC blends the samplers of every biome around the column by their weights: {@code SurfaceHeights} passes the column's
+ * weights by blend type ({@link #sample(Map, double[], RiverInfo, int, int, double)}); the single-type form
+ * {@link #sample(Map, RiverBlendType, RiverInfo, int, int, double)} gives one type the weight 1.
  * The terrain density outside the river stage is TFC's {@code SOLID} (0) everywhere: the biome density noise is not ported.
  */
 public final class RiverColumn {
@@ -133,7 +134,7 @@ public final class RiverColumn {
     /**
      * Whether the river opens a block that the terrain holds solid at {@code y}: the density with solid terrain
      * ({@link #SOLID}) is not positive. Always false without a river. The plugin asks only for positions at or below its own
-     * surface: TFC's slide keeps one more solid block above {@code surfaceHeight}, which the placeholder terrain does not add.
+     * surface: TFC's slide keeps one more solid block above {@code surfaceHeight}, which the plugin (no terrain density yet) does not add.
      */
     public boolean opens(int y, int surfaceHeight) {
         return info != null && density(y, SOLID, surfaceHeight) <= 0;

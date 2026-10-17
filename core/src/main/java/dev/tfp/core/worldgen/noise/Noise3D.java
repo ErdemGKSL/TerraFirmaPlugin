@@ -5,6 +5,7 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/world/noise/Noise3D.java @ c3b4d9536
+ * {@code warped} makes its cursor per call (TFC: one per noise) so that a noise can be shared between threads.
  */
 package dev.tfp.core.worldgen.noise;
 
@@ -76,11 +77,9 @@ public interface Noise3D
         warp.fnl.SetDomainWarpType(FastNoiseLite.DomainWarpType.OpenSimplex2);
         warp.fnl.SetFractalType(FastNoiseLite.FractalType.DomainWarpIndependent);
         warp.fnl.SetDomainWarpAmp(warp.getAmplitude() * 2);
-        final FastNoiseLite.Vector3 cursor = new FastNoiseLite.Vector3(0, 0, 0);
         return (x, y, z) -> {
-            cursor.x = x;
-            cursor.y = y;
-            cursor.z = z;
+            // TFC shares one cursor per noise; one per call keeps the noise thread-safe with the same values
+            final FastNoiseLite.Vector3 cursor = new FastNoiseLite.Vector3(x, y, z);
             warp.fnl.DomainWarp(cursor);
             return Noise3D.this.noise(cursor.x, cursor.y, cursor.z);
         };
