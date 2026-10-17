@@ -563,9 +563,11 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         if (cal == null) {
             return CompletableFuture.completedFuture(Reply.error("command.not_enabled"));
         }
-        // The calendar state is written on the global thread only (CalendarService): hop there, reply from there.
+        // The calendar state is written on the global thread only (CalendarService). Console/RCON commands already run
+        // there (Paper main thread, Folia global region): apply inline so the reply is sent before the command returns
+        // (RCON only returns what is sent during execution). Other senders (Folia player regions) hop there.
         CompletableFuture<Reply> out = new CompletableFuture<>();
-        scheduler.global(() -> {
+        Runnable apply = () -> {
             try {
                 CalendarService.Skipped moved = cal.skip(delta);
                 out.complete(moved == null ? Reply.error("time.not_loaded")
@@ -574,7 +576,12 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             } catch (RuntimeException e) {
                 out.completeExceptionally(e);
             }
-        });
+        };
+        if (getServer().isGlobalTickThread()) {
+            apply.run();
+        } else {
+            scheduler.global(apply);
+        }
         return out;
     }
 
