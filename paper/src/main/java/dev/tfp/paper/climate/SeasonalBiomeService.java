@@ -5,7 +5,7 @@
  */
 package dev.tfp.paper.climate;
 
-import dev.tfp.core.calendar.Season;
+import dev.tfp.core.calendar.Month;
 import dev.tfp.core.climate.OverworldClimate;
 import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.clock.GlobalClockHolder;
@@ -41,26 +41,26 @@ import org.bukkit.generator.ChunkGenerator;
  *   <li><b>Snapshot.</b> Events only record plain values: the TFC worlds (terrain view, climate model, height; on world
  *       load), each player's world (join, world change), and the chunks that load or unload.</li>
  *   <li><b>Decide (worker pool).</b> {@link SeasonalBiomeRemap#compute} builds a chunk's {@link SeasonalChunkTable} for
- *       the current season from the seed alone: on chunk load, on a packet-thread miss, and for the chunks around every
- *       player at a season change.</li>
+ *       the current colour phase (the calendar month) from the seed alone: on chunk load, on a packet-thread miss, and
+ *       for the chunks around every player at a phase change.</li>
  *   <li><b>Apply (Netty thread, per player).</b> {@code SeasonalBiomeHandler} looks the table up ({@link #table}) and
  *       rewrites the outgoing packet only; the world is never changed.</li>
- *   <li><b>Resend (region thread, rate limited).</b> A miss or a season change queues the chunk in a {@link ResendLimiter}
+ *   <li><b>Resend (region thread, rate limited).</b> A miss or a phase change queues the chunk in a {@link ResendLimiter}
  *       ({@value #RESENDS_PER_TICK} chunks per tick, {@value #RESEND_COOLDOWN_TICKS}-tick cooldown per chunk). The global
  *       tick drains it into {@code World.refreshChunk} on the chunk's region thread, which sends the chunk again and so
  *       through the rewrite.</li>
  * </ol>
- * The season is checked every {@value #SEASON_CHECK_TICKS} ticks from the published clock. At a change the tables are
- * dropped (they hold one season), the cooldowns are cleared and the chunks in every player's view are recomputed and
- * resent, nearest first.
+ * The phase is checked every {@value #PHASE_CHECK_TICKS} ticks from the published clock. At a change (a new month, so
+ * twelve times a calendar year) the tables are dropped (they hold one phase), the cooldowns are cleared and the chunks
+ * in every player's view are recomputed and resent, nearest first, through the same rate limit.
  */
 public final class SeasonalBiomeService implements Listener, SeasonalBiomeSource {
     /** Chunk resends per server tick. */
     public static final int RESENDS_PER_TICK = 8;
-    /** A chunk is resent at most once per this many ticks (except at a season change). */
+    /** A chunk is resent at most once per this many ticks (except at a phase change). */
     public static final long RESEND_COOLDOWN_TICKS = 100;
-    /** How often the season is compared with the clock. */
-    public static final long SEASON_CHECK_TICKS = 20;
+    /** How often the colour phase is compared with the clock. */
+    public static final long PHASE_CHECK_TICKS = 20;
     /** Bound of the table cache; over it the cache is dropped (chunk unloads keep it well below). */
     static final int MAX_TABLES = 32_768;
 
@@ -84,7 +84,7 @@ public final class SeasonalBiomeService implements Listener, SeasonalBiomeSource
     private final AtomicLong tick = new AtomicLong();
     private final AtomicLong computed = new AtomicLong();
     private final AtomicLong resent = new AtomicLong();
-    private volatile Season season;
+    private volatile Month phase;
     private volatile int daysInMonth = ClockSnapshot.DEFAULT_DAYS_IN_MONTH;
     private volatile Consumer<UUID> quitHook = id -> { };
 
@@ -99,15 +99,15 @@ public final class SeasonalBiomeService implements Listener, SeasonalBiomeSource
         this.quitHook = hook;
     }
 
-    /** Starts the global tick: season check and resend drain. Call once. */
+    /** Starts the global tick: phase check and resend drain. Call once. */
     public void start(Supplier<Collection<? extends World>> loadedWorlds, Supplier<Collection<? extends Player>> online) {
         scheduler.globalRepeating(1, 1, () -> {
             long now = tick.incrementAndGet();
-            if (now % SEASON_CHECK_TICKS == 1) {
+            if (now % PHASE_CHECK_TICKS == 1) {
                 for (World w : loadedWorlds.get()) {
                     register(w);
                 }
-                checkSeason(online.get());
+                checkPhase(online.get());
             }
             for (ChunkKey key : limiter.drain(now)) {
                 World world = worldById.apply(key.world());
@@ -123,15 +123,15 @@ public final class SeasonalBiomeService implements Listener, SeasonalBiomeSource
         });
     }
 
-    /** Global thread: publishes a new season (or month length) and recomputes and resends the chunks near players. */
-    void checkSeason(Collection<? extends Player> online) {
+    /** Global thread: publishes a new phase (or month length) and recomputes and resends the chunks near players. */
+    void checkPhase(Collection<? extends Player> online) {
         ClockSnapshot c = clock.get();
-        Season now = SeasonalBiomeRemap.seasonOf(c);
-        if (now == null || (now == season && c.daysInMonth() == daysInMonth)) {
+        Month now = SeasonalBiomeRemap.phaseOf(c);
+        if (now == null || (now == phase && c.daysInMonth() == daysInMonth)) {
             return;
         }
         daysInMonth = c.daysInMonth();
-        season = now;
+        phase = now;
         tables.clear();
         limiter.clearCooldowns();
         for (Player player : online) {
@@ -177,7 +177,7 @@ public final class SeasonalBiomeService implements Listener, SeasonalBiomeSource
     /** Queues the table computation of a chunk, and its resend when {@code resend}. Any thread; never blocks. */
     void request(ChunkKey key, boolean resend) {
         WorldView view = worlds.get(key.world());
-        Season s = season;
+        Month s = phase;
         if (view == null || s == null) {
             return;
         }
@@ -194,7 +194,7 @@ public final class SeasonalBiomeService implements Listener, SeasonalBiomeSource
                     SeasonalChunkTable table = SeasonalBiomeRemap.compute(view.terrain(), view.climate(), key.x(), key.z(),
                             view.minY(), view.height(), s, days);
                     computed.incrementAndGet();
-                    if (s == season) {
+                    if (s == phase) {
                         if (tables.size() >= MAX_TABLES) {
                             tables.clear();
                         }
@@ -215,19 +215,19 @@ public final class SeasonalBiomeService implements Listener, SeasonalBiomeSource
 
     @Override
     public boolean active(UUID player) {
-        return season != null && playerWorld.containsKey(player);
+        return phase != null && playerWorld.containsKey(player);
     }
 
     @Override
     public SeasonalChunkTable table(UUID player, int chunkX, int chunkZ) {
         UUID world = playerWorld.get(player);
-        Season s = season;
+        Month s = phase;
         if (world == null || s == null) {
             return null;
         }
         ChunkKey key = new ChunkKey(world, chunkX, chunkZ);
         SeasonalChunkTable table = tables.get(key);
-        if (table != null && table.season() == s) {
+        if (table != null && table.phase() == s) {
             return table;
         }
         request(key, true);
@@ -289,9 +289,9 @@ public final class SeasonalBiomeService implements Listener, SeasonalBiomeSource
         }
     }
 
-    /** For {@code /tfp debug}: the current season, tables cached, computed, waiting and resent chunks. */
+    /** For {@code /tfp debug}: the current phase, tables cached, computed, waiting and resent chunks. */
     public String describe() {
-        return "season=" + season + " worlds=" + worlds.size() + " tables=" + tables.size() + " computed=" + computed.get()
+        return "phase=" + phase + " worlds=" + worlds.size() + " tables=" + tables.size() + " computed=" + computed.get()
                 + " pendingResends=" + limiter.pending() + " resent=" + resent.get();
     }
 }

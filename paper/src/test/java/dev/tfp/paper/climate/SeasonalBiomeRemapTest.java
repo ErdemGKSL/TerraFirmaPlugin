@@ -10,7 +10,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import dev.tfp.core.calendar.CalendarTicks;
 import dev.tfp.core.calendar.Month;
-import dev.tfp.core.calendar.Season;
 import dev.tfp.core.climate.ChunkClimate;
 import dev.tfp.core.climate.OverworldClimate;
 import dev.tfp.core.climate.SeasonalColour;
@@ -27,6 +26,11 @@ class SeasonalBiomeRemapTest {
     private static final int DAYS = ClockSnapshot.DEFAULT_DAYS_IN_MONTH;
     private static final OverworldClimate CLIMATE = OverworldClimate.forWorldSeed(42L, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
     private static final ChunkClimate WET_SEASONAL = new ChunkClimate(12f, 300f, 0.6f, 40f);
+    /** A temperate chunk (15 C, 150 mm) with a dry winter half-year (variance 0.6: dry January). */
+    private static final float LATE_AUTUMN_TEMPERATURE = 15f;
+    private static final float LATE_AUTUMN_RAINFALL = 150f;
+    private static final float LATE_AUTUMN_VARIANCE = 0.6f;
+    private static final int LATE_AUTUMN_Z = 0;
 
     /** Plains west of x = 8 in every chunk, ocean east of it; one climate everywhere. */
     private static final SeasonalBiomeRemap.Terrain TERRAIN = new SeasonalBiomeRemap.Terrain() {
@@ -81,51 +85,128 @@ class SeasonalBiomeRemapTest {
     }
 
     @Test
-    void seasonIsSampledInItsMiddleMonthAtNoon() {
-        assertThat(CalendarTicks.month(SeasonalBiomeRemap.sampleTick(Season.SPRING, DAYS), DAYS)).isEqualTo(Month.APRIL);
-        assertThat(CalendarTicks.month(SeasonalBiomeRemap.sampleTick(Season.SUMMER, DAYS), DAYS)).isEqualTo(Month.JULY);
-        assertThat(CalendarTicks.month(SeasonalBiomeRemap.sampleTick(Season.FALL, DAYS), DAYS)).isEqualTo(Month.OCTOBER);
-        assertThat(CalendarTicks.month(SeasonalBiomeRemap.sampleTick(Season.WINTER, DAYS), DAYS)).isEqualTo(Month.JANUARY);
-        assertThat(CalendarTicks.hourOfDay(SeasonalBiomeRemap.sampleTick(Season.SUMMER, DAYS))).isEqualTo(12);
+    void phaseIsSampledInTheMiddleOfItsMonthAtNoon() {
+        for (Month month : Month.values()) {
+            long tick = SeasonalBiomeRemap.sampleTick(month, DAYS);
+            assertThat(CalendarTicks.month(tick, DAYS)).isEqualTo(month);
+            assertThat(CalendarTicks.dayOfMonth(tick, DAYS)).isEqualTo(DAYS / 2 + 1);
+            assertThat(CalendarTicks.hourOfDay(tick)).isEqualTo(12);
+            assertThat(CalendarTicks.year(tick, DAYS)).isEqualTo(CalendarTicks.FIRST_YEAR);
+        }
     }
 
     @Test
-    void seasonOfTheClock() {
-        assertThat(SeasonalBiomeRemap.seasonOf(ClockSnapshot.UNSET)).isNull();
+    void phaseOfTheClock() {
+        assertThat(SeasonalBiomeRemap.phaseOf(ClockSnapshot.UNSET)).isNull();
         long july = CalendarTicks.of(1003, Month.JULY, 2, 6, 0, DAYS);
-        assertThat(SeasonalBiomeRemap.seasonOf(new ClockSnapshot(5, 0, july, DAYS, true))).isEqualTo(Season.SUMMER);
+        assertThat(SeasonalBiomeRemap.phaseOf(new ClockSnapshot(5, 0, july, DAYS, true))).isEqualTo(Month.JULY);
         long december = CalendarTicks.of(1003, Month.DECEMBER, 1, 0, 0, DAYS);
-        assertThat(SeasonalBiomeRemap.seasonOf(new ClockSnapshot(6, 0, december, DAYS, true))).isEqualTo(Season.WINTER);
+        assertThat(SeasonalBiomeRemap.phaseOf(new ClockSnapshot(6, 0, december, DAYS, true))).isEqualTo(Month.DECEMBER);
     }
 
     @Test
-    void positionAndSeasonGiveTheBandOfTheSampledClimate() {
+    void phaseFollowsTheMonthAcrossTheLateAutumnAndLateWinterBoundaries() {
+        // last minute of October, first of November: early and late autumn are two phases
+        assertThat(phaseAt(Month.OCTOBER, 1, 0, 0)).isEqualTo(Month.OCTOBER);
+        assertThat(phaseAt(Month.OCTOBER, DAYS, 23, 59)).isEqualTo(Month.OCTOBER);
+        assertThat(phaseAt(Month.NOVEMBER, 1, 0, 0)).isEqualTo(Month.NOVEMBER);
+        assertThat(phaseAt(Month.NOVEMBER, DAYS, 23, 59)).isEqualTo(Month.NOVEMBER);
+        assertThat(phaseAt(Month.DECEMBER, 1, 0, 0)).isEqualTo(Month.DECEMBER);
+        // late winter and early spring are two phases
+        assertThat(phaseAt(Month.FEBRUARY, DAYS, 23, 59)).isEqualTo(Month.FEBRUARY);
+        assertThat(phaseAt(Month.MARCH, 1, 0, 0)).isEqualTo(Month.MARCH);
+        // one phase per month, through the year and across the year boundary
+        assertThat(phaseAt(Month.JANUARY, 1, 0, 0)).isEqualTo(Month.JANUARY);
+        for (Month month : Month.values()) {
+            assertThat(phaseAt(month, DAYS / 2 + 1, 12, 0)).isEqualTo(month);
+        }
+        // the phase follows the configured month length
+        assertThat(SeasonalBiomeRemap.phaseOf(CalendarTicks.of(1005, Month.NOVEMBER, 30, 23, 59, 30), 30))
+            .isEqualTo(Month.NOVEMBER);
+    }
+
+    @Test
+    void phasesDoNotGrowTheVariantRegistry() {
+        assertThat(SeasonalBiomeRemap.PHASE_COUNT).isEqualTo(12);
+        // a variant is a colour band of a biome; the phase only picks which band, so the datapack stays 125 x 16
+        assertThat(SeasonalBiomeRemap.VARIANT_COUNT).isEqualTo(TfcBiomes.COUNT * SeasonalColour.BAND_COUNT).isEqualTo(2_000);
+        // the table stores variant indices as short, and the client's global palette stays at 12 bits with vanilla's biomes
+        assertThat(SeasonalBiomeRemap.VARIANT_COUNT).isLessThan(Short.MAX_VALUE);
+        assertThat(SeasonalBiomeRemap.VARIANT_COUNT + 128).isLessThanOrEqualTo(1 << 12);
+        Set<String> ids = new HashSet<>();
+        for (Month phase : Month.values()) {
+            SeasonalChunkTable table = SeasonalBiomeRemap.compute(TERRAIN, CLIMATE, 5, 400, -64, 384, phase, DAYS);
+            for (int section = 0; section < table.sections(); section++) {
+                for (int cell = 0; cell < SeasonalChunkTable.CELLS_PER_SECTION; cell++) {
+                    int variant = table.variantAt(section, cell);
+                    assertThat(variant).isBetween(0, SeasonalBiomeRemap.VARIANT_COUNT - 1);
+                    ids.add(SeasonalBiomeRemap.variantIdOf(variant));
+                }
+            }
+        }
+        assertThat(ids).allMatch(id -> id.matches("tfp:seasonal/(plains|ocean)/t[0-3]r[0-3]"));
+    }
+
+    @Test
+    void lateAutumnHasItsOwnColourInADrySeasonClimate() {
+        // A temperate chunk whose rainfall drops through the autumn: October and November fall in different bands,
+        // so late autumn is no longer October's colour (with one sample per season both were October's).
+        ChunkClimate dryAutumn = new ChunkClimate(LATE_AUTUMN_TEMPERATURE, LATE_AUTUMN_RAINFALL, LATE_AUTUMN_VARIANCE, 0f);
+        SeasonalBiomeRemap.Terrain terrain = new SeasonalBiomeRemap.Terrain() {
+            @Override
+            public int biomeId(int blockX, int blockZ) {
+                return TfcBiomes.PLAINS;
+            }
+
+            @Override
+            public SeasonalBiomeRemap.ChunkInputs climates(int chunkX, int chunkZ) {
+                return (x, z) -> dryAutumn;
+            }
+        };
+        int october = SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, 0, 70, LATE_AUTUMN_Z, Month.OCTOBER, DAYS);
+        int november = SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, 0, 70, LATE_AUTUMN_Z, Month.NOVEMBER, DAYS);
+        assertThat(november).isNotEqualTo(october);
+        // October is t1r2 (olive green), November t1r3: the dry row of the colormap, TFC's orange-yellow grass (#fbd459)
+        assertThat(SeasonalBiomeRemap.variantIdOf(october)).isEqualTo("tfp:seasonal/plains/t1r2");
+        assertThat(SeasonalBiomeRemap.variantIdOf(november)).isEqualTo("tfp:seasonal/plains/t1r3");
+        // late winter and early spring differ too (February t1r3, March t1r2)
+        assertThat(SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, 0, 70, LATE_AUTUMN_Z, Month.FEBRUARY, DAYS))
+            .isNotEqualTo(SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, 0, 70, LATE_AUTUMN_Z, Month.MARCH, DAYS));
+    }
+
+    @Test
+    void positionAndPhaseGiveTheBandOfTheSampledClimate() {
         int x = 3, y = 70, z = -4321;
-        for (Season season : Season.values()) {
-            long tick = SeasonalBiomeRemap.sampleTick(season, DAYS);
+        for (Month phase : Month.values()) {
+            long tick = SeasonalBiomeRemap.sampleTick(phase, DAYS);
             float t = CLIMATE.instantTemperature(new BlockPos(x, y, z), WET_SEASONAL, tick, DAYS);
             float g = CLIMATE.instantGroundwater(WET_SEASONAL, tick, DAYS);
-            assertThat(SeasonalBiomeRemap.variantIndexAt(TERRAIN, CLIMATE, x, y, z, season, DAYS))
+            assertThat(SeasonalBiomeRemap.variantIndexAt(TERRAIN, CLIMATE, x, y, z, phase, DAYS))
                 .isEqualTo(SeasonalBiomeRemap.variantIndex(TfcBiomes.PLAINS, SeasonalColour.band(t, g)));
         }
     }
 
     @Test
-    void theSeasonChangesTheVariantAwayFromTheEquator() {
+    void thePhaseChangesTheVariantAwayFromTheEquator() {
         boolean differs = false;
         for (int z = -20_000; z <= 20_000; z += 2_500) {
-            differs |= SeasonalBiomeRemap.variantIndexAt(TERRAIN, CLIMATE, 0, 64, z, Season.SUMMER, DAYS)
-                != SeasonalBiomeRemap.variantIndexAt(TERRAIN, CLIMATE, 0, 64, z, Season.WINTER, DAYS);
+            differs |= SeasonalBiomeRemap.variantIndexAt(TERRAIN, CLIMATE, 0, 64, z, Month.JULY, DAYS)
+                != SeasonalBiomeRemap.variantIndexAt(TERRAIN, CLIMATE, 0, 64, z, Month.JANUARY, DAYS);
         }
         assertThat(differs).isTrue();
+    }
+
+    private static Month phaseAt(Month month, int day, int hour, int minute) {
+        long tick = CalendarTicks.of(1004, month, day, hour, minute, DAYS);
+        return SeasonalBiomeRemap.phaseOf(new ClockSnapshot(1, 0, tick, DAYS, true));
     }
 
     @Test
     void chunkTableHoldsTheRemapOfEveryCell() {
         int chunkX = -3, chunkZ = 250, minY = -64, height = 384;
-        SeasonalChunkTable table = SeasonalBiomeRemap.compute(TERRAIN, CLIMATE, chunkX, chunkZ, minY, height, Season.FALL, DAYS);
+        SeasonalChunkTable table = SeasonalBiomeRemap.compute(TERRAIN, CLIMATE, chunkX, chunkZ, minY, height, Month.OCTOBER, DAYS);
         assertThat(table.sections()).isEqualTo(24);
-        assertThat(table.season()).isEqualTo(Season.FALL);
+        assertThat(table.phase()).isEqualTo(Month.OCTOBER);
         for (int section = 0; section < table.sections(); section++) {
             for (int cell = 0; cell < SeasonalChunkTable.CELLS_PER_SECTION; cell++) {
                 int qx = cell & 3, qz = (cell >> 2) & 3, qy = cell >> 4;
@@ -135,7 +216,7 @@ class SeasonalBiomeRemapTest {
                 assertThat(table.baseAt(cell)).isEqualTo(SeasonalBiomeRemap.baseIndex(biome));
                 assertThat(table.variantAt(section, cell))
                     // the fake terrain has the same biome at a cell's corner and its centre
-                    .isEqualTo(SeasonalBiomeRemap.variantIndexAt(TERRAIN, CLIMATE, x + 2, y + 2, z + 2, Season.FALL, DAYS));
+                    .isEqualTo(SeasonalBiomeRemap.variantIndexAt(TERRAIN, CLIMATE, x + 2, y + 2, z + 2, Month.OCTOBER, DAYS));
             }
         }
     }

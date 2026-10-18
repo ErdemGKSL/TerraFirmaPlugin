@@ -28,6 +28,10 @@ import javax.imageio.ImageIO;
  *
  * <p>Output: {@code datapack/tfp_seasonal_biomes/data/tfp/worldgen/biome/seasonal/<biome>/t<T>r<R>.json}, with the
  * biome ids of {@link SeasonalColour#variantId}.
+ *
+ * <p>The colour phases (one per calendar month, {@code SeasonalBiomeRemap.PHASE_COUNT} in {@code paper}) add no
+ * variants: a variant is a colour band, and a phase only chooses which band a chunk cell shows by sampling the climate at
+ * its month. So the set stays one variant per biome and band for any number of phases.
  */
 final class SeasonalBiomes {
     static final String OUT = "datapack/tfp_seasonal_biomes/";

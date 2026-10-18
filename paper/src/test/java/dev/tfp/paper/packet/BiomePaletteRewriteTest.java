@@ -7,7 +7,7 @@ package dev.tfp.paper.packet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import dev.tfp.core.calendar.Season;
+import dev.tfp.core.calendar.Month;
 import dev.tfp.paper.climate.SeasonalBiomeRemap;
 import dev.tfp.paper.climate.SeasonalChunkTable;
 import java.util.Arrays;
@@ -27,7 +27,7 @@ class BiomePaletteRewriteTest {
         for (int cell = 0; cell < 64; cell++) {
             variants[cell] = (short) (100 + cell);
         }
-        return new SeasonalChunkTable(0, 0, 0, 1, Season.SUMMER, base, variants);
+        return new SeasonalChunkTable(0, 0, 0, 1, Month.JULY, base, variants);
     }
 
     private static BiomePaletteRewrite.IdMap ids() {

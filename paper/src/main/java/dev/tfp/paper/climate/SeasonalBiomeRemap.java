@@ -7,7 +7,6 @@ package dev.tfp.paper.climate;
 
 import dev.tfp.core.calendar.CalendarTicks;
 import dev.tfp.core.calendar.Month;
-import dev.tfp.core.calendar.Season;
 import dev.tfp.core.climate.ChunkClimate;
 import dev.tfp.core.climate.OverworldClimate;
 import dev.tfp.core.climate.SeasonalColour;
@@ -27,25 +26,25 @@ import java.util.Optional;
  * of {@link BiomeKeys}) is its index in {@link BiomeKeys#VANILLA}. The packet thread maps both to the client's network ids
  * once per user ({@code SeasonalBiomeHandler}).
  *
- * <p>The climate of a season is sampled at one fixed instant: the middle day of the season's middle month (April, July,
- * October, January) at noon, in the first calendar year. So a chunk shows one colour per season, the same every year,
- * and the chunk only changes at a season change (when the chunks are resent). The southern hemisphere gets its opposite
- * colour from the climate model's latitude term, not from the season name.
+ * <p>The colour phase is the calendar month ({@value #PHASE_COUNT} phases a year). The climate of a phase is sampled
+ * at one fixed instant: the middle day of the month at noon, in the first calendar year. So a chunk shows one colour per
+ * month, the same every year, and the chunk only changes at a month change (when the chunks are resent). Late autumn
+ * (November) and late winter (February) therefore have their own colours instead of October's and January's. The
+ * phase does not add datapack biomes: a variant is a colour band, and the phase only moves the sampled climate between
+ * bands, so the variant set stays {@link #VARIANT_COUNT}. The southern hemisphere gets its opposite colour from the
+ * climate model's latitude term, not from the month name.
  */
 public final class SeasonalBiomeRemap {
     /** Number of variant indices: one per TFC biome and colour band. */
     public static final int VARIANT_COUNT = TfcBiomes.COUNT * SeasonalColour.BAND_COUNT;
+    /** Number of colour phases a year: one per calendar month. */
+    public static final int PHASE_COUNT = Month.values().length;
     /** Number of base (vanilla placeholder) indices. */
     public static final int BASE_COUNT = BiomeKeys.VANILLA.size();
 
-    private static final Month[] MIDDLE_MONTH = new Month[Season.values().length];
     private static final byte[] BASE_OF_BIOME = new byte[TfcBiomes.COUNT];
 
     static {
-        MIDDLE_MONTH[Season.SPRING.ordinal()] = Month.APRIL;
-        MIDDLE_MONTH[Season.SUMMER.ordinal()] = Month.JULY;
-        MIDDLE_MONTH[Season.FALL.ordinal()] = Month.OCTOBER;
-        MIDDLE_MONTH[Season.WINTER.ordinal()] = Month.JANUARY;
         for (int id = 0; id < TfcBiomes.COUNT; id++) {
             BASE_OF_BIOME[id] = (byte) BiomeKeys.VANILLA.indexOf(BiomeKeys.vanillaKey(id));
         }
@@ -83,15 +82,19 @@ public final class SeasonalBiomeRemap {
         return Optional.of(SeasonalColour.variantId(basePath, SeasonalColour.band(temperature, groundwater)));
     }
 
-    /** The season of the calendar now, or null before the calendar published anything. */
-    public static Season seasonOf(ClockSnapshot clock) {
-        return clock.isSet() ? CalendarTicks.month(clock.calendarTicks(), clock.daysInMonth()).season() : null;
+    /** The colour phase of the calendar now (its month), or null before the calendar published anything. */
+    public static Month phaseOf(ClockSnapshot clock) {
+        return clock.isSet() ? phaseOf(clock.calendarTicks(), clock.daysInMonth()) : null;
     }
 
-    /** The calendar tick at which {@code season}'s climate is sampled: its middle month, middle day, noon, first year. */
-    public static long sampleTick(Season season, int daysInMonth) {
-        return CalendarTicks.of(CalendarTicks.FIRST_YEAR, MIDDLE_MONTH[season.ordinal()], daysInMonth / 2 + 1, 12, 0,
-                daysInMonth);
+    /** The colour phase of a calendar tick: its month. */
+    public static Month phaseOf(long calendarTicks, int daysInMonth) {
+        return CalendarTicks.month(calendarTicks, daysInMonth);
+    }
+
+    /** The calendar tick at which {@code phase}'s climate is sampled: the month's middle day, noon, first year. */
+    public static long sampleTick(Month phase, int daysInMonth) {
+        return CalendarTicks.of(CalendarTicks.FIRST_YEAR, phase, daysInMonth / 2 + 1, 12, 0, daysInMonth);
     }
 
     /** The variant index of a TFC biome in a band. */
@@ -124,22 +127,22 @@ public final class SeasonalBiomeRemap {
     }
 
     /**
-     * The variant index for a block position in a season (the pure remap). The biome comes from the terrain at the
+     * The variant index for a block position in a colour phase (the pure remap). The biome comes from the terrain at the
      * column, the band from the instant temperature at the position and the instant groundwater of its column at the
-     * season's {@linkplain #sampleTick sample tick}.
+     * phase's {@linkplain #sampleTick sample tick}.
      */
-    public static int variantIndexAt(Terrain terrain, OverworldClimate climate, int x, int y, int z, Season season,
+    public static int variantIndexAt(Terrain terrain, OverworldClimate climate, int x, int y, int z, Month phase,
             int daysInMonth) {
         int biome = sanitize(terrain.biomeId(x, z));
         ChunkClimate chunk = terrain.climates(x >> 4, z >> 4).at(x, z);
-        long tick = sampleTick(season, daysInMonth);
+        long tick = sampleTick(phase, daysInMonth);
         float groundwater = climate.instantGroundwater(chunk, tick, daysInMonth);
         float temperature = climate.instantTemperature(new BlockPos(x, y, z), chunk, tick, daysInMonth);
         return variantIndex(biome, SeasonalColour.band(temperature, groundwater));
     }
 
     /**
-     * The table of one chunk for one season: for every 4 x 4 x 4 biome cell the base index the server sends and the variant
+     * The table of one chunk for one colour phase: for every 4 x 4 x 4 biome cell the base index the server sends and the variant
      * index to send instead. The biome of a cell is the terrain's at the cell's lower corner (where the Bukkit
      * {@code BiomeProvider} is asked); the temperature and groundwater are taken at the cell's centre.
      *
@@ -147,11 +150,11 @@ public final class SeasonalBiomeRemap {
      * @param height the world's build height (a multiple of 16)
      */
     public static SeasonalChunkTable compute(Terrain terrain, OverworldClimate climate, int chunkX, int chunkZ, int minY,
-            int height, Season season, int daysInMonth) {
+            int height, Month phase, int daysInMonth) {
         int sections = height >> 4;
         int cellsY = sections * 4;
         ChunkInputs inputs = terrain.climates(chunkX, chunkZ);
-        long tick = sampleTick(season, daysInMonth);
+        long tick = sampleTick(phase, daysInMonth);
         byte[] base = new byte[SeasonalChunkTable.COLUMNS];
         short[] variants = new short[sections * SeasonalChunkTable.CELLS_PER_SECTION];
         for (int qz = 0; qz < 4; qz++) {
@@ -173,7 +176,7 @@ public final class SeasonalBiomeRemap {
                 }
             }
         }
-        return new SeasonalChunkTable(chunkX, chunkZ, minY, sections, season, base, variants);
+        return new SeasonalChunkTable(chunkX, chunkZ, minY, sections, phase, base, variants);
     }
 
     private static int sanitize(int biome) {
