@@ -41,6 +41,7 @@ import org.bukkit.entity.Player;
  * /tfp debug block|chunk [x z] the block you look at / your chunk and its climate (players, tfp.admin); with x z
  *                              (block coordinates, default overworld) the reading at that position, from the console too
  * /tfp debug snowtime &lt;x&gt; &lt;z&gt; &lt;tick&gt;  sets the chunk's last snow-update calendar tick (tfp.admin, console too; tick &gt;= 0)
+ * /tfp debug worldgen &lt;n&gt;      times n chunks of the TFC fill path in throwaway chunk data (tfp.admin, console too)
  * /tfp debug player [name]     player data (yours without a name)
  * /tfp debug packets           packet handler metrics
  * /tfp debug showcase &lt;family&gt; every variant of rocks|soils|ores in a grid at your position (players)
@@ -54,6 +55,8 @@ import org.bukkit.entity.Player;
 public final class TfpCommands {
     public static final String PERMISSION = "tfp.command";
     public static final String ADMIN_PERMISSION = "tfp.admin";
+    /** The most chunks one {@code /tfp debug worldgen} times (they run on the command's thread). */
+    public static final int MAX_WORLDGEN_CHUNKS = 2000;
 
     /** A translated reply: a message key with arguments, plus untranslated technical detail lines. */
     public record Reply(boolean ok, String key, List<Object> args, List<String> details) {
@@ -103,6 +106,12 @@ public final class TfpCommands {
          * overworld (the chunk's {@code ChunkSnowTime}), on the chunk's region. {@code tick} is not negative.
          */
         CompletableFuture<Reply> debugSnowTime(int x, int z, long tick);
+
+        /**
+         * M2-GEN-15: generates {@code count} chunks of the default overworld through the TFC fill path into throwaway chunk
+         * data (never loaded into the world) and replies with the count, mean, p95, min and max milliseconds per chunk.
+         */
+        CompletableFuture<Reply> debugWorldgen(int count);
 
         /** Player data of the online player {@code name}. */
         CompletableFuture<Reply> debugPlayer(String name);
@@ -176,6 +185,10 @@ public final class TfpCommands {
                                                             return h.debugSnowTime(IntegerArgumentType.getInteger(ctx, "x"),
                                                                     IntegerArgumentType.getInteger(ctx, "z"), tick);
                                                         }))))))
+                        .then(Commands.literal("worldgen")
+                                .then(Commands.argument("n", IntegerArgumentType.integer(1, MAX_WORLDGEN_CHUNKS))
+                                        .executes(run(handler, messages, (h, ctx) -> h.debugWorldgen(
+                                                IntegerArgumentType.getInteger(ctx, "n"))))))
                         .then(Commands.literal("player")
                                 .executes(player(handler, messages, (h, p) -> h.debugPlayer(p.getName())))
                                 .then(Commands.argument("name", StringArgumentType.word())

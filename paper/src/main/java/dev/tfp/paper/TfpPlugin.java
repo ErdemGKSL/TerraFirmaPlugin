@@ -60,6 +60,7 @@ import dev.tfp.paper.ready.ReadyGate.Signal;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ServerScheduler;
 import dev.tfp.paper.suppression.SuppressionListener;
+import dev.tfp.paper.worldgen.FillTiming;
 import dev.tfp.paper.worldgen.TfcChunkGenerator;
 import dev.tfp.paper.worldgen.TfcFirstJoinSpawn;
 import java.io.IOException;
@@ -793,6 +794,45 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             scheduler.region(world, cx, cz, write);
         }
         return out;
+    }
+
+    /**
+     * {@code /tfp debug worldgen <n>} (M2-GEN-15): times {@code count} chunks of the TFC fill path in throwaway chunk data, on
+     * the command's own thread like the other debug commands (the console then gets the reply directly). The chunks are a
+     * contiguous grid at {@link FillTiming#SAMPLE_ORIGIN}, after {@link FillTiming#WARM_UP} untimed warm-up chunks elsewhere.
+     * Nothing is loaded into or written to the world.
+     */
+    @Override
+    public CompletableFuture<Reply> debugWorldgen(int count) {
+        World world = getServer().getWorlds().get(0);
+        if (!(world.getGenerator() instanceof TfcChunkGenerator generator)) {
+            return CompletableFuture.completedFuture(Reply.error("debug.worldgen.not_tfc", world.getName()));
+        }
+        try {
+            for (int i = 0; i < FillTiming.WARM_UP; i++) {
+                generator.timeFill(world, FillTiming.WARM_UP_ORIGIN + i, FillTiming.WARM_UP_ORIGIN);
+            }
+            int side = FillTiming.side(count);
+            long[] nanos = new long[count];
+            for (int i = 0; i < count; i++) {
+                nanos[i] = generator.timeFill(world, FillTiming.SAMPLE_ORIGIN + i % side, FillTiming.SAMPLE_ORIGIN + i / side);
+            }
+            FillTiming.Stats s = FillTiming.of(nanos);
+            if (s.count() == 0) {
+                return CompletableFuture.completedFuture(Reply.error("debug.worldgen.refused", count));
+            }
+            String o = String.valueOf(FillTiming.SAMPLE_ORIGIN);
+            return CompletableFuture.completedFuture(Reply.ok("debug.worldgen.done", s.count(), world.getName(),
+                    FillTiming.WARM_UP, fmt(s.meanMs()), fmt(s.p95Ms()), fmt(s.minMs()), fmt(s.maxMs()), s.refused())
+                .withDetails(List.of("grid " + side + " x " + side + " from chunk " + o + ", " + o + ", thread "
+                    + Thread.currentThread().getName() + ", " + Runtime.getRuntime().availableProcessors() + " cpus")));
+        } catch (RuntimeException e) {
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private static String fmt(double ms) {
+        return String.format(java.util.Locale.ROOT, "%.2f", ms);
     }
 
     @Override

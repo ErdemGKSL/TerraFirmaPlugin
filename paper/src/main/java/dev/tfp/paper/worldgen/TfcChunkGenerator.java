@@ -203,6 +203,30 @@ public final class TfcChunkGenerator extends ChunkGenerator {
         }
     }
 
+    /**
+     * M2-GEN-15: generates chunk {@code chunkX, chunkZ} of {@code world} through the same fill path as {@link #generateNoise}
+     * ({@link TfcTerrain#fill}) into a throwaway {@code ChunkData}, and returns the nanoseconds the fill took, or -1 when the
+     * palette is refused. The world is not touched: no chunk is loaded, written or saved. Any thread.
+     *
+     * @throws RuntimeException when the fill fails (the caller reports it)
+     */
+    @SuppressWarnings("deprecation") // Bukkit.createChunkData: the only API ChunkData that is not tied to a live generation
+    public long timeFill(World world, int chunkX, int chunkZ) {
+        BlockVisuals table = visuals.get();
+        if (table == null || !table.isLoaded()) {
+            return -1;
+        }
+        TfcTerrain t = terrain(world::getSeed);
+        RockPalette<org.bukkit.block.data.BlockData> palette = t.palette(table);
+        if (!palette.resolved()) {
+            return -1;
+        }
+        ChunkData data = org.bukkit.Bukkit.createChunkData(world);
+        long start = System.nanoTime();
+        t.fill(data, chunkX, chunkZ, palette);
+        return System.nanoTime() - start;
+    }
+
     /** Back to air after a failed fill, so no half-written chunk stays. Never throws. */
     private void clear(ChunkData data) {
         try {

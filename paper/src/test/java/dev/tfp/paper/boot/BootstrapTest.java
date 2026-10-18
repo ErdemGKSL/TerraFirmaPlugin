@@ -154,6 +154,12 @@ class BootstrapTest {
         }
 
         @Override
+        public CompletableFuture<Reply> debugWorldgen(int count) {
+            return call("debugWorldgen " + count,
+                    Reply.ok("debug.worldgen.done", count, "world", 20, "1.00", "2.00", "0.50", "3.00", 0));
+        }
+
+        @Override
         public CompletableFuture<Reply> debugPlayer(String name) {
             return call("debugPlayer " + name, Reply.ok("debug.player.header", name));
         }
@@ -233,7 +239,7 @@ class BootstrapTest {
         assertThat(children(tfp.getChild("time").getChild("set"))).containsExactlyInAnyOrder("day", "noon", "night", "midnight", "hour");
         assertThat(children(tfp.getChild("time").getChild("add"))).containsExactlyInAnyOrder("years", "months", "days", "hours", "ticks");
         assertThat(children(tfp.getChild("reload"))).containsExactlyInAnyOrder("config", "data", "content");
-        assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "snowtime", "player", "packets",
+        assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "snowtime", "worldgen", "player", "packets",
                 "showcase");
         assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
         assertThat(tfp.getChild("debug").getChild("showcase").getCommand()).as("showcase needs a family").isNull();
@@ -299,6 +305,22 @@ class BootstrapTest {
         assertThat(out).containsExactly("Block at world 1 2 3:", "  vanilla: minecraft:stone", "Chunk 0, 0 in world:",
                 "Player data of Alex:");
         assertThatThrownBy(() -> d.execute("tfp debug block", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
+                .isInstanceOf(CommandSyntaxException.class);
+    }
+
+    /** {@code debug worldgen <n>}: the console form calls the handler; n below 1 and missing n are syntax errors. */
+    @Test
+    void debugWorldgenParsesCount() throws CommandSyntaxException {
+        FakeHandler h = new FakeHandler();
+        CommandDispatcher<CommandSourceStack> d = dispatcher(h);
+        List<String> out = new ArrayList<>();
+        d.execute("tfp debug worldgen 300", Fakes.source(ADMIN, out));
+        assertThat(h.calls).containsExactly("debugWorldgen 300");
+        assertThat(out).containsExactly("Worldgen: 300 chunks of the TFC fill path for world (after 20 warm-up): "
+                + "mean 1.00 ms, p95 2.00 ms, min 0.50 ms, max 3.00 ms; 0 refused.");
+        assertThatThrownBy(() -> d.execute("tfp debug worldgen 0", Fakes.source(ADMIN, out)))
+                .isInstanceOf(CommandSyntaxException.class);
+        assertThatThrownBy(() -> d.execute("tfp debug worldgen", Fakes.source(ADMIN, out)))
                 .isInstanceOf(CommandSyntaxException.class);
     }
 
