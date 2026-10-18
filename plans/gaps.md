@@ -9,7 +9,7 @@ Her madde kullanıcı tarafından istendi ya da bu oturumda doğrulamada ortaya 
 - [ ] **M2-GEN-03 görsel harita eşleşmesi.** Render edilmiş bölge haritalarının TFC'nin haritalarıyla görsel eşleşmesi.
 - [ ] **M2-GEN-04 sunucu kontrolü ve nehir haritası.** Göl ve nehir oyma sunucuda doğrulanmalı; nehir haritası render edilmeli.
 - [x] **M2-GEN-06 blok yoğunluğu.** Sarkıntılar, kemerler, deniz kayaları portlandı (golden testler TFC'den). Açık kalanlar: caves/beardifier (M2-GEN-09) ve kemer altındaki zeminin malzemesi.
-- [ ] **M2-GEN-07 üretim testi.** Dünyaların üretildiğini ve CraftEngine'in blokları izlediğini kanıtlayan resmi test (self-test şu an bunu doğrudan doğrulamıyor).
+- [x] **M2-GEN-07 üretim testi (kanıtlandı: `worldgen.terrain_generates` self-test PASSED; 16/16, 0 hata, Paper 1.21.11).** Dünyaların üretildiğini ve CraftEngine'in blokları izlediğini kanıtlayan resmi test (self-test şu an bunu doğrudan doğrulamıyor).
 - [ ] **M2-GEN-11, GEN-15, GEN-16.** Plan maddelerine göre kısmi/açık işler.
 - [ ] **M2-SEA-02 kalan.** Snow/sea-ice ile ilgili kalan parçalar ve CraftEngine blokları.
 - [ ] **M2-WTH-03 kalan.** Deniz buzu gerçek iklimle; CraftEngine kar yığını blokları.
