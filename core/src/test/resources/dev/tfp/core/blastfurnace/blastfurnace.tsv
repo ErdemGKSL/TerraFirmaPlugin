@@ -1,0 +1,2 @@
+id	input_fluid	input_amount	catalyst	output_fluid	output_amount	out_at_0	out_at_1	out_at_2	out_at_7	remainder_at_7
+tfc:blast_furnace/pig_iron	tfc:metal/cast_iron	1	tfc:powder/flux	tfc:metal/pig_iron	1	0	1	2	7	0
