@@ -84,9 +84,10 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Models: th
 
 ## Hunting & fishing
 
-- [ ] **M5-HUNT-01 Javelins, hides & meat yields** · deps: M5-WILD-01, M4-TOOL-02
+- [~] **M5-HUNT-01 Javelins, hides & meat yields** · deps: M5-WILD-01, M4-TOOL-02
   - TFC: `common/entities/misc/ThrownJavelin.java`, `common/items/HideItemType.java`, `util/loot/AnimalYieldProvider.java`
   - Done when: golden yield tests (age/familiarity based).
+  - Status (@claude): pure rules done. `core/hunt/`: `HuntDrops` (all 83 TFC animal and fish loot tables at c3b4d9536, 158 drop entries; yields rolled in TFC order), `HuntDrop`/`HuntCount`/`HuntCondition`/`HuntKill` (uniform and `tfc:animal_yield` counts, not-predated, is-male, killed-by-player, counts-as-player-kill, random chance; size scale from genetic size, player attack and familiarity), `HuntJavelin` (charge 10 ticks, one durability per throw, no break roll in TFC, thrown damage 1.5 x tier bonus). Golden: `HuntDropsGoldenTest` against `hunt_drops_golden.tsv` (83 species, 165 rows: 158 drops + 7 empty species; every row's drop and its yield for three probe kills). Unit tests: `HuntDropsTest`, `HuntJavelinTest`. 19 tests pass. Age is not an input: TFC's yield reads genetic size, familiarity and player attack only. Open: the prey AI (M5-WILD-01), the javelin and drop glue on Paper (entity, loot on death, butcher interaction), the item model and CE items for meat, hides and the javelin.; open: the loot-count integer read uses floor, the reading of vanilla NumberProvider that is not verified against the Minecraft source
 
 - [ ] **M5-FISH-01 Fishing & lobster traps** · deps: M5-WILD-03
   - TFC: `common/entities/misc/TFCFishingHook.java`, `common/items/TFCFishingRodItem.java`, `common/component/Bait*.java`, `common/blockentities/LobsterTrapBlockEntity.java`
