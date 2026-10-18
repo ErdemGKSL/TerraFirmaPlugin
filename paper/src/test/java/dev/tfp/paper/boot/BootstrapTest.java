@@ -149,6 +149,11 @@ class BootstrapTest {
         }
 
         @Override
+        public CompletableFuture<Reply> debugSnowTime(int x, int z, long tick) {
+            return call("debugSnowTime " + x + " " + z + " " + tick, Reply.ok("debug.snowtime.done", 12, -50, "world", tick));
+        }
+
+        @Override
         public CompletableFuture<Reply> debugPlayer(String name) {
             return call("debugPlayer " + name, Reply.ok("debug.player.header", name));
         }
@@ -228,7 +233,8 @@ class BootstrapTest {
         assertThat(children(tfp.getChild("time").getChild("set"))).containsExactlyInAnyOrder("day", "noon", "night", "midnight", "hour");
         assertThat(children(tfp.getChild("time").getChild("add"))).containsExactlyInAnyOrder("years", "months", "days", "hours", "ticks");
         assertThat(children(tfp.getChild("reload"))).containsExactlyInAnyOrder("config", "data", "content");
-        assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "player", "packets", "showcase");
+        assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "snowtime", "player", "packets",
+                "showcase");
         assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
         assertThat(tfp.getChild("debug").getChild("showcase").getCommand()).as("showcase needs a family").isNull();
         assertThat(children(tfp.getChild("debug").getChild("player"))).containsExactly("name");
@@ -293,6 +299,23 @@ class BootstrapTest {
         assertThat(out).containsExactly("Block at world 1 2 3:", "  vanilla: minecraft:stone", "Chunk 0, 0 in world:",
                 "Player data of Alex:");
         assertThatThrownBy(() -> d.execute("tfp debug block", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
+                .isInstanceOf(CommandSyntaxException.class);
+    }
+
+    /** {@code debug snowtime <x> <z> <tick>}: parses the console form, and a negative tick is an error reply, not a call. */
+    @Test
+    void debugSnowTimeParsesAndRejectsNegativeTicks() throws CommandSyntaxException {
+        FakeHandler h = new FakeHandler();
+        CommandDispatcher<CommandSourceStack> d = dispatcher(h);
+        List<String> out = new ArrayList<>();
+        d.execute("tfp debug snowtime 200 -800 1000", Fakes.source(ADMIN, out));
+        d.execute("tfp debug snowtime 200 -800 -5", Fakes.source(ADMIN, out));
+        assertThat(h.calls).containsExactly("debugSnowTime 200 -800 1000");
+        assertThat(out).containsExactly("Snow time of chunk 12, -50 in world set to calendar tick 1000.",
+                "The snow time must not be negative (got -5).");
+        assertThatThrownBy(() -> d.execute("tfp debug snowtime 200 -800", Fakes.source(ADMIN, out)))
+                .isInstanceOf(CommandSyntaxException.class);
+        assertThatThrownBy(() -> d.execute("tfp debug snowtime 200 -800 1000", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
                 .isInstanceOf(CommandSyntaxException.class);
     }
 

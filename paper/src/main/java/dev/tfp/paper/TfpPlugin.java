@@ -29,6 +29,7 @@ import dev.tfp.paper.boot.CompatCheck;
 import dev.tfp.paper.calendar.CalendarService;
 import dev.tfp.paper.climate.PlayerClimateService;
 import dev.tfp.paper.climate.SeasonalBiomeService;
+import dev.tfp.paper.weather.ChunkSnowTime;
 import dev.tfp.paper.weather.PrecipitationService;
 import dev.tfp.paper.weather.SnowService;
 import dev.tfp.paper.boot.TfpCommands;
@@ -747,6 +748,31 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             lines.add("chunk input: neutral, until chunk data exists (M2-GEN-05)");
             return base.withDetails(lines);
         });
+    }
+
+    /** {@code /tfp debug snowtime}: writes the chunk's {@link ChunkSnowTime} on the chunk's region, as {@code debugChunkAt} reads it. */
+    @Override
+    public CompletableFuture<Reply> debugSnowTime(int x, int z, long tick) {
+        World world = getServer().getWorlds().get(0);
+        int cx = x >> 4;
+        int cz = z >> 4;
+        CompletableFuture<Reply> out = new CompletableFuture<>();
+        Runnable write = () -> {
+            try {
+                Chunk chunk = world.getChunkAt(cx, cz);
+                new ChunkSnowTime(tick).write(chunk.getPersistentDataContainer());
+                out.complete(Reply.ok("debug.snowtime.done", cx, cz, world.getName(), tick));
+            } catch (RuntimeException e) {
+                out.completeExceptionally(e);
+            }
+        };
+        // Same as debugChunkAt: on the region's thread (RCON), write inline so the console gets the reply in time.
+        if (scheduler.isOwner(world, cx, cz)) {
+            write.run();
+        } else {
+            scheduler.region(world, cx, cz, write);
+        }
+        return out;
     }
 
     @Override

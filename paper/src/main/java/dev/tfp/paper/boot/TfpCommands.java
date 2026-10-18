@@ -7,6 +7,7 @@ package dev.tfp.paper.boot;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -39,6 +40,7 @@ import org.bukkit.entity.Player;
  * /tfp reload config|data|content
  * /tfp debug block|chunk [x z] the block you look at / your chunk and its climate (players, tfp.admin); with x z
  *                              (block coordinates, default overworld) the reading at that position, from the console too
+ * /tfp debug snowtime &lt;x&gt; &lt;z&gt; &lt;tick&gt;  sets the chunk's last snow-update calendar tick (tfp.admin, console too; tick &gt;= 0)
  * /tfp debug player [name]     player data (yours without a name)
  * /tfp debug packets           packet handler metrics
  * /tfp debug showcase &lt;family&gt; every variant of rocks|soils|ores in a grid at your position (players)
@@ -95,6 +97,12 @@ public final class TfpCommands {
 
         /** The chunk and climate at block {@code x, z} of the default overworld (M2-CLIM-03), for the console too. */
         CompletableFuture<Reply> debugChunkAt(int x, int z);
+
+        /**
+         * Writes {@code tick} as the last snow-update calendar tick of the chunk at block {@code x, z} of the default
+         * overworld (the chunk's {@code ChunkSnowTime}), on the chunk's region. {@code tick} is not negative.
+         */
+        CompletableFuture<Reply> debugSnowTime(int x, int z, long tick);
 
         /** Player data of the online player {@code name}. */
         CompletableFuture<Reply> debugPlayer(String name);
@@ -155,6 +163,19 @@ public final class TfpCommands {
                                                 .executes(run(handler, messages, (h, ctx) -> h.debugChunkAt(
                                                         IntegerArgumentType.getInteger(ctx, "x"),
                                                         IntegerArgumentType.getInteger(ctx, "z")))))))
+                        .then(Commands.literal("snowtime")
+                                .then(Commands.argument("x", IntegerArgumentType.integer())
+                                        .then(Commands.argument("z", IntegerArgumentType.integer())
+                                                .then(Commands.argument("tick", LongArgumentType.longArg())
+                                                        .executes(run(handler, messages, (h, ctx) -> {
+                                                            long tick = LongArgumentType.getLong(ctx, "tick");
+                                                            if (tick < 0) {
+                                                                return CompletableFuture.completedFuture(
+                                                                        Reply.error("debug.snowtime.negative", tick));
+                                                            }
+                                                            return h.debugSnowTime(IntegerArgumentType.getInteger(ctx, "x"),
+                                                                    IntegerArgumentType.getInteger(ctx, "z"), tick);
+                                                        }))))))
                         .then(Commands.literal("player")
                                 .executes(player(handler, messages, (h, p) -> h.debugPlayer(p.getName())))
                                 .then(Commands.argument("name", StringArgumentType.word())
