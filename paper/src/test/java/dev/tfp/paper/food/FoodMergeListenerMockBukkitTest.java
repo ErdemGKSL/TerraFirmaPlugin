@@ -70,6 +70,30 @@ class FoodMergeListenerMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void decayModifierComesFromTheFoodDefinitionByItemId() {
+        // M3-SURV-02: blueberry 4.9 (TFC food data); an item without an id or a definition gets 1.
+        dev.tfp.core.food.FoodDefinitions defs = new dev.tfp.core.food.FoodDefinitions(java.util.Map.of(
+                "tfp:food/blueberry", new dev.tfp.core.recipe.food.FoodData(4, 5f, 0.5f, 0, 0, 0.9f, 0, 0, 0, 4.9f)));
+        ItemStack berry = new ItemStack(Material.SWEET_BERRIES);
+        ItemStack bread = new ItemStack(Material.BREAD);
+        ItemFoodHooks.DecayModifiers m = ItemFoodHooks.DecayModifiers.byId(
+                s -> s.getType() == Material.SWEET_BERRIES ? java.util.Optional.of("tfp:food/blueberry")
+                        : s.getType() == Material.BREAD ? java.util.Optional.of("tfp:food/unknown") : java.util.Optional.empty(),
+                () -> defs);
+        assertThat(m.of(berry)).isEqualTo(4.9f);
+        assertThat(m.of(bread)).isEqualTo(1f);
+        assertThat(m.of(new ItemStack(Material.STONE))).isEqualTo(1f);
+        assertThat(m.of(null)).isEqualTo(1f);
+        // the berry rots 4.9 times sooner than a modifier-1 food
+        ItemFoodHooks byId = new ItemFoodHooks(now::get, FoodConfig.DEFAULT, m);
+        long created = 11 * STEP;
+        assertThat(FoodPdc.write(berry, new FoodState(created, List.of()))).isTrue();
+        now.set(created + dev.tfp.core.food.FoodDecay.lifeTime(1f / 4.9f));
+        assertThat(byId.isRotten(berry)).isTrue();
+        assertThat(hooks.isRotten(berry)).as("with UNIT the berry would still be fresh").isFalse();
+    }
+
+    @Test
     void tooltipLineFollowsTheStageAtTheCurrentTick() {
         ItemStack s = bread(1, 11 * STEP);
         Messages m = Messages.fromJar();

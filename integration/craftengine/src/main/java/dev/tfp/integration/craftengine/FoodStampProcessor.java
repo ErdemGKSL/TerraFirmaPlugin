@@ -8,6 +8,7 @@ package dev.tfp.integration.craftengine;
 import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.food.FoodConfig;
+import dev.tfp.core.food.FoodDefinitions;
 import dev.tfp.core.food.FoodTrait;
 import dev.tfp.paper.food.FoodPdc;
 import dev.tfp.paper.food.FoodStamp;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
@@ -46,16 +48,27 @@ final class FoodStampProcessor implements ItemProcessor {
     static final String PATH = "food_stamp";
 
     private final GlobalClockHolder clock;
+    private final Supplier<FoodDefinitions> foods;
     private final List<FoodTrait> traits;
 
     FoodStampProcessor(GlobalClockHolder clock, List<FoodTrait> traits) {
+        this(clock, () -> FoodDefinitions.EMPTY, traits);
+    }
+
+    FoodStampProcessor(GlobalClockHolder clock, Supplier<FoodDefinitions> foods, List<FoodTrait> traits) {
         this.clock = Objects.requireNonNull(clock, "clock");
+        this.foods = Objects.requireNonNull(foods, "foods");
         this.traits = List.copyOf(traits);
     }
 
     /** The factory for {@code tfp:food_stamp}; parses {@code traits} once at config load. */
     static ItemProcessorFactory<FoodStampProcessor> factory(GlobalClockHolder clock) {
-        return value -> new FoodStampProcessor(clock, parseTraits(value.value()));
+        return factory(clock, () -> FoodDefinitions.EMPTY);
+    }
+
+    /** As {@link #factory(GlobalClockHolder)}, with the food definitions that give each item's decay modifier. */
+    static ItemProcessorFactory<FoodStampProcessor> factory(GlobalClockHolder clock, Supplier<FoodDefinitions> foods) {
+        return value -> new FoodStampProcessor(clock, foods, parseTraits(value.value()));
     }
 
     /** {@code {}}, {@code null} or {@code {traits: [ids]}}; anything else is a configuration error. */
@@ -95,7 +108,10 @@ final class FoodStampProcessor implements ItemProcessor {
         if (item == null || !(item.platformItem() instanceof ItemStack stack)) {
             return;
         }
-        stamp(stack, clock.get(), traits);
+        // M3-SURV-02: the item's food-definition decay modifier (1 without a definition). It matters while the
+        // starting traits are applied: TFC adds no trait to a food that is already rotten (e.g. rotten flesh).
+        float decay = foods.get().decayModifier(item.id().toString());
+        stamp(stack, clock.get(), traits, decay);
     }
 
     /**
@@ -130,11 +146,14 @@ final class FoodStampProcessor implements ItemProcessor {
 
     /** The platform-free part of {@link #apply}, for tests. @return true if the stack was dated */
     static boolean stamp(ItemStack stack, ClockSnapshot now, List<FoodTrait> traits) {
+        return stamp(stack, now, traits, FoodDefinitions.UNKNOWN_DECAY_MODIFIER);
+    }
+
+    /** @param foodDecayModifier the item's food-definition decay modifier */
+    static boolean stamp(ItemStack stack, ClockSnapshot now, List<FoodTrait> traits, float foodDecayModifier) {
         if (now.sequence() == 0) {
             return false; // calendar not loaded yet
         }
-        // The food definition's decay modifier is looked up in M3-SURV-02; 1 only matters for the rotten check
-        // while applying starting traits, and a just-made food is never rotten.
-        return FoodStamp.stamp(stack, now.playerTicks(), traits, 1f, FoodConfig.DEFAULT);
+        return FoodStamp.stamp(stack, now.playerTicks(), traits, foodDecayModifier, FoodConfig.DEFAULT);
     }
 }

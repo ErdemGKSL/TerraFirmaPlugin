@@ -56,6 +56,7 @@ import dev.tfp.paper.player.PlayerData;
 import dev.tfp.paper.player.PlayerDataFiles;
 import dev.tfp.paper.player.PlayerDataListener;
 import dev.tfp.paper.food.FoodMergeListener;
+import dev.tfp.paper.food.FoodDefinitionsCache;
 import dev.tfp.paper.food.ItemFoodHooks;
 import dev.tfp.paper.player.PlayerDataStore;
 import dev.tfp.paper.ready.ReadyGate;
@@ -142,6 +143,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     private volatile CalendarService calendar;
     /** M3-SURV-01: food queries (stage, tooltip line, stack rule) at the current player tick. */
     private volatile ItemFoodHooks food;
+    /** M3-SURV-02: the food definitions of the current registry snapshot (empty until the registries load). */
+    private final FoodDefinitionsCache foodDefinitions = new FoodDefinitionsCache(this::registries);
     /** M2-CLIM-03: the player's ambient temperature for the HUD, and the reading for {@code /tfp debug chunk}. */
     private volatile PlayerClimateService climate;
     /** M2-WTH-01: what falls at the player's position (rain or snow), for {@code /tfp debug chunk}. */
@@ -177,7 +180,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         // M1-INT-01..04: discover the adapters of the installed plugins; CraftEngine registers its
         // behaviours/functions/conditions here (must happen in onLoad).
         IntegrationContext ctx = new IntegrationContext(this, getLogger(), readyGate, () -> scheduler, hudCache, clock,
-                getDataPath().toAbsolutePath().getParent());
+                getDataPath().toAbsolutePath().getParent(), foodDefinitions);
         integrations = Integrations.discover(ctx, name -> getServer().getPluginManager().getPlugin(name) != null,
                 TfpPlugin.class.getClassLoader());
         integrations.onLoad();
@@ -416,8 +419,9 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         cal.start(scheduler);
 
         // M3-SURV-01: TFC's food stack rule in inventory clicks, pickups and hopper moves (lazy: dates in player ticks).
+        // M3-SURV-02: each food's decay_modifier from its food definition (1 for items without one).
         ItemFoodHooks foodHooks = new ItemFoodHooks(() -> clock.get().playerTicks(), FoodConfig.DEFAULT,
-                ItemFoodHooks.DecayModifiers.UNIT);
+                ItemFoodHooks.DecayModifiers.byId(stack -> integrations.customItems().idOf(stack), foodDefinitions));
         food = foodHooks;
         getServer().getPluginManager().registerEvents(new FoodMergeListener(foodHooks), this);
 

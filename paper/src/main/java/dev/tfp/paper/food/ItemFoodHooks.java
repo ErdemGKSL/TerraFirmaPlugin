@@ -9,6 +9,7 @@
 package dev.tfp.paper.food;
 
 import dev.tfp.core.food.FoodConfig;
+import dev.tfp.core.food.FoodDefinitions;
 import dev.tfp.core.food.FoodStage;
 import dev.tfp.core.food.FoodState;
 import dev.tfp.core.food.FoodTrait;
@@ -18,7 +19,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -31,14 +34,29 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class ItemFoodHooks implements FoodHooks<ItemStack> {
     /**
-     * The item's food-data {@code decay_modifier} (TFC {@code FoodData.decayModifier}). The food definition
-     * lookup by ingredient belongs to M3-SURV-02; until then {@link #UNIT} (1) is used for every food.
+     * The item's food-data {@code decay_modifier} (TFC {@code FoodData.decayModifier}). The plugin uses
+     * {@link #byId}: the item's custom id looked up in the food definitions (M3-SURV-02); an item without an
+     * id or without a definition gets {@link FoodDefinitions#UNKNOWN_DECAY_MODIFIER} (1). {@link #UNIT} is 1 for
+     * every stack (tests).
      */
     @FunctionalInterface
     public interface DecayModifiers {
         DecayModifiers UNIT = stack -> 1f;
 
         float of(ItemStack stack);
+
+        /**
+         * @param idOf        the stack's custom item id (CraftEngine through {@code CustomItems.idOf}), or empty
+         * @param definitions the current food definitions, read once per call
+         */
+        static DecayModifiers byId(Function<ItemStack, Optional<String>> idOf, Supplier<FoodDefinitions> definitions) {
+            Objects.requireNonNull(idOf, "idOf");
+            Objects.requireNonNull(definitions, "definitions");
+            return stack -> {
+                Optional<String> id = stack == null ? Optional.empty() : idOf.apply(stack);
+                return id.isEmpty() ? FoodDefinitions.UNKNOWN_DECAY_MODIFIER : definitions.get().decayModifier(id.get());
+            };
+        }
     }
 
     /** Message keys of the tooltip line, by stage. */

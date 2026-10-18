@@ -6,6 +6,7 @@
 package dev.tfp.paper.integration;
 
 import dev.tfp.core.clock.GlobalClockHolder;
+import dev.tfp.core.food.FoodDefinitions;
 import dev.tfp.paper.ready.ReadyGate;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.nio.file.Path;
@@ -24,10 +25,18 @@ import org.bukkit.plugin.Plugin;
  * @param hudCache the shared per-player HUD snapshots
  * @param clock the published global clock (volatile reads; HUD date placeholders)
  * @param pluginsDirectory the server's {@code plugins/} folder (install targets are computed from it)
+ * @param foods the current food definitions (M3-SURV-02; empty until the registries load), read per use
  */
 public record IntegrationContext(Plugin plugin, Logger logger, ReadyGate readyGate, Supplier<Scheduler> scheduler,
-        HudSnapshotCache hudCache, GlobalClockHolder clock, Path pluginsDirectory) {
+        HudSnapshotCache hudCache, GlobalClockHolder clock, Path pluginsDirectory, Supplier<FoodDefinitions> foods) {
+    /** Without food definitions (every food gets the default decay modifier). */
+    public IntegrationContext(Plugin plugin, Logger logger, ReadyGate readyGate, Supplier<Scheduler> scheduler,
+            HudSnapshotCache hudCache, GlobalClockHolder clock, Path pluginsDirectory) {
+        this(plugin, logger, readyGate, scheduler, hudCache, clock, pluginsDirectory, () -> FoodDefinitions.EMPTY);
+    }
+
     public IntegrationContext {
+        Objects.requireNonNull(foods, "foods");
         Objects.requireNonNull(logger, "logger");
         Objects.requireNonNull(readyGate, "readyGate");
         Objects.requireNonNull(scheduler, "scheduler");
