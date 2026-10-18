@@ -160,9 +160,10 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
   - Done when: golden yields; self-test.
   - Status (c3b4d9536): pure rules ported and golden-tested in `core/.../core/charcoal/` (`LogPile` (count 1..16, layer and row), `CharcoalPit` (`hasConverted`, `convertTick`, `remainingTicks`, `charcoalFromLogs`, `convert` for a column: the charcoal pile below, the bottom-first fill, the drop), `CharcoalSpread` (the cover rule and the neighbour sweep, the 1-in-7 draw passed in). The burn is `charcoalTicks` (18000 default), and the charcoal depends on the log count only, not the wood. 128 amount, 226 lit-state and 300 column golden rows in `CharcoalPitGoldenTest`, plus `CharcoalPitLazyVsSteppedTest`, `CharcoalPitDeterminismTest` and `CharcoalRulesTest`. Divergences in the ledger (the random-tick sweep, the draw moment, the `lastUpdateTick > 0` guard kept). Still open: the log pile and charcoal pile blocks and their placement and stacking, the placement and ignition in Paper (fire above, `canBePlacedAt`, the 30-tick neighbour delay, the insulation check through the async pipeline), the CraftEngine visuals (count and layer states), and the self-test.
 
-- [ ] **M3-PROC-05 Composter** · deps: M3-FARM-01
+- [~] **M3-PROC-05 Composter** · deps: M3-FARM-01
   - TFC: `common/blockentities/ComposterBlockEntity.java`
   - Done when: lazy composting test.
+  - Status: pure rules ported to `core/compost/` (`CompostRules`, `CompostAddition`, `CompostBin`) and golden-tested against TFC at c3b4d9536 (544 golden rows: ready ticks, lazy settle, additions, extraction, stage and rotten grids, tag classification). Lazy-vs-stepped and determinism tests pass. Open: the composter block and block entity state, the Paper interaction (use, sneak extraction, the player-on-block check), the hopper automation, the rotten infestation, and the CraftEngine visuals.
 
 ## Farming
 
