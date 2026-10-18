@@ -103,8 +103,9 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
   - Do: vertical falling (CE `falling_block` or ours) + sideways sliding decided async.
   - Done when: golden scenarios.
 
-- [ ] **M3-PHYS-03 Support beams** · deps: M3-PHYS-01 · skills: craftengine-blocks
-  - TFC: `common/blocks/wood/{Vertical,Horizontal}SupportBlock.java`
+- [~] **M3-PHYS-03 Support beams** · deps: M3-PHYS-01 · skills: craftengine-blocks
+  - Status: rules ported and golden-tested in `core/beam` (`BeamRules`: the connected faces, the horizontal span to a pole with TFC's maximum of 5, `canSurvive` for both shapes, the support reach of the horizontal beam (4/2/2, the same numbers as the collapse `SupportTable` data), and `update` giving the drop decision and the connections for one neighbour update). Golden tests: `BeamGoldenTest` (2048-entry span table along all four directions, 162-entry connection table, 300 random neighbourhoods, hand-worked cases) and `BeamDeterminismTest`. Open: the Paper connection runner (async decide, sync apply of connection state and drops), the CraftEngine beam blocks and their visuals, and the place/break chain self-test.
+  - TFC: `common/blocks/wood/{Vertical,Horizontal}SupportBlock.java`, data `support/horizontal_support_beam.json`, tag `support_beams`
   - Do: connection states via the async decision pipeline; renderer visuals.
   - Done when: connection self-test (place/break chains), collapse prevention.
 

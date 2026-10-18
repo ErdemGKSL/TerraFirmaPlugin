@@ -1,0 +1,530 @@
+/*
+ * Licensed under the EUPL, Version 1.2.
+ * You may obtain a copy of the Licence at:
+ * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ */
+package dev.tfp.core.beam;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import dev.tfp.core.world.BlockPos;
+import dev.tfp.core.world.Direction;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+
+/**
+ * M3-PHYS-03 golden values. Every row below was produced by TFC's own support beam rules at c3b4d9536, ported line by line into a
+ * scratch oracle (VerticalSupportBlock.canSurvive and updateShape, HorizontalSupportBlock.canSurvive, updateShape and
+ * getHorizontalDistance) and run over the grids described below. The oracle's scratch script is not kept in the repository.
+ *
+ * <p>Cell codes: V vertical beam, H horizontal beam, O air or valid empty fluid (open), F non-empty fluid (not open), S solid
+ * with a sturdy top, N solid without a sturdy top. Beams are never open and never sturdy on top.
+ */
+class BeamGoldenTest {
+
+    static final BlockPos ORIGIN = new BlockPos(0, 0, 0);
+
+    /**
+     * Exhaustive span table: index = originIndex * 1024 + code, where originIndex 0 is an open origin and 1 a horizontal beam, and
+     * code packs cells 1 to 5 along the direction in base 4 over "VHOS" (cell k is digit k-1). One digit per entry, the span 0 to 5.
+     * Each entry is checked along all four horizontal directions.
+     */
+    static final String SPAN_DIGITS = """
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120115011001120112011001100
+            1120112011301100112011201130110011201120110011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120115011001120112011001100
+            1120112011301100112011201130110011201120110011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120110011001120112011001100
+            1120112011301100112011201130110011201120110011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120110011001120112011001100
+            1120112011301100112011201130110011201120110011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120115011001120112011001100
+            1120112011301100112011201130110011201120110011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120115011001120112011001100
+            1120112011301100112011201130110011201120110011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120110011001120112011001100
+            1120112011301100112011201130110011201120110011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120114011001120112011001100
+            1120112011301100112011201130110011201120110011001120112011001100
+            1120112011301100112011201130110011201120110011001120112011001100
+            """.replace("\n", "");
+
+    /**
+     * Exhaustive connection table: index = shape * 81 + code, where shape 0 is a vertical beam and 1 a horizontal beam, and code
+     * packs the neighbours on north, east, south, west in base 3 over "OVH". The digit is the connection mask in hex (N=1, E=2,
+     * S=4, W=8).
+     */
+    static final String CONNECTION_MASKS = """
+            011233233455677677455677677899ABBABBCDDEFFEFFCDDEFFEFF899ABBABBC
+            DDEFFEFFCDDEFFEFF011233233455677677455677677899ABBABBCDDEFFEFFCD
+            DEFFEFF899ABBABBCDDEFFEFFCDDEFFEFF
+            """.replace("\n", "");
+
+    /**
+     * Random grid of 300 neighbourhoods around a beam at the origin. Each line is {@code input expected}. The input is the origin
+     * code (V or H) followed by 30 cells: five cells along each of DOWN, UP, NORTH, EAST, SOUTH, WEST, the first cell being the
+     * neighbour. The expected value is {@code survive|drops|mask}: canSurvive for the origin shape (0 or 1), then whether a
+     * neighbour update on DOWN, UP, NORTH, EAST, SOUTH, WEST drops the beam (1 drops), then the connection mask in hex. The cells are
+     * drawn from a fixed 64-bit LCG over "OFSNVH".
+     */
+    static final List<String> SCENARIOS = List.of(
+            "VNVFOHVSVHFVFHVFHNSNHVNSHSFNFNO 0|100000|7",
+            "HSHSSONVSFSOFVOHHNNFFFFSOVOSHHV 0|001111|2",
+            "HOSVNOVOVHHHFFHFVONFFOVNHONVSFO 1|001111|3",
+            "HOVNHVHSOSOFFSVNSNVNNSSSHFFSSVN 0|001111|0",
+            "HHSNNFVSHFNHSFHFNFOOFFOHOVNHFSN 0|001111|1",
+            "HVNVSNHHNOVNNOOFVVVSOVNSVHFFOOV 0|001111|6",
+            "VOFOVNNVFSFVNVVSSNHFVFNOOHOVSNO 0|100000|1",
+            "HNOVFNNVSVNHVVSFFOSSFSVVHSHFSSN 0|001111|9",
+            "HSOVSNVFNHOHNVHNHOSVOFHFNHSVFHF 0|001111|3",
+            "VHVHNNFVFSONFNFHVVFOHFFSOOVVSOV 1|000000|A",
+            "VNNNVHVSHSOVHFHVSOOOOFVVHFFOHSS 0|100000|1",
+            "HONFOSFSSNNVSOFVFSFNSSVFNVHSVHN 0|001111|9",
+            "VSFVSHSNNOHNOHSFHHNVOHNNVNVSOFH 1|000000|E",
+            "HNNFSHNONVFSHHSVVOVNHHHHFVNSNFS 0|001111|6",
+            "VNHSHOSSSNNHVNOOHNSVSHVOHFVOOHO 0|100000|F",
+            "HSSVSVVVSNHHOFSVHVSNSVVVSSSHOOO 1|000000|7",
+            "HFHHSOOHFHVSHFFFNNNVHNOVFVOFSON 0|001111|0",
+            "HHSHNVVVSOHSNOFVONFNVFHSVSHNFSO 0|001111|8",
+            "VOVVSFSSFHOOHNFOSSOHSFFVFVSVVNS 0|100000|0",
+            "HOFFONHONFVONSHOHSOVFVOONONVNSH 0|001111|6",
+            "VSOSONHOSSNHHVSHFHOVSHSNONNFVSO 1|000000|5",
+            "HHSHNVSNFHNFOSSFSFNVNHSHHSONVFV 0|001111|4",
+            "VOHSFVHFFHVVFNSFFOFFFHVSNVHNSNF 0|100000|D",
+            "VFFHVFOVFNHVNONHVSNFSHHOHHFFVVO 0|100000|7",
+            "VHNFVOFNNFVSFVSVSHVSONOSFSHOHFH 1|000000|8",
+            "VVFNFONOFSHFVOHNNOFNNHSVNOFSFVV 1|000000|4",
+            "HOHVNFVSHFFHOSSSVHVVHVSNHONFSVV 1|000000|7",
+            "HFSHNSFSNNOFSNVHHVOSFOHFOSFOHSF 0|001111|2",
+            "VVVVFNSHVVVNOOFOVSHVOHSVNSFOHVF 1|000000|6",
+            "VSFFSFHHNOSNNOSNFSSONNNSHNOHFOO 1|000000|0",
+            "VFFFHVHOVFVNHHNVHSFOSNFHHFOFSHS 0|100000|2",
+            "VNHOSSHVOHHNSNOSSHSSNNNSOFNHOVO 0|100000|0",
+            "VFHSFNVFHVOOHNOHHHOFVVNOSVSFOOO 0|100000|6",
+            "VVVSVFSFOONHFNNFVVSHNOVSONFVSVO 1|000000|3",
+            "HSVNNSSFOSHFOOOSOFHOVOFOHVHSVNH 0|001111|8",
+            "HOOOOOFONVSOHNNVVSNVOHHVNONVFSF 1|001111|6",
+            "VSSVNOVOFSONVNVVFVNVHHOFFVOOFFH 1|000000|4",
+            "VFSNHNHONSFFHHOOHHSFHNNOSSHHNSN 0|100000|A",
+            "HFONSFNSSFVNHFNFNHHFFSSHOFFNVFF 0|001111|0",
+            "VVFVVVNOHFFFNNSFOHFOVSHNFFSONFO 1|000000|0",
+            "HFVNOHFVVVFOHONNNSNFNSHSNVFHOVH 0|001111|0",
+            "HFHHFSVVHVSSHNHFNNFNFFSVHSSNSNN 0|001111|0",
+            "HVNSHFOOFHOSVNNOVVHSHFVHHHFOHHN 0|001111|2",
+            "HVSOOOVNVVHFNOOOFVFHSFFSSOHSHSS 0|001111|8",
+            "VVOFHSOHFFSSHOVFHHOHSHVVSVONVVV 1|000000|6",
+            "VSVSNNOSSHVSFHSHVOFVNOHOHOVVVVO 1|000000|A",
+            "HVHHSVHVSSVNOHFVNHSNNFNHNVOHVHO 0|001111|0",
+            "HHHHHHNHSVNVHNFNNHHSFONONFSHNSN 0|001111|1",
+            "VNFHNVSSVONVOOSVHFVOOOHFNNNFVOS 0|100000|3",
+            "VOOOSNOOOSSOFSNFVVVFSFOVNFHSOVN 0|100000|A",
+            "HVHNNNFOVHSSVSVVONSSSHFOVSHSSVS 0|001111|C",
+            "HSSFVVSFFFSONFFHHVSOFSVVVNNNHFF 0|001111|2",
+            "HSNFHVNHOSFNVVHFVHVHONNHNFFSNFH 0|001111|2",
+            "VFNOFNVOOVFFSFFFNNVFNFSSSNNSOHV 0|100000|0",
+            "HHNHNOHVNFSNONOFNSFNVFOONHVVOVO 0|001111|8",
+            "VSVHHFSSHVSOSVVNNNSHNVSNOSNVVOS 1|000000|4",
+            "HFHOHNVOFHHNSSONSNVVSVNNFHOHHNH 0|001111|4",
+            "VSSOHONNHFFFNNFVOHOSVSVFFHNFHOH 1|000000|0",
+            "HOVVVNFVHVVSHHHFHNNFVHHSFSSNSHV 0|001111|6",
+            "VSFFSVHNOSVNSHOSVVVVNSVVFFOFVVH 1|000000|2",
+            "HOSNHFNSFOHVHONSNVNSSHNHNNFOOOH 1|000000|5",
+            "HFSNNFSOOFNHONFFFVHHSFSOHFHHVFF 0|001111|9",
+            "VOONFVFVSNOVHFNNNHFSHOHNOFVONSS 0|100000|9",
+            "VNNHNVNNFNNNNHHFVSSNHVFFHNNSFVS 0|100000|6",
+            "VNSSSFSNSHFHHNFSHFHFHSSONOSHOVH 0|100000|3",
+            "HFFSNHFHHNNHVOVVVONOHHOFNHFNOSN 1|000000|7",
+            "HVNONHOSNNVNVONFVFOVSSVHHNOVHOO 1|001111|2",
+            "VONHNNVONFHNVHSONNSFNSSSNOVHONF 0|100000|8",
+            "HVHNFOOHHFOSSOOFHFNVSSFHSFNFFFO 0|001111|2",
+            "HOFOVNOSNNVHVVFOHVNHHFVNSVSVVVH 0|001111|3",
+            "VSNNFHOOHHNFHFHNOFHNFSHHNVSSSFH 1|000000|0",
+            "HVOSVNVSNNOHFVHVVVSFONVNOSOOVSO 1|001111|3",
+            "HVVVOFFNSVVSNOHNSNNNVNNFFHNHSSS 0|001111|0",
+            "HVOVSSHNOFSSFNSNSNOSFFSFVNNNOVH 0|001111|0",
+            "HONNHNHOVOVONVOHFSHNHOVSSNOONNF 0|001111|0",
+            "VOSSHFNSVHNHNVONVNFNNHHNHSSNFVV 0|100000|7",
+            "HVFVNONNHOVVSOFOVOFHSSHHVONSNSS 0|001111|3",
+            "HNSVFSNNOONHSFNNOFVNOVVHNSNFOFS 1|000000|5",
+            "HSSOFFHNFNSFHFHFNHNOSFSOHOVNSOV 0|001111|8",
+            "VSVSHHFSFSHFNNVSHSFSFVVFSHVVHSS 1|000000|E",
+            "VHOFHSNNHOFVNFFNHVFVSSNVVVNSOFN 1|000000|3",
+            "VVOOHNNSVVSNOHNSHSVSHOVNVSNHSOF 1|000000|2",
+            "HOSHSNHVHNOHFHOVSSSVOVSOOSVOFOO 1|000000|D",
+            "VNFVSVOHVNHVFHNHFSFOFVVOSSONNOV 0|100000|5",
+            "VOHHNSFOHNOOHSOOHOSSSSVOSSSVONH 0|100000|2",
+            "VOVHSOSVOOFNHFVHHVVFOVVHOFSSFSV 0|100000|6",
+            "HNFVNHHNNOSHSOOSNFHNHVNSVFHVHOV 1|000000|D",
+            "VVHFNSVFHSFFNFNOFHVFOSNOOFNSOOH 1|000000|0",
+            "HFVHSVSOVOVSSNOVVNVOOFSNVHFFVSF 0|001111|2",
+            "HNNOHFVHFFNHHNNHVOSFFVOOSNNOSOF 1|000000|7",
+            "VFOHFHHSSSNOHSNFVNNOVNSHNOONSHF 0|100000|2",
+            "HNNOSVHHNSHFOOHNSVHVNNNOOHHNOVH 0|001111|8",
+            "VOSSNHNVFHNNVHSVONHSVOOSNVVFSHF 0|100000|8",
+            "HNSFHSONVFSFHSVVOHVNOOSFHHVOHSH 1|001111|8",
+            "VOSNNSOFVOOHFNHOHNHNFSONVHNNFSS 0|100000|3",
+            "HNOFSVVSSHFOFNFFHOFOVNSSFSNFFNV 0|001111|2",
+            "VFHVHNONSFSONSVOHVONOOSSHNHSFHH 0|100000|A",
+            "VSVHFFNNNSNFFVONVVFSOFOOSFNNNNH 1|000000|2",
+            "VSSVNNVVNNFNONVFNFHVNHSOSFHHNOH 1|000000|C",
+            "HOOHONNNOSNVONSVOOOVOHNHSVNFVON 1|000000|5",
+            "VFNSHOOSSFVSFFSSNHFSNFFOSVFNFSO 0|100000|0",
+            "HSSHSOSVHNOHFNSNVSHSFVOOFNNSVHV 1|000000|7",
+            "VOHVOFVVHFNFNOOOSFFHFOFOSFOSOHH 0|100000|0",
+            "VHVSSHVSNFNFVFHHNFOHVOONVFOHHVO 1|000000|0",
+            "HVHHVFVVVHHNONHSOFFHOFFFSOSSFNN 0|001111|0",
+            "HFOFOHFFHVFHOSONSVVNNNHVFFVSHSF 0|001111|9",
+            "VFOSFNFSFHFVFVVVFFVVFHSFOOHNHFH 0|100000|D",
+            "VSOFSFVNHOOHFONVOHVOFVSVOSSVVFO 1|000000|5",
+            "HNHVNNFSOSONSSFNSOOHFVFNNNFHSHF 0|001111|4",
+            "VSHNSOHVOHFHOONNNSONOSSNOSVVOFF 1|000000|9",
+            "HNFFFVSVNFOHFNOHFSHVOHSFNNSFFOV 1|000000|5",
+            "HVVFSFFNNFOVFSFFNOONSSHVSHHVVHO 0|001111|9",
+            "HHVFHVFHFFFOOOVNFVFHHFHSSVNHVNV 0|001111|0",
+            "VOHOOONSHSSSFNONFVNHHNSSVFVFHNO 0|100000|8",
+            "HSFOOHNFFVHVHFONOFFSOHNNOONOSFN 1|000000|5",
+            "VVOFSNVOSFOSNSHOVOHFOFFVFONFHFV 1|000000|2",
+            "HFOHVNOFNVHOVHOOHHOSSVHVSFFFNHS 1|001111|6",
+            "HVOVHOVHFVSSNSSNFHOSFOVHHVOHFSO 0|001111|0",
+            "HHHFNFSVSHVFNOOSNSHHHFSNVFHOFFH 0|001111|8",
+            "VVVOFVNOHFVFNFNNNSHFSHHFVNSSSHF 1|000000|4",
+            "VOHVHHNVOHHVSVNHOSOVHFVHHSVSNFN 0|100000|9",
+            "VVFOSONFHHVVVFONFHVSHSHFHFOONNS 1|000000|1",
+            "VFNFHFVNHFSVFVVHFNHFHOOFNFFFFNS 0|100000|1",
+            "VHVFFHOHOSOSOSOVHOOSVHHOVNNHHOO 1|000000|6",
+            "HFVONNVVVOHSHSOSVSOVOSVSOSFNOHN 0|001111|2",
+            "HSFNOFNOHSVHFHFFNNVFFOVFOOFHFOS 1|001111|1",
+            "HHOHVSNHSFFNOOSFOOHOFSNHVHHNHOV 1|001111|8",
+            "VVSFVHVNOVSOONSVHFSNFFNHOHVSFVF 1|000000|A",
+            "HVOHNFOHNNHOSHFSONNOOONONFONHFO 0|001111|0",
+            "HSHFSVFFSSSHHHOVOFNSVVSNOFOOSOV 1|000000|5",
+            "VOFVOFHSFOHVFNHHFOHHNHONHHNSSFH 0|100000|5",
+            "VNFFSVSOVNFNVVVSVNONVVFSFHOSSOF 0|100000|6",
+            "VOSNHNVVSVNVSVOHHSOFSSFOSNVFHHN 0|100000|B",
+            "VHVNFOSVSNHHVVVFNSSNHHFNOOVSHHN 1|000000|D",
+            "VHFOSFNHHSHSOVVVSNFSFVONVSSFSNN 1|000000|4",
+            "VFVVSHFVNOFSVSSNFOHHFONHFOVOFHN 0|100000|8",
+            "VFHVNSVNNSVNVVOSVNFSOOVOOSSHHSF 0|100000|2",
+            "VOOSSHVFSHOVHOVVSNFVSFHVOFHHSHF 0|100000|9",
+            "HSOVFONSVHONVHVSVFNVOVOSOVNSSNO 0|001111|6",
+            "VONVFOVSSFVSSSOVNOSSOONNHVVHVHN 0|100000|8",
+            "HONFHSSOSHSSHNSSFNSNHFHVNSSVVFH 0|001111|0",
+            "HOVNHVOOVVNNOOSOFSNFONFFHONSSOV 0|001111|0",
+            "HHFSSVFOHHONNFFSHSSFFHVVHSVHVSF 1|000000|E",
+            "VVNOHNFHHHVHNNNSVOSVSHHOSOVNVFN 1|000000|F",
+            "HONOHVSVNVSHFSOHSVNFHHFVOSVHNHH 1|000000|D",
+            "HVVNNFFFONVNHVHNVONSNNNVVFFVFNN 0|001111|2",
+            "HFOSVVFHHHVNOHHFOHNSSFSFOHVFFNN 1|001111|8",
+            "HVSFNSOHHSSVNSOFNVHFFSOVHHVOOOO 0|001111|9",
+            "VOFVNONVVOFFNSVSVFHFSVVOHNNHOHO 0|100000|6",
+            "HSFOHVFVNVONOHFVFFNVOONVHNFFVFV 0|001111|0",
+            "VFOVVOOVHNOVHFNHNHVSNSNSFVOONSO 0|100000|1",
+            "VOFVSHVOHOSNNOONOSSSSHSVFSFVONO 0|100000|4",
+            "VVONVNHNVOFVFHFFOOFHHNFNHNHNFSH 1|000000|9",
+            "HSFNFVHSNHVNHFHHOHHSSFFNFVFNFHV 0|001111|0",
+            "VNONONHNFNFFSHHSVVVVSHFOVSONNHS 0|100000|6",
+            "HHNFVHNFFFSHOFSOFVVSFFVHHVONHON 0|001111|1",
+            "VSSNHNHVVHNNOFNHVONNHONVVHFOOVN 1|000000|2",
+            "VNSSSHVVOOVVNSSHOSVNFNSFSVFFFOF 0|100000|1",
+            "VSFFSHNVNNOFOHFVSNOOFNOSFSHSNHV 1|000000|8",
+            "VVHNOVHHSNSHFVOFFHNSNOFNSVNVOSN 1|000000|1",
+            "VFHFOOOOSVOOHOOFFSHNFNHVNOVNHHF 0|100000|8",
+            "VFSOVHVFONNOSVVVFVHFSONNSHONHFS 0|100000|0",
+            "VVSNFFNSHNOFFNFFFOHVVNFSOHSFFNO 1|000000|0",
+            "HNOVHNHSOFVFFFOFOHHSONSHNSNHHNN 0|001111|0",
+            "VVFHFFSHVSOHHSNONHHHVFFVOVVOHNV 1|000000|9",
+            "HHSONHNVOHNFHHNNNVVFOOHHSOHHSNF 0|001111|8",
+            "HNVOFVSHFOFFHSFVNFHNVSONNSVNNNH 0|001111|8",
+            "VOHNFSHVSNNSONNFSNNSNSNVNVHOOFN 0|100000|8",
+            "VNHFFNNONOSFNSVOFOFOSFVHFVVOOFO 0|100000|8",
+            "HVHFOHSOSVNVNHOVHFOSHVFVSOSFVHH 1|000000|7",
+            "HVHHFOFVVSVNNNSHFSNHOSSNSHOHFOO 0|001111|0",
+            "HSNNVFVHNSSHSSVFNOVOVHNSSVSVHNH 1|000000|5",
+            "VOFNHVFOVFHNVVNSNFOOHSOOHFOOVFN 0|100000|0",
+            "VOHHOFFVSFOOFNHSONNVHOVFOOVONON 0|100000|8",
+            "HNNSHVSNSVVONNSNSSVNVSVNSNSHVSH 0|001111|0",
+            "VSSNOHVFSVOHNFFVONNFOHFHNHNNHHO 1|000000|5",
+            "VFNNNSSNFFSSFVFHSHSOOOVSHSNOFNN 0|100000|0",
+            "VVHHHVHNFNHOFNVFVOSNVSOOOVOHVSS 1|000000|2",
+            "HHNSVHFHFSSHNSVSNFHHOOVFHFVHHFH 1|001111|9",
+            "VNFVVNSNOSHVSONVFHSHHNHNONVNFSH 0|100000|9",
+            "VHOFFSFOHHNVNVNVVSVVFNOSSOHSHSF 1|000000|B",
+            "HFNHSSNOHNVOFVSFFVHSOOVOHFSHSVV 0|001111|0",
+            "VNSHSHSHNFVNOVHNNSVOFNVNNHFOFHV 0|100000|0",
+            "HHNSVNNHOSNFFOVSHFHOFNNHVHVOFNF 1|000000|A",
+            "HVFVSHHFOONFVOFNOOSNVNNOFOSHNHO 0|001111|0",
+            "HFFOSOOOHOOOOVOHVHSFOOVOHFSSFVF 0|001111|2",
+            "HHVNVSSSSFVNHSOONOHVVSVVNSOFVHS 0|001111|0",
+            "HSFHOOVNFOHFVFONVSNHOHOHHHSOSOF 0|001111|6",
+            "HONFFHSSFOVVNVVOOHOOVVHNSSFSHNS 1|000000|5",
+            "HVOFSFSNNNVVOSOFNSHSSSFHFHOONNS 0|001111|1",
+            "VFFHFNVOOSFVVHHVSVHVVNVFHNOFSHO 0|100000|1",
+            "VVOHFFVHHHOVSOVNSNFFFSNNFOHSNSF 1|000000|9",
+            "VVSNHOFNHHHHOOSHVOVSOFVHFSVVHHH 1|000000|B",
+            "VOSVVFNHSOSHSFHNVOSHHVHFFFNVFSV 0|100000|7",
+            "VHFHHFFFSNVOVNNSNHFFFHHHVVOSVNH 1|000000|4",
+            "VOSNHSFSVNSNOFHOOVOFOHVVVSSONVV 0|100000|4",
+            "VSSHFVVFOHNHNONVVSHOHNOFVSOOFSO 1|000000|3",
+            "VHNNHNVVSHOFSVNHHSSSFFHSVVNNVSF 1|000000|2",
+            "VOOOHHNSSSOHFVVFFVFHSFSVFFNFFHV 0|100000|1",
+            "HFOVFFHFNNHVVOSVHOFOVVSVSNOSHFS 1|000000|7",
+            "VFFSFVSOSHNHFFONVVFOFFONOSNNFNV 0|100000|3",
+            "HNSFSSSFVFHVNHNVHONVVOOSFSFVSVN 0|001111|3",
+            "VHHSFSFOOHNHHHNSHNOVVSFVNNVOOSN 1|000000|B",
+            "VNHOFSVSOSHNSFVFOSHNVOSOSVFHHSV 0|100000|0",
+            "HSNVNSFVSVFSSFHNOVSVFFFHNOHHVHF 1|001111|8",
+            "HOSHVNHHNSOOOONFSHFFNVVNVVOFSNH 0|001111|4",
+            "VONHVFVFSVFOSHVFSOONSSNHSONNHNO 0|100000|0",
+            "VOSNHHSSNNHNOHNVHVHSFFNOVOHSNNO 0|100000|A",
+            "VNVFHOHFNFONHFOVNONVOSOHSSOFHNN 0|100000|0",
+            "HNVVNNHOFOHNSOVVSVVNHOSHNSHNVFS 0|001111|8",
+            "HFSNVONOHSSHOVVNOHOFSNOHFOFOHSH 0|001111|1",
+            "VVHNNHFOSFNNVSFSSSFVOHSFOFNHVNS 1|000000|4",
+            "HHOVHNHNNFSVSSHNOFNFSFFHHNVFFVV 0|001111|9",
+            "HVSOVVHHFSSSNSVSFNSHNNVFFHVNNSO 0|001111|8",
+            "HHVNFVOFHFSSOVFSHFSSFNHSNHVHOHS 1|000000|A",
+            "VSSSNSONHFSHHSOOSHOOFFHOSVSFVNF 1|000000|1",
+            "HOVNONSNVVVNVFSVHOVSFOSHFHVSNHO 1|000000|A",
+            "VSFFHHNNFHNNNVSNNOOHFVFVFOHHNNF 1|000000|C",
+            "HVOSSOOOHSFSOVHNSFHHSVFOHHHNNOV 0|001111|C",
+            "VHHSHNFVOOVSFHSHOFVSNHSOOOOSFSO 1|000000|4",
+            "HHVHOFONOHNNNNHVVSNFSOHVFOOFNVO 0|001111|2",
+            "HHHFVFFFFVHSSSHVHSHHFNSSNVVHOHV 1|000000|A",
+            "HOOVSNVNOFSHHVNHVSVFNHFOVHNNHFN 1|000000|7",
+            "VFFVSVSNSVFSHONVHOVSSHSVFNOOSHV 0|100000|6",
+            "HVVHVOOHNSVSHOVVOOFSSSSVOOSNNOS 0|001111|0",
+            "VHHFHSVFFNVFSVSFVNHFHNHSSHNHFSV 1|000000|2",
+            "VNVOOSONNVOSVFNNHNSSHFOSNSFFHSV 0|100000|2",
+            "HNSNVFFSHOFHVOFNNHOOOFVSOSVFFVS 0|001111|9",
+            "VSVOHSFFSHFHNHVVVNFOOOFSNSNHOFH 1|000000|3",
+            "VOFSVFFHNHVSVVOOFSSHSOONSHVOHVN 0|100000|8",
+            "HVNVNHNFSONNHOVNVVFHSNVOSFNHSSV 0|001111|2",
+            "VSSVNHVNFSVSOSNHNFHFFFSSNSOHFVN 1|000000|0",
+            "VSSOSONNSHOSSSVHVHOHSOOVHSSOOSH 1|000000|2",
+            "VOVVVFHVVSHSHOHHHVVSHOFNOOOFOOO 0|100000|2",
+            "VFHFVFVNSVSSHVNHSSVNHHHVNOSSNVH 0|100000|4",
+            "VSOFOOVONHHNOONVHSVHVHHFVFSHNOH 1|000000|6",
+            "HOFVVNFONFOHSOVVSOOSSVHOFFNSSVV 1|000000|5",
+            "HSVONHVHONOFHSHNVVHNVFVOHVHOFVV 1|000000|A",
+            "VSONNOFNOSHVNHOHFSHVVHSVSFFVNSF 1|000000|5",
+            "HVVVFFFVNHNVFSVSNFSSVOHHOOFONNH 1|001111|1",
+            "VSNVOFFHHOSVSHFVSSVNSOHFSNFFOSF 1|000000|1",
+            "VSOSHOHSNVFHOFSVHVOOFHFNSFNSVHH 1|000000|7",
+            "VSSSNHVNNVSVFVOSSNSOFNSHSHVHNNS 1|000000|9",
+            "VSFSHHFHHONNFVFFNSOHNSSOSVOVVFH 1|000000|0",
+            "VFOOOOVHSNOSFHNFNVNFHHVFFHFVNSS 0|100000|4",
+            "VNSNFVSHHSNHVFONVVNNNSHFONHONHO 0|100000|B",
+            "HFVOOVVVNVOVOFSVSFSNVNOFVHVFVHO 0|001111|9",
+            "VHNHOHHFNHFHSNFFSOHVSOOVVFOFSVS 1|000000|1",
+            "HSONVSNVVSSVSSOVVFNVFONOSOFFFFO 0|001111|3",
+            "HHHVOFOONVVNOFOHSFNFOFFHFOSOOVO 0|001111|0",
+            "HHNFSNHSOFVOSVOVNHONFOHOHFHFVSO 0|001111|8",
+            "VVVOHVHVVSNFOSSFSFNOHOHNSVVOFFS 1|000000|8",
+            "VFHFFHSNFHFOSSHNNVHFNVHFFOFVNNH 0|100000|4",
+            "HVNONNSHSOVFVNHSVSFFOVHNVNSOHNO 0|001111|6",
+            "HNFVSOFFFOSHSVSFFFHSFSFFFSNOSHS 0|001111|1",
+            "VFNHVSOSVNNFSOOOOFFOFOSVSFVOHVN 0|100000|8",
+            "HHVNFVFONFFFHHSFFNVVSFOFFVSNSVF 0|001111|0",
+            "VVOVNHVVSHVHNHSSVSHFFNVVVOHFSFF 1|000000|B",
+            "VVVFFHFSVOHNHNHFOSHNVHFNNNVONSS 1|000000|C",
+            "HOSSVNFSHHVHVNVHSFVSHNSHFSSVHOS 0|001111|1",
+            "VVFSVFNHOFHSFVSVOFSHHSHHONNVHVS 1|000000|0",
+            "HHSVFVOHHSHHHFSFHOVSSSNNVNHVNVS 1|000000|B",
+            "HVSFVFFSFSNSOVFFHSHSNNVFHVFFNVH 0|001111|2",
+            "VVFOSOVFSOOOHFSNHOSFHOSSFFONVFN 1|000000|2",
+            "HNOVOVFFSSNHFFFSVNNNOONSVNSHOSV 0|001111|3",
+            "VOSHNSHNOFFNSFFNSNNNNVNHOOFNSVH 0|100000|4",
+            "HOOOVSSFHHOSVVNVHFHOSFFHOSSOFVS 0|001111|2",
+            "HFFHOSOSFHVHHFHFSSONHOVVNFFFHVH 1|001111|1",
+            "VSNSHVFSFFNNFFOOOSOHHFFSHSSNVOF 1|000000|0",
+            "VSNOSVHHSSOFSSNFONSVFSFNHOSSNOO 1|000000|0",
+            "VFSVVNHSHOVOOHVFOOSOSOFNNNSOFOS 0|100000|0",
+            "HFNVNVSNOHSNFVSONFFSFOOHHNHNHSV 0|001111|8",
+            "HVFFOHNSNNSFVNHOFFFSSVONNOVSOSF 0|001111|C",
+            "VFHOVOVOVVSHNHSHNNOHVSVSNONFHNO 0|100000|1",
+            "VVSNNNNVSFFNOHSVFSVOSFVVOVOVHHV 1|000000|0",
+            "HOOVVSHNVNSHSHFFVHSHNVSSVOSHNNH 1|000000|7",
+            "HFHNSSFNVOONHNHSHHFNSVFNNOOVHSN 1|001111|6",
+            "VFNVFVHNSSNVNFFNVSHHNVOOVFOVSFV 0|100000|7",
+            "VFONSSVSFVHVNSNFNVNFSSHFNVFVFHH 0|100000|1",
+            "HSFVSONSOVVFSNNVHHNOVVSSVFVSFHF 1|000000|E",
+            "HVNNHSNOFFVOVNNNNSFOVNOHOHONOFF 0|001111|0",
+            "HSONHFHHHHNFVVOFHVSHOFSHSOOSVNO 0|001111|2",
+            "HVVHONHVSFFVVNVVHFFFNVONNFVFSON 1|000000|F",
+            "VFVSSHNSFNFFHHVFSNNNVVFNVVHOSSN 0|100000|C",
+            "HVOHNVNFVFOVVVNONSSOSSSHNNVOSSH 0|001111|9",
+            "VNOHNVNVOHFHHFHFNFFFNVHSFOVHNSO 0|100000|D",
+            "HSHOSSOHSNFNHOOSVNVOFVFOHHFONNH 0|001111|6",
+            "HOHSSNFVVFSFVFOVHVOOOHHHFNVVHOH 1|000000|E",
+            "VVNFNNFOSSHFOVVSOFFVVSOVOOHFHNS 1|000000|8",
+            "HHFSHHHSHVHSSHSNHFVSVSVOFVNSSOO 0|001111|2",
+            "HOHNHFNNVFNSSHHOVOVNSHOFFFFFHOS 0|001111|6",
+            "HHHHOOOFOVOFVSSHSFONHFNNHHHSOSV 0|001111|8",
+            "HOFVSFOHSFSOFVOHNVSNNFOSHVVVOFO 0|001111|8",
+            "VONONHONOFVVOVVVVVFSVOOVOSOSNOS 0|100000|3",
+            "VSVOFFSONFVOSOVHOHVOOVHFHHSVVFN 1|000000|4",
+            "HFOHOFFFFVOSNHHNOOHOSHSOHOFVHNS 0|001111|4",
+            "HSHHSHNFOOFOSFONFNFFNNOVNVHFHSF 0|001111|8",
+            "VVFSHVVVNNSNNSVFOSHHVNNSNHSNOHN 1|000000|0",
+            "HONSSVHVFHFHFHHOSOVOVOSVNSNHFVF 0|001111|1",
+            "HHHVVNFVOSOVOVSHFFVFSVOVVFVFSHV 1|000000|D"
+    );
+
+    private static final Direction[] HORIZONTAL = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
+    private static final Direction[] UPDATE_ORDER = {Direction.DOWN, Direction.UP, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
+    private static final String SPAN_CODES = "VHOS";
+    private static final String GRID_CODES = "OVH";
+    private static final String HEX = "0123456789ABCDEF";
+
+    static BeamCell cellOf(char c) {
+        return switch (c) {
+            case 'O' -> BeamCell.AIR;
+            case 'F' -> new BeamCell(BeamShape.NONE, false, false);
+            case 'S' -> new BeamCell(BeamShape.NONE, true, false);
+            case 'N' -> new BeamCell(BeamShape.NONE, false, false);
+            case 'V' -> new BeamCell(BeamShape.VERTICAL, false, false);
+            case 'H' -> new BeamCell(BeamShape.HORIZONTAL, false, false);
+            default -> throw new IllegalArgumentException("Unknown cell code " + c);
+        };
+    }
+
+    static BeamView view(Map<BlockPos, BeamCell> cells) {
+        return pos -> cells.getOrDefault(pos, BeamCell.AIR);
+    }
+
+    private static String mask(Set<Direction> connections) {
+        int m = 0;
+        for (int i = 0; i < HORIZONTAL.length; i++) {
+            if (connections.contains(HORIZONTAL[i])) {
+                m |= 1 << i;
+            }
+        }
+        return String.valueOf(HEX.charAt(m));
+    }
+
+    @Test
+    void spanTableMatchesTfcAlongEveryDirection() {
+        assertThat(SPAN_DIGITS).hasSize(2048);
+        int index = 0;
+        for (int origin = 0; origin < 2; origin++) {
+            for (int code = 0; code < 1024; code++, index++) {
+                for (Direction d : HORIZONTAL) {
+                    Map<BlockPos, BeamCell> cells = new HashMap<>();
+                    cells.put(ORIGIN, cellOf(origin == 0 ? 'O' : 'H'));
+                    for (int k = 1; k <= 5; k++) {
+                        cells.put(ORIGIN.offset(d.dx() * k, 0, d.dz() * k), cellOf(SPAN_CODES.charAt((code >> (2 * (k - 1))) & 3)));
+                    }
+                    int expected = SPAN_DIGITS.charAt(index) - '0';
+                    assertThat(BeamRules.span(view(cells), ORIGIN, d)).as("index %d along %s", index, d).isEqualTo(expected);
+                }
+            }
+        }
+        assertThat(index).isEqualTo(SPAN_DIGITS.length());
+    }
+
+    @Test
+    void connectionTableMatchesTfc() {
+        assertThat(CONNECTION_MASKS).hasSize(162);
+        for (int shape = 0; shape < 2; shape++) {
+            for (int code = 0; code < 81; code++) {
+                Map<BlockPos, BeamCell> cells = new HashMap<>();
+                cells.put(ORIGIN, cellOf(shape == 0 ? 'V' : 'H'));
+                int c = code;
+                for (Direction d : HORIZONTAL) {
+                    cells.put(ORIGIN.offset(d), cellOf(GRID_CODES.charAt(c % 3)));
+                    c /= 3;
+                }
+                int index = shape * 81 + code;
+                assertThat(mask(BeamRules.connections(view(cells), ORIGIN)))
+                    .as("index %d", index)
+                    .isEqualTo(String.valueOf(CONNECTION_MASKS.charAt(index)));
+            }
+        }
+    }
+
+    @Test
+    void randomNeighbourhoodsMatchTfc() {
+        assertThat(SCENARIOS).hasSize(300);
+        for (String row : SCENARIOS) {
+            String[] parts = row.split(" ");
+            String input = parts[0];
+            String[] expected = parts[1].split("\\|");
+            Map<BlockPos, BeamCell> cells = new HashMap<>();
+            char originCode = input.charAt(0);
+            cells.put(ORIGIN, cellOf(originCode));
+            for (int di = 0; di < 6; di++) {
+                Direction d = UPDATE_ORDER[di];
+                for (int k = 1; k <= 5; k++) {
+                    cells.put(ORIGIN.offset(d.dx() * k, d.dy() * k, d.dz() * k), cellOf(input.charAt(1 + di * 5 + k - 1)));
+                }
+            }
+            BeamView view = view(cells);
+            BeamShape shape = cellOf(originCode).shape();
+
+            assertThat(BeamRules.canSurvive(shape, view, ORIGIN) ? "1" : "0").as(row).isEqualTo(expected[0]);
+            StringBuilder drops = new StringBuilder();
+            for (Direction d : UPDATE_ORDER) {
+                drops.append(BeamRules.update(view, ORIGIN, d).drop() ? '1' : '0');
+            }
+            assertThat(drops.toString()).as(row).isEqualTo(expected[1]);
+            assertThat(mask(BeamRules.connections(view, ORIGIN))).as(row).isEqualTo(expected[2]);
+        }
+    }
+
+    @Test
+    void handWorkedCasesMatchTfc() {
+        // A lone horizontal beam drops on a side update: no beam on the facing axis, nor on the perpendicular one.
+        assertThat(BeamRules.update(view(Map.of(ORIGIN, cellOf('H'))), ORIGIN, Direction.EAST).drop()).isTrue();
+        // Beams east and west, nothing north or south: the facing axis is complete, so it keeps.
+        Map<BlockPos, BeamCell> ew = Map.of(ORIGIN, cellOf('H'), ORIGIN.offset(Direction.EAST), cellOf('H'), ORIGIN.offset(Direction.WEST), cellOf('H'));
+        assertThat(BeamRules.update(view(ew), ORIGIN, Direction.EAST).drop()).isFalse();
+        assertThat(BeamRules.connections(view(ew), ORIGIN)).containsExactlyInAnyOrder(Direction.EAST, Direction.WEST);
+        // Only east is a beam, but north and south are beams: the perpendicular pair is complete, so the west update keeps.
+        Map<BlockPos, BeamCell> cross = Map.of(ORIGIN, cellOf('H'), ORIGIN.offset(Direction.EAST), cellOf('H'),
+            ORIGIN.offset(Direction.NORTH), cellOf('V'), ORIGIN.offset(Direction.SOUTH), cellOf('V'));
+        assertThat(BeamRules.update(view(cross), ORIGIN, Direction.WEST).drop()).isFalse();
+        // A vertical beam over air drops; over a beam or a sturdy top it keeps; over a non-sturdy solid it drops.
+        assertThat(BeamRules.update(view(Map.of(ORIGIN, cellOf('V'))), ORIGIN, Direction.DOWN).drop()).isTrue();
+        assertThat(BeamRules.update(view(Map.of(ORIGIN, cellOf('V'), ORIGIN.offset(Direction.DOWN), cellOf('H'))), ORIGIN, Direction.DOWN).drop()).isFalse();
+        assertThat(BeamRules.update(view(Map.of(ORIGIN, cellOf('V'), ORIGIN.offset(Direction.DOWN), cellOf('S'))), ORIGIN, Direction.DOWN).drop()).isFalse();
+        assertThat(BeamRules.update(view(Map.of(ORIGIN, cellOf('V'), ORIGIN.offset(Direction.DOWN), cellOf('N'))), ORIGIN, Direction.DOWN).drop()).isTrue();
+        // A pole five cells away, with open cells between, is in reach; six cells away is not.
+        Map<BlockPos, BeamCell> pole5 = Map.of(ORIGIN, cellOf('H'), ORIGIN.offset(Direction.WEST), cellOf('H'), ORIGIN.offset(5, 0, 0), cellOf('V'));
+        assertThat(BeamRules.span(view(pole5), ORIGIN, Direction.EAST)).isEqualTo(5);
+        assertThat(BeamRules.canSurvive(BeamShape.HORIZONTAL, view(pole5), ORIGIN)).isTrue();
+        Map<BlockPos, BeamCell> pole6 = Map.of(ORIGIN, cellOf('H'), ORIGIN.offset(Direction.WEST), cellOf('H'), ORIGIN.offset(6, 0, 0), cellOf('V'));
+        assertThat(BeamRules.span(view(pole6), ORIGIN, Direction.EAST)).isZero();
+        assertThat(BeamRules.canSurvive(BeamShape.HORIZONTAL, view(pole6), ORIGIN)).isFalse();
+    }
+
+    @Test
+    void supportReachMatchesTfcHorizontalSupportData() {
+        // TFC horizontal_support_beam: support_up 2, support_down 2, support_horizontal 4.
+        assertThat(BeamRules.SUPPORT_UP).isEqualTo(2);
+        assertThat(BeamRules.SUPPORT_DOWN).isEqualTo(2);
+        assertThat(BeamRules.SUPPORT_HORIZONTAL).isEqualTo(4);
+        assertThat(BeamRules.supports(BeamShape.HORIZONTAL, ORIGIN, new BlockPos(4, 2, -4))).isTrue();
+        assertThat(BeamRules.supports(BeamShape.HORIZONTAL, ORIGIN, new BlockPos(5, 0, 0))).isFalse();
+        assertThat(BeamRules.supports(BeamShape.HORIZONTAL, ORIGIN, new BlockPos(0, 3, 0))).isFalse();
+        assertThat(BeamRules.supports(BeamShape.HORIZONTAL, ORIGIN, new BlockPos(0, -3, 0))).isFalse();
+        assertThat(BeamRules.supports(BeamShape.VERTICAL, ORIGIN, new BlockPos(0, 0, 0))).isFalse();
+    }
+}
