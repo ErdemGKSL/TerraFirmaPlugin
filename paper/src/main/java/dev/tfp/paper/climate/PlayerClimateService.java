@@ -37,8 +37,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
  *   <li><b>Capture (player thread).</b> Reads the block position and the world seed, and nothing else. Only
  *       the overworld has the model; other dimensions publish an unknown reading.</li>
  *   <li><b>Compute (worker pool).</b> {@link ClimateReading#of} is pure: {@link OverworldClimate} with the published
- *       {@link ClockSnapshot} and the chunk's {@link ChunkClimate}. The chunk input is {@link ChunkClimate#NEUTRAL} until
- *       chunk data exists (M2-GEN-05).</li>
+ *       {@link ClockSnapshot} and the chunk's {@link ChunkClimate}, read from the seed by {@link ChunkClimateSource}.</li>
  *   <li><b>Apply (player thread).</b> Publishes the value into the player's {@link HudSnapshot} in the
  *       {@link HudSnapshotCache}, which the BetterHud placeholder {@code tfp_ambient_temp} reads from BetterHud's
  *       thread. Readings from one player are published in clock order: an older reading that finishes late is dropped.</li>
@@ -77,7 +76,8 @@ public final class PlayerClimateService implements Listener {
             return ClimateReading.unknown(clock.sequence(), clock.calendarTicks());
         }
         OverworldClimate climate = OverworldClimate.forWorldSeed(c.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
-        return ClimateReading.of(climate, ChunkClimate.NEUTRAL, c.pos(), clock);
+        ChunkClimate chunk = ChunkClimateSource.climateAt(c.worldSeed(), c.pos().x(), c.pos().z());
+        return ClimateReading.of(climate, chunk, c.pos(), clock);
     }
 
     /** Starts the throttle on the global thread. Call once, after the scheduler exists. */

@@ -18,6 +18,7 @@ import dev.tfp.core.weather.SnowRule.Cell;
 import dev.tfp.core.weather.SnowRule.Change;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.core.world.ChunkPos;
+import dev.tfp.paper.climate.ChunkClimateSource;
 import dev.tfp.paper.pipeline.AsyncDecisionPipeline;
 import dev.tfp.paper.pipeline.BlockChange;
 import dev.tfp.paper.pipeline.CommitBudget;
@@ -254,13 +255,15 @@ public final class SnowService implements Listener {
                     .supplyAsync(() -> {
                         OverworldClimate climate = OverworldClimate.forWorldSeed(world.getSeed(),
                                 OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+                        // Both sampled columns are in this chunk, so one chunk climate serves both
+                        ChunkClimate chunk = ChunkClimateSource.climateAt(world.getSeed(), cx * 16 + 8, cz * 16 + 8);
                         float rainfall = SnowCatchUp.averageRainfall(SnowCatchUp.averagingFrom(last, calendar), calendar,
-                                t -> climate.instantRainfall(ChunkClimate.NEUTRAL, t, days));
+                                t -> climate.instantRainfall(chunk, t, days));
                         return SnowCatchUp.plan(last, calendar, new SnowCatchUp.Climate() {
                             @Override
                             public float temperature(long t) {
-                                return Math.max(climate.instantTemperature(a, ChunkClimate.NEUTRAL, t, days),
-                                        climate.instantTemperature(b, ChunkClimate.NEUTRAL, t, days));
+                                return Math.max(climate.instantTemperature(a, chunk, t, days),
+                                        climate.instantTemperature(b, chunk, t, days));
                             }
 
                             @Override
@@ -473,14 +476,16 @@ public final class SnowService implements Listener {
         SnowBlock topBlock = s.blocks().get(top);
         if (s.salty() && top.y() == SeaIce.SEA_LEVEL_Y - 1 && topBlock != null && isWaterSource(topBlock.data())) {
             OverworldClimate climate = OverworldClimate.forWorldSeed(s.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
-            float warmest = SeaIce.warmestMonth(climate, ChunkClimate.NEUTRAL, top.z());
+            ChunkClimate chunk = ChunkClimateSource.climateAt(s.worldSeed(), top.x(), top.z());
+            float warmest = SeaIce.warmestMonth(climate, chunk, top.z());
             if (seaIcePattern.placesIce(top.x(), top.z(), warmest)) {
                 return List.of(new BlockChange<>(top, topBlock, SnowBlock.of(seaIce), at));
             }
         }
 
         OverworldClimate climate = OverworldClimate.forWorldSeed(s.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
-        ClimateReading reading = ClimateReading.of(climate, ChunkClimate.NEUTRAL, surface, now);
+        ClimateReading reading = ClimateReading.of(climate, ChunkClimateSource.climateAt(s.worldSeed(), surface.x(), surface.z()),
+                surface, now);
         PrecipitationType precipitation = PrecipitationType.decide(reading.temperature(), reading.rainfall(),
                 climate.rainIntensity(reading.calendarTicks()), true);
         List<Change> changes = switch (SnowRule.event(reading.temperature(), precipitation)) {

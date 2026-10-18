@@ -21,8 +21,8 @@ public record ChunkClimate(float averageSeaLevelTemperature, float averageRainfa
     /**
      * The fallback for a position without chunk data ({@code ChunkData.climateOrNeutral(null, x, z)}): a temperate 20 C
      * average at sea level, mid-range rainfall (250 mm), no seasonal rainfall variance and no groundwater. These are not
-     * TFC's values for any chunk. The paper call sites still pass it, because the world's chunk source (its generator and
-     * seed) is installed with the Bukkit chunk generator (M2-GEN-07).
+     * TFC's values for any chunk. The paper call sites read the real chunk climate (paper {@code ChunkClimateSource}) and
+     * use this only when no chunk data can be obtained.
      */
     public static final ChunkClimate NEUTRAL = new ChunkClimate(20f, 250f, 0f, 0f);
 }

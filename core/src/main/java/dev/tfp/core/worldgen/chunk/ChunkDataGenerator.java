@@ -9,6 +9,7 @@
  */
 package dev.tfp.core.worldgen.chunk;
 
+import dev.tfp.core.climate.ChunkClimate;
 import dev.tfp.core.worldgen.Mth;
 import dev.tfp.core.worldgen.Seed;
 import dev.tfp.core.worldgen.noise.Noise2D;
@@ -18,6 +19,7 @@ import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
 import dev.tfp.core.worldgen.region.Region;
 import dev.tfp.core.worldgen.region.RegionGenerator;
 import dev.tfp.core.worldgen.region.RegionPartition;
+import dev.tfp.core.worldgen.region.RegionSettings;
 import dev.tfp.core.worldgen.region.RiverEdge;
 import dev.tfp.core.worldgen.region.Units;
 import dev.tfp.core.worldgen.river.MidpointFractal;
@@ -79,6 +81,20 @@ public final class ChunkDataGenerator {
      */
     public ForestType forestType(int chunkX, int chunkZ) {
         return forestLayers.forestType(chunkX, chunkZ);
+    }
+
+    /**
+     * The chunk data generator of a level, built as the paper terrain builds it: the region generator at
+     * {@link RegionSettings#OVERWORLD}, then this generator, both from one {@link Seed}. Its values match the terrain's.
+     */
+    public static ChunkDataGenerator forLevel(long levelSeed) {
+        final Seed seed = Seed.of(levelSeed);
+        return new ChunkDataGenerator(new RegionGenerator(RegionSettings.OVERWORLD, seed), seed);
+    }
+
+    /** @return The climate input of the block position {@code (x, z)}: the values of the chunk that contains it. */
+    public ChunkClimate climateAt(int x, int z) {
+        return generate(x >> 4, z >> 4).climateAt(x, z);
     }
 
     /** @return The chunk data of the chunk at {@code (chunkX, chunkZ)}, for any chunk coordinates, negative included. */

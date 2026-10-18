@@ -12,6 +12,7 @@ import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.weather.PrecipitationType;
 import dev.tfp.core.world.BlockPos;
+import dev.tfp.paper.climate.ChunkClimateSource;
 import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.scheduler.Scheduler;
@@ -84,7 +85,8 @@ public final class PrecipitationService implements Listener {
             return new Decision(clock.sequence(), PrecipitationType.NONE);
         }
         OverworldClimate climate = OverworldClimate.forWorldSeed(c.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
-        ClimateReading reading = ClimateReading.of(climate, ChunkClimate.NEUTRAL, c.pos(), clock);
+        ChunkClimate chunk = ChunkClimateSource.climateAt(c.worldSeed(), c.pos().x(), c.pos().z());
+        ClimateReading reading = ClimateReading.of(climate, chunk, c.pos(), clock);
         float rainIntensity = climate.rainIntensity(reading.calendarTicks());
         return new Decision(clock.sequence(), PrecipitationType.decide(reading.temperature(), reading.rainfall(), rainIntensity, c.skyVisible()));
     }

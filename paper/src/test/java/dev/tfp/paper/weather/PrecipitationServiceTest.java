@@ -13,6 +13,7 @@ import dev.tfp.core.climate.OverworldClimate;
 import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.weather.PrecipitationType;
 import dev.tfp.core.world.BlockPos;
+import dev.tfp.paper.climate.ChunkClimateSource;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +52,8 @@ class PrecipitationServiceTest {
             BlockPos pos = new BlockPos(0, 120, 0);
             for (long tick = 0; tick < 2_304_000L; tick += 5_000) {
                 ClockSnapshot clock = new ClockSnapshot(tick + 1, 0L, tick, 8, true);
-                ClimateReading reading = ClimateReading.of(climate, ChunkClimate.NEUTRAL, pos, clock);
+                ChunkClimate chunk = ChunkClimateSource.climateAt(seed, pos.x(), pos.z());
+                ClimateReading reading = ClimateReading.of(climate, chunk, pos, clock);
                 PrecipitationType expected = PrecipitationType.decide(reading.temperature(), reading.rainfall(),
                         climate.rainIntensity(tick), true);
                 var capture = new PrecipitationService.Capture(PLAYER, seed, true, pos, true);
