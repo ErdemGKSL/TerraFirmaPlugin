@@ -91,7 +91,8 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
 
 ## Rock & soil physics
 
-- [ ] **M3-PHYS-01 Collapse** · deps: M1-THR-03, M2-GEN-07 · skills: paper-folia-threading, tfc-feature-porting
+- [~] **M3-PHYS-01 Collapse** · deps: M1-THR-03, M2-GEN-07 · skills: paper-folia-threading, tfc-feature-porting
+  - Status: rules ported and golden-tested in `core/collapse` (`CollapseRules`: support test via `SupportTable`, the trigger decision with the real and fake chances and the radius draws, `canStartCollapse`, `collapse` with the rubble yield and break-below; `CollapseKinds` holds the tag, toughness and recipe data). Golden tests: `CollapseGoldenTest` (support sweeps, pairs, unsupported sets, start grid, collapse grid, rubble, 200 trigger scenarios) and `CollapseDeterminismTest`. Open: the Paper collapse runner (async decide, sync apply: falling-block spawn, budgeted commits, the `startCollapse` column pass and the propagation ticks of `WorldTracker`), the block support data and the CraftEngine blocks.
   - TFC: `util/tracker/Collapse.java`, `WorldTracker.java`, `common/recipes/CollapseRecipe.java`, data `support/`, tags `can_collapse`, `can_start_collapse`, `can_trigger_collapse`
   - Do: mining triggers an async collapse decision (support beams radius, chance rules) → budgeted commits spawning falling blocks; collapse recipes (raw → cobble).
   - Done when: golden tests on scripted scenarios; Folia stress self-test.
