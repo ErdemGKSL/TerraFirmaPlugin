@@ -140,6 +140,16 @@ public final class PlayerClimateService implements Listener {
         return out;
     }
 
+    /**
+     * {@code /tfp debug chunk <x> <z>} from the console: the reading at {@code pos} in {@code world}, with no player.
+     * The caller reads the position's block data on the owning region thread; this only computes (the capture has no
+     * player, so {@link Capture#player()} is {@code null}).
+     */
+    public CompletableFuture<ClimateReading> readAt(World world, BlockPos pos) {
+        Capture c = new Capture(null, world.getSeed(), world.getEnvironment() == World.Environment.NORMAL, pos);
+        return CompletableFuture.supplyAsync(() -> compute(c, clock.get()), scheduler.cpuExecutor());
+    }
+
     /** Forgets the ordering state of a player who left. */
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {

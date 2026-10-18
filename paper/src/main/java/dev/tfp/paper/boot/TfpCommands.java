@@ -34,7 +34,8 @@ import org.bukkit.entity.Player;
  * /tfp version
  * /tfp reload                  = reload data (tfp.admin)
  * /tfp reload config|data|content
- * /tfp debug block|chunk       the block you look at / your chunk and its climate (players, tfp.admin)
+ * /tfp debug block|chunk [x z] the block you look at / your chunk and its climate (players, tfp.admin); with x z
+ *                              (block coordinates, default overworld) the reading at that position, from the console too
  * /tfp debug player [name]     player data (yours without a name)
  * /tfp debug packets           packet handler metrics
  * /tfp debug showcase &lt;family&gt; every variant of rocks|soils|ores in a grid at your position (players)
@@ -89,6 +90,9 @@ public final class TfpCommands {
         /** {@code player}'s chunk: our chunk-scale data entries, then the climate at the player (M2-CLIM-03). */
         CompletableFuture<Reply> debugChunk(Player player);
 
+        /** The chunk and climate at block {@code x, z} of the default overworld (M2-CLIM-03), for the console too. */
+        CompletableFuture<Reply> debugChunkAt(int x, int z);
+
         /** Player data of the online player {@code name}. */
         CompletableFuture<Reply> debugPlayer(String name);
 
@@ -139,7 +143,15 @@ public final class TfpCommands {
                 .then(Commands.literal("debug")
                         .requires(s -> s.getSender().hasPermission(ADMIN_PERMISSION))
                         .then(Commands.literal("block").executes(player(handler, messages, Handler::debugBlock)))
-                        .then(Commands.literal("chunk").executes(player(handler, messages, Handler::debugChunk)))
+                        .then(Commands.literal("chunk")
+                                .executes(run(handler, messages, (h, ctx) -> ctx.getSource().getSender() instanceof Player p
+                                        ? h.debugChunk(p)
+                                        : CompletableFuture.completedFuture(Reply.error("command.position_required"))))
+                                .then(Commands.argument("x", IntegerArgumentType.integer())
+                                        .then(Commands.argument("z", IntegerArgumentType.integer())
+                                                .executes(run(handler, messages, (h, ctx) -> h.debugChunkAt(
+                                                        IntegerArgumentType.getInteger(ctx, "x"),
+                                                        IntegerArgumentType.getInteger(ctx, "z")))))))
                         .then(Commands.literal("player")
                                 .executes(player(handler, messages, (h, p) -> h.debugPlayer(p.getName())))
                                 .then(Commands.argument("name", StringArgumentType.word())

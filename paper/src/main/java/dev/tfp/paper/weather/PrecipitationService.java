@@ -149,6 +149,16 @@ public final class PrecipitationService implements Listener {
         return out;
     }
 
+    /**
+     * {@code /tfp debug chunk <x> <z>} from the console: the decision at {@code pos} in {@code world}, with no player.
+     * The caller reads {@code skyVisible} on the owning region thread; the decision itself is {@link #compute}.
+     */
+    public CompletableFuture<PrecipitationType> readAt(World world, BlockPos pos, boolean skyVisible) {
+        Capture c = new Capture(null, world.getSeed(), world.getEnvironment() == World.Environment.NORMAL, pos, skyVisible);
+        return CompletableFuture.supplyAsync(() -> compute(c, clock.get()), scheduler.cpuExecutor())
+                .thenApply(Decision::type);
+    }
+
     /** Forgets the ordering state of a player who left. */
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {

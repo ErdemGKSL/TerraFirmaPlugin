@@ -19,6 +19,9 @@ import dev.tfp.core.visuals.VisualIndex;
 import dev.tfp.core.visuals.VisualSelection;
 import dev.tfp.core.registry.Registries;
 import dev.tfp.core.showcase.Showcase;
+import dev.tfp.core.weather.PrecipitationType;
+import dev.tfp.core.weather.SnowRule;
+import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.debug.ShowcasePlacer;
 import dev.tfp.paper.blockdata.ChunkDataStore;
 import dev.tfp.paper.blockdata.PdcChunkDataStore;
@@ -73,6 +76,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import org.bukkit.Chunk;
+import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -646,9 +650,77 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         }
         return service.readNow(player).thenApply(now -> {
             List<String> lines = new ArrayList<>(base.details());
-            lines.add(now.map(type -> "precipitation here: " + type.name())
-                    .orElse("precipitation here: the player left"));
+            lines.add(now.map(TfpPlugin::precipitationLine).orElse("precipitation here: the player left"));
             return base.withDetails(lines);
+        });
+    }
+
+    private static String precipitationLine(PrecipitationType type) {
+        return "precipitation here: " + type.name();
+    }
+
+    /** The climate line of {@code /tfp debug chunk}, the same for a player and for the console. */
+    private static String climateLine(ClimateReading r) {
+        return r.isKnown()
+                ? "climate now: temperature " + ClimateFormat.temperature(r.temperature())
+                        + ", average " + ClimateFormat.temperature(r.averageTemperature())
+                        + ", rainfall " + ClimateFormat.rainfall(r.rainfall())
+                        + " (calendar tick " + r.calendarTicks() + ")"
+                : "climate now: unknown (no calendar reading yet, or not the overworld)";
+    }
+
+    /** The snow line of the console reading: the rule's event for this temperature and precipitation (M2-WTH-02). */
+    private static String snowLine(ClimateReading r, PrecipitationType type) {
+        if (!r.isKnown()) {
+            return "snow rule: unknown (no climate reading)";
+        }
+        SnowRule.Event event = SnowRule.event(r.temperature(), type);
+        return "snow rule: event " + event + ", would accumulate: " + (event == SnowRule.Event.ACCUMULATE ? "yes" : "no");
+    }
+
+    /** A column for {@code /tfp debug chunk <x> <z>}: the position one block above the surface, read on its region. */
+    private record ConsoleSpot(int y, boolean sky, Set<String> ids) {
+    }
+
+    /** {@code /tfp debug chunk <x> <z>} from the console (no player): the default overworld, the surface at x, z. */
+    @Override
+    public CompletableFuture<Reply> debugChunkAt(int x, int z) {
+        World world = getServer().getWorlds().get(0);
+        int cx = x >> 4;
+        int cz = z >> 4;
+        CompletableFuture<ConsoleSpot> spot = new CompletableFuture<>();
+        scheduler.region(world, cx, cz, () -> {
+            try {
+                Chunk chunk = world.getChunkAt(cx, cz);
+                int top = world.getHighestBlockYAt(x, z, HeightMap.WORLD_SURFACE);
+                int y = top + 1;
+                spot.complete(new ConsoleSpot(y, y > top, chunkData.ids(chunk)));
+            } catch (RuntimeException e) {
+                spot.completeExceptionally(e);
+            }
+        });
+        PlayerClimateService climateService = climate;
+        PrecipitationService precipitationService = precipitation;
+        return spot.thenCompose(s -> {
+            BlockPos pos = new BlockPos(x, s.y(), z);
+            CompletableFuture<ClimateReading> reading = climateService == null
+                    ? CompletableFuture.completedFuture(null) : climateService.readAt(world, pos);
+            CompletableFuture<PrecipitationType> type = precipitationService == null || !s.sky()
+                    ? CompletableFuture.completedFuture(PrecipitationType.NONE)
+                    : precipitationService.readAt(world, pos, true);
+            return reading.thenCombine(type, (r, t) -> {
+                List<String> lines = new ArrayList<>();
+                lines.add("position " + x + " " + z + ", y " + s.y() + " (the first block above the surface)");
+                lines.addAll(s.ids().isEmpty()
+                        ? List.of(messages.get(Messages.FALLBACK, "debug.chunk.empty"))
+                        : s.ids().stream().map(id -> "tfp:" + id).toList());
+                if (r != null) {
+                    lines.add(climateLine(r));
+                }
+                lines.add(precipitationLine(t));
+                lines.add(r == null ? "snow rule: unknown (no climate service)" : snowLine(r, t));
+                return Reply.ok("debug.chunk.header", cx, cz, world.getName()).withDetails(lines);
+            });
         });
     }
 
@@ -660,13 +732,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         }
         return service.readNow(player).thenApply(now -> {
             List<String> lines = new ArrayList<>(base.details());
-            lines.add(now.map(r -> r.isKnown()
-                    ? "climate now: temperature " + ClimateFormat.temperature(r.temperature())
-                            + ", average " + ClimateFormat.temperature(r.averageTemperature())
-                            + ", rainfall " + ClimateFormat.rainfall(r.rainfall())
-                            + " (calendar tick " + r.calendarTicks() + ")"
-                    : "climate now: unknown (no calendar reading yet, or not the overworld)")
-                    .orElse("climate now: the player left"));
+            lines.add(now.map(TfpPlugin::climateLine).orElse("climate now: the player left"));
             String hudValue = hudCache.isActive()
                     ? ClimateFormat.temperature(hudCache.snapshot(player.getUniqueId()).ambientTemperature())
                     : "not shown (no HUD plugin renders it)";

@@ -144,6 +144,11 @@ class BootstrapTest {
         }
 
         @Override
+        public CompletableFuture<Reply> debugChunkAt(int x, int z) {
+            return call("debugChunkAt " + x + " " + z, Reply.ok("debug.chunk.header", 0, 0, "world"));
+        }
+
+        @Override
         public CompletableFuture<Reply> debugPlayer(String name) {
             return call("debugPlayer " + name, Reply.ok("debug.player.header", name));
         }
@@ -274,15 +279,17 @@ class BootstrapTest {
         d.execute("tfp debug block", Fakes.source(ADMIN, out));
         d.execute("tfp debug player Steve", Fakes.source(ADMIN, out));
         d.execute("tfp debug packets", Fakes.source(ADMIN, out));
+        d.execute("tfp debug chunk", Fakes.source(ADMIN, out));
+        d.execute("tfp debug chunk -380 730", Fakes.source(ADMIN, out));
         assertThat(out).containsExactly("Only a player can use this command.", "Player data of Steve:", "Packet layer:",
-                "  noop: calls=0");
+                "  noop: calls=0", "The console needs a position: /tfp debug chunk <x> <z>", "Chunk 0, 0 in world:");
         out.clear();
         CommandSourceStack alex = Fakes.playerSource("Alex", java.util.Locale.US, ADMIN, out);
         d.execute("tfp debug block", alex);
         d.execute("tfp debug chunk", alex);
         d.execute("tfp debug player", alex);
-        assertThat(h.calls).containsExactly("debugPlayer Steve", "debugPackets", "debugBlock Alex", "debugChunk Alex",
-                "debugPlayer Alex");
+        assertThat(h.calls).containsExactly("debugPlayer Steve", "debugPackets", "debugChunkAt -380 730", "debugBlock Alex",
+                "debugChunk Alex", "debugPlayer Alex");
         assertThat(out).containsExactly("Block at world 1 2 3:", "  vanilla: minecraft:stone", "Chunk 0, 0 in world:",
                 "Player data of Alex:");
         assertThatThrownBy(() -> d.execute("tfp debug block", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
