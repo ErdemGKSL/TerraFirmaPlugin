@@ -60,10 +60,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
   - Done when: golden cooking times; self-tests; visual checklist.
   - Status (c3b4d9536): pure rules ported and golden-tested in `core/.../core/cooking/` (`FirepitState`, `FirepitRules` (`step` = one live tick of TFC `serverTick`, `advance` = lazy: the air phase stepped, the rest closed form per fuel segment), `GrillRules` (lazy item heating against a constant grill temperature, `ticksToCook`), `PotRules` (pre-boil and boil counters, the finish tick); 392 firepit, 252 grill, 81 cook-time and 594 pot golden rows in `FirepitGoldenTest`, `GrillGoldenTest`, `PotGoldenTest`; `CookingLazyVsSteppedTest`: seeded random lazy-vs-stepped and window composition). Divergences recorded in the ledger (calendar catch-up of the firepit, grill and pot; float precision of the grill steps). Still open: the block entities and their controllers, the placed firepit/grill/pot blocks, the CraftEngine visuals and GUIs, the containers and dropped items, dirtiness and ash, the heating recipes and pot outputs as data, the server self-tests and the visual checklist.
 
-- [ ] **M3-HEAT-04 Torches, candles, lamps (basic)** · deps: M3-HEAT-02
+- [~] **M3-HEAT-04 Torches, candles, lamps (basic)** · deps: M3-HEAT-02
   - TFC: `common/blocks/TFCTorchBlock.java`, `DeadTorchBlock.java`, `TFCCandleBlock.java`
   - Do: torch burnout from the placement timestamp (lazy, checked on chunk load/interaction via the async pipeline) → dead torch; relighting.
   - Done when: lazy-vs-stepped test.
+  - Status: pure rules ported and golden-tested (`core/light/`: torch/candle burnout and remaining time, candle/torch/lamp light levels, lamp fuel burn per check, lamp fuel durations from `lamp_fuel` data; lazy-vs-stepped test). Still open: the placed blocks and dead-torch swap, the light emission in Paper, the CraftEngine visuals, and the lamp cadence question (TFC drops the remainder on each check; see the test `lampOffGridCheckDropsTheRemainderAsTfcDoes`).
 
 ## Gathering & knapping
 
