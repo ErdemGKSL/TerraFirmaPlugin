@@ -24,3 +24,7 @@ Her madde kullanıcı tarafından istendi ya da bu oturumda doğrulamada ortaya 
 
 - [x] Kar sorunu çözüldü: alçak site (chunk 0,400; yüzey y 63; ortalama 5.2 °C) kışın bile kar örtmüyor.
 - [ ] Renk ölçümü temiz değil: Eylül'de yağmur (RAIN) ekranı mavileştirdi; R−B değerleri Eylül +0.8, Ekim −11.5, Kasım −11.8. Kasım turuncu görünmüyor, ama yağmur katmanı karşılaştırmayı bozuyor. Sonraki adım: vanilla `weather clear` ile yağmuru kapatıp üç ayı aynı koşulda yeniden ölçmek.
+
+## Sonbahar tonu: temiz hava ölçümü (sonuç: yeterli değil)
+
+- [ ] Yağmursuz ölçüm (alçak site 0,400): Eylül yeşil-zeytin (R−B 25), Ekim ve Kasım birebir aynı koyu yeşil (R−B 6). Kasım turuncu değil. Muhtemel neden: site ıslak (yağış 236–248 mm); kodda turuncu tonu yalnızca kuru sonbaharda çıkıyor (birim testinde 150 mm). Sonraki adım: yağış değeri düşük (örneğin 150 mm altı) bir alçak site bulup aynı üç ayı ölçmek.
