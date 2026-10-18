@@ -269,15 +269,33 @@ public final class BerryRules {
     /** TFC {@code SeasonalPlantBlock.onUpdate}. */
     private static void onUpdate(Walk walk, BushSpecies species, long now, BerryClock clock, Settings settings) {
         Lifecycle expected = species.lifecycleFor(clock.hemisphericMonth(clock.calendarAt(now)));
+        // The random tick checks the climate at this same tick (see the class notes), so the climate passes here.
+        walk.lifecycle = advanceLifecycle(walk.lifecycle, expected, true, now, walk.lastPicked, settings.pickBloomDelayTicks());
+    }
+
+    /**
+     * TFC {@code SeasonalPlantBlock.onUpdate} for any seasonal plant, one update: a dormant month sends the stage straight to dormant.
+     * Otherwise the stage is dormant when the climate at the stem is out of range, and otherwise moves one step towards the stage the
+     * month expects. A flowering stage is held back until the pick bloom delay has passed since the last pick.
+     *
+     * @param stored         the stored stage
+     * @param expected       the stage the species expects this month
+     * @param climateOk      whether the climate at the stem is in range
+     * @param lastPickedTick the player tick of the last pick
+     */
+    public static Lifecycle advanceLifecycle(Lifecycle stored, Lifecycle expected, boolean climateOk, long now, long lastPickedTick,
+                                             long pickBloomDelayTicks) {
         if (expected == DORMANT) {
-            walk.lifecycle = DORMANT;
-            return;
+            return DORMANT;
         }
-        // The climate range is checked by the random tick at the same tick, so the range check of TFC's onUpdate always passes here.
-        Lifecycle next = walk.lifecycle.advanceTowards(expected);
-        if (next != walk.lifecycle && (next != FLOWERING || now - walk.lastPicked > settings.pickBloomDelayTicks())) {
-            walk.lifecycle = next;
+        if (!climateOk) {
+            return DORMANT;
         }
+        Lifecycle next = stored.advanceTowards(expected);
+        if (next != stored && (next != FLOWERING || now - lastPickedTick > pickBloomDelayTicks)) {
+            return next;
+        }
+        return stored;
     }
 
     /**

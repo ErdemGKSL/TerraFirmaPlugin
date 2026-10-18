@@ -57,6 +57,6 @@ class BerryLazyVsSteppedTest {
                 }
             }
         }
-        assertThat(checked).isEqualTo(6 * 12 * 6);
+        assertThat(checked).isEqualTo(BushSpecies.values().length * 12 * 6);
     }
 }

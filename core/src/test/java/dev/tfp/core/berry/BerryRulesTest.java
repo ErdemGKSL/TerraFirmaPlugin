@@ -165,9 +165,9 @@ class BerryRulesTest {
 
     @Test
     void theSpeciesRangesAndTablesAreTheTfcOnes() {
-        assertThat(BushSpecies.values()).hasSize(6);
+        assertThat(BushSpecies.values()).hasSize(7);
         assertThat(BushSpecies.STRAWBERRY.climate().checkBoth(90, 18.8f, false)).isTrue();
         assertThat(BushSpecies.STRAWBERRY.climate().checkBoth(91, 18.8f, false)).isFalse();
-        assertThat(List.of(BushSpecies.values())).extracting(BushSpecies::name).contains("WINTERGREEN_BERRY");
+        assertThat(List.of(BushSpecies.values())).extracting(BushSpecies::name).contains("WINTERGREEN_BERRY", "CRANBERRY");
     }
 }

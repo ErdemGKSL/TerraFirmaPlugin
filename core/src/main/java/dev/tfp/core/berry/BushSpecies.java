@@ -20,12 +20,16 @@ import dev.tfp.core.climate.ClimateRange;
 
 /**
  * The stationary berry bushes in scope (TFC {@code FruitBlocks.StationaryBush}): the lifecycle of each calendar month in the northern
- * hemisphere, and the climate range the bush survives in. The spreading bushes, canes, cranberry and fruit trees are not ported yet.
+ * hemisphere, and the climate range the bush survives in. The cranberry is a stationary bush too (TFC's {@code WaterloggedBerryBushBlock}
+ * extends {@code StationaryBerryBushBlock}); its waterlogged rule is in {@link CranberryRules}. The spreading bushes and fruit trees are
+ * in {@link SpreadingSpecies} and {@link FruitTree}.
  *
  * <p>The table is indexed by the hemispheric month (see {@link BerryRules#hemisphericMonth}), as in TFC's
  * {@code getLifecycleForMonth}.
  */
 public enum BushSpecies {
+    CRANBERRY(new ClimateRange(25, 100, 0, -15.4f, 9.8f, 0f),
+        DORMANT, DORMANT, DORMANT, HEALTHY, HEALTHY, HEALTHY, HEALTHY, FLOWERING, FLOWERING, FRUITING, DORMANT, DORMANT),
     SNOWBERRY(new ClimateRange(17, 100, 0, -11.8f, 6.2f, 0f),
         DORMANT, DORMANT, HEALTHY, HEALTHY, HEALTHY, HEALTHY, FLOWERING, FLOWERING, FRUITING, DORMANT, DORMANT, DORMANT),
     BUNCHBERRY(new ClimateRange(25, 100, 0, -15.4f, 2.6f, 0f),
