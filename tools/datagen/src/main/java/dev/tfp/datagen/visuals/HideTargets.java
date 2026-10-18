@@ -20,6 +20,8 @@ import java.util.Set;
  *       anything else → stone. Concrete powder and sand are falling blocks (major caveat), so they are never
  *       allocated; stone, dirt and oak planks are {@link #RESERVED} and left out of the supply.</li>
  * </ol>
+ * {@link #KEEP_VANILLA} states are never allocated either: TFC terrain places them for real (worldgen grass is vanilla
+ * {@code grass_block}, so the client tints its top with the seasonal biome grass colour).
  */
 public final class HideTargets {
     public static final String STONE = "minecraft:stone";
@@ -27,6 +29,17 @@ public final class HideTargets {
     public static final String OAK_PLANKS = "minecraft:oak_planks";
     /** Kept vanilla in every allocation, as look-alike mapping targets. */
     public static final Set<String> RESERVED = Set.of(STONE, DIRT, OAK_PLANKS);
+    /** Used by TFC terrain with their own vanilla look, so never repurposed or hidden. */
+    public static final Set<String> KEEP_VANILLA = Set.of("minecraft:grass_block[snowy=false]",
+        "minecraft:grass_block[snowy=true]");
+    /** Every state left out of the allocatable supply. */
+    public static final Set<String> EXCLUDED;
+
+    static {
+        Set<String> all = new java.util.HashSet<>(RESERVED);
+        all.addAll(KEEP_VANILLA);
+        EXCLUDED = Set.copyOf(all);
+    }
 
     static final List<String> COLORS = List.of("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink",
         "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");

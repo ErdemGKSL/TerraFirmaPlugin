@@ -41,7 +41,9 @@ final class AllocationReport {
         sb.append("\n## Pools\n\n");
         sb.append("Order: identity duplicates → Nether/End (only when on) → absent-in-TFC clean → absent minor → ")
             .append("CE `auto_state: solid`. Reserved as mapping targets: ")
-            .append(String.join(", ", new java.util.TreeSet<>(HideTargets.RESERVED))).append(".\n\n");
+            .append(String.join(", ", new java.util.TreeSet<>(HideTargets.RESERVED)))
+            .append(". Kept vanilla (used by TFC terrain): ")
+            .append(String.join(", ", new java.util.TreeSet<>(HideTargets.KEEP_VANILLA))).append(".\n\n");
         sb.append("| Pool | capacity (N/E off) | used (N/E off) | free (N/E off) | capacity (N/E on) | used (N/E on) | free (N/E on) |\n");
         sb.append("|---|---|---|---|---|---|---|\n");
         for (String p : VisualAllocator.POOLS) {

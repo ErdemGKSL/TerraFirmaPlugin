@@ -159,7 +159,7 @@ class VisualAllocatorTest {
     @Test
     void overflowFailsTheBuild() {
         VanillaSupply supply = VanillaSupply.parse(CSV);
-        int explicit = supply.candidates(VersionFamily.V1_21, false, HideTargets.RESERVED).size();
+        int explicit = supply.candidates(VersionFamily.V1_21, false, HideTargets.EXCLUDED).size();
         String[] ids = new String[VersionFamily.V1_21.solidPool() + explicit];
         for (int i = 0; i < ids.length; i++) {
             ids[i] = "b" + i;
@@ -194,6 +194,18 @@ class VisualAllocatorTest {
             assertThat(on).noneMatch(s -> HideTargets.RESERVED.contains(s.state()));
             for (String r : HideTargets.RESERVED) {
                 assertThat(supply.get(f, r)).as(r).isNotNull();
+            }
+        }
+    }
+
+    /** TFC worldgen places vanilla grass_block, so it keeps its tinted look: never allocated, never mapped to dirt. */
+    @Test
+    void grassBlockIsKeptVanilla() {
+        VanillaSupply supply = VanillaSupply.load();
+        for (VersionFamily f : VersionFamily.values()) {
+            for (boolean netherEnd : List.of(true, false)) {
+                assertThat(supply.candidates(f, netherEnd, HideTargets.EXCLUDED))
+                    .noneMatch(s -> s.state().startsWith("minecraft:grass_block["));
             }
         }
     }

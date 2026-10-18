@@ -113,7 +113,7 @@ public final class VisualAllocator {
             groupModels.putIfAbsent(key, look.models());
         }
         // 2. supply
-        List<VanillaSupply.State> candidates = supply.candidates(family, netherEnd, HideTargets.RESERVED);
+        List<VanillaSupply.State> candidates = supply.candidates(family, netherEnd, HideTargets.EXCLUDED);
         Map<String, Integer> capacity = new LinkedHashMap<>();
         Map<String, Integer> used = new LinkedHashMap<>();
         for (String p : POOLS) {
