@@ -48,10 +48,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
   - Done when: ported `HeatingItemTest` + golden cooling curves; glow visual check.
   - Status (c3b4d9536): pure rules ported and golden-tested in `core/.../core/heat/` (`HeatState`, `HeatConfig`, `HeatLevel`; 193 golden rows, lazy-vs-stepped, rules). Still open: item PDC for the heat state, the CraftEngine heat visual (`range_dispatch` glow) and the tooltip, transfer to containers, burn damage, and `HeatingItemTest` (TFC's test checks meat heating recipes through registries, so it belongs in the in-server self-test, not core).
 
-- [ ] **M3-HEAT-02 Fuels & fire starting** · deps: M3-HEAT-01
+- [~] **M3-HEAT-02 Fuels & fire starting** · deps: M3-HEAT-01
   - TFC: data `fuel/`, `common/items/FirestarterItem.java`, `FlintAndPyriteItem.java`, `util/events/StartFireEvent.java`
   - Do: firestarter use-duration via Paper events (CE item behaviours have no use-duration hook); fire starting rules.
   - Done when: self-test lighting a firepit.
+  - Status (c3b4d9536): pure rules ported and golden-tested in `core/.../core/fuel/` (`FuelTable` with the 50 `fuel/` files, `Fuel`, `FuelBurn` (`consumeFuelForTicks`, one item per fuel slot), `FireStart` (chances, flint strength, `startFire` outcome with the random draws as inputs); 50 + 108 + 87 golden rows in `FuelTableGoldenTest`, `FuelBurnGoldenTest`, `FireStartGoldenTest`). Still open: the firepit block and its entity (M3-HEAT-03), the item and block data (ingredients as item/tag matchers, the firepit tags), the firestarter use-duration and flint/firestarter Paper glue, `StartFireEvent` world checks (`canSurvive`, `canBePlacedAt`), dirtiness from purity, and the CraftEngine visuals.
 
 - [ ] **M3-HEAT-03 Firepit, grill, pot** · deps: M3-HEAT-02, M1-SVC-01 · skills: craftengine-java-api, craftengine-gui-furniture
   - TFC: `common/blockentities/{AbstractFirepit,Firepit,Grill,Pot}BlockEntity.java`, `common/blocks/devices/FirepitBlock.java`, recipes `pot/`, `heating/`
