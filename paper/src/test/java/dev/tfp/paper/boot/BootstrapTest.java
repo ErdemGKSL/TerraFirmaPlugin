@@ -384,4 +384,35 @@ class BootstrapTest {
         dispatcher(failing).execute("tfp reload data", Fakes.source(ADMIN, out));
         assertThat(out).containsExactly("Reloading data...", "Command failed: disk on fire");
     }
+
+    @Test
+    void consoleReplyThatIsReadySoonIsSentBeforeTheCommandReturns() throws CommandSyntaxException {
+        // RCON returns only what was sent while the command ran, so a console reply ready within the wait is in it.
+        FakeHandler soon = new FakeHandler() {
+            @Override
+            public CompletableFuture<Reply> debugChunkAt(int x, int z) {
+                return CompletableFuture.supplyAsync(() -> Reply.ok("debug.chunk.header", 1, 2, "world"),
+                        CompletableFuture.delayedExecutor(50, java.util.concurrent.TimeUnit.MILLISECONDS));
+            }
+        };
+        List<String> out = new ArrayList<>();
+        dispatcher(soon).execute("tfp debug chunk -380 730", Fakes.source(ADMIN, out));
+        assertThat(out).containsExactly("Chunk 1, 2 in world:");
+    }
+
+    @Test
+    void consoleReplyThatIsTooSlowIsSentWhenReady() throws CommandSyntaxException {
+        CompletableFuture<Reply> late = new CompletableFuture<>();
+        FakeHandler slow = new FakeHandler() {
+            @Override
+            public CompletableFuture<Reply> debugChunkAt(int x, int z) {
+                return late;
+            }
+        };
+        List<String> out = new ArrayList<>();
+        dispatcher(slow).execute("tfp debug chunk 1 2", Fakes.source(ADMIN, out));
+        assertThat(out).isEmpty();
+        late.complete(Reply.ok("debug.chunk.header", 0, 0, "world"));
+        assertThat(out).containsExactly("Chunk 0, 0 in world:");
+    }
 }

@@ -19,6 +19,9 @@ import io.papermc.paper.command.brigadier.Commands;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -224,10 +227,41 @@ public final class TfpCommands {
                 send(sender, messages, Reply.error("command.not_enabled"));
                 return 0;
             }
-            action.apply(h, ctx).whenComplete((r, err) -> send(sender, messages, err == null ? r
-                    : Reply.error("command.failed", rootMessage(err))));
+            reply(sender, messages, action.apply(h, ctx));
             return Command.SINGLE_SUCCESS;
         };
+    }
+
+    /**
+     * How long a console (RCON) command waits for its reply. RCON only captures what is sent while the command
+     * runs, so the reply must be ready before the command returns. Players are not waited for.
+     */
+    static final long CONSOLE_WAIT_MILLIS = 2_000;
+
+    /**
+     * Sends {@code future}'s reply to {@code sender}. A console sender gets the reply synchronously when it is
+     * ready within {@link #CONSOLE_WAIT_MILLIS}, so RCON returns it; otherwise (and always for players) the reply
+     * is sent from whichever thread completes the future.
+     */
+    static void reply(CommandSender sender, Messages messages, CompletableFuture<Reply> future) {
+        if (!(sender instanceof Player)) {
+            try {
+                send(sender, messages, outcome(future.get(CONSOLE_WAIT_MILLIS, TimeUnit.MILLISECONDS), null));
+                return;
+            } catch (ExecutionException e) {
+                send(sender, messages, outcome(null, e.getCause()));
+                return;
+            } catch (TimeoutException e) {
+                // Too slow for the command: the reply is still sent below, to the server log for the console.
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        future.whenComplete((r, err) -> send(sender, messages, outcome(r, err)));
+    }
+
+    private static Reply outcome(Reply r, Throwable err) {
+        return err == null ? r : Reply.error("command.failed", rootMessage(err));
     }
 
     private static Command<CommandSourceStack> player(Supplier<Handler> handler, Messages messages,

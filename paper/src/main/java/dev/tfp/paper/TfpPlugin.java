@@ -689,7 +689,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         int cx = x >> 4;
         int cz = z >> 4;
         CompletableFuture<ConsoleSpot> spot = new CompletableFuture<>();
-        scheduler.region(world, cx, cz, () -> {
+        Runnable read = () -> {
             try {
                 Chunk chunk = world.getChunkAt(cx, cz);
                 int top = world.getHighestBlockYAt(x, z, HeightMap.WORLD_SURFACE);
@@ -698,7 +698,14 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             } catch (RuntimeException e) {
                 spot.completeExceptionally(e);
             }
-        });
+        };
+        // RCON runs the command on the server thread, which on Paper is also the region thread: read inline
+        // then, so the console can wait for the reply (TfpCommands.reply). Elsewhere, hand it to the region.
+        if (scheduler.isOwner(world, cx, cz)) {
+            read.run();
+        } else {
+            scheduler.region(world, cx, cz, read);
+        }
         PlayerClimateService climateService = climate;
         PrecipitationService precipitationService = precipitation;
         return spot.thenCompose(s -> {
