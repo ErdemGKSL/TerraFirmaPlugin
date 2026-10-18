@@ -138,6 +138,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     private volatile PlayerClimateService climate;
     /** M2-WTH-01: what falls at the player's position (rain or snow), for {@code /tfp debug chunk}. */
     private volatile PrecipitationService precipitation;
+    /** M2-WTH-02/04: the snow service, for {@code /tfp debug snowtime} (its next-unload override). */
+    private volatile SnowService snow;
     /** M2-SEA-02: the seasonal biome tables behind the chunk packet rewrite. */
     private volatile SeasonalBiomeService seasonalBiomes;
     /** {@code /tfp debug showcase}: our block ids from the shipped id_map.json, read once. */
@@ -417,9 +419,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
 
         // M2-WTH-02: snow layers, ice and melting near the players, decided off-thread and applied per region under budget.
         // M2-WTH-04: the same service catches up the snow of a chunk on load, from the chunk's stamp (lazy, not replayed).
-        SnowService snow = new SnowService(clock, scheduler);
-        snow.start(() -> getServer().getOnlinePlayers());
-        getServer().getPluginManager().registerEvents(snow, this);
+        SnowService snowService = new SnowService(clock, scheduler);
+        snow = snowService;
+        snowService.start(() -> getServer().getOnlinePlayers());
+        getServer().getPluginManager().registerEvents(snowService, this);
 
         // We load at STARTUP, PacketEvents at POSTWORLD: it is loaded (its API exists after its onLoad) but not yet
         // enabled here. Registering the listener now is what the M0-NET-01 spike did; isPluginEnabled is false here.
@@ -761,6 +764,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             try {
                 Chunk chunk = world.getChunkAt(cx, cz);
                 new ChunkSnowTime(tick).write(chunk.getPersistentDataContainer());
+                SnowService service = snow;
+                if (service != null) {
+                    service.stampAtNextUnload(world, cx, cz, tick); // the next unload stamps this tick, not now
+                }
                 out.complete(Reply.ok("debug.snowtime.done", cx, cz, world.getName(), tick));
             } catch (RuntimeException e) {
                 out.completeExceptionally(e);

@@ -193,6 +193,8 @@ public final class SnowService implements Listener {
         private final Map<BlockPos, SnowRule.Event> forced = new ConcurrentHashMap<>();
         private final WorldBlocks blocks;
         private final AsyncDecisionPipeline<SnowBlock, SnowSample> pipeline;
+        /** Stamps a debug command asked for on a chunk's next unload (the unload takes its entry). */
+        private final PendingUnloadStamps pendingUnload = new PendingUnloadStamps();
 
         WorldSnow(World world) {
             this.world = world;
@@ -310,7 +312,10 @@ public final class SnowService implements Listener {
 
         /** Region thread of the chunk, on unload: stamps it, so the time it was loaded is not caught up again. */
         void onUnload(Chunk chunk) {
-            if (clock.get().isSet()) {
+            Long requested = pendingUnload.take(ChunkPos.key(chunk.getX(), chunk.getZ()));
+            if (requested != null) {
+                schedule.onUnload(chunk.getPersistentDataContainer(), requested);
+            } else if (clock.get().isSet()) {
                 schedule.onUnload(chunk.getPersistentDataContainer());
             }
         }
@@ -330,6 +335,14 @@ public final class SnowService implements Listener {
         z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
         z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
         return z ^ (z >>> 31);
+    }
+
+    /**
+     * Debug ({@code /tfp debug snowtime}): the chunk's next unload stamps {@code tick} instead of now. The caller writes the
+     * stamp into the chunk's data now as well; this only sets the override for the unload, which takes it once.
+     */
+    public void stampAtNextUnload(World world, int cx, int cz, long tick) {
+        worlds.computeIfAbsent(world.getUID(), id -> new WorldSnow(world)).pendingUnload.set(ChunkPos.key(cx, cz), tick);
     }
 
     @EventHandler

@@ -45,6 +45,11 @@ final class SnowCatchUpSchedule {
         new ChunkSnowTime(calendarTicks.getAsLong()).write(chunkData);
     }
 
+    /** The chunk is unloaded with a stamp requested for it (a debug override): stamps it at {@code calendarTick}. */
+    void onUnload(PersistentDataContainer chunkData, long calendarTick) {
+        new ChunkSnowTime(calendarTick).write(chunkData);
+    }
+
     /**
      * @param catchUp          whether the catch-up is due
      * @param lastCalendarTick the stamp the chunk had (or {@link SnowCatchUp#NEVER})
