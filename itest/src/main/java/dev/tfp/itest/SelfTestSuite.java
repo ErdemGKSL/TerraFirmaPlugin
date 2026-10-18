@@ -18,6 +18,7 @@ import dev.tfp.itest.cases.ReadyCase;
 import dev.tfp.itest.cases.RegionSchedulerCase;
 import dev.tfp.itest.cases.SuppressionCase;
 import dev.tfp.itest.cases.VersionCommandCase;
+import dev.tfp.itest.cases.WorldgenTerrainCase;
 import java.time.Duration;
 import java.util.List;
 
@@ -43,6 +44,7 @@ public final class SelfTestSuite {
                 new CalendarPersistCase(),
                 new CraftEnginePackIssuesCase(),
                 new CraftEngineBlockRoundTripCase(),
+                new WorldgenTerrainCase(),
                 new ProfileRestartCase(),
                 new SuppressionCase(),
                 new BetterModelSpawnCase(),
