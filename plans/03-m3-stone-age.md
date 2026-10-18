@@ -85,7 +85,8 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
   - Do: textured 6-row chest GUI (5×5 grid in columns 2–6), types stone/clay/fire clay/leather/goat horn, consumption rules.
   - Done when: ported `KnappingPatternTest`; all 101 knapping recipes resolvable; GUI aligned.
 
-- [ ] **M3-TOOL-01 Stone tools & tool mechanics** · deps: M3-KNAP-01 · skills: craftengine-items
+- [~] **M3-TOOL-01 Stone tools & tool mechanics** · deps: M3-KNAP-01 · skills: craftengine-items
+  - Status: rules ported and golden-tested in `core/tool` (`ToolType`, `ToolTier` for the four stone tiers, `IncorrectTag`, `MinedBlock`, `ToolRules`: mineable test, mining speed, correct-for-drops via the incorrect-for tags, durability loss per TFC's `willConsumeDurability` (the stone axe and shovel use vanilla's destroy-speed rule), attack damage and javelin throw damage). Golden tests: `ToolRulesGoldenTest` (4 tiers, 6 tool types, 9 block fixtures, 180 mining rows, 28 damage rows, transcribed from TFC at c3b4d9536) and `ToolRulesDeterminismTest`. Open: the Paper break and use hooks (`mineBlock`, correct-tool drops, the speed rule), the CraftEngine tool items with `break_power` and `correct_tools`, the javelin throw and the stone-tool visuals.
   - TFC: `common/items/ToolItem.java`, `JavelinItem.java`, `HammerItem.java`, `TFCHoeItem.java`, `ScytheItem.java`, `util/Metal.java` (tiers)
   - Do: CE items with `break_power` tiers + correct-tool tags, the vanilla `tool` component speeds, javelin throw (trident material), knife/scythe area behaviours.
   - Done when: mining tiers match TFC; self-test.
