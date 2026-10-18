@@ -55,10 +55,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
   - Do: stacking piles with the `tint_source` renderer (count + metal → item model select); collision layer.
   - Done when: visual checklist; place/break preserves items.
 
-- [ ] **M4-TOOL-02 Metal tools, armor & tiers** · deps: M4-MET-01, M3-TOOL-01 · skills: craftengine-items
+- [~] **M4-TOOL-02 Metal tools, armor & tiers** · deps: M4-MET-01, M3-TOOL-01 · skills: craftengine-items
   - TFC: `common/items/*` (tools, armor, shields, maces, javelins), `common/component/forge/ForgingBonus*`
   - Do: tier `break_power`, mining speeds, durability with the forging bonus, armor damage resistances, equipment assets.
   - Done when: tier progression tests; armor golden values.
+  - Status (@claude): in progress. Done (rules, `core/tool/`): `ToolKind` (17 metal tool kinds with head part, attack factor, attack speed, digger and damageable flags), `ToolStats` and `MetalToolRules` (durability = tier uses, mining speed = tier speed for diggers else 1, attack damage = factor x tier damage, break power = tier level, heat-to-fluid scaling `fluidAfterDamage`), `ArmorSlot` and `ArmorRules` (per-piece durability and defense, horse body uses chest, total defense), `ForgingBonus` and `ForgingConfig` (ratio thresholds, efficiency, durability chance, damage multipliers, unbreaking). Counts verified against TFC at c3b4d9536: 153 tool rows (9 tiers x 17 kinds), 9 armor rows, 5 forging rows (`tools.tsv`, `armor.tsv`, `forging.tsv` exported by a scratch script). Tests: `MetalToolGoldenTest` (6: row counts, per-row tool, armor and forging numbers), `MetalToolRulesTest` (10: tier progression by level, red and blue steel, copper pickaxe values, non-diggers, heating fluid, armor slots, forge ratio bounds, unbreaking bounds). Open: the CraftEngine item definitions per metal (heads, tools, armor), the registry glue, the tooltips, the tool and armor recipes, the Paper damage and break-speed hooks (forging efficiency and damage multipliers), and the shears' special mining speed.
 
 - [ ] **M4-PROS-01 Prospecting** · deps: M2-GEN-10, M4-TOOL-02
   - TFC: `common/items/PropickItem.java`, `ProspectResult.java`, `network/ProspectedPacket.java`, `common/commands/PropickCommand.java`

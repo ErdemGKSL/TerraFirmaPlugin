@@ -1,0 +1,10 @@
+metal	tier_level	durability_head	durability_chest	durability_legs	durability_feet	durability_body	defense_head	defense_chest	defense_legs	defense_feet	defense_body	total_defense	toughness	knockback_resistance	enchantment_value
+bismuth_bronze	2	240	311	288	250	311	1	4	4	1	4	10	0	0	9
+black_bronze	2	262	336	340	285	336	1	4	4	1	4	10	0	0	9
+bronze	2	251	323	315	270	323	1	4	4	1	4	10	0	0	9
+copper	1	150	215	200	160	215	1	4	3	1	4	9	0	0	9
+wrought_iron	3	370	528	495	429	528	2	5	4	1	5	12	0	0	12
+steel	4	440	640	600	520	640	2	6	5	2	6	15	1	0	12
+black_steel	5	550	800	750	650	800	2	6	5	2	6	15	2	0.05	17
+blue_steel	6	748	1088	960	860	1088	3	8	6	3	8	20	3	0.1	23
+red_steel	6	715	1010	1020	884	1010	3	8	6	3	8	20	3	0.1	23

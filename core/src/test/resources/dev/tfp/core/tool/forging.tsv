@@ -1,0 +1,6 @@
+bonus	ordinal	min_ratio	expected_efficiency	expected_durability	expected_damage
+none	0	inf	1	0	1
+modest	1	10	1.20000005	0.125	1.125
+well	2	5	1.39999998	0.25	1.25
+expert	3	2	1.60000002	0.375	1.375
+perfect	4	1.5	1.79999995	0.5	1.5
