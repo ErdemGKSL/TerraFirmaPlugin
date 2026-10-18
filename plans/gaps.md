@@ -32,3 +32,5 @@ Her madde kullanıcı tarafından istendi ya da bu oturumda doğrulamada ortaya 
 ## Sonbahar tonu: kuru site bulunamadı (sonuç: belirsiz)
 
 - [ ] Yağış 150 mm altı alçak site bulunamadı; (-220,0) sitesinde yağış aylara göre değişiyor (Eylül 254, Ekim 235, Kasım 215 mm). Üç ayda da renk aynı (Ekim = Kasım, R−B 6.3). Sonuç: bu test dünyasında sonbahar turuncusu gözlemlenemedi. Olası nedenler: (a) bu dünyada gerçekten kuru alçak site yok (iklim/yağış dağılımı kontrol edilmeli, TFC yağış ortalamalarıyla karşılaştırılmalı); (b) kuru sonbahar koşulu (yağış düşüklüğü) sunucuda değişen aylık yağış ile eşleşmiyor. Sonraki adım: yağış dağılımını TFC'nin bölgesel yağış ortalamalarıyla karşılaştırmak.
+
+- [x] Yağış modeli TFC ile satır satır eşleşiyor (formüller, bölge gürültüsü, sınırlar 0–500 mm, kıyı etkisi). Sorun model değil; test sitelerinin spawn'a yakın (x ≈ 0 ile -380 arası) olması. TFC'de 150 mm altı yağış ancak x ≈ -3 ile -4 km batıda görülüyor. Sonraki adım: x ≈ -4000 civarında bir alçak site, yağışı 150 mm altında doğrulayıp sonbahar ölçümünü orada yapmak.
