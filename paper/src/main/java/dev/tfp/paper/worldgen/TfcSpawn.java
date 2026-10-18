@@ -9,6 +9,7 @@ import dev.tfp.core.worldgen.chunk.ChunkData;
 import dev.tfp.core.worldgen.spawn.SpawnSearch;
 import java.util.Optional;
 import java.util.function.IntBinaryOperator;
+import java.util.logging.Logger;
 import org.bukkit.Location;
 import org.bukkit.World;
 
@@ -40,7 +41,10 @@ final class TfcSpawn {
      * Sets the world spawn (level.dat, compasses, respawn) to the TFC spawn block, so it matches the fixed spawn location.
      * Called once per world, right after the search finds dry land.
      */
-    static void setWorldSpawn(World world, SpawnSearch.Spawn spawn) {
+    static void setWorldSpawn(World world, SpawnSearch.Spawn spawn, Logger log) {
         world.setSpawnLocation(spawn.x(), spawn.y(), spawn.z());
+        log.info("TFC spawn: setWorldSpawn on " + world.getName() + " to " + spawn.x() + "," + spawn.y() + "," + spawn.z()
+            + "; getSpawnLocation now reads " + world.getSpawnLocation().getBlockX() + ","
+            + world.getSpawnLocation().getBlockY() + "," + world.getSpawnLocation().getBlockZ());
     }
 }

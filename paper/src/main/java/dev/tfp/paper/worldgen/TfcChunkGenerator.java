@@ -135,7 +135,9 @@ public final class TfcChunkGenerator extends ChunkGenerator {
                             + "; Paper's default spawn applies");
                     } else {
                         // Set here, once, so level.dat and the fixed spawn agree. Unverified: the thread Paper calls this on.
-                        TfcSpawn.setWorldSpawn(world, found.get());
+                        TfcSpawn.setWorldSpawn(world, found.get(), log);
+                        log.info("TFC spawn found in " + world.getName() + " at " + found.get().x() + ","
+                            + found.get().y() + "," + found.get().z() + "; setWorldSpawn called: true");
                     }
                     spawn = found;
                 }
