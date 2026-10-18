@@ -12,6 +12,7 @@ import dev.tfp.core.calendar.TimeCommand;
 import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.compat.CompatGate;
 import dev.tfp.core.compat.Version;
+import dev.tfp.core.install.InstallStatus;
 import dev.tfp.core.visuals.Suppression;
 import dev.tfp.core.visuals.SuppressionSet;
 import dev.tfp.core.visuals.VisualIndex;
@@ -69,6 +70,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -107,6 +109,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
 
     private final ReadyGate readyGate = new ReadyGate();
     private volatile Installer.Result install;
+    /** Set when a chunk asked for the CraftEngine table before it was loaded in this run (such a chunk is refused). */
+    private final AtomicBoolean chunkBeforeCraftEngine = new AtomicBoolean();
     private Installer.Inputs installInputs;
     private Path contentRoot;
     private VisualSelection visualSelection;
@@ -254,10 +258,35 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         return new TfcChunkGenerator(seed, this::blockVisuals, getLogger());
     }
 
-    /** The CraftEngine state table, or null before {@link #onLoad()} built the integrations. */
+    /**
+     * The CraftEngine state table, or null before {@link #onLoad()} built the integrations. A chunk that asks while the table is
+     * not loaded is refused by the generator and stays empty, so that is recorded: see {@link #restartSettingTookEffect()}.
+     */
     private BlockVisuals blockVisuals() {
         Integrations current = integrations;
-        return current == null ? null : current.blockVisuals();
+        BlockVisuals table = current == null ? null : current.blockVisuals();
+        if (table == null || !table.isLoaded()) {
+            chunkBeforeCraftEngine.set(true);
+        }
+        return table;
+    }
+
+    /**
+     * A restart-only CraftEngine setting changed by the installer (ARCHITECTURE.md §12) only applies after a restart, so the
+     * first start is degraded. When CraftEngine loaded in this run before any TFC chunk asked for its table, nothing was refused
+     * and the chunks generated from now on are complete: the status is cleared for this run.
+     */
+    private void restartSettingTookEffect() {
+        Installer.Result inst = install;
+        if (inst == null || chunkBeforeCraftEngine.get()) {
+            return;
+        }
+        InstallStatus cleared = inst.status().restartApplied();
+        if (cleared != inst.status()) {
+            install = new Installer.Result(cleared, inst.craftEngine(), inst.betterHud(), inst.skipped(), inst.edits(),
+                    inst.packPlan(), inst.packFingerprint());
+            getLogger().info("CraftEngine loaded before any TFC chunk was generated: the restart-only setting is in effect for this run");
+        }
     }
 
     /**
@@ -270,6 +299,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 config.current().visuals().solidReserveWarning(), scheduler.ioExecutor(), getLogger());
         packRebuild = trigger;
         integrations.blockVisuals().onReload(trigger::onCraftEngineReload);
+        integrations.blockVisuals().onReload(this::restartSettingTookEffect);
         enablePendingHudEdit(trigger);
 
         if (contentRoot == null || visualSelection == null) {

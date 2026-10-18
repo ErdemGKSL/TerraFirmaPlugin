@@ -77,6 +77,30 @@ class InstallStatusTest {
     }
 
     @Test
+    void restartSettingInEffectAfterCraftEngineLoadedIsNotDegraded() {
+        InstallStatus s = InstallStatus.decide(List.of(result("misc.delay-configuration-load", Outcome.APPLIED, "true", "false")),
+                true, false, List.of());
+        InstallStatus cleared = s.restartApplied();
+        assertThat(cleared.degraded()).isFalse();
+        assertThat(cleared.restartRequired()).isTrue();
+        assertThat(cleared.setupIncomplete()).isFalse();
+        assertThat(String.join("\n", cleared.banner())).contains("RESTART REQUIRED", "not degraded")
+                .doesNotContain("Until then", "degraded mode");
+        assertThat(cleared.restartApplied()).isSameAs(cleared);
+    }
+
+    @Test
+    void restartAppliedKeepsRequiredSetupProblemsAndNothingToClear() {
+        InstallStatus s = InstallStatus.decide(List.of(result("chunk-system.cache-system", Outcome.OWNER_KEPT, "false", "false"),
+                result("misc.delay-configuration-load", Outcome.APPLIED, "true", "false")), true, false, List.of());
+        assertThat(s.restartApplied()).isSameAs(s);
+        assertThat(InstallStatus.NOTHING.restartApplied()).isSameAs(InstallStatus.NOTHING);
+        InstallStatus failed = InstallStatus.decide(List.of(result("misc.delay-configuration-load", Outcome.APPLIED, "true", "false")),
+                true, false, List.of("CraftEngine pack install failed: disk full"));
+        assertThat(failed.restartApplied()).isSameAs(failed);
+    }
+
+    @Test
     void installFailureIsDegraded() {
         InstallStatus s = InstallStatus.decide(List.of(), true, false, List.of("CraftEngine pack install failed: disk full"));
         assertThat(s.degraded()).isTrue();

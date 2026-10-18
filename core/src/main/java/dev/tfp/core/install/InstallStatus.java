@@ -97,6 +97,26 @@ public record InstallStatus(boolean restartRequired, boolean degraded, boolean p
         return banner.contains(SETUP_INCOMPLETE);
     }
 
+    /**
+     * The restart-only setting of this run took effect: CraftEngine loaded its configuration before any TFC chunk was asked
+     * for, so every chunk generated from now on is complete. The caller checks that condition (the generator refuses a chunk
+     * whenever CraftEngine is not loaded). Only a pending restart is cleared; a required setup the owner must fix, or a failed
+     * install, keeps the status. Returns {@code this} when there is nothing to clear, so calling it again is harmless.
+     */
+    public InstallStatus restartApplied() {
+        if (!restartRequired || !degraded || setupIncomplete()) {
+            return this;
+        }
+        List<String> lines = new ArrayList<>();
+        for (String line : banner) {
+            if (!line.startsWith("Until then TerraFirmaPlugin runs in degraded mode") && !line.matches("=+")) {
+                lines.add(line);
+            }
+        }
+        lines.add("CraftEngine loaded before any TFC chunk was generated: the restart-only setting is in effect for this run, not degraded.");
+        return new InstallStatus(restartRequired, false, packRebuild, lines);
+    }
+
     private static String describe(EditResult r) {
         return r.edit().target().path() + " " + r.edit().key();
     }

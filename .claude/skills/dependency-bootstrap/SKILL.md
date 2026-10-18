@@ -92,7 +92,7 @@ Edit with a comment-preserving YAML editor that changes the single key and leave
 
 **CraftEngine never builds the resource pack at startup.** After the installer writes or changes our CE pack (first install, plugin update), trigger a full CE reload/pack build once CE has finished loading (after the first `CraftEngineReloadEvent`), so players actually receive the new pack.
 
-If a restart-requiring key changed, log a clear "restart required" banner, and run in a degraded mode that doesn't generate TFC chunks until the restart.
+If a restart-requiring key changed, log a clear "restart required" banner, and run in a degraded mode until the restart. The degraded mode clears in the same run once CraftEngine has loaded and no TFC chunk was asked for its table before that (`InstallStatus.restartApplied`); a chunk asked earlier is refused and stays empty, so then the restart is needed.
 
 ## 6b. Visual profile selection
 At `onLoad`, read `visuals.profile` for the running MC version family (defaults: `level-3a` on 1.21.x, `level-2` on 26.x; see ARCHITECTURE.md §9.1). Write that precomputed allocation into the CE pack through the normal manifest rules. If the profile changed since the last start, schedule the CE pack rebuild. After `CraftEngineReloadEvent`, verify the CE pool capacity: fail with a message naming the next higher profile if it doesn't fit, and warn if free solid slots are below `visuals.solid-reserve-warning`.
