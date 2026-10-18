@@ -97,8 +97,9 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
   - Do: mining triggers an async collapse decision (support beams radius, chance rules) → budgeted commits spawning falling blocks; collapse recipes (raw → cobble).
   - Done when: golden tests on scripted scenarios; Folia stress self-test.
 
-- [ ] **M3-PHYS-02 Landslide & gravity soils** · deps: M3-PHYS-01
-  - TFC: `common/recipes/LandslideRecipe.java`, tag `can_landslide`
+- [~] **M3-PHYS-02 Landslide & gravity soils** · deps: M3-PHYS-01
+  - Status: rules ported and golden-tested in `core/landslide` (`LandslideRules`: the support test via `SupportTable`, the open-side test, `decide` giving none, a fall or one sideways slide with its single draw, `step` giving the source and destination writes; `LandslideSoils` holds the TFC `can_landslide` tag, the `supports_landslide` tag and the 21 landslide recipes, transcribed from the JSON at c3b4d9536). Golden tests: `LandslideGoldenTest` (440 box rows x 8 seeds, every decision seen, table counts) and `LandslideDeterminismTest` and `LandslideStepTest`. TFC has no slope threshold and no slide chance; the rules follow its code. Open: the Paper slide runner (async decide, sync apply: falling-block spawn, the 2-tick delay and the queue of `WorldTracker`, the neighbour-update hooks), the block support data and the CraftEngine blocks.
+  - TFC: `common/recipes/LandslideRecipe.java`, `common/entities/misc/TFCFallingBlockEntity.java` (`canFallThrough`), tags `can_landslide`, `supports_landslide`
   - Do: vertical falling (CE `falling_block` or ours) + sideways sliding decided async.
   - Done when: golden scenarios.
 
