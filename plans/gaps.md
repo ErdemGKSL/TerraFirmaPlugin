@@ -28,3 +28,7 @@ Her madde kullanıcı tarafından istendi ya da bu oturumda doğrulamada ortaya 
 ## Sonbahar tonu: temiz hava ölçümü (sonuç: yeterli değil)
 
 - [ ] Yağmursuz ölçüm (alçak site 0,400): Eylül yeşil-zeytin (R−B 25), Ekim ve Kasım birebir aynı koyu yeşil (R−B 6). Kasım turuncu değil. Muhtemel neden: site ıslak (yağış 236–248 mm); kodda turuncu tonu yalnızca kuru sonbaharda çıkıyor (birim testinde 150 mm). Sonraki adım: yağış değeri düşük (örneğin 150 mm altı) bir alçak site bulup aynı üç ayı ölçmek.
+
+## Sonbahar tonu: kuru site bulunamadı (sonuç: belirsiz)
+
+- [ ] Yağış 150 mm altı alçak site bulunamadı; (-220,0) sitesinde yağış aylara göre değişiyor (Eylül 254, Ekim 235, Kasım 215 mm). Üç ayda da renk aynı (Ekim = Kasım, R−B 6.3). Sonuç: bu test dünyasında sonbahar turuncusu gözlemlenemedi. Olası nedenler: (a) bu dünyada gerçekten kuru alçak site yok (iklim/yağış dağılımı kontrol edilmeli, TFC yağış ortalamalarıyla karşılaştırılmalı); (b) kuru sonbahar koşulu (yağış düşüklüğü) sunucuda değişen aylık yağış ile eşleşmiyor. Sonraki adım: yağış dağılımını TFC'nin bölgesel yağış ortalamalarıyla karşılaştırmak.
