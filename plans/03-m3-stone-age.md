@@ -178,10 +178,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
   - Done when: golden growth tests per crop type; lazy-vs-stepped tests.
   - Status: pure rules ported to `core/crop/` and golden-tested against TFC at c3b4d9536 (1,831 golden lines: all 29 crop constants and stage counts, stage ages, growth steps with climate, nutrient share, yield and death, the lazy catch-up loop, harvest counts). Lazy-vs-stepped, split and determinism tests pass. Open: the crop blocks (all shapes), the Paper growth glue and block entity (decide async, apply sync), seeds via `block_item`, the spread fruit, the CraftEngine visuals.
 
-- [ ] **M3-FARM-03 Berry bushes & seasonal plants** · deps: M2-GEN-13, M2-CAL-01
+- [~] **M3-FARM-03 Berry bushes & seasonal plants** · deps: M2-GEN-13, M2-CAL-01
   - TFC: `common/blocks/plant/fruit/`, `common/blockentities/BerryBushBlockEntity.java`, `PlantRegrowth.java`
   - Do: lifecycle stages by season (dormant/healthy/flowering/fruiting) as properties updated lazily (async sweep on season change + load), harvest.
   - Done when: lifecycle golden tests.
+  - Status (@claude): in progress. Done (rules, `core/berry/`): `BushSpecies` (the six stationary bushes: lifecycle by hemispheric month, climate range), `Lifecycle`, `BerryRules` (season, placement, pick, TFC's random tick with its growth-cycle scan and recursion, catch-up with climate sampling, closed-form growth and wither), `BerryBush`, `BerryClock`. Tests: `BerryGoldenTest` (from TFC's arithmetic: 576 tick rows, 144 lifecycle, 176 climate, 24 season), `BerryLazyVsSteppedTest`, `BerryDeterminismTest`, `BerryRulesTest`. Open: the spreading bushes, canes, cranberry and fruit trees; the bush blocks, the Paper growth glue (placement, pick, propagation placement, the lazy catch-up trigger) and the CE visuals. The divergences are in the ledger.
 
 ## GUIs & player tabs
 
