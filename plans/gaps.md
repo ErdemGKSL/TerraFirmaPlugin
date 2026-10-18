@@ -19,3 +19,8 @@ Her madde kullanıcı tarafından istendi ya da bu oturumda doğrulamada ortaya 
 ## Sunucu kontrolü: sonbahar tonu (açık, bulgu)
 
 - [ ] (Kök neden bulundu: iki test sitesi yüksek dağ sütunlarıydı, y ≥ 173; TFC'deki yükseklik soğutması orada -17.8 °C ekliyor, yani kar beklenen sonuç. İklim kodu TFC ile satır satır eşleşiyor. Sonraki adım: y ≈ 64–80 civarında alçak bir site seçip `tfp debug chunk` ile ortalama 2–5 °C'yi doğrulamak.) Sonbahar çimen tonu sunucuda ölçülemedi. Denenen sitelerde (0,0; -220,-1200) Ekim–Kasımda, hatta Eylül'de bile kar çimenin üstünde. Test dünyası genel olarak çok soğuk görünüyor (Eylül'de -14 °C, ortalama -15.8 °C); bu, iklim modelinin ya da kar kuralının fazla soğuk veya fazla agresif olabileceğini gösteriyor. Yapılacak: iklim değerlerinin TFC'deki ortalamalarla karşılaştırılması ve yıllık ortalamanın makul olup olmadığının kontrolü; ardından kar örtüsü olmayan bir sitede renk ölçümü.
+
+## Sonbahar tonu: alçak sitede sonuç (kısmi)
+
+- [x] Kar sorunu çözüldü: alçak site (chunk 0,400; yüzey y 63; ortalama 5.2 °C) kışın bile kar örtmüyor.
+- [ ] Renk ölçümü temiz değil: Eylül'de yağmur (RAIN) ekranı mavileştirdi; R−B değerleri Eylül +0.8, Ekim −11.5, Kasım −11.8. Kasım turuncu görünmüyor, ama yağmur katmanı karşılaştırmayı bozuyor. Sonraki adım: vanilla `weather clear` ile yağmuru kapatıp üç ayı aynı koşulda yeniden ölçmek.
