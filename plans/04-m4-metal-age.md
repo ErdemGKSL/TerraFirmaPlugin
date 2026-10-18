@@ -4,10 +4,11 @@ Goal: the TFC metallurgy chain up to red/blue steel. Exit: the scripted "metal r
 
 Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
 
-- [ ] **M4-MET-01 Metals registry & items** · deps: M1-REG-01, M1-DGN-03 · skills: craftengine-items, tfc-asset-migration
+- [~] **M4-MET-01 Metals registry & items** · deps: M1-REG-01, M1-DGN-03 · skills: craftengine-items, tfc-asset-migration
   - TFC: `util/Metal.java`, `util/MetalItem.java`, `util/registry/RegistryMetal.java`, data `fluid_heat/`, `item_heat/`
   - Do: 27 metals with tiers; generated CE items for ingots, double ingots, sheets, double sheets, rods, tool heads, tools, armor parts and armor (~60 per metal). Metal blocks use `entity_renderer` (decided).
   - Done when: all metal items load; tooltips show heat; showcase.
+  - Status (@claude): in progress. Done (data, `core/metal/`): `Metal` (the 27 metals, TFC order, with fluid heat, ingot heat and weathering resistance) and `MetalTier` (the 9 tool and armor tiers). Test: `MetalTableTest`, golden on the 27 metals (`metals.tsv` exported from TFC's `util/Metal.java`, `TFCTiers`, `TFCArmorMaterials`, `fluid_heat/` and `item_heat/` at c3b4d9536; verified 27 metals). Open: the CraftEngine items per metal, the registry glue, the item heat tooltips, the showcase.
 
 - [~] **M4-MET-02 Alloying** · deps: M4-MET-01, M3-POT-02
   - Status (@claude): in progress. Done (rules, `core/alloy/`): `AlloyRange`, `AlloyRecipe`, `FluidAlloy` (immutable fill with capacity, proportional drain, epsilon-filtered contents, result by first matching recipe or unknown, matching with the result-removal rule). Test: `FluidAlloyTest`, golden on all 9 TFC alloys (`alloy-recipes.tsv` exported from TFC's `recipe/alloy/` at c3b4d9536). Open: the Paper fluid glue, the alloy recipes as CE/Paper data and the alloy GUI or display.
