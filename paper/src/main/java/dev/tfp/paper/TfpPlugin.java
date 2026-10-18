@@ -20,6 +20,7 @@ import dev.tfp.core.visuals.VisualSelection;
 import dev.tfp.core.registry.Registries;
 import dev.tfp.core.showcase.Showcase;
 import dev.tfp.core.weather.PrecipitationType;
+import dev.tfp.core.weather.SnowCatchUp;
 import dev.tfp.core.weather.SnowRule;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.debug.ShowcasePlacer;
@@ -632,9 +633,13 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 try {
                     Chunk chunk = world.getChunkAt(cx, cz);
                     Set<String> ids = chunkData.ids(chunk);
-                    out.complete(Reply.ok("debug.chunk.header", cx, cz, world.getName()).withDetails(ids.isEmpty()
+                    List<String> lines = new ArrayList<>(ids.isEmpty()
                             ? List.of(messages.get(player, "debug.chunk.empty"))
-                            : ids.stream().map(id -> "tfp:" + id).toList()));
+                            : ids.stream().map(id -> "tfp:" + id).toList());
+                    long snowTick = ChunkSnowTime.read(chunk.getPersistentDataContainer()).lastCalendarTick();
+                    lines.add(messages.get(player, "debug.chunk.snow_time", snowTick == SnowCatchUp.NEVER
+                            ? messages.get(player, "debug.chunk.snow_time.none") : String.valueOf(snowTick)));
+                    out.complete(Reply.ok("debug.chunk.header", cx, cz, world.getName()).withDetails(lines));
                 } catch (RuntimeException e) {
                     out.completeExceptionally(e);
                 }
@@ -683,7 +688,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     }
 
     /** A column for {@code /tfp debug chunk <x> <z>}: the position one block above the surface, read on its region. */
-    private record ConsoleSpot(int y, boolean sky, Set<String> ids) {
+    private record ConsoleSpot(int y, boolean sky, Set<String> ids, long snowTick) {
     }
 
     /** {@code /tfp debug chunk <x> <z>} from the console (no player): the default overworld, the surface at x, z. */
@@ -698,7 +703,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 Chunk chunk = world.getChunkAt(cx, cz);
                 int top = world.getHighestBlockYAt(x, z, HeightMap.WORLD_SURFACE);
                 int y = top + 1;
-                spot.complete(new ConsoleSpot(y, y > top, chunkData.ids(chunk)));
+                long snowTick = ChunkSnowTime.read(chunk.getPersistentDataContainer()).lastCalendarTick();
+                spot.complete(new ConsoleSpot(y, y > top, chunkData.ids(chunk), snowTick));
             } catch (RuntimeException e) {
                 spot.completeExceptionally(e);
             }
@@ -725,6 +731,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 lines.addAll(s.ids().isEmpty()
                         ? List.of(messages.get(Messages.FALLBACK, "debug.chunk.empty"))
                         : s.ids().stream().map(id -> "tfp:" + id).toList());
+                lines.add(messages.get(Messages.FALLBACK, "debug.chunk.snow_time",
+                        s.snowTick() == SnowCatchUp.NEVER
+                                ? messages.get(Messages.FALLBACK, "debug.chunk.snow_time.none")
+                                : String.valueOf(s.snowTick())));
                 if (r != null) {
                     lines.add(climateLine(r));
                 }
