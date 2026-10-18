@@ -40,7 +40,8 @@ import java.util.Map;
  *
  * <p>Pure: the noises are immutable after construction and each call keeps its own state, so any thread may call it. The
  * 7 x 7 biome weights of a chunk are cached (bounded, recomputed on a miss). Not ported (ledger): the terrain density per y
- * (the biome carving noise, the shore densities, the cave noises), and the volcano samplers other than the cinder cones.
+ * (the cenote carving noise, the shore densities, the cave noises; the carved lakes are
+ * {@link Column#density}), and the volcano samplers other than the cinder cones.
  */
 public final class SurfaceHeights {
     private final RegionGenerator regions;
@@ -49,6 +50,7 @@ public final class SurfaceHeights {
     private final Noise2D tideHeightNoise;
     private final Map<RiverBlendType, RiverNoiseSampler> riverSamplers;
     private final CinderCones cones;
+    private final LakeCarving lakes;
     /** The height map of each biome id, null for the river biome. */
     private final Noise2D[] heightNoise;
     private final boolean[] carving;
@@ -69,6 +71,7 @@ public final class SurfaceHeights {
         this.tideHeightNoise = shores.tideLevel();
         this.riverSamplers = riverSamplers;
         this.cones = cones;
+        this.lakes = new LakeCarving(levelSeed);
         this.heightNoise = new Noise2D[TfcBiomes.COUNT];
         this.carving = new boolean[TfcBiomes.COUNT];
         for (int id = 0; id < TfcBiomes.COUNT; id++) {
@@ -106,8 +109,34 @@ public final class SurfaceHeights {
         /* the weight of {@link #biome} in the column's weights, or 0.5 if it has none ({@code localBiomeWeights}) */
         double biomeWeight,
         /* any salty biome in the weights ({@code couldBeSalty}) */
-        boolean anySalty
+        boolean anySalty,
+        /* the carved lake density of the column's lake biomes ({@link LakeCarving}) */
+        LakeCarving.Column lake,
+        /* the shore blend weights by {@link ShoreBlendType#ordinal()} ({@code computeInitialShoreWeights}) */
+        double[] shoreWeights,
+        /* TFC's {@code surfaceIntegrityDepth}: the depth below the surface the biome density may not carve (cinder cones) */
+        int surfaceIntegrityDepth
     ) {
+        /**
+         * TFC's terrain density of the column at {@code y} ({@code ChunkNoiseFiller.calculateNoiseAtHeight}): the carved lake
+         * density weighted by the biome weights, the shore stage, the forced no-carve zone, then the river stage weighted by the
+         * river blend weights, the air threshold and the slide above the surface. Positive is solid, in [-1, 1].
+         */
+        public double density(int y) {
+            final int surface = surfaceHeight();
+            final double noise = LakeCarving.postShoreNoise(lake.noise(y), shoreWeights, y, surface, surfaceIntegrityDepth);
+            return river.density(y, noise, surface);
+        }
+
+        /**
+         * Whether the terrain density opens the block at {@code y} of this column (a carved lake or a river): only at or below
+         * the column's surface, and never in a column without a lake biome weight or a river.
+         */
+        public boolean opens(int y) {
+            return (lake.present() || river.hasRiver()) && y <= surfaceHeight() && density(y) <= 0;
+        }
+
+
         /** @return TFC's integer surface height, {@code (int) height}. */
         public int surfaceHeight() {
             return (int) height;
@@ -358,6 +387,7 @@ public final class SurfaceHeights {
             height = Mth.clampedMap(landWeight, 0.32, 0.36, Math.min(height, tideAdjustedSeaEdgeHeight), height);
         }
 
+        final double[] shoreBlendWeights = computeInitialShoreWeights(biomeWeights);
         final double[] riverBlendWeights = computeInitialRiverWeights(biomeWeights);
         final RiverColumn river = RiverColumn.sample(riverSamplers, riverBlendWeights, info, blockX, blockZ, height);
         height = river.height();
@@ -368,17 +398,15 @@ public final class SurfaceHeights {
         height = cones.adjustHeight(height, blockX, blockZ, this::biomeAt);
 
         final double biomeWeightAt = biomeWeights.getOrDefault(biomeAt, 0.5);
-        return new Column(biomeAt, height, preVolcanicHeight, river, oceanWeight, biomeWeightAt, anySaltyBiomesNearby);
+        final LakeCarving.Column lake = lakes.column(biomeWeights, blockX, blockZ);
+        return new Column(biomeAt, height, preVolcanicHeight, river, oceanWeight, biomeWeightAt, anySaltyBiomesNearby, lake,
+            shoreBlendWeights, LakeCarving.surfaceIntegrityDepth(height, preVolcanicHeight));
     }
 
     private double adjustHeightForShoreContributions(BiomeWeights biomeWeights, double height, int x, int z, double oceanWeight,
                                                      double landWeight, double shoreWeight, double thisWeight, int biome,
                                                      double shoreHeight, double normalHeight) {
-        // computeInitialShoreWeights: sum weights by biome -> shore blend type first
-        final double[] shoreBlendWeights = new double[ShoreBlendType.SIZE];
-        for (int i = 0; i < biomeWeights.size(); i++) {
-            shoreBlendWeights[HeightBiomes.get(biomeWeights.id(i)).shoreBlendType().ordinal()] += biomeWeights.weight(i);
-        }
+        final double[] shoreBlendWeights = computeInitialShoreWeights(biomeWeights);
 
         // Iterate through blend types, and sample once
         // Each sampler gets the original terrain height, modifies it, and is interpolated together
@@ -397,8 +425,17 @@ public final class SurfaceHeights {
         return shoreBlendHeight;
     }
 
+    /** {@code computeInitialShoreWeights}: the biome weights summed by shore blend type. */
+    static double[] computeInitialShoreWeights(BiomeWeights biomeWeights) {
+        final double[] shoreBlendWeights = new double[ShoreBlendType.SIZE];
+        for (int i = 0; i < biomeWeights.size(); i++) {
+            shoreBlendWeights[HeightBiomes.get(biomeWeights.id(i)).shoreBlendType().ordinal()] += biomeWeights.weight(i);
+        }
+        return shoreBlendWeights;
+    }
+
     /** {@code computeInitialRiverWeights}: the biome weights summed by river blend type. */
-    private static double[] computeInitialRiverWeights(BiomeWeights biomeWeights) {
+    static double[] computeInitialRiverWeights(BiomeWeights biomeWeights) {
         final double[] riverBlendWeights = new double[RiverBlendType.SIZE];
         for (int i = 0; i < biomeWeights.size(); i++) {
             riverBlendWeights[RiverBiomes.blendType(biomeWeights.id(i)).ordinal()] += biomeWeights.weight(i);

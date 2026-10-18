@@ -21,7 +21,8 @@ import java.util.Map;
  * <p>TFC blends the samplers of every biome around the column by their weights: {@code SurfaceHeights} passes the column's
  * weights by blend type ({@link #sample(Map, double[], RiverInfo, int, int, double)}); the single-type form
  * {@link #sample(Map, RiverBlendType, RiverInfo, int, int, double)} gives one type the weight 1.
- * The terrain density outside the river stage is TFC's {@code SOLID} (0) everywhere: the biome density noise is not ported.
+ * {@link #density} takes the biome and shore density as its input; {@link #opens} uses TFC's {@code SOLID} (0), and the
+ * terrain ({@code SurfaceHeights.Column.density}) passes the carved lake density of the column's biome weights.
  */
 public final class RiverColumn {
     /** {@code BiomeNoiseSampler.SOLID}: the density of solid terrain. */
@@ -45,7 +46,7 @@ public final class RiverColumn {
         this.height = height;
     }
 
-    /** The column of one biome's blend type at weight 1 (the plugin's case: no biome blending). */
+    /** The column of one biome's blend type at weight 1 (tests; the terrain blends every type by its biome weights). */
     public static RiverColumn sample(Map<RiverBlendType, RiverNoiseSampler> samplers, RiverBlendType type, RiverInfo info,
                                      int x, int z, double heightIn) {
         final double[] weights = new double[RiverBlendType.SIZE];
@@ -81,6 +82,17 @@ public final class RiverColumn {
         return new RiverColumn(info, w, columns, riverBlendHeight);
     }
 
+    /**
+     * The river blend weight of a type as TFC's density stage reads it: the biome weights summed by blend type, or 1 at
+     * {@code NONE} and 0 elsewhere when the column has no river ({@code adjustHeightForRiverContributions}).
+     */
+    public double weight(RiverBlendType type) {
+        if (info == null) {
+            return type == RiverBlendType.NONE ? 1.0 : 0.0;
+        }
+        return weights[type.ordinal()];
+    }
+
     /** @return the river of this column, or null. */
     public RiverInfo info() {
         return info;
@@ -103,17 +115,18 @@ public final class RiverColumn {
 
     /**
      * TFC's density at {@code y} from the river stage on: the river samplers modify {@code noiseIn} (the biome and shore density,
-     * where 0 is solid and higher is air), then {@code AIR_THRESHOLD - noise}, the slide above {@code surfaceHeight}, clamped to
-     * [-1, 1]. Positive is solid.
+     * where 0 is solid and higher is air) and their weighted sum is added to {@code noiseIn} itself (TFC's
+     * {@code calculateNoiseAtHeight} keeps the post-shore noise in its accumulator, so a column without a river counts it twice),
+     * then {@code AIR_THRESHOLD - noise}, the slide above {@code surfaceHeight}, clamped to [-1, 1]. Positive is solid.
      *
      * @param surfaceHeight TFC's {@code heightNoiseValue}: the column's final integer surface height
      */
     public double density(int y, double noiseIn, int surfaceHeight) {
-        double noise;
+        // TFC does not reset the noise before the river stage: the weighted river densities are added to the post-shore noise
+        double noise = noiseIn;
         if (info == null) {
-            noise = noiseIn; // weight 1 at NONE
+            noise += 1.0 * noiseIn; // weight 1 at NONE
         } else {
-            noise = 0;
             for (RiverBlendType type : RiverBlendType.ALL) {
                 final double weight = weights[type.ordinal()];
                 if (type == RiverBlendType.NONE) {
@@ -125,8 +138,8 @@ public final class RiverColumn {
         }
         noise = AIR_THRESHOLD - noise; // Positive noise = solid
         if (y > surfaceHeight) {
-            // Slide down if we're above the expected height
-            noise -= (y - surfaceHeight) * 0.2f;
+            // Slide down if we're above the expected height (TFC's heightNoiseValue is a double: the product is a double)
+            noise -= (y - (double) surfaceHeight) * 0.2f;
         }
         return Mth.clamp(noise, -1, 1);
     }

@@ -22,6 +22,7 @@ import dev.tfp.core.worldgen.groundcover.SaltWater;
 import dev.tfp.core.worldgen.groundcover.ShoreGroundcover;
 import dev.tfp.core.worldgen.groundcover.VeinIndicators;
 import dev.tfp.core.worldgen.height.BiomeLayers;
+import dev.tfp.core.worldgen.height.LakeCarving;
 import dev.tfp.core.worldgen.height.SurfaceHeights;
 import dev.tfp.core.worldgen.noise.Noise2D;
 import dev.tfp.core.worldgen.ore.OreVeins;
@@ -56,6 +57,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.IntPredicate;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -164,24 +166,23 @@ final class TfcTerrain {
 
     /**
      * The columns of one chunk (M2-GEN-04, M2-GEN-06): the final surface heights, the TFC biome of each column (TFC's
-     * {@code localBiomes}: the strongest biome of the column's weights, or the river biome where TFC sets it), and the river
-     * decision of each column ({@code x + 16z}; a column without a river has no change).
+     * {@code localBiomes}: the strongest biome of the column's weights, or the river biome where TFC sets it), and the column
+     * samples ({@code x + 16z}) whose terrain density opens the carved lakes and the rivers ({@link SurfaceHeights.Column#opens};
+     * a column without a lake biome weight or a river has no change).
      */
-    record Columns(int[] heights, int[] biomes, RiverColumn[] rivers) {}
+    record Columns(int[] heights, int[] biomes, SurfaceHeights.Column[] samples) {}
 
     /** The {@link Columns} of a chunk: its rivers are sampled once, from the chunk's partition point as TFC does. Any thread. */
     Columns columns(int chunkX, int chunkZ) {
         final SurfaceHeights.Chunk chunk = surfaceHeights.chunk(chunkX, chunkZ);
         final int[] heights = new int[ChunkData.COLUMNS];
         final int[] biomes = new int[heights.length];
-        final RiverColumn[] rivers = new RiverColumn[heights.length];
         for (int i = 0; i < heights.length; i++) {
             final SurfaceHeights.Column column = chunk.columns()[i];
             heights[i] = column.surfaceHeight();
             biomes[i] = column.localBiome();
-            rivers[i] = column.river();
         }
-        return new Columns(heights, biomes, rivers);
+        return new Columns(heights, biomes, chunk.columns());
     }
 
     /** The palette ids of a world: the raw rocks, then the ore blocks. Any unknown id refuses the palette (no stone fallback). */
@@ -265,7 +266,9 @@ final class TfcTerrain {
      * springs (M2-GEN-14), the corals, the plants and wild crops, the shore groundcover and the loose rocks (see
      * {@link #decorate}). The surface heights carry TFC's river valleys and banks and its cinder cones ({@link #columns}); the
      * blocks a river opens below a column's surface (canyon undercuts, cave rivers) become water up to sea level and air above,
-     * before the decorations, and riverside columns use TFC's river biome (M2-GEN-04).
+     * before the decorations, and riverside columns use TFC's river biome (M2-GEN-04). The carved lakes of the mountain, plateau
+     * and subglacial lake biomes open the same way, by TFC's terrain density blended over the column's biome weights, with
+     * water up to the lake level (the sea-level block) and air above.
      * Requires a resolved palette. Writes only this chunk's blocks, and only from the worldgen worker.
      */
     void fill(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, RockPalette<BlockData> palette) {
@@ -283,12 +286,12 @@ final class TfcTerrain {
             for (int lx = 0; lx < 16; lx++) {
                 final int x = (chunkX << 4) + lx;
                 final int top = heights[lx + 16 * lz];
-                final RiverColumn river = columns.rivers()[lx + 16 * lz];
+                final SurfaceHeights.Column sample = columns.samples()[lx + 16 * lz];
                 final ColumnSurface surface = ColumnSurface.build(SurfaceFamily.forBiome(columns.biomes()[lx + 16 * lz]).builder(),
                     column(x, z, top, climate, SurfaceSlope.sample(slopes, lx, lz)), top, minY);
                 data.setBlock(lx, minY, lz, bedrock);
                 for (int y = minY + 1; y <= top; y++) {
-                    final Material opened = riverCarve(river, y, top, sea);
+                    final Material opened = carve(sample::opens, y, top, sea);
                     if (opened != null) {
                         data.setBlock(lx, y, lz, opened == Material.WATER ? water : air);
                         continue;
@@ -715,7 +718,18 @@ final class TfcTerrain {
      * terrain's own water surface (the sea-level block, like the open water over the columns) and air above it.
      */
     static Material riverCarve(RiverColumn river, int y, int top, int sea) {
-        if (y > top || !river.opens(y, top)) {
+        return carve(yy -> river.opens(yy, top), y, top, sea);
+    }
+
+    /**
+     * The block the terrain density leaves at {@code y} of a column whose surface is {@code top} (M2-GEN-04: carved lakes and
+     * rivers): null where the terrain stays (always above {@code top}), else water up to the lake and river level (the
+     * sea-level block, {@link LakeCarving#LAKE_LEVEL_Y}) and air above it.
+     *
+     * @param opens whether the column's density opens a y ({@link SurfaceHeights.Column#opens})
+     */
+    static Material carve(IntPredicate opens, int y, int top, int sea) {
+        if (y > top || !opens.test(y)) {
             return null;
         }
         return y <= sea ? Material.WATER : Material.AIR;
