@@ -1,0 +1,28 @@
+# TFC c3b4d9536 src/generated/resources/data/tfc/loot_table/entities/*.json for the small_fish tag and the
+# caught_in_lobster_traps tag: 23 files, 23 entries. One row per entry; weight is the entry weight (1 when unset).
+# any_of(a|b) is the minecraft:any_of of the listed terms; killed_by_player is minecraft:killed_by_player;
+# counts_as_player_kill is minecraft:damage_source_properties with tfc:counts_as_player_kill.
+group	species	pool	index	item	rolls	weight	conditions
+small_fish	cod	1	1	tfc:food/cod	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	pufferfish	1	1	minecraft:pufferfish	1.0	1	killed_by_player
+small_fish	tropical_fish	1	1	tfc:food/tropical_fish	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	salmon	1	1	tfc:food/salmon	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	rainbow_trout	1	1	tfc:food/rainbow_trout	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	lake_trout	1	1	tfc:food/lake_trout	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	bluegill	1	1	tfc:food/bluegill	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	largemouth_bass	1	1	tfc:food/largemouth_bass	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	smallmouth_bass	1	1	tfc:food/smallmouth_bass	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	crappie	1	1	tfc:food/crappie	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	arctic_char	1	1	tfc:food/arctic_char	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	burbot	1	1	tfc:food/burbot	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	peacock_bass	1	1	tfc:food/peacock_bass	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	pacu	1	1	tfc:food/pacu	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	red_piranha	1	1	tfc:food/red_piranha	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	northern_pike	1	1	tfc:food/northern_pike	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	muksun	1	1	tfc:food/muksun	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	tilapia	1	1	tfc:food/tilapia	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+small_fish	spotted_gudgeon	1	1	tfc:food/spotted_gudgeon	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+lobster_trap	isopod	1	1	tfc:food/shellfish	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+lobster_trap	lobster	1	1	tfc:food/shellfish	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+lobster_trap	crayfish	1	1	tfc:food/shellfish	1.0	1	any_of(killed_by_player|counts_as_player_kill)
+lobster_trap	horseshoe_crab	1	1	tfc:food/shellfish	1.0	1	any_of(killed_by_player|counts_as_player_kill)
