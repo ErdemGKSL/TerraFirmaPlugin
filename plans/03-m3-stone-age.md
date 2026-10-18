@@ -74,9 +74,10 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
   - Done when: self-test pickup; no drop issues with the wrong tool.
   - Status (@claude): pure pickup and break rules ported in `core/gather/` (`GatherRules`, `GatherPiece`, `GroundcoverType`, `LooseRockType`, `GatherYield`). TFC has no correct-tool requirement on any groundcover or loose rock, so the tool never gates a drop; a loose rock yields its own item (plain or mossy) with its count 1 to 3; creative pickup yields nothing. `GatherGoldenTest` matches TFC's loot tables exactly (143 pieces, both tool states, pickup and creative). Open: the `tfp:pickupable` block hook in Paper (right-click, held-item handling, stacking of loose rocks), the CraftEngine blocks and button-state visuals, the explosion_decay rule of the loose rock loot table, the self-test and the visual checklist.
 
-- [ ] **M3-GATH-02 Sticks, twigs, fallen leaves, plants harvesting** · deps: M2-GEN-12, M2-GEN-13
+- [~] **M3-GATH-02 Sticks, twigs, fallen leaves, plants harvesting** · deps: M2-GEN-12, M2-GEN-13
   - TFC: `common/blocks/wood/FallenLeavesBlock.java`, `common/blocks/plant/*`
   - Done when: TFC drop tables reproduced (loot golden tests).
+  - Status (@claude): pure harvest rules ported in `core/gather/` (`HarvestRules`, `HarvestTable`, `HarvestTables`, `LootEntry`, `HarvestCondition`, `HeldTool`, `ToolTag`, `HarvestKind`). A small Minecraft-loot interpreter (match_tool, random_chance, block_state_property, any/all/inverted, alternatives, set_count) runs TFC's 277 loot tables (216 plants, 20 leaves, 20 twigs, 20 fallen leaves, groundcover stick); the injected roll source keeps seeded runs deterministic. `HarvestTables` is transcribed from the JSON at c3b4d9536. `HarvestGoldenTest` checks 6504 cells (542 rows, six tool states, roll 0.0 and 0.999, every block state) against a scratch oracle that reads the raw JSON. Open: the Paper harvest hook (break and right-click, creative handling), the CraftEngine blocks and their visuals, the self-test and the visual checklist.
 
 - [ ] **M3-KNAP-01 Knapping GUI & recipes** · deps: M1-REG-02, M0-GUI-01 · skills: craftengine-gui-furniture, tfc-feature-porting
   - TFC: `common/container/KnappingContainer.java`, `util/data/KnappingPattern.java`, `KnappingType.java`, data `knapping_type/`, recipes `knapping/`; test `KnappingPatternTest`
