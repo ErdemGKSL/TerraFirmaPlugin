@@ -27,9 +27,10 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Models: th
     Generator species files for animals without bbmodels (TFC Java-only models → parameters from `createBodyLayer`). Render review for each.
   - Done when: all fauna models validate; contact-sheet renders reviewed; every animal has `idle` + `walk` at least.
 
-- [ ] **M5-ENT-03 Spawning by climate** · deps: M5-ENT-01, M2-CLIM-02
+- [~] **M5-ENT-03 Spawning by climate** · deps: M5-ENT-01, M2-CLIM-02
   - TFC: data `fauna/*.json`, `common/entities/Faunas.java`, `Fauna.java`
   - Do: spawn rules by climate/months/groundwater/rivers, decided async per chunk generation/load with budgeted spawning.
+  - Status: pure core ported in `core/.../spawn/` (`SpawnRules` for the weighted species pick from a biome category list, the group size, and the TFC `Fauna` gate in TFC's draw order: chance, depth below sea level, the `ClimatePlacement` window with the fuzzy draw, months, brightness; plus `FaunaRule`, `SpawnEntry`, `SpawnSite`, `SpawnPick`, `SpawnCategory`). Verified against TFC c3b4d9536: 125 biome files, 5664 spawner entries (5039 tfc, 625 minecraft), 77 fauna files of which 76 are spawned (`tfc:mule` is bred only); golden TSV `core/src/test/resources/dev/tfp/core/spawn/spawn_rules.tsv` (`SpawnDataGoldenTest`: 4 tests on counts and parsing), 15 fixed-draw picks checked against an independent scratch reference (`SpawnPickGoldenTest`), 13 targeted rule tests (`SpawnRulesTest`); 32 tests pass. Open: the Minecraft spawn registration glue (`RegisterSpawnPlacementsEvent` predicate calling core), the Paper-side per-chunk cap (vanilla `NaturalSpawner` caps, not TFC code), the BetterModel entity types, and spawn placement (position search, solid ground, aquatic fluid checks, per-mob predicate in a group). Not in the pure port because TFC's data does not use them: elevation window, rain variance `absolute`, forest types.
   - Done when: spawn distribution tests on fixed worlds.
 
 ## Livestock
