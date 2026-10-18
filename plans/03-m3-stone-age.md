@@ -68,10 +68,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
 
 ## Gathering & knapping
 
-- [ ] **M3-GATH-01 Groundcover & loose rocks pickup** · deps: M2-GEN-11 · skills: craftengine-blocks
+- [~] **M3-GATH-01 Groundcover & loose rocks pickup** · deps: M2-GEN-11 · skills: craftengine-blocks
   - TFC: `common/blocks/GroundcoverBlock.java`, `common/blocks/rock/LooseRockBlock.java`
   - Do: a `tfp:pickupable` behaviour (right-click → item into hand), button-state visuals.
   - Done when: self-test pickup; no drop issues with the wrong tool.
+  - Status (@claude): pure pickup and break rules ported in `core/gather/` (`GatherRules`, `GatherPiece`, `GroundcoverType`, `LooseRockType`, `GatherYield`). TFC has no correct-tool requirement on any groundcover or loose rock, so the tool never gates a drop; a loose rock yields its own item (plain or mossy) with its count 1 to 3; creative pickup yields nothing. `GatherGoldenTest` matches TFC's loot tables exactly (143 pieces, both tool states, pickup and creative). Open: the `tfp:pickupable` block hook in Paper (right-click, held-item handling, stacking of loose rocks), the CraftEngine blocks and button-state visuals, the explosion_decay rule of the loose rock loot table, the self-test and the visual checklist.
 
 - [ ] **M3-GATH-02 Sticks, twigs, fallen leaves, plants harvesting** · deps: M2-GEN-12, M2-GEN-13
   - TFC: `common/blocks/wood/FallenLeavesBlock.java`, `common/blocks/plant/*`
