@@ -6,7 +6,7 @@
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/world/shore/ShoreNoise.java @ c3b4d9536 (the setColumnAndSampleHeight method of every
  * shore sampler, simpleBeach, simpleBeachNoLandBlend), with src/main/java/net/dries007/tfc/world/shore/ShoreNoiseSampler.java
- * (NONE). The density methods (noise(y)) belong to the terrain density stage and are not ported (ledger).
+ * (NONE). The density methods (noise(y)) are in dev.tfp.core.worldgen.density.ShoreDensity.
  */
 package dev.tfp.core.worldgen.height;
 
@@ -217,7 +217,8 @@ public final class ShoreHeights {
         return simpleBeach(tideLevel.noise(x, z), heightIn, landWeight, oceanWeight);
     }
 
-    private static double simpleBeach(double tideLevel, double heightIn, double landWeight, double oceanWeight) {
+    /** TFC's {@code ShoreNoise.simpleBeach(tideLevel, ...)}: the sand height of a beach at the given tide level. */
+    public static double simpleBeach(double tideLevel, double heightIn, double landWeight, double oceanWeight) {
         // Basic heights that the shore height will approach at edges with other biomes
         final double simpleShoreLandHeight = tideLevel + 2;
         final double simpleShoreSelfHeight = tideLevel - 2;

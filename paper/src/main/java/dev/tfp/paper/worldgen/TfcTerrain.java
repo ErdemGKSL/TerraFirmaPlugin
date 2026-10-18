@@ -164,25 +164,32 @@ final class TfcTerrain {
         return columns(chunkX, chunkZ).heights();
     }
 
+    /** The lowest y a column's terrain top is searched to (the overworld's minimum height). */
+    private static final int TOP_FLOOR_Y = -64;
+
     /**
-     * The columns of one chunk (M2-GEN-04, M2-GEN-06): the final surface heights, the TFC biome of each column (TFC's
-     * {@code localBiomes}: the strongest biome of the column's weights, or the river biome where TFC sets it), and the column
-     * samples ({@code x + 16z}) whose terrain density opens the carved lakes and the rivers ({@link SurfaceHeights.Column#opens};
-     * a column without a lake biome weight or a river has no change).
+     * The columns of one chunk (M2-GEN-04, M2-GEN-06): TFC's surface heights (what the rock layers, the slopes and the climate
+     * read), the TFC biome of each column (TFC's {@code localBiomes}: the strongest biome of the column's weights, or the river
+     * biome where TFC sets it), the column samples ({@code x + 16z}) whose per-block terrain density decides every block
+     * ({@link SurfaceHeights.Column#solid}: carved lakes, cenotes, shore cliffs, arches and sea stacks, rivers), and the terrain
+     * tops: the highest block the density keeps ({@link SurfaceHeights.Column#terrainTop}), which the surface builder and the
+     * decorations stand on, as TFC's heightmaps record them.
      */
-    record Columns(int[] heights, int[] biomes, SurfaceHeights.Column[] samples) {}
+    record Columns(int[] heights, int[] biomes, SurfaceHeights.Column[] samples, int[] tops) {}
 
     /** The {@link Columns} of a chunk: its rivers are sampled once, from the chunk's partition point as TFC does. Any thread. */
     Columns columns(int chunkX, int chunkZ) {
         final SurfaceHeights.Chunk chunk = surfaceHeights.chunk(chunkX, chunkZ);
         final int[] heights = new int[ChunkData.COLUMNS];
         final int[] biomes = new int[heights.length];
+        final int[] tops = new int[heights.length];
         for (int i = 0; i < heights.length; i++) {
             final SurfaceHeights.Column column = chunk.columns()[i];
             heights[i] = column.surfaceHeight();
             biomes[i] = column.localBiome();
+            tops[i] = column.terrainTop(TOP_FLOOR_Y);
         }
-        return new Columns(heights, biomes, chunk.columns());
+        return new Columns(heights, biomes, chunk.columns(), tops);
     }
 
     /** The palette ids of a world: the raw rocks, then the ore blocks. Any unknown id refuses the palette (no stone fallback). */
@@ -266,9 +273,11 @@ final class TfcTerrain {
      * springs (M2-GEN-14), the corals, the plants and wild crops, the shore groundcover and the loose rocks (see
      * {@link #decorate}). The surface heights carry TFC's river valleys and banks and its cinder cones ({@link #columns}); the
      * blocks a river opens below a column's surface (canyon undercuts, cave rivers) become water up to sea level and air above,
-     * before the decorations, and riverside columns use TFC's river biome (M2-GEN-04). The carved lakes of the mountain, plateau
-     * and subglacial lake biomes open the same way, by TFC's terrain density blended over the column's biome weights, with
-     * water up to the lake level (the sea-level block) and air above.
+     * before the decorations, and riverside columns use TFC's river biome (M2-GEN-04). Every block of the column follows TFC's
+     * per-block terrain density (M2-GEN-06, {@link SurfaceHeights.Column#solid}): the carved lakes, the cenotes and the shore
+     * densities open blocks below the surface (arches, undercut cliffs, the gaps between sea stacks) and the slide keeps one
+     * block over a sea floor; opened blocks are water up to the sea-level block and air above. The surface builder covers the
+     * terrain top (the highest kept block), not the height column's surface.
      * Requires a resolved palette. Writes only this chunk's blocks, and only from the worldgen worker.
      */
     void fill(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, RockPalette<BlockData> palette) {
@@ -285,13 +294,14 @@ final class TfcTerrain {
             final int z = (chunkZ << 4) + lz;
             for (int lx = 0; lx < 16; lx++) {
                 final int x = (chunkX << 4) + lx;
-                final int top = heights[lx + 16 * lz];
+                final int height = heights[lx + 16 * lz];
+                final int top = columns.tops()[lx + 16 * lz];
                 final SurfaceHeights.Column sample = columns.samples()[lx + 16 * lz];
                 final ColumnSurface surface = ColumnSurface.build(SurfaceFamily.forBiome(columns.biomes()[lx + 16 * lz]).builder(),
-                    column(x, z, top, climate, SurfaceSlope.sample(slopes, lx, lz)), top, minY);
+                    column(x, z, height, climate, SurfaceSlope.sample(slopes, lx, lz)), top, minY);
                 data.setBlock(lx, minY, lz, bedrock);
                 for (int y = minY + 1; y <= top; y++) {
-                    final Material opened = carve(sample::opens, y, top, sea);
+                    final Material opened = densityCarve(sample, y, top, sea);
                     if (opened != null) {
                         data.setBlock(lx, y, lz, opened == Material.WATER ? water : air);
                         continue;
@@ -300,7 +310,7 @@ final class TfcTerrain {
                     if (kind == null || kind == SurfaceKind.ROCK_SURFACE) {
                         final Carve carve = CaveCarver.carve(aquifer, x, y, z, inCave(x, y, z));
                         if (carve == Carve.KEEP) {
-                            ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, top);
+                            ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, height);
                             final int rockIndex = PlaceholderRocks.index(rock.point(), rock.layer());
                             data.setBlock(lx, y, lz, palette.block(veins.isEmpty() ? rockIndex : blockIndex(ores, veins, x, y, z, rockIndex)));
                         } else {
@@ -572,7 +582,18 @@ final class TfcTerrain {
             return climates.computeIfAbsent(key(cx, cz), k -> chunks.generate(cx, cz).modifyBaseGroundwater(heightsOf(cx, cz)));
         }
 
+        /** The terrain top of a column: the highest block the density keeps, as {@link #fill} writes it. */
         int top(int x, int z) {
+            return columnsOf(x >> 4, z >> 4).tops()[(x & 15) + 16 * (z & 15)];
+        }
+
+        /** Whether the density opens a block at or below the column's terrain top ({@link TfcTerrain#densityCarve}). */
+        private boolean opened(int x, int y, int z) {
+            return !columnsOf(x >> 4, z >> 4).samples()[(x & 15) + 16 * (z & 15)].solid(y);
+        }
+
+        /** TFC's surface height of a column (the rock layers read it). */
+        int height(int x, int z) {
             return heightsOf(x >> 4, z >> 4)[(x & 15) + 16 * (z & 15)];
         }
 
@@ -585,21 +606,21 @@ final class TfcTerrain {
                     s -> SurfaceSlope.slopeMap(cx << 4, cz << 4, TfcTerrain.this::heightAt));
                 final int top = top(x, z);
                 return ColumnSurface.build(SurfaceFamily.forBiome(biomeOf(x, z)).builder(),
-                    column(x, z, top, climateOf(x, z), SurfaceSlope.sample(slope, x & 15, z & 15)), top, minY);
+                    column(x, z, height(x, z), climateOf(x, z), SurfaceSlope.sample(slope, x & 15, z & 15)), top, minY);
             });
         }
 
         /** The rock index at a position, or -1 where the column holds no rock there (above the top, or a surface block). */
         int rock(int x, int y, int z) {
             final int top = top(x, z);
-            if (y > top || y <= minY) {
+            if (y > top || y <= minY || opened(x, y, z)) {
                 return -1;
             }
             final SurfaceKind kind = surface(x, z).kind(y);
             if (kind != null && kind != SurfaceKind.ROCK_SURFACE) {
                 return -1;
             }
-            final ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, top);
+            final ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, height(x, z));
             return PlaceholderRocks.index(rock.point(), rock.layer());
         }
 
@@ -676,7 +697,7 @@ final class TfcTerrain {
         @Override
         public TreeGround ground(int x, int y, int z) {
             final int top = top(x, z);
-            if (y > top) {
+            if (y > top || (y > minY && opened(x, y, z))) {
                 return y > ChunkData.SEA_LEVEL_Y ? TreeGround.AIR : saltWater(x, z) ? TreeGround.SALT_WATER : TreeGround.WATER;
             }
             if (y <= minY) {
@@ -707,7 +728,7 @@ final class TfcTerrain {
         /** The rock of the rock layers at a position ({@code RockData.getRock}), whatever block the column holds there. */
         @Override
         public int rockAt(int x, int y, int z) {
-            final ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, top(x, z));
+            final ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, height(x, z));
             return PlaceholderRocks.index(rock.point(), rock.layer());
         }
     }
@@ -733,6 +754,15 @@ final class TfcTerrain {
             return null;
         }
         return y <= sea ? Material.WATER : Material.AIR;
+    }
+
+    /**
+     * The block the per-block terrain density leaves at {@code y} of a column whose terrain top is {@code top} (M2-GEN-06): null
+     * where the density keeps the terrain ({@link SurfaceHeights.Column#solid}), else water up to the sea-level block and air
+     * above it; always null above {@code top}.
+     */
+    static Material densityCarve(SurfaceHeights.Column column, int y, int top, int sea) {
+        return carve(yy -> !column.solid(yy), y, top, sea);
     }
 
     /** Whether a rock position is inside a cave's tunnel shape. See {@link #IN_CAVE}. */

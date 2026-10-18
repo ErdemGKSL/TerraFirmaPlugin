@@ -7,7 +7,8 @@
  * file: src/main/java/net/dries007/tfc/world/ChunkHeightFiller.java @ c3b4d9536 (sampleHeight, prepareColumnBiomeWeights,
  * sampleColumnHeightAndBiome, computeInitialShoreWeights, adjustHeightForShoreContributions, computeInitialRiverWeights,
  * adjustHeightForVolcanic), with src/main/java/net/dries007/tfc/world/ChunkNoiseFiller.java (updateLocalCaches: the surface
- * height and the local biomes; sampleAquiferSurfaceHeight; sampleRiverDistSq), src/main/java/net/dries007/tfc/world/TFCChunkGenerator.java (createHeightFillerForChunk,
+ * height and the local biomes; sampleAquiferSurfaceHeight; sampleRiverDistSq; calculateNoiseAtHeight: the stage order of the
+ * per-block terrain density; fillColumn: maxFilledY), src/main/java/net/dries007/tfc/world/TFCChunkGenerator.java (createHeightFillerForChunk,
  * sampleBiomeNoRiver) and src/main/java/net/dries007/tfc/world/biome/BiomeSourceExtension.java (getBiomeExtension)
  */
 package dev.tfp.core.worldgen.height;
@@ -17,6 +18,9 @@ import dev.tfp.core.worldgen.Mth;
 import dev.tfp.core.worldgen.Seed;
 import dev.tfp.core.worldgen.biome.TfcBiomes;
 import dev.tfp.core.worldgen.chunk.ChunkData;
+import dev.tfp.core.worldgen.density.CenoteCarving;
+import dev.tfp.core.worldgen.density.ShoreDensity;
+import dev.tfp.core.worldgen.density.TerrainDensity;
 import dev.tfp.core.worldgen.noise.Noise2D;
 import dev.tfp.core.worldgen.region.RegionGenerator;
 import dev.tfp.core.worldgen.region.RegionPartition;
@@ -39,9 +43,10 @@ import java.util.Map;
  * {@code (int)} of the result, as TFC's {@code updateLocalCaches} keeps it.
  *
  * <p>Pure: the noises are immutable after construction and each call keeps its own state, so any thread may call it. The
- * 7 x 7 biome weights of a chunk are cached (bounded, recomputed on a miss). Not ported (ledger): the terrain density per y
- * (the cenote carving noise, the shore densities, the cave noises; the carved lakes are
- * {@link Column#density}), and the volcano samplers other than the cinder cones.
+ * 7 x 7 biome weights of a chunk are cached (bounded, recomputed on a miss). Each column also carries TFC's per-block terrain
+ * density ({@link Column#density}: the carved lakes, the cenotes, the shore densities, the no-carve zone, the rivers and the
+ * slide). Not ported (ledger): the cave noises and the beardifier of the density, and the volcano samplers other than the
+ * cinder cones.
  */
 public final class SurfaceHeights {
     private final RegionGenerator regions;
@@ -51,6 +56,8 @@ public final class SurfaceHeights {
     private final Map<RiverBlendType, RiverNoiseSampler> riverSamplers;
     private final CinderCones cones;
     private final LakeCarving lakes;
+    private final CenoteCarving cenotes;
+    private final ShoreDensity shoreDensity;
     /** The height map of each biome id, null for the river biome. */
     private final Noise2D[] heightNoise;
     private final boolean[] carving;
@@ -72,6 +79,8 @@ public final class SurfaceHeights {
         this.riverSamplers = riverSamplers;
         this.cones = cones;
         this.lakes = new LakeCarving(levelSeed);
+        this.cenotes = new CenoteCarving(levelSeed);
+        this.shoreDensity = new ShoreDensity(levelSeed);
         this.heightNoise = new Noise2D[TfcBiomes.COUNT];
         this.carving = new boolean[TfcBiomes.COUNT];
         for (int id = 0; id < TfcBiomes.COUNT; id++) {
@@ -115,27 +124,72 @@ public final class SurfaceHeights {
         /* the shore blend weights by {@link ShoreBlendType#ordinal()} ({@code computeInitialShoreWeights}) */
         double[] shoreWeights,
         /* TFC's {@code surfaceIntegrityDepth}: the depth below the surface the biome density may not carve (cinder cones) */
-        int surfaceIntegrityDepth
+        int surfaceIntegrityDepth,
+        /* the cenote density of the column's cenote biomes ({@link CenoteCarving}) */
+        CenoteCarving.Column cenotes,
+        /* the shore samplers' column states by {@link ShoreBlendType#ordinal()}, null where TFC does not sample them; a null array without shore weights */
+        ShoreDensity.Column[] shores
     ) {
         /**
-         * TFC's terrain density of the column at {@code y} ({@code ChunkNoiseFiller.calculateNoiseAtHeight}): the carved lake
-         * density weighted by the biome weights, the shore stage, the forced no-carve zone, then the river stage weighted by the
-         * river blend weights, the air threshold and the slide above the surface. Positive is solid, in [-1, 1].
+         * TFC's terrain density of the column at {@code y} ({@code ChunkNoiseFiller.calculateNoiseAtHeight}): the biome stage
+         * (the carved lake and cenote densities weighted by the biome weights; every other biome is {@code SOLID}), the shore
+         * stage (each shore type's density weighted by the shore blend weights), the forced no-carve zone, then the river stage
+         * weighted by the river blend weights, the air threshold and the slide above the surface. Positive is solid, in [-1, 1].
+         * Pure and per block: TFC does not interpolate this stage.
          */
         public double density(int y) {
             final int surface = surfaceHeight();
-            final double noise = LakeCarving.postShoreNoise(lake.noise(y), shoreWeights, y, surface, surfaceIntegrityDepth);
-            return river.density(y, noise, surface);
+            return river.density(y, postShoreNoise(y, surface), surface);
+        }
+
+        private double postShoreNoise(int y, int surface) {
+            final double initial = lake.noise(y) + cenotes.noise(y);
+            return TerrainDensity.postShoreNoise(initial, shoreWeights, shores, y, surface, surfaceIntegrityDepth);
         }
 
         /**
-         * Whether the terrain density opens the block at {@code y} of this column (a carved lake or a river): only at or below
-         * the column's surface, and never in a column without a lake biome weight or a river.
+         * Whether any stage of the density can differ from a plain column (solid up to the surface): a carved lake or cenote
+         * biome weight, a shore density, or a river. A column without any is solid exactly up to its surface in the plugin.
          */
-        public boolean opens(int y) {
-            return (lake.present() || river.hasRiver()) && y <= surfaceHeight() && density(y) <= 0;
+        public boolean carves() {
+            return lake.present() || cenotes.present() || shores != null || river.hasRiver();
         }
 
+        /** TFC's {@code maxFilledY}: no block at or above it is filled ({@link TerrainDensity#maxFilledY}). */
+        public int maxFilledY() {
+            return TerrainDensity.maxFilledY(surfaceHeight());
+        }
+
+        /**
+         * TFC's solid decision at {@code y} without the caves: below {@link #maxFilledY} and a positive {@link #density}. At or
+         * below the surface this is {@code !opens(y)}; above it the density holds a block only under the sea level (TFC's slide
+         * keeps one block over a sea floor, and {@link #maxFilledY} stops a land column at its surface).
+         */
+        public boolean solid(int y) {
+            return y < maxFilledY() && TerrainDensity.isSolid(density(y));
+        }
+
+        /**
+         * Whether the terrain density opens the block at {@code y} at or below the column's surface (a carved lake, a cenote, a
+         * shore arch or cliff undercut, a river): {@link #density} is not positive there. Never in a column that does not
+         * {@link #carves}.
+         */
+        public boolean opens(int y) {
+            return y <= surfaceHeight() && carves() && density(y) <= 0;
+        }
+
+        /**
+         * The highest {@link #solid} block of the column, at least {@code floorY - 1}: the top TFC's heightmaps record, which the
+         * surface builder and the decorations read. It is the surface height on land without carving, one more on a sea floor.
+         */
+        public int terrainTop(int floorY) {
+            for (int y = maxFilledY() - 1; y >= floorY; y--) {
+                if (solid(y)) {
+                    return y;
+                }
+            }
+            return floorY - 1;
+        }
 
         /** @return TFC's integer surface height, {@code (int) height}. */
         public int surfaceHeight() {
@@ -370,7 +424,9 @@ public final class SurfaceHeights {
         biomeAt = normalBiomeAt;
 
         final double landWeight = 1 - oceanWeight - shoreWeight;
+        ShoreDensity.Column[] shoreDensities = null;
         if (shoreWeight > 0 && shoreBiomeAt != -1) {
+            shoreDensities = shoreDensities(biomeWeights, height, blockX, blockZ, oceanWeight, landWeight, maxShoreWeight);
             height = adjustHeightForShoreContributions(biomeWeights, height, blockX, blockZ, oceanWeight, landWeight, shoreWeight,
                 maxShoreWeight, shoreBiomeAt, shoreHeight, normalHeight);
             if (shoreWeight > 0.5) {
@@ -399,8 +455,32 @@ public final class SurfaceHeights {
 
         final double biomeWeightAt = biomeWeights.getOrDefault(biomeAt, 0.5);
         final LakeCarving.Column lake = lakes.column(biomeWeights, blockX, blockZ);
+        final CenoteCarving.Column cenote = cenotes.column(biomeWeights, blockX, blockZ, id -> heightNoise[id]);
         return new Column(biomeAt, height, preVolcanicHeight, river, oceanWeight, biomeWeightAt, anySaltyBiomesNearby, lake,
-            shoreBlendWeights, LakeCarving.surfaceIntegrityDepth(height, preVolcanicHeight));
+            shoreBlendWeights, LakeCarving.surfaceIntegrityDepth(height, preVolcanicHeight), cenote, shoreDensities);
+    }
+
+    /**
+     * The column states the shore samplers keep for the density stage ({@code setColumnAndSampleHeight}, which TFC calls in
+     * {@code adjustHeightForShoreContributions} for every shore type with a weight, from the same input height): by ordinal,
+     * null for the types without a weight; null when no type has a density (only pass-through types).
+     */
+    private ShoreDensity.Column[] shoreDensities(BiomeWeights biomeWeights, double height, int x, int z, double oceanWeight,
+                                                 double landWeight, double thisWeight) {
+        final double[] shoreBlendWeights = computeInitialShoreWeights(biomeWeights);
+        ShoreDensity.Column[] out = null;
+        for (ShoreBlendType type : ShoreBlendType.ALL) {
+            if (type != ShoreBlendType.NONE && shoreBlendWeights[type.ordinal()] > 0) {
+                final ShoreDensity.Column column = shoreDensity.column(type, height, x, z, oceanWeight, landWeight, thisWeight);
+                if (column != ShoreDensity.PASS) {
+                    if (out == null) {
+                        out = new ShoreDensity.Column[ShoreBlendType.SIZE];
+                    }
+                    out[type.ordinal()] = column;
+                }
+            }
+        }
+        return out;
     }
 
     private double adjustHeightForShoreContributions(BiomeWeights biomeWeights, double height, int x, int z, double oceanWeight,

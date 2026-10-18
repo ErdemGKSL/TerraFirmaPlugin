@@ -16,6 +16,7 @@ import static dev.tfp.core.worldgen.chunk.ChunkData.SEA_LEVEL_Y;
 
 import dev.tfp.core.worldgen.Mth;
 import dev.tfp.core.worldgen.biome.TfcBiomes;
+import dev.tfp.core.worldgen.density.TerrainDensity;
 import dev.tfp.core.worldgen.noise.Noise2D;
 import dev.tfp.core.worldgen.noise.OpenSimplex2D;
 
@@ -94,25 +95,14 @@ public final class LakeCarving {
     }
 
     /**
-     * TFC's shore stage and forced no-carve zone of {@code calculateNoiseAtHeight}: the biome density weighted by the shore
-     * blend weights (TFC's shore densities are not ported: every shore type passes the density through, which is exact where
-     * only {@code NONE} has a weight), then faded to solid toward {@code surfaceHeight - depth}.
+     * TFC's shore stage and forced no-carve zone of {@code calculateNoiseAtHeight} with every shore type passing the density
+     * through (exact where only {@code NONE} has a shore weight); the full stage with the shore densities is
+     * {@link TerrainDensity#postShoreNoise}.
      *
      * @param shoreWeights the shore blend weights by {@link ShoreBlendType#ordinal()}
      */
     public static double postShoreNoise(double initialNoise, double[] shoreWeights, int y, int surfaceHeight, int surfaceIntegrityDepth) {
-        double noise = 0;
-        for (ShoreBlendType type : ShoreBlendType.ALL) {
-            final double weight = shoreWeights[type.ordinal()];
-            if (type == ShoreBlendType.NONE || weight > 0) {
-                noise += weight * initialNoise;
-            }
-        }
-        if (surfaceIntegrityDepth > 0) {
-            final int carveBelowHeight = surfaceHeight - surfaceIntegrityDepth;
-            noise = Mth.clampedMap(y, carveBelowHeight - 10, carveBelowHeight, noise, 0);
-        }
-        return noise;
+        return TerrainDensity.postShoreNoise(initialNoise, shoreWeights, null, y, surfaceHeight, surfaceIntegrityDepth);
     }
 
     /**
