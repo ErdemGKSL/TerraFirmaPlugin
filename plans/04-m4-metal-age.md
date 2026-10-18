@@ -63,10 +63,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
   - Do: propick scan decided async (snapshot of the radius), result message; this replaces visual ore-grade info on `level-3a`.
   - Done when: golden scan results on fixed worlds.
 
-- [ ] **M4-CHIS-01 Chisel** · deps: M4-TOOL-02
+- [~] **M4-CHIS-01 Chisel** · deps: M4-TOOL-02
   - TFC: `common/items/ChiselItem.java`, `common/player/ChiselMode.java`, `network/CycleChiselModePacket.java`, recipes `chisel/`
   - Do: modes cycled via a vanilla trigger (sneak + swap-hand key), smoothing/stairs/slabs conversions.
   - Done when: all 513 chisel recipes.
+  - Status (@claude): in progress. Done (rules, `core/chisel/`): `ChiselMode` (smooth/slab/stair, TFC priorities, cycle with wrap), `ChiselRecipe` (record: any-of ingredients, mode, result, optional item output), `ChiselRules` (first-match lookup, use decision with the tool and placement inputs, slab half from the hit face, damage 1 and cooldown 10 as constants). Tests: `ChiselGoldenTest` (6 tests: 513 rows verified against 513 JSON files at c3b4d9536, 57 smooth / 228 slab / 228 stair, 0 duplicate input+mode pairs among 534 claims, every recipe found by its own input and mode, slab and stair names match their mode), `ChiselRulesTest` (9 tests). Open: the CE chisel item and block glue, the mode cycle trigger (sneak + swap-hand), the smoothing and stairs visuals (TFC's stair placement and fluid fill), the Paper glue (collapse check on `CAN_TRIGGER_COLLAPSE`, the item drop and damage).
 
 - [~] **M4-WEATH-01 Metal weathering & lamps** · deps: M4-MET-01, M2-CAL-01
   - TFC: `common/blocks/Weathering*.java`, `common/blockentities/LampBlockEntity.java`, data `lamp_fuel/`

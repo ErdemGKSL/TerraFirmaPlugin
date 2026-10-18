@@ -1,0 +1,514 @@
+id	mode	ingredients	result	item_output	item_count
+alabaster/bricks/black_slab	tfc:slab	tfc:alabaster/bricks/black	tfc:alabaster/bricks/black_slab	tfc:alabaster/bricks/black_slab	1
+alabaster/bricks/black_stairs	tfc:stair	tfc:alabaster/bricks/black	tfc:alabaster/bricks/black_stairs		0
+alabaster/bricks/blue_slab	tfc:slab	tfc:alabaster/bricks/blue	tfc:alabaster/bricks/blue_slab	tfc:alabaster/bricks/blue_slab	1
+alabaster/bricks/blue_stairs	tfc:stair	tfc:alabaster/bricks/blue	tfc:alabaster/bricks/blue_stairs		0
+alabaster/bricks/brown_slab	tfc:slab	tfc:alabaster/bricks/brown	tfc:alabaster/bricks/brown_slab	tfc:alabaster/bricks/brown_slab	1
+alabaster/bricks/brown_stairs	tfc:stair	tfc:alabaster/bricks/brown	tfc:alabaster/bricks/brown_stairs		0
+alabaster/bricks/cyan_slab	tfc:slab	tfc:alabaster/bricks/cyan	tfc:alabaster/bricks/cyan_slab	tfc:alabaster/bricks/cyan_slab	1
+alabaster/bricks/cyan_stairs	tfc:stair	tfc:alabaster/bricks/cyan	tfc:alabaster/bricks/cyan_stairs		0
+alabaster/bricks/gray_slab	tfc:slab	tfc:alabaster/bricks/gray	tfc:alabaster/bricks/gray_slab	tfc:alabaster/bricks/gray_slab	1
+alabaster/bricks/gray_stairs	tfc:stair	tfc:alabaster/bricks/gray	tfc:alabaster/bricks/gray_stairs		0
+alabaster/bricks/green_slab	tfc:slab	tfc:alabaster/bricks/green	tfc:alabaster/bricks/green_slab	tfc:alabaster/bricks/green_slab	1
+alabaster/bricks/green_stairs	tfc:stair	tfc:alabaster/bricks/green	tfc:alabaster/bricks/green_stairs		0
+alabaster/bricks/light_blue_slab	tfc:slab	tfc:alabaster/bricks/light_blue	tfc:alabaster/bricks/light_blue_slab	tfc:alabaster/bricks/light_blue_slab	1
+alabaster/bricks/light_blue_stairs	tfc:stair	tfc:alabaster/bricks/light_blue	tfc:alabaster/bricks/light_blue_stairs		0
+alabaster/bricks/light_gray_slab	tfc:slab	tfc:alabaster/bricks/light_gray	tfc:alabaster/bricks/light_gray_slab	tfc:alabaster/bricks/light_gray_slab	1
+alabaster/bricks/light_gray_stairs	tfc:stair	tfc:alabaster/bricks/light_gray	tfc:alabaster/bricks/light_gray_stairs		0
+alabaster/bricks/lime_slab	tfc:slab	tfc:alabaster/bricks/lime	tfc:alabaster/bricks/lime_slab	tfc:alabaster/bricks/lime_slab	1
+alabaster/bricks/lime_stairs	tfc:stair	tfc:alabaster/bricks/lime	tfc:alabaster/bricks/lime_stairs		0
+alabaster/bricks/magenta_slab	tfc:slab	tfc:alabaster/bricks/magenta	tfc:alabaster/bricks/magenta_slab	tfc:alabaster/bricks/magenta_slab	1
+alabaster/bricks/magenta_stairs	tfc:stair	tfc:alabaster/bricks/magenta	tfc:alabaster/bricks/magenta_stairs		0
+alabaster/bricks/orange_slab	tfc:slab	tfc:alabaster/bricks/orange	tfc:alabaster/bricks/orange_slab	tfc:alabaster/bricks/orange_slab	1
+alabaster/bricks/orange_stairs	tfc:stair	tfc:alabaster/bricks/orange	tfc:alabaster/bricks/orange_stairs		0
+alabaster/bricks/pink_slab	tfc:slab	tfc:alabaster/bricks/pink	tfc:alabaster/bricks/pink_slab	tfc:alabaster/bricks/pink_slab	1
+alabaster/bricks/pink_stairs	tfc:stair	tfc:alabaster/bricks/pink	tfc:alabaster/bricks/pink_stairs		0
+alabaster/bricks/purple_slab	tfc:slab	tfc:alabaster/bricks/purple	tfc:alabaster/bricks/purple_slab	tfc:alabaster/bricks/purple_slab	1
+alabaster/bricks/purple_stairs	tfc:stair	tfc:alabaster/bricks/purple	tfc:alabaster/bricks/purple_stairs		0
+alabaster/bricks/red_slab	tfc:slab	tfc:alabaster/bricks/red	tfc:alabaster/bricks/red_slab	tfc:alabaster/bricks/red_slab	1
+alabaster/bricks/red_stairs	tfc:stair	tfc:alabaster/bricks/red	tfc:alabaster/bricks/red_stairs		0
+alabaster/bricks/white_slab	tfc:slab	tfc:alabaster/bricks/white	tfc:alabaster/bricks/white_slab	tfc:alabaster/bricks/white_slab	1
+alabaster/bricks/white_stairs	tfc:stair	tfc:alabaster/bricks/white	tfc:alabaster/bricks/white_stairs		0
+alabaster/bricks/yellow_slab	tfc:slab	tfc:alabaster/bricks/yellow	tfc:alabaster/bricks/yellow_slab	tfc:alabaster/bricks/yellow_slab	1
+alabaster/bricks/yellow_stairs	tfc:stair	tfc:alabaster/bricks/yellow	tfc:alabaster/bricks/yellow_stairs		0
+alabaster/polished	tfc:smooth	tfc:alabaster/raw	tfc:alabaster/polished		0
+alabaster/polished/black_slab	tfc:slab	tfc:alabaster/polished/black	tfc:alabaster/polished/black_slab	tfc:alabaster/polished/black_slab	1
+alabaster/polished/black_stairs	tfc:stair	tfc:alabaster/polished/black	tfc:alabaster/polished/black_stairs		0
+alabaster/polished/blue_slab	tfc:slab	tfc:alabaster/polished/blue	tfc:alabaster/polished/blue_slab	tfc:alabaster/polished/blue_slab	1
+alabaster/polished/blue_stairs	tfc:stair	tfc:alabaster/polished/blue	tfc:alabaster/polished/blue_stairs		0
+alabaster/polished/brown_slab	tfc:slab	tfc:alabaster/polished/brown	tfc:alabaster/polished/brown_slab	tfc:alabaster/polished/brown_slab	1
+alabaster/polished/brown_stairs	tfc:stair	tfc:alabaster/polished/brown	tfc:alabaster/polished/brown_stairs		0
+alabaster/polished/cyan_slab	tfc:slab	tfc:alabaster/polished/cyan	tfc:alabaster/polished/cyan_slab	tfc:alabaster/polished/cyan_slab	1
+alabaster/polished/cyan_stairs	tfc:stair	tfc:alabaster/polished/cyan	tfc:alabaster/polished/cyan_stairs		0
+alabaster/polished/gray_slab	tfc:slab	tfc:alabaster/polished/gray	tfc:alabaster/polished/gray_slab	tfc:alabaster/polished/gray_slab	1
+alabaster/polished/gray_stairs	tfc:stair	tfc:alabaster/polished/gray	tfc:alabaster/polished/gray_stairs		0
+alabaster/polished/green_slab	tfc:slab	tfc:alabaster/polished/green	tfc:alabaster/polished/green_slab	tfc:alabaster/polished/green_slab	1
+alabaster/polished/green_stairs	tfc:stair	tfc:alabaster/polished/green	tfc:alabaster/polished/green_stairs		0
+alabaster/polished/light_blue_slab	tfc:slab	tfc:alabaster/polished/light_blue	tfc:alabaster/polished/light_blue_slab	tfc:alabaster/polished/light_blue_slab	1
+alabaster/polished/light_blue_stairs	tfc:stair	tfc:alabaster/polished/light_blue	tfc:alabaster/polished/light_blue_stairs		0
+alabaster/polished/light_gray_slab	tfc:slab	tfc:alabaster/polished/light_gray	tfc:alabaster/polished/light_gray_slab	tfc:alabaster/polished/light_gray_slab	1
+alabaster/polished/light_gray_stairs	tfc:stair	tfc:alabaster/polished/light_gray	tfc:alabaster/polished/light_gray_stairs		0
+alabaster/polished/lime_slab	tfc:slab	tfc:alabaster/polished/lime	tfc:alabaster/polished/lime_slab	tfc:alabaster/polished/lime_slab	1
+alabaster/polished/lime_stairs	tfc:stair	tfc:alabaster/polished/lime	tfc:alabaster/polished/lime_stairs		0
+alabaster/polished/magenta_slab	tfc:slab	tfc:alabaster/polished/magenta	tfc:alabaster/polished/magenta_slab	tfc:alabaster/polished/magenta_slab	1
+alabaster/polished/magenta_stairs	tfc:stair	tfc:alabaster/polished/magenta	tfc:alabaster/polished/magenta_stairs		0
+alabaster/polished/orange_slab	tfc:slab	tfc:alabaster/polished/orange	tfc:alabaster/polished/orange_slab	tfc:alabaster/polished/orange_slab	1
+alabaster/polished/orange_stairs	tfc:stair	tfc:alabaster/polished/orange	tfc:alabaster/polished/orange_stairs		0
+alabaster/polished/pink_slab	tfc:slab	tfc:alabaster/polished/pink	tfc:alabaster/polished/pink_slab	tfc:alabaster/polished/pink_slab	1
+alabaster/polished/pink_stairs	tfc:stair	tfc:alabaster/polished/pink	tfc:alabaster/polished/pink_stairs		0
+alabaster/polished/purple_slab	tfc:slab	tfc:alabaster/polished/purple	tfc:alabaster/polished/purple_slab	tfc:alabaster/polished/purple_slab	1
+alabaster/polished/purple_stairs	tfc:stair	tfc:alabaster/polished/purple	tfc:alabaster/polished/purple_stairs		0
+alabaster/polished/red_slab	tfc:slab	tfc:alabaster/polished/red	tfc:alabaster/polished/red_slab	tfc:alabaster/polished/red_slab	1
+alabaster/polished/red_stairs	tfc:stair	tfc:alabaster/polished/red	tfc:alabaster/polished/red_stairs		0
+alabaster/polished/white_slab	tfc:slab	tfc:alabaster/polished/white	tfc:alabaster/polished/white_slab	tfc:alabaster/polished/white_slab	1
+alabaster/polished/white_stairs	tfc:stair	tfc:alabaster/polished/white	tfc:alabaster/polished/white_stairs		0
+alabaster/polished/yellow_slab	tfc:slab	tfc:alabaster/polished/yellow	tfc:alabaster/polished/yellow_slab	tfc:alabaster/polished/yellow_slab	1
+alabaster/polished/yellow_stairs	tfc:stair	tfc:alabaster/polished/yellow	tfc:alabaster/polished/yellow_stairs		0
+cut_sandstone/black	tfc:smooth	tfc:smooth_sandstone/black	tfc:cut_sandstone/black		0
+cut_sandstone/black_slab	tfc:slab	tfc:cut_sandstone/black	tfc:cut_sandstone/black_slab	tfc:cut_sandstone/black_slab	1
+cut_sandstone/black_stairs	tfc:stair	tfc:cut_sandstone/black	tfc:cut_sandstone/black_stairs		0
+cut_sandstone/brown	tfc:smooth	tfc:smooth_sandstone/brown	tfc:cut_sandstone/brown		0
+cut_sandstone/brown_slab	tfc:slab	tfc:cut_sandstone/brown	tfc:cut_sandstone/brown_slab	tfc:cut_sandstone/brown_slab	1
+cut_sandstone/brown_stairs	tfc:stair	tfc:cut_sandstone/brown	tfc:cut_sandstone/brown_stairs		0
+cut_sandstone/green	tfc:smooth	tfc:smooth_sandstone/green	tfc:cut_sandstone/green		0
+cut_sandstone/green_slab	tfc:slab	tfc:cut_sandstone/green	tfc:cut_sandstone/green_slab	tfc:cut_sandstone/green_slab	1
+cut_sandstone/green_stairs	tfc:stair	tfc:cut_sandstone/green	tfc:cut_sandstone/green_stairs		0
+cut_sandstone/pink	tfc:smooth	tfc:smooth_sandstone/pink	tfc:cut_sandstone/pink		0
+cut_sandstone/pink_slab	tfc:slab	tfc:cut_sandstone/pink	tfc:cut_sandstone/pink_slab	tfc:cut_sandstone/pink_slab	1
+cut_sandstone/pink_stairs	tfc:stair	tfc:cut_sandstone/pink	tfc:cut_sandstone/pink_stairs		0
+cut_sandstone/red	tfc:smooth	tfc:smooth_sandstone/red	tfc:cut_sandstone/red		0
+cut_sandstone/red_slab	tfc:slab	tfc:cut_sandstone/red	tfc:cut_sandstone/red_slab	tfc:cut_sandstone/red_slab	1
+cut_sandstone/red_stairs	tfc:stair	tfc:cut_sandstone/red	tfc:cut_sandstone/red_stairs		0
+cut_sandstone/white	tfc:smooth	tfc:smooth_sandstone/white	tfc:cut_sandstone/white		0
+cut_sandstone/white_slab	tfc:slab	tfc:cut_sandstone/white	tfc:cut_sandstone/white_slab	tfc:cut_sandstone/white_slab	1
+cut_sandstone/white_stairs	tfc:stair	tfc:cut_sandstone/white	tfc:cut_sandstone/white_stairs		0
+cut_sandstone/yellow	tfc:smooth	tfc:smooth_sandstone/yellow	tfc:cut_sandstone/yellow		0
+cut_sandstone/yellow_slab	tfc:slab	tfc:cut_sandstone/yellow	tfc:cut_sandstone/yellow_slab	tfc:cut_sandstone/yellow_slab	1
+cut_sandstone/yellow_stairs	tfc:stair	tfc:cut_sandstone/yellow	tfc:cut_sandstone/yellow_stairs		0
+mud_bricks/alfisol_slab	tfc:slab	tfc:mud_bricks/alfisol	tfc:mud_bricks/alfisol_slab	tfc:mud_bricks/alfisol_slab	1
+mud_bricks/alfisol_stairs	tfc:stair	tfc:mud_bricks/alfisol	tfc:mud_bricks/alfisol_stairs		0
+mud_bricks/andisol_slab	tfc:slab	tfc:mud_bricks/andisol	tfc:mud_bricks/andisol_slab	tfc:mud_bricks/andisol_slab	1
+mud_bricks/andisol_stairs	tfc:stair	tfc:mud_bricks/andisol	tfc:mud_bricks/andisol_stairs		0
+mud_bricks/aridisol_slab	tfc:slab	tfc:mud_bricks/aridisol	tfc:mud_bricks/aridisol_slab	tfc:mud_bricks/aridisol_slab	1
+mud_bricks/aridisol_stairs	tfc:stair	tfc:mud_bricks/aridisol	tfc:mud_bricks/aridisol_stairs		0
+mud_bricks/entisol_slab	tfc:slab	tfc:mud_bricks/entisol	tfc:mud_bricks/entisol_slab	tfc:mud_bricks/entisol_slab	1
+mud_bricks/entisol_stairs	tfc:stair	tfc:mud_bricks/entisol	tfc:mud_bricks/entisol_stairs		0
+mud_bricks/fluvisol_slab	tfc:slab	tfc:mud_bricks/fluvisol	tfc:mud_bricks/fluvisol_slab	tfc:mud_bricks/fluvisol_slab	1
+mud_bricks/fluvisol_stairs	tfc:stair	tfc:mud_bricks/fluvisol	tfc:mud_bricks/fluvisol_stairs		0
+mud_bricks/mollisol_slab	tfc:slab	tfc:mud_bricks/mollisol	tfc:mud_bricks/mollisol_slab	tfc:mud_bricks/mollisol_slab	1
+mud_bricks/mollisol_stairs	tfc:stair	tfc:mud_bricks/mollisol	tfc:mud_bricks/mollisol_stairs		0
+mud_bricks/oxisol_slab	tfc:slab	tfc:mud_bricks/oxisol	tfc:mud_bricks/oxisol_slab	tfc:mud_bricks/oxisol_slab	1
+mud_bricks/oxisol_stairs	tfc:stair	tfc:mud_bricks/oxisol	tfc:mud_bricks/oxisol_stairs		0
+mud_bricks/podzol_slab	tfc:slab	tfc:mud_bricks/podzol	tfc:mud_bricks/podzol_slab	tfc:mud_bricks/podzol_slab	1
+mud_bricks/podzol_stairs	tfc:stair	tfc:mud_bricks/podzol	tfc:mud_bricks/podzol_stairs		0
+raw_sandstone/black_slab	tfc:slab	tfc:raw_sandstone/black	tfc:raw_sandstone/black_slab	tfc:raw_sandstone/black_slab	1
+raw_sandstone/black_stairs	tfc:stair	tfc:raw_sandstone/black	tfc:raw_sandstone/black_stairs		0
+raw_sandstone/brown_slab	tfc:slab	tfc:raw_sandstone/brown	tfc:raw_sandstone/brown_slab	tfc:raw_sandstone/brown_slab	1
+raw_sandstone/brown_stairs	tfc:stair	tfc:raw_sandstone/brown	tfc:raw_sandstone/brown_stairs		0
+raw_sandstone/green_slab	tfc:slab	tfc:raw_sandstone/green	tfc:raw_sandstone/green_slab	tfc:raw_sandstone/green_slab	1
+raw_sandstone/green_stairs	tfc:stair	tfc:raw_sandstone/green	tfc:raw_sandstone/green_stairs		0
+raw_sandstone/pink_slab	tfc:slab	tfc:raw_sandstone/pink	tfc:raw_sandstone/pink_slab	tfc:raw_sandstone/pink_slab	1
+raw_sandstone/pink_stairs	tfc:stair	tfc:raw_sandstone/pink	tfc:raw_sandstone/pink_stairs		0
+raw_sandstone/red_slab	tfc:slab	tfc:raw_sandstone/red	tfc:raw_sandstone/red_slab	tfc:raw_sandstone/red_slab	1
+raw_sandstone/red_stairs	tfc:stair	tfc:raw_sandstone/red	tfc:raw_sandstone/red_stairs		0
+raw_sandstone/white_slab	tfc:slab	tfc:raw_sandstone/white	tfc:raw_sandstone/white_slab	tfc:raw_sandstone/white_slab	1
+raw_sandstone/white_stairs	tfc:stair	tfc:raw_sandstone/white	tfc:raw_sandstone/white_stairs		0
+raw_sandstone/yellow_slab	tfc:slab	tfc:raw_sandstone/yellow	tfc:raw_sandstone/yellow_slab	tfc:raw_sandstone/yellow_slab	1
+raw_sandstone/yellow_stairs	tfc:stair	tfc:raw_sandstone/yellow	tfc:raw_sandstone/yellow_stairs		0
+rock/bricks/andesite_slab	tfc:slab	tfc:rock/bricks/andesite	tfc:rock/bricks/andesite_slab	tfc:rock/bricks/andesite_slab	1
+rock/bricks/andesite_stairs	tfc:stair	tfc:rock/bricks/andesite	tfc:rock/bricks/andesite_stairs		0
+rock/bricks/basalt_slab	tfc:slab	tfc:rock/bricks/basalt	tfc:rock/bricks/basalt_slab	tfc:rock/bricks/basalt_slab	1
+rock/bricks/basalt_stairs	tfc:stair	tfc:rock/bricks/basalt	tfc:rock/bricks/basalt_stairs		0
+rock/bricks/chalk_slab	tfc:slab	tfc:rock/bricks/chalk	tfc:rock/bricks/chalk_slab	tfc:rock/bricks/chalk_slab	1
+rock/bricks/chalk_stairs	tfc:stair	tfc:rock/bricks/chalk	tfc:rock/bricks/chalk_stairs		0
+rock/bricks/chert_slab	tfc:slab	tfc:rock/bricks/chert	tfc:rock/bricks/chert_slab	tfc:rock/bricks/chert_slab	1
+rock/bricks/chert_stairs	tfc:stair	tfc:rock/bricks/chert	tfc:rock/bricks/chert_stairs		0
+rock/bricks/claystone_slab	tfc:slab	tfc:rock/bricks/claystone	tfc:rock/bricks/claystone_slab	tfc:rock/bricks/claystone_slab	1
+rock/bricks/claystone_stairs	tfc:stair	tfc:rock/bricks/claystone	tfc:rock/bricks/claystone_stairs		0
+rock/bricks/conglomerate_slab	tfc:slab	tfc:rock/bricks/conglomerate	tfc:rock/bricks/conglomerate_slab	tfc:rock/bricks/conglomerate_slab	1
+rock/bricks/conglomerate_stairs	tfc:stair	tfc:rock/bricks/conglomerate	tfc:rock/bricks/conglomerate_stairs		0
+rock/bricks/dacite_slab	tfc:slab	tfc:rock/bricks/dacite	tfc:rock/bricks/dacite_slab	tfc:rock/bricks/dacite_slab	1
+rock/bricks/dacite_stairs	tfc:stair	tfc:rock/bricks/dacite	tfc:rock/bricks/dacite_stairs		0
+rock/bricks/diorite_slab	tfc:slab	tfc:rock/bricks/diorite	tfc:rock/bricks/diorite_slab	tfc:rock/bricks/diorite_slab	1
+rock/bricks/diorite_stairs	tfc:stair	tfc:rock/bricks/diorite	tfc:rock/bricks/diorite_stairs		0
+rock/bricks/dolomite_slab	tfc:slab	tfc:rock/bricks/dolomite	tfc:rock/bricks/dolomite_slab	tfc:rock/bricks/dolomite_slab	1
+rock/bricks/dolomite_stairs	tfc:stair	tfc:rock/bricks/dolomite	tfc:rock/bricks/dolomite_stairs		0
+rock/bricks/gabbro_slab	tfc:slab	tfc:rock/bricks/gabbro	tfc:rock/bricks/gabbro_slab	tfc:rock/bricks/gabbro_slab	1
+rock/bricks/gabbro_stairs	tfc:stair	tfc:rock/bricks/gabbro	tfc:rock/bricks/gabbro_stairs		0
+rock/bricks/gneiss_slab	tfc:slab	tfc:rock/bricks/gneiss	tfc:rock/bricks/gneiss_slab	tfc:rock/bricks/gneiss_slab	1
+rock/bricks/gneiss_stairs	tfc:stair	tfc:rock/bricks/gneiss	tfc:rock/bricks/gneiss_stairs		0
+rock/bricks/granite_slab	tfc:slab	tfc:rock/bricks/granite	tfc:rock/bricks/granite_slab	tfc:rock/bricks/granite_slab	1
+rock/bricks/granite_stairs	tfc:stair	tfc:rock/bricks/granite	tfc:rock/bricks/granite_stairs		0
+rock/bricks/limestone_slab	tfc:slab	tfc:rock/bricks/limestone	tfc:rock/bricks/limestone_slab	tfc:rock/bricks/limestone_slab	1
+rock/bricks/limestone_stairs	tfc:stair	tfc:rock/bricks/limestone	tfc:rock/bricks/limestone_stairs		0
+rock/bricks/marble_slab	tfc:slab	tfc:rock/bricks/marble	tfc:rock/bricks/marble_slab	tfc:rock/bricks/marble_slab	1
+rock/bricks/marble_stairs	tfc:stair	tfc:rock/bricks/marble	tfc:rock/bricks/marble_stairs		0
+rock/bricks/phyllite_slab	tfc:slab	tfc:rock/bricks/phyllite	tfc:rock/bricks/phyllite_slab	tfc:rock/bricks/phyllite_slab	1
+rock/bricks/phyllite_stairs	tfc:stair	tfc:rock/bricks/phyllite	tfc:rock/bricks/phyllite_stairs		0
+rock/bricks/quartzite_slab	tfc:slab	tfc:rock/bricks/quartzite	tfc:rock/bricks/quartzite_slab	tfc:rock/bricks/quartzite_slab	1
+rock/bricks/quartzite_stairs	tfc:stair	tfc:rock/bricks/quartzite	tfc:rock/bricks/quartzite_stairs		0
+rock/bricks/rhyolite_slab	tfc:slab	tfc:rock/bricks/rhyolite	tfc:rock/bricks/rhyolite_slab	tfc:rock/bricks/rhyolite_slab	1
+rock/bricks/rhyolite_stairs	tfc:stair	tfc:rock/bricks/rhyolite	tfc:rock/bricks/rhyolite_stairs		0
+rock/bricks/schist_slab	tfc:slab	tfc:rock/bricks/schist	tfc:rock/bricks/schist_slab	tfc:rock/bricks/schist_slab	1
+rock/bricks/schist_stairs	tfc:stair	tfc:rock/bricks/schist	tfc:rock/bricks/schist_stairs		0
+rock/bricks/shale_slab	tfc:slab	tfc:rock/bricks/shale	tfc:rock/bricks/shale_slab	tfc:rock/bricks/shale_slab	1
+rock/bricks/shale_stairs	tfc:stair	tfc:rock/bricks/shale	tfc:rock/bricks/shale_stairs		0
+rock/bricks/slate_slab	tfc:slab	tfc:rock/bricks/slate	tfc:rock/bricks/slate_slab	tfc:rock/bricks/slate_slab	1
+rock/bricks/slate_stairs	tfc:stair	tfc:rock/bricks/slate	tfc:rock/bricks/slate_stairs		0
+rock/bricks/tuff_slab	tfc:slab	tfc:rock/bricks/tuff	tfc:rock/bricks/tuff_slab	tfc:rock/bricks/tuff_slab	1
+rock/bricks/tuff_stairs	tfc:stair	tfc:rock/bricks/tuff	tfc:rock/bricks/tuff_stairs		0
+rock/chiseled/andesite	tfc:smooth	tfc:rock/bricks/andesite	tfc:rock/chiseled/andesite		0
+rock/chiseled/basalt	tfc:smooth	tfc:rock/bricks/basalt	tfc:rock/chiseled/basalt		0
+rock/chiseled/chalk	tfc:smooth	tfc:rock/bricks/chalk	tfc:rock/chiseled/chalk		0
+rock/chiseled/chert	tfc:smooth	tfc:rock/bricks/chert	tfc:rock/chiseled/chert		0
+rock/chiseled/claystone	tfc:smooth	tfc:rock/bricks/claystone	tfc:rock/chiseled/claystone		0
+rock/chiseled/conglomerate	tfc:smooth	tfc:rock/bricks/conglomerate	tfc:rock/chiseled/conglomerate		0
+rock/chiseled/dacite	tfc:smooth	tfc:rock/bricks/dacite	tfc:rock/chiseled/dacite		0
+rock/chiseled/diorite	tfc:smooth	tfc:rock/bricks/diorite	tfc:rock/chiseled/diorite		0
+rock/chiseled/dolomite	tfc:smooth	tfc:rock/bricks/dolomite	tfc:rock/chiseled/dolomite		0
+rock/chiseled/gabbro	tfc:smooth	tfc:rock/bricks/gabbro	tfc:rock/chiseled/gabbro		0
+rock/chiseled/gneiss	tfc:smooth	tfc:rock/bricks/gneiss	tfc:rock/chiseled/gneiss		0
+rock/chiseled/granite	tfc:smooth	tfc:rock/bricks/granite	tfc:rock/chiseled/granite		0
+rock/chiseled/limestone	tfc:smooth	tfc:rock/bricks/limestone	tfc:rock/chiseled/limestone		0
+rock/chiseled/marble	tfc:smooth	tfc:rock/bricks/marble	tfc:rock/chiseled/marble		0
+rock/chiseled/phyllite	tfc:smooth	tfc:rock/bricks/phyllite	tfc:rock/chiseled/phyllite		0
+rock/chiseled/quartzite	tfc:smooth	tfc:rock/bricks/quartzite	tfc:rock/chiseled/quartzite		0
+rock/chiseled/rhyolite	tfc:smooth	tfc:rock/bricks/rhyolite	tfc:rock/chiseled/rhyolite		0
+rock/chiseled/schist	tfc:smooth	tfc:rock/bricks/schist	tfc:rock/chiseled/schist		0
+rock/chiseled/shale	tfc:smooth	tfc:rock/bricks/shale	tfc:rock/chiseled/shale		0
+rock/chiseled/slate	tfc:smooth	tfc:rock/bricks/slate	tfc:rock/chiseled/slate		0
+rock/chiseled/tuff	tfc:smooth	tfc:rock/bricks/tuff	tfc:rock/chiseled/tuff		0
+rock/cobble/andesite_slab	tfc:slab	tfc:rock/cobble/andesite	tfc:rock/cobble/andesite_slab	tfc:rock/cobble/andesite_slab	1
+rock/cobble/andesite_stairs	tfc:stair	tfc:rock/cobble/andesite	tfc:rock/cobble/andesite_stairs		0
+rock/cobble/basalt_slab	tfc:slab	tfc:rock/cobble/basalt	tfc:rock/cobble/basalt_slab	tfc:rock/cobble/basalt_slab	1
+rock/cobble/basalt_stairs	tfc:stair	tfc:rock/cobble/basalt	tfc:rock/cobble/basalt_stairs		0
+rock/cobble/chalk_slab	tfc:slab	tfc:rock/cobble/chalk	tfc:rock/cobble/chalk_slab	tfc:rock/cobble/chalk_slab	1
+rock/cobble/chalk_stairs	tfc:stair	tfc:rock/cobble/chalk	tfc:rock/cobble/chalk_stairs		0
+rock/cobble/chert_slab	tfc:slab	tfc:rock/cobble/chert	tfc:rock/cobble/chert_slab	tfc:rock/cobble/chert_slab	1
+rock/cobble/chert_stairs	tfc:stair	tfc:rock/cobble/chert	tfc:rock/cobble/chert_stairs		0
+rock/cobble/claystone_slab	tfc:slab	tfc:rock/cobble/claystone	tfc:rock/cobble/claystone_slab	tfc:rock/cobble/claystone_slab	1
+rock/cobble/claystone_stairs	tfc:stair	tfc:rock/cobble/claystone	tfc:rock/cobble/claystone_stairs		0
+rock/cobble/conglomerate_slab	tfc:slab	tfc:rock/cobble/conglomerate	tfc:rock/cobble/conglomerate_slab	tfc:rock/cobble/conglomerate_slab	1
+rock/cobble/conglomerate_stairs	tfc:stair	tfc:rock/cobble/conglomerate	tfc:rock/cobble/conglomerate_stairs		0
+rock/cobble/dacite_slab	tfc:slab	tfc:rock/cobble/dacite	tfc:rock/cobble/dacite_slab	tfc:rock/cobble/dacite_slab	1
+rock/cobble/dacite_stairs	tfc:stair	tfc:rock/cobble/dacite	tfc:rock/cobble/dacite_stairs		0
+rock/cobble/diorite_slab	tfc:slab	tfc:rock/cobble/diorite	tfc:rock/cobble/diorite_slab	tfc:rock/cobble/diorite_slab	1
+rock/cobble/diorite_stairs	tfc:stair	tfc:rock/cobble/diorite	tfc:rock/cobble/diorite_stairs		0
+rock/cobble/dolomite_slab	tfc:slab	tfc:rock/cobble/dolomite	tfc:rock/cobble/dolomite_slab	tfc:rock/cobble/dolomite_slab	1
+rock/cobble/dolomite_stairs	tfc:stair	tfc:rock/cobble/dolomite	tfc:rock/cobble/dolomite_stairs		0
+rock/cobble/gabbro_slab	tfc:slab	tfc:rock/cobble/gabbro	tfc:rock/cobble/gabbro_slab	tfc:rock/cobble/gabbro_slab	1
+rock/cobble/gabbro_stairs	tfc:stair	tfc:rock/cobble/gabbro	tfc:rock/cobble/gabbro_stairs		0
+rock/cobble/gneiss_slab	tfc:slab	tfc:rock/cobble/gneiss	tfc:rock/cobble/gneiss_slab	tfc:rock/cobble/gneiss_slab	1
+rock/cobble/gneiss_stairs	tfc:stair	tfc:rock/cobble/gneiss	tfc:rock/cobble/gneiss_stairs		0
+rock/cobble/granite_slab	tfc:slab	tfc:rock/cobble/granite	tfc:rock/cobble/granite_slab	tfc:rock/cobble/granite_slab	1
+rock/cobble/granite_stairs	tfc:stair	tfc:rock/cobble/granite	tfc:rock/cobble/granite_stairs		0
+rock/cobble/limestone_slab	tfc:slab	tfc:rock/cobble/limestone	tfc:rock/cobble/limestone_slab	tfc:rock/cobble/limestone_slab	1
+rock/cobble/limestone_stairs	tfc:stair	tfc:rock/cobble/limestone	tfc:rock/cobble/limestone_stairs		0
+rock/cobble/marble_slab	tfc:slab	tfc:rock/cobble/marble	tfc:rock/cobble/marble_slab	tfc:rock/cobble/marble_slab	1
+rock/cobble/marble_stairs	tfc:stair	tfc:rock/cobble/marble	tfc:rock/cobble/marble_stairs		0
+rock/cobble/phyllite_slab	tfc:slab	tfc:rock/cobble/phyllite	tfc:rock/cobble/phyllite_slab	tfc:rock/cobble/phyllite_slab	1
+rock/cobble/phyllite_stairs	tfc:stair	tfc:rock/cobble/phyllite	tfc:rock/cobble/phyllite_stairs		0
+rock/cobble/quartzite_slab	tfc:slab	tfc:rock/cobble/quartzite	tfc:rock/cobble/quartzite_slab	tfc:rock/cobble/quartzite_slab	1
+rock/cobble/quartzite_stairs	tfc:stair	tfc:rock/cobble/quartzite	tfc:rock/cobble/quartzite_stairs		0
+rock/cobble/rhyolite_slab	tfc:slab	tfc:rock/cobble/rhyolite	tfc:rock/cobble/rhyolite_slab	tfc:rock/cobble/rhyolite_slab	1
+rock/cobble/rhyolite_stairs	tfc:stair	tfc:rock/cobble/rhyolite	tfc:rock/cobble/rhyolite_stairs		0
+rock/cobble/schist_slab	tfc:slab	tfc:rock/cobble/schist	tfc:rock/cobble/schist_slab	tfc:rock/cobble/schist_slab	1
+rock/cobble/schist_stairs	tfc:stair	tfc:rock/cobble/schist	tfc:rock/cobble/schist_stairs		0
+rock/cobble/shale_slab	tfc:slab	tfc:rock/cobble/shale	tfc:rock/cobble/shale_slab	tfc:rock/cobble/shale_slab	1
+rock/cobble/shale_stairs	tfc:stair	tfc:rock/cobble/shale	tfc:rock/cobble/shale_stairs		0
+rock/cobble/slate_slab	tfc:slab	tfc:rock/cobble/slate	tfc:rock/cobble/slate_slab	tfc:rock/cobble/slate_slab	1
+rock/cobble/slate_stairs	tfc:stair	tfc:rock/cobble/slate	tfc:rock/cobble/slate_stairs		0
+rock/cobble/tuff_slab	tfc:slab	tfc:rock/cobble/tuff	tfc:rock/cobble/tuff_slab	tfc:rock/cobble/tuff_slab	1
+rock/cobble/tuff_stairs	tfc:stair	tfc:rock/cobble/tuff	tfc:rock/cobble/tuff_stairs		0
+rock/cracked_bricks/andesite_slab	tfc:slab	tfc:rock/cracked_bricks/andesite	tfc:rock/cracked_bricks/andesite_slab	tfc:rock/cracked_bricks/andesite_slab	1
+rock/cracked_bricks/andesite_stairs	tfc:stair	tfc:rock/cracked_bricks/andesite	tfc:rock/cracked_bricks/andesite_stairs		0
+rock/cracked_bricks/basalt_slab	tfc:slab	tfc:rock/cracked_bricks/basalt	tfc:rock/cracked_bricks/basalt_slab	tfc:rock/cracked_bricks/basalt_slab	1
+rock/cracked_bricks/basalt_stairs	tfc:stair	tfc:rock/cracked_bricks/basalt	tfc:rock/cracked_bricks/basalt_stairs		0
+rock/cracked_bricks/chalk_slab	tfc:slab	tfc:rock/cracked_bricks/chalk	tfc:rock/cracked_bricks/chalk_slab	tfc:rock/cracked_bricks/chalk_slab	1
+rock/cracked_bricks/chalk_stairs	tfc:stair	tfc:rock/cracked_bricks/chalk	tfc:rock/cracked_bricks/chalk_stairs		0
+rock/cracked_bricks/chert_slab	tfc:slab	tfc:rock/cracked_bricks/chert	tfc:rock/cracked_bricks/chert_slab	tfc:rock/cracked_bricks/chert_slab	1
+rock/cracked_bricks/chert_stairs	tfc:stair	tfc:rock/cracked_bricks/chert	tfc:rock/cracked_bricks/chert_stairs		0
+rock/cracked_bricks/claystone_slab	tfc:slab	tfc:rock/cracked_bricks/claystone	tfc:rock/cracked_bricks/claystone_slab	tfc:rock/cracked_bricks/claystone_slab	1
+rock/cracked_bricks/claystone_stairs	tfc:stair	tfc:rock/cracked_bricks/claystone	tfc:rock/cracked_bricks/claystone_stairs		0
+rock/cracked_bricks/conglomerate_slab	tfc:slab	tfc:rock/cracked_bricks/conglomerate	tfc:rock/cracked_bricks/conglomerate_slab	tfc:rock/cracked_bricks/conglomerate_slab	1
+rock/cracked_bricks/conglomerate_stairs	tfc:stair	tfc:rock/cracked_bricks/conglomerate	tfc:rock/cracked_bricks/conglomerate_stairs		0
+rock/cracked_bricks/dacite_slab	tfc:slab	tfc:rock/cracked_bricks/dacite	tfc:rock/cracked_bricks/dacite_slab	tfc:rock/cracked_bricks/dacite_slab	1
+rock/cracked_bricks/dacite_stairs	tfc:stair	tfc:rock/cracked_bricks/dacite	tfc:rock/cracked_bricks/dacite_stairs		0
+rock/cracked_bricks/diorite_slab	tfc:slab	tfc:rock/cracked_bricks/diorite	tfc:rock/cracked_bricks/diorite_slab	tfc:rock/cracked_bricks/diorite_slab	1
+rock/cracked_bricks/diorite_stairs	tfc:stair	tfc:rock/cracked_bricks/diorite	tfc:rock/cracked_bricks/diorite_stairs		0
+rock/cracked_bricks/dolomite_slab	tfc:slab	tfc:rock/cracked_bricks/dolomite	tfc:rock/cracked_bricks/dolomite_slab	tfc:rock/cracked_bricks/dolomite_slab	1
+rock/cracked_bricks/dolomite_stairs	tfc:stair	tfc:rock/cracked_bricks/dolomite	tfc:rock/cracked_bricks/dolomite_stairs		0
+rock/cracked_bricks/gabbro_slab	tfc:slab	tfc:rock/cracked_bricks/gabbro	tfc:rock/cracked_bricks/gabbro_slab	tfc:rock/cracked_bricks/gabbro_slab	1
+rock/cracked_bricks/gabbro_stairs	tfc:stair	tfc:rock/cracked_bricks/gabbro	tfc:rock/cracked_bricks/gabbro_stairs		0
+rock/cracked_bricks/gneiss_slab	tfc:slab	tfc:rock/cracked_bricks/gneiss	tfc:rock/cracked_bricks/gneiss_slab	tfc:rock/cracked_bricks/gneiss_slab	1
+rock/cracked_bricks/gneiss_stairs	tfc:stair	tfc:rock/cracked_bricks/gneiss	tfc:rock/cracked_bricks/gneiss_stairs		0
+rock/cracked_bricks/granite_slab	tfc:slab	tfc:rock/cracked_bricks/granite	tfc:rock/cracked_bricks/granite_slab	tfc:rock/cracked_bricks/granite_slab	1
+rock/cracked_bricks/granite_stairs	tfc:stair	tfc:rock/cracked_bricks/granite	tfc:rock/cracked_bricks/granite_stairs		0
+rock/cracked_bricks/limestone_slab	tfc:slab	tfc:rock/cracked_bricks/limestone	tfc:rock/cracked_bricks/limestone_slab	tfc:rock/cracked_bricks/limestone_slab	1
+rock/cracked_bricks/limestone_stairs	tfc:stair	tfc:rock/cracked_bricks/limestone	tfc:rock/cracked_bricks/limestone_stairs		0
+rock/cracked_bricks/marble_slab	tfc:slab	tfc:rock/cracked_bricks/marble	tfc:rock/cracked_bricks/marble_slab	tfc:rock/cracked_bricks/marble_slab	1
+rock/cracked_bricks/marble_stairs	tfc:stair	tfc:rock/cracked_bricks/marble	tfc:rock/cracked_bricks/marble_stairs		0
+rock/cracked_bricks/phyllite_slab	tfc:slab	tfc:rock/cracked_bricks/phyllite	tfc:rock/cracked_bricks/phyllite_slab	tfc:rock/cracked_bricks/phyllite_slab	1
+rock/cracked_bricks/phyllite_stairs	tfc:stair	tfc:rock/cracked_bricks/phyllite	tfc:rock/cracked_bricks/phyllite_stairs		0
+rock/cracked_bricks/quartzite_slab	tfc:slab	tfc:rock/cracked_bricks/quartzite	tfc:rock/cracked_bricks/quartzite_slab	tfc:rock/cracked_bricks/quartzite_slab	1
+rock/cracked_bricks/quartzite_stairs	tfc:stair	tfc:rock/cracked_bricks/quartzite	tfc:rock/cracked_bricks/quartzite_stairs		0
+rock/cracked_bricks/rhyolite_slab	tfc:slab	tfc:rock/cracked_bricks/rhyolite	tfc:rock/cracked_bricks/rhyolite_slab	tfc:rock/cracked_bricks/rhyolite_slab	1
+rock/cracked_bricks/rhyolite_stairs	tfc:stair	tfc:rock/cracked_bricks/rhyolite	tfc:rock/cracked_bricks/rhyolite_stairs		0
+rock/cracked_bricks/schist_slab	tfc:slab	tfc:rock/cracked_bricks/schist	tfc:rock/cracked_bricks/schist_slab	tfc:rock/cracked_bricks/schist_slab	1
+rock/cracked_bricks/schist_stairs	tfc:stair	tfc:rock/cracked_bricks/schist	tfc:rock/cracked_bricks/schist_stairs		0
+rock/cracked_bricks/shale_slab	tfc:slab	tfc:rock/cracked_bricks/shale	tfc:rock/cracked_bricks/shale_slab	tfc:rock/cracked_bricks/shale_slab	1
+rock/cracked_bricks/shale_stairs	tfc:stair	tfc:rock/cracked_bricks/shale	tfc:rock/cracked_bricks/shale_stairs		0
+rock/cracked_bricks/slate_slab	tfc:slab	tfc:rock/cracked_bricks/slate	tfc:rock/cracked_bricks/slate_slab	tfc:rock/cracked_bricks/slate_slab	1
+rock/cracked_bricks/slate_stairs	tfc:stair	tfc:rock/cracked_bricks/slate	tfc:rock/cracked_bricks/slate_stairs		0
+rock/cracked_bricks/tuff_slab	tfc:slab	tfc:rock/cracked_bricks/tuff	tfc:rock/cracked_bricks/tuff_slab	tfc:rock/cracked_bricks/tuff_slab	1
+rock/cracked_bricks/tuff_stairs	tfc:stair	tfc:rock/cracked_bricks/tuff	tfc:rock/cracked_bricks/tuff_stairs		0
+rock/mossy_bricks/andesite_slab	tfc:slab	tfc:rock/mossy_bricks/andesite	tfc:rock/mossy_bricks/andesite_slab	tfc:rock/mossy_bricks/andesite_slab	1
+rock/mossy_bricks/andesite_stairs	tfc:stair	tfc:rock/mossy_bricks/andesite	tfc:rock/mossy_bricks/andesite_stairs		0
+rock/mossy_bricks/basalt_slab	tfc:slab	tfc:rock/mossy_bricks/basalt	tfc:rock/mossy_bricks/basalt_slab	tfc:rock/mossy_bricks/basalt_slab	1
+rock/mossy_bricks/basalt_stairs	tfc:stair	tfc:rock/mossy_bricks/basalt	tfc:rock/mossy_bricks/basalt_stairs		0
+rock/mossy_bricks/chalk_slab	tfc:slab	tfc:rock/mossy_bricks/chalk	tfc:rock/mossy_bricks/chalk_slab	tfc:rock/mossy_bricks/chalk_slab	1
+rock/mossy_bricks/chalk_stairs	tfc:stair	tfc:rock/mossy_bricks/chalk	tfc:rock/mossy_bricks/chalk_stairs		0
+rock/mossy_bricks/chert_slab	tfc:slab	tfc:rock/mossy_bricks/chert	tfc:rock/mossy_bricks/chert_slab	tfc:rock/mossy_bricks/chert_slab	1
+rock/mossy_bricks/chert_stairs	tfc:stair	tfc:rock/mossy_bricks/chert	tfc:rock/mossy_bricks/chert_stairs		0
+rock/mossy_bricks/claystone_slab	tfc:slab	tfc:rock/mossy_bricks/claystone	tfc:rock/mossy_bricks/claystone_slab	tfc:rock/mossy_bricks/claystone_slab	1
+rock/mossy_bricks/claystone_stairs	tfc:stair	tfc:rock/mossy_bricks/claystone	tfc:rock/mossy_bricks/claystone_stairs		0
+rock/mossy_bricks/conglomerate_slab	tfc:slab	tfc:rock/mossy_bricks/conglomerate	tfc:rock/mossy_bricks/conglomerate_slab	tfc:rock/mossy_bricks/conglomerate_slab	1
+rock/mossy_bricks/conglomerate_stairs	tfc:stair	tfc:rock/mossy_bricks/conglomerate	tfc:rock/mossy_bricks/conglomerate_stairs		0
+rock/mossy_bricks/dacite_slab	tfc:slab	tfc:rock/mossy_bricks/dacite	tfc:rock/mossy_bricks/dacite_slab	tfc:rock/mossy_bricks/dacite_slab	1
+rock/mossy_bricks/dacite_stairs	tfc:stair	tfc:rock/mossy_bricks/dacite	tfc:rock/mossy_bricks/dacite_stairs		0
+rock/mossy_bricks/diorite_slab	tfc:slab	tfc:rock/mossy_bricks/diorite	tfc:rock/mossy_bricks/diorite_slab	tfc:rock/mossy_bricks/diorite_slab	1
+rock/mossy_bricks/diorite_stairs	tfc:stair	tfc:rock/mossy_bricks/diorite	tfc:rock/mossy_bricks/diorite_stairs		0
+rock/mossy_bricks/dolomite_slab	tfc:slab	tfc:rock/mossy_bricks/dolomite	tfc:rock/mossy_bricks/dolomite_slab	tfc:rock/mossy_bricks/dolomite_slab	1
+rock/mossy_bricks/dolomite_stairs	tfc:stair	tfc:rock/mossy_bricks/dolomite	tfc:rock/mossy_bricks/dolomite_stairs		0
+rock/mossy_bricks/gabbro_slab	tfc:slab	tfc:rock/mossy_bricks/gabbro	tfc:rock/mossy_bricks/gabbro_slab	tfc:rock/mossy_bricks/gabbro_slab	1
+rock/mossy_bricks/gabbro_stairs	tfc:stair	tfc:rock/mossy_bricks/gabbro	tfc:rock/mossy_bricks/gabbro_stairs		0
+rock/mossy_bricks/gneiss_slab	tfc:slab	tfc:rock/mossy_bricks/gneiss	tfc:rock/mossy_bricks/gneiss_slab	tfc:rock/mossy_bricks/gneiss_slab	1
+rock/mossy_bricks/gneiss_stairs	tfc:stair	tfc:rock/mossy_bricks/gneiss	tfc:rock/mossy_bricks/gneiss_stairs		0
+rock/mossy_bricks/granite_slab	tfc:slab	tfc:rock/mossy_bricks/granite	tfc:rock/mossy_bricks/granite_slab	tfc:rock/mossy_bricks/granite_slab	1
+rock/mossy_bricks/granite_stairs	tfc:stair	tfc:rock/mossy_bricks/granite	tfc:rock/mossy_bricks/granite_stairs		0
+rock/mossy_bricks/limestone_slab	tfc:slab	tfc:rock/mossy_bricks/limestone	tfc:rock/mossy_bricks/limestone_slab	tfc:rock/mossy_bricks/limestone_slab	1
+rock/mossy_bricks/limestone_stairs	tfc:stair	tfc:rock/mossy_bricks/limestone	tfc:rock/mossy_bricks/limestone_stairs		0
+rock/mossy_bricks/marble_slab	tfc:slab	tfc:rock/mossy_bricks/marble	tfc:rock/mossy_bricks/marble_slab	tfc:rock/mossy_bricks/marble_slab	1
+rock/mossy_bricks/marble_stairs	tfc:stair	tfc:rock/mossy_bricks/marble	tfc:rock/mossy_bricks/marble_stairs		0
+rock/mossy_bricks/phyllite_slab	tfc:slab	tfc:rock/mossy_bricks/phyllite	tfc:rock/mossy_bricks/phyllite_slab	tfc:rock/mossy_bricks/phyllite_slab	1
+rock/mossy_bricks/phyllite_stairs	tfc:stair	tfc:rock/mossy_bricks/phyllite	tfc:rock/mossy_bricks/phyllite_stairs		0
+rock/mossy_bricks/quartzite_slab	tfc:slab	tfc:rock/mossy_bricks/quartzite	tfc:rock/mossy_bricks/quartzite_slab	tfc:rock/mossy_bricks/quartzite_slab	1
+rock/mossy_bricks/quartzite_stairs	tfc:stair	tfc:rock/mossy_bricks/quartzite	tfc:rock/mossy_bricks/quartzite_stairs		0
+rock/mossy_bricks/rhyolite_slab	tfc:slab	tfc:rock/mossy_bricks/rhyolite	tfc:rock/mossy_bricks/rhyolite_slab	tfc:rock/mossy_bricks/rhyolite_slab	1
+rock/mossy_bricks/rhyolite_stairs	tfc:stair	tfc:rock/mossy_bricks/rhyolite	tfc:rock/mossy_bricks/rhyolite_stairs		0
+rock/mossy_bricks/schist_slab	tfc:slab	tfc:rock/mossy_bricks/schist	tfc:rock/mossy_bricks/schist_slab	tfc:rock/mossy_bricks/schist_slab	1
+rock/mossy_bricks/schist_stairs	tfc:stair	tfc:rock/mossy_bricks/schist	tfc:rock/mossy_bricks/schist_stairs		0
+rock/mossy_bricks/shale_slab	tfc:slab	tfc:rock/mossy_bricks/shale	tfc:rock/mossy_bricks/shale_slab	tfc:rock/mossy_bricks/shale_slab	1
+rock/mossy_bricks/shale_stairs	tfc:stair	tfc:rock/mossy_bricks/shale	tfc:rock/mossy_bricks/shale_stairs		0
+rock/mossy_bricks/slate_slab	tfc:slab	tfc:rock/mossy_bricks/slate	tfc:rock/mossy_bricks/slate_slab	tfc:rock/mossy_bricks/slate_slab	1
+rock/mossy_bricks/slate_stairs	tfc:stair	tfc:rock/mossy_bricks/slate	tfc:rock/mossy_bricks/slate_stairs		0
+rock/mossy_bricks/tuff_slab	tfc:slab	tfc:rock/mossy_bricks/tuff	tfc:rock/mossy_bricks/tuff_slab	tfc:rock/mossy_bricks/tuff_slab	1
+rock/mossy_bricks/tuff_stairs	tfc:stair	tfc:rock/mossy_bricks/tuff	tfc:rock/mossy_bricks/tuff_stairs		0
+rock/mossy_cobble/andesite_slab	tfc:slab	tfc:rock/mossy_cobble/andesite	tfc:rock/mossy_cobble/andesite_slab	tfc:rock/mossy_cobble/andesite_slab	1
+rock/mossy_cobble/andesite_stairs	tfc:stair	tfc:rock/mossy_cobble/andesite	tfc:rock/mossy_cobble/andesite_stairs		0
+rock/mossy_cobble/basalt_slab	tfc:slab	tfc:rock/mossy_cobble/basalt	tfc:rock/mossy_cobble/basalt_slab	tfc:rock/mossy_cobble/basalt_slab	1
+rock/mossy_cobble/basalt_stairs	tfc:stair	tfc:rock/mossy_cobble/basalt	tfc:rock/mossy_cobble/basalt_stairs		0
+rock/mossy_cobble/chalk_slab	tfc:slab	tfc:rock/mossy_cobble/chalk	tfc:rock/mossy_cobble/chalk_slab	tfc:rock/mossy_cobble/chalk_slab	1
+rock/mossy_cobble/chalk_stairs	tfc:stair	tfc:rock/mossy_cobble/chalk	tfc:rock/mossy_cobble/chalk_stairs		0
+rock/mossy_cobble/chert_slab	tfc:slab	tfc:rock/mossy_cobble/chert	tfc:rock/mossy_cobble/chert_slab	tfc:rock/mossy_cobble/chert_slab	1
+rock/mossy_cobble/chert_stairs	tfc:stair	tfc:rock/mossy_cobble/chert	tfc:rock/mossy_cobble/chert_stairs		0
+rock/mossy_cobble/claystone_slab	tfc:slab	tfc:rock/mossy_cobble/claystone	tfc:rock/mossy_cobble/claystone_slab	tfc:rock/mossy_cobble/claystone_slab	1
+rock/mossy_cobble/claystone_stairs	tfc:stair	tfc:rock/mossy_cobble/claystone	tfc:rock/mossy_cobble/claystone_stairs		0
+rock/mossy_cobble/conglomerate_slab	tfc:slab	tfc:rock/mossy_cobble/conglomerate	tfc:rock/mossy_cobble/conglomerate_slab	tfc:rock/mossy_cobble/conglomerate_slab	1
+rock/mossy_cobble/conglomerate_stairs	tfc:stair	tfc:rock/mossy_cobble/conglomerate	tfc:rock/mossy_cobble/conglomerate_stairs		0
+rock/mossy_cobble/dacite_slab	tfc:slab	tfc:rock/mossy_cobble/dacite	tfc:rock/mossy_cobble/dacite_slab	tfc:rock/mossy_cobble/dacite_slab	1
+rock/mossy_cobble/dacite_stairs	tfc:stair	tfc:rock/mossy_cobble/dacite	tfc:rock/mossy_cobble/dacite_stairs		0
+rock/mossy_cobble/diorite_slab	tfc:slab	tfc:rock/mossy_cobble/diorite	tfc:rock/mossy_cobble/diorite_slab	tfc:rock/mossy_cobble/diorite_slab	1
+rock/mossy_cobble/diorite_stairs	tfc:stair	tfc:rock/mossy_cobble/diorite	tfc:rock/mossy_cobble/diorite_stairs		0
+rock/mossy_cobble/dolomite_slab	tfc:slab	tfc:rock/mossy_cobble/dolomite	tfc:rock/mossy_cobble/dolomite_slab	tfc:rock/mossy_cobble/dolomite_slab	1
+rock/mossy_cobble/dolomite_stairs	tfc:stair	tfc:rock/mossy_cobble/dolomite	tfc:rock/mossy_cobble/dolomite_stairs		0
+rock/mossy_cobble/gabbro_slab	tfc:slab	tfc:rock/mossy_cobble/gabbro	tfc:rock/mossy_cobble/gabbro_slab	tfc:rock/mossy_cobble/gabbro_slab	1
+rock/mossy_cobble/gabbro_stairs	tfc:stair	tfc:rock/mossy_cobble/gabbro	tfc:rock/mossy_cobble/gabbro_stairs		0
+rock/mossy_cobble/gneiss_slab	tfc:slab	tfc:rock/mossy_cobble/gneiss	tfc:rock/mossy_cobble/gneiss_slab	tfc:rock/mossy_cobble/gneiss_slab	1
+rock/mossy_cobble/gneiss_stairs	tfc:stair	tfc:rock/mossy_cobble/gneiss	tfc:rock/mossy_cobble/gneiss_stairs		0
+rock/mossy_cobble/granite_slab	tfc:slab	tfc:rock/mossy_cobble/granite	tfc:rock/mossy_cobble/granite_slab	tfc:rock/mossy_cobble/granite_slab	1
+rock/mossy_cobble/granite_stairs	tfc:stair	tfc:rock/mossy_cobble/granite	tfc:rock/mossy_cobble/granite_stairs		0
+rock/mossy_cobble/limestone_slab	tfc:slab	tfc:rock/mossy_cobble/limestone	tfc:rock/mossy_cobble/limestone_slab	tfc:rock/mossy_cobble/limestone_slab	1
+rock/mossy_cobble/limestone_stairs	tfc:stair	tfc:rock/mossy_cobble/limestone	tfc:rock/mossy_cobble/limestone_stairs		0
+rock/mossy_cobble/marble_slab	tfc:slab	tfc:rock/mossy_cobble/marble	tfc:rock/mossy_cobble/marble_slab	tfc:rock/mossy_cobble/marble_slab	1
+rock/mossy_cobble/marble_stairs	tfc:stair	tfc:rock/mossy_cobble/marble	tfc:rock/mossy_cobble/marble_stairs		0
+rock/mossy_cobble/phyllite_slab	tfc:slab	tfc:rock/mossy_cobble/phyllite	tfc:rock/mossy_cobble/phyllite_slab	tfc:rock/mossy_cobble/phyllite_slab	1
+rock/mossy_cobble/phyllite_stairs	tfc:stair	tfc:rock/mossy_cobble/phyllite	tfc:rock/mossy_cobble/phyllite_stairs		0
+rock/mossy_cobble/quartzite_slab	tfc:slab	tfc:rock/mossy_cobble/quartzite	tfc:rock/mossy_cobble/quartzite_slab	tfc:rock/mossy_cobble/quartzite_slab	1
+rock/mossy_cobble/quartzite_stairs	tfc:stair	tfc:rock/mossy_cobble/quartzite	tfc:rock/mossy_cobble/quartzite_stairs		0
+rock/mossy_cobble/rhyolite_slab	tfc:slab	tfc:rock/mossy_cobble/rhyolite	tfc:rock/mossy_cobble/rhyolite_slab	tfc:rock/mossy_cobble/rhyolite_slab	1
+rock/mossy_cobble/rhyolite_stairs	tfc:stair	tfc:rock/mossy_cobble/rhyolite	tfc:rock/mossy_cobble/rhyolite_stairs		0
+rock/mossy_cobble/schist_slab	tfc:slab	tfc:rock/mossy_cobble/schist	tfc:rock/mossy_cobble/schist_slab	tfc:rock/mossy_cobble/schist_slab	1
+rock/mossy_cobble/schist_stairs	tfc:stair	tfc:rock/mossy_cobble/schist	tfc:rock/mossy_cobble/schist_stairs		0
+rock/mossy_cobble/shale_slab	tfc:slab	tfc:rock/mossy_cobble/shale	tfc:rock/mossy_cobble/shale_slab	tfc:rock/mossy_cobble/shale_slab	1
+rock/mossy_cobble/shale_stairs	tfc:stair	tfc:rock/mossy_cobble/shale	tfc:rock/mossy_cobble/shale_stairs		0
+rock/mossy_cobble/slate_slab	tfc:slab	tfc:rock/mossy_cobble/slate	tfc:rock/mossy_cobble/slate_slab	tfc:rock/mossy_cobble/slate_slab	1
+rock/mossy_cobble/slate_stairs	tfc:stair	tfc:rock/mossy_cobble/slate	tfc:rock/mossy_cobble/slate_stairs		0
+rock/mossy_cobble/tuff_slab	tfc:slab	tfc:rock/mossy_cobble/tuff	tfc:rock/mossy_cobble/tuff_slab	tfc:rock/mossy_cobble/tuff_slab	1
+rock/mossy_cobble/tuff_stairs	tfc:stair	tfc:rock/mossy_cobble/tuff	tfc:rock/mossy_cobble/tuff_stairs		0
+rock/raw/andesite_slab	tfc:slab	tfc:rock/raw/andesite	tfc:rock/raw/andesite_slab	tfc:rock/raw/andesite_slab	1
+rock/raw/andesite_stairs	tfc:stair	tfc:rock/raw/andesite	tfc:rock/raw/andesite_stairs		0
+rock/raw/basalt_slab	tfc:slab	tfc:rock/raw/basalt	tfc:rock/raw/basalt_slab	tfc:rock/raw/basalt_slab	1
+rock/raw/basalt_stairs	tfc:stair	tfc:rock/raw/basalt	tfc:rock/raw/basalt_stairs		0
+rock/raw/chalk_slab	tfc:slab	tfc:rock/raw/chalk	tfc:rock/raw/chalk_slab	tfc:rock/raw/chalk_slab	1
+rock/raw/chalk_stairs	tfc:stair	tfc:rock/raw/chalk	tfc:rock/raw/chalk_stairs		0
+rock/raw/chert_slab	tfc:slab	tfc:rock/raw/chert	tfc:rock/raw/chert_slab	tfc:rock/raw/chert_slab	1
+rock/raw/chert_stairs	tfc:stair	tfc:rock/raw/chert	tfc:rock/raw/chert_stairs		0
+rock/raw/claystone_slab	tfc:slab	tfc:rock/raw/claystone	tfc:rock/raw/claystone_slab	tfc:rock/raw/claystone_slab	1
+rock/raw/claystone_stairs	tfc:stair	tfc:rock/raw/claystone	tfc:rock/raw/claystone_stairs		0
+rock/raw/conglomerate_slab	tfc:slab	tfc:rock/raw/conglomerate	tfc:rock/raw/conglomerate_slab	tfc:rock/raw/conglomerate_slab	1
+rock/raw/conglomerate_stairs	tfc:stair	tfc:rock/raw/conglomerate	tfc:rock/raw/conglomerate_stairs		0
+rock/raw/dacite_slab	tfc:slab	tfc:rock/raw/dacite	tfc:rock/raw/dacite_slab	tfc:rock/raw/dacite_slab	1
+rock/raw/dacite_stairs	tfc:stair	tfc:rock/raw/dacite	tfc:rock/raw/dacite_stairs		0
+rock/raw/diorite_slab	tfc:slab	tfc:rock/raw/diorite	tfc:rock/raw/diorite_slab	tfc:rock/raw/diorite_slab	1
+rock/raw/diorite_stairs	tfc:stair	tfc:rock/raw/diorite	tfc:rock/raw/diorite_stairs		0
+rock/raw/dolomite_slab	tfc:slab	tfc:rock/raw/dolomite	tfc:rock/raw/dolomite_slab	tfc:rock/raw/dolomite_slab	1
+rock/raw/dolomite_stairs	tfc:stair	tfc:rock/raw/dolomite	tfc:rock/raw/dolomite_stairs		0
+rock/raw/gabbro_slab	tfc:slab	tfc:rock/raw/gabbro	tfc:rock/raw/gabbro_slab	tfc:rock/raw/gabbro_slab	1
+rock/raw/gabbro_stairs	tfc:stair	tfc:rock/raw/gabbro	tfc:rock/raw/gabbro_stairs		0
+rock/raw/gneiss_slab	tfc:slab	tfc:rock/raw/gneiss	tfc:rock/raw/gneiss_slab	tfc:rock/raw/gneiss_slab	1
+rock/raw/gneiss_stairs	tfc:stair	tfc:rock/raw/gneiss	tfc:rock/raw/gneiss_stairs		0
+rock/raw/granite_slab	tfc:slab	tfc:rock/raw/granite	tfc:rock/raw/granite_slab	tfc:rock/raw/granite_slab	1
+rock/raw/granite_stairs	tfc:stair	tfc:rock/raw/granite	tfc:rock/raw/granite_stairs		0
+rock/raw/limestone_slab	tfc:slab	tfc:rock/raw/limestone	tfc:rock/raw/limestone_slab	tfc:rock/raw/limestone_slab	1
+rock/raw/limestone_stairs	tfc:stair	tfc:rock/raw/limestone	tfc:rock/raw/limestone_stairs		0
+rock/raw/marble_slab	tfc:slab	tfc:rock/raw/marble	tfc:rock/raw/marble_slab	tfc:rock/raw/marble_slab	1
+rock/raw/marble_stairs	tfc:stair	tfc:rock/raw/marble	tfc:rock/raw/marble_stairs		0
+rock/raw/phyllite_slab	tfc:slab	tfc:rock/raw/phyllite	tfc:rock/raw/phyllite_slab	tfc:rock/raw/phyllite_slab	1
+rock/raw/phyllite_stairs	tfc:stair	tfc:rock/raw/phyllite	tfc:rock/raw/phyllite_stairs		0
+rock/raw/quartzite_slab	tfc:slab	tfc:rock/raw/quartzite	tfc:rock/raw/quartzite_slab	tfc:rock/raw/quartzite_slab	1
+rock/raw/quartzite_stairs	tfc:stair	tfc:rock/raw/quartzite	tfc:rock/raw/quartzite_stairs		0
+rock/raw/rhyolite_slab	tfc:slab	tfc:rock/raw/rhyolite	tfc:rock/raw/rhyolite_slab	tfc:rock/raw/rhyolite_slab	1
+rock/raw/rhyolite_stairs	tfc:stair	tfc:rock/raw/rhyolite	tfc:rock/raw/rhyolite_stairs		0
+rock/raw/schist_slab	tfc:slab	tfc:rock/raw/schist	tfc:rock/raw/schist_slab	tfc:rock/raw/schist_slab	1
+rock/raw/schist_stairs	tfc:stair	tfc:rock/raw/schist	tfc:rock/raw/schist_stairs		0
+rock/raw/shale_slab	tfc:slab	tfc:rock/raw/shale	tfc:rock/raw/shale_slab	tfc:rock/raw/shale_slab	1
+rock/raw/shale_stairs	tfc:stair	tfc:rock/raw/shale	tfc:rock/raw/shale_stairs		0
+rock/raw/slate_slab	tfc:slab	tfc:rock/raw/slate	tfc:rock/raw/slate_slab	tfc:rock/raw/slate_slab	1
+rock/raw/slate_stairs	tfc:stair	tfc:rock/raw/slate	tfc:rock/raw/slate_stairs		0
+rock/raw/tuff_slab	tfc:slab	tfc:rock/raw/tuff	tfc:rock/raw/tuff_slab	tfc:rock/raw/tuff_slab	1
+rock/raw/tuff_stairs	tfc:stair	tfc:rock/raw/tuff	tfc:rock/raw/tuff_stairs		0
+rock/smooth/andesite	tfc:smooth	tfc:rock/raw/andesite|tfc:rock/hardened/andesite	tfc:rock/smooth/andesite		0
+rock/smooth/andesite_slab	tfc:slab	tfc:rock/smooth/andesite	tfc:rock/smooth/andesite_slab	tfc:rock/smooth/andesite_slab	1
+rock/smooth/andesite_stairs	tfc:stair	tfc:rock/smooth/andesite	tfc:rock/smooth/andesite_stairs		0
+rock/smooth/basalt	tfc:smooth	tfc:rock/raw/basalt|tfc:rock/hardened/basalt	tfc:rock/smooth/basalt		0
+rock/smooth/basalt_slab	tfc:slab	tfc:rock/smooth/basalt	tfc:rock/smooth/basalt_slab	tfc:rock/smooth/basalt_slab	1
+rock/smooth/basalt_stairs	tfc:stair	tfc:rock/smooth/basalt	tfc:rock/smooth/basalt_stairs		0
+rock/smooth/chalk	tfc:smooth	tfc:rock/raw/chalk|tfc:rock/hardened/chalk	tfc:rock/smooth/chalk		0
+rock/smooth/chalk_slab	tfc:slab	tfc:rock/smooth/chalk	tfc:rock/smooth/chalk_slab	tfc:rock/smooth/chalk_slab	1
+rock/smooth/chalk_stairs	tfc:stair	tfc:rock/smooth/chalk	tfc:rock/smooth/chalk_stairs		0
+rock/smooth/chert	tfc:smooth	tfc:rock/raw/chert|tfc:rock/hardened/chert	tfc:rock/smooth/chert		0
+rock/smooth/chert_slab	tfc:slab	tfc:rock/smooth/chert	tfc:rock/smooth/chert_slab	tfc:rock/smooth/chert_slab	1
+rock/smooth/chert_stairs	tfc:stair	tfc:rock/smooth/chert	tfc:rock/smooth/chert_stairs		0
+rock/smooth/claystone	tfc:smooth	tfc:rock/raw/claystone|tfc:rock/hardened/claystone	tfc:rock/smooth/claystone		0
+rock/smooth/claystone_slab	tfc:slab	tfc:rock/smooth/claystone	tfc:rock/smooth/claystone_slab	tfc:rock/smooth/claystone_slab	1
+rock/smooth/claystone_stairs	tfc:stair	tfc:rock/smooth/claystone	tfc:rock/smooth/claystone_stairs		0
+rock/smooth/conglomerate	tfc:smooth	tfc:rock/raw/conglomerate|tfc:rock/hardened/conglomerate	tfc:rock/smooth/conglomerate		0
+rock/smooth/conglomerate_slab	tfc:slab	tfc:rock/smooth/conglomerate	tfc:rock/smooth/conglomerate_slab	tfc:rock/smooth/conglomerate_slab	1
+rock/smooth/conglomerate_stairs	tfc:stair	tfc:rock/smooth/conglomerate	tfc:rock/smooth/conglomerate_stairs		0
+rock/smooth/dacite	tfc:smooth	tfc:rock/raw/dacite|tfc:rock/hardened/dacite	tfc:rock/smooth/dacite		0
+rock/smooth/dacite_slab	tfc:slab	tfc:rock/smooth/dacite	tfc:rock/smooth/dacite_slab	tfc:rock/smooth/dacite_slab	1
+rock/smooth/dacite_stairs	tfc:stair	tfc:rock/smooth/dacite	tfc:rock/smooth/dacite_stairs		0
+rock/smooth/diorite	tfc:smooth	tfc:rock/raw/diorite|tfc:rock/hardened/diorite	tfc:rock/smooth/diorite		0
+rock/smooth/diorite_slab	tfc:slab	tfc:rock/smooth/diorite	tfc:rock/smooth/diorite_slab	tfc:rock/smooth/diorite_slab	1
+rock/smooth/diorite_stairs	tfc:stair	tfc:rock/smooth/diorite	tfc:rock/smooth/diorite_stairs		0
+rock/smooth/dolomite	tfc:smooth	tfc:rock/raw/dolomite|tfc:rock/hardened/dolomite	tfc:rock/smooth/dolomite		0
+rock/smooth/dolomite_slab	tfc:slab	tfc:rock/smooth/dolomite	tfc:rock/smooth/dolomite_slab	tfc:rock/smooth/dolomite_slab	1
+rock/smooth/dolomite_stairs	tfc:stair	tfc:rock/smooth/dolomite	tfc:rock/smooth/dolomite_stairs		0
+rock/smooth/gabbro	tfc:smooth	tfc:rock/raw/gabbro|tfc:rock/hardened/gabbro	tfc:rock/smooth/gabbro		0
+rock/smooth/gabbro_slab	tfc:slab	tfc:rock/smooth/gabbro	tfc:rock/smooth/gabbro_slab	tfc:rock/smooth/gabbro_slab	1
+rock/smooth/gabbro_stairs	tfc:stair	tfc:rock/smooth/gabbro	tfc:rock/smooth/gabbro_stairs		0
+rock/smooth/gneiss	tfc:smooth	tfc:rock/raw/gneiss|tfc:rock/hardened/gneiss	tfc:rock/smooth/gneiss		0
+rock/smooth/gneiss_slab	tfc:slab	tfc:rock/smooth/gneiss	tfc:rock/smooth/gneiss_slab	tfc:rock/smooth/gneiss_slab	1
+rock/smooth/gneiss_stairs	tfc:stair	tfc:rock/smooth/gneiss	tfc:rock/smooth/gneiss_stairs		0
+rock/smooth/granite	tfc:smooth	tfc:rock/raw/granite|tfc:rock/hardened/granite	tfc:rock/smooth/granite		0
+rock/smooth/granite_slab	tfc:slab	tfc:rock/smooth/granite	tfc:rock/smooth/granite_slab	tfc:rock/smooth/granite_slab	1
+rock/smooth/granite_stairs	tfc:stair	tfc:rock/smooth/granite	tfc:rock/smooth/granite_stairs		0
+rock/smooth/limestone	tfc:smooth	tfc:rock/raw/limestone|tfc:rock/hardened/limestone	tfc:rock/smooth/limestone		0
+rock/smooth/limestone_slab	tfc:slab	tfc:rock/smooth/limestone	tfc:rock/smooth/limestone_slab	tfc:rock/smooth/limestone_slab	1
+rock/smooth/limestone_stairs	tfc:stair	tfc:rock/smooth/limestone	tfc:rock/smooth/limestone_stairs		0
+rock/smooth/marble	tfc:smooth	tfc:rock/raw/marble|tfc:rock/hardened/marble	tfc:rock/smooth/marble		0
+rock/smooth/marble_slab	tfc:slab	tfc:rock/smooth/marble	tfc:rock/smooth/marble_slab	tfc:rock/smooth/marble_slab	1
+rock/smooth/marble_stairs	tfc:stair	tfc:rock/smooth/marble	tfc:rock/smooth/marble_stairs		0
+rock/smooth/phyllite	tfc:smooth	tfc:rock/raw/phyllite|tfc:rock/hardened/phyllite	tfc:rock/smooth/phyllite		0
+rock/smooth/phyllite_slab	tfc:slab	tfc:rock/smooth/phyllite	tfc:rock/smooth/phyllite_slab	tfc:rock/smooth/phyllite_slab	1
+rock/smooth/phyllite_stairs	tfc:stair	tfc:rock/smooth/phyllite	tfc:rock/smooth/phyllite_stairs		0
+rock/smooth/quartzite	tfc:smooth	tfc:rock/raw/quartzite|tfc:rock/hardened/quartzite	tfc:rock/smooth/quartzite		0
+rock/smooth/quartzite_slab	tfc:slab	tfc:rock/smooth/quartzite	tfc:rock/smooth/quartzite_slab	tfc:rock/smooth/quartzite_slab	1
+rock/smooth/quartzite_stairs	tfc:stair	tfc:rock/smooth/quartzite	tfc:rock/smooth/quartzite_stairs		0
+rock/smooth/rhyolite	tfc:smooth	tfc:rock/raw/rhyolite|tfc:rock/hardened/rhyolite	tfc:rock/smooth/rhyolite		0
+rock/smooth/rhyolite_slab	tfc:slab	tfc:rock/smooth/rhyolite	tfc:rock/smooth/rhyolite_slab	tfc:rock/smooth/rhyolite_slab	1
+rock/smooth/rhyolite_stairs	tfc:stair	tfc:rock/smooth/rhyolite	tfc:rock/smooth/rhyolite_stairs		0
+rock/smooth/schist	tfc:smooth	tfc:rock/raw/schist|tfc:rock/hardened/schist	tfc:rock/smooth/schist		0
+rock/smooth/schist_slab	tfc:slab	tfc:rock/smooth/schist	tfc:rock/smooth/schist_slab	tfc:rock/smooth/schist_slab	1
+rock/smooth/schist_stairs	tfc:stair	tfc:rock/smooth/schist	tfc:rock/smooth/schist_stairs		0
+rock/smooth/shale	tfc:smooth	tfc:rock/raw/shale|tfc:rock/hardened/shale	tfc:rock/smooth/shale		0
+rock/smooth/shale_slab	tfc:slab	tfc:rock/smooth/shale	tfc:rock/smooth/shale_slab	tfc:rock/smooth/shale_slab	1
+rock/smooth/shale_stairs	tfc:stair	tfc:rock/smooth/shale	tfc:rock/smooth/shale_stairs		0
+rock/smooth/slate	tfc:smooth	tfc:rock/raw/slate|tfc:rock/hardened/slate	tfc:rock/smooth/slate		0
+rock/smooth/slate_slab	tfc:slab	tfc:rock/smooth/slate	tfc:rock/smooth/slate_slab	tfc:rock/smooth/slate_slab	1
+rock/smooth/slate_stairs	tfc:stair	tfc:rock/smooth/slate	tfc:rock/smooth/slate_stairs		0
+rock/smooth/tuff	tfc:smooth	tfc:rock/raw/tuff|tfc:rock/hardened/tuff	tfc:rock/smooth/tuff		0
+rock/smooth/tuff_slab	tfc:slab	tfc:rock/smooth/tuff	tfc:rock/smooth/tuff_slab	tfc:rock/smooth/tuff_slab	1
+rock/smooth/tuff_stairs	tfc:stair	tfc:rock/smooth/tuff	tfc:rock/smooth/tuff_stairs		0
+smooth_sandstone/black	tfc:smooth	tfc:raw_sandstone/black	tfc:smooth_sandstone/black		0
+smooth_sandstone/black_slab	tfc:slab	tfc:smooth_sandstone/black	tfc:smooth_sandstone/black_slab	tfc:smooth_sandstone/black_slab	1
+smooth_sandstone/black_stairs	tfc:stair	tfc:smooth_sandstone/black	tfc:smooth_sandstone/black_stairs		0
+smooth_sandstone/brown	tfc:smooth	tfc:raw_sandstone/brown	tfc:smooth_sandstone/brown		0
+smooth_sandstone/brown_slab	tfc:slab	tfc:smooth_sandstone/brown	tfc:smooth_sandstone/brown_slab	tfc:smooth_sandstone/brown_slab	1
+smooth_sandstone/brown_stairs	tfc:stair	tfc:smooth_sandstone/brown	tfc:smooth_sandstone/brown_stairs		0
+smooth_sandstone/green	tfc:smooth	tfc:raw_sandstone/green	tfc:smooth_sandstone/green		0
+smooth_sandstone/green_slab	tfc:slab	tfc:smooth_sandstone/green	tfc:smooth_sandstone/green_slab	tfc:smooth_sandstone/green_slab	1
+smooth_sandstone/green_stairs	tfc:stair	tfc:smooth_sandstone/green	tfc:smooth_sandstone/green_stairs		0
+smooth_sandstone/pink	tfc:smooth	tfc:raw_sandstone/pink	tfc:smooth_sandstone/pink		0
+smooth_sandstone/pink_slab	tfc:slab	tfc:smooth_sandstone/pink	tfc:smooth_sandstone/pink_slab	tfc:smooth_sandstone/pink_slab	1
+smooth_sandstone/pink_stairs	tfc:stair	tfc:smooth_sandstone/pink	tfc:smooth_sandstone/pink_stairs		0
+smooth_sandstone/red	tfc:smooth	tfc:raw_sandstone/red	tfc:smooth_sandstone/red		0
+smooth_sandstone/red_slab	tfc:slab	tfc:smooth_sandstone/red	tfc:smooth_sandstone/red_slab	tfc:smooth_sandstone/red_slab	1
+smooth_sandstone/red_stairs	tfc:stair	tfc:smooth_sandstone/red	tfc:smooth_sandstone/red_stairs		0
+smooth_sandstone/white	tfc:smooth	tfc:raw_sandstone/white	tfc:smooth_sandstone/white		0
+smooth_sandstone/white_slab	tfc:slab	tfc:smooth_sandstone/white	tfc:smooth_sandstone/white_slab	tfc:smooth_sandstone/white_slab	1
+smooth_sandstone/white_stairs	tfc:stair	tfc:smooth_sandstone/white	tfc:smooth_sandstone/white_stairs		0
+smooth_sandstone/yellow	tfc:smooth	tfc:raw_sandstone/yellow	tfc:smooth_sandstone/yellow		0
+smooth_sandstone/yellow_slab	tfc:slab	tfc:smooth_sandstone/yellow	tfc:smooth_sandstone/yellow_slab	tfc:smooth_sandstone/yellow_slab	1
+smooth_sandstone/yellow_stairs	tfc:stair	tfc:smooth_sandstone/yellow	tfc:smooth_sandstone/yellow_stairs		0
+wood/planks/acacia_slab	tfc:slab	tfc:wood/planks/acacia	tfc:wood/planks/acacia_slab	tfc:wood/planks/acacia_slab	1
+wood/planks/acacia_stairs	tfc:stair	tfc:wood/planks/acacia	tfc:wood/planks/acacia_stairs		0
+wood/planks/ash_slab	tfc:slab	tfc:wood/planks/ash	tfc:wood/planks/ash_slab	tfc:wood/planks/ash_slab	1
+wood/planks/ash_stairs	tfc:stair	tfc:wood/planks/ash	tfc:wood/planks/ash_stairs		0
+wood/planks/aspen_slab	tfc:slab	tfc:wood/planks/aspen	tfc:wood/planks/aspen_slab	tfc:wood/planks/aspen_slab	1
+wood/planks/aspen_stairs	tfc:stair	tfc:wood/planks/aspen	tfc:wood/planks/aspen_stairs		0
+wood/planks/birch_slab	tfc:slab	tfc:wood/planks/birch	tfc:wood/planks/birch_slab	tfc:wood/planks/birch_slab	1
+wood/planks/birch_stairs	tfc:stair	tfc:wood/planks/birch	tfc:wood/planks/birch_stairs		0
+wood/planks/blackwood_slab	tfc:slab	tfc:wood/planks/blackwood	tfc:wood/planks/blackwood_slab	tfc:wood/planks/blackwood_slab	1
+wood/planks/blackwood_stairs	tfc:stair	tfc:wood/planks/blackwood	tfc:wood/planks/blackwood_stairs		0
+wood/planks/chestnut_slab	tfc:slab	tfc:wood/planks/chestnut	tfc:wood/planks/chestnut_slab	tfc:wood/planks/chestnut_slab	1
+wood/planks/chestnut_stairs	tfc:stair	tfc:wood/planks/chestnut	tfc:wood/planks/chestnut_stairs		0
+wood/planks/douglas_fir_slab	tfc:slab	tfc:wood/planks/douglas_fir	tfc:wood/planks/douglas_fir_slab	tfc:wood/planks/douglas_fir_slab	1
+wood/planks/douglas_fir_stairs	tfc:stair	tfc:wood/planks/douglas_fir	tfc:wood/planks/douglas_fir_stairs		0
+wood/planks/hickory_slab	tfc:slab	tfc:wood/planks/hickory	tfc:wood/planks/hickory_slab	tfc:wood/planks/hickory_slab	1
+wood/planks/hickory_stairs	tfc:stair	tfc:wood/planks/hickory	tfc:wood/planks/hickory_stairs		0
+wood/planks/kapok_slab	tfc:slab	tfc:wood/planks/kapok	tfc:wood/planks/kapok_slab	tfc:wood/planks/kapok_slab	1
+wood/planks/kapok_stairs	tfc:stair	tfc:wood/planks/kapok	tfc:wood/planks/kapok_stairs		0
+wood/planks/mangrove_slab	tfc:slab	tfc:wood/planks/mangrove	tfc:wood/planks/mangrove_slab	tfc:wood/planks/mangrove_slab	1
+wood/planks/mangrove_stairs	tfc:stair	tfc:wood/planks/mangrove	tfc:wood/planks/mangrove_stairs		0
+wood/planks/maple_slab	tfc:slab	tfc:wood/planks/maple	tfc:wood/planks/maple_slab	tfc:wood/planks/maple_slab	1
+wood/planks/maple_stairs	tfc:stair	tfc:wood/planks/maple	tfc:wood/planks/maple_stairs		0
+wood/planks/oak_slab	tfc:slab	tfc:wood/planks/oak	tfc:wood/planks/oak_slab	tfc:wood/planks/oak_slab	1
+wood/planks/oak_stairs	tfc:stair	tfc:wood/planks/oak	tfc:wood/planks/oak_stairs		0
+wood/planks/palm_slab	tfc:slab	tfc:wood/planks/palm	tfc:wood/planks/palm_slab	tfc:wood/planks/palm_slab	1
+wood/planks/palm_stairs	tfc:stair	tfc:wood/planks/palm	tfc:wood/planks/palm_stairs		0
+wood/planks/pine_slab	tfc:slab	tfc:wood/planks/pine	tfc:wood/planks/pine_slab	tfc:wood/planks/pine_slab	1
+wood/planks/pine_stairs	tfc:stair	tfc:wood/planks/pine	tfc:wood/planks/pine_stairs		0
+wood/planks/rosewood_slab	tfc:slab	tfc:wood/planks/rosewood	tfc:wood/planks/rosewood_slab	tfc:wood/planks/rosewood_slab	1
+wood/planks/rosewood_stairs	tfc:stair	tfc:wood/planks/rosewood	tfc:wood/planks/rosewood_stairs		0
+wood/planks/sequoia_slab	tfc:slab	tfc:wood/planks/sequoia	tfc:wood/planks/sequoia_slab	tfc:wood/planks/sequoia_slab	1
+wood/planks/sequoia_stairs	tfc:stair	tfc:wood/planks/sequoia	tfc:wood/planks/sequoia_stairs		0
+wood/planks/spruce_slab	tfc:slab	tfc:wood/planks/spruce	tfc:wood/planks/spruce_slab	tfc:wood/planks/spruce_slab	1
+wood/planks/spruce_stairs	tfc:stair	tfc:wood/planks/spruce	tfc:wood/planks/spruce_stairs		0
+wood/planks/sycamore_slab	tfc:slab	tfc:wood/planks/sycamore	tfc:wood/planks/sycamore_slab	tfc:wood/planks/sycamore_slab	1
+wood/planks/sycamore_stairs	tfc:stair	tfc:wood/planks/sycamore	tfc:wood/planks/sycamore_stairs		0
+wood/planks/white_cedar_slab	tfc:slab	tfc:wood/planks/white_cedar	tfc:wood/planks/white_cedar_slab	tfc:wood/planks/white_cedar_slab	1
+wood/planks/white_cedar_stairs	tfc:stair	tfc:wood/planks/white_cedar	tfc:wood/planks/white_cedar_stairs		0
+wood/planks/willow_slab	tfc:slab	tfc:wood/planks/willow	tfc:wood/planks/willow_slab	tfc:wood/planks/willow_slab	1
+wood/planks/willow_stairs	tfc:stair	tfc:wood/planks/willow	tfc:wood/planks/willow_stairs		0
