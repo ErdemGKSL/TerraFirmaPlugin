@@ -199,7 +199,8 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
 
 ## Panning & sluice
 
-- [ ] **M3-PAN-01 Panning & sluice** · deps: M2-GEN-11
+- [~] **M3-PAN-01 Panning & sluice** · deps: M2-GEN-11
+  - Status (@claude): in progress. Done (rules, `core/pan/`): `PanRules` (start in main hand and infinite water, loot only with a deposit, empty-pan fill, 120-tick use, 16-tick sound), `SluiceRules` (representative state, countdown that moves only when BOTH, first-filled-slot production, first-hole soil intake, 32 slots). Tests: `PanRulesTest`, `SluiceRulesTest`. Open: the deposit loot tables (datagen), the sluice block, pan and sluice CE visuals, the Paper glue (per-tick driver, gather every 20 ticks, loot roll and spawn), the lazy catch-up for a sluice and the pan stage visuals (not yet checked against TFC models).
   - TFC: `common/items/PanItem.java`, `EmptyPanItem.java`, `common/blocks/devices/SluiceBlock.java`, data `deposit/`
   - Do: pan stages via item model data, loot tables per deposit, sluice processing.
   - Done when: loot golden tests; visual stage check.
