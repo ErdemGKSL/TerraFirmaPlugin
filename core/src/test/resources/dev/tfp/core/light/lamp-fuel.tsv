@@ -1,0 +1,9 @@
+fluid	lamps	burn_rate	mb	duration_ticks
+minecraft:lava	tfc:metal/lamp/blue_steel,tfc:metal/lamp/red_steel	-1	1	never
+minecraft:lava	tfc:metal/lamp/blue_steel,tfc:metal/lamp/red_steel	-1	250	never
+tfc:canola_oil	#tfc:lamps	6000	1	6000
+tfc:canola_oil	#tfc:lamps	6000	250	1500000
+tfc:olive_oil	#tfc:lamps	7200	1	7200
+tfc:olive_oil	#tfc:lamps	7200	250	1800000
+tfc:tallow	#tfc:lamps	2400	1	2400
+tfc:tallow	#tfc:lamps	2400	250	600000

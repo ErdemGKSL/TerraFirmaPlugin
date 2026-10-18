@@ -68,9 +68,10 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
   - Do: modes cycled via a vanilla trigger (sneak + swap-hand key), smoothing/stairs/slabs conversions.
   - Done when: all 513 chisel recipes.
 
-- [ ] **M4-WEATH-01 Metal weathering & lamps** · deps: M4-MET-01, M2-CAL-01
+- [~] **M4-WEATH-01 Metal weathering & lamps** · deps: M4-MET-01, M2-CAL-01
   - TFC: `common/blocks/Weathering*.java`, `common/blockentities/LampBlockEntity.java`, data `lamp_fuel/`
   - Done when: lazy weathering test; lamp fuel burn golden test.
+  - Status (@claude): in progress. Done (rules, `core/weathering/WeatheringRules`): the gate, age modifier and stage chance, the random tick rate, and `catchUp` (lazy stage walk with exponential waits over the elapsed calendar ticks, the drip and climate chance held as `extraChance`). Tests: `WeatheringLazyTest` (10 tests: TFC formulas, all metals via `Metal`, golden median for copper, monotone and absorbing properties), `WeatheringLazyVsSteppedTest` (TFC's per-random-tick draw order against `catchUp` over 3 configs, 20,000 samples each). Lamps: the burn rule was already in `core/light/LampRules` (M3-HEAT-04); added `LampFuelTsvGoldenTest` on `light/lamp-fuel.tsv` (8 rows exported from TFC's `lamp_fuel/` at c3b4d9536: 4 fuels x 1 and 250 mB). Open: the Paper weathering glue and the lazy catch-up trigger (chunk load or interaction, the neighbour and climate samples), the CE weathering block states, the lamp block and visuals, the lamp GUI if any.
 
 ## Exit criteria
 The metal-run self-test passes on all targets. Anvil/forge/crucible GUIs pass the visual checklist. Ledger rows `playable`.
