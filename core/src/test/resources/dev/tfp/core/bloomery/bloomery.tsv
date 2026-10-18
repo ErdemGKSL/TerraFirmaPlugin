@@ -1,0 +1,2 @@
+id	fluid	fluid_amount	catalyst	catalyst_count	result	duration_ticks	result_melt_temperature
+tfc:raw_iron_bloom	tfc:metal/cast_iron	100	minecraft:charcoal	2	tfc:raw_iron_bloom	14400	1535.0
