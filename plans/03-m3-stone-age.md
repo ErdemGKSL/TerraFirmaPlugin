@@ -192,7 +192,8 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
   - Do: the outside-click trigger → textured GUI with calendar, nutrition and climate pages (title glyph overlays for the bars).
   - Done when: GUI alignment checklist; works on both versions.
 
-- [ ] **M3-GUI-02 Workbench & crafting interception** · deps: M1-REG-02
+- [~] **M3-GUI-02 Workbench & crafting interception** · deps: M1-REG-02
+  - Status (@claude): in progress. Done (rules, `core/craft/AdvancedCraftRules`): the primary-input choice (first matching slot), the output from one copy of the primary, and the remainders (every slot holding the primary item gets the provider, others keep vanilla). Test: `AdvancedCraftRulesTest`. Open: the 2912 crafting recipe count, the generated CE YAML for plain recipes, the `PrepareItemCraftEvent` interception, the vanilla recipe leakage test and the workbench GUI.
   - TFC: `common/recipes/AdvancedShapedRecipe.java`, `common/recipes/AdvancedShapelessRecipe.java`, `common/container/TFCWorkbenchContainer.java`, recipes `crafting/`
   - Do: plain recipes as generated CE YAML; advanced ones (ingredient predicates, output modifiers, tool damage) via `PrepareItemCraftEvent` interception; block vanilla recipe leakage of CE items.
   - Done when: all 2912 crafting recipes resolvable; leakage test.
