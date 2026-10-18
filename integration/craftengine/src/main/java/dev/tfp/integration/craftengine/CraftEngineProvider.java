@@ -20,6 +20,9 @@ public final class CraftEngineProvider implements IntegrationProvider {
 
     @Override
     public Integration create(IntegrationContext context) {
-        return new CraftEngineIntegration(context, new CraftEngineBehaviours());
+        CraftEngineBehaviours behaviours = new CraftEngineBehaviours()
+                // M3-SURV-01: dates food items on every CraftEngine build (give, loot, recipe result).
+                .itemProcessor(FoodStampProcessor.PATH, FoodStampProcessor.factory(context.clock()));
+        return new CraftEngineIntegration(context, behaviours);
     }
 }

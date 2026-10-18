@@ -115,7 +115,7 @@ public final class CraftEngineIntegration implements Integration, BlockVisuals, 
     @Override
     public void onLoad() {
         int n = behaviours.registerAll();
-        ctx.logger().info("CraftEngine: registered " + n + " block behaviour(s)");
+        ctx.logger().info("CraftEngine: registered " + n + " block behaviour(s) and item processor(s)");
     }
 
     @Override

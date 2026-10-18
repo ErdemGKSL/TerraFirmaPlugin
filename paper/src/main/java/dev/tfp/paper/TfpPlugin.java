@@ -10,6 +10,7 @@ import dev.tfp.core.climate.ClimateFormat;
 import dev.tfp.core.climate.ClimateReading;
 import dev.tfp.core.calendar.TimeCommand;
 import dev.tfp.core.clock.GlobalClockHolder;
+import dev.tfp.core.food.FoodConfig;
 import dev.tfp.core.compat.CompatGate;
 import dev.tfp.core.compat.Version;
 import dev.tfp.core.install.InstallStatus;
@@ -54,6 +55,8 @@ import dev.tfp.paper.packet.SeasonalBiomeHandler;
 import dev.tfp.paper.player.PlayerData;
 import dev.tfp.paper.player.PlayerDataFiles;
 import dev.tfp.paper.player.PlayerDataListener;
+import dev.tfp.paper.food.FoodMergeListener;
+import dev.tfp.paper.food.ItemFoodHooks;
 import dev.tfp.paper.player.PlayerDataStore;
 import dev.tfp.paper.ready.ReadyGate;
 import dev.tfp.paper.ready.ReadyGate.Signal;
@@ -137,6 +140,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     /** M2-CAL-01: the published clock (lock-free reads anywhere) and the service that advances it. */
     private final GlobalClockHolder clock = new GlobalClockHolder();
     private volatile CalendarService calendar;
+    /** M3-SURV-01: food queries (stage, tooltip line, stack rule) at the current player tick. */
+    private volatile ItemFoodHooks food;
     /** M2-CLIM-03: the player's ambient temperature for the HUD, and the reading for {@code /tfp debug chunk}. */
     private volatile PlayerClimateService climate;
     /** M2-WTH-01: what falls at the player's position (rain or snow), for {@code /tfp debug chunk}. */
@@ -410,6 +415,12 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         calendar = cal;
         cal.start(scheduler);
 
+        // M3-SURV-01: TFC's food stack rule in inventory clicks, pickups and hopper moves (lazy: dates in player ticks).
+        ItemFoodHooks foodHooks = new ItemFoodHooks(() -> clock.get().playerTicks(), FoodConfig.DEFAULT,
+                ItemFoodHooks.DecayModifiers.UNIT);
+        food = foodHooks;
+        getServer().getPluginManager().registerEvents(new FoodMergeListener(foodHooks), this);
+
         // M2-CLIM-03: the player's ambient temperature, throttled on the global thread and computed off-thread.
         PlayerClimateService playerClimate = new PlayerClimateService(clock, scheduler, hudCache);
         climate = playerClimate;
@@ -514,6 +525,11 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     /** M2-CAL-01: the global clock; take one snapshot per operation. */
     public GlobalClockHolder clock() {
         return clock;
+    }
+
+    /** M3-SURV-01: the food queries (null until enabled). */
+    public ItemFoodHooks food() {
+        return food;
     }
 
     /** M2-CAL-01: the calendar service (null until enabled). */
