@@ -15,3 +15,7 @@ Her madde kullanıcı tarafından istendi ya da bu oturumda doğrulamada ortaya 
 - [ ] **M2-WTH-03 kalan.** Deniz buzu gerçek iklimle; CraftEngine kar yığını blokları.
 - [ ] **Kurulum yeniden başlatma akışı.** İlk başlatma düzeltildi (5ded3fe); doğrulandı.
 - [ ] **M3–M6 ve çapraz konular.** Hiç başlanmadı.
+
+## Sunucu kontrolü: sonbahar tonu (açık, bulgu)
+
+- [ ] Sonbahar çimen tonu sunucuda ölçülemedi. Denenen sitelerde (0,0; -220,-1200) Ekim–Kasımda, hatta Eylül'de bile kar çimenin üstünde. Test dünyası genel olarak çok soğuk görünüyor (Eylül'de -14 °C, ortalama -15.8 °C); bu, iklim modelinin ya da kar kuralının fazla soğuk veya fazla agresif olabileceğini gösteriyor. Yapılacak: iklim değerlerinin TFC'deki ortalamalarla karşılaştırılması ve yıllık ortalamanın makul olup olmadığının kontrolü; ardından kar örtüsü olmayan bir sitede renk ölçümü.
