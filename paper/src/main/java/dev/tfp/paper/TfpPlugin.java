@@ -61,6 +61,7 @@ import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ServerScheduler;
 import dev.tfp.paper.suppression.SuppressionListener;
 import dev.tfp.paper.worldgen.TfcChunkGenerator;
+import dev.tfp.paper.worldgen.TfcFirstJoinSpawn;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -387,6 +388,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             }
         });
         getServer().getPluginManager().registerEvents(new PlayerDataListener(store, messages, getLogger()), this);
+        // M2-GEN-16: first-joining players start on the TFC spawn (no optional dependency; the generator decides the world).
+        getServer().getPluginManager().registerEvents(new TfcFirstJoinSpawn(), this);
         scheduler.globalRepeating(AUTOSAVE_TICKS, AUTOSAVE_TICKS, () -> {
             Set<UUID> online = new HashSet<>();
             for (Player p : getServer().getOnlinePlayers()) {

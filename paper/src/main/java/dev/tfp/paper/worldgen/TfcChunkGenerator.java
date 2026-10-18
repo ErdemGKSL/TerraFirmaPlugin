@@ -154,6 +154,28 @@ public final class TfcChunkGenerator extends ChunkGenerator {
     }
 
     /**
+     * The TFC spawn of a world this generator fills, for listeners that place players (first join). Empty when no column of
+     * the search is dry land. Thread-safe: the spawn is searched once under the build lock and then cached.
+     */
+    public Optional<Location> tfcSpawnLocation(World world) {
+        final SpawnSearch.Spawn spawn = spawn(world);
+        return spawn == null ? Optional.empty() : Optional.of(TfcSpawn.location(world, spawn));
+    }
+
+    /**
+     * The TFC spawn of {@code world} if it is already cached, without searching: empty when the spawn is not searched yet or
+     * when no column of the search was dry land. Never touches the world (no search, no {@code setSpawnLocation}), so it is safe
+     * on any thread, including the async player-spawn event. The cache is {@code volatile}: a single read, no lock.
+     */
+    public Optional<Location> tfcSpawnLocationIfCached(World world) {
+        final Optional<SpawnSearch.Spawn> found = spawn;
+        if (found == null || found.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(TfcSpawn.location(world, found.get()));
+    }
+
+    /**
      * Never throws (see the class comment): a chunk whose palette is refused gets no blocks, and a failure while filling
      * clears the chunk back to air, so neither ends as vanilla stone nor as a chunk-system error.
      */
