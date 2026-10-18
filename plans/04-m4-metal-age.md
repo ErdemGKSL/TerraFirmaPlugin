@@ -14,9 +14,10 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
   - TFC: `util/AlloyRange.java`, `util/FluidAlloy.java`, recipes `alloy/`
   - Done when: golden alloy-ratio tests for all 9 alloys.
 
-- [ ] **M4-MET-03 Casting** · deps: M4-MET-02
+- [~] **M4-MET-03 Casting** · deps: M4-MET-02
   - TFC: `common/recipes/CastingRecipe.java`, `CastingCraftingRecipe.java`, recipes `casting/`
   - Done when: all 111 casting recipes; mold break chance as in TFC.
+  - Status (@claude): in progress. Done (rules, `core/casting/`): `CastingRecipe` (record: mold, fluid, amount, result, count, break chance with TFC's default 1), `CastingRules` (match, first-match lookup, output, use-break and craft-keep decisions with the roll injected). Tests: `CastingRulesTest` (12 tests), golden on all 111 recipes (`casting-recipes.tsv` exported from TFC's `recipe/casting/` at c3b4d9536; verified 111 JSON files, 55 at chance 1, 28 at 0.01, 28 at 0.1). Open: the Paper casting block and mold glue, the CE items, the mold break visuals, the GUI.
 
 - [~] **M4-ANV-01 Forging rules** · deps: M1-REG-02 · skills: tfc-feature-porting
   - TFC: `common/component/forge/` (`ForgeRule`, `ForgeStep`, `ForgeSteps`, `Forging`, `ForgingBonus`); test `ForgeRuleTest`
