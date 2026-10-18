@@ -148,9 +148,11 @@ class SeasonalBiomeRemapTest {
     }
 
     @Test
-    void lateAutumnHasItsOwnColourInADrySeasonClimate() {
-        // A temperate chunk whose rainfall drops through the autumn: October and November fall in different bands,
-        // so late autumn is no longer October's colour (with one sample per season both were October's).
+    void dryAutumnStaysYellowThroughLateAutumn() {
+        // A temperate chunk (15 C) whose rainfall falls through the autumn: October (about 134 mm) and November (about
+        // 105 mm) both fall in the 75 to 150 mm rainfall band, so late autumn keeps October's band. That band's colour
+        // is the yellow of the colormap at its centre (#ead159 at 12 C), where the even bands gave dark green. The
+        // variant is t1r2 in all four months (February and March too: 105 and 135 mm).
         ChunkClimate dryAutumn = new ChunkClimate(LATE_AUTUMN_TEMPERATURE, LATE_AUTUMN_RAINFALL, LATE_AUTUMN_VARIANCE, 0f);
         SeasonalBiomeRemap.Terrain terrain = new SeasonalBiomeRemap.Terrain() {
             @Override
@@ -163,15 +165,10 @@ class SeasonalBiomeRemapTest {
                 return (x, z) -> dryAutumn;
             }
         };
-        int october = SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, 0, 70, LATE_AUTUMN_Z, Month.OCTOBER, DAYS);
-        int november = SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, 0, 70, LATE_AUTUMN_Z, Month.NOVEMBER, DAYS);
-        assertThat(november).isNotEqualTo(october);
-        // October is t1r2 (olive green), November t1r3: the dry row of the colormap, TFC's orange-yellow grass (#fbd459)
-        assertThat(SeasonalBiomeRemap.variantIdOf(october)).isEqualTo("tfp:seasonal/plains/t1r2");
-        assertThat(SeasonalBiomeRemap.variantIdOf(november)).isEqualTo("tfp:seasonal/plains/t1r3");
-        // late winter and early spring differ too (February t1r3, March t1r2)
-        assertThat(SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, 0, 70, LATE_AUTUMN_Z, Month.FEBRUARY, DAYS))
-            .isNotEqualTo(SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, 0, 70, LATE_AUTUMN_Z, Month.MARCH, DAYS));
+        for (Month month : new Month[] {Month.OCTOBER, Month.NOVEMBER, Month.FEBRUARY, Month.MARCH}) {
+            int variant = SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, 0, 70, LATE_AUTUMN_Z, month, DAYS);
+            assertThat(SeasonalBiomeRemap.variantIdOf(variant)).as(month.name()).isEqualTo("tfp:seasonal/plains/t1r2");
+        }
     }
 
     @Test

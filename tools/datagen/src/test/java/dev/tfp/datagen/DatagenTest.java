@@ -7,6 +7,7 @@ package dev.tfp.datagen;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -114,15 +115,30 @@ class DatagenTest {
     }
 
     @Test
+    void dryColdChunkIsOliveYellowInTfcsGrassColormap() throws IOException {
+        // -6 C and 130 mm (the band lands in rainfall band 2): the real TFC grass colormap at the band's centre is
+        // olive-yellow, not the dark green the even bands gave. Needs the pinned TFC checkout (skipped without it).
+        Path png = Path.of(System.getProperty("tfc.checkout", "/opt/tfc")).resolve(TfcCheckout.ASSETS + "textures/colormap/grass.png");
+        assumeTrue(Files.exists(png), "no TFC checkout with the grass colormap at " + png);
+        BufferedImage grass = ImageIO.read(png.toFile());
+        int band = SeasonalColour.band(-6f, 130f);
+        int colour = SeasonalBiomes.colourAt(grass, SeasonalColour.centreTemperatureIndex(band),
+            SeasonalColour.centreRainfallIndex(band));
+        int red = (colour >> 16) & 0xFF;
+        int blue = colour & 0xFF;
+        assertThat(red - blue).as("grass colour %06x of band %d", colour, band).isGreaterThan(40);
+    }
+
+    @Test
     void seasonalBiomesAreOneVariantPerBiomeAndBandWithColormapColours() throws IOException {
         SortedMap<String, byte[]> files = run().tree().files();
         String base = "datapack/tfp_seasonal_biomes/data/tfp/worldgen/biome/seasonal/plains/";
         assertThat(files.keySet().stream().filter(p -> p.startsWith(base))).hasSize(SeasonalColour.BAND_COUNT);
         assertThat(text(files, "datapack/tfp_seasonal_biomes/pack.mcmeta")).contains("\"pack_format\": 61");
 
-        // band t2r3 is centred on temperature index 160 (x) and groundwater index 224 (y) of the fixture colormap
+        // band t2r3 is centred on temperature index 160 (x) and groundwater index 236 (y) of the fixture colormap
         JsonObject v = JsonParser.parseString(text(files, base + "t2r3.json")).getAsJsonObject();
-        int colour = (160 << 16) | (224 << 8) | 0x40;
+        int colour = (160 << 16) | (236 << 8) | 0x40;
         JsonObject e = v.getAsJsonObject("effects");
         assertThat(e.get("grass_color").getAsInt()).isEqualTo(colour);
         assertThat(e.get("foliage_color").getAsInt()).isEqualTo(colour);
