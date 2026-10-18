@@ -40,3 +40,5 @@ Her madde kullanıcı tarafından istendi ya da bu oturumda doğrulamada ortaya 
 
 - [x] Yağmur hipotezi doğrulandı: hava döngüsü kapalıyken (`advance_weather false`) yağmur çizgisi yok; ölçüm temiz.
 - [ ] Temiz ölçüm sonucu (batı sitesi, yağış 100–130 mm, ortalama 4.3 °C): Eylül altın-zeytin (R−B 91), Ekim zeytin-sarı (R−B 79), Kasım koyu yeşil (R−B 6, sıcaklık −6 °C). Yani kuru sonbaharda turuncu değil, Kasım'da yeşile dönüyor. Bu, renk modelinin sıcaklıkla yeşile kaydığını ve geç sonbahar tonunun TFC ile uyuşmadığını gösteriyor olabilir. Sonraki adım: TFC'nin grass colormap indeksini (sıcaklık/yağış) bizim eşlememizle karşılaştırmak; hangi sıcaklıkta hangi renge gittiğini doğrulamak.
+
+- [x] Yeni bantların sunucu kontrolü (batı sitesi, hava kapalı): Kasım yağış 118 mm, −1.6 °C, renk zeytin-yeşil/zeytin-sarı (R−B 46, önceki koyu yeşil 6'ya karşı). Eylül altın-zeytin (R−B 81). Fark belirgin ama Kasım'ın turuncu-sarı marjı dar; önceki koyu yeşil ölçümü bu koşulda tekrarlanmadı. Kalan: Kasım'ın oyun içi görsel onayı ve 150–186 mm arası yeşil bantlar.
