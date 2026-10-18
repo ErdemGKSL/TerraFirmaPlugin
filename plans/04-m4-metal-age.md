@@ -9,7 +9,8 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
   - Do: 27 metals with tiers; generated CE items for ingots, double ingots, sheets, double sheets, rods, tool heads, tools, armor parts and armor (~60 per metal). Metal blocks use `entity_renderer` (decided).
   - Done when: all metal items load; tooltips show heat; showcase.
 
-- [ ] **M4-MET-02 Alloying** · deps: M4-MET-01, M3-POT-02
+- [~] **M4-MET-02 Alloying** · deps: M4-MET-01, M3-POT-02
+  - Status (@claude): in progress. Done (rules, `core/alloy/`): `AlloyRange`, `AlloyRecipe`, `FluidAlloy` (immutable fill with capacity, proportional drain, epsilon-filtered contents, result by first matching recipe or unknown, matching with the result-removal rule). Test: `FluidAlloyTest`, golden on all 9 TFC alloys (`alloy-recipes.tsv` exported from TFC's `recipe/alloy/` at c3b4d9536). Open: the Paper fluid glue, the alloy recipes as CE/Paper data and the alloy GUI or display.
   - TFC: `util/AlloyRange.java`, `util/FluidAlloy.java`, recipes `alloy/`
   - Done when: golden alloy-ratio tests for all 9 alloys.
 
@@ -17,9 +18,10 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
   - TFC: `common/recipes/CastingRecipe.java`, `CastingCraftingRecipe.java`, recipes `casting/`
   - Done when: all 111 casting recipes; mold break chance as in TFC.
 
-- [ ] **M4-ANV-01 Forging rules** · deps: M1-REG-02 · skills: tfc-feature-porting
+- [~] **M4-ANV-01 Forging rules** · deps: M1-REG-02 · skills: tfc-feature-porting
   - TFC: `common/component/forge/` (`ForgeRule`, `ForgeStep`, `ForgeSteps`, `Forging`, `ForgingBonus`); test `ForgeRuleTest`
   - Done when: `ForgeRuleTest` ported and green.
+  - Status: core `dev.tfp.core.forge` ports `ForgeStep`, `ForgeRule`, `ForgeSteps` (incl. matching from `Forging`) and `ForgingBonus` (thresholds and multipliers as parameters); test `ForgeRuleTest` (3 tests) green. Open: anvil block, forging GUI, golden forging sequences, welding, Paper glue for config values.
 
 - [ ] **M4-ANV-02 Anvil block & GUI** · deps: M4-ANV-01, M3-HEAT-01 · skills: craftengine-gui-furniture, craftengine-java-api
   - TFC: `common/blockentities/AnvilBlockEntity.java`, `common/container/{Anvil,AnvilPlan}Container.java`, `network/SelectAnvilPlanPacket.java`, `common/blocks/devices/AnvilBlock.java`, `common/blocks/rock/RockAnvilBlock.java`, textures `gui/anvil*.png`

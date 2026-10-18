@@ -1,0 +1,9 @@
+tfc:metal/bismuth_bronze	tfc:metal/zinc|0.2|0.3	tfc:metal/copper|0.5|0.65	tfc:metal/bismuth|0.1|0.2
+tfc:metal/black_bronze	tfc:metal/copper|0.5|0.7	tfc:metal/silver|0.1|0.25	tfc:metal/gold|0.1|0.25
+tfc:metal/brass	tfc:metal/copper|0.88|0.92	tfc:metal/zinc|0.08|0.12
+tfc:metal/bronze	tfc:metal/copper|0.88|0.92	tfc:metal/tin|0.08|0.12
+tfc:metal/rose_gold	tfc:metal/copper|0.15|0.3	tfc:metal/gold|0.7|0.85
+tfc:metal/sterling_silver	tfc:metal/copper|0.2|0.4	tfc:metal/silver|0.6|0.8
+tfc:metal/weak_blue_steel	tfc:metal/black_steel|0.5|0.55	tfc:metal/steel|0.2|0.25	tfc:metal/bismuth_bronze|0.1|0.15	tfc:metal/sterling_silver|0.1|0.15
+tfc:metal/weak_red_steel	tfc:metal/black_steel|0.5|0.55	tfc:metal/steel|0.2|0.25	tfc:metal/brass|0.1|0.15	tfc:metal/rose_gold|0.1|0.15
+tfc:metal/weak_steel	tfc:metal/steel|0.5|0.7	tfc:metal/nickel|0.15|0.25	tfc:metal/black_bronze|0.15|0.25
