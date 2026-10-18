@@ -137,10 +137,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
 
 ## Processing
 
-- [ ] **M3-PROC-01 Quern** · deps: M1-SVC-01 · skills: craftengine-gui-furniture
+- [~] **M3-PROC-01 Quern** · deps: M1-SVC-01 · skills: craftengine-gui-furniture
   - TFC: `common/blockentities/QuernBlockEntity.java`, recipes `quern/`
   - Do: handstone interaction; spinning visual (`better_model` element or interpolated element per M0); grinding recipes.
   - Done when: all 89 quern recipes work; visual checklist.
+  - Status (c3b4d9536): pure rules ported and golden-tested in `core/.../core/quern/` (`QuernRecipe`, `QuernRules`: progress as a lazy function of turns, 90 units per turn, manual 1 per tick; `find` (first by id), `canStart`); all 89 `quern/` recipes and the `fluxstone` tag in `core/src/test/resources/dev/tfp/core/quern/quern-recipes.txt`, 380 lookup golden rows in `quern-golden.txt`, `QuernGoldenTest` and `QuernDeterminismTest` (incl. lazy vs stepped TFC timer). Still open: the quern block and its block entity, the handstone interaction and handstone damage per grind, the network rotation glue (`RotationSink`), the spinning visual, the GUI, and the CraftEngine visuals. Note: TFC has no free-output-slot requirement to start a grind; excess output spills into the world.
 
 - [ ] **M3-PROC-02 Scraping, sewing, loom (manual)** · deps: M1-SVC-01
   - TFC: `common/blockentities/ScrapingBlockEntity.java`, `LoomBlockEntity.java`, `common/container/SewingTableContainer.java`, recipes `scraping/`, `sewing/`, `loom/`
