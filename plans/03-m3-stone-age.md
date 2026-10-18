@@ -42,10 +42,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
 
 ## Heat & fire
 
-- [ ] **M3-HEAT-01 Item heat** · deps: M1-REG-01, M2-CAL-01, M1-SVC-03 · skills: tfc-feature-porting, craftengine-visuals-pack
+- [~] **M3-HEAT-01 Item heat** · deps: M1-REG-01, M2-CAL-01, M1-SVC-03 · skills: tfc-feature-porting, craftengine-visuals-pack
   - TFC: `common/component/heat/` (`HeatComponent`, `HeatCapability`), data `item_heat/`; test `HeatingItemTest`
   - Do: lazy heat (`lastTemperature` + `lastTick`), heat transfer to containers. Tooltip line + heat glow via `custom_model_data` floats in outgoing packets (`range_dispatch` item models). Burn damage on holding very hot items.
   - Done when: ported `HeatingItemTest` + golden cooling curves; glow visual check.
+  - Status (c3b4d9536): pure rules ported and golden-tested in `core/.../core/heat/` (`HeatState`, `HeatConfig`, `HeatLevel`; 193 golden rows, lazy-vs-stepped, rules). Still open: item PDC for the heat state, the CraftEngine heat visual (`range_dispatch` glow) and the tooltip, transfer to containers, burn damage, and `HeatingItemTest` (TFC's test checks meat heating recipes through registries, so it belongs in the in-server self-test, not core).
 
 - [ ] **M3-HEAT-02 Fuels & fire starting** · deps: M3-HEAT-01
   - TFC: data `fuel/`, `common/items/FirestarterItem.java`, `FlintAndPyriteItem.java`, `util/events/StartFireEvent.java`
