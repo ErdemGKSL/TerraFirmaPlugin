@@ -35,7 +35,7 @@ Status values: `not started` → `rules` (core logic + tests) → `playable` (wo
 | Geology | Collapse & landslide | not started | `util/tracker/Collapse.java` | | |
 | Flora | Crops | not started | `common/blocks/crop/` | | |
 | Fauna | Livestock | not started | `common/entities/livestock/` | | |
-| Survival | Food & nutrition | not started | `common/component/food/` | | |
+| Survival | Food & nutrition | rules (decay only) | `common/component/food/{FoodCapability,FoodComponent,IFood,FoodTraits}.java`, `config/ServerConfig.java` (trait modifiers, `foodDecayStackTicks`) | `core/src/test/java/dev/tfp/core/food/**` | M3-SURV-01: decay, traits, rounding and stacking in `core/food` (lazy; dates in player ticks as TFC). Open: item PDC codec, `tfp:food_stamp` CE processor, Paper glue; nutrition (M3-SURV-02) |
 | Heat | Item heat | not started | `common/component/heat/` | | |
 | Primitive tech | Knapping | not started | `util/data/KnappingPattern.java` | | |
 | Metallurgy | Anvil & forging | not started | `common/component/forge/` | | |

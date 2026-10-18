@@ -6,10 +6,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
 
 ## Player survival
 
-- [ ] **M3-SURV-01 Food component & decay** · deps: M1-REG-01, M2-CAL-01 · skills: tfc-feature-porting
+- [~] **M3-SURV-01 Food component & decay** · deps: M1-REG-01, M2-CAL-01 · skills: tfc-feature-porting
   - TFC: `common/component/food/` (`FoodComponent`, `FoodCapability`, `FoodData`, `FoodTrait(s)`), data `food/`
   - Do: item PDC codec (creation date + traits), lazy rot evaluation, decay modifiers, trait multipliers (salted, brined, pickled, smoked, preserved, ...), stack merging with rounded creation dates (TFC rounding), the `tfp:food_stamp` CE item processor.
   - Done when: golden tests (rot date for given foods/traits), stacking tests, lazy-vs-stepped test.
+  - Status (@claude): in progress. Done: the pure rules in `core/food/` (`FoodDecay`: flags, decay date modifier, lifetime, rotten check, stage, creation-date rounding, trait creation-date shift, stack rule; `FoodState`: creation date + traits, sanitize, apply/remove trait, stacking, merge; `FoodTrait` with TFC's default modifiers; `FoodConfig`), with `FoodDecayGoldenTest` (254 rows from TFC's own arithmetic), `FoodStackingTest` and `FoodLazyVsSteppedTest`. Open: the item PDC codec (creation date + traits, `VersionedCodec`), the `tfp:food_stamp` CE item processor, the Paper glue (stack merging hooks, `FoodHooks` implementation, tooltip line). Note: TFC dates food in player ticks (`Calendars.get().getTicks()` = `CalendarState.playerTicks`), not calendar ticks, and has no "stale" stage (fresh or rotten only).
 
 - [ ] **M3-SURV-02 Nutrition & eating** · deps: M3-SURV-01, M1-SVC-02
   - TFC: `common/component/food/NutritionData.java`, `Nutrient.java`, `common/player/PlayerInfo.java`
