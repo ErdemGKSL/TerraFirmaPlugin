@@ -166,10 +166,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
 
 ## Farming
 
-- [ ] **M3-FARM-01 Farmland, hydration & nutrients** · deps: M1-SVC-01, M2-CLIM-01
+- [~] **M3-FARM-01 Farmland, hydration & nutrients** · deps: M1-SVC-01, M2-CLIM-01
   - TFC: `common/blocks/soil/FarmlandBlock.java`, `common/blockentities/FarmlandBlockEntity.java`, data `fertilizer/`
   - Do: NPK storage, hydration from nearby water (async decided), fertilizers.
   - Done when: golden nutrient tests.
+  - Status: pure rules ported to `core/farm/` and golden-tested against TFC at c3b4d9536 (1857 golden rows, lazy-vs-stepped and determinism tests). Open: the farmland block and its block entity state, the Paper hydration source (async), the CE visuals, and the fertilizer item and data.
 
 - [ ] **M3-FARM-02 Crops** · deps: M3-FARM-01, M2-CLIM-02
   - TFC: `common/blocks/crop/` (`Crop`, `CropBlock`, `DefaultCropBlock`, `DoubleCropBlock`, `ClimbingCropBlock`, `FloodedCropBlock`, `SpreadingCropBlock`, dead/wild), `common/blockentities/CropBlockEntity.java`, `CropHelpers.java`
