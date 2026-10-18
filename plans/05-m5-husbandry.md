@@ -34,8 +34,9 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Models: th
 
 ## Livestock
 
-- [ ] **M5-LIV-01 Familiarity, feeding & breeding** · deps: M5-ENT-01
+- [~] **M5-LIV-01 Familiarity, feeding & breeding** · deps: M5-ENT-01
   - TFC: `common/entities/livestock/{Mammal,OviparousAnimal,ProducingAnimal,ProducingMammal}.java`, `config/animals/`
+  - Status: pure core ported in `core/.../livestock/` (`AnimalState`, `LivestockRules` for familiarity decay, feeding, hunger and age, `BreedingRules` for mating, fertilization, gestation, birth and eggs, `LivestockSpecies` with the 18 ServerConfig species defaults). Lazy decay is closed-form over the 20-tick check grid. Verified: species table and rule constants (`SpeciesGoldenTest`), decay and feeding and hunger (`FamiliarityGoldenTest`), age and old age (`AgeGoldenTest`), pregnancy, gestation, litter, offspring familiarity, mate readiness, eggs (`BreedingGoldenTest`), lazy-equals-stepping over seeded decay and birth states (`LazyEqualsSteppingTest`); 46 tests pass. Open: the entity framework glue (carrier state in PDC), BetterModel visuals, the Paper tick or lazy trigger, the feeding and breeding interactions, the calendar catch-up on chunk load, the old-tick write timing at the uses event, and the produce fields (M5-LIV-02).
   - Done when: golden familiarity/pregnancy/gestation tests.
 
 - [ ] **M5-LIV-02 Products: milk, wool, eggs, nest box** · deps: M5-LIV-01, M3-PROC-03
