@@ -91,6 +91,23 @@ public record HungerState(int hunger, float saturation, long exhaustion, long la
         return spend(points, units, now);
     }
 
+    /**
+     * The passive exhaustion points that {@link #advance} spends to reach player tick {@code now}, without changing
+     * this state. Thirst is lost per point (TFC: once per exhaustion check that reaches 4), so the thirst rules need
+     * the count. Overflow (an absurd gap) returns {@link Long#MAX_VALUE}, as {@link #advance} spends everything then.
+     */
+    public long pointsSpentTo(long now, NutritionConfig config) {
+        if (now <= lastTick) {
+            return 0;
+        }
+        try {
+            long units = Math.addExact(exhaustion, Math.multiplyExact(now - lastTick, passiveUnitsPerTick(config)));
+            return units > UNITS_PER_POINT ? (units - 1) / UNITS_PER_POINT : 0;
+        } catch (ArithmeticException overflow) {
+            return Long.MAX_VALUE;
+        }
+    }
+
     private HungerState spend(long points, long units, long now) {
         float sat = saturation;
         int food = hunger;
