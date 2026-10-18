@@ -1,0 +1,885 @@
+file	i_kind	i_value	temperature	result_fluid	result_amount	use_durability	has_result_item	melt_temperature
+anemometer.json	item	tfc:anemometer	930.0	tfc:metal/brass	200	false	false	930.0
+bell.json	item	minecraft:bell	1060.0	tfc:metal/gold	100	false	false	1060.0
+black_glazed_terracotta.json	item	minecraft:black_terracotta	1399.0		0	false	true	
+blast_furnace.json	item	tfc:blast_furnace	1535.0	tfc:metal/cast_iron	3200	false	false	1535.0
+blowpipe.json	item	tfc:blowpipe	930.0	tfc:metal/brass	50	false	false	930.0
+blowpipe_melt.json	item	tfc:blowpipe_with_glass	1500.0		0	false	true	
+blue_glazed_terracotta.json	item	minecraft:blue_terracotta	1399.0		0	false	true	
+brass_bell.json	item	tfc:brass_bell	930.0	tfc:metal/brass	100	false	false	930.0
+brass_mechanisms.json	item	tfc:brass_mechanisms	930.0	tfc:metal/brass	50	false	false	930.0
+brick.json	item	tfc:ceramic/unfired_brick	1399.0		0	false	true	
+bronze_bell.json	item	tfc:bronze_bell	950.0	tfc:metal/bronze	100	false	false	950.0
+brown_glazed_terracotta.json	item	minecraft:brown_terracotta	1399.0		0	false	true	
+burn_bread.json	tag	c:foods/bread	700.0		0	false	false	
+burn_meat.json	tag	c:foods/cooked_meat	900.0		0	false	false	
+calendar_clock.json	item	tfc:calendar_clock	930.0	tfc:metal/brass	500	false	false	930.0
+ceramic/axe_head_mold.json	item	tfc:ceramic/unfired_axe_head_mold	1399.0		0	false	true	
+ceramic/bell_mold.json	item	tfc:ceramic/unfired_bell_mold	1399.0		0	false	true	
+ceramic/black_glazed_vessel.json	item	tfc:ceramic/black_unfired_vessel	1399.0		0	false	true	
+ceramic/blue_glazed_vessel.json	item	tfc:ceramic/blue_unfired_vessel	1399.0		0	false	true	
+ceramic/bowl.json	item	tfc:ceramic/unfired_bowl	1399.0		0	false	true	
+ceramic/brown_glazed_vessel.json	item	tfc:ceramic/brown_unfired_vessel	1399.0		0	false	true	
+ceramic/chisel_head_mold.json	item	tfc:ceramic/unfired_chisel_head_mold	1399.0		0	false	true	
+ceramic/cyan_glazed_vessel.json	item	tfc:ceramic/cyan_unfired_vessel	1399.0		0	false	true	
+ceramic/fire_brick.json	item	tfc:ceramic/unfired_fire_brick	1399.0		0	false	true	
+ceramic/fire_ingot_mold.json	item	tfc:ceramic/unfired_fire_ingot_mold	1399.0		0	false	true	
+ceramic/gray_glazed_vessel.json	item	tfc:ceramic/gray_unfired_vessel	1399.0		0	false	true	
+ceramic/green_glazed_vessel.json	item	tfc:ceramic/green_unfired_vessel	1399.0		0	false	true	
+ceramic/hammer_head_mold.json	item	tfc:ceramic/unfired_hammer_head_mold	1399.0		0	false	true	
+ceramic/hoe_head_mold.json	item	tfc:ceramic/unfired_hoe_head_mold	1399.0		0	false	true	
+ceramic/ingot_mold.json	item	tfc:ceramic/unfired_ingot_mold	1399.0		0	false	true	
+ceramic/javelin_head_mold.json	item	tfc:ceramic/unfired_javelin_head_mold	1399.0		0	false	true	
+ceramic/jug.json	item	tfc:ceramic/unfired_jug	1399.0		0	false	true	
+ceramic/knife_blade_mold.json	item	tfc:ceramic/unfired_knife_blade_mold	1399.0		0	false	true	
+ceramic/large_vessel.json	item	tfc:ceramic/unfired_large_vessel	1399.0		0	false	true	
+ceramic/large_vessel/black.json	item	tfc:ceramic/unfired_large_vessel/black	1399.0		0	false	true	
+ceramic/large_vessel/blue.json	item	tfc:ceramic/unfired_large_vessel/blue	1399.0		0	false	true	
+ceramic/large_vessel/brown.json	item	tfc:ceramic/unfired_large_vessel/brown	1399.0		0	false	true	
+ceramic/large_vessel/cyan.json	item	tfc:ceramic/unfired_large_vessel/cyan	1399.0		0	false	true	
+ceramic/large_vessel/gray.json	item	tfc:ceramic/unfired_large_vessel/gray	1399.0		0	false	true	
+ceramic/large_vessel/green.json	item	tfc:ceramic/unfired_large_vessel/green	1399.0		0	false	true	
+ceramic/large_vessel/light_blue.json	item	tfc:ceramic/unfired_large_vessel/light_blue	1399.0		0	false	true	
+ceramic/large_vessel/light_gray.json	item	tfc:ceramic/unfired_large_vessel/light_gray	1399.0		0	false	true	
+ceramic/large_vessel/lime.json	item	tfc:ceramic/unfired_large_vessel/lime	1399.0		0	false	true	
+ceramic/large_vessel/magenta.json	item	tfc:ceramic/unfired_large_vessel/magenta	1399.0		0	false	true	
+ceramic/large_vessel/orange.json	item	tfc:ceramic/unfired_large_vessel/orange	1399.0		0	false	true	
+ceramic/large_vessel/pink.json	item	tfc:ceramic/unfired_large_vessel/pink	1399.0		0	false	true	
+ceramic/large_vessel/purple.json	item	tfc:ceramic/unfired_large_vessel/purple	1399.0		0	false	true	
+ceramic/large_vessel/red.json	item	tfc:ceramic/unfired_large_vessel/red	1399.0		0	false	true	
+ceramic/large_vessel/white.json	item	tfc:ceramic/unfired_large_vessel/white	1399.0		0	false	true	
+ceramic/large_vessel/yellow.json	item	tfc:ceramic/unfired_large_vessel/yellow	1399.0		0	false	true	
+ceramic/light_blue_glazed_vessel.json	item	tfc:ceramic/light_blue_unfired_vessel	1399.0		0	false	true	
+ceramic/light_gray_glazed_vessel.json	item	tfc:ceramic/light_gray_unfired_vessel	1399.0		0	false	true	
+ceramic/lime_glazed_vessel.json	item	tfc:ceramic/lime_unfired_vessel	1399.0		0	false	true	
+ceramic/mace_head_mold.json	item	tfc:ceramic/unfired_mace_head_mold	1399.0		0	false	true	
+ceramic/magenta_glazed_vessel.json	item	tfc:ceramic/magenta_unfired_vessel	1399.0		0	false	true	
+ceramic/orange_glazed_vessel.json	item	tfc:ceramic/orange_unfired_vessel	1399.0		0	false	true	
+ceramic/pickaxe_head_mold.json	item	tfc:ceramic/unfired_pickaxe_head_mold	1399.0		0	false	true	
+ceramic/pink_glazed_vessel.json	item	tfc:ceramic/pink_unfired_vessel	1399.0		0	false	true	
+ceramic/pot.json	item	tfc:ceramic/unfired_pot	1399.0		0	false	true	
+ceramic/propick_head_mold.json	item	tfc:ceramic/unfired_propick_head_mold	1399.0		0	false	true	
+ceramic/purple_glazed_vessel.json	item	tfc:ceramic/purple_unfired_vessel	1399.0		0	false	true	
+ceramic/red_glazed_vessel.json	item	tfc:ceramic/red_unfired_vessel	1399.0		0	false	true	
+ceramic/saw_blade_mold.json	item	tfc:ceramic/unfired_saw_blade_mold	1399.0		0	false	true	
+ceramic/scythe_blade_mold.json	item	tfc:ceramic/unfired_scythe_blade_mold	1399.0		0	false	true	
+ceramic/shovel_head_mold.json	item	tfc:ceramic/unfired_shovel_head_mold	1399.0		0	false	true	
+ceramic/spindle_head.json	item	tfc:ceramic/unfired_spindle_head	1399.0		0	false	true	
+ceramic/sword_blade_mold.json	item	tfc:ceramic/unfired_sword_blade_mold	1399.0		0	false	true	
+ceramic/vessel.json	item	tfc:ceramic/unfired_vessel	1399.0		0	false	true	
+ceramic/white_glazed_vessel.json	item	tfc:ceramic/white_unfired_vessel	1399.0		0	false	true	
+ceramic/yellow_glazed_vessel.json	item	tfc:ceramic/yellow_unfired_vessel	1399.0		0	false	true	
+ceramic_blowpipe.json	item	tfc:ceramic/unfired_blowpipe	1399.0		0	false	true	
+ceramic_blowpipe_melt.json	item	tfc:ceramic_blowpipe_with_glass	1500.0		0	false	true	
+channel.json	item	tfc:ceramic/unfired_channel	1399.0		0	false	true	
+copper_door.json	item	minecraft:copper_door	1080.0	tfc:metal/copper	200	false	false	1080.0
+crankshaft.json	item	tfc:crankshaft	930.0	tfc:metal/brass	250	false	false	930.0
+crucible.json	item	tfc:ceramic/unfired_crucible	1399.0		0	false	true	
+cyan_glazed_terracotta.json	item	minecraft:cyan_terracotta	1399.0		0	false	true	
+dried_cactus_wood.json	item	tfc:cactus_wood	700.0		0	false	true	
+fireproof_door.json	item	tfc:fireproof_door	1535.0	tfc:metal/cast_iron	600	false	false	1535.0
+flower_pot.json	item	tfc:ceramic/unfired_flower_pot	1399.0		0	false	true	
+food/baked_potato.json	children	2	200.0		0	false	true	
+food/barley_bread.json	children	2	200.0		0	false	true	
+food/cooked_arctic_char.json	children	2	200.0		0	false	true	
+food/cooked_armadillo.json	children	2	200.0		0	false	true	
+food/cooked_bear.json	children	2	200.0		0	false	true	
+food/cooked_beef.json	children	2	200.0		0	false	true	
+food/cooked_bison.json	children	2	200.0		0	false	true	
+food/cooked_bluegill.json	children	2	200.0		0	false	true	
+food/cooked_burbot.json	children	2	200.0		0	false	true	
+food/cooked_calamari.json	children	2	200.0		0	false	true	
+food/cooked_camelidae.json	children	2	200.0		0	false	true	
+food/cooked_cassava.json	children	2	200.0		0	false	true	
+food/cooked_chevon.json	children	2	200.0		0	false	true	
+food/cooked_chicken.json	children	2	200.0		0	false	true	
+food/cooked_cod.json	children	2	200.0		0	false	true	
+food/cooked_crappie.json	children	2	200.0		0	false	true	
+food/cooked_duck.json	children	2	200.0		0	false	true	
+food/cooked_egg.json	children	2	200.0		0	false	true	
+food/cooked_fox.json	children	2	200.0		0	false	true	
+food/cooked_frog_legs.json	children	2	200.0		0	false	true	
+food/cooked_gran_feline.json	children	2	200.0		0	false	true	
+food/cooked_grouse.json	children	2	200.0		0	false	true	
+food/cooked_horse_meat.json	children	2	200.0		0	false	true	
+food/cooked_hyena.json	children	2	200.0		0	false	true	
+food/cooked_lake_trout.json	children	2	200.0		0	false	true	
+food/cooked_largemouth_bass.json	children	2	200.0		0	false	true	
+food/cooked_muksun.json	children	2	200.0		0	false	true	
+food/cooked_mutton.json	children	2	200.0		0	false	true	
+food/cooked_northern_pike.json	children	2	200.0		0	false	true	
+food/cooked_pacu.json	children	2	200.0		0	false	true	
+food/cooked_peacock_bass.json	children	2	200.0		0	false	true	
+food/cooked_peafowl.json	children	2	200.0		0	false	true	
+food/cooked_pheasant.json	children	2	200.0		0	false	true	
+food/cooked_pork.json	children	2	200.0		0	false	true	
+food/cooked_quail.json	children	2	200.0		0	false	true	
+food/cooked_rabbit.json	children	2	200.0		0	false	true	
+food/cooked_rainbow_trout.json	children	2	200.0		0	false	true	
+food/cooked_red_piranha.json	children	2	200.0		0	false	true	
+food/cooked_salmon.json	children	2	200.0		0	false	true	
+food/cooked_shellfish.json	children	2	200.0		0	false	true	
+food/cooked_smallmouth_bass.json	children	2	200.0		0	false	true	
+food/cooked_spotted_gudgeon.json	children	2	200.0		0	false	true	
+food/cooked_tilapia.json	children	2	200.0		0	false	true	
+food/cooked_tropical_fish.json	children	2	200.0		0	false	true	
+food/cooked_turkey.json	children	2	200.0		0	false	true	
+food/cooked_turtle.json	children	2	200.0		0	false	true	
+food/cooked_venison.json	children	2	200.0		0	false	true	
+food/cooked_wolf.json	children	2	200.0		0	false	true	
+food/dried_kelp.json	item	tfc:plant/giant_kelp_flower	200.0		0	false	true	
+food/dried_seaweed.json	children	2	200.0		0	false	true	
+food/maize_bread.json	children	2	200.0		0	false	true	
+food/oat_bread.json	children	2	200.0		0	false	true	
+food/rice_bread.json	children	2	200.0		0	false	true	
+food/rye_bread.json	children	2	200.0		0	false	true	
+food/wheat_bread.json	children	2	200.0		0	false	true	
+gem_saw.json	item	tfc:gem_saw	930.0	tfc:metal/brass	50	false	false	930.0
+gray_glazed_terracotta.json	item	minecraft:gray_terracotta	1399.0		0	false	true	
+green_glazed_terracotta.json	item	minecraft:green_terracotta	1399.0		0	false	true	
+hanging_sign/bismuth_bronze.json	list	20	985.0	tfc:metal/bismuth_bronze	4	false	false	985.0
+hanging_sign/black_bronze.json	list	20	1070.0	tfc:metal/black_bronze	4	false	false	1070.0
+hanging_sign/black_steel.json	list	20	1485.0	tfc:metal/black_steel	4	false	false	1485.0
+hanging_sign/blue_steel.json	list	20	1540.0	tfc:metal/blue_steel	4	false	false	1540.0
+hanging_sign/bronze.json	list	20	950.0	tfc:metal/bronze	4	false	false	950.0
+hanging_sign/copper.json	list	20	1080.0	tfc:metal/copper	4	false	false	1080.0
+hanging_sign/red_steel.json	list	20	1540.0	tfc:metal/red_steel	4	false	false	1540.0
+hanging_sign/steel.json	list	20	1540.0	tfc:metal/steel	4	false	false	1540.0
+hanging_sign/wrought_iron.json	list	20	1535.0	tfc:metal/cast_iron	4	false	false	1535.0
+iron_door.json	item	minecraft:iron_door	1535.0	tfc:metal/cast_iron	200	false	false	1535.0
+jacks.json	item	tfc:jacks	930.0	tfc:metal/brass	100	false	false	930.0
+jar_lid.json	item	tfc:jar_lid	230.0	tfc:metal/tin	6	false	false	230.0
+light_blue_glazed_terracotta.json	item	minecraft:light_blue_terracotta	1399.0		0	false	true	
+light_gray_glazed_terracotta.json	item	minecraft:light_gray_terracotta	1399.0		0	false	true	
+lime_glazed_terracotta.json	item	minecraft:lime_terracotta	1399.0		0	false	true	
+magenta_glazed_terracotta.json	item	minecraft:magenta_terracotta	1399.0		0	false	true	
+metal/anvil/bismuth_bronze.json	item	tfc:metal/anvil/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	1400	false	false	985.0
+metal/anvil/black_bronze.json	item	tfc:metal/anvil/black_bronze	1070.0	tfc:metal/black_bronze	1400	false	false	1070.0
+metal/anvil/black_steel.json	item	tfc:metal/anvil/black_steel	1485.0	tfc:metal/black_steel	1400	false	false	1485.0
+metal/anvil/blue_steel.json	item	tfc:metal/anvil/blue_steel	1540.0	tfc:metal/blue_steel	1400	false	false	1540.0
+metal/anvil/bronze.json	item	tfc:metal/anvil/bronze	950.0	tfc:metal/bronze	1400	false	false	950.0
+metal/anvil/copper.json	item	tfc:metal/anvil/copper	1080.0	tfc:metal/copper	1400	false	false	1080.0
+metal/anvil/red_steel.json	item	tfc:metal/anvil/red_steel	1540.0	tfc:metal/red_steel	1400	false	false	1540.0
+metal/anvil/steel.json	item	tfc:metal/anvil/steel	1540.0	tfc:metal/steel	1400	false	false	1540.0
+metal/anvil/wrought_iron.json	item	tfc:metal/anvil/wrought_iron	1535.0	tfc:metal/cast_iron	1400	false	false	1535.0
+metal/axe/bismuth_bronze.json	item	tfc:metal/axe/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	true	false	985.0
+metal/axe/black_bronze.json	item	tfc:metal/axe/black_bronze	1070.0	tfc:metal/black_bronze	100	true	false	1070.0
+metal/axe/black_steel.json	item	tfc:metal/axe/black_steel	1485.0	tfc:metal/black_steel	100	true	false	1485.0
+metal/axe/blue_steel.json	item	tfc:metal/axe/blue_steel	1540.0	tfc:metal/blue_steel	100	true	false	1540.0
+metal/axe/bronze.json	item	tfc:metal/axe/bronze	950.0	tfc:metal/bronze	100	true	false	950.0
+metal/axe/copper.json	item	tfc:metal/axe/copper	1080.0	tfc:metal/copper	100	true	false	1080.0
+metal/axe/red_steel.json	item	tfc:metal/axe/red_steel	1540.0	tfc:metal/red_steel	100	true	false	1540.0
+metal/axe/steel.json	item	tfc:metal/axe/steel	1540.0	tfc:metal/steel	100	true	false	1540.0
+metal/axe/wrought_iron.json	item	tfc:metal/axe/wrought_iron	1535.0	tfc:metal/cast_iron	100	true	false	1535.0
+metal/axe_head/bismuth_bronze.json	item	tfc:metal/axe_head/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/axe_head/black_bronze.json	item	tfc:metal/axe_head/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/axe_head/black_steel.json	item	tfc:metal/axe_head/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/axe_head/blue_steel.json	item	tfc:metal/axe_head/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/axe_head/bronze.json	item	tfc:metal/axe_head/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/axe_head/copper.json	item	tfc:metal/axe_head/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/axe_head/red_steel.json	item	tfc:metal/axe_head/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/axe_head/steel.json	item	tfc:metal/axe_head/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/axe_head/wrought_iron.json	item	tfc:metal/axe_head/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/bars/bismuth_bronze.json	item	tfc:metal/bars/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	25	false	false	985.0
+metal/bars/black_bronze.json	item	tfc:metal/bars/black_bronze	1070.0	tfc:metal/black_bronze	25	false	false	1070.0
+metal/bars/black_steel.json	item	tfc:metal/bars/black_steel	1485.0	tfc:metal/black_steel	25	false	false	1485.0
+metal/bars/blue_steel.json	item	tfc:metal/bars/blue_steel	1540.0	tfc:metal/blue_steel	25	false	false	1540.0
+metal/bars/bronze.json	item	tfc:metal/bars/bronze	950.0	tfc:metal/bronze	25	false	false	950.0
+metal/bars/copper.json	item	tfc:metal/bars/copper	1080.0	tfc:metal/copper	25	false	false	1080.0
+metal/bars/red_steel.json	item	tfc:metal/bars/red_steel	1540.0	tfc:metal/red_steel	25	false	false	1540.0
+metal/bars/steel.json	item	tfc:metal/bars/steel	1540.0	tfc:metal/steel	25	false	false	1540.0
+metal/bars/wrought_iron.json	item	tfc:metal/bars/wrought_iron	1535.0	tfc:metal/cast_iron	25	false	false	1535.0
+metal/block/bismuth.json	tag	c:storage_blocks/bismuth	270.0	tfc:metal/bismuth	100	false	false	270.0
+metal/block/bismuth_bronze.json	tag	c:storage_blocks/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/block/bismuth_bronze_slab.json	item	tfc:metal/block/bismuth_bronze_slab	985.0	tfc:metal/bismuth_bronze	50	false	false	985.0
+metal/block/bismuth_bronze_stairs.json	item	tfc:metal/block/bismuth_bronze_stairs	985.0	tfc:metal/bismuth_bronze	75	false	false	985.0
+metal/block/bismuth_slab.json	item	tfc:metal/block/bismuth_slab	270.0	tfc:metal/bismuth	50	false	false	270.0
+metal/block/bismuth_stairs.json	item	tfc:metal/block/bismuth_stairs	270.0	tfc:metal/bismuth	75	false	false	270.0
+metal/block/black_bronze.json	tag	c:storage_blocks/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/block/black_bronze_slab.json	item	tfc:metal/block/black_bronze_slab	1070.0	tfc:metal/black_bronze	50	false	false	1070.0
+metal/block/black_bronze_stairs.json	item	tfc:metal/block/black_bronze_stairs	1070.0	tfc:metal/black_bronze	75	false	false	1070.0
+metal/block/black_steel.json	tag	c:storage_blocks/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/block/black_steel_slab.json	item	tfc:metal/block/black_steel_slab	1485.0	tfc:metal/black_steel	50	false	false	1485.0
+metal/block/black_steel_stairs.json	item	tfc:metal/block/black_steel_stairs	1485.0	tfc:metal/black_steel	75	false	false	1485.0
+metal/block/blue_steel.json	tag	c:storage_blocks/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/block/blue_steel_slab.json	item	tfc:metal/block/blue_steel_slab	1540.0	tfc:metal/blue_steel	50	false	false	1540.0
+metal/block/blue_steel_stairs.json	item	tfc:metal/block/blue_steel_stairs	1540.0	tfc:metal/blue_steel	75	false	false	1540.0
+metal/block/brass.json	tag	c:storage_blocks/brass	930.0	tfc:metal/brass	100	false	false	930.0
+metal/block/brass_slab.json	item	tfc:metal/block/brass_slab	930.0	tfc:metal/brass	50	false	false	930.0
+metal/block/brass_stairs.json	item	tfc:metal/block/brass_stairs	930.0	tfc:metal/brass	75	false	false	930.0
+metal/block/bronze.json	tag	c:storage_blocks/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/block/bronze_slab.json	item	tfc:metal/block/bronze_slab	950.0	tfc:metal/bronze	50	false	false	950.0
+metal/block/bronze_stairs.json	item	tfc:metal/block/bronze_stairs	950.0	tfc:metal/bronze	75	false	false	950.0
+metal/block/cast_iron.json	tag	c:storage_blocks/cast_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/block/cast_iron_slab.json	item	tfc:metal/block/cast_iron_slab	1535.0	tfc:metal/cast_iron	50	false	false	1535.0
+metal/block/cast_iron_stairs.json	item	tfc:metal/block/cast_iron_stairs	1535.0	tfc:metal/cast_iron	75	false	false	1535.0
+metal/block/copper.json	tag	c:storage_blocks/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/block/copper_slab.json	item	tfc:metal/block/copper_slab	1080.0	tfc:metal/copper	50	false	false	1080.0
+metal/block/copper_stairs.json	item	tfc:metal/block/copper_stairs	1080.0	tfc:metal/copper	75	false	false	1080.0
+metal/block/gold.json	tag	c:storage_blocks/gold	1060.0	tfc:metal/gold	100	false	false	1060.0
+metal/block/gold_slab.json	item	tfc:metal/block/gold_slab	1060.0	tfc:metal/gold	50	false	false	1060.0
+metal/block/gold_stairs.json	item	tfc:metal/block/gold_stairs	1060.0	tfc:metal/gold	75	false	false	1060.0
+metal/block/nickel.json	tag	c:storage_blocks/nickel	1453.0	tfc:metal/nickel	100	false	false	1453.0
+metal/block/nickel_slab.json	item	tfc:metal/block/nickel_slab	1453.0	tfc:metal/nickel	50	false	false	1453.0
+metal/block/nickel_stairs.json	item	tfc:metal/block/nickel_stairs	1453.0	tfc:metal/nickel	75	false	false	1453.0
+metal/block/red_steel.json	tag	c:storage_blocks/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/block/red_steel_slab.json	item	tfc:metal/block/red_steel_slab	1540.0	tfc:metal/red_steel	50	false	false	1540.0
+metal/block/red_steel_stairs.json	item	tfc:metal/block/red_steel_stairs	1540.0	tfc:metal/red_steel	75	false	false	1540.0
+metal/block/rose_gold.json	tag	c:storage_blocks/rose_gold	960.0	tfc:metal/rose_gold	100	false	false	960.0
+metal/block/rose_gold_slab.json	item	tfc:metal/block/rose_gold_slab	960.0	tfc:metal/rose_gold	50	false	false	960.0
+metal/block/rose_gold_stairs.json	item	tfc:metal/block/rose_gold_stairs	960.0	tfc:metal/rose_gold	75	false	false	960.0
+metal/block/silver.json	tag	c:storage_blocks/silver	961.0	tfc:metal/silver	100	false	false	961.0
+metal/block/silver_slab.json	item	tfc:metal/block/silver_slab	961.0	tfc:metal/silver	50	false	false	961.0
+metal/block/silver_stairs.json	item	tfc:metal/block/silver_stairs	961.0	tfc:metal/silver	75	false	false	961.0
+metal/block/steel.json	tag	c:storage_blocks/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/block/steel_slab.json	item	tfc:metal/block/steel_slab	1540.0	tfc:metal/steel	50	false	false	1540.0
+metal/block/steel_stairs.json	item	tfc:metal/block/steel_stairs	1540.0	tfc:metal/steel	75	false	false	1540.0
+metal/block/sterling_silver.json	tag	c:storage_blocks/sterling_silver	950.0	tfc:metal/sterling_silver	100	false	false	950.0
+metal/block/sterling_silver_slab.json	item	tfc:metal/block/sterling_silver_slab	950.0	tfc:metal/sterling_silver	50	false	false	950.0
+metal/block/sterling_silver_stairs.json	item	tfc:metal/block/sterling_silver_stairs	950.0	tfc:metal/sterling_silver	75	false	false	950.0
+metal/block/tin.json	tag	c:storage_blocks/tin	230.0	tfc:metal/tin	100	false	false	230.0
+metal/block/tin_slab.json	item	tfc:metal/block/tin_slab	230.0	tfc:metal/tin	50	false	false	230.0
+metal/block/tin_stairs.json	item	tfc:metal/block/tin_stairs	230.0	tfc:metal/tin	75	false	false	230.0
+metal/block/wrought_iron.json	tag	c:storage_blocks/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/block/wrought_iron_slab.json	item	tfc:metal/block/wrought_iron_slab	1535.0	tfc:metal/cast_iron	50	false	false	1535.0
+metal/block/wrought_iron_stairs.json	item	tfc:metal/block/wrought_iron_stairs	1535.0	tfc:metal/cast_iron	75	false	false	1535.0
+metal/block/zinc.json	tag	c:storage_blocks/zinc	420.0	tfc:metal/zinc	100	false	false	420.0
+metal/block/zinc_slab.json	item	tfc:metal/block/zinc_slab	420.0	tfc:metal/zinc	50	false	false	420.0
+metal/block/zinc_stairs.json	item	tfc:metal/block/zinc_stairs	420.0	tfc:metal/zinc	75	false	false	420.0
+metal/boots/bismuth_bronze.json	item	tfc:metal/boots/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	400	true	false	985.0
+metal/boots/black_bronze.json	item	tfc:metal/boots/black_bronze	1070.0	tfc:metal/black_bronze	400	true	false	1070.0
+metal/boots/black_steel.json	item	tfc:metal/boots/black_steel	1485.0	tfc:metal/black_steel	400	true	false	1485.0
+metal/boots/blue_steel.json	item	tfc:metal/boots/blue_steel	1540.0	tfc:metal/blue_steel	400	true	false	1540.0
+metal/boots/bronze.json	item	tfc:metal/boots/bronze	950.0	tfc:metal/bronze	400	true	false	950.0
+metal/boots/copper.json	item	tfc:metal/boots/copper	1080.0	tfc:metal/copper	400	true	false	1080.0
+metal/boots/red_steel.json	item	tfc:metal/boots/red_steel	1540.0	tfc:metal/red_steel	400	true	false	1540.0
+metal/boots/steel.json	item	tfc:metal/boots/steel	1540.0	tfc:metal/steel	400	true	false	1540.0
+metal/boots/wrought_iron.json	item	tfc:metal/boots/wrought_iron	1535.0	tfc:metal/cast_iron	400	true	false	1535.0
+metal/chain/bismuth_bronze.json	item	tfc:metal/chain/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	6	false	false	985.0
+metal/chain/black_bronze.json	item	tfc:metal/chain/black_bronze	1070.0	tfc:metal/black_bronze	6	false	false	1070.0
+metal/chain/black_steel.json	item	tfc:metal/chain/black_steel	1485.0	tfc:metal/black_steel	6	false	false	1485.0
+metal/chain/blue_steel.json	item	tfc:metal/chain/blue_steel	1540.0	tfc:metal/blue_steel	6	false	false	1540.0
+metal/chain/bronze.json	item	tfc:metal/chain/bronze	950.0	tfc:metal/bronze	6	false	false	950.0
+metal/chain/copper.json	item	tfc:metal/chain/copper	1080.0	tfc:metal/copper	6	false	false	1080.0
+metal/chain/red_steel.json	item	tfc:metal/chain/red_steel	1540.0	tfc:metal/red_steel	6	false	false	1540.0
+metal/chain/steel.json	item	tfc:metal/chain/steel	1540.0	tfc:metal/steel	6	false	false	1540.0
+metal/chain/wrought_iron.json	item	tfc:metal/chain/wrought_iron	1535.0	tfc:metal/cast_iron	6	false	false	1535.0
+metal/chestplate/bismuth_bronze.json	item	tfc:metal/chestplate/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	800	true	false	985.0
+metal/chestplate/black_bronze.json	item	tfc:metal/chestplate/black_bronze	1070.0	tfc:metal/black_bronze	800	true	false	1070.0
+metal/chestplate/black_steel.json	item	tfc:metal/chestplate/black_steel	1485.0	tfc:metal/black_steel	800	true	false	1485.0
+metal/chestplate/blue_steel.json	item	tfc:metal/chestplate/blue_steel	1540.0	tfc:metal/blue_steel	800	true	false	1540.0
+metal/chestplate/bronze.json	item	tfc:metal/chestplate/bronze	950.0	tfc:metal/bronze	800	true	false	950.0
+metal/chestplate/copper.json	item	tfc:metal/chestplate/copper	1080.0	tfc:metal/copper	800	true	false	1080.0
+metal/chestplate/red_steel.json	item	tfc:metal/chestplate/red_steel	1540.0	tfc:metal/red_steel	800	true	false	1540.0
+metal/chestplate/steel.json	item	tfc:metal/chestplate/steel	1540.0	tfc:metal/steel	800	true	false	1540.0
+metal/chestplate/wrought_iron.json	item	tfc:metal/chestplate/wrought_iron	1535.0	tfc:metal/cast_iron	800	true	false	1535.0
+metal/chisel/bismuth_bronze.json	item	tfc:metal/chisel/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	true	false	985.0
+metal/chisel/black_bronze.json	item	tfc:metal/chisel/black_bronze	1070.0	tfc:metal/black_bronze	100	true	false	1070.0
+metal/chisel/black_steel.json	item	tfc:metal/chisel/black_steel	1485.0	tfc:metal/black_steel	100	true	false	1485.0
+metal/chisel/blue_steel.json	item	tfc:metal/chisel/blue_steel	1540.0	tfc:metal/blue_steel	100	true	false	1540.0
+metal/chisel/bronze.json	item	tfc:metal/chisel/bronze	950.0	tfc:metal/bronze	100	true	false	950.0
+metal/chisel/copper.json	item	tfc:metal/chisel/copper	1080.0	tfc:metal/copper	100	true	false	1080.0
+metal/chisel/red_steel.json	item	tfc:metal/chisel/red_steel	1540.0	tfc:metal/red_steel	100	true	false	1540.0
+metal/chisel/steel.json	item	tfc:metal/chisel/steel	1540.0	tfc:metal/steel	100	true	false	1540.0
+metal/chisel/wrought_iron.json	item	tfc:metal/chisel/wrought_iron	1535.0	tfc:metal/cast_iron	100	true	false	1535.0
+metal/chisel_head/bismuth_bronze.json	item	tfc:metal/chisel_head/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/chisel_head/black_bronze.json	item	tfc:metal/chisel_head/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/chisel_head/black_steel.json	item	tfc:metal/chisel_head/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/chisel_head/blue_steel.json	item	tfc:metal/chisel_head/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/chisel_head/bronze.json	item	tfc:metal/chisel_head/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/chisel_head/copper.json	item	tfc:metal/chisel_head/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/chisel_head/red_steel.json	item	tfc:metal/chisel_head/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/chisel_head/steel.json	item	tfc:metal/chisel_head/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/chisel_head/wrought_iron.json	item	tfc:metal/chisel_head/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/double_ingot/bismuth.json	tag	c:double_ingots/bismuth	270.0	tfc:metal/bismuth	200	false	false	270.0
+metal/double_ingot/bismuth_bronze.json	tag	c:double_ingots/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	200	false	false	985.0
+metal/double_ingot/black_bronze.json	tag	c:double_ingots/black_bronze	1070.0	tfc:metal/black_bronze	200	false	false	1070.0
+metal/double_ingot/black_steel.json	tag	c:double_ingots/black_steel	1485.0	tfc:metal/black_steel	200	false	false	1485.0
+metal/double_ingot/blue_steel.json	tag	c:double_ingots/blue_steel	1540.0	tfc:metal/blue_steel	200	false	false	1540.0
+metal/double_ingot/brass.json	tag	c:double_ingots/brass	930.0	tfc:metal/brass	200	false	false	930.0
+metal/double_ingot/bronze.json	tag	c:double_ingots/bronze	950.0	tfc:metal/bronze	200	false	false	950.0
+metal/double_ingot/cast_iron.json	tag	c:double_ingots/cast_iron	1535.0	tfc:metal/cast_iron	200	false	false	1535.0
+metal/double_ingot/copper.json	tag	c:double_ingots/copper	1080.0	tfc:metal/copper	200	false	false	1080.0
+metal/double_ingot/gold.json	tag	c:double_ingots/gold	1060.0	tfc:metal/gold	200	false	false	1060.0
+metal/double_ingot/nickel.json	tag	c:double_ingots/nickel	1453.0	tfc:metal/nickel	200	false	false	1453.0
+metal/double_ingot/red_steel.json	tag	c:double_ingots/red_steel	1540.0	tfc:metal/red_steel	200	false	false	1540.0
+metal/double_ingot/rose_gold.json	tag	c:double_ingots/rose_gold	960.0	tfc:metal/rose_gold	200	false	false	960.0
+metal/double_ingot/silver.json	tag	c:double_ingots/silver	961.0	tfc:metal/silver	200	false	false	961.0
+metal/double_ingot/steel.json	tag	c:double_ingots/steel	1540.0	tfc:metal/steel	200	false	false	1540.0
+metal/double_ingot/sterling_silver.json	tag	c:double_ingots/sterling_silver	950.0	tfc:metal/sterling_silver	200	false	false	950.0
+metal/double_ingot/tin.json	tag	c:double_ingots/tin	230.0	tfc:metal/tin	200	false	false	230.0
+metal/double_ingot/wrought_iron.json	tag	c:double_ingots/wrought_iron	1535.0	tfc:metal/cast_iron	200	false	false	1535.0
+metal/double_ingot/zinc.json	tag	c:double_ingots/zinc	420.0	tfc:metal/zinc	200	false	false	420.0
+metal/double_sheet/bismuth.json	tag	c:double_sheets/bismuth	270.0	tfc:metal/bismuth	400	false	false	270.0
+metal/double_sheet/bismuth_bronze.json	tag	c:double_sheets/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	400	false	false	985.0
+metal/double_sheet/black_bronze.json	tag	c:double_sheets/black_bronze	1070.0	tfc:metal/black_bronze	400	false	false	1070.0
+metal/double_sheet/black_steel.json	tag	c:double_sheets/black_steel	1485.0	tfc:metal/black_steel	400	false	false	1485.0
+metal/double_sheet/blue_steel.json	tag	c:double_sheets/blue_steel	1540.0	tfc:metal/blue_steel	400	false	false	1540.0
+metal/double_sheet/brass.json	tag	c:double_sheets/brass	930.0	tfc:metal/brass	400	false	false	930.0
+metal/double_sheet/bronze.json	tag	c:double_sheets/bronze	950.0	tfc:metal/bronze	400	false	false	950.0
+metal/double_sheet/cast_iron.json	tag	c:double_sheets/cast_iron	1535.0	tfc:metal/cast_iron	400	false	false	1535.0
+metal/double_sheet/copper.json	tag	c:double_sheets/copper	1080.0	tfc:metal/copper	400	false	false	1080.0
+metal/double_sheet/gold.json	tag	c:double_sheets/gold	1060.0	tfc:metal/gold	400	false	false	1060.0
+metal/double_sheet/nickel.json	tag	c:double_sheets/nickel	1453.0	tfc:metal/nickel	400	false	false	1453.0
+metal/double_sheet/red_steel.json	tag	c:double_sheets/red_steel	1540.0	tfc:metal/red_steel	400	false	false	1540.0
+metal/double_sheet/rose_gold.json	tag	c:double_sheets/rose_gold	960.0	tfc:metal/rose_gold	400	false	false	960.0
+metal/double_sheet/silver.json	tag	c:double_sheets/silver	961.0	tfc:metal/silver	400	false	false	961.0
+metal/double_sheet/steel.json	tag	c:double_sheets/steel	1540.0	tfc:metal/steel	400	false	false	1540.0
+metal/double_sheet/sterling_silver.json	tag	c:double_sheets/sterling_silver	950.0	tfc:metal/sterling_silver	400	false	false	950.0
+metal/double_sheet/tin.json	tag	c:double_sheets/tin	230.0	tfc:metal/tin	400	false	false	230.0
+metal/double_sheet/wrought_iron.json	tag	c:double_sheets/wrought_iron	1535.0	tfc:metal/cast_iron	400	false	false	1535.0
+metal/double_sheet/zinc.json	tag	c:double_sheets/zinc	420.0	tfc:metal/zinc	400	false	false	420.0
+metal/exposed_block/brass.json	item	tfc:metal/exposed_block/brass	930.0	tfc:metal/brass	100	false	false	930.0
+metal/exposed_block/brass_slab.json	item	tfc:metal/exposed_block/brass_slab	930.0	tfc:metal/brass	50	false	false	930.0
+metal/exposed_block/brass_stairs.json	item	tfc:metal/exposed_block/brass_stairs	930.0	tfc:metal/brass	75	false	false	930.0
+metal/exposed_block/bronze.json	item	tfc:metal/exposed_block/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/exposed_block/bronze_slab.json	item	tfc:metal/exposed_block/bronze_slab	950.0	tfc:metal/bronze	50	false	false	950.0
+metal/exposed_block/bronze_stairs.json	item	tfc:metal/exposed_block/bronze_stairs	950.0	tfc:metal/bronze	75	false	false	950.0
+metal/exposed_block/copper.json	item	tfc:metal/exposed_block/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/exposed_block/copper_slab.json	item	tfc:metal/exposed_block/copper_slab	1080.0	tfc:metal/copper	50	false	false	1080.0
+metal/exposed_block/copper_stairs.json	item	tfc:metal/exposed_block/copper_stairs	1080.0	tfc:metal/copper	75	false	false	1080.0
+metal/exposed_block/silver.json	item	tfc:metal/exposed_block/silver	961.0	tfc:metal/silver	100	false	false	961.0
+metal/exposed_block/silver_slab.json	item	tfc:metal/exposed_block/silver_slab	961.0	tfc:metal/silver	50	false	false	961.0
+metal/exposed_block/silver_stairs.json	item	tfc:metal/exposed_block/silver_stairs	961.0	tfc:metal/silver	75	false	false	961.0
+metal/exposed_block/steel.json	item	tfc:metal/exposed_block/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/exposed_block/steel_slab.json	item	tfc:metal/exposed_block/steel_slab	1540.0	tfc:metal/steel	50	false	false	1540.0
+metal/exposed_block/steel_stairs.json	item	tfc:metal/exposed_block/steel_stairs	1540.0	tfc:metal/steel	75	false	false	1540.0
+metal/exposed_block/sterling_silver.json	item	tfc:metal/exposed_block/sterling_silver	950.0	tfc:metal/sterling_silver	100	false	false	950.0
+metal/exposed_block/sterling_silver_slab.json	item	tfc:metal/exposed_block/sterling_silver_slab	950.0	tfc:metal/sterling_silver	50	false	false	950.0
+metal/exposed_block/sterling_silver_stairs.json	item	tfc:metal/exposed_block/sterling_silver_stairs	950.0	tfc:metal/sterling_silver	75	false	false	950.0
+metal/exposed_block/wrought_iron.json	item	tfc:metal/exposed_block/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/exposed_block/wrought_iron_slab.json	item	tfc:metal/exposed_block/wrought_iron_slab	1535.0	tfc:metal/cast_iron	50	false	false	1535.0
+metal/exposed_block/wrought_iron_stairs.json	item	tfc:metal/exposed_block/wrought_iron_stairs	1535.0	tfc:metal/cast_iron	75	false	false	1535.0
+metal/exposed_grate/bronze.json	item	tfc:metal/exposed_grate/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/exposed_grate/copper.json	item	tfc:metal/exposed_grate/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/exposed_grate/steel.json	item	tfc:metal/exposed_grate/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/exposed_grate/wrought_iron.json	item	tfc:metal/exposed_grate/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/fish_hook/bismuth_bronze.json	item	tfc:metal/fish_hook/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	200	false	false	985.0
+metal/fish_hook/black_bronze.json	item	tfc:metal/fish_hook/black_bronze	1070.0	tfc:metal/black_bronze	200	false	false	1070.0
+metal/fish_hook/black_steel.json	item	tfc:metal/fish_hook/black_steel	1485.0	tfc:metal/black_steel	200	false	false	1485.0
+metal/fish_hook/blue_steel.json	item	tfc:metal/fish_hook/blue_steel	1540.0	tfc:metal/blue_steel	200	false	false	1540.0
+metal/fish_hook/bronze.json	item	tfc:metal/fish_hook/bronze	950.0	tfc:metal/bronze	200	false	false	950.0
+metal/fish_hook/copper.json	item	tfc:metal/fish_hook/copper	1080.0	tfc:metal/copper	200	false	false	1080.0
+metal/fish_hook/red_steel.json	item	tfc:metal/fish_hook/red_steel	1540.0	tfc:metal/red_steel	200	false	false	1540.0
+metal/fish_hook/steel.json	item	tfc:metal/fish_hook/steel	1540.0	tfc:metal/steel	200	false	false	1540.0
+metal/fish_hook/wrought_iron.json	item	tfc:metal/fish_hook/wrought_iron	1535.0	tfc:metal/cast_iron	200	false	false	1535.0
+metal/fishing_rod/bismuth_bronze.json	item	tfc:metal/fishing_rod/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	200	true	false	985.0
+metal/fishing_rod/black_bronze.json	item	tfc:metal/fishing_rod/black_bronze	1070.0	tfc:metal/black_bronze	200	true	false	1070.0
+metal/fishing_rod/black_steel.json	item	tfc:metal/fishing_rod/black_steel	1485.0	tfc:metal/black_steel	200	true	false	1485.0
+metal/fishing_rod/blue_steel.json	item	tfc:metal/fishing_rod/blue_steel	1540.0	tfc:metal/blue_steel	200	true	false	1540.0
+metal/fishing_rod/bronze.json	item	tfc:metal/fishing_rod/bronze	950.0	tfc:metal/bronze	200	true	false	950.0
+metal/fishing_rod/copper.json	item	tfc:metal/fishing_rod/copper	1080.0	tfc:metal/copper	200	true	false	1080.0
+metal/fishing_rod/red_steel.json	item	tfc:metal/fishing_rod/red_steel	1540.0	tfc:metal/red_steel	200	true	false	1540.0
+metal/fishing_rod/steel.json	item	tfc:metal/fishing_rod/steel	1540.0	tfc:metal/steel	200	true	false	1540.0
+metal/fishing_rod/wrought_iron.json	item	tfc:metal/fishing_rod/wrought_iron	1535.0	tfc:metal/cast_iron	200	true	false	1535.0
+metal/grate/bismuth_bronze.json	item	tfc:metal/grate/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/grate/black_bronze.json	item	tfc:metal/grate/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/grate/black_steel.json	item	tfc:metal/grate/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/grate/blue_steel.json	item	tfc:metal/grate/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/grate/bronze.json	item	tfc:metal/grate/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/grate/copper.json	item	tfc:metal/grate/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/grate/red_steel.json	item	tfc:metal/grate/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/grate/steel.json	item	tfc:metal/grate/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/grate/wrought_iron.json	item	tfc:metal/grate/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/greaves/bismuth_bronze.json	item	tfc:metal/greaves/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	600	true	false	985.0
+metal/greaves/black_bronze.json	item	tfc:metal/greaves/black_bronze	1070.0	tfc:metal/black_bronze	600	true	false	1070.0
+metal/greaves/black_steel.json	item	tfc:metal/greaves/black_steel	1485.0	tfc:metal/black_steel	600	true	false	1485.0
+metal/greaves/blue_steel.json	item	tfc:metal/greaves/blue_steel	1540.0	tfc:metal/blue_steel	600	true	false	1540.0
+metal/greaves/bronze.json	item	tfc:metal/greaves/bronze	950.0	tfc:metal/bronze	600	true	false	950.0
+metal/greaves/copper.json	item	tfc:metal/greaves/copper	1080.0	tfc:metal/copper	600	true	false	1080.0
+metal/greaves/red_steel.json	item	tfc:metal/greaves/red_steel	1540.0	tfc:metal/red_steel	600	true	false	1540.0
+metal/greaves/steel.json	item	tfc:metal/greaves/steel	1540.0	tfc:metal/steel	600	true	false	1540.0
+metal/greaves/wrought_iron.json	item	tfc:metal/greaves/wrought_iron	1535.0	tfc:metal/cast_iron	600	true	false	1535.0
+metal/hammer/bismuth_bronze.json	item	tfc:metal/hammer/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	true	false	985.0
+metal/hammer/black_bronze.json	item	tfc:metal/hammer/black_bronze	1070.0	tfc:metal/black_bronze	100	true	false	1070.0
+metal/hammer/black_steel.json	item	tfc:metal/hammer/black_steel	1485.0	tfc:metal/black_steel	100	true	false	1485.0
+metal/hammer/blue_steel.json	item	tfc:metal/hammer/blue_steel	1540.0	tfc:metal/blue_steel	100	true	false	1540.0
+metal/hammer/bronze.json	item	tfc:metal/hammer/bronze	950.0	tfc:metal/bronze	100	true	false	950.0
+metal/hammer/copper.json	item	tfc:metal/hammer/copper	1080.0	tfc:metal/copper	100	true	false	1080.0
+metal/hammer/red_steel.json	item	tfc:metal/hammer/red_steel	1540.0	tfc:metal/red_steel	100	true	false	1540.0
+metal/hammer/steel.json	item	tfc:metal/hammer/steel	1540.0	tfc:metal/steel	100	true	false	1540.0
+metal/hammer/wrought_iron.json	item	tfc:metal/hammer/wrought_iron	1535.0	tfc:metal/cast_iron	100	true	false	1535.0
+metal/hammer_head/bismuth_bronze.json	item	tfc:metal/hammer_head/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/hammer_head/black_bronze.json	item	tfc:metal/hammer_head/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/hammer_head/black_steel.json	item	tfc:metal/hammer_head/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/hammer_head/blue_steel.json	item	tfc:metal/hammer_head/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/hammer_head/bronze.json	item	tfc:metal/hammer_head/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/hammer_head/copper.json	item	tfc:metal/hammer_head/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/hammer_head/red_steel.json	item	tfc:metal/hammer_head/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/hammer_head/steel.json	item	tfc:metal/hammer_head/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/hammer_head/wrought_iron.json	item	tfc:metal/hammer_head/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/helmet/bismuth_bronze.json	item	tfc:metal/helmet/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	600	true	false	985.0
+metal/helmet/black_bronze.json	item	tfc:metal/helmet/black_bronze	1070.0	tfc:metal/black_bronze	600	true	false	1070.0
+metal/helmet/black_steel.json	item	tfc:metal/helmet/black_steel	1485.0	tfc:metal/black_steel	600	true	false	1485.0
+metal/helmet/blue_steel.json	item	tfc:metal/helmet/blue_steel	1540.0	tfc:metal/blue_steel	600	true	false	1540.0
+metal/helmet/bronze.json	item	tfc:metal/helmet/bronze	950.0	tfc:metal/bronze	600	true	false	950.0
+metal/helmet/copper.json	item	tfc:metal/helmet/copper	1080.0	tfc:metal/copper	600	true	false	1080.0
+metal/helmet/red_steel.json	item	tfc:metal/helmet/red_steel	1540.0	tfc:metal/red_steel	600	true	false	1540.0
+metal/helmet/steel.json	item	tfc:metal/helmet/steel	1540.0	tfc:metal/steel	600	true	false	1540.0
+metal/helmet/wrought_iron.json	item	tfc:metal/helmet/wrought_iron	1535.0	tfc:metal/cast_iron	600	true	false	1535.0
+metal/hoe/bismuth_bronze.json	item	tfc:metal/hoe/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	true	false	985.0
+metal/hoe/black_bronze.json	item	tfc:metal/hoe/black_bronze	1070.0	tfc:metal/black_bronze	100	true	false	1070.0
+metal/hoe/black_steel.json	item	tfc:metal/hoe/black_steel	1485.0	tfc:metal/black_steel	100	true	false	1485.0
+metal/hoe/blue_steel.json	item	tfc:metal/hoe/blue_steel	1540.0	tfc:metal/blue_steel	100	true	false	1540.0
+metal/hoe/bronze.json	item	tfc:metal/hoe/bronze	950.0	tfc:metal/bronze	100	true	false	950.0
+metal/hoe/copper.json	item	tfc:metal/hoe/copper	1080.0	tfc:metal/copper	100	true	false	1080.0
+metal/hoe/red_steel.json	item	tfc:metal/hoe/red_steel	1540.0	tfc:metal/red_steel	100	true	false	1540.0
+metal/hoe/steel.json	item	tfc:metal/hoe/steel	1540.0	tfc:metal/steel	100	true	false	1540.0
+metal/hoe/wrought_iron.json	item	tfc:metal/hoe/wrought_iron	1535.0	tfc:metal/cast_iron	100	true	false	1535.0
+metal/hoe_head/bismuth_bronze.json	item	tfc:metal/hoe_head/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/hoe_head/black_bronze.json	item	tfc:metal/hoe_head/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/hoe_head/black_steel.json	item	tfc:metal/hoe_head/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/hoe_head/blue_steel.json	item	tfc:metal/hoe_head/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/hoe_head/bronze.json	item	tfc:metal/hoe_head/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/hoe_head/copper.json	item	tfc:metal/hoe_head/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/hoe_head/red_steel.json	item	tfc:metal/hoe_head/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/hoe_head/steel.json	item	tfc:metal/hoe_head/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/hoe_head/wrought_iron.json	item	tfc:metal/hoe_head/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/horse_armor/bismuth_bronze.json	item	tfc:metal/horse_armor/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	1200	true	false	985.0
+metal/horse_armor/black_bronze.json	item	tfc:metal/horse_armor/black_bronze	1070.0	tfc:metal/black_bronze	1200	true	false	1070.0
+metal/horse_armor/black_steel.json	item	tfc:metal/horse_armor/black_steel	1485.0	tfc:metal/black_steel	1200	true	false	1485.0
+metal/horse_armor/blue_steel.json	item	tfc:metal/horse_armor/blue_steel	1540.0	tfc:metal/blue_steel	1200	true	false	1540.0
+metal/horse_armor/bronze.json	item	tfc:metal/horse_armor/bronze	950.0	tfc:metal/bronze	1200	true	false	950.0
+metal/horse_armor/copper.json	item	tfc:metal/horse_armor/copper	1080.0	tfc:metal/copper	1200	true	false	1080.0
+metal/horse_armor/red_steel.json	item	tfc:metal/horse_armor/red_steel	1540.0	tfc:metal/red_steel	1200	true	false	1540.0
+metal/horse_armor/steel.json	item	tfc:metal/horse_armor/steel	1540.0	tfc:metal/steel	1200	true	false	1540.0
+metal/horse_armor/wrought_iron.json	item	tfc:metal/horse_armor/wrought_iron	1535.0	tfc:metal/cast_iron	1200	true	false	1535.0
+metal/ingot/bismuth.json	tag	c:ingots/bismuth	270.0	tfc:metal/bismuth	100	false	false	270.0
+metal/ingot/bismuth_bronze.json	tag	c:ingots/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/ingot/black_bronze.json	tag	c:ingots/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/ingot/black_steel.json	tag	c:ingots/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/ingot/blue_steel.json	tag	c:ingots/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/ingot/brass.json	tag	c:ingots/brass	930.0	tfc:metal/brass	100	false	false	930.0
+metal/ingot/bronze.json	tag	c:ingots/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/ingot/cast_iron.json	tag	c:ingots/cast_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/ingot/copper.json	tag	c:ingots/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/ingot/gold.json	tag	c:ingots/gold	1060.0	tfc:metal/gold	100	false	false	1060.0
+metal/ingot/high_carbon_black_steel.json	tag	c:ingots/high_carbon_black_steel	1540.0	tfc:metal/weak_steel	100	false	false	1540.0
+metal/ingot/high_carbon_blue_steel.json	tag	c:ingots/high_carbon_blue_steel	1540.0	tfc:metal/weak_blue_steel	100	false	false	1540.0
+metal/ingot/high_carbon_red_steel.json	tag	c:ingots/high_carbon_red_steel	1540.0	tfc:metal/weak_red_steel	100	false	false	1540.0
+metal/ingot/high_carbon_steel.json	tag	c:ingots/high_carbon_steel	1540.0	tfc:metal/pig_iron	100	false	false	1535.0
+metal/ingot/nickel.json	tag	c:ingots/nickel	1453.0	tfc:metal/nickel	100	false	false	1453.0
+metal/ingot/pig_iron.json	tag	c:ingots/pig_iron	1535.0	tfc:metal/pig_iron	100	false	false	1535.0
+metal/ingot/red_steel.json	tag	c:ingots/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/ingot/rose_gold.json	tag	c:ingots/rose_gold	960.0	tfc:metal/rose_gold	100	false	false	960.0
+metal/ingot/silver.json	tag	c:ingots/silver	961.0	tfc:metal/silver	100	false	false	961.0
+metal/ingot/steel.json	tag	c:ingots/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/ingot/sterling_silver.json	tag	c:ingots/sterling_silver	950.0	tfc:metal/sterling_silver	100	false	false	950.0
+metal/ingot/tin.json	tag	c:ingots/tin	230.0	tfc:metal/tin	100	false	false	230.0
+metal/ingot/unknown.json	tag	c:ingots/unknown	400.0	tfc:metal/unknown	100	false	false	400.0
+metal/ingot/weak_blue_steel.json	tag	c:ingots/weak_blue_steel	1540.0	tfc:metal/weak_blue_steel	100	false	false	1540.0
+metal/ingot/weak_red_steel.json	tag	c:ingots/weak_red_steel	1540.0	tfc:metal/weak_red_steel	100	false	false	1540.0
+metal/ingot/weak_steel.json	tag	c:ingots/weak_steel	1540.0	tfc:metal/weak_steel	100	false	false	1540.0
+metal/ingot/wrought_iron.json	tag	c:ingots/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/ingot/zinc.json	tag	c:ingots/zinc	420.0	tfc:metal/zinc	100	false	false	420.0
+metal/javelin/bismuth_bronze.json	item	tfc:metal/javelin/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	true	false	985.0
+metal/javelin/black_bronze.json	item	tfc:metal/javelin/black_bronze	1070.0	tfc:metal/black_bronze	100	true	false	1070.0
+metal/javelin/black_steel.json	item	tfc:metal/javelin/black_steel	1485.0	tfc:metal/black_steel	100	true	false	1485.0
+metal/javelin/blue_steel.json	item	tfc:metal/javelin/blue_steel	1540.0	tfc:metal/blue_steel	100	true	false	1540.0
+metal/javelin/bronze.json	item	tfc:metal/javelin/bronze	950.0	tfc:metal/bronze	100	true	false	950.0
+metal/javelin/copper.json	item	tfc:metal/javelin/copper	1080.0	tfc:metal/copper	100	true	false	1080.0
+metal/javelin/red_steel.json	item	tfc:metal/javelin/red_steel	1540.0	tfc:metal/red_steel	100	true	false	1540.0
+metal/javelin/steel.json	item	tfc:metal/javelin/steel	1540.0	tfc:metal/steel	100	true	false	1540.0
+metal/javelin/wrought_iron.json	item	tfc:metal/javelin/wrought_iron	1535.0	tfc:metal/cast_iron	100	true	false	1535.0
+metal/javelin_head/bismuth_bronze.json	item	tfc:metal/javelin_head/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/javelin_head/black_bronze.json	item	tfc:metal/javelin_head/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/javelin_head/black_steel.json	item	tfc:metal/javelin_head/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/javelin_head/blue_steel.json	item	tfc:metal/javelin_head/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/javelin_head/bronze.json	item	tfc:metal/javelin_head/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/javelin_head/copper.json	item	tfc:metal/javelin_head/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/javelin_head/red_steel.json	item	tfc:metal/javelin_head/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/javelin_head/steel.json	item	tfc:metal/javelin_head/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/javelin_head/wrought_iron.json	item	tfc:metal/javelin_head/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/knife/bismuth_bronze.json	item	tfc:metal/knife/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	true	false	985.0
+metal/knife/black_bronze.json	item	tfc:metal/knife/black_bronze	1070.0	tfc:metal/black_bronze	100	true	false	1070.0
+metal/knife/black_steel.json	item	tfc:metal/knife/black_steel	1485.0	tfc:metal/black_steel	100	true	false	1485.0
+metal/knife/blue_steel.json	item	tfc:metal/knife/blue_steel	1540.0	tfc:metal/blue_steel	100	true	false	1540.0
+metal/knife/bronze.json	item	tfc:metal/knife/bronze	950.0	tfc:metal/bronze	100	true	false	950.0
+metal/knife/copper.json	item	tfc:metal/knife/copper	1080.0	tfc:metal/copper	100	true	false	1080.0
+metal/knife/red_steel.json	item	tfc:metal/knife/red_steel	1540.0	tfc:metal/red_steel	100	true	false	1540.0
+metal/knife/steel.json	item	tfc:metal/knife/steel	1540.0	tfc:metal/steel	100	true	false	1540.0
+metal/knife/wrought_iron.json	item	tfc:metal/knife/wrought_iron	1535.0	tfc:metal/cast_iron	100	true	false	1535.0
+metal/knife_blade/bismuth_bronze.json	item	tfc:metal/knife_blade/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/knife_blade/black_bronze.json	item	tfc:metal/knife_blade/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/knife_blade/black_steel.json	item	tfc:metal/knife_blade/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/knife_blade/blue_steel.json	item	tfc:metal/knife_blade/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/knife_blade/bronze.json	item	tfc:metal/knife_blade/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/knife_blade/copper.json	item	tfc:metal/knife_blade/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/knife_blade/red_steel.json	item	tfc:metal/knife_blade/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/knife_blade/steel.json	item	tfc:metal/knife_blade/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/knife_blade/wrought_iron.json	item	tfc:metal/knife_blade/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/lamp/bismuth_bronze.json	item	tfc:metal/lamp/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/lamp/black_bronze.json	item	tfc:metal/lamp/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/lamp/black_steel.json	item	tfc:metal/lamp/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/lamp/blue_steel.json	item	tfc:metal/lamp/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/lamp/bronze.json	item	tfc:metal/lamp/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/lamp/copper.json	item	tfc:metal/lamp/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/lamp/red_steel.json	item	tfc:metal/lamp/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/lamp/steel.json	item	tfc:metal/lamp/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/lamp/wrought_iron.json	item	tfc:metal/lamp/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/mace/bismuth_bronze.json	item	tfc:metal/mace/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	200	true	false	985.0
+metal/mace/black_bronze.json	item	tfc:metal/mace/black_bronze	1070.0	tfc:metal/black_bronze	200	true	false	1070.0
+metal/mace/black_steel.json	item	tfc:metal/mace/black_steel	1485.0	tfc:metal/black_steel	200	true	false	1485.0
+metal/mace/blue_steel.json	item	tfc:metal/mace/blue_steel	1540.0	tfc:metal/blue_steel	200	true	false	1540.0
+metal/mace/bronze.json	item	tfc:metal/mace/bronze	950.0	tfc:metal/bronze	200	true	false	950.0
+metal/mace/copper.json	item	tfc:metal/mace/copper	1080.0	tfc:metal/copper	200	true	false	1080.0
+metal/mace/red_steel.json	item	tfc:metal/mace/red_steel	1540.0	tfc:metal/red_steel	200	true	false	1540.0
+metal/mace/steel.json	item	tfc:metal/mace/steel	1540.0	tfc:metal/steel	200	true	false	1540.0
+metal/mace/wrought_iron.json	item	tfc:metal/mace/wrought_iron	1535.0	tfc:metal/cast_iron	200	true	false	1535.0
+metal/mace_head/bismuth_bronze.json	item	tfc:metal/mace_head/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	200	false	false	985.0
+metal/mace_head/black_bronze.json	item	tfc:metal/mace_head/black_bronze	1070.0	tfc:metal/black_bronze	200	false	false	1070.0
+metal/mace_head/black_steel.json	item	tfc:metal/mace_head/black_steel	1485.0	tfc:metal/black_steel	200	false	false	1485.0
+metal/mace_head/blue_steel.json	item	tfc:metal/mace_head/blue_steel	1540.0	tfc:metal/blue_steel	200	false	false	1540.0
+metal/mace_head/bronze.json	item	tfc:metal/mace_head/bronze	950.0	tfc:metal/bronze	200	false	false	950.0
+metal/mace_head/copper.json	item	tfc:metal/mace_head/copper	1080.0	tfc:metal/copper	200	false	false	1080.0
+metal/mace_head/red_steel.json	item	tfc:metal/mace_head/red_steel	1540.0	tfc:metal/red_steel	200	false	false	1540.0
+metal/mace_head/steel.json	item	tfc:metal/mace_head/steel	1540.0	tfc:metal/steel	200	false	false	1540.0
+metal/mace_head/wrought_iron.json	item	tfc:metal/mace_head/wrought_iron	1535.0	tfc:metal/cast_iron	200	false	false	1535.0
+metal/oxidized_block/brass.json	item	tfc:metal/oxidized_block/brass	930.0	tfc:metal/brass	100	false	false	930.0
+metal/oxidized_block/brass_slab.json	item	tfc:metal/oxidized_block/brass_slab	930.0	tfc:metal/brass	50	false	false	930.0
+metal/oxidized_block/brass_stairs.json	item	tfc:metal/oxidized_block/brass_stairs	930.0	tfc:metal/brass	75	false	false	930.0
+metal/oxidized_block/bronze.json	item	tfc:metal/oxidized_block/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/oxidized_block/bronze_slab.json	item	tfc:metal/oxidized_block/bronze_slab	950.0	tfc:metal/bronze	50	false	false	950.0
+metal/oxidized_block/bronze_stairs.json	item	tfc:metal/oxidized_block/bronze_stairs	950.0	tfc:metal/bronze	75	false	false	950.0
+metal/oxidized_block/copper.json	item	tfc:metal/oxidized_block/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/oxidized_block/copper_slab.json	item	tfc:metal/oxidized_block/copper_slab	1080.0	tfc:metal/copper	50	false	false	1080.0
+metal/oxidized_block/copper_stairs.json	item	tfc:metal/oxidized_block/copper_stairs	1080.0	tfc:metal/copper	75	false	false	1080.0
+metal/oxidized_block/silver.json	item	tfc:metal/oxidized_block/silver	961.0	tfc:metal/silver	100	false	false	961.0
+metal/oxidized_block/silver_slab.json	item	tfc:metal/oxidized_block/silver_slab	961.0	tfc:metal/silver	50	false	false	961.0
+metal/oxidized_block/silver_stairs.json	item	tfc:metal/oxidized_block/silver_stairs	961.0	tfc:metal/silver	75	false	false	961.0
+metal/oxidized_block/steel.json	item	tfc:metal/oxidized_block/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/oxidized_block/steel_slab.json	item	tfc:metal/oxidized_block/steel_slab	1540.0	tfc:metal/steel	50	false	false	1540.0
+metal/oxidized_block/steel_stairs.json	item	tfc:metal/oxidized_block/steel_stairs	1540.0	tfc:metal/steel	75	false	false	1540.0
+metal/oxidized_block/sterling_silver.json	item	tfc:metal/oxidized_block/sterling_silver	950.0	tfc:metal/sterling_silver	100	false	false	950.0
+metal/oxidized_block/sterling_silver_slab.json	item	tfc:metal/oxidized_block/sterling_silver_slab	950.0	tfc:metal/sterling_silver	50	false	false	950.0
+metal/oxidized_block/sterling_silver_stairs.json	item	tfc:metal/oxidized_block/sterling_silver_stairs	950.0	tfc:metal/sterling_silver	75	false	false	950.0
+metal/oxidized_block/wrought_iron.json	item	tfc:metal/oxidized_block/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/oxidized_block/wrought_iron_slab.json	item	tfc:metal/oxidized_block/wrought_iron_slab	1535.0	tfc:metal/cast_iron	50	false	false	1535.0
+metal/oxidized_block/wrought_iron_stairs.json	item	tfc:metal/oxidized_block/wrought_iron_stairs	1535.0	tfc:metal/cast_iron	75	false	false	1535.0
+metal/oxidized_grate/bronze.json	item	tfc:metal/oxidized_grate/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/oxidized_grate/copper.json	item	tfc:metal/oxidized_grate/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/oxidized_grate/steel.json	item	tfc:metal/oxidized_grate/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/oxidized_grate/wrought_iron.json	item	tfc:metal/oxidized_grate/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/pickaxe/bismuth_bronze.json	item	tfc:metal/pickaxe/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	true	false	985.0
+metal/pickaxe/black_bronze.json	item	tfc:metal/pickaxe/black_bronze	1070.0	tfc:metal/black_bronze	100	true	false	1070.0
+metal/pickaxe/black_steel.json	item	tfc:metal/pickaxe/black_steel	1485.0	tfc:metal/black_steel	100	true	false	1485.0
+metal/pickaxe/blue_steel.json	item	tfc:metal/pickaxe/blue_steel	1540.0	tfc:metal/blue_steel	100	true	false	1540.0
+metal/pickaxe/bronze.json	item	tfc:metal/pickaxe/bronze	950.0	tfc:metal/bronze	100	true	false	950.0
+metal/pickaxe/copper.json	item	tfc:metal/pickaxe/copper	1080.0	tfc:metal/copper	100	true	false	1080.0
+metal/pickaxe/red_steel.json	item	tfc:metal/pickaxe/red_steel	1540.0	tfc:metal/red_steel	100	true	false	1540.0
+metal/pickaxe/steel.json	item	tfc:metal/pickaxe/steel	1540.0	tfc:metal/steel	100	true	false	1540.0
+metal/pickaxe/wrought_iron.json	item	tfc:metal/pickaxe/wrought_iron	1535.0	tfc:metal/cast_iron	100	true	false	1535.0
+metal/pickaxe_head/bismuth_bronze.json	item	tfc:metal/pickaxe_head/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/pickaxe_head/black_bronze.json	item	tfc:metal/pickaxe_head/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/pickaxe_head/black_steel.json	item	tfc:metal/pickaxe_head/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/pickaxe_head/blue_steel.json	item	tfc:metal/pickaxe_head/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/pickaxe_head/bronze.json	item	tfc:metal/pickaxe_head/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/pickaxe_head/copper.json	item	tfc:metal/pickaxe_head/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/pickaxe_head/red_steel.json	item	tfc:metal/pickaxe_head/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/pickaxe_head/steel.json	item	tfc:metal/pickaxe_head/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/pickaxe_head/wrought_iron.json	item	tfc:metal/pickaxe_head/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/propick/bismuth_bronze.json	item	tfc:metal/propick/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	true	false	985.0
+metal/propick/black_bronze.json	item	tfc:metal/propick/black_bronze	1070.0	tfc:metal/black_bronze	100	true	false	1070.0
+metal/propick/black_steel.json	item	tfc:metal/propick/black_steel	1485.0	tfc:metal/black_steel	100	true	false	1485.0
+metal/propick/blue_steel.json	item	tfc:metal/propick/blue_steel	1540.0	tfc:metal/blue_steel	100	true	false	1540.0
+metal/propick/bronze.json	item	tfc:metal/propick/bronze	950.0	tfc:metal/bronze	100	true	false	950.0
+metal/propick/copper.json	item	tfc:metal/propick/copper	1080.0	tfc:metal/copper	100	true	false	1080.0
+metal/propick/red_steel.json	item	tfc:metal/propick/red_steel	1540.0	tfc:metal/red_steel	100	true	false	1540.0
+metal/propick/steel.json	item	tfc:metal/propick/steel	1540.0	tfc:metal/steel	100	true	false	1540.0
+metal/propick/wrought_iron.json	item	tfc:metal/propick/wrought_iron	1535.0	tfc:metal/cast_iron	100	true	false	1535.0
+metal/propick_head/bismuth_bronze.json	item	tfc:metal/propick_head/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/propick_head/black_bronze.json	item	tfc:metal/propick_head/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/propick_head/black_steel.json	item	tfc:metal/propick_head/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/propick_head/blue_steel.json	item	tfc:metal/propick_head/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/propick_head/bronze.json	item	tfc:metal/propick_head/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/propick_head/copper.json	item	tfc:metal/propick_head/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/propick_head/red_steel.json	item	tfc:metal/propick_head/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/propick_head/steel.json	item	tfc:metal/propick_head/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/propick_head/wrought_iron.json	item	tfc:metal/propick_head/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/rod/bismuth.json	tag	c:rods/bismuth	270.0	tfc:metal/bismuth	50	false	false	270.0
+metal/rod/bismuth_bronze.json	tag	c:rods/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	50	false	false	985.0
+metal/rod/black_bronze.json	tag	c:rods/black_bronze	1070.0	tfc:metal/black_bronze	50	false	false	1070.0
+metal/rod/black_steel.json	tag	c:rods/black_steel	1485.0	tfc:metal/black_steel	50	false	false	1485.0
+metal/rod/blue_steel.json	tag	c:rods/blue_steel	1540.0	tfc:metal/blue_steel	50	false	false	1540.0
+metal/rod/brass.json	tag	c:rods/brass	930.0	tfc:metal/brass	50	false	false	930.0
+metal/rod/bronze.json	tag	c:rods/bronze	950.0	tfc:metal/bronze	50	false	false	950.0
+metal/rod/cast_iron.json	tag	c:rods/cast_iron	1535.0	tfc:metal/cast_iron	50	false	false	1535.0
+metal/rod/copper.json	tag	c:rods/copper	1080.0	tfc:metal/copper	50	false	false	1080.0
+metal/rod/gold.json	tag	c:rods/gold	1060.0	tfc:metal/gold	50	false	false	1060.0
+metal/rod/nickel.json	tag	c:rods/nickel	1453.0	tfc:metal/nickel	50	false	false	1453.0
+metal/rod/red_steel.json	tag	c:rods/red_steel	1540.0	tfc:metal/red_steel	50	false	false	1540.0
+metal/rod/rose_gold.json	tag	c:rods/rose_gold	960.0	tfc:metal/rose_gold	50	false	false	960.0
+metal/rod/silver.json	tag	c:rods/silver	961.0	tfc:metal/silver	50	false	false	961.0
+metal/rod/steel.json	tag	c:rods/steel	1540.0	tfc:metal/steel	50	false	false	1540.0
+metal/rod/sterling_silver.json	tag	c:rods/sterling_silver	950.0	tfc:metal/sterling_silver	50	false	false	950.0
+metal/rod/tin.json	tag	c:rods/tin	230.0	tfc:metal/tin	50	false	false	230.0
+metal/rod/wrought_iron.json	tag	c:rods/wrought_iron	1535.0	tfc:metal/cast_iron	50	false	false	1535.0
+metal/rod/zinc.json	tag	c:rods/zinc	420.0	tfc:metal/zinc	50	false	false	420.0
+metal/saw/bismuth_bronze.json	item	tfc:metal/saw/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	true	false	985.0
+metal/saw/black_bronze.json	item	tfc:metal/saw/black_bronze	1070.0	tfc:metal/black_bronze	100	true	false	1070.0
+metal/saw/black_steel.json	item	tfc:metal/saw/black_steel	1485.0	tfc:metal/black_steel	100	true	false	1485.0
+metal/saw/blue_steel.json	item	tfc:metal/saw/blue_steel	1540.0	tfc:metal/blue_steel	100	true	false	1540.0
+metal/saw/bronze.json	item	tfc:metal/saw/bronze	950.0	tfc:metal/bronze	100	true	false	950.0
+metal/saw/copper.json	item	tfc:metal/saw/copper	1080.0	tfc:metal/copper	100	true	false	1080.0
+metal/saw/red_steel.json	item	tfc:metal/saw/red_steel	1540.0	tfc:metal/red_steel	100	true	false	1540.0
+metal/saw/steel.json	item	tfc:metal/saw/steel	1540.0	tfc:metal/steel	100	true	false	1540.0
+metal/saw/wrought_iron.json	item	tfc:metal/saw/wrought_iron	1535.0	tfc:metal/cast_iron	100	true	false	1535.0
+metal/saw_blade/bismuth_bronze.json	item	tfc:metal/saw_blade/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/saw_blade/black_bronze.json	item	tfc:metal/saw_blade/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/saw_blade/black_steel.json	item	tfc:metal/saw_blade/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/saw_blade/blue_steel.json	item	tfc:metal/saw_blade/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/saw_blade/bronze.json	item	tfc:metal/saw_blade/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/saw_blade/copper.json	item	tfc:metal/saw_blade/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/saw_blade/red_steel.json	item	tfc:metal/saw_blade/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/saw_blade/steel.json	item	tfc:metal/saw_blade/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/saw_blade/wrought_iron.json	item	tfc:metal/saw_blade/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/scythe/bismuth_bronze.json	item	tfc:metal/scythe/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	true	false	985.0
+metal/scythe/black_bronze.json	item	tfc:metal/scythe/black_bronze	1070.0	tfc:metal/black_bronze	100	true	false	1070.0
+metal/scythe/black_steel.json	item	tfc:metal/scythe/black_steel	1485.0	tfc:metal/black_steel	100	true	false	1485.0
+metal/scythe/blue_steel.json	item	tfc:metal/scythe/blue_steel	1540.0	tfc:metal/blue_steel	100	true	false	1540.0
+metal/scythe/bronze.json	item	tfc:metal/scythe/bronze	950.0	tfc:metal/bronze	100	true	false	950.0
+metal/scythe/copper.json	item	tfc:metal/scythe/copper	1080.0	tfc:metal/copper	100	true	false	1080.0
+metal/scythe/red_steel.json	item	tfc:metal/scythe/red_steel	1540.0	tfc:metal/red_steel	100	true	false	1540.0
+metal/scythe/steel.json	item	tfc:metal/scythe/steel	1540.0	tfc:metal/steel	100	true	false	1540.0
+metal/scythe/wrought_iron.json	item	tfc:metal/scythe/wrought_iron	1535.0	tfc:metal/cast_iron	100	true	false	1535.0
+metal/scythe_blade/bismuth_bronze.json	item	tfc:metal/scythe_blade/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/scythe_blade/black_bronze.json	item	tfc:metal/scythe_blade/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/scythe_blade/black_steel.json	item	tfc:metal/scythe_blade/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/scythe_blade/blue_steel.json	item	tfc:metal/scythe_blade/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/scythe_blade/bronze.json	item	tfc:metal/scythe_blade/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/scythe_blade/copper.json	item	tfc:metal/scythe_blade/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/scythe_blade/red_steel.json	item	tfc:metal/scythe_blade/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/scythe_blade/steel.json	item	tfc:metal/scythe_blade/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/scythe_blade/wrought_iron.json	item	tfc:metal/scythe_blade/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/shears/bismuth_bronze.json	item	tfc:metal/shears/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	200	true	false	985.0
+metal/shears/black_bronze.json	item	tfc:metal/shears/black_bronze	1070.0	tfc:metal/black_bronze	200	true	false	1070.0
+metal/shears/black_steel.json	item	tfc:metal/shears/black_steel	1485.0	tfc:metal/black_steel	200	true	false	1485.0
+metal/shears/blue_steel.json	item	tfc:metal/shears/blue_steel	1540.0	tfc:metal/blue_steel	200	true	false	1540.0
+metal/shears/bronze.json	item	tfc:metal/shears/bronze	950.0	tfc:metal/bronze	200	true	false	950.0
+metal/shears/copper.json	item	tfc:metal/shears/copper	1080.0	tfc:metal/copper	200	true	false	1080.0
+metal/shears/red_steel.json	item	tfc:metal/shears/red_steel	1540.0	tfc:metal/red_steel	200	true	false	1540.0
+metal/shears/steel.json	item	tfc:metal/shears/steel	1540.0	tfc:metal/steel	200	true	false	1540.0
+metal/shears/wrought_iron.json	item	tfc:metal/shears/wrought_iron	1535.0	tfc:metal/cast_iron	200	true	false	1535.0
+metal/sheet/bismuth.json	tag	c:sheets/bismuth	270.0	tfc:metal/bismuth	200	false	false	270.0
+metal/sheet/bismuth_bronze.json	tag	c:sheets/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	200	false	false	985.0
+metal/sheet/black_bronze.json	tag	c:sheets/black_bronze	1070.0	tfc:metal/black_bronze	200	false	false	1070.0
+metal/sheet/black_steel.json	tag	c:sheets/black_steel	1485.0	tfc:metal/black_steel	200	false	false	1485.0
+metal/sheet/blue_steel.json	tag	c:sheets/blue_steel	1540.0	tfc:metal/blue_steel	200	false	false	1540.0
+metal/sheet/brass.json	tag	c:sheets/brass	930.0	tfc:metal/brass	200	false	false	930.0
+metal/sheet/bronze.json	tag	c:sheets/bronze	950.0	tfc:metal/bronze	200	false	false	950.0
+metal/sheet/cast_iron.json	tag	c:sheets/cast_iron	1535.0	tfc:metal/cast_iron	200	false	false	1535.0
+metal/sheet/copper.json	tag	c:sheets/copper	1080.0	tfc:metal/copper	200	false	false	1080.0
+metal/sheet/gold.json	tag	c:sheets/gold	1060.0	tfc:metal/gold	200	false	false	1060.0
+metal/sheet/nickel.json	tag	c:sheets/nickel	1453.0	tfc:metal/nickel	200	false	false	1453.0
+metal/sheet/red_steel.json	tag	c:sheets/red_steel	1540.0	tfc:metal/red_steel	200	false	false	1540.0
+metal/sheet/rose_gold.json	tag	c:sheets/rose_gold	960.0	tfc:metal/rose_gold	200	false	false	960.0
+metal/sheet/silver.json	tag	c:sheets/silver	961.0	tfc:metal/silver	200	false	false	961.0
+metal/sheet/steel.json	tag	c:sheets/steel	1540.0	tfc:metal/steel	200	false	false	1540.0
+metal/sheet/sterling_silver.json	tag	c:sheets/sterling_silver	950.0	tfc:metal/sterling_silver	200	false	false	950.0
+metal/sheet/tin.json	tag	c:sheets/tin	230.0	tfc:metal/tin	200	false	false	230.0
+metal/sheet/wrought_iron.json	tag	c:sheets/wrought_iron	1535.0	tfc:metal/cast_iron	200	false	false	1535.0
+metal/sheet/zinc.json	tag	c:sheets/zinc	420.0	tfc:metal/zinc	200	false	false	420.0
+metal/shield/bismuth_bronze.json	item	tfc:metal/shield/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	400	true	false	985.0
+metal/shield/black_bronze.json	item	tfc:metal/shield/black_bronze	1070.0	tfc:metal/black_bronze	400	true	false	1070.0
+metal/shield/black_steel.json	item	tfc:metal/shield/black_steel	1485.0	tfc:metal/black_steel	400	true	false	1485.0
+metal/shield/blue_steel.json	item	tfc:metal/shield/blue_steel	1540.0	tfc:metal/blue_steel	400	true	false	1540.0
+metal/shield/bronze.json	item	tfc:metal/shield/bronze	950.0	tfc:metal/bronze	400	true	false	950.0
+metal/shield/copper.json	item	tfc:metal/shield/copper	1080.0	tfc:metal/copper	400	true	false	1080.0
+metal/shield/red_steel.json	item	tfc:metal/shield/red_steel	1540.0	tfc:metal/red_steel	400	true	false	1540.0
+metal/shield/steel.json	item	tfc:metal/shield/steel	1540.0	tfc:metal/steel	400	true	false	1540.0
+metal/shield/wrought_iron.json	item	tfc:metal/shield/wrought_iron	1535.0	tfc:metal/cast_iron	400	true	false	1535.0
+metal/shovel/bismuth_bronze.json	item	tfc:metal/shovel/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	true	false	985.0
+metal/shovel/black_bronze.json	item	tfc:metal/shovel/black_bronze	1070.0	tfc:metal/black_bronze	100	true	false	1070.0
+metal/shovel/black_steel.json	item	tfc:metal/shovel/black_steel	1485.0	tfc:metal/black_steel	100	true	false	1485.0
+metal/shovel/blue_steel.json	item	tfc:metal/shovel/blue_steel	1540.0	tfc:metal/blue_steel	100	true	false	1540.0
+metal/shovel/bronze.json	item	tfc:metal/shovel/bronze	950.0	tfc:metal/bronze	100	true	false	950.0
+metal/shovel/copper.json	item	tfc:metal/shovel/copper	1080.0	tfc:metal/copper	100	true	false	1080.0
+metal/shovel/red_steel.json	item	tfc:metal/shovel/red_steel	1540.0	tfc:metal/red_steel	100	true	false	1540.0
+metal/shovel/steel.json	item	tfc:metal/shovel/steel	1540.0	tfc:metal/steel	100	true	false	1540.0
+metal/shovel/wrought_iron.json	item	tfc:metal/shovel/wrought_iron	1535.0	tfc:metal/cast_iron	100	true	false	1535.0
+metal/shovel_head/bismuth_bronze.json	item	tfc:metal/shovel_head/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/shovel_head/black_bronze.json	item	tfc:metal/shovel_head/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/shovel_head/black_steel.json	item	tfc:metal/shovel_head/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/shovel_head/blue_steel.json	item	tfc:metal/shovel_head/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/shovel_head/bronze.json	item	tfc:metal/shovel_head/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/shovel_head/copper.json	item	tfc:metal/shovel_head/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/shovel_head/red_steel.json	item	tfc:metal/shovel_head/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/shovel_head/steel.json	item	tfc:metal/shovel_head/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/shovel_head/wrought_iron.json	item	tfc:metal/shovel_head/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/sword/bismuth_bronze.json	item	tfc:metal/sword/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	200	true	false	985.0
+metal/sword/black_bronze.json	item	tfc:metal/sword/black_bronze	1070.0	tfc:metal/black_bronze	200	true	false	1070.0
+metal/sword/black_steel.json	item	tfc:metal/sword/black_steel	1485.0	tfc:metal/black_steel	200	true	false	1485.0
+metal/sword/blue_steel.json	item	tfc:metal/sword/blue_steel	1540.0	tfc:metal/blue_steel	200	true	false	1540.0
+metal/sword/bronze.json	item	tfc:metal/sword/bronze	950.0	tfc:metal/bronze	200	true	false	950.0
+metal/sword/copper.json	item	tfc:metal/sword/copper	1080.0	tfc:metal/copper	200	true	false	1080.0
+metal/sword/red_steel.json	item	tfc:metal/sword/red_steel	1540.0	tfc:metal/red_steel	200	true	false	1540.0
+metal/sword/steel.json	item	tfc:metal/sword/steel	1540.0	tfc:metal/steel	200	true	false	1540.0
+metal/sword/wrought_iron.json	item	tfc:metal/sword/wrought_iron	1535.0	tfc:metal/cast_iron	200	true	false	1535.0
+metal/sword_blade/bismuth_bronze.json	item	tfc:metal/sword_blade/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	200	false	false	985.0
+metal/sword_blade/black_bronze.json	item	tfc:metal/sword_blade/black_bronze	1070.0	tfc:metal/black_bronze	200	false	false	1070.0
+metal/sword_blade/black_steel.json	item	tfc:metal/sword_blade/black_steel	1485.0	tfc:metal/black_steel	200	false	false	1485.0
+metal/sword_blade/blue_steel.json	item	tfc:metal/sword_blade/blue_steel	1540.0	tfc:metal/blue_steel	200	false	false	1540.0
+metal/sword_blade/bronze.json	item	tfc:metal/sword_blade/bronze	950.0	tfc:metal/bronze	200	false	false	950.0
+metal/sword_blade/copper.json	item	tfc:metal/sword_blade/copper	1080.0	tfc:metal/copper	200	false	false	1080.0
+metal/sword_blade/red_steel.json	item	tfc:metal/sword_blade/red_steel	1540.0	tfc:metal/red_steel	200	false	false	1540.0
+metal/sword_blade/steel.json	item	tfc:metal/sword_blade/steel	1540.0	tfc:metal/steel	200	false	false	1540.0
+metal/sword_blade/wrought_iron.json	item	tfc:metal/sword_blade/wrought_iron	1535.0	tfc:metal/cast_iron	200	false	false	1535.0
+metal/trapdoor/bismuth_bronze.json	item	tfc:metal/trapdoor/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	200	false	false	985.0
+metal/trapdoor/black_bronze.json	item	tfc:metal/trapdoor/black_bronze	1070.0	tfc:metal/black_bronze	200	false	false	1070.0
+metal/trapdoor/black_steel.json	item	tfc:metal/trapdoor/black_steel	1485.0	tfc:metal/black_steel	200	false	false	1485.0
+metal/trapdoor/blue_steel.json	item	tfc:metal/trapdoor/blue_steel	1540.0	tfc:metal/blue_steel	200	false	false	1540.0
+metal/trapdoor/bronze.json	item	tfc:metal/trapdoor/bronze	950.0	tfc:metal/bronze	200	false	false	950.0
+metal/trapdoor/copper.json	item	tfc:metal/trapdoor/copper	1080.0	tfc:metal/copper	200	false	false	1080.0
+metal/trapdoor/red_steel.json	item	tfc:metal/trapdoor/red_steel	1540.0	tfc:metal/red_steel	200	false	false	1540.0
+metal/trapdoor/steel.json	item	tfc:metal/trapdoor/steel	1540.0	tfc:metal/steel	200	false	false	1540.0
+metal/trapdoor/wrought_iron.json	item	tfc:metal/trapdoor/wrought_iron	1535.0	tfc:metal/cast_iron	200	false	false	1535.0
+metal/tuyere/bismuth_bronze.json	item	tfc:metal/tuyere/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	400	true	false	985.0
+metal/tuyere/black_bronze.json	item	tfc:metal/tuyere/black_bronze	1070.0	tfc:metal/black_bronze	400	true	false	1070.0
+metal/tuyere/black_steel.json	item	tfc:metal/tuyere/black_steel	1485.0	tfc:metal/black_steel	400	true	false	1485.0
+metal/tuyere/blue_steel.json	item	tfc:metal/tuyere/blue_steel	1540.0	tfc:metal/blue_steel	400	true	false	1540.0
+metal/tuyere/bronze.json	item	tfc:metal/tuyere/bronze	950.0	tfc:metal/bronze	400	true	false	950.0
+metal/tuyere/copper.json	item	tfc:metal/tuyere/copper	1080.0	tfc:metal/copper	400	true	false	1080.0
+metal/tuyere/red_steel.json	item	tfc:metal/tuyere/red_steel	1540.0	tfc:metal/red_steel	400	true	false	1540.0
+metal/tuyere/steel.json	item	tfc:metal/tuyere/steel	1540.0	tfc:metal/steel	400	true	false	1540.0
+metal/tuyere/wrought_iron.json	item	tfc:metal/tuyere/wrought_iron	1535.0	tfc:metal/cast_iron	400	true	false	1535.0
+metal/unfinished_boots/bismuth_bronze.json	item	tfc:metal/unfinished_boots/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	200	false	false	985.0
+metal/unfinished_boots/black_bronze.json	item	tfc:metal/unfinished_boots/black_bronze	1070.0	tfc:metal/black_bronze	200	false	false	1070.0
+metal/unfinished_boots/black_steel.json	item	tfc:metal/unfinished_boots/black_steel	1485.0	tfc:metal/black_steel	200	false	false	1485.0
+metal/unfinished_boots/blue_steel.json	item	tfc:metal/unfinished_boots/blue_steel	1540.0	tfc:metal/blue_steel	200	false	false	1540.0
+metal/unfinished_boots/bronze.json	item	tfc:metal/unfinished_boots/bronze	950.0	tfc:metal/bronze	200	false	false	950.0
+metal/unfinished_boots/copper.json	item	tfc:metal/unfinished_boots/copper	1080.0	tfc:metal/copper	200	false	false	1080.0
+metal/unfinished_boots/red_steel.json	item	tfc:metal/unfinished_boots/red_steel	1540.0	tfc:metal/red_steel	200	false	false	1540.0
+metal/unfinished_boots/steel.json	item	tfc:metal/unfinished_boots/steel	1540.0	tfc:metal/steel	200	false	false	1540.0
+metal/unfinished_boots/wrought_iron.json	item	tfc:metal/unfinished_boots/wrought_iron	1535.0	tfc:metal/cast_iron	200	false	false	1535.0
+metal/unfinished_chestplate/bismuth_bronze.json	item	tfc:metal/unfinished_chestplate/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	400	false	false	985.0
+metal/unfinished_chestplate/black_bronze.json	item	tfc:metal/unfinished_chestplate/black_bronze	1070.0	tfc:metal/black_bronze	400	false	false	1070.0
+metal/unfinished_chestplate/black_steel.json	item	tfc:metal/unfinished_chestplate/black_steel	1485.0	tfc:metal/black_steel	400	false	false	1485.0
+metal/unfinished_chestplate/blue_steel.json	item	tfc:metal/unfinished_chestplate/blue_steel	1540.0	tfc:metal/blue_steel	400	false	false	1540.0
+metal/unfinished_chestplate/bronze.json	item	tfc:metal/unfinished_chestplate/bronze	950.0	tfc:metal/bronze	400	false	false	950.0
+metal/unfinished_chestplate/copper.json	item	tfc:metal/unfinished_chestplate/copper	1080.0	tfc:metal/copper	400	false	false	1080.0
+metal/unfinished_chestplate/red_steel.json	item	tfc:metal/unfinished_chestplate/red_steel	1540.0	tfc:metal/red_steel	400	false	false	1540.0
+metal/unfinished_chestplate/steel.json	item	tfc:metal/unfinished_chestplate/steel	1540.0	tfc:metal/steel	400	false	false	1540.0
+metal/unfinished_chestplate/wrought_iron.json	item	tfc:metal/unfinished_chestplate/wrought_iron	1535.0	tfc:metal/cast_iron	400	false	false	1535.0
+metal/unfinished_greaves/bismuth_bronze.json	item	tfc:metal/unfinished_greaves/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	400	false	false	985.0
+metal/unfinished_greaves/black_bronze.json	item	tfc:metal/unfinished_greaves/black_bronze	1070.0	tfc:metal/black_bronze	400	false	false	1070.0
+metal/unfinished_greaves/black_steel.json	item	tfc:metal/unfinished_greaves/black_steel	1485.0	tfc:metal/black_steel	400	false	false	1485.0
+metal/unfinished_greaves/blue_steel.json	item	tfc:metal/unfinished_greaves/blue_steel	1540.0	tfc:metal/blue_steel	400	false	false	1540.0
+metal/unfinished_greaves/bronze.json	item	tfc:metal/unfinished_greaves/bronze	950.0	tfc:metal/bronze	400	false	false	950.0
+metal/unfinished_greaves/copper.json	item	tfc:metal/unfinished_greaves/copper	1080.0	tfc:metal/copper	400	false	false	1080.0
+metal/unfinished_greaves/red_steel.json	item	tfc:metal/unfinished_greaves/red_steel	1540.0	tfc:metal/red_steel	400	false	false	1540.0
+metal/unfinished_greaves/steel.json	item	tfc:metal/unfinished_greaves/steel	1540.0	tfc:metal/steel	400	false	false	1540.0
+metal/unfinished_greaves/wrought_iron.json	item	tfc:metal/unfinished_greaves/wrought_iron	1535.0	tfc:metal/cast_iron	400	false	false	1535.0
+metal/unfinished_helmet/bismuth_bronze.json	item	tfc:metal/unfinished_helmet/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	400	false	false	985.0
+metal/unfinished_helmet/black_bronze.json	item	tfc:metal/unfinished_helmet/black_bronze	1070.0	tfc:metal/black_bronze	400	false	false	1070.0
+metal/unfinished_helmet/black_steel.json	item	tfc:metal/unfinished_helmet/black_steel	1485.0	tfc:metal/black_steel	400	false	false	1485.0
+metal/unfinished_helmet/blue_steel.json	item	tfc:metal/unfinished_helmet/blue_steel	1540.0	tfc:metal/blue_steel	400	false	false	1540.0
+metal/unfinished_helmet/bronze.json	item	tfc:metal/unfinished_helmet/bronze	950.0	tfc:metal/bronze	400	false	false	950.0
+metal/unfinished_helmet/copper.json	item	tfc:metal/unfinished_helmet/copper	1080.0	tfc:metal/copper	400	false	false	1080.0
+metal/unfinished_helmet/red_steel.json	item	tfc:metal/unfinished_helmet/red_steel	1540.0	tfc:metal/red_steel	400	false	false	1540.0
+metal/unfinished_helmet/steel.json	item	tfc:metal/unfinished_helmet/steel	1540.0	tfc:metal/steel	400	false	false	1540.0
+metal/unfinished_helmet/wrought_iron.json	item	tfc:metal/unfinished_helmet/wrought_iron	1535.0	tfc:metal/cast_iron	400	false	false	1535.0
+metal/unfinished_lamp/bismuth_bronze.json	item	tfc:metal/unfinished_lamp/bismuth_bronze	985.0	tfc:metal/bismuth_bronze	100	false	false	985.0
+metal/unfinished_lamp/black_bronze.json	item	tfc:metal/unfinished_lamp/black_bronze	1070.0	tfc:metal/black_bronze	100	false	false	1070.0
+metal/unfinished_lamp/black_steel.json	item	tfc:metal/unfinished_lamp/black_steel	1485.0	tfc:metal/black_steel	100	false	false	1485.0
+metal/unfinished_lamp/blue_steel.json	item	tfc:metal/unfinished_lamp/blue_steel	1540.0	tfc:metal/blue_steel	100	false	false	1540.0
+metal/unfinished_lamp/bronze.json	item	tfc:metal/unfinished_lamp/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/unfinished_lamp/copper.json	item	tfc:metal/unfinished_lamp/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/unfinished_lamp/red_steel.json	item	tfc:metal/unfinished_lamp/red_steel	1540.0	tfc:metal/red_steel	100	false	false	1540.0
+metal/unfinished_lamp/steel.json	item	tfc:metal/unfinished_lamp/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/unfinished_lamp/wrought_iron.json	item	tfc:metal/unfinished_lamp/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/weathered_block/brass.json	item	tfc:metal/weathered_block/brass	930.0	tfc:metal/brass	100	false	false	930.0
+metal/weathered_block/brass_slab.json	item	tfc:metal/weathered_block/brass_slab	930.0	tfc:metal/brass	50	false	false	930.0
+metal/weathered_block/brass_stairs.json	item	tfc:metal/weathered_block/brass_stairs	930.0	tfc:metal/brass	75	false	false	930.0
+metal/weathered_block/bronze.json	item	tfc:metal/weathered_block/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/weathered_block/bronze_slab.json	item	tfc:metal/weathered_block/bronze_slab	950.0	tfc:metal/bronze	50	false	false	950.0
+metal/weathered_block/bronze_stairs.json	item	tfc:metal/weathered_block/bronze_stairs	950.0	tfc:metal/bronze	75	false	false	950.0
+metal/weathered_block/copper.json	item	tfc:metal/weathered_block/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/weathered_block/copper_slab.json	item	tfc:metal/weathered_block/copper_slab	1080.0	tfc:metal/copper	50	false	false	1080.0
+metal/weathered_block/copper_stairs.json	item	tfc:metal/weathered_block/copper_stairs	1080.0	tfc:metal/copper	75	false	false	1080.0
+metal/weathered_block/silver.json	item	tfc:metal/weathered_block/silver	961.0	tfc:metal/silver	100	false	false	961.0
+metal/weathered_block/silver_slab.json	item	tfc:metal/weathered_block/silver_slab	961.0	tfc:metal/silver	50	false	false	961.0
+metal/weathered_block/silver_stairs.json	item	tfc:metal/weathered_block/silver_stairs	961.0	tfc:metal/silver	75	false	false	961.0
+metal/weathered_block/steel.json	item	tfc:metal/weathered_block/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/weathered_block/steel_slab.json	item	tfc:metal/weathered_block/steel_slab	1540.0	tfc:metal/steel	50	false	false	1540.0
+metal/weathered_block/steel_stairs.json	item	tfc:metal/weathered_block/steel_stairs	1540.0	tfc:metal/steel	75	false	false	1540.0
+metal/weathered_block/sterling_silver.json	item	tfc:metal/weathered_block/sterling_silver	950.0	tfc:metal/sterling_silver	100	false	false	950.0
+metal/weathered_block/sterling_silver_slab.json	item	tfc:metal/weathered_block/sterling_silver_slab	950.0	tfc:metal/sterling_silver	50	false	false	950.0
+metal/weathered_block/sterling_silver_stairs.json	item	tfc:metal/weathered_block/sterling_silver_stairs	950.0	tfc:metal/sterling_silver	75	false	false	950.0
+metal/weathered_block/wrought_iron.json	item	tfc:metal/weathered_block/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+metal/weathered_block/wrought_iron_slab.json	item	tfc:metal/weathered_block/wrought_iron_slab	1535.0	tfc:metal/cast_iron	50	false	false	1535.0
+metal/weathered_block/wrought_iron_stairs.json	item	tfc:metal/weathered_block/wrought_iron_stairs	1535.0	tfc:metal/cast_iron	75	false	false	1535.0
+metal/weathered_grate/bronze.json	item	tfc:metal/weathered_grate/bronze	950.0	tfc:metal/bronze	100	false	false	950.0
+metal/weathered_grate/copper.json	item	tfc:metal/weathered_grate/copper	1080.0	tfc:metal/copper	100	false	false	1080.0
+metal/weathered_grate/steel.json	item	tfc:metal/weathered_grate/steel	1540.0	tfc:metal/steel	100	false	false	1540.0
+metal/weathered_grate/wrought_iron.json	item	tfc:metal/weathered_grate/wrought_iron	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+mold_table.json	item	tfc:ceramic/unfired_mold_table	1399.0		0	false	true	
+orange_glazed_terracotta.json	item	minecraft:orange_terracotta	1399.0		0	false	true	
+ore/normal_bismuthinite.json	item	tfc:ore/normal_bismuthinite	270.0	tfc:metal/bismuth	25	false	false	270.0
+ore/normal_cassiterite.json	item	tfc:ore/normal_cassiterite	230.0	tfc:metal/tin	25	false	false	230.0
+ore/normal_garnierite.json	item	tfc:ore/normal_garnierite	1453.0	tfc:metal/nickel	25	false	false	1453.0
+ore/normal_hematite.json	item	tfc:ore/normal_hematite	1535.0	tfc:metal/cast_iron	25	false	false	1535.0
+ore/normal_limonite.json	item	tfc:ore/normal_limonite	1535.0	tfc:metal/cast_iron	25	false	false	1535.0
+ore/normal_magnetite.json	item	tfc:ore/normal_magnetite	1535.0	tfc:metal/cast_iron	25	false	false	1535.0
+ore/normal_malachite.json	item	tfc:ore/normal_malachite	1080.0	tfc:metal/copper	25	false	false	1080.0
+ore/normal_native_copper.json	item	tfc:ore/normal_native_copper	1080.0	tfc:metal/copper	25	false	false	1080.0
+ore/normal_native_gold.json	item	tfc:ore/normal_native_gold	1060.0	tfc:metal/gold	25	false	false	1060.0
+ore/normal_native_silver.json	item	tfc:ore/normal_native_silver	961.0	tfc:metal/silver	25	false	false	961.0
+ore/normal_sphalerite.json	item	tfc:ore/normal_sphalerite	420.0	tfc:metal/zinc	25	false	false	420.0
+ore/normal_tetrahedrite.json	item	tfc:ore/normal_tetrahedrite	1080.0	tfc:metal/copper	25	false	false	1080.0
+ore/poor_bismuthinite.json	item	tfc:ore/poor_bismuthinite	270.0	tfc:metal/bismuth	15	false	false	270.0
+ore/poor_cassiterite.json	item	tfc:ore/poor_cassiterite	230.0	tfc:metal/tin	15	false	false	230.0
+ore/poor_garnierite.json	item	tfc:ore/poor_garnierite	1453.0	tfc:metal/nickel	15	false	false	1453.0
+ore/poor_hematite.json	item	tfc:ore/poor_hematite	1535.0	tfc:metal/cast_iron	15	false	false	1535.0
+ore/poor_limonite.json	item	tfc:ore/poor_limonite	1535.0	tfc:metal/cast_iron	15	false	false	1535.0
+ore/poor_magnetite.json	item	tfc:ore/poor_magnetite	1535.0	tfc:metal/cast_iron	15	false	false	1535.0
+ore/poor_malachite.json	item	tfc:ore/poor_malachite	1080.0	tfc:metal/copper	15	false	false	1080.0
+ore/poor_native_copper.json	item	tfc:ore/poor_native_copper	1080.0	tfc:metal/copper	15	false	false	1080.0
+ore/poor_native_gold.json	item	tfc:ore/poor_native_gold	1060.0	tfc:metal/gold	15	false	false	1060.0
+ore/poor_native_silver.json	item	tfc:ore/poor_native_silver	961.0	tfc:metal/silver	15	false	false	961.0
+ore/poor_sphalerite.json	item	tfc:ore/poor_sphalerite	420.0	tfc:metal/zinc	15	false	false	420.0
+ore/poor_tetrahedrite.json	item	tfc:ore/poor_tetrahedrite	1080.0	tfc:metal/copper	15	false	false	1080.0
+ore/rich_bismuthinite.json	item	tfc:ore/rich_bismuthinite	270.0	tfc:metal/bismuth	35	false	false	270.0
+ore/rich_cassiterite.json	item	tfc:ore/rich_cassiterite	230.0	tfc:metal/tin	35	false	false	230.0
+ore/rich_garnierite.json	item	tfc:ore/rich_garnierite	1453.0	tfc:metal/nickel	35	false	false	1453.0
+ore/rich_hematite.json	item	tfc:ore/rich_hematite	1535.0	tfc:metal/cast_iron	35	false	false	1535.0
+ore/rich_limonite.json	item	tfc:ore/rich_limonite	1535.0	tfc:metal/cast_iron	35	false	false	1535.0
+ore/rich_magnetite.json	item	tfc:ore/rich_magnetite	1535.0	tfc:metal/cast_iron	35	false	false	1535.0
+ore/rich_malachite.json	item	tfc:ore/rich_malachite	1080.0	tfc:metal/copper	35	false	false	1080.0
+ore/rich_native_copper.json	item	tfc:ore/rich_native_copper	1080.0	tfc:metal/copper	35	false	false	1080.0
+ore/rich_native_gold.json	item	tfc:ore/rich_native_gold	1060.0	tfc:metal/gold	35	false	false	1060.0
+ore/rich_native_silver.json	item	tfc:ore/rich_native_silver	961.0	tfc:metal/silver	35	false	false	961.0
+ore/rich_sphalerite.json	item	tfc:ore/rich_sphalerite	420.0	tfc:metal/zinc	35	false	false	420.0
+ore/rich_tetrahedrite.json	item	tfc:ore/rich_tetrahedrite	1080.0	tfc:metal/copper	35	false	false	1080.0
+ore/small_bismuthinite.json	item	tfc:ore/small_bismuthinite	270.0	tfc:metal/bismuth	10	false	false	270.0
+ore/small_cassiterite.json	item	tfc:ore/small_cassiterite	230.0	tfc:metal/tin	10	false	false	230.0
+ore/small_garnierite.json	item	tfc:ore/small_garnierite	1453.0	tfc:metal/nickel	10	false	false	1453.0
+ore/small_hematite.json	item	tfc:ore/small_hematite	1535.0	tfc:metal/cast_iron	10	false	false	1535.0
+ore/small_limonite.json	item	tfc:ore/small_limonite	1535.0	tfc:metal/cast_iron	10	false	false	1535.0
+ore/small_magnetite.json	item	tfc:ore/small_magnetite	1535.0	tfc:metal/cast_iron	10	false	false	1535.0
+ore/small_malachite.json	item	tfc:ore/small_malachite	1080.0	tfc:metal/copper	10	false	false	1080.0
+ore/small_native_copper.json	item	tfc:ore/small_native_copper	1080.0	tfc:metal/copper	10	false	false	1080.0
+ore/small_native_gold.json	item	tfc:ore/small_native_gold	1060.0	tfc:metal/gold	10	false	false	1060.0
+ore/small_native_silver.json	item	tfc:ore/small_native_silver	961.0	tfc:metal/silver	10	false	false	961.0
+ore/small_sphalerite.json	item	tfc:ore/small_sphalerite	420.0	tfc:metal/zinc	10	false	false	420.0
+ore/small_tetrahedrite.json	item	tfc:ore/small_tetrahedrite	1080.0	tfc:metal/copper	10	false	false	1080.0
+pan/empty.json	item	tfc:ceramic/unfired_pan	1399.0		0	false	true	
+pink_glazed_terracotta.json	item	minecraft:pink_terracotta	1399.0		0	false	true	
+powder/kaolinite.json	item	tfc:kaolin_clay	500.0		0	false	true	
+powder/lime.json	item	tfc:powder/flux	840.0		0	false	true	
+powder/soda_ash_from_groundcover_seaweed.json	item	tfc:groundcover/seaweed	500.0		0	false	true	
+powder/soda_ash_from_kelp.json	children	2	500.0		0	false	true	
+powder/soda_ash_from_seaweed.json	children	2	500.0		0	false	true	
+purple_glazed_terracotta.json	item	minecraft:purple_terracotta	1399.0		0	false	true	
+raw_iron_bloom.json	item	tfc:raw_iron_bloom	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+red_glazed_terracotta.json	item	minecraft:red_terracotta	1399.0		0	false	true	
+refined_iron_bloom.json	item	tfc:refined_iron_bloom	1535.0	tfc:metal/cast_iron	100	false	false	1535.0
+steel_pipe.json	item	tfc:steel_pipe	1540.0	tfc:metal/steel	25	false	false	1540.0
+steel_rope_anchor.json	item	tfc:steel_rope_anchor	1540.0	tfc:metal/steel	100	false	false	1540.0
+stove.json	item	tfc:stove	1535.0	tfc:metal/cast_iron	800	false	false	1535.0
+terracotta.json	item	minecraft:clay	1399.0		0	false	true	
+thermometer.json	item	tfc:thermometer	930.0	tfc:metal/brass	200	false	false	930.0
+torch_from_bundle.json	item	tfc:stick_bunch	60.0		0	false	true	
+torch_from_stick.json	tag	c:rods/wooden	60.0		0	false	true	
+white_glazed_terracotta.json	item	minecraft:white_terracotta	1399.0		0	false	true	
+wrought_iron_grill.json	item	tfc:wrought_iron_grill	1535.0	tfc:metal/cast_iron	400	false	false	1535.0
+yellow_glazed_terracotta.json	item	minecraft:yellow_terracotta	1399.0		0	false	true	
