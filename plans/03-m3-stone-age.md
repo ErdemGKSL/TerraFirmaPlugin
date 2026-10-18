@@ -172,10 +172,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
   - Done when: golden nutrient tests.
   - Status: pure rules ported to `core/farm/` and golden-tested against TFC at c3b4d9536 (1857 golden rows, lazy-vs-stepped and determinism tests). Open: the farmland block and its block entity state, the Paper hydration source (async), the CE visuals, and the fertilizer item and data.
 
-- [ ] **M3-FARM-02 Crops** · deps: M3-FARM-01, M2-CLIM-02
+- [~] **M3-FARM-02 Crops** · deps: M3-FARM-01, M2-CLIM-02
   - TFC: `common/blocks/crop/` (`Crop`, `CropBlock`, `DefaultCropBlock`, `DoubleCropBlock`, `ClimbingCropBlock`, `FloodedCropBlock`, `SpreadingCropBlock`, dead/wild), `common/blockentities/CropBlockEntity.java`, `CropHelpers.java`
   - Do: calendar-driven growth with climate checks, catch-up on load/interaction (no tickers), death conditions, yields by nutrients, all 29 crops, seeds via `block_item`.
   - Done when: golden growth tests per crop type; lazy-vs-stepped tests.
+  - Status: pure rules ported to `core/crop/` and golden-tested against TFC at c3b4d9536 (1,831 golden lines: all 29 crop constants and stage counts, stage ages, growth steps with climate, nutrient share, yield and death, the lazy catch-up loop, harvest counts). Lazy-vs-stepped, split and determinism tests pass. Open: the crop blocks (all shapes), the Paper growth glue and block entity (decide async, apply sync), seeds via `block_item`, the spread fruit, the CraftEngine visuals.
 
 - [ ] **M3-FARM-03 Berry bushes & seasonal plants** · deps: M2-GEN-13, M2-CAL-01
   - TFC: `common/blocks/plant/fruit/`, `common/blockentities/BerryBushBlockEntity.java`, `PlantRegrowth.java`
