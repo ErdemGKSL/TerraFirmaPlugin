@@ -133,6 +133,9 @@ public final class TfcChunkGenerator extends ChunkGenerator {
                     if (found.isEmpty()) {
                         log.warning("TFC spawn: no dry land in the spawn search of " + world.getName()
                             + "; Paper's default spawn applies");
+                    } else {
+                        // Set here, once, so level.dat and the fixed spawn agree. Unverified: the thread Paper calls this on.
+                        TfcSpawn.setWorldSpawn(world, found.get());
                     }
                     spawn = found;
                 }

@@ -35,4 +35,12 @@ final class TfcSpawn {
     static Location location(World world, SpawnSearch.Spawn spawn) {
         return new Location(world, spawn.x() + 0.5, spawn.y(), spawn.z() + 0.5);
     }
+
+    /**
+     * Sets the world spawn (level.dat, compasses, respawn) to the TFC spawn block, so it matches the fixed spawn location.
+     * Called once per world, right after the search finds dry land.
+     */
+    static void setWorldSpawn(World world, SpawnSearch.Spawn spawn) {
+        world.setSpawnLocation(spawn.x(), spawn.y(), spawn.z());
+    }
 }
