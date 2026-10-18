@@ -30,7 +30,7 @@ public enum ForgingBonus {
      * @param ratio      the forging ratio to classify
      * @param minRatios  the minimum ratio for each tier, indexed by {@link #ordinal()}. The entry for {@link #NONE} is ignored, since
      *                   no ratio reaches it. Must have one entry per tier.
-     * @return the highest tier whose minimum ratio is strictly below {@code ratio}, or {@link #NONE}
+     * @return the highest tier whose minimum ratio is strictly above {@code ratio}, or {@link #NONE}, as TFC {@code byRatio}
      */
     public static ForgingBonus byRatio(float ratio, double[] minRatios) {
         if (minRatios.length != VALUES.length) {
