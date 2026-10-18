@@ -113,10 +113,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
 
 ## Pottery & containers
 
-- [ ] **M3-POT-01 Pit kiln** · deps: M3-KNAP-01, M3-HEAT-02 · skills: craftengine-java-api
+- [~] **M3-POT-01 Pit kiln** · deps: M3-KNAP-01, M3-HEAT-02 · skills: craftengine-java-api
   - TFC: `common/blockentities/PitKilnBlockEntity.java`, `common/blocks/devices/PitKilnBlock.java`
   - Do: placed items + straw + logs stages, firing lazily from the calendar, results.
   - Done when: golden firing time; self-test.
+  - Status (c3b4d9536): pure rules ported and golden-tested in `core/.../core/kiln/` (`PitKilnLayers`: straw 1 or 4 per item up to 7 layers, up to 8 logs from stage 7 to 15, `canLight`, `structureValid`; `PitKilnRules`: `progress` and `temperatureAt` (TFC float arithmetic, 1.125 eager clamp), `convertTick` (first tick at the recipe temperature, exact binary search), `evaluate` (UNLIT, LIT, FIRED, FAILED with `cookedThrough`), `converted`; 17 layer rows, 90 temperature, 72 conversion and 540 outcome golden rows in `PitKilnLayersGoldenTest` and `PitKilnGoldenTest`; `PitKilnLazyVsSteppedTest` against a per-tick copy of `serverTick`; `PitKilnDeterminismTest`). TFC has no layer-dependent burn time: the burn is the config constant `pitKilnTicks` (7200 default), so the duration is not a function of the layers. Failure is lazy: `evaluate` takes the first tick the kiln was seen invalid (or never). Still open: the kiln block, its placement and ignition in Paper (`PlacedItemBlock` straw hook, fire above, diagonal neighbours), the item heat of the contents (M3-HEAT-01), the CraftEngine visuals per stage, the self-test, and the M3-KNAP-01 input.
 
 - [ ] **M3-POT-02 Molds & small vessel** · deps: M3-POT-01, M3-HEAT-01
   - TFC: `common/component/mold/`, `common/items/MoldItem.java`, `VesselItem.java`, `common/container/SmallVesselInventoryContainer.java`; test `MoldTest`
