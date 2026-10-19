@@ -55,6 +55,8 @@ public final class AssetPipeline {
     private final Deque<String> modelQueue = new ArrayDeque<>();
     /** Item ids (tfp path) that loot drops and that need a plain CE item. */
     private final Map<String, String> dropItems = new TreeMap<>();
+    /** TFC food items (tfp path, {@code food/<name>}) to their hunger, from TFC's food data. */
+    private final Map<String, Integer> foodItems = new TreeMap<>();
     /** Appearance demand of every emitted block, in emission order (input of the visual allocator). */
     private final List<VisualDemand> demand = new ArrayList<>();
 
@@ -94,9 +96,35 @@ public final class AssetPipeline {
                 }
             }
         }
+        // Food items: one model per TFC food item (models/item/food/), with its hunger from TFC's food data.
+        for (String f : tfc.list(TfcCheckout.ASSETS + "models/item/food/")) {
+            if (f.endsWith(".json")) {
+                String name = f.substring(f.lastIndexOf('/') + 1, f.length() - 5);
+                int hunger = foodHunger(name);
+                if (hunger < 0) {
+                    report.count("food_items_without_definition");
+                    continue; // dishes such as salads and soups have their own data; not emitted as food items yet
+                }
+                modelQueue.add("item/food/" + name);
+                foodItems.put("food/" + name, hunger);
+            }
+        }
         while (!modelQueue.isEmpty()) {
             model(modelQueue.poll());
         }
+    }
+
+    /** The {@code hunger} of TFC's food definition for {@code name} (under the checkout's generated resources), or -1 without one. */
+    private int foodHunger(String name) {
+        String src = TfcCheckout.GENERATED + "data/tfc/tfc/food/" + name + ".json";
+        if (!tfc.exists(src)) {
+            return -1;
+        }
+        JsonObject def = Json.parse(tfc.readString(src), src).getAsJsonObject();
+        if (!def.has("hunger")) {
+            throw new DatagenException(src + " has no hunger");
+        }
+        return def.get("hunger").getAsInt();
     }
 
     /** Copies one TFC model (path relative to models/, no extension), queueing every tfc: ref it makes. */
@@ -285,6 +313,14 @@ public final class AssetPipeline {
                 CeBlockStates.call("tfp:item/simple", Map.of("item_lang_key", langKey)));
         });
         drops.write("drops");
+        // Food items: edible CE items (the vanilla nutrition is the TFC hunger; TFC's own food data drives the eating rules).
+        ConfigFile food = new ConfigFile();
+        foodItems.forEach((id, hunger) -> {
+            requireItemModel(id);
+            food.items.put(Json.TO_NS + ":" + id,
+                CeBlockStates.call("tfp:item/food", Map.of("item_lang_key", langKey("item", id), "nutrition", hunger)));
+        });
+        food.write("food");
         reportSkipped();
     }
 

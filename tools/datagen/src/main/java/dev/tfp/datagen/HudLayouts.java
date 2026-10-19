@@ -93,10 +93,14 @@ final class HudLayouts {
     record BarPlace(Place bg, Place fill, Place text) {
     }
 
+    /**
+     * Health on the left, thirst and hunger on the right, centred on the screen. The group sat about 125 screen px left
+     * of centre, so the earlier offsets (health -91, food +10) move right by 43 units (about 125 px at 2.9 px per unit).
+     */
     static final Map<String, BarPlace> BARS = Map.of(
-        "m3-surv-06-health-bar", new BarPlace(new Place(-91, -40), new Place(-90, -39), new Place(-50, -40)),
-        "m3-surv-06-thirst-bar", new BarPlace(new Place(10, -33), new Place(10, -33), null),
-        "m3-surv-06-hunger-bar", new BarPlace(new Place(10, -39), new Place(10, -39), null));
+        "m3-surv-06-health-bar", new BarPlace(new Place(-48, -40), new Place(-47, -39), new Place(-7, -40)),
+        "m3-surv-06-thirst-bar", new BarPlace(new Place(53, -33), new Place(53, -33), null),
+        "m3-surv-06-hunger-bar", new BarPlace(new Place(53, -39), new Place(53, -39), null));
 
     static final Map<String, Place> READOUTS = Map.of(
         "m2-cal-02-date-readout", new Place(2, 2),

@@ -15,3 +15,13 @@ templates#items:
     data:
       item_name: <!i><lang:${item_lang_key}>
     model: ${__NAMESPACE__}:item/${__ID__}
+  # Edible TFC food. nutrition: the TFC hunger (vanilla food points); the eating rules come from TFC's food data, not from this.
+  tfp:item/food:
+    material: apple
+    data:
+      item_name: <!i><lang:${item_lang_key}>
+    model: ${__NAMESPACE__}:item/${__ID__}
+    settings:
+      food:
+        nutrition: ${nutrition}
+        saturation: 0
