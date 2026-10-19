@@ -32,8 +32,9 @@ import java.util.regex.Pattern;
  * gets no output, because it names no placeholder to read; the same holds for the {@code indicator} kind, which the
  * task does not name.
  *
- * <p>Output: {@code images/tfp-bars.yml} (the bar art), {@code layouts/tfp-{bars,readouts,popups}.yml} (one layout per
- * element), {@code popups/tfp-popups.yml} (the held-temperature popup), and {@code glue/placeholders.yml} and
+ * <p>Output: {@code images/tfp-bars.yml} (the bar art), {@code layouts/tfp-{bars,popups}.yml} and
+ * {@code layouts/tfp-readouts.yml} (one layout per element; the readouts file is written only when a readout is not
+ * already in {@link BetterHudPack}, see {@link #READOUTS_IN_PACK}), {@code popups/tfp-popups.yml} (the held-temperature popup), and {@code glue/placeholders.yml} and
  * {@code glue/hidden-vanilla.yml}, two lists that the Java placeholder glue and the installer read. BetterHud does not
  * read {@code glue/}, so the installer must not copy it into the pack folder (dependency-bootstrap).
  *
@@ -89,6 +90,14 @@ final class HudLayouts {
     static final Map<String, Place> READOUTS = Map.of(
         "m2-cal-02-date-readout", new Place(2, 2),
         "m2-clim-03-ambient-temp-readout", new Place(2, 12));
+
+    /**
+     * Catalogue readouts that duplicate a layout {@link BetterHudPack} already writes (same font, pattern, placement and
+     * tick): catalogue id to that layout's id. They are not emitted, so the readout file has one copy of each layout.
+     */
+    static final Map<String, String> READOUTS_IN_PACK = Map.of(
+        "m2-cal-02-date-readout", "tfp_date",
+        "m2-clim-03-ambient-temp-readout", "tfp_ambient_temp");
 
     static final Map<String, Place> POPUPS_AT = Map.of(
         "m3-surv-06-held-temp-popup", new Place(0, -60));
@@ -223,6 +232,13 @@ final class HudLayouts {
                 case 2 -> "[" + e.tokens().get(0) + "]  ([" + e.tokens().get(1) + "])";
                 default -> throw new DatagenException(row(e) + ": a readout names one or two placeholders");
             };
+            String inPack = READOUTS_IN_PACK.get(e.id());
+            if (inPack != null) {
+                if (!BetterHudPack.LAYOUT_IDS.contains(inPack)) {
+                    throw new DatagenException(row(e) + ": " + inPack + " is not a layout of BetterHudPack");
+                }
+                continue;
+            }
             readoutLayouts.put(name(e.id()), m("texts", m("1", m("name", FONT, "pattern", pattern, "align", "left",
                 "x", at.x(), "y", at.y(), "scale", scale(), "tick", Integer.parseInt(tick.group(1))))));
             emitted.merge("readout", 1, Integer::sum);
@@ -278,7 +294,9 @@ final class HudLayouts {
 
         out.put(IMAGES, Yaml.write(HEADER, barImages));
         out.put(BAR_LAYOUTS, Yaml.write(HEADER, barLayouts));
-        out.put(READOUT_LAYOUTS, Yaml.write(HEADER, readoutLayouts));
+        if (!readoutLayouts.isEmpty()) {
+            out.put(READOUT_LAYOUTS, Yaml.write(HEADER, readoutLayouts));
+        }
         out.put(POPUP_LAYOUTS, Yaml.write(HEADER, popupLayouts));
         out.put(POPUPS, Yaml.write(HEADER, popups));
         out.put(PLACEHOLDERS, Yaml.write(HEADER, m("placeholders", placeholders)));

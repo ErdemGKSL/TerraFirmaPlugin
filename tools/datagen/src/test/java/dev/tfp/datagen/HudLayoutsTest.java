@@ -41,7 +41,7 @@ class HudLayoutsTest {
         HudLayouts.Summary s = HudLayouts.run(new OutputTree(), HudLayouts.catalogue());
 
         assertThat(s.emitted()).isEqualTo(Map.of(
-            "placeholder", 8, "bar", 3, "readout", 2, "popup", 1, "indicator", 0, "hidden-vanilla", 3));
+            "placeholder", 8, "bar", 3, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 3));
         assertThat(s.leftOut()).hasSize(4);
         assertThat(String.join("\n", s.leftOut())).contains(
             "m3-surv-02-nutrition-readout", "m6-mech-01-rotation-readout", "m4-pros-01-result-message",
@@ -55,6 +55,9 @@ class HudLayoutsTest {
 
         for (String file : List.of(HudLayouts.IMAGES, HudLayouts.BAR_LAYOUTS, HudLayouts.READOUT_LAYOUTS,
             HudLayouts.POPUP_LAYOUTS, HudLayouts.POPUPS, HudLayouts.PLACEHOLDERS, HudLayouts.HIDDEN)) {
+            if (!out.contains(file)) {
+                continue;
+            }
             Map<String, Object> root = yaml(out, file);
             for (String key : root.keySet()) {
                 if (key.equals("placeholders") || key.equals("hidden-vanilla")) {
@@ -77,8 +80,7 @@ class HudLayoutsTest {
 
         assertThat(yaml(out, HudLayouts.BAR_LAYOUTS).keySet()).containsExactlyInAnyOrder(
             "tfp_m3_surv_06_health_bar", "tfp_m3_surv_06_thirst_bar", "tfp_m3_surv_06_hunger_bar");
-        assertThat(yaml(out, HudLayouts.READOUT_LAYOUTS).keySet()).containsExactlyInAnyOrder(
-            "tfp_m2_cal_02_date_readout", "tfp_m2_clim_03_ambient_temp_readout");
+        assertThat(out.contains(HudLayouts.READOUT_LAYOUTS)).as("both readouts duplicate BetterHudPack").isFalse();
         assertThat(yaml(out, HudLayouts.POPUP_LAYOUTS).keySet()).containsExactly("tfp_m3_surv_06_held_temp_popup");
         assertThat(yaml(out, HudLayouts.POPUPS).keySet()).containsExactly("tfp_m3_surv_06_held_temp_popup");
     }
@@ -109,15 +111,31 @@ class HudLayoutsTest {
         assertThat(map(yaml(out, HudLayouts.BAR_LAYOUTS).get("tfp_m3_surv_06_thirst_bar")).containsKey("texts")).isFalse();
     }
 
+    /** The date readout that the catalogue row duplicates is the one BetterHudPack writes, with the catalogue tick. */
     @Test
-    void readoutsKeepTheCatalogueTickAndTheDatePattern() {
+    void dateReadoutIsTheOneBetterHudPackWritesWithTheCatalogueTick() {
+        Map<String, Object> packed = new org.yaml.snakeyaml.Yaml().load(BetterHudPack.LAYOUTS);
+        Map<String, Object> date = map(map(packed.get("tfp_date")).get("texts"));
+        assertThat(map(date.get(1)))
+            .containsEntry("pattern", "[tfp_date]  ([tfp_season])")
+            .containsEntry("tick", 20);
+    }
+
+    @Test
+    void packLayoutIdsAreTheLayoutsBetterHudPackWrites() {
+        Map<String, Object> packed = new org.yaml.snakeyaml.Yaml().load(BetterHudPack.LAYOUTS);
+        assertThat(packed.keySet()).isEqualTo(BetterHudPack.LAYOUT_IDS);
+    }
+
+    @Test
+    void noEmittedLayoutIdIsWrittenByBetterHudPack() {
         OutputTree out = new OutputTree();
         HudLayouts.run(out, HudLayouts.catalogue());
 
-        Map<String, Object> date = map(map(yaml(out, HudLayouts.READOUT_LAYOUTS).get("tfp_m2_cal_02_date_readout")).get("texts"));
-        assertThat(map(date.get("1")))
-            .containsEntry("pattern", "[tfp_date]  ([tfp_season])")
-            .containsEntry("tick", 20);
+        for (String file : List.of(HudLayouts.BAR_LAYOUTS, HudLayouts.POPUP_LAYOUTS, HudLayouts.POPUPS)) {
+            assertThat(yaml(out, file).keySet()).as(file).doesNotContainAnyElementsOf(BetterHudPack.LAYOUT_IDS);
+        }
+        assertThat(out.contains(HudLayouts.READOUT_LAYOUTS)).isFalse();
     }
 
     @Test

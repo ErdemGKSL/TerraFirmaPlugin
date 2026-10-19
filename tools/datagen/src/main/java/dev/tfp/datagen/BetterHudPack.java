@@ -5,6 +5,8 @@
  */
 package dev.tfp.datagen;
 
+import java.util.Set;
+
 /**
  * Our BetterHud pack ({@code betterhud} skill, "Our content goes"): the YAML the installer copies into
  * {@code plugins/BetterHud/packs/tfp/}. Written under {@code betterhud/tfp/} of the content tree, which ships
@@ -17,6 +19,8 @@ package dev.tfp.datagen;
  */
 final class BetterHudPack {
     static final String DIR = "betterhud/tfp/";
+    /** The layout ids that {@link #LAYOUTS} writes. {@link HudLayouts} skips the catalogue readouts they duplicate. */
+    static final Set<String> LAYOUT_IDS = Set.of("tfp_date", "tfp_ambient_temp");
 
     private BetterHudPack() {
     }
