@@ -41,8 +41,9 @@ Work that runs alongside every milestone. These tasks are continuous: tick them 
 
 ## Quality & performance
 
-- [ ] **X-PERF-01 Performance budgets in CI** · skills: plugin-testing
+- [~] **X-PERF-01 Performance budgets in CI** · skills: plugin-testing
   - Do: JMH baselines in `docs/perf/` (worldgen chunk, packet rewrites, lore build, collapse decision, rotation network); fail CI on >20% regressions without a note.
+  - Status (@claude, 2026-10-19): `docs/perf/budgets.md` written with 22 budgets, 10 measured (from `docs/perf/worldgen-chunk-cost.md`, `docs/spikes/M0-NET-01.md`, `M0-CE-02.md`, `M0-VIS-02.md`) and 12 `tbd`. Open: the CI job (no workflow yet), the JMH benchmarks (no JMH source in the repo), the server MSPT runs (M6-PERF-01), and the conflicting numbers listed in the file's Gaps section.
 
 - [~] **X-THR-01 Threading review gate** · skills: paper-folia-threading
   - Status (@claude): in progress. Done: `core/src/test/java/dev/tfp/core/PlatformIsolationTest.java` fails the build when core/ imports a platform package (Bukkit, Paper, NeoForge, Minecraft, CraftEngine, BetterModel and others) or uses Thread, synchronized, Bukkit, Runtime or System.exit outside a documented exception list. The survey found no platform imports; one exception is recorded: `GlobalClockHolder.publish` uses `synchronized`. Open: running the gate in CI, the Folia region-thread review of the Paper glue, and the PR-template checklist.
