@@ -54,6 +54,8 @@ final class HudLayouts {
     static final String IMAGES = BetterHudPack.DIR + "images/tfp-bars.yml";
     /** The approved bar sprites (docs/art/hud, copied here as resources), by file name. */
     private static final String BAR_ART = "/dev/tfp/datagen/hud/";
+    /** The vanilla HUD sprite folder in CraftEngine's pack (the content is installed under plugins/CraftEngine/resources/tfp/). */
+    private static final String CE_PACK_SPRITES = "craftengine/tfp/resourcepack/assets/minecraft/textures/gui/sprites/hud/";
     static final String BAR_LAYOUTS = BetterHudPack.DIR + "layouts/tfp-bars.yml";
     static final String READOUT_LAYOUTS = BetterHudPack.DIR + "layouts/tfp-readouts.yml";
     static final String POPUP_LAYOUTS = BetterHudPack.DIR + "layouts/tfp-popups.yml";
@@ -465,12 +467,13 @@ final class HudLayouts {
 
     /**
      * Replaces the vanilla hearts, food and air sprites (the hide rows) with a transparent image, so the bars are the only
-     * health and food display. The list is the 1.21.11 client's sprite names ({@code hidden-vanilla-sprites.txt}).
+     * health and food display. The sprites go into CraftEngine's pack: BetterHud's merged zip does not carry {@code
+     * assets/minecraft} sprites from its pack folder. The list is the 1.21.11 client's sprite names ({@code hidden-vanilla-sprites.txt}).
      */
     private static void putHiddenVanillaSprites(OutputTree out) {
         byte[] transparent = resourceBytes(BAR_ART + "transparent-9x9.png");
         for (String sprite : resourceLines(BAR_ART + "hidden-vanilla-sprites.txt")) {
-            out.put(BetterHudPack.DIR + "assets/minecraft/textures/gui/sprites/hud/" + sprite, transparent);
+            out.put(CE_PACK_SPRITES + sprite, transparent);
         }
     }
 
