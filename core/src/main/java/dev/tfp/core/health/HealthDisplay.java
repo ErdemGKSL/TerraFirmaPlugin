@@ -43,7 +43,7 @@ public record HealthDisplay(float health, float maxHealth) {
 
     /**
      * {@link #of} at the modifier of TFC's average nutrition ({@link NutritionLevels#DEFAULT_AVERAGE_NUTRITION}) with
-     * TFC's nutrition defaults. Used until a player's nutrition is stored and read on the publish path.
+     * TFC's nutrition defaults. The fallback for a player with no stored nutrition data (the publish path uses the stored data).
      */
     public static HealthDisplay atAverageNutrition(float vanillaHealth, float vanillaMaxHealth, HealthConfig config) {
         float modifier = NutritionLevels.healthModifier(NutritionLevels.DEFAULT_AVERAGE_NUTRITION, NutritionConfig.DEFAULT);

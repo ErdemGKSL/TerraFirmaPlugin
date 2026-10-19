@@ -5,13 +5,19 @@
  */
 package dev.tfp.paper.player;
 
+import dev.tfp.core.food.NutritionConfig;
+import dev.tfp.core.food.NutritionLevels;
+import dev.tfp.core.food.NutritionState;
 import dev.tfp.core.health.HealthConfig;
 import dev.tfp.core.health.HealthDisplay;
+import dev.tfp.core.recipe.food.FoodData;
 import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ThreadAsserts;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.LongSupplier;
@@ -35,8 +41,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
  *   <li><b>Join (player thread).</b> The thirst clock restarts at the join, so the time the player was offline (while
  *       other players were online and the calendar ran) is not decayed.</li>
  * </ol>
- * Health is shown at the average-nutrition modifier until a player's nutrition is stored and read here (the open part of
- * M3-SURV-04): the max is then 850, the TFC value at average nutrition (ledger, health display row).
+ * Health uses the health modifier of the player's stored nutrition records ({@link PlayerData#nutrition()}) at the vanilla
+ * food level ({@link #healthModifier}). Without stored data the modifier of TFC's average nutrition is used (850 max with
+ * nothing eaten at full food). A player with nothing eaten at full food has the same modifier, so a new player sees no change.
  */
 public final class PlayerNeedsHudService implements Listener {
     /** The throttle: one reading per player per second. */
@@ -65,6 +72,33 @@ public final class PlayerNeedsHudService implements Listener {
         double thirst = Math.clamp(stored.thirst(), 0f, PlayerData.MAX_THIRST);
         double hunger = Math.clamp(foodLevel, 0, 20);
         return base.withThirst(thirst).withHunger(hunger);
+    }
+
+    /**
+     * The stored nutrition records as the core state. The records are TFC's {@code NutritionData} records; the hunger
+     * the values are read at is the vanilla food level, passed to {@link #healthModifier}.
+     */
+    static NutritionState nutritionOf(PlayerData stored) {
+        List<FoodData> foods = new ArrayList<>(stored.nutrition().size());
+        for (PlayerData.FoodRecord r : stored.nutrition()) {
+            PlayerData.Nutrients n = r.nutrients();
+            foods.add(new FoodData(r.hunger(), r.water(), r.saturation(), r.intoxication(), n.grain(), n.fruit(),
+                    n.vegetables(), n.protein(), n.dairy(), r.decayModifier()));
+        }
+        return new NutritionState(foods);
+    }
+
+    /**
+     * The health modifier (TFC {@code getHealthModifier}) of the stored nutrition at the vanilla food level
+     * ({@code 0..20}). Without stored data (not loaded) it is the modifier of TFC's average nutrition.
+     */
+    static float healthModifier(Optional<PlayerData> stored, int foodLevel) {
+        NutritionConfig config = NutritionConfig.DEFAULT;
+        if (stored.isEmpty()) {
+            return NutritionLevels.healthModifier(NutritionLevels.DEFAULT_AVERAGE_NUTRITION, config);
+        }
+        int hunger = Math.clamp(foodLevel, 0, NutritionState.MAX_HUNGER);
+        return nutritionOf(stored.get()).levels(hunger, config).healthModifier(config);
     }
 
     /** Starts the throttle on the global thread. Call once, after the scheduler exists. */
@@ -96,8 +130,9 @@ public final class PlayerNeedsHudService implements Listener {
         long now = playerTicks.getAsLong();
         float temperature = (float) base.ambientTemperature();
         PlayerData evaluated = data.update(id, d -> ThirstDecay.evaluate(d, now, temperature));
-        HealthDisplay health = HealthDisplay.atAverageNutrition((float) player.getHealth(),
-                (float) player.getMaxHealth(), HealthConfig.DEFAULT);
+        float modifier = healthModifier(Optional.of(evaluated), player.getFoodLevel());
+        HealthDisplay health = HealthDisplay.of((float) player.getHealth(), (float) player.getMaxHealth(), modifier,
+                HealthConfig.DEFAULT);
         hud.publish(player, withNeeds(base, evaluated, player.getFoodLevel()).withHealth(health.health(), health.maxHealth()));
     }
 
