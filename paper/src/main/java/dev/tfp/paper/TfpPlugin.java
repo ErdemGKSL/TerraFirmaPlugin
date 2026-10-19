@@ -450,8 +450,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         getServer().getPluginManager().registerEvents(needs, this);
         needs.start(() -> getServer().getOnlinePlayers());
         // M3-SURV-03: right-click a water source with an empty main hand drinks (TFC's trigger for the drink packet).
-        getServer().getPluginManager().registerEvents(
-                new WaterDrinkListener(store, () -> clock.get().playerTicks(), hudCache), this);
+        WaterDrinkListener waterDrink = new WaterDrinkListener(store, () -> clock.get().playerTicks(), hudCache);
+        getServer().getPluginManager().registerEvents(waterDrink, this);
 
         // M2-WTH-02: snow layers, ice and melting near the players, decided off-thread and applied per region under budget.
         // M2-WTH-04: the same service catches up the snow of a chunk on load, from the chunk's stamp (lazy, not replayed).
@@ -468,6 +468,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         packets.register(new NoopPacketHandler());
         if (packetEvents) {
             packets.register(new CreativeReturnHandler());
+            // M3-SURV-03: an empty-hand right-click on open water gives no interaction event; the packet triggers the drink.
+            packets.register(new dev.tfp.paper.player.EmptyHandDrinkHandler(waterDrink, scheduler));
             // M2-SEA-02: seasonal grass, foliage and water colours through the chunk biome palette.
             SeasonalBiomeService seasonal = new SeasonalBiomeService(clock, scheduler, id -> getServer().getWorld(id));
             seasonalBiomes = seasonal;

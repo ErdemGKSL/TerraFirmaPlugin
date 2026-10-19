@@ -67,8 +67,26 @@ public final class WaterDrinkListener implements Listener {
         if (held != null && !held.getType().isAir()) {
             return;
         }
-        Block clicked = event.getClickedBlock();
         Player player = event.getPlayer();
+        ThreadAsserts.owned(player);
+        Block clicked = event.getClickedBlock();
+        // TFC: a click that interacts with a block (a chest, an anvil) is not a drink. The client does not target fluids, so
+        // a click on water reaches here as a click on the solid block behind it: then the water must be the nearer target.
+        if (clicked != null && !clicked.getType().isAir() && !isPlainWaterSource(clicked)) {
+            Block source = sourceInView(player);
+            if (source == null || !isNearer(player, source, clicked)) {
+                return;
+            }
+        }
+        drinkFromView(player);
+    }
+
+    /**
+     * Drinks from the water source in view, if there is one. Must run on the player's thread (the caller checked the empty
+     * main hand). Empty-hand clicks on open water give no Bukkit interaction event, so {@link EmptyHandDrinkHandler} calls this
+     * from the packet.
+     */
+    public void drinkFromView(Player player) {
         ThreadAsserts.owned(player);
         UUID id = player.getUniqueId();
         if (!data.isLoaded(id)) {
@@ -77,12 +95,6 @@ public final class WaterDrinkListener implements Listener {
         Block source = sourceInView(player);
         if (source == null || !isPlainWaterSource(source)) {
             return; // not water: nothing changes, and no decay is written
-        }
-        // The client does not target fluids, so a click on water reaches the server as a click on the solid block behind it.
-        // A click that interacts with a block (a chest, an anvil) is not a drink: the water must be the nearer target.
-        if (clicked != null && !clicked.getType().isAir() && !isPlainWaterSource(clicked)
-                && !isNearer(player, source, clicked)) {
-            return;
         }
         long now = playerTicks.getAsLong();
         float temperature = (float) hud.snapshot(id).ambientTemperature();
