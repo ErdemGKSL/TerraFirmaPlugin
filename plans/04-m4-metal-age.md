@@ -83,3 +83,5 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
 
 ## Exit criteria
 The metal-run self-test passes on all targets. Anvil/forge/crucible GUIs pass the visual checklist. Ledger rows `playable`.
+
+Status (@claude): the `metal.run_rules` self-test case (`itest/.../cases/MetalRunCase.java`) runs the ported pure rules in the server: the metal table (27 metals, 9 tiers, bronze 950/570, tier 2, 1300 uses), bronze from 900 copper + 100 tin, `copper_fire_ingot` casting (100 mB, chance 0.01), and forge offset 4 in 2 steps, each against its core golden value. Still open for the full metal run: the CraftEngine items per metal and tier, the anvil and crucible blocks, the alloy and casting GUIs, the bloomery and the forging flow played on a server, and the all-target matrix.

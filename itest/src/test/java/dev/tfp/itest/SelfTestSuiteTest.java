@@ -30,7 +30,8 @@ class SelfTestSuiteTest {
                 .anyMatch(n -> n.startsWith("ce.block_roundtrip")).anyMatch(n -> n.startsWith("bm.spawn_persist"))
                 .anyMatch(n -> n.startsWith("bh.placeholder")).anyMatch(n -> n.startsWith("packet.noop_measured"))
                 .anyMatch(n -> n.startsWith("inst.profile_restart")).anyMatch(n -> n.startsWith("inst.suppression")).anyMatch(n -> n.startsWith("calendar.persist"))
-                .anyMatch(n -> n.startsWith("worldgen.terrain_generates"));
-        assertThat(cases).hasSize(14);
+                .anyMatch(n -> n.startsWith("worldgen.terrain_generates"))
+                .anyMatch(n -> n.startsWith("metal.run_rules"));
+        assertThat(cases).hasSize(15);
     }
 }

@@ -11,6 +11,7 @@ import dev.tfp.itest.cases.CalendarPersistCase;
 import dev.tfp.itest.cases.ConfigCase;
 import dev.tfp.itest.cases.CraftEngineBlockRoundTripCase;
 import dev.tfp.itest.cases.CraftEnginePackIssuesCase;
+import dev.tfp.itest.cases.MetalRunCase;
 import dev.tfp.itest.cases.PacketNoopCase;
 import dev.tfp.itest.cases.PlayerDataCase;
 import dev.tfp.itest.cases.ProfileRestartCase;
@@ -45,6 +46,7 @@ public final class SelfTestSuite {
                 new CraftEnginePackIssuesCase(),
                 new CraftEngineBlockRoundTripCase(),
                 new WorldgenTerrainCase(),
+                new MetalRunCase(),
                 new ProfileRestartCase(),
                 new SuppressionCase(),
                 new BetterModelSpawnCase(),
