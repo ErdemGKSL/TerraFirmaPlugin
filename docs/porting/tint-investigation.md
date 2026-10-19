@@ -61,3 +61,31 @@ Question: why does the `spikes/run/tint-fix` server show no seasonal change, and
 - **Calendar.** The stored calendar in `tint-fix/world/level.dat` (`tfp:calendar`, decoded: calendarTicks 4070617 with 8 days per month) is October. The server reports `phase=OCTOBER`. A month change was never issued in the tint-fix sessions (no `/tfp` command in either log), so "June" and "October" cannot both have been sampled in one session.
 
 Run-folder change (not production code): `spikes/run/tint-fix/bukkit.yml` gained the same `worlds:` block as install-fix (original saved at `scratchpad/tint-fix-bukkit.before.yml`). The server was restarted with `spikes/client/server.sh paper 1.21.11 spikes/run/tint-fix 25682` (RCON 25692). It started with `Done (24.843s)`, and `tfp debug packets` reports `seasonal biomes: phase=OCTOBER worlds=1 tables=0 computed=0`, so the service now has a TFC view. The chunks that already existed stay vanilla terrain, and the grass colour has not been re-measured with a client yet (open).
+
+## Colormap check (fresh world, grass patch 100-200, 440-540)
+
+Question: is the server's October grass colour the TFC grass colormap colour for 5.1 C and 186 mm, after vanilla shading?
+
+Axis formula (copied from TFC, `src/main/java/net/dries007/tfc/client/TFCColors.java:306-307`, lookup `colorCache[temperatureIndex | (rainfallIndex << 8)]` at `:309`; the same arithmetic is in `SeasonalColour.java`, `temperatureIndex` and `rainfallIndex`):
+- temperature index = `255 - clamp((int) ((t + 20f) * 255f / 50f), 0, 255)`, x of the colormap (column)
+- rainfall index = `255 - clamp((int) (g * 255f / 500f), 0, 255)`, y of the colormap (row)
+- Colormap: `assets/tfc/textures/colormap/grass.png` (256 x 256 RGB, TFC c3b4d9536). Pixel read as `(x = temperature index, y = rainfall index)`, which matches the flat index `t | r << 8` (the ColorMapReloadListener loads row-major pixels).
+- Float arithmetic was emulated in float32 (`scratchpad/grass_check.py`).
+
+| Reading | Temp index | Rain index | Colormap pixel (RGB) |
+|---|---|---|---|
+| June, 14.5 C, 186 mm | 80 | 161 | (151, 179, 85) |
+| October, 5.1 C, 186 mm | 127 | 161 | (104, 159, 84) |
+
+Server averages (`plans/gaps.md`, fresh world): June (46.6, 77.9, 43.2), October (49.3, 73.7, 48.5).
+
+Ratio server / colormap per channel (R, G, B):
+- June: 0.309, 0.435, 0.508
+- October: 0.474, 0.464, 0.577
+- October / June ratio per channel: 1.536, 1.065, 1.136
+
+Comparison:
+- The colormap changes from June to October mostly in red (R x0.69, G x0.89, B x0.99). The server changes R x1.06, G x0.95, B x1.12. The direction of the red change is opposite.
+- The ratios are not equal across channels in either month, so vanilla shading is not a single scalar here, and the screenshot average also mixes shadowed and lit pixels. The per-channel ratio test therefore cannot cleanly prove the shade factor, but the change itself does not match: the colormap predicts a red-shifted, darker October, and the server shows a slightly brighter red and blue.
+
+Result: MISMATCH. The server grass colour is not the colormap colour for this climate. The October colour is not explained by the TFC grass colormap at 5.1 C and 186 mm. Next open check: find out which colour the server applies to the grass (the biome variant band in use at the patch, its colour, and whether the client shows that variant), not the shading.
