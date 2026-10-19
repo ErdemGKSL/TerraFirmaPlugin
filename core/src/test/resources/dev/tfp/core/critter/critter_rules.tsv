@@ -1,0 +1,11 @@
+# TerraFirmaCraft critter golden, source TerraFirmaCraft@c3b4d9536, exported by export_critter.py
+# entity_registrations=8 pest_tag_files=4 critter_fauna_files=4 pest_fauna_files=0 biome_files=125 rows=8
+species	kind	category	flavour	group	group_index	group_size	width	height	fauna_file	lobster_trap_tag	spawn_entries	spawn_weight
+isopod	critter	water_ambient	salty	-	-1	0	0.5	0.3	1	1	34	34
+lobster	critter	water_ambient	salty	-	-1	0	0.5	0.3	1	1	34	98
+crayfish	critter	water_ambient	fresh	-	-1	0	0.5	0.3	1	1	14	70
+horseshoe_crab	critter	water_ambient	salty	-	-1	0	0.5	0.3	1	1	34	34
+rat	pest	creature	rat	universal	0	1	0.4	0.3	0	0	0	0
+lemming	pest	creature	rat	cold	0	1	0.4	0.3	0	0	0	0
+mongoose	pest	creature	rat	tropical	0	1	0.6	0.4	0	0	0	0
+jerboa	pest	creature	rat	desert	0	1	0.4	0.4	0	0	0	0
