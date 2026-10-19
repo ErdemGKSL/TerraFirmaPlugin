@@ -882,6 +882,17 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 .orElse(Reply.error("debug.player.not_loaded", target.getName())));
     }
 
+    @Override
+    public CompletableFuture<Reply> debugSetThirst(String name, float value) {
+        Player target = getServer().getPlayerExact(name);
+        if (target == null) {
+            return CompletableFuture.completedFuture(Reply.error("command.player_not_found", name));
+        }
+        PlayerData updated = playerData.update(target.getUniqueId(), d -> d.withThirst(value));
+        return CompletableFuture.completedFuture(Reply.ok("debug.player.header", target.getName())
+                .withDetails(List.of("thirst set to " + updated.thirst())));
+    }
+
     static List<String> describe(PlayerData d) {
         return List.of("thirst: " + d.thirst(),
                 "lastDrinkTick: " + tick(d.lastDrinkTick()),

@@ -6,6 +6,7 @@
 package dev.tfp.paper.boot;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -116,6 +117,9 @@ public final class TfpCommands {
         /** Player data of the online player {@code name}. */
         CompletableFuture<Reply> debugPlayer(String name);
 
+        /** Test aid: sets the thirst of the online player {@code name} (0..100). */
+        CompletableFuture<Reply> debugSetThirst(String name, float value);
+
         /** Packet layer and per-handler metrics. */
         CompletableFuture<Reply> debugPackets();
 
@@ -194,6 +198,12 @@ public final class TfpCommands {
                                 .then(Commands.argument("name", StringArgumentType.word())
                                         .executes(run(handler, messages, (h, ctx) -> h.debugPlayer(
                                                 StringArgumentType.getString(ctx, "name"))))))
+                        .then(Commands.literal("thirst")
+                                .then(Commands.argument("name", StringArgumentType.word())
+                                        .then(Commands.argument("value", FloatArgumentType.floatArg(0f, 100f))
+                                                .executes(run(handler, messages, (h, ctx) -> h.debugSetThirst(
+                                                        StringArgumentType.getString(ctx, "name"),
+                                                        FloatArgumentType.getFloat(ctx, "value")))))))
                         .then(Commands.literal("packets").executes(run(handler, messages, (h, ctx) -> h.debugPackets())))
                         .then(Commands.literal("showcase")
                                 .then(Commands.argument("family", StringArgumentType.word())
