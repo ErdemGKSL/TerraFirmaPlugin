@@ -1,0 +1,1106 @@
+# TFC c3b4d9536 cooking export by export_cooking.py: pot/ and heating/ recipes (recursive), and the constants.
+kind	device	id	recipe_type	duration	temperature	heat_fields	outputs	value
+recipe	pot	tfc:pot/black_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/blue_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/brown_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/canola_oil_water	tfc:pot	2400	300	temperature	fluid_output	
+recipe	pot	tfc:pot/cyan_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/food/boiled_egg_1	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/boiled_egg_2	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/boiled_egg_3	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/boiled_egg_4	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/boiled_egg_5	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/cooked_lentil_1	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/cooked_lentil_2	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/cooked_lentil_3	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/cooked_lentil_4	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/cooked_lentil_5	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/cooked_rice_1	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/cooked_rice_2	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/cooked_rice_3	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/cooked_rice_4	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/food/cooked_rice_5	tfc:pot	1200	300	temperature	item_output	
+recipe	pot	tfc:pot/gray_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/green_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/jam_banana_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_banana_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_banana_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_banana_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_banana_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_banana_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_banana_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_banana_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_blackberry_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_blackberry_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_blackberry_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_blackberry_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_blackberry_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_blackberry_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_blackberry_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_blackberry_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_blueberry_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_blueberry_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_blueberry_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_blueberry_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_blueberry_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_blueberry_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_blueberry_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_blueberry_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_bunchberry_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_bunchberry_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_bunchberry_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_bunchberry_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_bunchberry_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_bunchberry_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_bunchberry_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_bunchberry_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cherry_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_cherry_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_cherry_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_cherry_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cherry_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cherry_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cherry_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cherry_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cloudberry_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_cloudberry_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_cloudberry_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_cloudberry_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cloudberry_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cloudberry_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cloudberry_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cloudberry_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cranberry_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_cranberry_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_cranberry_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_cranberry_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cranberry_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cranberry_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cranberry_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_cranberry_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_elderberry_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_elderberry_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_elderberry_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_elderberry_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_elderberry_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_elderberry_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_elderberry_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_elderberry_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_gooseberry_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_gooseberry_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_gooseberry_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_gooseberry_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_gooseberry_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_gooseberry_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_gooseberry_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_gooseberry_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_green_apple_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_green_apple_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_green_apple_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_green_apple_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_green_apple_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_green_apple_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_green_apple_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_green_apple_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_lemon_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_lemon_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_lemon_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_lemon_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_lemon_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_lemon_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_lemon_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_lemon_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_melon_slice_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_melon_slice_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_melon_slice_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_melon_slice_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_melon_slice_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_melon_slice_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_melon_slice_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_melon_slice_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_olive_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_olive_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_olive_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_olive_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_olive_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_olive_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_olive_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_olive_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_orange_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_orange_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_orange_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_orange_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_orange_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_orange_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_orange_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_orange_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_peach_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_peach_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_peach_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_peach_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_peach_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_peach_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_peach_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_peach_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_peanut_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_peanut_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_peanut_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_peanut_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_peanut_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_peanut_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_peanut_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_peanut_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_plum_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_plum_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_plum_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_plum_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_plum_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_plum_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_plum_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_plum_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_raspberry_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_raspberry_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_raspberry_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_raspberry_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_raspberry_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_raspberry_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_raspberry_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_raspberry_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_red_apple_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_red_apple_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_red_apple_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_red_apple_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_red_apple_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_red_apple_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_red_apple_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_red_apple_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_snowberry_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_snowberry_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_snowberry_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_snowberry_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_snowberry_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_snowberry_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_snowberry_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_snowberry_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_strawberry_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_strawberry_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_strawberry_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_strawberry_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_strawberry_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_strawberry_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_strawberry_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_strawberry_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_wintergreen_berry_2	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_wintergreen_berry_3	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_wintergreen_berry_4	tfc:pot_jam	500	300	temperature	sealed_result,unsealed_result	
+recipe	pot	tfc:pot/jam_wintergreen_berry_canning_1	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_wintergreen_berry_canning_2	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_wintergreen_berry_canning_3	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_wintergreen_berry_canning_4	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/jam_wintergreen_berry_canning_5	tfc:pot	300	300	temperature	item_output	
+recipe	pot	tfc:pot/light_blue_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/light_gray_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/lime_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/lye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/magenta_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/olive_oil_water	tfc:pot	2400	300	temperature	fluid_output	
+recipe	pot	tfc:pot/orange_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/pink_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/purple_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/red_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/soup_3	tfc:pot_soup	1200	300	temperature		
+recipe	pot	tfc:pot/soup_4	tfc:pot_soup	1200	300	temperature		
+recipe	pot	tfc:pot/soup_5	tfc:pot_soup	1200	300	temperature		
+recipe	pot	tfc:pot/tallow	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/white_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	pot	tfc:pot/yellow_dye	tfc:pot	2400	600	temperature	fluid_output	
+recipe	heating	tfc:heating/anemometer	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/bell	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/black_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/blast_furnace	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/blowpipe	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/blowpipe_melt	tfc:heating		1500	temperature	result_item	
+recipe	heating	tfc:heating/blue_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/brass_bell	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/brass_mechanisms	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/brick	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/bronze_bell	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/brown_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/burn_bread	tfc:heating		700	temperature		
+recipe	heating	tfc:heating/burn_meat	tfc:heating		900	temperature		
+recipe	heating	tfc:heating/calendar_clock	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/ceramic/axe_head_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/bell_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/black_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/blue_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/bowl	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/brown_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/chisel_head_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/cyan_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/fire_brick	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/fire_ingot_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/gray_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/green_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/hammer_head_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/hoe_head_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/ingot_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/javelin_head_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/jug	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/knife_blade_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/black	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/blue	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/brown	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/cyan	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/gray	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/green	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/light_blue	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/light_gray	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/lime	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/magenta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/orange	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/pink	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/purple	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/red	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/white	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/large_vessel/yellow	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/light_blue_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/light_gray_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/lime_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/mace_head_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/magenta_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/orange_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/pickaxe_head_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/pink_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/pot	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/propick_head_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/purple_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/red_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/saw_blade_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/scythe_blade_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/shovel_head_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/spindle_head	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/sword_blade_mold	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/white_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic/yellow_glazed_vessel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic_blowpipe	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ceramic_blowpipe_melt	tfc:heating		1500	temperature	result_item	
+recipe	heating	tfc:heating/channel	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/copper_door	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/crankshaft	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/crucible	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/cyan_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/dried_cactus_wood	tfc:heating		700	temperature	result_item	
+recipe	heating	tfc:heating/fireproof_door	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/flower_pot	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/food/baked_potato	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/barley_bread	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_arctic_char	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_armadillo	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_bear	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_beef	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_bison	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_bluegill	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_burbot	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_calamari	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_camelidae	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_cassava	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_chevon	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_chicken	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_cod	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_crappie	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_duck	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_egg	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_fox	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_frog_legs	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_gran_feline	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_grouse	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_horse_meat	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_hyena	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_lake_trout	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_largemouth_bass	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_muksun	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_mutton	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_northern_pike	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_pacu	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_peacock_bass	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_peafowl	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_pheasant	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_pork	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_quail	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_rabbit	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_rainbow_trout	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_red_piranha	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_salmon	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_shellfish	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_smallmouth_bass	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_spotted_gudgeon	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_tilapia	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_tropical_fish	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_turkey	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_turtle	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_venison	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/cooked_wolf	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/dried_kelp	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/dried_seaweed	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/maize_bread	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/oat_bread	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/rice_bread	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/rye_bread	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/food/wheat_bread	tfc:heating		200	temperature	result_item	
+recipe	heating	tfc:heating/gem_saw	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/gray_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/green_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/hanging_sign/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/hanging_sign/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/hanging_sign/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/hanging_sign/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/hanging_sign/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/hanging_sign/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/hanging_sign/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/hanging_sign/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/hanging_sign/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/iron_door	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/jacks	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/jar_lid	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/light_blue_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/light_gray_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/lime_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/magenta_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/metal/anvil/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/anvil/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/anvil/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/anvil/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/anvil/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/anvil/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/anvil/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/anvil/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/anvil/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe_head/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe_head/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe_head/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe_head/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe_head/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe_head/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe_head/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe_head/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/axe_head/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/bars/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/bars/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/bars/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/bars/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/bars/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/bars/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/bars/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/bars/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/bars/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/bismuth	tfc:heating		270	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/bismuth_bronze_slab	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/bismuth_bronze_stairs	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/bismuth_slab	tfc:heating		270	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/bismuth_stairs	tfc:heating		270	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/black_bronze_slab	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/black_bronze_stairs	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/black_steel_slab	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/black_steel_stairs	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/blue_steel_slab	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/blue_steel_stairs	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/brass	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/brass_slab	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/brass_stairs	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/bronze_slab	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/bronze_stairs	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/cast_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/cast_iron_slab	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/cast_iron_stairs	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/copper_slab	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/copper_stairs	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/gold	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/gold_slab	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/gold_stairs	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/nickel	tfc:heating		1453	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/nickel_slab	tfc:heating		1453	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/nickel_stairs	tfc:heating		1453	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/red_steel_slab	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/red_steel_stairs	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/rose_gold	tfc:heating		960	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/rose_gold_slab	tfc:heating		960	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/rose_gold_stairs	tfc:heating		960	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/silver_slab	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/silver_stairs	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/steel_slab	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/steel_stairs	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/sterling_silver	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/sterling_silver_slab	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/sterling_silver_stairs	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/tin	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/tin_slab	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/tin_stairs	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/wrought_iron_slab	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/wrought_iron_stairs	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/zinc	tfc:heating		420	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/zinc_slab	tfc:heating		420	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/block/zinc_stairs	tfc:heating		420	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/boots/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/boots/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/boots/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/boots/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/boots/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/boots/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/boots/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/boots/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/boots/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chain/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chain/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chain/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chain/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chain/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chain/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chain/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chain/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chain/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chestplate/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chestplate/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chestplate/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chestplate/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chestplate/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chestplate/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chestplate/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chestplate/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chestplate/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel_head/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel_head/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel_head/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel_head/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel_head/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel_head/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel_head/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel_head/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/chisel_head/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/bismuth	tfc:heating		270	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/brass	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/cast_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/gold	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/nickel	tfc:heating		1453	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/rose_gold	tfc:heating		960	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/sterling_silver	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/tin	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_ingot/zinc	tfc:heating		420	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/bismuth	tfc:heating		270	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/brass	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/cast_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/gold	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/nickel	tfc:heating		1453	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/rose_gold	tfc:heating		960	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/sterling_silver	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/tin	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/double_sheet/zinc	tfc:heating		420	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/brass	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/brass_slab	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/brass_stairs	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/bronze_slab	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/bronze_stairs	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/copper_slab	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/copper_stairs	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/silver_slab	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/silver_stairs	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/steel_slab	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/steel_stairs	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/sterling_silver	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/sterling_silver_slab	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/sterling_silver_stairs	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/wrought_iron_slab	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_block/wrought_iron_stairs	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_grate/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_grate/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_grate/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/exposed_grate/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fish_hook/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fish_hook/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fish_hook/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fish_hook/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fish_hook/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fish_hook/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fish_hook/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fish_hook/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fish_hook/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fishing_rod/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fishing_rod/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fishing_rod/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fishing_rod/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fishing_rod/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fishing_rod/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fishing_rod/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fishing_rod/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/fishing_rod/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/grate/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/grate/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/grate/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/grate/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/grate/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/grate/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/grate/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/grate/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/grate/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/greaves/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/greaves/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/greaves/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/greaves/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/greaves/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/greaves/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/greaves/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/greaves/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/greaves/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer_head/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer_head/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer_head/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer_head/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer_head/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer_head/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer_head/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer_head/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hammer_head/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/helmet/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/helmet/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/helmet/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/helmet/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/helmet/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/helmet/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/helmet/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/helmet/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/helmet/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe_head/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe_head/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe_head/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe_head/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe_head/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe_head/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe_head/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe_head/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/hoe_head/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/horse_armor/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/horse_armor/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/horse_armor/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/horse_armor/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/horse_armor/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/horse_armor/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/horse_armor/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/horse_armor/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/horse_armor/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/bismuth	tfc:heating		270	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/brass	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/cast_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/gold	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/high_carbon_black_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/high_carbon_blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/high_carbon_red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/high_carbon_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/nickel	tfc:heating		1453	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/pig_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/rose_gold	tfc:heating		960	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/sterling_silver	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/tin	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/unknown	tfc:heating		400	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/weak_blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/weak_red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/weak_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/ingot/zinc	tfc:heating		420	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin_head/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin_head/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin_head/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin_head/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin_head/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin_head/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin_head/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin_head/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/javelin_head/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife_blade/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife_blade/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife_blade/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife_blade/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife_blade/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife_blade/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife_blade/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife_blade/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/knife_blade/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/lamp/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/lamp/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/lamp/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/lamp/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/lamp/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/lamp/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/lamp/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/lamp/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/lamp/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace_head/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace_head/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace_head/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace_head/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace_head/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace_head/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace_head/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace_head/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/mace_head/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/brass	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/brass_slab	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/brass_stairs	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/bronze_slab	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/bronze_stairs	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/copper_slab	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/copper_stairs	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/silver_slab	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/silver_stairs	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/steel_slab	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/steel_stairs	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/sterling_silver	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/sterling_silver_slab	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/sterling_silver_stairs	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/wrought_iron_slab	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_block/wrought_iron_stairs	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_grate/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_grate/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_grate/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/oxidized_grate/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe_head/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe_head/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe_head/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe_head/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe_head/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe_head/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe_head/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe_head/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/pickaxe_head/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick_head/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick_head/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick_head/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick_head/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick_head/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick_head/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick_head/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick_head/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/propick_head/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/bismuth	tfc:heating		270	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/brass	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/cast_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/gold	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/nickel	tfc:heating		1453	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/rose_gold	tfc:heating		960	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/sterling_silver	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/tin	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/rod/zinc	tfc:heating		420	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw_blade/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw_blade/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw_blade/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw_blade/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw_blade/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw_blade/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw_blade/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw_blade/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/saw_blade/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe_blade/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe_blade/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe_blade/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe_blade/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe_blade/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe_blade/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe_blade/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe_blade/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/scythe_blade/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shears/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shears/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shears/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shears/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shears/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shears/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shears/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shears/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shears/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/bismuth	tfc:heating		270	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/brass	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/cast_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/gold	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/nickel	tfc:heating		1453	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/rose_gold	tfc:heating		960	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/sterling_silver	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/tin	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sheet/zinc	tfc:heating		420	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shield/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shield/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shield/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shield/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shield/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shield/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shield/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shield/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shield/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel_head/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel_head/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel_head/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel_head/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel_head/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel_head/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel_head/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel_head/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/shovel_head/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword_blade/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword_blade/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword_blade/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword_blade/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword_blade/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword_blade/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword_blade/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword_blade/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/sword_blade/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/trapdoor/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/trapdoor/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/trapdoor/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/trapdoor/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/trapdoor/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/trapdoor/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/trapdoor/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/trapdoor/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/trapdoor/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/tuyere/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/tuyere/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/tuyere/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/tuyere/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/tuyere/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/tuyere/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/tuyere/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/tuyere/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/tuyere/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_boots/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_boots/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_boots/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_boots/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_boots/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_boots/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_boots/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_boots/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_boots/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_chestplate/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_chestplate/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_chestplate/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_chestplate/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_chestplate/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_chestplate/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_chestplate/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_chestplate/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_chestplate/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_greaves/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_greaves/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_greaves/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_greaves/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_greaves/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_greaves/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_greaves/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_greaves/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_greaves/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_helmet/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_helmet/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_helmet/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_helmet/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_helmet/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_helmet/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_helmet/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_helmet/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_helmet/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_lamp/bismuth_bronze	tfc:heating		985	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_lamp/black_bronze	tfc:heating		1070	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_lamp/black_steel	tfc:heating		1485	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_lamp/blue_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_lamp/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_lamp/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_lamp/red_steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_lamp/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/unfinished_lamp/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/brass	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/brass_slab	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/brass_stairs	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/bronze_slab	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/bronze_stairs	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/copper_slab	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/copper_stairs	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/silver_slab	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/silver_stairs	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/steel_slab	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/steel_stairs	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/sterling_silver	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/sterling_silver_slab	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/sterling_silver_stairs	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/wrought_iron_slab	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_block/wrought_iron_stairs	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_grate/bronze	tfc:heating		950	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_grate/copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_grate/steel	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/metal/weathered_grate/wrought_iron	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/mold_table	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/orange_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/ore/normal_bismuthinite	tfc:heating		270	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/normal_cassiterite	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/normal_garnierite	tfc:heating		1453	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/normal_hematite	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/normal_limonite	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/normal_magnetite	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/normal_malachite	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/normal_native_copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/normal_native_gold	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/normal_native_silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/normal_sphalerite	tfc:heating		420	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/normal_tetrahedrite	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/poor_bismuthinite	tfc:heating		270	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/poor_cassiterite	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/poor_garnierite	tfc:heating		1453	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/poor_hematite	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/poor_limonite	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/poor_magnetite	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/poor_malachite	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/poor_native_copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/poor_native_gold	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/poor_native_silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/poor_sphalerite	tfc:heating		420	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/poor_tetrahedrite	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/rich_bismuthinite	tfc:heating		270	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/rich_cassiterite	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/rich_garnierite	tfc:heating		1453	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/rich_hematite	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/rich_limonite	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/rich_magnetite	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/rich_malachite	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/rich_native_copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/rich_native_gold	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/rich_native_silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/rich_sphalerite	tfc:heating		420	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/rich_tetrahedrite	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/small_bismuthinite	tfc:heating		270	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/small_cassiterite	tfc:heating		230	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/small_garnierite	tfc:heating		1453	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/small_hematite	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/small_limonite	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/small_magnetite	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/small_malachite	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/small_native_copper	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/small_native_gold	tfc:heating		1060	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/small_native_silver	tfc:heating		961	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/small_sphalerite	tfc:heating		420	temperature	result_fluid	
+recipe	heating	tfc:heating/ore/small_tetrahedrite	tfc:heating		1080	temperature	result_fluid	
+recipe	heating	tfc:heating/pan/empty	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/pink_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/powder/kaolinite	tfc:heating		500	temperature	result_item	
+recipe	heating	tfc:heating/powder/lime	tfc:heating		840	temperature	result_item	
+recipe	heating	tfc:heating/powder/soda_ash_from_groundcover_seaweed	tfc:heating		500	temperature	result_item	
+recipe	heating	tfc:heating/powder/soda_ash_from_kelp	tfc:heating		500	temperature	result_item	
+recipe	heating	tfc:heating/powder/soda_ash_from_seaweed	tfc:heating		500	temperature	result_item	
+recipe	heating	tfc:heating/purple_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/raw_iron_bloom	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/red_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/refined_iron_bloom	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/steel_pipe	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/steel_rope_anchor	tfc:heating		1540	temperature	result_fluid	
+recipe	heating	tfc:heating/stove	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/thermometer	tfc:heating		930	temperature	result_fluid	
+recipe	heating	tfc:heating/torch_from_bundle	tfc:heating		60	temperature	result_item	
+recipe	heating	tfc:heating/torch_from_stick	tfc:heating		60	temperature	result_item	
+recipe	heating	tfc:heating/white_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+recipe	heating	tfc:heating/wrought_iron_grill	tfc:heating		1535	temperature	result_fluid	
+recipe	heating	tfc:heating/yellow_glazed_terracotta	tfc:heating		1399	temperature	result_item	
+constant	pot	pot_pre_boil_time						100
+constant	firepit	bellows_max_device_air_ticks						600
+constant	firepit	device_heating_modifier						1
+constant	heating	item_heating_modifier						1
+constant	heating	item_cooling_modifier						0.8
+constant	heating	default_heat_modifier						3
