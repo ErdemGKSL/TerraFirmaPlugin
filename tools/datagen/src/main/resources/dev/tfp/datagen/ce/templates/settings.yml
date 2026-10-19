@@ -47,3 +47,14 @@ templates#settings:
       map_color: ${granular_map_color}
       tags:
         - minecraft:mineable/shovel
+  # Devices (charcoal forge, bellows): stone sounds, not a full cube, no tool required. device_hardness, device_resistance: numbers.
+  tfp:settings/device:
+    template: tfp:settings/sound
+    arguments:
+      sound_block_type: stone
+    overrides:
+      hardness: ${device_hardness}
+      resistance: ${device_resistance}
+      instrument: basedrum
+      tags:
+        - minecraft:mineable/pickaxe

@@ -48,7 +48,8 @@ public final class AssetPipeline {
     /** The families' block and item names, plus the item names of the food and metal items generated here. */
     private static final Pattern LANG_KEY = Pattern.compile(
         "^(block|item)\\." + Json.FROM_NS + "\\.(" + String.join("|", FAMILIES) + ")\\..*"
-            + "|^item\\." + Json.FROM_NS + "\\.(food|metal)\\..*");
+            + "|^item\\." + Json.FROM_NS + "\\.(food|metal)\\..*"
+            + "|^block\\." + Json.FROM_NS + "\\.(charcoal_forge|bellows)$");
 
     private final TfcCheckout tfc;
     private final OutputTree out;
@@ -126,6 +127,12 @@ public final class AssetPipeline {
                     modelQueue.add("item/" + id);
                     metalItems.add(id);
                 }
+            }
+        }
+        // Device block items (the charcoal forge and the bellows, M4-FORGE-01): the item model of each, when TFC has one.
+        for (String device : ForgeDevices.DEVICE_ITEMS) {
+            if (tfc.exists(TfcCheckout.ASSETS + "models/item/" + device + ".json")) {
+                modelQueue.add("item/" + device);
             }
         }
         // Metal mining tools (M4-TOOL-02 data slice): the tier of each metal is read from TFC's TFCTiers.

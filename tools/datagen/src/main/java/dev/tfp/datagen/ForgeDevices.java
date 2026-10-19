@@ -35,9 +35,10 @@ import java.util.regex.Pattern;
  * campfire for the forge, a vanilla smoker for the bellows, lit from heat level 1) until the visual allocator has a
  * forge demand: they stand in for the look and the hitbox only.
  *
- * <p>The outputs are {@code craftengine/tfp/devices/charcoal_forge.yml} and {@code bellows.yml}, outside the CraftEngine
- * {@code configuration/} folder, so CraftEngine does not load them yet. The behaviour (the fuel, the multiblock check,
- * the temperature, the block entity) is not in these entries.
+ * <p>The outputs are {@code craftengine/tfp/configuration/charcoal_forge.yml} and {@code bellows.yml}, so CraftEngine
+ * loads them: each has the block with its settings and its loot (the block itself); the bellows also has the item that
+ * places it (with the TFC item model), the forge none (TFC makes it by lighting a charcoal pile). The behaviour (the fuel, the multiblock check, the temperature, the block entity) is not in these
+ * entries: it is Bukkit event glue in the plugin.
  */
 final class ForgeDevices {
     static final String FORGE_SOURCE = "src/main/java/net/dries007/tfc/common/blocks/devices/CharcoalForgeBlock.java";
@@ -45,8 +46,13 @@ final class ForgeDevices {
     static final String PROPERTIES = "src/main/java/net/dries007/tfc/common/blocks/TFCBlockStateProperties.java";
     static final String FORGE_BLOCKSTATE = TfcCheckout.ASSETS + "blockstates/charcoal_forge.json";
     static final String BELLOWS_BLOCKSTATE = TfcCheckout.ASSETS + "blockstates/bellows.json";
-    static final String FORGE_OUTPUT = AssetPipeline.PACK + "devices/charcoal_forge.yml";
-    static final String BELLOWS_OUTPUT = AssetPipeline.PACK + "devices/bellows.yml";
+    static final String FORGE_OUTPUT = AssetPipeline.CONFIG + "charcoal_forge.yml";
+    static final String BELLOWS_OUTPUT = AssetPipeline.CONFIG + "bellows.yml";
+    /**
+     * The device block items whose TFC item models {@link AssetPipeline} copies. The charcoal forge has none: in TFC it is
+     * made by lighting a charcoal pile, it is never placed from an item.
+     */
+    static final List<String> DEVICE_ITEMS = List.of("bellows");
     static final String FORGE_ID = Json.TO_NS + ":charcoal_forge";
     static final String BELLOWS_ID = Json.TO_NS + ":bellows";
 
@@ -68,6 +74,7 @@ final class ForgeDevices {
         HeatRange heat = heatRange(tfc);
         out.put(FORGE_OUTPUT, Yaml.write(HEADER, forge(heat)));
         checkBellows(tfc);
+        requireItemModel(out, "bellows");
         out.put(BELLOWS_OUTPUT, Yaml.write(HEADER, bellows()));
         return (heat.max() - heat.min() + 1) + FACINGS.size();
     }
@@ -118,6 +125,12 @@ final class ForgeDevices {
         }
     }
 
+    private static void requireItemModel(OutputTree out, String id) {
+        if (!out.contains(AssetPipeline.RP + "models/item/" + id + ".json")) {
+            throw new DatagenException("CE item tfp:" + id + " has no item model tfp:item/" + id);
+        }
+    }
+
     private static String require(TfcCheckout tfc, String path) {
         if (!tfc.exists(path)) {
             throw new DatagenException("TFC checkout has no " + path);
@@ -137,7 +150,7 @@ final class ForgeDevices {
         Map<String, Object> appearances = new LinkedHashMap<>();
         appearances.put("cold", Map.of("state", "minecraft:campfire[lit=false]"));
         appearances.put("lit", Map.of("state", "minecraft:campfire[lit=true]"));
-        return entry(FORGE_ID, Map.of(heat.name(), property), appearances, variants);
+        return entry(FORGE_ID, null, Map.of(heat.name(), property), appearances, variants);
     }
 
     static Map<String, Object> bellows() {
@@ -151,21 +164,30 @@ final class ForgeDevices {
             appearances.put(f, Map.of("state", "minecraft:smoker[facing=" + f + ",lit=false]"));
             variants.put("facing=" + f, Map.of("appearance", f));
         }
-        return entry(BELLOWS_ID, Map.of("facing", property), appearances, variants);
+        return entry(BELLOWS_ID, "bellows", Map.of("facing", property), appearances, variants);
     }
 
-    private static Map<String, Object> entry(String id, Map<String, Object> properties, Map<String, Object> appearances,
-            Map<String, Object> variants) {
+    /** @param itemName the name of the item that places the block, or null when there is none */
+    private static Map<String, Object> entry(String id, String itemName, Map<String, Object> properties,
+            Map<String, Object> appearances, Map<String, Object> variants) {
         Map<String, Object> states = new LinkedHashMap<>();
         states.put("properties", new LinkedHashMap<>(properties));
         states.put("appearances", appearances);
         states.put("variants", variants);
         Map<String, Object> block = new LinkedHashMap<>();
+        block.put("settings", CeBlockStates.call("tfp:settings/device",
+            Map.of("device_hardness", new java.math.BigDecimal("1"), "device_resistance", new java.math.BigDecimal("1"))));
+        block.put("loot", Map.of("template", "tfp:loot_table/self"));
         block.put("states", states);
         Map<String, Object> blocks = new LinkedHashMap<>();
         blocks.put(id, block);
         Map<String, Object> root = new LinkedHashMap<>();
         root.put("blocks", blocks);
+        if (itemName != null) {
+            Map<String, Object> items = new LinkedHashMap<>();
+            items.put(id, CeBlockStates.call("tfp:item/block_item", Map.of("item_lang_key", "block.tfp." + itemName)));
+            root.put("items", items);
+        }
         return root;
     }
 
