@@ -25,10 +25,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
 
 ## Glassworking
 
-- [ ] **M6-GLASS-01 Glassworking** · deps: M4-FORGE-01 · skills: tfc-feature-porting
+- [~] **M6-GLASS-01 Glassworking** · deps: M4-FORGE-01 · skills: tfc-feature-porting
   - TFC: `common/component/glass/`, `common/items/{Blowpipe,GlassBlowpipe,Glassworking}Item.java`, `common/blockentities/{GlassBasin,HotPouredGlass}BlockEntity.java`, recipes `glassworking/`, `network/` (glassblowing overlays → our GUI/HUD)
   - Do: blowpipe operations via a textured GUI or action bar steps (divergence if needed), basins, poured glass.
   - Done when: all 60 glassworking recipes.
+  - Status: pure core ported in `dev.tfp.core.glass` (`GlassOperation`, `GlassBatches`, `GlassRecipe(s)`, `GlassState`, `GlassRules`) at c3b4d9536. Counts verified: 60 of 60 glassworking recipe files, 60 golden rows, 0 overlapping recipes, batch tags expanded (4 tags). Tests: `GlassGoldenTest` (4) and `GlassRulesTest` (12), all passing. Open: the glass basin and hot-poured glass block-entity glue (the 100-tick settle and the TFC block states), the blowpipe use/finish interaction and its GUI or action-bar steps, blow breakage chance, the CraftEngine glass items and visuals, the item glue, and any Paper tick or lazy trigger.
 
 ## Decoration & building families
 
