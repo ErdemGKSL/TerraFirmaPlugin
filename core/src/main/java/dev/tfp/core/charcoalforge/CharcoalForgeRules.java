@@ -113,6 +113,23 @@ public final class CharcoalForgeRules {
     }
 
     /**
+     * A temperature that {@link #heatLevel} maps back to {@code level}: 0 for level 0 (unlit), the middle of the level's
+     * band for levels 1 to 6 and the visible maximum for level 7. A stand-in for a forge whose block entity does not keep
+     * the real temperature yet; {@code heatLevel(levelTemperature(n)) == n} for every level.
+     *
+     * @param level the {@code HEAT} block property, 0 through {@link #MAX_HEAT_LEVEL}
+     */
+    public static float levelTemperature(int level) {
+        if (level <= 0) {
+            return 0f;
+        }
+        if (level >= MAX_HEAT_LEVEL) {
+            return HeatLevel.MAX_VISIBLE;
+        }
+        return (level - 0.5f) * HeatLevel.MAX_VISIBLE / 6f;
+    }
+
+    /**
      * One live tick of the burn and temperature part of TFC {@code serverTick}, with the calendar advancing by one tick.
      *
      * @param state   the state at the start of the tick

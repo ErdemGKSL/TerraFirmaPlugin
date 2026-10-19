@@ -32,6 +32,18 @@ class CharcoalForgeRulesTest {
     private static final List<String> FUEL_IDS = List.of("charcoal", "coal", "oak_logs", "leaves");
 
     @Test
+    void levelTemperatureMapsBackToTheSameHeatLevel() {
+        assertThat(CharcoalForgeRules.levelTemperature(0)).isZero();
+        for (int level = 1; level <= CharcoalForgeRules.MAX_HEAT_LEVEL; level++) {
+            assertThat(CharcoalForgeRules.heatLevel(CharcoalForgeRules.levelTemperature(level))).as("level " + level)
+                .isEqualTo(level);
+        }
+        assertThat(CharcoalForgeRules.levelTemperature(7)).as("the top level is the visible maximum").isEqualTo(1600f);
+        assertThat(CharcoalForgeRules.levelTemperature(99)).isEqualTo(1600f);
+        assertThat(CharcoalForgeRules.levelTemperature(-1)).isZero();
+    }
+
+    @Test
     void rejectsImpossibleStates() {
         assertThatThrownBy(() -> new CharcoalForgeState(true, -1, 0f, 0f, 0)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new CharcoalForgeState(false, 5, 0f, 0f, 0)).isInstanceOf(IllegalArgumentException.class);

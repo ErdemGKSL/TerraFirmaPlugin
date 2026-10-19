@@ -96,6 +96,9 @@ public final class TfpCommands {
         /** The block {@code player} looks at: vanilla state, custom state, stored data. */
         CompletableFuture<Reply> debugBlock(Player player);
 
+        /** Places the custom block state {@code state} (such as {@code tfp:charcoal_forge[heat_level=4]}) at the block the player looks at. */
+        CompletableFuture<Reply> debugPlace(Player player, String state);
+
         /** {@code player}'s chunk: our chunk-scale data entries, then the climate at the player (M2-CLIM-03). */
         CompletableFuture<Reply> debugChunk(Player player);
 
@@ -176,6 +179,12 @@ public final class TfpCommands {
                 .then(Commands.literal("debug")
                         .requires(s -> s.getSender().hasPermission(ADMIN_PERMISSION))
                         .then(Commands.literal("block").executes(player(handler, messages, Handler::debugBlock)))
+                        .then(Commands.literal("place")
+                                .then(Commands.argument("state", StringArgumentType.greedyString())
+                                        .executes(run(handler, messages, (h, ctx) ->
+                                                ctx.getSource().getSender() instanceof Player p
+                                                        ? h.debugPlace(p, StringArgumentType.getString(ctx, "state"))
+                                                        : CompletableFuture.completedFuture(Reply.error("command.player_only"))))))
                         .then(Commands.literal("chunk")
                                 .executes(run(handler, messages, (h, ctx) -> ctx.getSource().getSender() instanceof Player p
                                         ? h.debugChunk(p)

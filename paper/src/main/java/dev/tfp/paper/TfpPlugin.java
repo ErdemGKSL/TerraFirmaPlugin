@@ -444,6 +444,9 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 ItemHeatHooks.Capacities.byId(stack -> integrations.customItems().idOf(stack), itemHeatDefinitions);
         heat = new ItemHeatHooks(() -> clock.get().playerTicks(), dev.tfp.core.heat.HeatConfig.DEFAULT, heatCapacities);
         heater = new ItemHeater(() -> clock.get().playerTicks(), dev.tfp.core.heat.HeatConfig.DEFAULT, heatCapacities);
+        // M4-FORGE-01: a right-click on a lit charcoal forge heats the held item one step toward the forge's temperature.
+        getServer().getPluginManager().registerEvents(
+                new dev.tfp.paper.heat.ForgeHeatListener(integrations::customBlocks, () -> heater), this);
         getServer().getPluginManager().registerEvents(new FoodMergeListener(foodHooks), this);
         // M3-SURV-02: eating a known food writes its nutrition record (the core rule), on the player's thread.
         getServer().getPluginManager().registerEvents(new NutritionEatListener(store,
@@ -675,6 +678,42 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         // dependency-bootstrap §7: installer -> BetterModel reload -> CraftEngine full reload. The installer
         // (M1-INST-*) is not built yet, so there is nothing to reload.
         return CompletableFuture.completedFuture(Reply.error("reload.content.unavailable"));
+    }
+
+    @Override
+    public CompletableFuture<Reply> debugPlace(Player player, String stateText) {
+        dev.tfp.paper.integration.BlockStateRef state;
+        try {
+            state = dev.tfp.paper.integration.BlockStateRef.parse(stateText.trim());
+        } catch (IllegalArgumentException e) {
+            return CompletableFuture.completedFuture(Reply.error("debug.place.bad_state", stateText, e.getMessage()));
+        }
+        dev.tfp.paper.integration.CustomBlocks custom = integrations.customBlocks();
+        if (!custom.exists(state.id())) {
+            return CompletableFuture.completedFuture(Reply.error("debug.place.unknown", state.id()));
+        }
+        CompletableFuture<Reply> out = new CompletableFuture<>();
+        boolean scheduled = scheduler.entity(player, () -> {
+            Block block = player.getTargetBlockExact(DEBUG_REACH);
+            if (block == null) {
+                out.complete(Reply.error("debug.block.none", DEBUG_REACH));
+                return;
+            }
+            Location loc = block.getLocation();
+            scheduler.region(loc, () -> {
+                try {
+                    boolean placed = custom.place(block, state, false);
+                    out.complete(placed ? Reply.ok("debug.place.done", stateText.trim(), format(loc))
+                            : Reply.error("debug.place.refused", stateText.trim(), format(loc)));
+                } catch (RuntimeException e) {
+                    out.completeExceptionally(e);
+                }
+            });
+        }, () -> out.complete(Reply.error("command.player_only")));
+        if (!scheduled) {
+            out.complete(Reply.error("command.player_only"));
+        }
+        return out;
     }
 
     @Override
