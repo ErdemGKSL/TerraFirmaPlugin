@@ -12,7 +12,7 @@ import dev.tfp.core.weather.PrecipitationType;
  * player's own thread when a value changes; HUD placeholders read the latest one from any thread
  * (BetterHud evaluates them asynchronously ~20×/s) without touching the world.
  *
- * @param health current TFC health (TFC scale, e.g. 45 of 50)
+ * @param health current TFC health (TFC scale: 850 max at average nutrition, see HealthDisplay)
  * @param maxHealth TFC max health
  * @param thirst 0..100
  * @param hunger 0..20 (vanilla food scale)

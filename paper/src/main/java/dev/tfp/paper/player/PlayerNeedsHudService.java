@@ -5,6 +5,8 @@
  */
 package dev.tfp.paper.player;
 
+import dev.tfp.core.health.HealthConfig;
+import dev.tfp.core.health.HealthDisplay;
 import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.scheduler.Scheduler;
@@ -21,18 +23,20 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 /**
- * Thirst and hunger for the HUD (M3-SURV-06, M3-SURV-03). The thirst is evaluated lazily here
+ * Health, max health, thirst and hunger for the HUD (M3-SURV-04, M3-SURV-06, M3-SURV-03). The thirst is evaluated lazily here
  * ({@link ThirstDecay#evaluate}, the stored clock plus the player ticks since): nothing ticks for it.
  * <ol>
  *   <li><b>Throttle (global thread).</b> Every {@value #PERIOD_TICKS} ticks, for each online player, a task goes to
  *       that player's own thread (the same period and mechanism as {@code PlayerClimateService}).</li>
  *   <li><b>Evaluate and publish (player thread).</b> The stored data is evaluated at the current player tick with the
  *       ambient temperature, the new thirst clock is written back to {@link PlayerDataStore}, and the thirst and the
- *       vanilla food level go into the player's {@link HudSnapshot} in the {@link HudSnapshotCache}.</li>
+ *       vanilla food level go into the player's {@link HudSnapshot} in the {@link HudSnapshotCache}. The health and max
+ *       health are the vanilla values read here, shown on TFC's scale ({@link HealthDisplay}).</li>
  *   <li><b>Join (player thread).</b> The thirst clock restarts at the join, so the time the player was offline (while
  *       other players were online and the calendar ran) is not decayed.</li>
  * </ol>
- * Health and max health are not published here: the TFC health scale is an open decision (see the ledger).
+ * Health is shown at the average-nutrition modifier until a player's nutrition is stored and read here (the open part of
+ * M3-SURV-04): the max is then 850, the TFC value at average nutrition (ledger, health display row).
  */
 public final class PlayerNeedsHudService implements Listener {
     /** The throttle: one reading per player per second. */
@@ -92,7 +96,9 @@ public final class PlayerNeedsHudService implements Listener {
         long now = playerTicks.getAsLong();
         float temperature = (float) base.ambientTemperature();
         PlayerData evaluated = data.update(id, d -> ThirstDecay.evaluate(d, now, temperature));
-        hud.publish(player, withNeeds(base, evaluated, player.getFoodLevel()));
+        HealthDisplay health = HealthDisplay.atAverageNutrition((float) player.getHealth(),
+                (float) player.getMaxHealth(), HealthConfig.DEFAULT);
+        hud.publish(player, withNeeds(base, evaluated, player.getFoodLevel()).withHealth(health.health(), health.maxHealth()));
     }
 
     /** Restarts the thirst clock when the player joins (see the class comment). */

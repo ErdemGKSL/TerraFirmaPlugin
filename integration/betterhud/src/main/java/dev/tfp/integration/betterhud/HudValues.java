@@ -24,8 +24,8 @@ final class HudValues {
     /**
      * Number placeholders. Thirst and hunger are published by {@code PlayerNeedsHudService}; the placeholders read the
      * player's latest snapshot and fall back to {@link HudSnapshot#DEFAULT} before the first publish. Health and max
-     * health are still unpublished (the TFC health scale is an open decision in the ledger), so they read the default
-     * too. {@code tfp_held_temp} has no stored item heat yet (0 via the snapshot).
+     * health are published by {@code PlayerNeedsHudService} on TFC's scale. {@code tfp_held_temp} has no stored item
+     * heat yet (0 via the snapshot).
      */
     static final Map<String, ToDoubleFunction<HudSnapshot>> NUMBERS;
 
