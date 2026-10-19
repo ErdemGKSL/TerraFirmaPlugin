@@ -89,3 +89,36 @@ Comparison:
 - The ratios are not equal across channels in either month, so vanilla shading is not a single scalar here, and the screenshot average also mixes shadowed and lit pixels. The per-channel ratio test therefore cannot cleanly prove the shade factor, but the change itself does not match: the colormap predicts a red-shifted, darker October, and the server shows a slightly brighter red and blue.
 
 Result: MISMATCH. The server grass colour is not the colormap colour for this climate. The October colour is not explained by the TFC grass colormap at 5.1 C and 186 mm. Next open check: find out which colour the server applies to the grass (the biome variant band in use at the patch, its colour, and whether the client shows that variant), not the shading.
+
+## Band check (datapack band for 5.1 C and 14.5 C at 186 mm)
+
+Question: which seasonal datapack band does the server use for the two readings, and does the band's grass colour equal the TFC colormap colour for those readings?
+
+Band selection (`core/.../climate/SeasonalColour.java`: `temperatureIndex`, `rainfallIndex`, `rainfallBand`; 4 temperature bands of 64 indices, rainfall edges `{0, 128, 179, 217}`):
+
+| Reading | Temp index | Rain index | Temp band | Rain band | Variant |
+|---|---|---|---|---|---|
+| June, 14.5 C, 186 mm | 80 | 161 | 1 | 1 | `tfp:seasonal/<biome>/t1r1` |
+| October, 5.1 C, 186 mm | 127 | 161 | 1 | 1 | `tfp:seasonal/<biome>/t1r1` |
+
+Both readings fall in the same band, so the server gives the same variant in June and October at 186 mm. The band cannot show the June to October change.
+
+Datapack fields (`content/generated/content/datapack/tfp_seasonal_biomes/data/tfp/worldgen/biome/seasonal/plains/t1r1.json`; identical to the copy in `content/build/resources/main`, checked with `diff -r`):
+- `temperature`: 0.5, `downfall`: 0.5 (copied from TFC `plains.json`)
+- `effects.grass_color`: 7381843 = `#70a353`. Set explicitly, so the colormap is not read for this variant.
+- `effects.foliage_color`: 7115553, `water_color`: 3958692 (not used here).
+
+The band colour is the colormap at the band centre (`centreTemperatureIndex` = 96, `centreRainfallIndex` = 153), not at the reading. `grass.png` at (96, 153) = `#70a353`, which matches the stored value.
+
+Vanilla index check: the vanilla grass lookup (client `dvy.a(double,double,int[],int)`, read with `javap` from `dl/jar_1.21.11/client.jar`) computes `downfall *= temperature; x = (int)((1 - temperature) * 255); y = (int)((1 - downfall) * 255); index = y << 8 | x`. For the variant's own fields (0.5, 0.5) that is x = 127, y = 191, index 49023. This index is not used, because `effects.grass_color` is set and overrides the colormap. The override is standard vanilla behaviour; I did not disassemble the biome code that reads it.
+
+Comparison with the TFC colormap at the exact readings (`grass.png`, TFC index as in the table above):
+
+| Reading | TFC colormap | Server band colour `#70a353` | Difference (R, G, B) |
+|---|---|---|---|
+| June, 14.5 C, 186 mm (80, 161) | `#97b355` (151, 179, 85) | (112, 163, 83) | -39, -16, -2 |
+| October, 5.1 C, 186 mm (127, 161) | `#689f54` (104, 159, 84) | (112, 163, 83) | +8, +4, -1 |
+
+Conclusion: MISMATCH for June; close to October (within 8 per channel). The server colour is the band-centre colour, not the colour at the reading. Each temperature band spans 64 colormap indices (about 12.5 C) and the rainfall bands span 38 to 128 indices, so one band colour cannot follow the colormap within a band. The stored value is correct for its band, so the mismatch is quantisation, not a wrong colormap lookup. The 46.6 vs 49.3 difference in the fresh-world averages therefore cannot come from the grass band (both months use `t1r1`); it is lighting or shading.
+
+Next step (not done here): either use a finer temperature band near the reading (for example 16 or 32 bands for the grass colour) or accept the quantisation and record it as a divergence in `docs/porting/ledger.md`.
