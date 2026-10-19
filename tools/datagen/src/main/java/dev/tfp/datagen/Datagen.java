@@ -78,6 +78,8 @@ public final class Datagen {
         MetalFamilies.run(tfc, out);
         FruitFamilies.run(tfc, out);
         Firepit.run(tfc, out);
+        Grill.run(tfc, out);
+        Pot.run(tfc, out);
         Advancements.run(tfc, out);
         FieldGuide.run(tfc, out);
         Locales.run(tfc, out);

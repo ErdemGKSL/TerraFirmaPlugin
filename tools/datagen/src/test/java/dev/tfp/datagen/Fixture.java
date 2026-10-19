@@ -202,6 +202,8 @@ final class Fixture {
         MetalFixture.addDefault(root);
         FruitFixture.addDefault(root);
         FirepitTest.addDefault(root);
+        GrillTest.addDefault(root);
+        PotTest.addDefault(root);
         return root;
     }
 
