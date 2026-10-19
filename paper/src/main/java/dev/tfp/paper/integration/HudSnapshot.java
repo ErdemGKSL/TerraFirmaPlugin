@@ -21,15 +21,24 @@ import dev.tfp.core.weather.PrecipitationType;
  * @param precipitation what falls at the player's position (M2-WTH-01), NONE until the first decision
  */
 public record HudSnapshot(double health, double maxHealth, double thirst, double hunger, double heldTemperature,
-        double ambientTemperature, PrecipitationType precipitation) {
+        double ambientTemperature, PrecipitationType precipitation, double air) {
     /** The top of the thirst scale: {@link #thirst} runs 0..this (TFC {@code PlayerInfo.MAX_THIRST}). */
     public static final double MAX_THIRST = 100;
 
     /** The top of the hunger scale: {@link #hunger} runs 0..this (vanilla food level). */
     public static final double MAX_HUNGER = 20;
 
+    /** The top of the air scale: {@link #air} runs 0..this (vanilla maximum breath, 300 ticks). */
+    public static final double MAX_AIR = 300;
+
     /** Shown before the first publish. */
     public static final HudSnapshot DEFAULT = new HudSnapshot(50, 50, MAX_THIRST, MAX_HUNGER, 0);
+
+    /** A snapshot with no air reading yet (full breath). */
+    public HudSnapshot(double health, double maxHealth, double thirst, double hunger, double heldTemperature,
+            double ambientTemperature, PrecipitationType precipitation) {
+        this(health, maxHealth, thirst, hunger, heldTemperature, ambientTemperature, precipitation, MAX_AIR);
+    }
 
     /** A snapshot with no precipitation decision yet. */
     public HudSnapshot(double health, double maxHealth, double thirst, double hunger, double heldTemperature,
@@ -43,19 +52,19 @@ public record HudSnapshot(double health, double maxHealth, double thirst, double
     }
 
     public HudSnapshot withThirst(double value) {
-        return new HudSnapshot(health, maxHealth, value, hunger, heldTemperature, ambientTemperature, precipitation);
+        return new HudSnapshot(health, maxHealth, value, hunger, heldTemperature, ambientTemperature, precipitation, air);
     }
 
     public HudSnapshot withHealth(double value, double max) {
-        return new HudSnapshot(value, max, thirst, hunger, heldTemperature, ambientTemperature, precipitation);
+        return new HudSnapshot(value, max, thirst, hunger, heldTemperature, ambientTemperature, precipitation, air);
     }
 
     public HudSnapshot withHunger(double value) {
-        return new HudSnapshot(health, maxHealth, thirst, value, heldTemperature, ambientTemperature, precipitation);
+        return new HudSnapshot(health, maxHealth, thirst, value, heldTemperature, ambientTemperature, precipitation, air);
     }
 
     public HudSnapshot withHeldTemperature(double value) {
-        return new HudSnapshot(health, maxHealth, thirst, hunger, value, ambientTemperature, precipitation);
+        return new HudSnapshot(health, maxHealth, thirst, hunger, value, ambientTemperature, precipitation, air);
     }
 
     public HudSnapshot withAmbientTemperature(double value) {
@@ -63,6 +72,12 @@ public record HudSnapshot(double health, double maxHealth, double thirst, double
     }
 
     public HudSnapshot withPrecipitation(PrecipitationType value) {
-        return new HudSnapshot(health, maxHealth, thirst, hunger, heldTemperature, ambientTemperature, value);
+        return new HudSnapshot(health, maxHealth, thirst, hunger, heldTemperature, ambientTemperature, value, air);
+    }
+
+    /** The breath left in ticks, clamped to 0..{@link #MAX_AIR}. */
+    public HudSnapshot withAir(double value) {
+        return new HudSnapshot(health, maxHealth, thirst, hunger, heldTemperature, ambientTemperature, precipitation,
+                Math.clamp(value, 0, MAX_AIR));
     }
 }

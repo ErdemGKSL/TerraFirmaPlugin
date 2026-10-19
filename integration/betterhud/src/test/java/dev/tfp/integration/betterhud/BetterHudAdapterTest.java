@@ -31,7 +31,7 @@ class BetterHudAdapterTest {
         cache.put(player, new HudSnapshot(45, 50, 30, 10, 1200));
         HudSnapshot s = cache.snapshot(player);
         assertThat(HudValues.NUMBERS.keySet())
-                .containsExactly("tfp_health", "tfp_max_health", "tfp_thirst", "tfp_hunger", "tfp_held_temp");
+                .containsExactly("tfp_health", "tfp_max_health", "tfp_thirst", "tfp_hunger", "tfp_held_temp", "tfp_air");
         assertThat(HudValues.NUMBERS.get("tfp_health").applyAsDouble(s)).isEqualTo(45);
         assertThat(HudValues.NUMBERS.get("tfp_max_health").applyAsDouble(s)).isEqualTo(50);
         assertThat(HudValues.NUMBERS.get("tfp_thirst").applyAsDouble(s)).isEqualTo(30);

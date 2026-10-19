@@ -133,7 +133,8 @@ public final class PlayerNeedsHudService implements Listener {
         float modifier = healthModifier(Optional.of(evaluated), player.getFoodLevel());
         HealthDisplay health = HealthDisplay.of((float) player.getHealth(), (float) player.getMaxHealth(), modifier,
                 HealthConfig.DEFAULT);
-        hud.publish(player, withNeeds(base, evaluated, player.getFoodLevel()).withHealth(health.health(), health.maxHealth()));
+        hud.publish(player, withNeeds(base, evaluated, player.getFoodLevel()).withHealth(health.health(), health.maxHealth())
+                .withAir(player.getRemainingAir()));
     }
 
     /** Restarts the thirst clock when the player joins (see the class comment). */

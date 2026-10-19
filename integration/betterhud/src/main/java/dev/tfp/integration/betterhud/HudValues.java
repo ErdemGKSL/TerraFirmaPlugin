@@ -39,12 +39,14 @@ final class HudValues {
         n.put("tfp_thirst", HudSnapshot::thirst);
         n.put("tfp_hunger", HudSnapshot::hunger);
         n.put("tfp_held_temp", HudSnapshot::heldTemperature);
+        n.put("tfp_air", HudSnapshot::air);
         NUMBERS = Collections.unmodifiableMap(n);
 
         Map<String, ToDoubleFunction<HudSnapshot>> l = new LinkedHashMap<>();
         l.put("tfp_health", s -> ratio(s.health(), s.maxHealth()));
         l.put("tfp_thirst", s -> ratio(s.thirst(), HudSnapshot.MAX_THIRST));
         l.put("tfp_hunger", s -> ratio(s.hunger(), HudSnapshot.MAX_HUNGER));
+        l.put("tfp_air", s -> ratio(s.air(), HudSnapshot.MAX_AIR));
         LISTENERS = Collections.unmodifiableMap(l);
     }
 
