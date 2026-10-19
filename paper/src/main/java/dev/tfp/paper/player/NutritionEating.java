@@ -40,7 +40,34 @@ public final class NutritionEating {
         public enum Kind { HUNGER, POISON }
     }
 
+    /** The vanilla food level and saturation TFC leaves the player with after a meal. */
+    public record VanillaFood(int food, float saturation) {
+    }
+
     private NutritionEating() {
+    }
+
+    /**
+     * The vanilla food level and saturation after eating, under TFC's rule. TFC changes the vanilla food only for a
+     * known, non-rotten food with hunger above 0: {@code PlayerInfo#eat(FoodData)}, {@code PlayerInfo.java} lines
+     * 208-211, calls {@code this.food.eat(food.hunger(), food.saturation() / (2f * food.hunger()))}, which is vanilla
+     * {@code FoodData#eat}: hunger rises by the food's hunger and is capped at 20, and saturation rises by
+     * {@code hunger x modifier x 2} (that is, the food's saturation) and is capped at the new food level. Rotten food
+     * (lines 174-190) and unknown foods leave both values as they are. The rule is {@link HungerState#eaten}.
+     *
+     * @param vanillaFood       the vanilla food level before eating
+     * @param vanillaSaturation the vanilla saturation before eating; a negative or NaN value counts as 0
+     */
+    public static VanillaFood vanillaAfterEating(int vanillaFood, float vanillaSaturation, Optional<FoodData> food,
+            boolean rotten) {
+        int hunger = Math.clamp(vanillaFood, 0, NutritionState.MAX_HUNGER);
+        float saturation = Float.isNaN(vanillaSaturation) || vanillaSaturation < 0 ? 0f : vanillaSaturation;
+        if (food.isEmpty() || rotten) {
+            return new VanillaFood(hunger, saturation);
+        }
+        HungerState after = new HungerState(hunger, saturation, 0, 0)
+                .eaten(food.get().hunger(), food.get().saturation());
+        return new VanillaFood(after.hunger(), after.saturation());
     }
 
     /**

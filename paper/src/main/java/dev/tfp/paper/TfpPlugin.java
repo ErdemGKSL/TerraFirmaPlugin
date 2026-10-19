@@ -429,7 +429,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         getServer().getPluginManager().registerEvents(new FoodMergeListener(foodHooks), this);
         // M3-SURV-02: eating a known food writes its nutrition record (the core rule), on the player's thread.
         getServer().getPluginManager().registerEvents(new NutritionEatListener(store,
-                () -> clock.get().playerTicks(), integrations.customItems(), foodDefinitions, foodHooks), this);
+                () -> clock.get().playerTicks(), integrations.customItems(), foodDefinitions, foodHooks, scheduler),
+                this);
 
         // M2-CLIM-03: the player's ambient temperature, throttled on the global thread and computed off-thread.
         PlayerClimateService playerClimate = new PlayerClimateService(clock, scheduler, hudCache);

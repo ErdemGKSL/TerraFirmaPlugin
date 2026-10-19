@@ -110,4 +110,53 @@ class NutritionEatingTest {
         assertThat(after.thirstTick()).isEqualTo(1_000L);
         assertThat(after.passiveExhaustion()).isEqualTo(123_456L);
     }
+
+    /**
+     * TFC {@code PlayerInfo#eat(FoodData)} sets the vanilla food level through {@code FoodData#eat}
+     * ({@code PlayerInfo.java} lines 208-211): a food of hunger 4 and saturation 2.4 at food 10, saturation 1 gives
+     * food 14 and saturation 1 + 2.4 = 3.4.
+     */
+    @Test
+    void eatingAKnownFoodRaisesTheVanillaFoodLevelAndSaturationAsTfcDoes() {
+        FoodData bread = new FoodData(4, 0f, 2.4f, 0, 0f, 0f, 0f, 0f, 0f, 0f);
+        NutritionEating.VanillaFood after = NutritionEating.vanillaAfterEating(10, 1f, Optional.of(bread), false);
+
+        assertThat(after.food()).isEqualTo(14);
+        assertThat(after.saturation()).isCloseTo(3.4f, Offset.offset(1e-5f));
+    }
+
+    /** Vanilla caps the food level at 20 and the saturation at the new food level. */
+    @Test
+    void theVanillaFoodLevelAndSaturationAreCapped() {
+        FoodData bread = new FoodData(4, 0f, 2.4f, 0, 0f, 0f, 0f, 0f, 0f, 0f);
+        assertThat(NutritionEating.vanillaAfterEating(19, 0f, Optional.of(bread), false).food()).isEqualTo(20);
+
+        FoodData rich = new FoodData(1, 0f, 10f, 0, 0f, 0f, 0f, 0f, 0f, 0f);
+        NutritionEating.VanillaFood capped = NutritionEating.vanillaAfterEating(1, 0f, Optional.of(rich), false);
+        assertThat(capped.food()).isEqualTo(2);
+        assertThat(capped.saturation()).isCloseTo(2f, Offset.offset(1e-5f));
+    }
+
+    /** TFC eats nothing from rotten food, and an unknown or zero-hunger food changes nothing. */
+    @Test
+    void rottenUnknownAndZeroHungerFoodLeaveTheVanillaFoodAsItWas() {
+        FoodData bread = new FoodData(4, 0f, 2.4f, 0, 0f, 0f, 0f, 0f, 0f, 0f);
+        FoodData noHunger = new FoodData(0, 0f, 2.4f, 0, 0f, 0f, 0f, 0f, 0f, 0f);
+
+        NutritionEating.VanillaFood rotten = NutritionEating.vanillaAfterEating(10, 1f, Optional.of(bread), true);
+        assertThat(rotten).isEqualTo(new NutritionEating.VanillaFood(10, 1f));
+        assertThat(NutritionEating.vanillaAfterEating(10, 1f, Optional.empty(), false))
+                .isEqualTo(new NutritionEating.VanillaFood(10, 1f));
+        assertThat(NutritionEating.vanillaAfterEating(10, 1f, Optional.of(noHunger), false))
+                .isEqualTo(new NutritionEating.VanillaFood(10, 1f));
+    }
+
+    /** A NaN or negative vanilla saturation counts as 0 before TFC's rule is applied. */
+    @Test
+    void aBadVanillaSaturationCountsAsZero() {
+        FoodData bread = new FoodData(4, 0f, 2.4f, 0, 0f, 0f, 0f, 0f, 0f, 0f);
+        NutritionEating.VanillaFood nan = NutritionEating.vanillaAfterEating(10, Float.NaN, Optional.of(bread), false);
+        assertThat(nan.saturation()).isCloseTo(2.4f, Offset.offset(1e-5f));
+        assertThat(NutritionEating.vanillaAfterEating(10, -3f, Optional.empty(), false).saturation()).isZero();
+    }
 }

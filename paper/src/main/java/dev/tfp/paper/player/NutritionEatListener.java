@@ -9,6 +9,7 @@ import dev.tfp.core.recipe.food.FoodData;
 import dev.tfp.core.food.FoodDefinitions;
 import dev.tfp.paper.food.ItemFoodHooks;
 import dev.tfp.paper.integration.CustomItems;
+import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ThreadAsserts;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,7 +31,9 @@ import org.bukkit.potion.PotionEffectType;
  * nothing. A rotten known food records nothing and gives TFC's rotten-food effects (Hunger II, sometimes Poison I).
  *
  * <p>Runs on the player's thread (the consume event is fired there). Vanilla's food level is read before the food is
- * applied: the event fires before vanilla changes it, so the hunger is the one TFC records at.
+ * applied: the event fires before vanilla changes it, so the hunger is the one TFC records at. The vanilla food level
+ * and saturation are then set to TFC's values one tick later, since vanilla applies the custom item's nutrition after
+ * the event.
  */
 public final class NutritionEatListener implements Listener {
     private final PlayerDataStore data;
@@ -38,19 +41,22 @@ public final class NutritionEatListener implements Listener {
     private final CustomItems items;
     private final Supplier<FoodDefinitions> definitions;
     private final ItemFoodHooks hooks;
+    private final Scheduler scheduler;
 
     /**
      * @param playerTicks the calendar's player tick ({@code ClockSnapshot.playerTicks}), any thread
      * @param definitions the food definitions of the current registry snapshot
      * @param hooks       the food queries (rotten check) at the current tick
+     * @param scheduler   schedules the vanilla food level write on the player's region, one tick later
      */
     public NutritionEatListener(PlayerDataStore data, LongSupplier playerTicks, CustomItems items,
-            Supplier<FoodDefinitions> definitions, ItemFoodHooks hooks) {
+            Supplier<FoodDefinitions> definitions, ItemFoodHooks hooks, Scheduler scheduler) {
         this.data = data;
         this.playerTicks = playerTicks;
         this.items = items;
         this.definitions = definitions;
         this.hooks = hooks;
+        this.scheduler = scheduler;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -75,6 +81,14 @@ public final class NutritionEatListener implements Listener {
         int vanillaFood = player.getFoodLevel();
         float vanillaSaturation = player.getSaturation();
         data.update(id, d -> NutritionEating.eat(d, food, rotten, vanillaFood, vanillaSaturation, now));
+        // TFC sets the vanilla food level (PlayerInfo.java 208-211) and the rotten branch leaves it alone. Vanilla adds
+        // the custom item's own nutrition after this event, so the TFC level is written on the next tick, after it.
+        NutritionEating.VanillaFood vanilla = NutritionEating.vanillaAfterEating(vanillaFood, vanillaSaturation, food,
+                rotten);
+        scheduler.entityDelayed(player, 1, () -> {
+            player.setFoodLevel(vanilla.food());
+            player.setSaturation(vanilla.saturation());
+        }, null);
         if (rotten) {
             // TFC PlayerInfo#eat(IFood): the rotten branch gives effects instead of nutrition
             for (NutritionEating.RottenEffect effect
