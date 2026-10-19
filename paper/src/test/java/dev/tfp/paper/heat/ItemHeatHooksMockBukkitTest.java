@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.heat.HeatLevel;
 import dev.tfp.core.heat.HeatState;
+import dev.tfp.core.heat.ItemHeatDefinitions;
 import dev.tfp.paper.i18n.Messages;
 import dev.tfp.paper.testing.MockServerTest;
 import java.util.Locale;
@@ -88,6 +89,28 @@ class ItemHeatHooksMockBukkitTest extends MockServerTest {
 
         now.set(1_000L + 60_000L);
         assertThat(hooks.temperature(stack)).isLessThan(1_000f);
+    }
+
+    @Test
+    void theCapacityComesFromTheItemHeatDefinitionsAndAnItemWithoutOneStaysCold() {
+        var defs = new ItemHeatDefinitions(java.util.Map.of("tfp:metal/ingot/copper",
+            new ItemHeatDefinitions.HeatData(2.857143f, 648f, 864f)));
+        var byId = ItemHeatHooks.Capacities.byId(
+            s -> s.getType() == Material.COPPER_INGOT ? java.util.Optional.of("tfp:metal/ingot/copper")
+                : s.getType() == Material.IRON_INGOT ? java.util.Optional.of("tfp:not_heatable") : java.util.Optional.empty(),
+            () -> defs);
+        ItemHeatHooks hooks = new ItemHeatHooks(() -> 5L, CFG, byId);
+        ItemStack copper = new ItemStack(Material.COPPER_INGOT);
+        ItemStack unknown = new ItemStack(Material.IRON_INGOT);
+        ItemStack noId = new ItemStack(Material.STICK);
+        for (ItemStack s : new ItemStack[] {copper, unknown, noId}) {
+            HeatPdc.write(s, new HeatState(900f, 5L));
+        }
+
+        assertThat(byId.of(copper)).isEqualTo(2.857143f);
+        assertThat(hooks.temperature(copper)).isEqualTo(900f);
+        assertThat(hooks.temperature(unknown)).as("no definition: cannot be heated").isZero();
+        assertThat(hooks.temperature(noId)).as("no custom id").isZero();
     }
 
     @Test
