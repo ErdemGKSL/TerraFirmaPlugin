@@ -42,6 +42,35 @@ class PinnedCheckoutTest {
         VisualContentCheck.assertComplete(r.tree().files());
     }
 
+    /** Every item of the generated food and metal configs has its display name in the English pack lang file. */
+    @Test
+    void everyGeneratedFoodAndMetalItemHasAnEnglishName() {
+        Path checkout = Path.of(System.getProperty("tfc.checkout", "/opt/tfc"));
+        Assumptions.assumeTrue(Files.isDirectory(checkout.resolve(".git")), "no TFC checkout at " + checkout);
+        Assumptions.assumeTrue(TfcCheckout.PINNED_COMMIT.equals(TfcCheckout.resolveHead(checkout)),
+            "TFC checkout is not at the pinned commit");
+        java.util.Map<String, byte[]> files = result(checkout).tree().files();
+        String langPath = files.keySet().stream().filter(k -> k.endsWith("resourcepack/assets/tfp/lang/en_us.json"))
+            .findFirst().orElseThrow();
+        com.google.gson.JsonObject lang = com.google.gson.JsonParser.parseString(
+            new String(files.get(langPath), java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+        java.util.regex.Pattern key = java.util.regex.Pattern.compile("item_lang_key: (\\S+)");
+        java.util.List<String> missing = new java.util.ArrayList<>();
+        int checked = 0;
+        for (String file : java.util.List.of("configuration/food.yml", "configuration/metal.yml")) {
+            String path = files.keySet().stream().filter(k -> k.endsWith(file)).findFirst().orElseThrow();
+            java.util.regex.Matcher m = key.matcher(new String(files.get(path), java.nio.charset.StandardCharsets.UTF_8));
+            while (m.find()) {
+                checked++;
+                if (!lang.has(m.group(1))) {
+                    missing.add(m.group(1));
+                }
+            }
+        }
+        assertThat(checked).as("food and metal item keys").isGreaterThan(200);
+        assertThat(missing).as("item_lang_key without an English name").isEmpty();
+    }
+
     /**
      * M1-DGN-04 done-criterion: the default profiles (1.21 → level-3a, 26 → level-2) leave at least the
      * solid-pool reserve (500) for other CraftEngine packs, with Nether/End blocks off (the stricter case).
