@@ -38,7 +38,7 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m6-glass-01-step-indicator` | blowpipe step text or progress | M6-GLASS-01 | indicator | unspecified in plan (glassworking state, `GlassState`) | M6 | needed | unspecified in plan. M6-GLASS-01 says "textured GUI or action bar steps". TFC reference: `GlassblowingOverlays` (crosshair text while holding a blowpipe). |
 | `m3-surv-06-hide-hearts` | vanilla hearts row | M3-SURV-06 | hidden-vanilla | transparent `gui/sprites/hud/heart/*.png` (47 files) | M3 | needed | Spike M0-BH-01 `[x]`. The set also hides the vanilla mount-health row (`heart/vehicle_*`). See section 2. |
 | `m3-surv-06-hide-food` | vanilla food row | M3-SURV-06 | hidden-vanilla | transparent `gui/sprites/hud/food_*.png` (6 files) | M3 | needed | Spike M0-BH-01 `[x]`. |
-| `m3-surv-06-hide-air` | vanilla air bubbles | M3-SURV-06 | hidden-vanilla | transparent `air.png`, `air_bursting.png`, `air_empty.png` | M3 | needed | Spike M0-BH-01 `[x]`. |
+| `m3-surv-06-hide-air` | vanilla air bubbles | M3-SURV-06 | hidden-vanilla | (deferred) transparent `air.png`, `air_bursting.png`, `air_empty.png` | M3 | deferred: needs an air bar first | Spike M0-BH-01 `[x]`. |
 
 ## 2. Vanilla bars to hide
 
@@ -48,7 +48,7 @@ The plans name three bars to hide. The hotbar and crosshair stay (M0-BH-01 done-
 |---|---|---|---|
 | hearts (health row) | M3-SURV-06 "Hide vanilla hearts/food/air"; spike M0-BH-01 | `gui/sprites/hud/heart/*.png`, all 47 in 1.21.11 (incl. `container*`, `vehicle_*`, `*_blinking`, `hardcore_*`) | Also hides the mount-health row (`vehicle_*`). See "not named" below. |
 | food (hunger row) | M3-SURV-06; spike M0-BH-01 | `gui/sprites/hud/food_*.png` (6) | |
-| air (bubbles) | M3-SURV-06; spike M0-BH-01 | `gui/sprites/hud/air.png`, `air_bursting.png`, `air_empty.png` | |
+| air (bubbles) | M3-SURV-06; spike M0-BH-01 | `gui/sprites/hud/air.png`, `air_bursting.png`, `air_empty.png` | Not hidden: there is no air readout to replace them yet, so a player under water would see no breath left. Hide again only with an air bar. |
 
 Not named by any plan item (decide in X-HUD-01 or add to M3-SURV-06):
 - **Experience bar and XP level.** No plan item names it. TFC hides the vanilla XP bar under a config switch (`IngameOverlays.EXPERIENCE`). The research report keeps XP.

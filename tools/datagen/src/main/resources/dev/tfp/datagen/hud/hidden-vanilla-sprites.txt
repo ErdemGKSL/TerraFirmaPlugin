@@ -1,8 +1,5 @@
 # Vanilla HUD sprites (1.21.11 client jar, assets/minecraft/textures/gui/sprites/hud/) that the M3-SURV-06 hide rows replace
 # with a transparent image: hearts (heart/*), food (food_*), air (air*). Relative to that folder.
-air.png
-air_bursting.png
-air_empty.png
 food_empty.png
 food_empty_hunger.png
 food_full.png
