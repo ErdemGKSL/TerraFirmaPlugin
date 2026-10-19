@@ -36,7 +36,7 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m6-mech-01-rotation-readout` | rotation speed readout | M6-MECH-01 | readout | unspecified in plan (rotation network speed, `core/rotation`) | M6 | needed | unspecified in plan. M6-MECH-01 and M6-MECH-02 say "GUI and readout" (`RotationDisplayStyle`, `BlockEntityTooltips`). This may be a tooltip, not a HUD element. Decide. |
 | `m4-pros-01-result-message` | propick scan result | M4-PROS-01 | popup | unspecified in plan (`ProspectResult`, `core/prospect`) | M4 | needed | unspecified in plan. M4-PROS-01 says "result message and the actionbar/chat choice". Action bar, chat or BetterHud popup is not chosen. |
 | `m6-glass-01-step-indicator` | blowpipe step text or progress | M6-GLASS-01 | indicator | unspecified in plan (glassworking state, `GlassState`) | M6 | needed | unspecified in plan. M6-GLASS-01 says "textured GUI or action bar steps". TFC reference: `GlassblowingOverlays` (crosshair text while holding a blowpipe). |
-| `m3-surv-06-hide-hearts` | vanilla hearts row | M3-SURV-06 | hidden-vanilla | transparent `gui/sprites/hud/heart/*.png` (48 files) | M3 | needed | Spike M0-BH-01 `[x]`. The set also hides the vanilla mount-health row (`heart/vehicle_*`). See section 2. |
+| `m3-surv-06-hide-hearts` | vanilla hearts row | M3-SURV-06 | hidden-vanilla | transparent `gui/sprites/hud/heart/*.png` (47 files) | M3 | needed | Spike M0-BH-01 `[x]`. The set also hides the vanilla mount-health row (`heart/vehicle_*`). See section 2. |
 | `m3-surv-06-hide-food` | vanilla food row | M3-SURV-06 | hidden-vanilla | transparent `gui/sprites/hud/food_*.png` (6 files) | M3 | needed | Spike M0-BH-01 `[x]`. |
 | `m3-surv-06-hide-air` | vanilla air bubbles | M3-SURV-06 | hidden-vanilla | transparent `air.png`, `air_bursting.png`, `air_empty.png` | M3 | needed | Spike M0-BH-01 `[x]`. |
 
@@ -46,7 +46,7 @@ The plans name three bars to hide. The hotbar and crosshair stay (M0-BH-01 done-
 
 | vanilla bar | plan item that hides it | sprites to ship as transparent | notes |
 |---|---|---|---|
-| hearts (health row) | M3-SURV-06 "Hide vanilla hearts/food/air"; spike M0-BH-01 | `gui/sprites/hud/heart/*.png`, all 48 (incl. `container*`, `vehicle_*`, `*_blinking`, `hardcore_*`) | Also hides the mount-health row (`vehicle_*`). See "not named" below. |
+| hearts (health row) | M3-SURV-06 "Hide vanilla hearts/food/air"; spike M0-BH-01 | `gui/sprites/hud/heart/*.png`, all 47 in 1.21.11 (incl. `container*`, `vehicle_*`, `*_blinking`, `hardcore_*`) | Also hides the mount-health row (`vehicle_*`). See "not named" below. |
 | food (hunger row) | M3-SURV-06; spike M0-BH-01 | `gui/sprites/hud/food_*.png` (6) | |
 | air (bubbles) | M3-SURV-06; spike M0-BH-01 | `gui/sprites/hud/air.png`, `air_bursting.png`, `air_empty.png` | |
 

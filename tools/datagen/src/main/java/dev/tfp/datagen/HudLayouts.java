@@ -309,6 +309,7 @@ final class HudLayouts {
         out.put(IMAGES, Yaml.write(HEADER, barImages));
         out.put(BAR_LAYOUTS, Yaml.write(HEADER, barLayouts));
         out.put(BARS_HUDS, Yaml.write(HEADER, m(BARS_HUD, m("layouts", barHudLayouts))));
+        putHiddenVanillaSprites(out);
         if (!readoutLayouts.isEmpty()) {
             out.put(READOUT_LAYOUTS, Yaml.write(HEADER, readoutLayouts));
         }
@@ -460,6 +461,39 @@ final class HudLayouts {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    /**
+     * Replaces the vanilla hearts, food and air sprites (the hide rows) with a transparent image, so the bars are the only
+     * health and food display. The list is the 1.21.11 client's sprite names ({@code hidden-vanilla-sprites.txt}).
+     */
+    private static void putHiddenVanillaSprites(OutputTree out) {
+        byte[] transparent = resourceBytes(BAR_ART + "transparent-9x9.png");
+        for (String sprite : resourceLines(BAR_ART + "hidden-vanilla-sprites.txt")) {
+            out.put(BetterHudPack.DIR + "assets/minecraft/textures/gui/sprites/hud/" + sprite, transparent);
+        }
+    }
+
+    private static byte[] resourceBytes(String resource) {
+        try (InputStream in = HudLayouts.class.getResourceAsStream(resource)) {
+            if (in == null) {
+                throw new DatagenException("missing datagen resource " + resource);
+            }
+            return in.readAllBytes();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /** The non-blank lines of a text resource that do not start with {@code #}. */
+    private static List<String> resourceLines(String resource) {
+        List<String> lines = new ArrayList<>();
+        for (String line : new String(resourceBytes(resource), StandardCharsets.UTF_8).split("\\R")) {
+            if (!line.isBlank() && !line.startsWith("#")) {
+                lines.add(line.strip());
+            }
+        }
+        return lines;
     }
 
     private static String imageFile(String id, String part) {

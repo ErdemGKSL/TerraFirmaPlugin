@@ -98,7 +98,7 @@ class InstallerTest {
         assertThat(Files.readString(plugins.resolve("BetterHud/packs/tfp/huds/tfp.yml"))).isEqualTo("tfp_hud: {}\n");
         assertThat(Files.readString(plugins.resolve("CraftEngine/config.yml")))
                 .isEqualTo(CE_CONFIG.replace("delay-configuration-load: true", "delay-configuration-load: false"));
-        assertThat(Files.readString(plugins.resolve("BetterHud/config.yml"))).contains("default-hud: [tfp_date_hud]\nmerge-with");
+        assertThat(Files.readString(plugins.resolve("BetterHud/config.yml"))).contains("default-hud: [tfp_date_hud, tfp_bars_hud]\nmerge-with");
         assertThat(Files.readString(plugins.resolve("CraftEngine/resources/remove_shulker_head/pack.yml"))).contains("enable: false");
         assertThat(first.status().restartRequired()).isTrue();
         assertThat(first.status().degraded()).isTrue();
@@ -472,7 +472,7 @@ class InstallerTest {
         List<EditResult> edits = pending.betterHudEnabled("BetterHud").join();
         assertThat(edits).filteredOn(e -> e.edit().key().equals("default-hud"))
                 .singleElement().extracting(EditResult::outcome).isEqualTo(Outcome.APPLIED);
-        assertThat(Files.readString(plugins.resolve("BetterHud/config.yml"))).contains("default-hud: [tfp_date_hud]");
+        assertThat(Files.readString(plugins.resolve("BetterHud/config.yml"))).contains("default-hud: [tfp_date_hud, tfp_bars_hud]");
         assertThat(Files.readString(stateDir().resolve(ThirdPartyConfigEditor.RECORD_FILE)))
                 .contains(ThirdPartyEdits.all(1353).stream().filter(e -> e.key().equals("default-hud")).findFirst().orElseThrow().id());
         // no direct BetterHud reload while it is still starting: the CraftEngine build reloads it (hud-paper-* logs)
