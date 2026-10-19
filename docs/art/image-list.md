@@ -30,7 +30,7 @@ Left out on purpose: colour bands (M2-SEA-01, M2-SEA-02, which read TFC colormap
 | m0-bh-01-heart-sprite | Transparent vanilla heart sprite in our CE pack, so the vanilla hearts are hidden | M0-BH-01 | hud | tbd | needed |
 | m0-bh-01-food-sprite | Transparent vanilla food sprite in our CE pack | M0-BH-01 | hud | tbd | needed |
 | m0-bh-01-air-sprite | Transparent vanilla air sprite in our CE pack | M0-BH-01 | hud | tbd | needed |
-| m0-bh-01-thirst-bar | Thirst bar art for the BetterHud layout (unspecified in plan) | M0-BH-01 | hud | tbd | needed |
+| m0-bh-01-thirst-bar | Thirst bar art for the BetterHud layout (unspecified in plan) | M0-BH-01 | hud | 82x10 | generated (pending review): docs/art/hud/m3_surv_06_thirst_bar_fill.png, _bg.png |
 | m0-bm-01-deer-texture | Entity texture for the converted TFC deer model (TFC) | M0-BM-01 | texture | tbd | needed |
 | m0-bm-01-bovine-texture | Entity texture for the bovine example model (unspecified in plan) | M0-BM-01 | texture | tbd | needed |
 
@@ -81,8 +81,8 @@ Left out on purpose: colour bands (M2-SEA-01, M2-SEA-02, which read TFC colormap
 
 | Asset id | What it is | Plan item | Kind | Size | Status |
 |---|---|---|---|---|---|
-| m3-surv-06-health-bar | Health bar sprite for the "45/50" HUD line, from the TFC icon sheets (TFC) | M3-SURV-06 | hud | tbd | needed |
-| m3-surv-06-hunger-bar | Hunger bar sprite, from the TFC icon sheets (TFC). The thirst bar is m0-bh-01-thirst-bar | M3-SURV-06 | hud | tbd | needed |
+| m3-surv-06-health-bar | Health bar sprite for the "45/50" HUD line, from the TFC icon sheets (TFC) | M3-SURV-06 | hud | 82x10 | generated (pending review): docs/art/hud/m3_surv_06_health_bar_fill.png, _bg.png |
+| m3-surv-06-hunger-bar | Hunger bar sprite, from the TFC icon sheets (TFC). The thirst bar is m0-bh-01-thirst-bar | M3-SURV-06 | hud | 82x10 | generated (pending review): docs/art/hud/m3_surv_06_hunger_bar_fill.png, _bg.png |
 | m3-surv-06-temperature-popup | Held-item temperature popup frame and icon (unspecified in plan; "extra art") | M3-SURV-06 | hud | tbd | needed |
 | m3-heat-01-heat-glow-texture | Heat glow overlay for hot items, via range_dispatch item models (unspecified in plan) | M3-HEAT-01 | texture | tbd | needed |
 | m3-heat-03-firepit-gui | Fire pit GUI background (TFC gui/fire_pit*.png) | M3-HEAT-03 | gui | tbd | needed |
