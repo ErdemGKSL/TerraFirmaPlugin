@@ -11,83 +11,94 @@ package dev.tfp.core.fuel;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * M3-HEAT-02 golden values: TFC's 50 fuel data files at c3b4d9536, one row per file as {@code id|duration|temperature|purity}.
- * The rows were read from the pinned data by a scratch script; the temperatures and durations are exact, the purity is
- * the float32 value that TFC's {@code float} field holds.
+ * M3-HEAT-02 golden values: TFC's fuel data files at c3b4d9536, read from {@link #TABLE} (exported from
+ * {@code src/generated/resources/data/tfc/tfc/fuel/**} by a scratch script outside the repo). Each row is one data file with
+ * its id, duration, temperature, purity (TFC default 1.0) and the ingredient kind and value, which is data glue that lives
+ * with the item data and is not part of {@link FuelTable}.
+ *
+ * <p>The checks: the row count is TFC's recursive file count, every Java entry matches its row's duration, temperature and
+ * purity, and the TFC fuels with no Java entry are exactly the ids listed in {@link #OPEN_GAPS}.
  */
 class FuelTableGoldenTest {
-    // from TFC at c3b4d9536 (src/generated/resources/data/tfc/tfc/fuel)
-    private static final String GOLDEN = """
-            # id|duration|temperature|purity (TFC fuel/*.json at c3b4d9536)
-            acacia_logs|1000|650.0|0.949999988079071
-            acacia_planks|400|700.0|0.949999988079071
-            ash_logs|1250|696.0|0.949999988079071
-            ash_planks|500|746.0|0.949999988079071
-            aspen_logs|1000|611.0|0.949999988079071
-            aspen_planks|400|661.0|0.949999988079071
-            birch_logs|1750|652.0|0.949999988079071
-            birch_planks|700|702.0|0.949999988079071
-            blackwood_logs|1750|720.0|0.949999988079071
-            blackwood_planks|700|770.0|0.949999988079071
-            charcoal|1800|1350.0|1.0
-            chestnut_logs|1500|651.0|0.949999988079071
-            chestnut_planks|600|701.0|0.949999988079071
-            coal|2000|1415.0|1.0
-            douglas_fir_logs|1500|707.0|1.0
-            douglas_fir_planks|600|757.0|1.0
-            dried_cactus_wood|603|1000.0|0.949999988079071
-            groundcover/driftwood|400|650.0|0.4000000059604645
-            groundcover/pinecone|220|150.0|0.15000000596046448
-            hickory_logs|2000|762.0|0.800000011920929
-            hickory_planks|800|812.0|0.800000011920929
-            kapok_logs|1000|645.0|0.949999988079071
-            kapok_planks|400|695.0|0.949999988079071
-            leaves|600|100.0|0.25
-            mangrove_logs|1000|655.0|0.949999988079071
-            mangrove_planks|400|705.0|0.949999988079071
-            maple_logs|2000|745.0|0.949999988079071
-            maple_planks|800|795.0|0.949999988079071
-            oak_logs|2250|728.0|1.0
-            oak_planks|900|778.0|1.0
-            ore/lignite|2200|1350.0|1.0
-            palm_logs|1250|730.0|0.949999988079071
-            palm_planks|500|780.0|0.949999988079071
-            paper|150|199.0|0.699999988079071
-            peat|2500|600.0|1.0
-            pine_logs|1250|627.0|0.6000000238418579
-            pine_planks|500|677.0|0.6000000238418579
-            rosewood_logs|1500|640.0|0.949999988079071
-            rosewood_planks|600|690.0|0.949999988079071
-            sequoia_logs|1750|612.0|0.699999988079071
-            sequoia_planks|700|662.0|0.699999988079071
-            spruce_logs|1500|608.0|0.6000000238418579
-            spruce_planks|600|658.0|0.6000000238418579
-            stick_bundle|600|900.0|0.800000011920929
-            sycamore_logs|1750|653.0|0.949999988079071
-            sycamore_planks|700|703.0|0.949999988079071
-            white_cedar_logs|1500|625.0|0.949999988079071
-            white_cedar_planks|600|675.0|0.949999988079071
-            willow_logs|1000|603.0|0.949999988079071
-            willow_planks|400|653.0|0.949999988079071
-            """;
+    static final String TABLE = "dev/tfp/core/fuel/fuel_table.tsv";
+
+    /** The TFC {@code fuel/} file count (recursive) at c3b4d9536: 47 top level, 2 groundcover, 1 ore. */
+    static final int TFC_FILE_COUNT = 50;
+
+    /** The TFC fuel ids the Java {@link FuelTable} does not have yet, one per line in {@code open_gaps.txt}. */
+    static final String OPEN_GAPS = "dev/tfp/core/fuel/open_gaps.txt";
+
+    private static List<Map<String, String>> rows;
+
+    @BeforeAll
+    static void load() throws IOException {
+        rows = readTable();
+    }
 
     @Test
-    void everyFuelFileMatchesTfc() {
-        String[] rows = GOLDEN.lines().map(String::strip).filter(l -> !l.isEmpty() && !l.startsWith("#")).toArray(String[]::new);
-        assertThat(rows).hasSize(50);
-        assertThat(FuelTable.ALL).hasSize(rows.length);
-        for (int i = 0; i < rows.length; i++) {
-            String[] cols = rows[i].split("\\|");
-            Fuel fuel = FuelTable.ALL.get(i);
-            assertThat(fuel.id()).as(cols[0]).isEqualTo(cols[0]);
-            assertThat(fuel.duration()).as(cols[0]).isEqualTo(Integer.parseInt(cols[1]));
-            assertThat(fuel.temperature()).as(cols[0]).isEqualTo(Float.parseFloat(cols[2]));
-            assertThat(fuel.purity()).as(cols[0]).isEqualTo(Float.parseFloat(cols[3]));
+    void rowCountMatchesTfcFileCount() {
+        assertThat(rows).hasSize(TFC_FILE_COUNT);
+        final Set<String> ids = new HashSet<>();
+        for (Map<String, String> row : rows) {
+            assertThat(ids.add(row.get("id"))).as("duplicate id %s", row.get("id")).isTrue();
         }
+    }
+
+    @Test
+    void ingredientsAreItemsOrTags() {
+        for (Map<String, String> row : rows) {
+            assertThat(row.get("ingredient_kind")).as(row.get("id")).isIn("item", "tag");
+            assertThat(row.get("ingredient")).as(row.get("id")).isNotBlank();
+        }
+    }
+
+    @Test
+    void everyJavaEntryMatchesItsRow() {
+        int checked = 0;
+        for (Map<String, String> row : rows) {
+            final String id = row.get("id");
+            final Optional<Fuel> fuel = FuelTable.byId(id);
+            if (fuel.isEmpty()) {
+                continue;
+            }
+            assertThat(fuel.get().duration()).as(id).isEqualTo(Integer.parseInt(row.get("duration")));
+            assertThat(fuel.get().temperature()).as(id).isEqualTo(Float.parseFloat(row.get("temperature")));
+            assertThat(fuel.get().purity()).as(id).isEqualTo(Float.parseFloat(row.get("purity")));
+            checked++;
+        }
+        assertThat(checked).isEqualTo(FuelTable.ALL.size());
+    }
+
+    @Test
+    void openGapsAreExact() throws IOException {
+        final Set<String> tfcIds = new TreeSet<>();
+        for (Map<String, String> row : rows) {
+            tfcIds.add(row.get("id"));
+        }
+        final Set<String> javaIds = new TreeSet<>();
+        for (Fuel fuel : FuelTable.ALL) {
+            javaIds.add(fuel.id());
+        }
+        assertThat(javaIds).as("Java entries with no TFC file").isSubsetOf(tfcIds);
+
+        final Set<String> missing = new TreeSet<>(tfcIds);
+        missing.removeAll(javaIds);
+        assertThat(missing).isEqualTo(openGaps());
     }
 
     @Test
@@ -102,5 +113,42 @@ class FuelTableGoldenTest {
         assertThatThrownBy(() -> new Fuel("x", -1, 1f, 1f)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new Fuel("x", 1, -1f, 1f)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new Fuel("x", 1, 1f, 1.5f)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private static List<Map<String, String>> readTable() throws IOException {
+        try (InputStream in = FuelTableGoldenTest.class.getClassLoader().getResourceAsStream(TABLE)) {
+            assertThat(in).as("resource %s", TABLE).isNotNull();
+            final List<String> lines = new ArrayList<>();
+            for (String line : new String(in.readAllBytes(), StandardCharsets.UTF_8).split("\n")) {
+                if (!line.isBlank() && !line.startsWith("#")) {
+                    lines.add(line);
+                }
+            }
+            final String[] header = lines.get(0).split("\t");
+            final List<Map<String, String>> out = new ArrayList<>();
+            for (String line : lines.subList(1, lines.size())) {
+                final String[] cols = line.split("\t", -1);
+                assertThat(cols).as(line).hasSize(header.length);
+                final Map<String, String> row = new LinkedHashMap<>();
+                for (int i = 0; i < header.length; i++) {
+                    row.put(header[i], cols[i]);
+                }
+                out.add(row);
+            }
+            return out;
+        }
+    }
+
+    private static Set<String> openGaps() throws IOException {
+        try (InputStream in = FuelTableGoldenTest.class.getClassLoader().getResourceAsStream(OPEN_GAPS)) {
+            assertThat(in).as("resource %s", OPEN_GAPS).isNotNull();
+            final Set<String> out = new TreeSet<>();
+            for (String line : new String(in.readAllBytes(), StandardCharsets.UTF_8).split("\n")) {
+                if (!line.isBlank() && !line.startsWith("#")) {
+                    out.add(line.trim());
+                }
+            }
+            return out;
+        }
     }
 }

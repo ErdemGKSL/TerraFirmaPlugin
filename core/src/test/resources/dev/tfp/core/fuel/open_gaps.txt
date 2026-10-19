@@ -1,0 +1,1 @@
+# TFC fuel/*.json entries with no Java FuelTable entry, one id per line (exact list, checked by FuelTableGoldenTest).
