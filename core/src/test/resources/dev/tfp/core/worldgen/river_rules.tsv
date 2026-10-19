@@ -1,0 +1,32 @@
+kind	name	value	source
+data_count	river_worldgen_files	2	src/main/resources/data/tfc/worldgen/**/*river*.json
+data	biome/river.json	blend=NONE;has_rivers=true	TFCBiomes.java register(river)
+data	biome/river_valley.json	blend=FLOODPLAIN;has_rivers=true	TFCBiomes.java register(river_valley)
+constant	AddRiversAndLakes.RIVER_LENGTH	2.7f	AddRiversAndLakes.java:23
+constant	AddRiversAndLakes.RIVER_DEPTH	17	AddRiversAndLakes.java:24
+constant	AddRiversAndLakes.RIVER_FEATHER	0.8f	AddRiversAndLakes.java:25
+constant	RiverEdge.MIN_WIDTH	8	RiverEdge.java:20
+constant	RiverEdge.MAX_WIDTH	24	RiverEdge.java:21
+constant	RiverEdge.MIN_VALLEY_WIDTH	20	RiverEdge.java:22
+constant	RegionChunkDataGenerator.MIN_RIVER_WIDTH	12	RegionChunkDataGenerator.java:61
+constant	RegionChunkDataGenerator.RIVER_INFLUENCE	0.3125	blockToGridExact(40), GRID_BITS=7
+constant	TFCChunkGenerator.SEA_LEVEL_Y	63	TFCChunkGenerator.java:118
+constant	BiomeNoiseSampler.AIR_THRESHOLD	0.4	BiomeNoiseSampler.java:24
+constant	River.MIN_BRANCH_ANGLE	0.4f	River.java:21
+constant	River.MIN_BRANCH_DISTANCE	2	River.java:22
+constant	River.MIN_RIVER_EDGE_COUNT	6	River.java:23
+constant	MidpointFractal.JITTER_MAX	0.2f	MidpointFractal.java:15
+constant	MidpointFractal.JITTER_MIN	0.05f	MidpointFractal.java:16
+constant	MidpointFractal.MAX_BISECTIONS	10	MidpointFractal.java:18
+literal	ChunkNoiseFiller.river_flow_norm_dist_sq	0.28	ChunkNoiseFiller.java:732
+literal	ChunkNoiseFiller.river_biome_norm_dist_sq	1.1	ChunkNoiseFiller.java:664
+constant	Flow.values	17	world/river/Flow.java enum (incl. NONE)
+constant	RiverBlendType.count	11	world/river/RiverBlendType.java enum
+rule	surface.river_builder	sandy shores: slope<2 TOP_GRASS_TO_GRAVEL, slope<5 RIVER_SAND, else GRAVEL (GRAVEL under); no sandy shores: normal builder	world/surface/builder/RiverSurfaceBuilder.java
+rule	biome.features.in_biome/soil_discs/river	river biome feature tag	biome/river.json
+rule	biome.features.in_biome/veins/river	river biome feature tag	biome/river.json
+rule	biome.features.in_biome/large_features/river	river biome feature tag	biome/river.json
+rule	biome.features.in_biome/surface_decoration/river	river biome feature tag	biome/river.json
+rule	biome.features.in_biome/soil_discs/river_valley	river biome feature tag	biome/river_valley.json
+rule	biome.features.in_biome/large_features/river_valley	river biome feature tag	biome/river_valley.json
+rule	biome.features.in_biome/surface_decoration/river_valley	river biome feature tag	biome/river_valley.json

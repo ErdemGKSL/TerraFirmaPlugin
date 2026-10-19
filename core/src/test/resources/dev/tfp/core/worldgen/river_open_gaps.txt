@@ -1,0 +1,10 @@
+# TFC river rules at c3b4d9536 with no Java counterpart (rule rows of river_rules.tsv). Open gaps of M2-GEN-04, not rules.
+# Sorted. Each is listed here until its rule exists, then it is removed. Checked by RiverRulesGoldenTest.
+biome.features.in_biome/large_features/river
+biome.features.in_biome/large_features/river_valley
+biome.features.in_biome/soil_discs/river
+biome.features.in_biome/soil_discs/river_valley
+biome.features.in_biome/surface_decoration/river
+biome.features.in_biome/surface_decoration/river_valley
+biome.features.in_biome/veins/river
+surface.river_builder
