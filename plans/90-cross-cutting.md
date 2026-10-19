@@ -4,9 +4,10 @@ Work that runs alongside every milestone. These tasks are continuous: tick them 
 
 ## Art & models
 
-- [ ] **X-ART-01 Image list per milestone** · skills: image-generation
+- [~] **X-ART-01 Image list per milestone** · skills: image-generation
   - Do: at the start of each milestone, list the 2D art that TFC doesn't provide (GUI overlays, HUD frames, buttons, icons) and add them to the `image-generation` skill's `references/backlog.md` with exact sizes and slot coordinates, then generate them through the imagegen MCP. Use placeholders in `content/art/_placeholder/` until approved.
   - Done when (per milestone): no placeholder art remains in the milestone's features.
+  - Status: list written to `docs/art/image-list.md` (176 assets: M0 12, M1 5, M2 28, M3 50, M4 34, M5 13, M6 33, cross-cutting 1; all `needed`). Open: generating the images with the imagegen skill, reviewing each against the style guide, wiring them into CraftEngine, BetterHud and the item models.
 
 - [ ] **X-ART-02 Image pipeline upkeep**
   - Do: keep the `imagegen` entry in `.mcp.json`, the `image-generation` skill and `tools/images/postprocess.py` working. Add post-process options when new art types need them (animation strips, GUI sheets).
