@@ -120,8 +120,11 @@ public final class TfpCommands {
         /** Test aid: sets the thirst of the online player {@code name} (0..100). */
         CompletableFuture<Reply> debugSetThirst(String name, float value);
 
-        /** Writes {@code temperature} (°C, now) into the heat state of the player's held item. */
-        CompletableFuture<Reply> debugSetHeat(String name, float temperature);
+        /**
+         * Writes {@code temperature} (°C, now) into the heat state of the player's held item; with {@code null} it
+         * only reads the stored state and the temperature now (lazy cooling), without writing.
+         */
+        CompletableFuture<Reply> debugSetHeat(String name, Float temperature);
 
         /** Packet layer and per-handler metrics. */
         CompletableFuture<Reply> debugPackets();
@@ -209,6 +212,8 @@ public final class TfpCommands {
                                                         FloatArgumentType.getFloat(ctx, "value")))))))
                         .then(Commands.literal("heat")
                                 .then(Commands.argument("name", StringArgumentType.word())
+                                        .executes(run(handler, messages, (h, ctx) -> h.debugSetHeat(
+                                                StringArgumentType.getString(ctx, "name"), null)))
                                         .then(Commands.argument("temperature", FloatArgumentType.floatArg(0f, 1600f))
                                                 .executes(run(handler, messages, (h, ctx) -> h.debugSetHeat(
                                                         StringArgumentType.getString(ctx, "name"),

@@ -909,7 +909,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     }
 
     @Override
-    public CompletableFuture<Reply> debugSetHeat(String name, float temperature) {
+    public CompletableFuture<Reply> debugSetHeat(String name, Float temperature) {
         Player target = getServer().getPlayerExact(name);
         if (target == null) {
             return CompletableFuture.completedFuture(Reply.error("command.player_not_found", name));
@@ -919,26 +919,40 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             return CompletableFuture.completedFuture(Reply.error("command.not_enabled"));
         }
         CompletableFuture<Reply> out = new CompletableFuture<>();
-        scheduler.entity(target, () -> {
+        Runnable apply = () -> {
             try {
                 org.bukkit.inventory.ItemStack stack = target.getInventory().getItemInMainHand();
                 if (stack.getType().isAir()) {
                     out.complete(Reply.error("debug.heat.empty_hand", target.getName()));
                     return;
                 }
-                if (!HeatPdc.write(stack, new dev.tfp.core.heat.HeatState(temperature, clock.get().playerTicks()))) {
-                    out.complete(Reply.error("debug.heat.not_written", target.getName()));
-                    return;
+                long tick = clock.get().playerTicks();
+                List<String> lines = new java.util.ArrayList<>();
+                if (temperature != null) {
+                    if (!HeatPdc.write(stack, new dev.tfp.core.heat.HeatState(temperature, tick))) {
+                        out.complete(Reply.error("debug.heat.not_written", target.getName()));
+                        return;
+                    }
+                    target.getInventory().setItemInMainHand(stack);
+                    lines.add("set: " + temperature + " C at tick " + tick);
+                } else {
+                    lines.add("stored: " + HeatPdc.read(stack).map(h -> h.temperature() + " C at tick " + h.lastTick())
+                            .orElse("none") + ", now tick " + tick);
                 }
-                target.getInventory().setItemInMainHand(stack);
-                out.complete(Reply.ok("debug.heat.header", target.getName()).withDetails(List.of(
-                        "set: " + temperature + " C at tick " + clock.get().playerTicks(),
-                        "temperature now: " + hooks.temperature(stack) + " C (0 when the item has no item_heat data)",
-                        "level: " + hooks.level(stack).map(Enum::name).orElse("none"))));
+                lines.add("temperature now: " + hooks.temperature(stack) + " C (0 when the item has no item_heat data)");
+                lines.add("level: " + hooks.level(stack).map(Enum::name).orElse("none"));
+                out.complete(Reply.ok("debug.heat.header", target.getName()).withDetails(lines));
             } catch (RuntimeException e) {
                 out.completeExceptionally(e);
             }
-        }, () -> out.complete(Reply.error("command.player_not_found", name)));
+        };
+        // On the owning thread already (the console or RCON on Paper): apply inline so the reply is sent before the
+        // command returns (RCON only returns what is sent during execution). Otherwise hop to the player's thread.
+        if (getServer().isOwnedByCurrentRegion(target)) {
+            apply.run();
+        } else {
+            scheduler.entity(target, apply, () -> out.complete(Reply.error("command.player_not_found", name)));
+        }
         return out;
     }
 

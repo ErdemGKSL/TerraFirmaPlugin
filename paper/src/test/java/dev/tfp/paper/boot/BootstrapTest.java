@@ -165,7 +165,7 @@ class BootstrapTest {
         }
 
         @Override
-        public CompletableFuture<Reply> debugSetHeat(String name, float temperature) {
+        public CompletableFuture<Reply> debugSetHeat(String name, Float temperature) {
             return call("debugSetHeat " + name + " " + temperature, Reply.ok("debug.heat.header", name));
         }
 
