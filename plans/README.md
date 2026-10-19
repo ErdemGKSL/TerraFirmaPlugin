@@ -11,7 +11,7 @@ Phased TODO plans for porting TerraFirmaCraft to TerraFirmaPlugin. Scope and pri
 | `04-m4-metal-age.md` | M4: Metal age | Metallurgy chain, anvil/forging, tool & armor tiers, bloomery, blast furnace, steel | In progress: 0 done, 13 in progress, 1 to do |
 | `05-m5-husbandry.md` | M5: Husbandry | Animals with BetterModel: livestock, wildlife, aquatic, pets, mounts, fishing | In progress: 0 done, 6 in progress, 8 to do |
 | `06-m6-parity.md` | M6: Parity | Mechanical power, glass, decoration families, field guide, polish, release | In progress: 0 done, 11 in progress, 4 to do |
-| `90-cross-cutting.md` | All | HUD, GUIs, art, models, i18n, performance, docs: tracks that run alongside every milestone | To do: 12 of 12 |
+| `90-cross-cutting.md` | All | HUD, GUIs, art, models, i18n, performance, docs: tracks that run alongside every milestone | Done 0, in progress 7, to do 5 |
 
 Counts are the checkbox markers in each file. Some `[x]` items still list open checks in their status lines (for example M1-TEST-01, M2-CAL-02, M2-GEN-05, M2-GEN-06), so the plan files do not fully agree; the checkboxes are not changed here.
 

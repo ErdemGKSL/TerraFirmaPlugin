@@ -18,8 +18,9 @@ Work that runs alongside every milestone. These tasks are continuous: tick them 
 
 ## HUD & GUIs
 
-- [ ] **X-HUD-01 HUD element catalogue** · skills: betterhud
+- [~] **X-HUD-01 HUD element catalogue** · skills: betterhud
   - Do: one BetterHud layout per HUD feature, all ids prefixed `tfp_`; placeholders read only snapshots; `tick:` set for slow values. Keep the vanilla-bar hiding sprite list current per MC version.
+  - Status: catalogue written to `docs/hud/catalogue.md`: 21 elements (8 placeholders, 3 bars, 4 readouts, 2 popups, 1 indicator, 3 hidden vanilla bars; 4 unspecified in plan). Open: building each BetterHud element, the placeholders in the Java glue, the visual checks, and the vanilla bar hiding on the server.
 
 - [ ] **X-GUI-01 GUI framework** · skills: craftengine-gui-furniture
   - Do: shared Java helpers for textured inventories (title glyph builder via CE codepoints, alignment math, button slots, overlay layers, title refresh throttling) so each device GUI is small.
