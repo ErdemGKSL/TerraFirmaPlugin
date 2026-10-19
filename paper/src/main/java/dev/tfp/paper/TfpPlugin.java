@@ -55,6 +55,7 @@ import dev.tfp.paper.packet.SeasonalBiomeHandler;
 import dev.tfp.paper.player.PlayerData;
 import dev.tfp.paper.player.PlayerDataFiles;
 import dev.tfp.paper.player.PlayerDataListener;
+import dev.tfp.paper.player.WaterDrinkListener;
 import dev.tfp.paper.food.FoodMergeListener;
 import dev.tfp.paper.food.FoodDefinitionsCache;
 import dev.tfp.paper.food.ItemFoodHooks;
@@ -443,6 +444,9 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 () -> clock.get().playerTicks());
         getServer().getPluginManager().registerEvents(needs, this);
         needs.start(() -> getServer().getOnlinePlayers());
+        // M3-SURV-03: right-click a water source with an empty main hand drinks (TFC's trigger for the drink packet).
+        getServer().getPluginManager().registerEvents(
+                new WaterDrinkListener(store, () -> clock.get().playerTicks(), hudCache), this);
 
         // M2-WTH-02: snow layers, ice and melting near the players, decided off-thread and applied per region under budget.
         // M2-WTH-04: the same service catches up the snow of a chunk on load, from the chunk's stamp (lazy, not replayed).
