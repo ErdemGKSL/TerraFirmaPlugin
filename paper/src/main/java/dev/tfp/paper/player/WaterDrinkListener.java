@@ -68,11 +68,6 @@ public final class WaterDrinkListener implements Listener {
             return;
         }
         Block clicked = event.getClickedBlock();
-        // TFC: a click that interacts with a block (a chest, an anvil) is not a drink. Only air or the water itself
-        // can be the clicked block of a drink.
-        if (clicked != null && !clicked.getType().isAir() && !isPlainWaterSource(clicked)) {
-            return;
-        }
         Player player = event.getPlayer();
         ThreadAsserts.owned(player);
         UUID id = player.getUniqueId();
@@ -80,15 +75,25 @@ public final class WaterDrinkListener implements Listener {
             return;
         }
         Block source = sourceInView(player);
-        if (source == null) {
-            return;
-        }
-        if (!isPlainWaterSource(source)) {
+        if (source == null || !isPlainWaterSource(source)) {
             return; // not water: nothing changes, and no decay is written
+        }
+        // The client does not target fluids, so a click on water reaches the server as a click on the solid block behind it.
+        // A click that interacts with a block (a chest, an anvil) is not a drink: the water must be the nearer target.
+        if (clicked != null && !clicked.getType().isAir() && !isPlainWaterSource(clicked)
+                && !isNearer(player, source, clicked)) {
+            return;
         }
         long now = playerTicks.getAsLong();
         float temperature = (float) hud.snapshot(id).ambientTemperature();
         data.update(id, d -> WaterDrink.drink(d, now, temperature, true));
+    }
+
+    /** Whether {@code source} is closer to the player's eye than {@code other} (block centres). */
+    private static boolean isNearer(Player player, Block source, Block other) {
+        Location eye = player.getEyeLocation();
+        return eye.distanceSquared(source.getLocation().add(0.5, 0.5, 0.5))
+                < eye.distanceSquared(other.getLocation().add(0.5, 0.5, 0.5));
     }
 
     /** The first block the player looks at, counting only fluid sources, within {@link #REACH}; or null. */
