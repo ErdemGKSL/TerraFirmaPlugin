@@ -46,6 +46,7 @@ import dev.tfp.paper.integration.BlockVisuals;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.integration.IntegrationContext;
 import dev.tfp.paper.integration.Integrations;
+import dev.tfp.paper.packet.ClientLocaleHandler;
 import dev.tfp.paper.packet.CreativeReturnHandler;
 import dev.tfp.paper.packet.ItemDecorationHandler;
 import dev.tfp.paper.packet.NoopPacketHandler;
@@ -483,10 +484,13 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             packets.register(creativeReturn);
             // M3-HEAT-01: the heat line of a heated item in outgoing inventory packets; stripped when a creative client
             // sends the stack back.
-            ItemDecorationHandler itemDecorations = new ItemDecorationHandler();
+            ClientLocaleHandler clientLocales = new ClientLocaleHandler();
+            packets.register(clientLocales);
+            getServer().getPluginManager().registerEvents(clientLocales, this);
+            ItemDecorationHandler itemDecorations = new ItemDecorationHandler(clientLocales::locale);
             HeatTooltipDecoration heatTooltip = new HeatTooltipDecoration(() -> clock.get().playerTicks(),
                     dev.tfp.core.heat.HeatConfig.DEFAULT, itemHeatDefinitions,
-                    level -> messages.get(java.util.Locale.US, ItemHeatHooks.KEY_PREFIX
+                    (level, locale) -> messages.get(locale, ItemHeatHooks.KEY_PREFIX
                             + level.name().toLowerCase(java.util.Locale.ROOT)));
             itemDecorations.add(heatTooltip::decorate);
             creativeReturn.add(heatTooltip);

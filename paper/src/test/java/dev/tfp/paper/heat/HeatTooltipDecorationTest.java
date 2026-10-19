@@ -44,7 +44,7 @@ class HeatTooltipDecorationTest {
     }
 
     private static HeatTooltipDecoration deco(AtomicLong now) {
-        return new HeatTooltipDecoration(now::get, HeatConfig.DEFAULT, () -> DEFS, level -> "Heat " + level.name());
+        return new HeatTooltipDecoration(now::get, HeatConfig.DEFAULT, () -> DEFS, (level, locale) -> "Heat " + level.name() + " " + locale);
     }
 
     @Test

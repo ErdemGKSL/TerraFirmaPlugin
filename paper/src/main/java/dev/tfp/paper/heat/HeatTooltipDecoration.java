@@ -21,7 +21,7 @@ import dev.tfp.paper.packet.ClientItemDecoration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import net.kyori.adventure.text.Component;
@@ -48,14 +48,14 @@ public final class HeatTooltipDecoration implements ClientItemDecoration {
     private final LongSupplier now;
     private final HeatConfig config;
     private final Supplier<ItemHeatDefinitions> definitions;
-    private final Function<HeatLevel, String> text;
+    private final BiFunction<HeatLevel, String, String> text;
 
     /**
      * @param now         the current player tick
-     * @param text        the tooltip text of a heat level (translated by the caller)
+     * @param text        the tooltip text of a heat level for a client language code such as {@code tr_tr}
      */
     public HeatTooltipDecoration(LongSupplier now, HeatConfig config, Supplier<ItemHeatDefinitions> definitions,
-            Function<HeatLevel, String> text) {
+            BiFunction<HeatLevel, String, String> text) {
         this.now = now;
         this.config = config;
         this.definitions = definitions;
@@ -96,11 +96,12 @@ public final class HeatTooltipDecoration implements ClientItemDecoration {
     }
 
     /**
-     * Adds the heat line to the packet copy {@code item} when it is heated.
+     * Adds the heat line, in the client language {@code locale} (a code such as {@code tr_tr}), to the packet copy
+     * {@code item} when it is heated.
      *
      * @return true if the stack was changed
      */
-    public boolean decorate(ItemStack item) {
+    public boolean decorate(ItemStack item, String locale) {
         if (item == null || item.isEmpty()) {
             return false;
         }
@@ -113,7 +114,7 @@ public final class HeatTooltipDecoration implements ClientItemDecoration {
             return false; // already decorated (a packet copy that was built from a decorated one)
         }
         List<Component> lines = new ArrayList<>(item.getComponentOr(ComponentTypes.LORE, ItemLore.EMPTY).getLines());
-        lines.add(Component.text(text.apply(level.get())));
+        lines.add(Component.text(text.apply(level.get(), locale)));
         item.setComponent(ComponentTypes.LORE, new ItemLore(lines));
         data.setTag(MARKER, new NBTInt(1));
         return true;
