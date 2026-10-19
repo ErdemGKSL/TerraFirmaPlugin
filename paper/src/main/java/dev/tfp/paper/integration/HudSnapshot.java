@@ -68,7 +68,7 @@ public record HudSnapshot(double health, double maxHealth, double thirst, double
     }
 
     public HudSnapshot withAmbientTemperature(double value) {
-        return new HudSnapshot(health, maxHealth, thirst, hunger, heldTemperature, value, precipitation);
+        return new HudSnapshot(health, maxHealth, thirst, hunger, heldTemperature, value, precipitation, air);
     }
 
     public HudSnapshot withPrecipitation(PrecipitationType value) {
