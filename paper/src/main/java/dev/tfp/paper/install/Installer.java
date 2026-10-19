@@ -46,6 +46,8 @@ public final class Installer {
     public static final String PACK = "tfp";
     /** Where the selected allocation's files go inside our CraftEngine pack. */
     public static final String VISUALS_DIR = "configuration/visuals/";
+    /** The generated BetterHud glue folder, relative to {@code betterhud/tfp} (never copied into packs/tfp). */
+    static final String GLUE_DIR = "glue/";
     /** The allocation files installed into the CraftEngine pack (the suppression list stays in the jar). */
     public static final List<String> VISUAL_FILES = List.of("visual_templates.yml", "visual_mappings.yml");
 
@@ -276,12 +278,28 @@ public final class Installer {
             return null;
         }
         try {
-            return ContentInstaller.install(source.get(), target, in.contentVersion(), in.settings().restoreDeleted());
+            return installBetterHudPack(source.get(), target, in.contentVersion(), in.settings().restoreDeleted());
         } catch (IOException | RuntimeException e) {
             log.log(Level.SEVERE, "Cannot install the " + label + " into " + target, e);
             failures.add(label + " install failed: " + e);
             return null;
         }
+    }
+
+    /**
+     * Copies the generated BetterHud pack ({@code source} = {@code content/betterhud/tfp}) into {@code target}.
+     * The {@code glue/} folder (placeholders.yml, hidden-vanilla.yml) is read by our plugin's glue, not by
+     * BetterHud, so it is never copied into the packs folder. Any other file is copied as before.
+     *
+     * @param source the shipped {@code betterhud/tfp} folder
+     * @param target {@code plugins/BetterHud/packs/tfp}
+     */
+    static ContentInstaller.Report installBetterHudPack(Path source, Path target, String contentVersion,
+            boolean restoreDeleted) throws IOException {
+        Map<String, Path> shipped = new TreeMap<>(ContentInstaller.list(source));
+        // Single explicit check on the path relative to betterhud/tfp: the glue folder is plugin-only data.
+        shipped.keySet().removeIf(rel -> rel.startsWith(GLUE_DIR));
+        return ContentInstaller.install(shipped, target, contentVersion, restoreDeleted);
     }
 
     private static void logResult(Result r, Logger log) {
