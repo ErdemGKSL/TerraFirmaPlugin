@@ -62,6 +62,10 @@ public final class AssetPipeline {
     private final Map<String, Integer> foodItems = new TreeMap<>();
     /** Metal material items ({@code metal/<kind>/<metal>}), a plain item each; tools and armor wait for M4-TOOL-02. */
     private final Set<String> metalItems = new TreeSet<>();
+    /** Metal mining tools ({@code metal/<kind>/<metal>}) with the arguments of {@code tfp:item/tool}. */
+    private final Map<String, Map<String, Object>> metalTools = new TreeMap<>();
+    /** TFC's tiers, read on the first metal tool model (a checkout without tools never reads them). */
+    private Map<String, Tier> tierCache;
     /** Appearance demand of every emitted block, in emission order (input of the visual allocator). */
     private final List<VisualDemand> demand = new ArrayList<>();
 
@@ -124,9 +128,75 @@ public final class AssetPipeline {
                 }
             }
         }
+        // Metal mining tools (M4-TOOL-02 data slice): the tier of each metal is read from TFC's TFCTiers.
+        METAL_TOOL_KINDS.forEach((kind, mineable) -> {
+            for (String f : tfc.list(TfcCheckout.ASSETS + "models/item/metal/" + kind + "/")) {
+                if (!f.endsWith(".json")) {
+                    continue;
+                }
+                String metal = f.substring(f.lastIndexOf('/') + 1, f.length() - 5);
+                Tier tier = tiers().get(metal);
+                if (tier == null) {
+                    throw new DatagenException("metal tool " + kind + "/" + metal + " has no tier in " + TIERS_SOURCE);
+                }
+                String id = "metal/" + kind + "/" + metal;
+                modelQueue.add("item/" + id);
+                Map<String, Object> args = new LinkedHashMap<>();
+                args.put("item_lang_key", langKey("item", id));
+                args.put("material", tier.vanillaTool() + "_" + kind);
+                args.put("durability", tier.uses());
+                args.put("speed", tier.speed());
+                args.put("break_power", tier.level());
+                args.put("mineable_tag", mineable);
+                args.put("tool_tag", Json.TO_NS + ":tools/" + kind);
+                metalTools.put(id, args);
+            }
+        });
         while (!modelQueue.isEmpty()) {
             model(modelQueue.poll());
         }
+    }
+
+    static final String TIERS_SOURCE = "src/main/java/net/dries007/tfc/common/TFCTiers.java";
+    private static final Pattern TIER = Pattern.compile(
+        "create\\(\"(\\w+)\", BlockTags\\.INCORRECT_FOR_(\\w+)_TOOL, (\\d+), (\\d+), ([\\d.]+)f, [\\d.]+f, \\d+\\)");
+
+    /** One TFC tool tier: the level, the uses, the mining speed and the vanilla tool material it is rendered as. */
+    record Tier(int level, int uses, BigDecimal speed, String vanillaTool) {
+    }
+
+    /**
+     * The metal tool kinds emitted as mining tools, with the vanilla block tag each mines faster. The other tools (hammer,
+     * saw, knife, chisel, scythe, propick, javelin, sword, mace) are our own behaviours and wait for M4-TOOL-02.
+     */
+    static final Map<String, String> METAL_TOOL_KINDS = Map.of(
+        "pickaxe", "minecraft:mineable/pickaxe", "axe", "minecraft:mineable/axe",
+        "shovel", "minecraft:mineable/shovel", "hoe", "minecraft:mineable/hoe");
+
+    /** TFC's tiers by metal name. The vanilla material follows the tier's {@code INCORRECT_FOR_*} tag (netherite as diamond: no fire resistance). */
+    private Map<String, Tier> tiers() {
+        if (tierCache != null) {
+            return tierCache;
+        }
+        Map<String, Tier> out = new java.util.HashMap<>();
+        java.util.regex.Matcher m = TIER.matcher(tfc.readString(TIERS_SOURCE));
+        while (m.find()) {
+            String tag = m.group(2).toLowerCase(java.util.Locale.ROOT);
+            String vanilla = switch (tag) {
+                case "wooden" -> "wooden";
+                case "stone" -> "stone";
+                case "iron" -> "iron";
+                case "diamond", "netherite" -> "diamond";
+                default -> throw new DatagenException(TIERS_SOURCE + ": unknown tier tag INCORRECT_FOR_" + m.group(2) + "_TOOL");
+            };
+            out.put(m.group(1), new Tier(Integer.parseInt(m.group(3)), Integer.parseInt(m.group(4)),
+                new BigDecimal(m.group(5)), vanilla));
+        }
+        if (out.isEmpty()) {
+            throw new DatagenException(TIERS_SOURCE + " has no tiers (the format changed?)");
+        }
+        tierCache = out;
+        return out;
     }
 
     /**
@@ -351,6 +421,10 @@ public final class AssetPipeline {
             metal.items.put(Json.TO_NS + ":" + id,
                 CeBlockStates.call("tfp:item/simple", Map.of("item_lang_key", langKey("item", id))));
         }
+        metalTools.forEach((id, args) -> {
+            requireItemModel(id);
+            metal.items.put(Json.TO_NS + ":" + id, CeBlockStates.call("tfp:item/tool", args));
+        });
         metal.write("metal");
         reportSkipped();
     }

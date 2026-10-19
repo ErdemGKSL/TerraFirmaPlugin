@@ -25,3 +25,24 @@ templates#items:
       food:
         nutrition: ${nutrition}
         saturation: 0
+  # Metal mining tool (M4-TOOL-02 data slice). material: the vanilla tool whose hand rendering and enchantability it takes.
+  # durability, speed, break_power: the TFC tier (TFCTiers). mineable_tag: the block tag the tool mines faster.
+  # tool_tag: the CE item tag used with the blocks' correct_tools. Attack damage and the non-mining tools are open.
+  tfp:item/tool:
+    material: ${material}
+    data:
+      item_name: <!i><lang:${item_lang_key}>
+      max_stack_size: 1
+      max_damage: ${durability}
+      tool:
+        rules:
+          - blocks: "#${mineable_tag}"
+            speed: ${speed}
+            correct_for_drops: true
+        default_mining_speed: 1.0
+        damage_per_block: 1
+    model: ${__NAMESPACE__}:item/${__ID__}
+    settings:
+      break_power: ${break_power}
+      tags:
+        - ${tool_tag}
