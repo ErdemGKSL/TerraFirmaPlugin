@@ -1,0 +1,16 @@
+name	value	tfc_source
+spawn_distance	4000	src/data/java/net/dries007/tfc/data/providers/BuiltinWorldPreset.java:83 (defaultSettings); src/generated/resources/data/tfc/worldgen/world_preset/overworld.json tfc_settings.spawn_distance
+spawn_center_x	0	BuiltinWorldPreset.java:83; overworld.json tfc_settings.spawn_center_x
+spawn_center_z	0	BuiltinWorldPreset.java:83; overworld.json tfc_settings.spawn_center_z
+temperature_scale	20000	BuiltinWorldPreset.java:83; overworld.json tfc_settings.temperature_scale
+temperature_constant	0	BuiltinWorldPreset.java:83 (float, default 0)
+rainfall_scale	20000	BuiltinWorldPreset.java:83; overworld.json tfc_settings.rainfall_scale
+rainfall_constant	0	BuiltinWorldPreset.java:83 (float, default 0)
+continentalness	0.5	BuiltinWorldPreset.java:83; overworld.json tfc_settings.continentalness
+finite_continents	false	BuiltinWorldPreset.java:83; overworld.json tfc_settings.finite_continents
+flat_bedrock	false	BuiltinWorldPreset.java:83; overworld.json tfc_settings.flat_bedrock
+grass_density	0.5	BuiltinWorldPreset.java:83; overworld.json tfc_settings.grass_density
+sea_level_y	63	src/main/java/net/dries007/tfc/world/TFCChunkGenerator.java:118
+spawn_search_step_divisor	256	src/main/java/net/dries007/tfc/world/biome/BiomeSourceExtension.java:71 (step = spawn_distance / 256)
+spawn_chunk_tries	1024	src/main/java/net/dries007/tfc/ForgeEventHandler.java:276
+spawn_column_window	16	src/main/java/net/dries007/tfc/ForgeEventHandler.java:278 (chunk offsets -16 < x <= 16, -16 < z <= 16)
