@@ -28,8 +28,9 @@ Work that runs alongside every milestone. These tasks are continuous: tick them 
   - Do: when the pinned TFC commit is bumped, re-run datagen, diff the data/asset reports, update the ledger and open tasks for changed mechanics.
   - Status: `tools/datagen` `TfcPinDrift` lists the watched TFC paths (`src/main/java/net/dries007/tfc`, `src/generated/resources/data/tfc`) changed between the pin in `docs/porting/tfc-pin.txt` and the checkout's HEAD, using git on a local clone (no network). Run `./gradlew :tools:datagen:tfcPinDrift -Ptfc.checkout=<clone>`; it fails if the clone has no git history or lacks the pinned commit. Tests: `TfcPinDriftTest` (8, incl. the real pinned clone, which is empty). Open: running it in CI, an automatic upstream feed, and the per-file ported-header check (`@ <commit>` lines against the pin).
 
-- [ ] **X-I18N-01 Locales**
+- [~] **X-I18N-01 Locales**
   - Do: every player-facing string is translatable; ship all TFC locales including `tr_tr`; add missing keys for plugin-only UI.
+  - Status: datagen `Locales.java` writes `lang/<locale>.json` for all 13 TFC locales (`tr_tr` included) with TFC's keys verbatim and mcresources comments dropped, plus `lang/index.json` with each locale's key, missing and extra counts against en_us. Verified on the pinned checkout: 13 locales, en_us 10075 keys, every locale 10075 keys with 0 missing and 0 extra. Tests: `LocalesTest` (9: real-checkout count and coverage, fixture extras and comments, 7 refusals). Open: the Paper lang loading and our message keys (`tfp.*`), translations of the plugin's own strings, the CraftEngine text components, and the review of each locale's coverage.
 
 - [ ] **X-DOC-01 Keep design docs & skills current**
   - Do: update `ARCHITECTURE.md` and the affected skills in the same change as any design decision; resolve "UNVERIFIED" notes as spikes and features confirm them.
