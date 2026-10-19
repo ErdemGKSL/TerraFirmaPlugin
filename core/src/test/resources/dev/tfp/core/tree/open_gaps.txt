@@ -1,0 +1,24 @@
+# TFC tree species (tfc:forest_entry, from tree_placement.tsv) that the Java forest does not load yet: the entries
+# outside the forest tag (the dead forests' tag and the mangrove tag, whose special root placer is not ported). Open gaps
+# of M2-GEN-12, not rules. Sorted. Each is listed here until its rule exists, then it is removed.
+tfc:tree/dead_acacia_entry
+tfc:tree/dead_ash_entry
+tfc:tree/dead_aspen_entry
+tfc:tree/dead_birch_entry
+tfc:tree/dead_blackwood_entry
+tfc:tree/dead_chestnut_entry
+tfc:tree/dead_douglas_fir_entry
+tfc:tree/dead_hickory_entry
+tfc:tree/dead_kapok_entry
+tfc:tree/dead_mangrove_entry
+tfc:tree/dead_maple_entry
+tfc:tree/dead_oak_entry
+tfc:tree/dead_palm_entry
+tfc:tree/dead_pine_entry
+tfc:tree/dead_rosewood_entry
+tfc:tree/dead_sequoia_entry
+tfc:tree/dead_spruce_entry
+tfc:tree/dead_sycamore_entry
+tfc:tree/dead_white_cedar_entry
+tfc:tree/dead_willow_entry
+tfc:tree/mangrove_entry

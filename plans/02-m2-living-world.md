@@ -134,10 +134,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - Done when: surface indicators appear above veins (small ores, loose rocks), and deposits appear in riverbeds.
   - Status (@claude): rules and glue done. `core/worldgen/groundcover/` (`LooseRocks`, `VeinIndicators`, `ShoreGroundcover`, `ClimateFilter`, `SaltWater`) and `core/worldgen/deposit/` (`Deposits`, `SoilDisc`, `Metaballs2D`): the pure decisions per chunk, read through a `GroundView`; `TfcTerrain.fill` writes them for its own chunk only, in TFC's step order, as vanilla placeholders (no CE groundcover/deposit blocks yet). `GroundcoverGoldenTest` matches TFC's oracle exactly (92 golden hashes); property and Paper wiring tests green. Open: the CE blocks, underground loose rocks and indicators (caves), guano, water clay, rooted dirt and mollisol discs, the server check and the visual checklist. Divergences in the ledger.
 
-- [ ] **M2-GEN-12 Trees** · deps: M2-GEN-07
+- [~] **M2-GEN-12 Trees** · deps: M2-GEN-07
   - TFC: `world/feature/tree/`, structures `src/main/resources/data/tfc/structure/<wood>{,_dead,_large}/*.nbt`, `common/blocks/wood/`
   - Do: read `.nbt` templates in datagen, place logs/leaves (`persistent=false`) per climate/forest data. Leaves use the leaves visual pool.
   - Done when: forest density/type maps match TFC, and trees look right (visual checklist).
+  - Status (tree golden, @claude): TFC at c3b4d9536 verified: 40 species entries (`tfc:forest_entry`: 19 forest, 19 dead, mangrove, dead mangrove), 56 placed tree features, 101 configured tree files (`dev.tfp.core.tree.TreePlacementGoldenTest`, 5 tests green: counts, climate ranges of the 19 forest species, wood and structure counts, placed targets, open gaps). Species with no Java rule (open, 21 ids in `core/src/test/resources/dev/tfp/core/tree/open_gaps.txt`): the 19 dead entries, the mangrove and its dead variant. Still open: the tree generator on the region pass, the CraftEngine tree blocks, the growth glue, the server check. Divergence: dead forests use the living entries (ledger).
 
 - [~] **M2-GEN-13 Plants, wild crops & coral** · deps: M2-GEN-12
   - TFC: `world/feature/plant/`, `world/feature/coral/`, `common/blocks/plant/`, `common/blocks/crop/WildCropBlock.java`

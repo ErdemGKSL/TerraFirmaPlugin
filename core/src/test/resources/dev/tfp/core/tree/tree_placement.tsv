@@ -1,0 +1,97 @@
+group	id	forest_list	climate	min_temperature	max_temperature	min_groundwater	max_groundwater	min_rain_variance	max_rain_variance	rain_variance_absolute	min_elevation	max_elevation	min_forest	max_forest	normal_tree	normal_type	normal_wood	normal_structures	dead_tree	dead_structures	placement_modifiers	feature	referenced_by
+entry	tfc:tree/acacia_entry	forest	1	10.4	40	90	500	0.4	0.85	true	-64	320	0	4	tfc:tree/acacia	random_tree	acacia	35	tfc:tree/acacia_dead	6			
+entry	tfc:tree/ash_entry	forest	1	1.4	15.8	60	380	-0.2	1	false	-64	320	0	4	tfc:tree/ash	random_tree	ash	16	tfc:tree/ash_dead	6			
+entry	tfc:tree/aspen_entry	forest	1	-14.2	5	350	500	-0.65	1	false	-64	320	0	4	tfc:tree/aspen	random_tree	aspen	16	tfc:tree/aspen_dead	6			
+entry	tfc:tree/birch_entry	forest	1	-9.4	8.6	125	360	-0.6	0.8	false	-64	320	0	4	tfc:tree/birch	random_tree	birch	6	tfc:tree/birch_dead	6			
+entry	tfc:tree/blackwood_entry	forest	1	10.4	40	35	215	-1	1	false	-64	320	0	4	tfc:tree/blackwood	random_tree	blackwood	10	tfc:tree/blackwood_dead	6			
+entry	tfc:tree/chestnut_entry	forest	1	-0.4	14.0	150	340	-0.2	1	false	-64	320	0	4	tfc:tree/chestnut	random_tree	chestnut	6	tfc:tree/chestnut_dead	6			
+entry	tfc:tree/dead_acacia_entry	dead_forest	1	10.4	40	90	500	0.4	0.85	true	-64	320	0	4	tfc:tree/acacia	random_tree	acacia	35	tfc:tree/acacia_dead	6			
+entry	tfc:tree/dead_ash_entry	dead_forest	1	1.4	15.8	60	380	-0.2	1	false	-64	320	0	4	tfc:tree/ash	random_tree	ash	16	tfc:tree/ash_dead	6			
+entry	tfc:tree/dead_aspen_entry	dead_forest	1	-14.2	5	350	500	-0.65	1	false	-64	320	0	4	tfc:tree/aspen	random_tree	aspen	16	tfc:tree/aspen_dead	6			
+entry	tfc:tree/dead_birch_entry	dead_forest	1	-9.4	8.6	125	360	-0.6	0.8	false	-64	320	0	4	tfc:tree/birch	random_tree	birch	6	tfc:tree/birch_dead	6			
+entry	tfc:tree/dead_blackwood_entry	dead_forest	1	10.4	40	35	215	-1	1	false	-64	320	0	4	tfc:tree/blackwood	random_tree	blackwood	10	tfc:tree/blackwood_dead	6			
+entry	tfc:tree/dead_chestnut_entry	dead_forest	1	-0.4	14.0	150	340	-0.2	1	false	-64	320	0	4	tfc:tree/chestnut	random_tree	chestnut	6	tfc:tree/chestnut_dead	6			
+entry	tfc:tree/dead_douglas_fir_entry	dead_forest	1	-14.2	8.6	270	500	-1	0.1	false	-64	320	0	4	tfc:tree/douglas_fir	random_tree	douglas_fir	10	tfc:tree/douglas_fir_dead	6			
+entry	tfc:tree/dead_hickory_entry	dead_forest	1	6.8	17.6	210	500	-0.4	0.6	false	-64	320	0	4	tfc:tree/hickory	random_tree	hickory	10	tfc:tree/hickory_dead	6			
+entry	tfc:tree/dead_kapok_entry	dead_forest	1	19.4	40	300	500	-0.55	0.55	false	-64	320	0	4	tfc:tree/kapok	random_tree	kapok	17	tfc:tree/kapok_dead	4			
+entry	tfc:tree/dead_mangrove_entry	none	1	15.8	40	200	500	-1	1	false	-64	320	0	4	tfc:tree/mangrove	random_tree	mangrove	12	tfc:tree/mangrove_dead	3			
+entry	tfc:tree/dead_maple_entry	dead_forest	1	-5.8	10.4	200	450	-0.8	1	false	-64	320	0	4	tfc:tree/maple	random_tree	maple	23	tfc:tree/maple_dead	6			
+entry	tfc:tree/dead_oak_entry	dead_forest	1	-0.4	17.6	210	500	-0.5	0.75	false	-64	320	0	4	tfc:tree/oak	random_tree	oak	8	tfc:tree/oak_dead	6			
+entry	tfc:tree/dead_palm_entry	dead_forest	1	17.6	40	150	330	-0.7	0.7	false	-64	320	0	4	tfc:tree/palm	random_tree	palm	7	tfc:tree/palm_dead	3			
+entry	tfc:tree/dead_pine_entry	dead_forest	1	-14.2	12.2	90	320	-1	0.75	false	-64	320	0	4	tfc:tree/pine	random_tree	pine	9	tfc:tree/pine_dead	6			
+entry	tfc:tree/dead_rosewood_entry	dead_forest	1	12.2	40	200	500	0.65	1	true	-64	320	0	4	tfc:tree/rosewood	random_tree	rosewood	18	tfc:tree/rosewood_dead	6			
+entry	tfc:tree/dead_sequoia_entry	dead_forest	1	5	14.0	215	500	-1	-0.4	false	-64	320	0	4	tfc:tree/sequoia	random_tree	sequoia	7	tfc:tree/sequoia_dead	6			
+entry	tfc:tree/dead_spruce_entry	dead_forest	1	-16	-4	220	500	-1	1	false	-64	320	0	4	tfc:tree/spruce	random_tree	spruce	11	tfc:tree/spruce_dead	6			
+entry	tfc:tree/dead_sycamore_entry	dead_forest	1	-4	17.6	330	500	-0.15	1	false	-64	320	0	4	tfc:tree/sycamore	random_tree	sycamore	5	tfc:tree/sycamore_dead	6			
+entry	tfc:tree/dead_white_cedar_entry	dead_forest	1	-14.2	3.2	100	285	-0.45	0.65	false	-64	320	0	4	tfc:tree/white_cedar	overlay_tree	white_cedar	0	tfc:tree/white_cedar_dead	6			
+entry	tfc:tree/dead_willow_entry	dead_forest	1	8.6	26.6	330	500	-0.55	1	false	-64	320	0	4	tfc:tree/willow	random_tree	willow	7	tfc:tree/willow_dead	3			
+entry	tfc:tree/douglas_fir_entry	forest	1	-14.2	8.6	270	500	-1	0.1	false	-64	320	0	4	tfc:tree/douglas_fir	random_tree	douglas_fir	10	tfc:tree/douglas_fir_dead	6			
+entry	tfc:tree/hickory_entry	forest	1	6.8	17.6	210	500	-0.4	0.6	false	-64	320	0	4	tfc:tree/hickory	random_tree	hickory	10	tfc:tree/hickory_dead	6			
+entry	tfc:tree/kapok_entry	forest	1	19.4	40	300	500	-0.55	0.55	false	-64	320	0	4	tfc:tree/kapok	random_tree	kapok	17	tfc:tree/kapok_dead	4			
+entry	tfc:tree/mangrove_entry	mangrove_forest	1	15.8	40	200	500	-1	1	false	-64	320	0	4	tfc:tree/mangrove	random_tree	mangrove	12	tfc:tree/mangrove_dead	3			
+entry	tfc:tree/maple_entry	forest	1	-5.8	10.4	200	450	-0.8	1	false	-64	320	0	4	tfc:tree/maple	random_tree	maple	23	tfc:tree/maple_dead	6			
+entry	tfc:tree/oak_entry	forest	1	-0.4	17.6	210	500	-0.5	0.75	false	-64	320	0	4	tfc:tree/oak	random_tree	oak	8	tfc:tree/oak_dead	6			
+entry	tfc:tree/palm_entry	forest	1	17.6	40	150	330	-0.7	0.7	false	-64	320	0	4	tfc:tree/palm	random_tree	palm	7	tfc:tree/palm_dead	3			
+entry	tfc:tree/pine_entry	forest	1	-14.2	12.2	90	320	-1	0.75	false	-64	320	0	4	tfc:tree/pine	random_tree	pine	9	tfc:tree/pine_dead	6			
+entry	tfc:tree/rosewood_entry	forest	1	12.2	40	200	500	0.65	1	true	-64	320	0	4	tfc:tree/rosewood	random_tree	rosewood	18	tfc:tree/rosewood_dead	6			
+entry	tfc:tree/sequoia_entry	forest	1	5	14.0	215	500	-1	-0.4	false	-64	320	0	4	tfc:tree/sequoia	random_tree	sequoia	7	tfc:tree/sequoia_dead	6			
+entry	tfc:tree/spruce_entry	forest	1	-16	-4	220	500	-1	1	false	-64	320	0	4	tfc:tree/spruce	random_tree	spruce	11	tfc:tree/spruce_dead	6			
+entry	tfc:tree/sycamore_entry	forest	1	-4	17.6	330	500	-0.15	1	false	-64	320	0	4	tfc:tree/sycamore	random_tree	sycamore	5	tfc:tree/sycamore_dead	6			
+entry	tfc:tree/white_cedar_entry	forest	1	-14.2	3.2	100	285	-0.45	0.65	false	-64	320	0	4	tfc:tree/white_cedar	overlay_tree	white_cedar	0	tfc:tree/white_cedar_dead	6			
+entry	tfc:tree/willow_entry	forest	1	8.6	26.6	330	500	-0.55	1	false	-64	320	0	4	tfc:tree/willow	random_tree	willow	7	tfc:tree/willow_dead	3			
+placed	tfc:tree/acacia		0																		0	tfc:tree/acacia	tfc:tree/acacia_entry;tfc:tree/dead_acacia_entry
+placed	tfc:tree/acacia_dead		0																		0	tfc:tree/acacia_dead	tfc:tree/acacia_entry;tfc:tree/dead_acacia_entry
+placed	tfc:tree/acacia_large		0																		0	tfc:tree/acacia_large	tfc:tree/acacia_entry;tfc:tree/dead_acacia_entry
+placed	tfc:tree/ash		0																		0	tfc:tree/ash	tfc:tree/ash_entry;tfc:tree/dead_ash_entry
+placed	tfc:tree/ash_dead		0																		0	tfc:tree/ash_dead	tfc:tree/ash_entry;tfc:tree/dead_ash_entry
+placed	tfc:tree/ash_large		0																		0	tfc:tree/ash_large	tfc:tree/ash_entry;tfc:tree/dead_ash_entry
+placed	tfc:tree/aspen		0																		0	tfc:tree/aspen	tfc:tree/aspen_entry;tfc:tree/dead_aspen_entry
+placed	tfc:tree/aspen_dead		0																		0	tfc:tree/aspen_dead	tfc:tree/aspen_entry;tfc:tree/dead_aspen_entry
+placed	tfc:tree/aspen_large		0																		0	tfc:tree/aspen_large	tfc:tree/aspen_entry;tfc:tree/dead_aspen_entry
+placed	tfc:tree/birch		0																		0	tfc:tree/birch	tfc:tree/birch_entry;tfc:tree/dead_birch_entry
+placed	tfc:tree/birch_dead		0																		0	tfc:tree/birch_dead	tfc:tree/birch_entry;tfc:tree/dead_birch_entry
+placed	tfc:tree/birch_large		0																		0	tfc:tree/birch_large	
+placed	tfc:tree/blackwood		0																		0	tfc:tree/blackwood	tfc:tree/blackwood_entry;tfc:tree/dead_blackwood_entry
+placed	tfc:tree/blackwood_dead		0																		0	tfc:tree/blackwood_dead	tfc:tree/blackwood_entry;tfc:tree/dead_blackwood_entry
+placed	tfc:tree/blackwood_large		0																		0	tfc:tree/blackwood_large	tfc:tree/blackwood_entry;tfc:tree/dead_blackwood_entry
+placed	tfc:tree/chestnut		0																		0	tfc:tree/chestnut	tfc:tree/chestnut_entry;tfc:tree/dead_chestnut_entry
+placed	tfc:tree/chestnut_dead		0																		0	tfc:tree/chestnut_dead	tfc:tree/chestnut_entry;tfc:tree/dead_chestnut_entry
+placed	tfc:tree/chestnut_large		0																		0	tfc:tree/chestnut_large	tfc:tree/chestnut_entry;tfc:tree/dead_chestnut_entry
+placed	tfc:tree/douglas_fir		0																		0	tfc:tree/douglas_fir	tfc:tree/dead_douglas_fir_entry;tfc:tree/douglas_fir_entry
+placed	tfc:tree/douglas_fir_dead		0																		0	tfc:tree/douglas_fir_dead	tfc:tree/dead_douglas_fir_entry;tfc:tree/douglas_fir_entry
+placed	tfc:tree/douglas_fir_large		0																		0	tfc:tree/douglas_fir_large	tfc:tree/dead_douglas_fir_entry;tfc:tree/douglas_fir_entry
+placed	tfc:tree/hickory		0																		0	tfc:tree/hickory	tfc:tree/dead_hickory_entry;tfc:tree/hickory_entry
+placed	tfc:tree/hickory_dead		0																		0	tfc:tree/hickory_dead	tfc:tree/dead_hickory_entry;tfc:tree/hickory_entry
+placed	tfc:tree/hickory_large		0																		0	tfc:tree/hickory_large	tfc:tree/dead_hickory_entry;tfc:tree/hickory_entry
+placed	tfc:tree/kapok		0																		0	tfc:tree/kapok	tfc:tree/dead_kapok_entry;tfc:tree/kapok_entry
+placed	tfc:tree/kapok_dead		0																		0	tfc:tree/kapok_dead	tfc:tree/dead_kapok_entry;tfc:tree/kapok_entry
+placed	tfc:tree/mangrove		0																		0	tfc:tree/mangrove	tfc:tree/dead_mangrove_entry;tfc:tree/mangrove_entry
+placed	tfc:tree/mangrove_dead		0																		0	tfc:tree/mangrove_dead	tfc:tree/dead_mangrove_entry;tfc:tree/mangrove_entry
+placed	tfc:tree/maple		0																		0	tfc:tree/maple	tfc:tree/dead_maple_entry;tfc:tree/maple_entry
+placed	tfc:tree/maple_dead		0																		0	tfc:tree/maple_dead	tfc:tree/dead_maple_entry;tfc:tree/maple_entry
+placed	tfc:tree/maple_large		0																		0	tfc:tree/maple_large	tfc:tree/dead_maple_entry;tfc:tree/maple_entry
+placed	tfc:tree/oak		0																		0	tfc:tree/oak	tfc:tree/dead_oak_entry;tfc:tree/oak_entry
+placed	tfc:tree/oak_dead		0																		0	tfc:tree/oak_dead	tfc:tree/dead_oak_entry;tfc:tree/oak_entry
+placed	tfc:tree/palm		0																		0	tfc:tree/palm	tfc:tree/dead_palm_entry;tfc:tree/palm_entry
+placed	tfc:tree/palm_dead		0																		0	tfc:tree/palm_dead	tfc:tree/dead_palm_entry;tfc:tree/palm_entry
+placed	tfc:tree/pine		0																		0	tfc:tree/pine	tfc:tree/dead_pine_entry;tfc:tree/pine_entry
+placed	tfc:tree/pine_dead		0																		0	tfc:tree/pine_dead	tfc:tree/dead_pine_entry;tfc:tree/pine_entry
+placed	tfc:tree/pine_large		0																		0	tfc:tree/pine_large	tfc:tree/dead_pine_entry;tfc:tree/pine_entry
+placed	tfc:tree/rosewood		0																		0	tfc:tree/rosewood	tfc:tree/dead_rosewood_entry;tfc:tree/rosewood_entry
+placed	tfc:tree/rosewood_dead		0																		0	tfc:tree/rosewood_dead	tfc:tree/dead_rosewood_entry;tfc:tree/rosewood_entry
+placed	tfc:tree/rosewood_large		0																		0	tfc:tree/rosewood_large	tfc:tree/dead_rosewood_entry;tfc:tree/rosewood_entry
+placed	tfc:tree/sequoia		0																		0	tfc:tree/sequoia	tfc:tree/dead_sequoia_entry;tfc:tree/sequoia_entry
+placed	tfc:tree/sequoia_dead		0																		0	tfc:tree/sequoia_dead	tfc:tree/dead_sequoia_entry;tfc:tree/sequoia_entry
+placed	tfc:tree/sequoia_large		0																		0	tfc:tree/sequoia_large	tfc:tree/dead_sequoia_entry;tfc:tree/sequoia_entry
+placed	tfc:tree/spruce		0																		0	tfc:tree/spruce	tfc:tree/dead_spruce_entry;tfc:tree/spruce_entry
+placed	tfc:tree/spruce_dead		0																		0	tfc:tree/spruce_dead	tfc:tree/dead_spruce_entry;tfc:tree/spruce_entry
+placed	tfc:tree/spruce_large		0																		0	tfc:tree/spruce_large	tfc:tree/dead_spruce_entry;tfc:tree/spruce_entry
+placed	tfc:tree/sycamore		0																		0	tfc:tree/sycamore	tfc:tree/dead_sycamore_entry;tfc:tree/sycamore_entry
+placed	tfc:tree/sycamore_dead		0																		0	tfc:tree/sycamore_dead	tfc:tree/dead_sycamore_entry;tfc:tree/sycamore_entry
+placed	tfc:tree/sycamore_large		0																		0	tfc:tree/sycamore_large	tfc:tree/dead_sycamore_entry;tfc:tree/sycamore_entry
+placed	tfc:tree/white_cedar		0																		0	tfc:tree/white_cedar	tfc:tree/dead_white_cedar_entry;tfc:tree/white_cedar_entry
+placed	tfc:tree/white_cedar_dead		0																		0	tfc:tree/white_cedar_dead	tfc:tree/dead_white_cedar_entry;tfc:tree/white_cedar_entry
+placed	tfc:tree/white_cedar_large		0																		0	tfc:tree/white_cedar_large	tfc:tree/dead_white_cedar_entry;tfc:tree/white_cedar_entry
+placed	tfc:tree/willow		0																		0	tfc:tree/willow	tfc:tree/dead_willow_entry;tfc:tree/willow_entry
+placed	tfc:tree/willow_dead		0																		0	tfc:tree/willow_dead	tfc:tree/dead_willow_entry;tfc:tree/willow_entry
+placed	tfc:tree/willow_large		0																		0	tfc:tree/willow_large	tfc:tree/dead_willow_entry;tfc:tree/willow_entry
