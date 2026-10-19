@@ -24,8 +24,9 @@ Work that runs alongside every milestone. These tasks are continuous: tick them 
 
 ## Data, i18n, docs
 
-- [ ] **X-DATA-01 TFC update tracking**
+- [~] **X-DATA-01 TFC update tracking**
   - Do: when the pinned TFC commit is bumped, re-run datagen, diff the data/asset reports, update the ledger and open tasks for changed mechanics.
+  - Status: `tools/datagen` `TfcPinDrift` lists the watched TFC paths (`src/main/java/net/dries007/tfc`, `src/generated/resources/data/tfc`) changed between the pin in `docs/porting/tfc-pin.txt` and the checkout's HEAD, using git on a local clone (no network). Run `./gradlew :tools:datagen:tfcPinDrift -Ptfc.checkout=<clone>`; it fails if the clone has no git history or lacks the pinned commit. Tests: `TfcPinDriftTest` (8, incl. the real pinned clone, which is empty). Open: running it in CI, an automatic upstream feed, and the per-file ported-header check (`@ <commit>` lines against the pin).
 
 - [ ] **X-I18N-01 Locales**
   - Do: every player-facing string is translatable; ship all TFC locales including `tr_tr`; add missing keys for plugin-only UI.

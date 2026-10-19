@@ -41,3 +41,12 @@ tasks.register<JavaExec>("verifyContent") {
     mainClass = "dev.tfp.datagen.Datagen"
     args(tfcCheckout.get(), contentDir.asFile.absolutePath, "--check")
 }
+
+// Lists watched TFC paths changed since docs/porting/tfc-pin.txt (offline; needs a TFC clone with history).
+tasks.register<JavaExec>("tfcPinDrift") {
+    group = "verification"
+    description = "Lists TFC Java and data paths changed since the pin in docs/porting/tfc-pin.txt."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "dev.tfp.datagen.TfcPinDrift"
+    args(tfcCheckout.get(), rootProject.layout.projectDirectory.file("docs/porting/tfc-pin.txt").asFile.absolutePath)
+}
