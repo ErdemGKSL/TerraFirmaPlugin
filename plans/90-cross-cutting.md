@@ -40,7 +40,8 @@ Work that runs alongside every milestone. These tasks are continuous: tick them 
 - [ ] **X-PERF-01 Performance budgets in CI** · skills: plugin-testing
   - Do: JMH baselines in `docs/perf/` (worldgen chunk, packet rewrites, lore build, collapse decision, rotation network); fail CI on >20% regressions without a note.
 
-- [ ] **X-THR-01 Threading review gate** · skills: paper-folia-threading
+- [~] **X-THR-01 Threading review gate** · skills: paper-folia-threading
+  - Status (@claude): in progress. Done: `core/src/test/java/dev/tfp/core/PlatformIsolationTest.java` fails the build when core/ imports a platform package (Bukkit, Paper, NeoForge, Minecraft, CraftEngine, BetterModel and others) or uses Thread, synchronized, Bukkit, Runtime or System.exit outside a documented exception list. The survey found no platform imports; one exception is recorded: `GlobalClockHolder.publish` uses `synchronized`. Open: running the gate in CI, the Folia region-thread review of the Paper glue, and the PR-template checklist.
   - Do: a checklist in the PR template (no BukkitScheduler; owner-thread access; callbacks only snapshot + enqueue; budgeted commits; packet handlers world-free); all self-tests also run on Folia.
 
 - [ ] **X-VIS-01 Visual budget watch** · skills: craftengine-visuals-pack
