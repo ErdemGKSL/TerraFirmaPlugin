@@ -1,0 +1,12 @@
+tag	values
+usable_in_barrel	["#tfc:ingredients"]
+usable_in_bell_mold	["tfc:metal/bronze","tfc:metal/gold","tfc:metal/brass"]
+usable_in_blue_steel_bucket	["#tfc:ingredients","minecraft:lava"]
+usable_in_ingot_mold	["#tfc:molten_metals"]
+usable_in_jug	["#tfc:drinkables"]
+usable_in_pot	["#tfc:ingredients"]
+usable_in_red_steel_bucket	["#tfc:ingredients","minecraft:lava"]
+usable_in_scribing_table	["tfc:black_dye"]
+usable_in_sluice	["#tfc:any_fresh_water"]
+usable_in_tool_head_mold	["tfc:metal/copper","tfc:metal/bronze","tfc:metal/black_bronze","tfc:metal/bismuth_bronze"]
+usable_in_wooden_bucket	["#tfc:ingredients"]

@@ -53,10 +53,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
 
 ## Content completion
 
-- [ ] **M6-FLUID-01 Fluids in containers & in-world divergence** · deps: M3-PROC-03
+- [~] **M6-FLUID-01 Fluids in containers & in-world divergence** · deps: M3-PROC-03
   - TFC: `common/fluids/`
   - Do: all fluids as container contents; in-world placement policy (vanilla visuals or disallowed, per the ledger); river-water flow push server-side.
   - Done when: ledger divergence rows final.
+  - Status: `core/fluid/` ports the container table (`FluidContainerKind`: 12 kinds, default capacities from `ServerConfig`, usable tag or code predicate), the single-tank fill and drain (`FluidContainerRules`, the over-capacity fill is a ledger divergence), river water (`RiverWaterRules`: family, amount 8, height, source flow, flow vector) and the item-to-world/block decision table (`FluidTransferRules`). Verified: 12 capacities and the 11 `usable_in_*` tags (`usable_in_tags.tsv`, 11 files = 11 rows). Tests: `FluidContainerKindTest` (5), `FluidContainerRulesTest` (15, incl. seeded conservation), `RiverWaterRulesTest` (11), `FluidTransferRulesTest` (6): 37 passing. Open: the container block and block-entity glue, Paper fluid handling (buckets, `FluidHelpers` on the server), the in-world river flow divergence on the server, the CraftEngine visuals, the GUI.
 
 - [ ] **M6-ADV-01 Advancements** · deps: most features
   - TFC: `src/main/resources/data/tfc/advancement/`, `util/advancements/`
