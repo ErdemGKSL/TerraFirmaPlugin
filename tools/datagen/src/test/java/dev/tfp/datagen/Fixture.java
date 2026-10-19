@@ -201,6 +201,7 @@ final class Fixture {
         RockMudFixture.addDefault(root);
         MetalFixture.addDefault(root);
         FruitFixture.addDefault(root);
+        FirepitTest.addDefault(root);
         return root;
     }
 

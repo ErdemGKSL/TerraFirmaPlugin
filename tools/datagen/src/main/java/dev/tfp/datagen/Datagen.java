@@ -77,6 +77,7 @@ public final class Datagen {
         MudFamilies.run(tfc, out);
         MetalFamilies.run(tfc, out);
         FruitFamilies.run(tfc, out);
+        Firepit.run(tfc, out);
         Advancements.run(tfc, out);
         FieldGuide.run(tfc, out);
         Locales.run(tfc, out);
