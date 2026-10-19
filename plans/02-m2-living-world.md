@@ -139,10 +139,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - Do: read `.nbt` templates in datagen, place logs/leaves (`persistent=false`) per climate/forest data. Leaves use the leaves visual pool.
   - Done when: forest density/type maps match TFC, and trees look right (visual checklist).
 
-- [ ] **M2-GEN-13 Plants, wild crops & coral** · deps: M2-GEN-12
+- [~] **M2-GEN-13 Plants, wild crops & coral** · deps: M2-GEN-12
   - TFC: `world/feature/plant/`, `world/feature/coral/`, `common/blocks/plant/`, `common/blocks/crop/WildCropBlock.java`
   - Done when: plant distribution by climate range matches TFC samples.
   - Status (@claude): rules and glue done for 133 of the biome lists' features (plants, grasses, water plants, wild crops, corals). `core/worldgen/plant/` (`Plants`, `PlantData`, `PlantPlacer`, `PlantLevel`, `Corals`, `PlantFeature`, `PlantState`, `PlantType`, `WildCrop`) interprets TFC's exported placed/configured features per chunk through a `TreeView`; `TfcTerrain.decorate` writes corals then plants for its own chunk only, as vanilla placeholders (`PlantBlocks`). `PlantGoldenTest` matches TFC's oracle exactly (160 golden hashes + vanilla noise/random); property and Paper wiring tests green. Open: the CE plant/crop/coral blocks, vines, kelp, epiphytes, creeping plants, cacti (barrel, saguaro), rotatable ocean plants, algae, atoll corals, fruit trees and berry bushes, forest groundcover, the server check and the visual checklist. Divergences in the ledger.
+  - Status (flora golden, @claude): TFC placed features at c3b4d9536 verified: plant 321, wild_crop 58, coral 6 (`dev.tfp.core.flora.PlantPlacementGoldenTest`, 4 tests green: counts, climate ranges, biome lists, open gaps); plants with no Java rule (open, 96 ids in `core/src/test/resources/dev/tfp/core/flora/open_gaps.txt`: berry bushes, cacti, kelp, algae, bananas, vines, atoll corals). Still open: placement in the region generator, the CraftEngine plant blocks, the server check.
 
 - [ ] **M2-GEN-14 Volcanoes, hot springs, other features** · deps: M2-GEN-08
   - TFC: `world/volcano/`, `world/feature/*` (hot springs, ice/glaciers, etc.), `world/placement/`, `world/blockpredicate/`, `world/stateprovider/`
