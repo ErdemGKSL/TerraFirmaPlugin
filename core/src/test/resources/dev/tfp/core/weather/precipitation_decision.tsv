@@ -1,0 +1,53 @@
+# TFC precipitation decision golden, source TerraFirmaCraft@c3b4d9536, hand-traced from src/main/java/net/dries007/tfc/util/tracker/WeatherHelpers.java
+# Line refs: L99 rainIntensity = weather enabled ? getRain : -1; L102 isPrecipitating gate; L103 snow threshold (temperature > 0f);
+# L104 RAIN; L105 SNOW; L106 NONE; L116 isPrecipitating (real intensity > 0); L121 calculateRealRainIntensity (intensity - clampedMap(rainfall, 0, 500, 1, 0)).
+# The sky gate is not in WeatherHelpers: vanilla Level.isRainingAt checks canSeeSky before the biome call that TFC replaces (see the javadoc of getPrecipitationAt, L80-87).
+# Precipitation states: wet = intensity 0.75 at 250 mm (real 0.25); weather off = intensity -1 (L99); dry air = 0.75 at 0 mm (real -0.25);
+# no rain = intensity 0 at 500 mm (real 0, not above zero).
+case	temperature	rainfall	rain_intensity	sky_visible	expected	tfc_line	comment
+cold10_wet_sky	-10	250	0.75	true	SNOW	L102,L103,L105	wet, temperature below the threshold
+cold10_wet_nosky	-10	250	0.75	false	NONE	L102 (vanilla canSeeSky)	wet but no sky: vanilla gate first
+cold10_off_sky	-10	250	-1	true	NONE	L99,L116	weather disabled, intensity -1
+cold10_off_nosky	-10	250	-1	false	NONE	L99,L116	weather disabled and no sky
+cold10_dry_sky	-10	0	0.75	true	NONE	L121,L116	dry air: clampedMap gives 1, real -0.25
+cold10_dry_nosky	-10	0	0.75	false	NONE	L121,L116	dry air and no sky
+cold10_zero_sky	-10	500	0	true	NONE	L121,L116	no rain: real 0 is not above zero
+cold10_zero_nosky	-10	500	0	false	NONE	L121,L116	no rain and no sky
+cold05_wet_sky	-0.5	250	0.75	true	SNOW	L103,L105	just below zero
+cold05_wet_nosky	-0.5	250	0.75	false	NONE	L102 (vanilla canSeeSky)	wet but no sky
+cold05_off_sky	-0.5	250	-1	true	NONE	L99,L116	weather disabled
+cold05_off_nosky	-0.5	250	-1	false	NONE	L99,L116	weather disabled and no sky
+cold05_dry_sky	-0.5	0	0.75	true	NONE	L121,L116	dry air
+cold05_dry_nosky	-0.5	0	0.75	false	NONE	L121,L116	dry air and no sky
+cold05_zero_sky	-0.5	500	0	true	NONE	L121,L116	no rain
+cold05_zero_nosky	-0.5	500	0	false	NONE	L121,L116	no rain and no sky
+zero_wet_sky	0	250	0.75	true	SNOW	L103,L105	at zero the test is strict: not above zero is snow
+zero_wet_nosky	0	250	0.75	false	NONE	L102 (vanilla canSeeSky)	wet but no sky
+zero_off_sky	0	250	-1	true	NONE	L99,L116	weather disabled
+zero_off_nosky	0	250	-1	false	NONE	L99,L116	weather disabled and no sky
+zero_dry_sky	0	0	0.75	true	NONE	L121,L116	dry air
+zero_dry_nosky	0	0	0.75	false	NONE	L121,L116	dry air and no sky
+zero_zero_sky	0	500	0	true	NONE	L121,L116	no rain
+zero_zero_nosky	0	500	0	false	NONE	L121,L116	no rain and no sky
+hot05_wet_sky	0.5	250	0.75	true	RAIN	L103,L104	just above zero
+hot05_wet_nosky	0.5	250	0.75	false	NONE	L102 (vanilla canSeeSky)	wet but no sky
+hot05_off_sky	0.5	250	-1	true	NONE	L99,L116	weather disabled
+hot05_off_nosky	0.5	250	-1	false	NONE	L99,L116	weather disabled and no sky
+hot05_dry_sky	0.5	0	0.75	true	NONE	L121,L116	dry air
+hot05_dry_nosky	0.5	0	0.75	false	NONE	L121,L116	dry air and no sky
+hot05_zero_sky	0.5	500	0	true	NONE	L121,L116	no rain
+hot05_zero_nosky	0.5	500	0	false	NONE	L121,L116	no rain and no sky
+hot10_wet_sky	10	250	0.75	true	RAIN	L103,L104	warm, wet
+hot10_wet_nosky	10	250	0.75	false	NONE	L102 (vanilla canSeeSky)	wet but no sky
+hot10_off_sky	10	250	-1	true	NONE	L99,L116	weather disabled
+hot10_off_nosky	10	250	-1	false	NONE	L99,L116	weather disabled and no sky
+hot10_dry_sky	10	0	0.75	true	NONE	L121,L116	dry air
+hot10_dry_nosky	10	0	0.75	false	NONE	L121,L116	dry air and no sky
+hot10_zero_sky	10	500	0	true	NONE	L121,L116	no rain
+hot10_zero_nosky	10	500	0	false	NONE	L121,L116	no rain and no sky
+bnd_temp_min_pos	1.4E-45	250	0.75	true	RAIN	L103,L104	smallest positive float is above zero
+bnd_temp_min_neg	-1.4E-45	250	0.75	true	SNOW	L103,L105	smallest negative float is not above zero
+bnd_rain_exact_hot	10	250	0.5	true	NONE	L121,L116	real intensity exactly 0 (0.5 - 0.5): not above zero
+bnd_rain_exact_cold	-10	250	0.5	true	NONE	L121,L116	real intensity exactly 0 below zero
+bnd_rain_above_hot	10	250.00002	0.5	true	RAIN	L121,L116,L104	nextUp(250): real about 3e-8 above zero
+bnd_rain_above_cold	-10	250.00002	0.5	true	SNOW	L121,L116,L105	nextUp(250) below zero

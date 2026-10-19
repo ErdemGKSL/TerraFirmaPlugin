@@ -39,10 +39,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
 
 ## Weather & seasons
 
-- [ ] **M2-WTH-01 Rain vs snow by temperature** · deps: M2-CLIM-01 · skills: paper-folia-threading
+- [~] **M2-WTH-01 Rain vs snow by temperature** · deps: M2-CLIM-01 · skills: paper-folia-threading
   - TFC: `util/tracker/WeatherHelpers.java`, `util/EnvironmentHelpers.java`
   - Do: server-side precipitation decisions per position. The client sees snow vs rain through the biome temperature in our seasonal biome variants (M2-SEA-01).
   - Done when: snow falls where TFC would, at the right season.
+  - Status (@claude): in progress. Done: the pure decision `core/weather/PrecipitationType.decide` checked by `PrecipitationGoldenTest` (`precipitation_decision.tsv`, 46 rows hand-traced from TFC `getPrecipitationAt` L99-106, `isPrecipitating` L116 and `calculateRealRainIntensity` L121, grid of -10/-0.5/0/0.5/10 C over wet, weather off, dry air and no rain, with and without sky, plus float boundaries; `PrecipitationTypeTest` still green). Open: the Paper precipitation sampling per position, the lazy trigger, the seasonal biome colour check in game, the server check (snow falls on cold ground at the right season).
 
 - [~] **M2-WTH-02 Snow & ice accumulation/melting** · deps: M2-WTH-01, M1-THR-03
   - TFC: `util/EnvironmentHelpers.java`, `common/blocks/SnowPileBlock.java`, `IcePileBlock.java`, `SeaIceBlock.java`
