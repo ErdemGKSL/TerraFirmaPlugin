@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
@@ -246,8 +247,11 @@ class DatagenTest {
                 "tfp:rock/loose/granite:", "item_lang_key: block.tfp.rock.loose.granite");
         assertThat(r.report().emittedCount()).isEqualTo(7);
         JsonObject summary = JsonParser.parseString(text(files, "reports/datagen-summary.json")).getAsJsonObject();
-        assertThat(summary.getAsJsonObject("ce_blocks_skipped").keySet())
-            .containsExactlyInAnyOrder("grass/alfisol", "rock/cobble/granite_slab");
+        // The rock family blocks (M6-DECO-02 data) are not CE blocks yet, so they are skipped too.
+        Set<String> skipped = summary.getAsJsonObject("ce_blocks_skipped").keySet();
+        assertThat(skipped).contains("grass/alfisol", "rock/cobble/granite_slab");
+        assertThat(skipped.stream().filter(id -> id.startsWith("rock/")
+            && (id.contains("testite") || id.contains("teststone")))).hasSize(40 + 38);
     }
 
     @Test

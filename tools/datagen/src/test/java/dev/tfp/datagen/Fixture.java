@@ -177,6 +177,9 @@ final class Fixture {
         write(root, A + "lang/en_us.json", "{\"block.tfc.rock.raw.granite\": \"Raw Granite\", "
             + "\"item.tfc.ore.normal_hematite\": \"Normal Hematite\", \"item.tfc.ingot.copper\": \"Copper Ingot\"}");
         write(root, A + "lang/tr_tr.json", "{\"block.tfc.rock.raw.granite\": \"Ham Granit\", \"tfc.tooltip.x\": \"x\"}");
+
+        // rock and mud families (the rock sources and blockstates the generators require; existing ones are kept)
+        RockMudFixture.addDefault(root);
         return root;
     }
 

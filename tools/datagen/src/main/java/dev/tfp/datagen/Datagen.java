@@ -73,6 +73,8 @@ public final class Datagen {
         report.data(DataExport.run(tfc, out));
         List<VisualDemand> demand = AssetPipeline.run(tfc, out, report);
         WoodFamilies.run(tfc, out);
+        RockFamilies.run(tfc, out);
+        MudFamilies.run(tfc, out);
         if (!report.missing().isEmpty()) {
             throw new DatagenException("unresolved model/texture references: " + report.missing());
         }
