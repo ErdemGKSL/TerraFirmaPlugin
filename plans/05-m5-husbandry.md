@@ -53,9 +53,10 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Models: th
 
 ## Wildlife
 
-- [ ] **M5-WILD-01 Prey AI** · deps: M5-ENT-01
+- [~] **M5-WILD-01 Prey AI** · deps: M5-ENT-01
   - TFC: `common/entities/prey/`, `common/entities/ai/prey/`
   - Done when: flee/graze behaviour self-tests; roster spawns.
+  - Status (@claude): pure flee rules done in `core/prey/`: `PreyFlee` (trigger: nearest avoided sighting while not fleeing, with no distance check in TFC; the stop rule: memory expired or squared distance strictly above 400; retreat 140 to 440 player ticks; hurt switches the threat only while fleeing from another type; same-type friends take the nearer threat; flee target 15 blocks away with a drawn scale and angle), `FleeState`, `Sighting`, `Position`. Cases verified against TFC lines in `PreyFleeGoldenTest` (18: the constants, the boar and bear triggers at near and far distances, the creative player and the cow not triggering, the stop at exactly 20 blocks, the expiry at 1140, the hurt and broadcast cases) and `PreyFleeTest` (5 property checks). 23 pass. No ServerConfig number applies (the flee constants are literals in TFC). Open: the goal AI and navigation (the walk away target from vanilla `DefaultRandomPos`, the 1.1 speed, graze and idle movement), the Paper entity events (hurt glue, the friend list from the sensor, tag lookups), the BetterModel flee animation, the sound.
 
 - [ ] **M5-WILD-02 Predator AI** · deps: M5-ENT-01
   - TFC: `common/entities/predator/`, `common/entities/ai/predator/`
