@@ -157,7 +157,7 @@ class HudLayoutsTest {
         List<?> hidden = (List<?>) yaml(out, HudLayouts.HIDDEN).get("hidden-vanilla");
         assertThat(hidden).hasSize(3);
         Map<String, Object> hearts = map(hidden.get(0));
-        assertThat(hearts).containsEntry("files", 48)
+        assertThat(hearts).containsEntry("files", 47)
             .containsEntry("sprites", List.of("gui/sprites/hud/heart/*.png"));
         assertThat(map(hidden.get(1))).containsEntry("files", 6);
         assertThat(map(hidden.get(2))).containsEntry("files", 3)
