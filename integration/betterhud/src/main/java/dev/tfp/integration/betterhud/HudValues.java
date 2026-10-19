@@ -5,6 +5,7 @@
  */
 package dev.tfp.integration.betterhud;
 
+import dev.tfp.core.hud.HudGauge;
 import dev.tfp.paper.integration.HudSnapshot;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -20,7 +21,11 @@ final class HudValues {
     private HudValues() {
     }
 
-    /** Number placeholders. */
+    /**
+     * Number placeholders. Sources as of M3-SURV-06: {@code tfp_held_temp} has no stored item heat yet (0 via the
+     * snapshot), and nothing publishes health, thirst or hunger into the snapshot yet, so those read
+     * {@link HudSnapshot#DEFAULT} until a Paper publisher exists (the TFC health scale is an open decision in the ledger).
+     */
     static final Map<String, ToDoubleFunction<HudSnapshot>> NUMBERS;
 
     /** Bar listeners, 0..1. */
@@ -43,9 +48,6 @@ final class HudValues {
     }
 
     static double ratio(double value, double max) {
-        if (!(max > 0) || Double.isNaN(value)) {
-            return 0;
-        }
-        return Math.clamp(value / max, 0.0, 1.0);
+        return HudGauge.fraction(value, max);
     }
 }
