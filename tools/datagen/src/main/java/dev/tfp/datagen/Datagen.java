@@ -80,6 +80,9 @@ public final class Datagen {
         Firepit.run(tfc, out);
         Grill.run(tfc, out);
         Pot.run(tfc, out);
+        if (tfc.exists(ForgeDevices.FORGE_SOURCE)) { // the small fixture checkouts of the tests have no forge; ForgeDevicesTest pins the real one
+            ForgeDevices.run(tfc, out);
+        }
         Advancements.run(tfc, out);
         FieldGuide.run(tfc, out);
         Locales.run(tfc, out);
