@@ -88,6 +88,7 @@ public final class Datagen {
         }
         VisualOutputs.run(out, demand, model -> modelContent(out, model));
         BetterHudPack.write(out);
+        HudLayouts.run(out, HudLayouts.catalogue());
         SeasonalBiomes.write(tfc, out);
         out.put("third-party.json", "[]\n"); // no non-EUPL file is copied yet (checked by :checkNotice)
         out.put("reports/datagen-summary.json", Json.write(report.toJson()));
