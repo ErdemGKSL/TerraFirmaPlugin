@@ -174,6 +174,11 @@ public final class SeasonalBiomeService implements Listener, SeasonalBiomeSource
         }
     }
 
+    /** Test seam: a world's view without a Bukkit {@link World}. Production registers through {@link #register}. */
+    void registerView(UUID world, WorldView view) {
+        worlds.put(world, view);
+    }
+
     /** Queues the table computation of a chunk, and its resend when {@code resend}. Any thread; never blocks. */
     void request(ChunkKey key, boolean resend) {
         WorldView view = worlds.get(key.world());
@@ -202,7 +207,13 @@ public final class SeasonalBiomeService implements Listener, SeasonalBiomeSource
                     }
                 } finally {
                     inflight.remove(key);
-                    if (wantResend.remove(key)) {
+                    boolean pending = wantResend.remove(key);
+                    if (s != phase) {
+                        // stale: its table was dropped, so the resend waits for the current phase's table
+                        if (pending) {
+                            request(key, true);
+                        }
+                    } else if (pending) {
                         limiter.offer(key, tick.get());
                     }
                 }
