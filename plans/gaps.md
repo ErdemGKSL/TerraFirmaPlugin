@@ -15,7 +15,7 @@ Her madde kullanıcı tarafından istendi ya da bu oturumda doğrulamada ortaya 
 - [ ] **M2-SEA-02 kalan.** Snow/sea-ice ile ilgili kalan parçalar ve CraftEngine blokları.
 - [ ] **M2-WTH-03 kalan.** Deniz buzu gerçek iklimle; CraftEngine kar yığını blokları.
 - [ ] **Kurulum yeniden başlatma akışı.** İlk başlatma düzeltildi (5ded3fe); doğrulandı.
-- [ ] **M3–M6 ve çapraz konular.** Hiç başlanmadı.
+- [ ] **M3–M6 ve çapraz konular.** M3–M6 kural seviyesinde başladı (plans/03–06 durum satırları); oyun içi, görsel ve glue işleri açık (aşağıdaki satırlar).
 
 ## Sunucu kontrolü: sonbahar tonu (açık, bulgu)
 
@@ -50,3 +50,87 @@ Her madde kullanıcı tarafından istendi ya da bu oturumda doğrulamada ortaya 
 - [~] Spawn eşitleme (eski kayıt): bu turda level.dat spawn'ı ayarlanan değerle eşleşti (1974, 65, 1311) ve loglar çağrıyı gösteriyor; önceki FAIL (2320,65,-1716 vs 2327,88,-1726) açıklanmadı. Oyuncu ölçümü: level.dat spawn'ı (-2304, 93, 1952) doğru; oyuncu (-2299, 93, 1945) konumunda, 5 ve -7 blok fark. Muhtemel neden: vanilla'nın spawn_radius kuralı (varsayılan 10 blok) ilk girişte oyuncuyu dünya spawn'ının etrafında rastgele bir noktaya koyar. Doğrulama denendi: `spawn_radius` oyun kuralı 1.21.11 sunucusunda tanınmıyor (birçok ad denendi). Hipotez test edilemedi. İkinci ölçüm: spawn (2560, 128, -624), oyuncu (2551, 125, -628), fark (−9, −3, −4). Kalan: sapmanın kaynağını başka bir yolla bulmak (spawn'ın oyuncuya uygulanış yolu, Paper'ın ilk giriş konumu) ya da tutarlı bir kural belirlemek. Önceki FAIL: taze dünyada level.dat spawn (2320, 65, -1716), botun ilk konumu (2327, 88, -1726). Eşitleme çağrısı (TfcChunkGenerator.spawn -> TfcSpawn.setWorldSpawn) kaydedilen spawn'ı değiştirmiyor. Muhtemel neden: Paper dünyayı oluştururken spawn'ı kendi aramasıyla yazıp, bizim çağrı ondan sonra gelmiş olabilir; ya da arama çağrısı dünya kaydedilmeden önce hiç çalışmıyor. Sonraki adım: setSpawnLocation'ın ne zaman ve hangi thread'de çağrıldığını loglayıp Paper'ın spawn kaydını doğrulamak; sonra tekrar kontrol.
 
 - [x] Maksimum sağlık gösterimi kararı: TFC'nin kaynağındaki ölçek (ortalama beslenmede 850/1000) uygulanacak; planın "45/50" örneği kaynakla uyuşmadığı için düzeltilecek. Gerekçe: kaynağın kendisi doğru davranış; plan örneği yanlış.
+
+## Plan durum satırlarından açık işler (M2–M6)
+
+M2 (etkin milestone):
+- [ ] **M2-CAL-02 HUD tarih öğesi.** Ekran üstü tarih için BetterHud metin öğesi (`tick: 20`) henüz üretilmiyor; satır [x] işaretli ama bu kontrol açık.
+- [ ] **M2-CAL-01 takip işleri.** M2-CAL-03 yapılandırma (başlangıç günü, ay ve gün uzunluğu), uyku ile gün atlama ve doDaylightCycle eşitlemesi; henüz görev olarak yok.
+- [ ] **M2-WTH-02 sunucu kontrolü.** Soğuk zeminde kar katmanlarının doğru mevsimde oluşması, sıcakta erimesi; görsel kontrol listesi.
+- [ ] **M2-WTH-04 gecikmeli kar telafisi.** Gecikmeli ile adım adım eşdeğerlik testi, yüklenen chunk'ın kış sonrası telafisi, canlı yağmur testi (anlık ve zaman ortalaması).
+- [ ] **M2-SEA-01 JMH bütçesi ve görsel kontrol.** 2.000 varyantlık kayıt eşitlemesi ve paket yeniden yazımı için JMH; görsel kontrol listesi.
+- [ ] **M2-GEN-06 sunucu kontrolü.** Satır [x] işaretli ama durum satırında sunucu kontrolü açık; ayrıca yoğunluk kaverna ve beardifier (M2-GEN-09) ve diğer volkan örnekleyicileri (M2-GEN-14).
+- [ ] **M2-GEN-07 sunucu ve JMH.** Sunucu kontrolü ve worldgen JMH bütçesi açık; iklim çağrı noktaları hâlâ `ChunkClimate.NEUTRAL`; Bukkit biyom kaydı bağlaması.
+- [ ] **M2-GEN-08 kalan.** TFC blok seti (kaya çakılı, toprak varyantları), buz tabakaları ve deniz buzu, lav akıntıları, diğer biyom yapıcıları, sunucu kontrolü.
+- [ ] **M2-GEN-09 kalan.** Vanilla mağara tünelleri, kanyonlar, aquifer bariyer gürültüsü (şimdilik sıfır), kazılmış yüzey altında çim kuralı, sunucu kontrolü.
+- [ ] **M2-GEN-10 kalan.** Disk, boru ve kaolin damarları (yeni görev), montan ikinci geçiş, 100 chunk dağılım istatistiği, sunucu kontrolü ve görsel kontrol.
+- [ ] **M2-GEN-13 kalan.** CE bitki, ekin ve mercan blokları; sarmaşık, yosun, epifitler, sürünen bitkiler, kaktüsler, okyanus bitkileri, atol mercanları, meyve ağaçları ve çalılar; orman zemin örtüsü; sunucu kontrolü.
+- [ ] **M2-GEN-14 kalan.** Kalderalar dışındaki volkan örnekleyicileri, sıcak kaynaklar, buzullar ve diğer özellikler.
+
+M3:
+- [ ] **M3-SURV-01 kalan.** `tfp:food_stamp` için datagen çıktısı yok; yiyecek tooltip satırının paket lore ile çizilmesi.
+- [ ] **M3-SURV-02 kalan.** Yeme eylemi (Paper), bozuk yiyecek etkileri, tokluk eşitlemesi, kalıcılık.
+- [ ] **M3-SURV-03 kalan.** İçme eylemi, su kaynakları ve tuzlu su, testler, PlayerData kalıcılığı.
+- [ ] **M3-SURV-04 kalan.** Paper hasar kancası ve dövme bonusu, silah ve varlık hasar tipi eşlemesi, HealthState kalıcılığı, gösterim.
+- [ ] **M3-SURV-05 kalan.** Item PDC ve `item_size` çözümü, kap ekleme kontrolleri (sandık, kap, varil, çanta).
+- [ ] **M3-HEAT-01 kalan.** Item PDC ısı durumu, CE ısı görseli (`range_dispatch`), tooltip, kaba aktarım, yanma hasarı.
+- [ ] **M3-HEAT-02 kalan.** Ateş çukuru bloğu ve varlığı, yakıt öğeleri ve etiketleri, çakmak taşı Paper bağlantısı.
+- [ ] **M3-HEAT-03 kalan.** Blok varlıkları ve denetleyicileri, CE görsel ve GUI, konteyner, kül, ısıtma tarifleri.
+- [ ] **M3-HEAT-04 kalan.** Yerleştirilen bloklar ve sönük meşale değişimi, Paper ışık, CE görselleri, fener yakıt döngüsü.
+- [ ] **M3-GATH-01 kalan.** `tfp:pickupable` blok kancası, CE blokları ve buton durumu görselleri, explosion_decay kuralı.
+- [ ] **M3-GATH-02 kalan.** Paper kırma ve sağ tık kancası, CE blokları ve görselleri, öz testi, görsel kontrol.
+- [ ] **M3-KNAP-01 kalan.** Paper kılavuz ekranı (5x5 düğme), CE tarifleri ve aletleri.
+- [ ] **M3-TOOL-01 kalan.** Paper kırma ve kullanma kancaları, CE alet öğeleri (`break_power`, `correct_tools`), mızrak atışı, taş alet görselleri.
+- [ ] **M3-PHYS-01 kalan.** Çökme koşucusu (async karar, sync uygulama), blok destek verisi.
+- [ ] **M3-PHYS-02 kalan.** Kayma koşucusu, komşu güncelleme kancaları, blok destek verisi, CE blokları.
+- [ ] **M3-PHYS-03 kalan.** Bağlantı koşucusu, CE kiriş blokları ve görselleri, yerleştirme ve kırma zinciri testi.
+- [ ] **M3-POT-01 kalan.** Çömlek fırını bloğu, yerleştirme ve tutuşturma, içerik ısısı, CE görselleri.
+- [ ] **M3-POT-02 kalan.** Paper kap ve kalıp yerleştirme ve envanteri, CE öğeleri (`range_dispatch`), yerli bakır yolu testi.
+- [ ] **M3-POT-03 kalan.** Büyük kap ve testi yerleştirme ve envanter, dünyaya dökme, redstone ve huni otomasyonu, CE blokları.
+- [ ] **M3-POT-04 kalan.** CE yığın ve saman blokları, yağmur beslemesi, kuruma dokusu ve saman sunucu kontrolü.
+- [ ] **M3-PROC-01 kalan.** Değirmen bloğu ve blok varlığı, el taşı etkileşimi, dönüş ağı bağlantısı, GUI, CE görseli.
+- [ ] **M3-PROC-02 kalan.** Paper etkileşimi (bıçak, dokuma tezgâhı, dikiş), GUI ve dikiş konteyneri, CE görselleri.
+- [ ] **M3-PROC-03 kalan.** Varil bloğu ve etkileşimi, 22 anlık tarif ve 331 tarif yükleme kontrolü, `on_seal` yiyecek özellikleri.
+- [ ] **M3-PROC-04 kalan.** Kütük yığını ve kömür çukuru blokları, yerleştirme ve tutuşturma Paper bağlantısı.
+- [ ] **M3-PROC-05 kalan.** Kompost bloğu ve blok varlığı durumu, Paper etkileşimi, hopper otomasyonu, çürüme, CE görselleri.
+- [ ] **M3-FARM-01 kalan.** Tarla bloğu ve blok varlığı durumu, Paper nem kaynağı (async), gübre öğesi, CE görselleri.
+- [ ] **M3-FARM-02 kalan.** Ekin blokları (tüm şekiller), Paper büyüme bağlantısı ve blok varlığı, tohum (`block_item`), yayılan meyve, CE görselleri.
+- [ ] **M3-FARM-03 kalan.** Yayılan çalı telafisi, çalı blokları ve yayılan dal geometrisi, Paper büyüme bağlantısı, CE görselleri.
+- [ ] **M3-GUI-02 kalan.** 2.912 tarif sayısı, düz tarifler için CE YAML, `PrepareItemCraftEvent` kesişimi, vanilla tarif sızıntı testi, tezgâh GUI.
+- [ ] **M3-PAN-01 kalan.** Tarama kaybı tabloları (datagen), eleme sandığı bloğu, CE görselleri, Paper bağlantısı (dakika başı sürücü, 20 tickte bir toplama), telafi.
+
+M4:
+- [ ] **M4-MET-01 kalan.** CE metal öğeleri, kayıt bağlantısı, ısı tooltip'leri, showcase.
+- [ ] **M4-MET-02 kalan.** Paper sıvı bağlantısı, alaşım tarifleri (CE/Paper veri), alaşım GUI'si veya gösterimi.
+- [ ] **M4-MET-03 kalan.** Paper döküm bloğu ve kalıp bağlantısı, CE öğeleri, kalıp kırılma görselleri, GUI.
+- [ ] **M4-ANV-01 kalan.** Örs bloğu, dövme GUI'si, altın dövme sıraları, kaynak, config değerleri için Paper bağlantısı.
+- [ ] **M4-ANV-02 kalan.** Örs bloğu ve CE görselleri, plan seçimi ve glif kaplamalı dövme GUI'si, çekiç, örs üstü öğe görselleri, kaynak (flux yuvası), bonus config.
+- [ ] **M4-FORGE-01 kalan.** Ocak ve körük blokları ve CE görselleri, Paper tick veya telafi tetikleyicisi, GUI, yalıtım (`#tfc:insulation`) ve çok bloklu yapı taraması.
+- [ ] **M4-CRUC-01 kalan.** Pota, kanal ve kalıp tablosu blokları, CE görselleri, GUI, Paper sıvı bağlantısı ve telafi, eritme.
+- [ ] **M4-BLOOM-01 kalan.** Çok bloklu tarama (taban, baca, kapı), körük bloğu ve CE görselleri, GUI veya gösterim; katalizör girişinin TFC ile doğrulaması.
+- [ ] **M4-BLAST-01 kalan.** Çok bloklu tarama, yüksek fırın bloğu ve CE görselleri, GUI, Paper tick veya telafi (TFC'de yakıt 1x yanar; telafi formu buna göre).
+- [ ] **M4-TOOL-02 kalan.** CE metal alet ve zırh öğeleri, kayıt bağlantısı, tarifler, tooltip'ler, Paper hasar ve kırma hızı kancaları.
+- [ ] **M4-PROS-01 kalan.** Propick öğesi ve CE görselleri, dünya taraması, sonuç mesajı (actionbar veya sohbet), `/tfp propick`.
+- [ ] **M4-CHIS-01 kalan.** CE keski öğesi ve blok bağlantısı, mod döngüsü tetikleyicisi (sneak + el değiştirme), düzleştirme ve merdiven görselleri, Paper bağlantısı.
+- [ ] **M4-WEATH-01 kalan.** Paper hava bağlantısı, telafi tetikleyicisi (chunk yükleme veya etkileşim), CE oksitlenme durumları, lamba bloku ve görselleri, lamba GUI'si.
+
+M5:
+- [ ] **M5-ENT-03 kalan.** `RegisterSpawnPlacementsEvent` bağlantısı, chunk başı vanilla üst sınırı (TFC kodu değil), BetterModel varlık görünümü.
+- [ ] **M5-LIV-01 kalan.** Varlık çerçevesi bağlantısı (PDC'de taşıyıcı durumu), BetterModel görselleri, besleme ve çiftleşme etkileşimleri, chunk yüklemede takvim telafisi.
+- [ ] **M5-LIV-02 kalan.** Taşıyıcının ürün tick'i (PDC), süt, kırpma ve yumurta olayları, `markElderlyIfDue`, kırpılmış bölüm görünümü.
+- [ ] **M5-MNT-01 kalan.** Binek varlığı ve öznitelik bağlantısı, eyer ve binme kontrolleri, BetterModel görselleri, binme AI'si, eşya ve yük (sandık, yük ağırlığı), genetik boyut.
+- [ ] **M5-HUNT-01 kalan.** Av yaratığı AI'si (M5-WILD-01), mızrak ve düşürme bağlantısı (varlık, ölüm, kasaplık), et ve deri öğeleri ve modeller, loot sayımı.
+- [ ] **M5-FISH-01 kalan.** Olta ve tuzak öğeleri ve blokları, sudaki ve biyomdaki veriler (sonsuz su etiketi, olta kademesi), loot zarı, tuzak blokunun CE görselleri.
+
+M6:
+- [ ] **M6-MECH-01 kalan.** Dört döngü durumu için `RotationNetworkTest` (beşinci yüz geçirgen, dik ters çevirici; üretim türü değil), blok ve blok varlığı bağlantısı (`RotatingBlockEntity`).
+- [ ] **M6-MECH-02 kalan.** Kaynak ve blok varlığı bağlantısı (40 tick zamanlama, akış ve bıçak envanteri), rüzgâr çekişleri için iklim tohumu, Paper hava bağlantısı.
+- [ ] **M6-GLASS-01 kalan.** Cam havuzu ve sıcak cam blok varlığı bağlantısı (100 tick dinlenme, TFC blok durumları), üfleme etkileşimi ve GUI adımları, üfleme kırılma şansı.
+- [ ] **M6-DECO-01 kalan.** Renderer tabanlı çit ve duvarlar, tabela varlıkları, blok mantığı, CE görsel kontrolü (yarım ve merdiven şablonları), GUI tabloları; checkout eksikken üreteç sessiz atlıyor.
+- [ ] **M6-DECO-02 kalan.** Görseller ve blok mantığı, CE blok girdisi üreteci, merdiven, yarım ve duvar şablon kontrolü, GUI tabloları, ham ve düz çamur tuğlaları, görsel bütçe.
+- [ ] **M6-DECO-03 kalan.** CE görselleri (`entity_renderer` ile lamba ve zincir), lamba ışık ve açık durumu, kapak ve zincir mantığı, şablon kontrolleri, GUI tabloları.
+- [ ] **M6-DECO-04 kalan.** CE blok girdileri ve görseller, blok mantığı ve büyüme bağlantısı (yaşam döngüsü golden testleri), meyve yiyecek öğeleri, GUI tabloları.
+- [ ] **M6-FLUID-01 kalan.** Kap blok ve blok varlığı bağlantısı, Paper sıvı işleme (kova, `FluidHelpers`), nehir akışı farkı, CE görselleri, GUI.
+- [ ] **M6-ADV-01 kalan.** Paper tetikleyici ve ödül bağlantısı, oyun içi bildirim (toast veya mesaj), ölçütlerin özelliklere eşlenmesi, yerelleştirme anahtarları, GUI.
+- [ ] **M6-CMD-01 kalan.** `/tfp` altında Brigadier kaydı (`tfc` kökü `tfp` olur), yetki kontrolleri (seviye 2), dünya erişimi (yüzey yükseklikleri, blok sınıflandırma).
+- [ ] **M6-GUIDE-01 kalan.** Kitap görünümü veya GUI (biçim açık), diğer diller, Paper öğe ve blok bağlantıları, CE kitap öğesi, sayfa çizimi.

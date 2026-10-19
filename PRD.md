@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Product | TerraFirmaPlugin (working name; final name must be distinct from "TerraFirmaCraft") |
-| Status | Draft, planning phase |
+| Status | Draft. M0 and M1 done, M2 in progress (see `plans/README.md`) |
 | License | EUPL-1.2 (open source) |
 | Related | `ARCHITECTURE.md` (how), `docs/porting/ledger.md` (feature status + divergences), `.claude/skills/image-generation` (2D art via the imagegen MCP) |
 

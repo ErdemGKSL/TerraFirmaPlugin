@@ -2,16 +2,18 @@
 
 Phased TODO plans for porting TerraFirmaCraft to TerraFirmaPlugin. Scope and priorities come from `PRD.md`, the design from `ARCHITECTURE.md`, and per-feature status/divergences live in `docs/porting/ledger.md`.
 
-| File | Milestone | Goal |
-|---|---|---|
-| `00-m0-spikes.md` | M0: Spikes | Answer the open technical questions before building on them |
-| `01-m1-skeleton.md` | M1: Skeleton | Buildable plugin, installer, threading primitives, registries, datagen v1, CI |
-| `02-m2-living-world.md` | M2: Living world | Calendar, climate, weather, seasons, full TFC world generation |
-| `03-m3-stone-age.md` | M3: Stone age | Survival basics, heat, knapping, fire, pottery, crops, collapse: play to copper |
-| `04-m4-metal-age.md` | M4: Metal age | Metallurgy chain, anvil/forging, tool & armor tiers, bloomery, blast furnace, steel |
-| `05-m5-husbandry.md` | M5: Husbandry | Animals with BetterModel: livestock, wildlife, aquatic, pets, mounts, fishing |
-| `06-m6-parity.md` | M6: Parity | Mechanical power, glass, decoration families, field guide, polish, release |
-| `90-cross-cutting.md` | All | HUD, GUIs, art, models, i18n, performance, docs: tracks that run alongside every milestone |
+| File | Milestone | Goal | Plan status (checkbox counts) |
+|---|---|---|---|
+| `00-m0-spikes.md` | M0: Spikes | Answer the open technical questions before building on them | Done (11 of 11) |
+| `01-m1-skeleton.md` | M1: Skeleton | Buildable plugin, installer, threading primitives, registries, datagen v1, CI | Done (35 of 35) |
+| `02-m2-living-world.md` | M2: Living world | Calendar, climate, weather, seasons, full TFC world generation | In progress: 9 done, 10 in progress, 8 to do |
+| `03-m3-stone-age.md` | M3: Stone age | Survival basics, heat, knapping, fire, pottery, crops, collapse: play to copper | In progress: 0 done, 30 in progress, 2 to do |
+| `04-m4-metal-age.md` | M4: Metal age | Metallurgy chain, anvil/forging, tool & armor tiers, bloomery, blast furnace, steel | In progress: 0 done, 13 in progress, 1 to do |
+| `05-m5-husbandry.md` | M5: Husbandry | Animals with BetterModel: livestock, wildlife, aquatic, pets, mounts, fishing | In progress: 0 done, 6 in progress, 8 to do |
+| `06-m6-parity.md` | M6: Parity | Mechanical power, glass, decoration families, field guide, polish, release | In progress: 0 done, 11 in progress, 4 to do |
+| `90-cross-cutting.md` | All | HUD, GUIs, art, models, i18n, performance, docs: tracks that run alongside every milestone | To do: 12 of 12 |
+
+Counts are the checkbox markers in each file. Some `[x]` items still list open checks in their status lines (for example M1-TEST-01, M2-CAL-02, M2-GEN-05, M2-GEN-06), so the plan files do not fully agree; the checkboxes are not changed here.
 
 ## Task format
 

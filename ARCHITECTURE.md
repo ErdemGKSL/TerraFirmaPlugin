@@ -2,7 +2,7 @@
 
 How TerraFirmaPlugin is built: runtime topology, modules, threading model, data flow, persistence, client-visual pipeline and build tooling. Product scope and requirements are in `PRD.md`. Day-to-day rules for agents are in `CLAUDE.md` and the skills in `.claude/skills/`.
 
-Status: **planning**. No production code exists yet. This document is the target design. When implementation deviates, update this file in the same change.
+Status: **M0 and M1 done, M2 in progress** (see `plans/README.md`). Production code exists; this document is the target design. When implementation deviates, update this file in the same change.
 
 ## Contents
 1. Runtime topology
