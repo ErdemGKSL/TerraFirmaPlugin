@@ -22,8 +22,14 @@ import dev.tfp.core.weather.PrecipitationType;
  */
 public record HudSnapshot(double health, double maxHealth, double thirst, double hunger, double heldTemperature,
         double ambientTemperature, PrecipitationType precipitation) {
+    /** The top of the thirst scale: {@link #thirst} runs 0..this (TFC {@code PlayerInfo.MAX_THIRST}). */
+    public static final double MAX_THIRST = 100;
+
+    /** The top of the hunger scale: {@link #hunger} runs 0..this (vanilla food level). */
+    public static final double MAX_HUNGER = 20;
+
     /** Shown before the first publish. */
-    public static final HudSnapshot DEFAULT = new HudSnapshot(50, 50, 100, 20, 0);
+    public static final HudSnapshot DEFAULT = new HudSnapshot(50, 50, MAX_THIRST, MAX_HUNGER, 0);
 
     /** A snapshot with no precipitation decision yet. */
     public HudSnapshot(double health, double maxHealth, double thirst, double hunger, double heldTemperature,

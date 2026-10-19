@@ -22,9 +22,10 @@ final class HudValues {
     }
 
     /**
-     * Number placeholders. Sources as of M3-SURV-06: {@code tfp_held_temp} has no stored item heat yet (0 via the
-     * snapshot), and nothing publishes health, thirst or hunger into the snapshot yet, so those read
-     * {@link HudSnapshot#DEFAULT} until a Paper publisher exists (the TFC health scale is an open decision in the ledger).
+     * Number placeholders. Thirst and hunger are published by {@code PlayerNeedsHudService}; the placeholders read the
+     * player's latest snapshot and fall back to {@link HudSnapshot#DEFAULT} before the first publish. Health and max
+     * health are still unpublished (the TFC health scale is an open decision in the ledger), so they read the default
+     * too. {@code tfp_held_temp} has no stored item heat yet (0 via the snapshot).
      */
     static final Map<String, ToDoubleFunction<HudSnapshot>> NUMBERS;
 
@@ -42,8 +43,8 @@ final class HudValues {
 
         Map<String, ToDoubleFunction<HudSnapshot>> l = new LinkedHashMap<>();
         l.put("tfp_health", s -> ratio(s.health(), s.maxHealth()));
-        l.put("tfp_thirst", s -> ratio(s.thirst(), 100));
-        l.put("tfp_hunger", s -> ratio(s.hunger(), 20));
+        l.put("tfp_thirst", s -> ratio(s.thirst(), HudSnapshot.MAX_THIRST));
+        l.put("tfp_hunger", s -> ratio(s.hunger(), HudSnapshot.MAX_HUNGER));
         LISTENERS = Collections.unmodifiableMap(l);
     }
 

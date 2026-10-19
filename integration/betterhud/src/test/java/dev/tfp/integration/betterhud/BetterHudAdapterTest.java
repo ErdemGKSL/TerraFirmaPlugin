@@ -56,6 +56,24 @@ class BetterHudAdapterTest {
         assertThat(HudClockValues.TEXTS.get("tfp_season").apply(december)).isEqualTo("Winter");
     }
 
+    /** M3-SURV-06: thirst and hunger come from the published snapshot, scaled by the snapshot's maxima. */
+    @Test
+    void thirstAndHungerReadThePublishedSnapshotWithItsMaxima() {
+        HudSnapshotCache cache = new HudSnapshotCache(() -> true);
+        UUID player = UUID.randomUUID();
+        // No snapshot yet: the defaults (full thirst, full hunger).
+        assertThat(HudValues.LISTENERS.get("tfp_thirst").applyAsDouble(cache.snapshot(player))).isEqualTo(1);
+        assertThat(HudValues.LISTENERS.get("tfp_hunger").applyAsDouble(cache.snapshot(player))).isEqualTo(1);
+        cache.put(player, new HudSnapshot(50, 50, 25, 5, 0));
+        HudSnapshot s = cache.snapshot(player);
+        assertThat(HudValues.NUMBERS.get("tfp_thirst").applyAsDouble(s)).isEqualTo(25);
+        assertThat(HudValues.NUMBERS.get("tfp_hunger").applyAsDouble(s)).isEqualTo(5);
+        assertThat(HudValues.LISTENERS.get("tfp_thirst").applyAsDouble(s)).isEqualTo(0.25);
+        assertThat(HudValues.LISTENERS.get("tfp_hunger").applyAsDouble(s)).isEqualTo(0.25);
+        assertThat(HudSnapshot.MAX_THIRST).isEqualTo(100);
+        assertThat(HudSnapshot.MAX_HUNGER).isEqualTo(20);
+    }
+
     @Test
     void listenerRatiosAreClamped() {
         assertThat(HudValues.ratio(150, 100)).isEqualTo(1);
