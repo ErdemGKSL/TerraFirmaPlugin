@@ -11,33 +11,45 @@ import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ThreadAsserts;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 /**
- * Thirst and hunger for the HUD (M3-SURV-06). Nothing here decides anything: the values are already on the
- * player's thread, so the publish is a copy, not an async computation.
+ * Thirst and hunger for the HUD (M3-SURV-06, M3-SURV-03). The thirst is evaluated lazily here
+ * ({@link ThirstDecay#evaluate}, the stored clock plus the player ticks since): nothing ticks for it.
  * <ol>
  *   <li><b>Throttle (global thread).</b> Every {@value #PERIOD_TICKS} ticks, for each online player, a task goes to
  *       that player's own thread (the same period and mechanism as {@code PlayerClimateService}).</li>
- *   <li><b>Read and publish (player thread).</b> The stored thirst from {@link PlayerDataStore#get} (in memory, safe
- *       from any thread) and the vanilla food level, which is only read on the player's thread. Both go into the
- *       player's {@link HudSnapshot} in the {@link HudSnapshotCache}, leaving the other fields as they are.</li>
+ *   <li><b>Evaluate and publish (player thread).</b> The stored data is evaluated at the current player tick with the
+ *       ambient temperature, the new thirst clock is written back to {@link PlayerDataStore}, and the thirst and the
+ *       vanilla food level go into the player's {@link HudSnapshot} in the {@link HudSnapshotCache}.</li>
+ *   <li><b>Join (player thread).</b> The thirst clock restarts at the join, so the time the player was offline (while
+ *       other players were online and the calendar ran) is not decayed.</li>
  * </ol>
  * Health and max health are not published here: the TFC health scale is an open decision (see the ledger).
  */
-public final class PlayerNeedsHudService {
+public final class PlayerNeedsHudService implements Listener {
     /** The throttle: one reading per player per second. */
     public static final long PERIOD_TICKS = 20;
 
     private final PlayerDataStore data;
     private final Scheduler scheduler;
     private final HudSnapshotCache hud;
+    private final LongSupplier playerTicks;
 
-    public PlayerNeedsHudService(PlayerDataStore data, Scheduler scheduler, HudSnapshotCache hud) {
+    /** @param playerTicks the calendar's player tick ({@code ClockSnapshot.playerTicks}), any thread */
+    public PlayerNeedsHudService(PlayerDataStore data, Scheduler scheduler, HudSnapshotCache hud,
+            LongSupplier playerTicks) {
         this.data = data;
         this.scheduler = scheduler;
         this.hud = hud;
+        this.playerTicks = playerTicks;
     }
 
     /**
@@ -68,14 +80,28 @@ public final class PlayerNeedsHudService {
         scheduler.entity(player, () -> publish(player), null);
     }
 
-    /** Player thread only: reads the stored thirst and the food level, then publishes. */
+    /** Player thread only: evaluates the thirst lazily, writes its clock back, then publishes. */
     void publish(Player player) {
         ThreadAsserts.owned(player);
-        Optional<PlayerData> stored = data.get(player.getUniqueId());
+        UUID id = player.getUniqueId();
+        Optional<PlayerData> stored = data.get(id);
         if (stored.isEmpty()) {
             return; // not loaded yet (or already unloaded): the last snapshot stays
         }
-        HudSnapshot base = hud.snapshot(player.getUniqueId());
-        hud.publish(player, withNeeds(base, stored.get(), player.getFoodLevel()));
+        HudSnapshot base = hud.snapshot(id);
+        long now = playerTicks.getAsLong();
+        float temperature = (float) base.ambientTemperature();
+        PlayerData evaluated = data.update(id, d -> ThirstDecay.evaluate(d, now, temperature));
+        hud.publish(player, withNeeds(base, evaluated, player.getFoodLevel()));
+    }
+
+    /** Restarts the thirst clock when the player joins (see the class comment). */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onJoin(PlayerJoinEvent event) {
+        UUID id = event.getPlayer().getUniqueId();
+        if (data.isLoaded(id)) {
+            long now = playerTicks.getAsLong();
+            data.update(id, d -> ThirstDecay.restart(d, now));
+        }
     }
 }

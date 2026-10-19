@@ -26,9 +26,13 @@ import java.util.Objects;
  * @param intoxicationTick player tick the player is intoxicated until; {@link Long#MIN_VALUE} = sober
  * @param chiselMode       chisel mode id ({@code tfp:smooth|slab|stair}; TFC's registry ids renamed)
  * @param nutrition        TFC's nutrition records, newest first (TFC {@code NutritionData.records})
+ * @param thirstTick       player tick the thirst was last evaluated at (M3-SURV-03); {@link Long#MIN_VALUE} = not yet
+ * @param passiveExhaustion the passive exhaustion units left over after the last evaluation
+ *                         ({@code HungerState.exhaustion}); the points it completes drive the thirst loss, so it is
+ *                         kept between the 20-tick refreshes or the points would be lost
  */
 public record PlayerData(float thirst, long lastDrinkTick, long intoxicationTick, String chiselMode,
-        List<FoodRecord> nutrition) {
+        List<FoodRecord> nutrition, long thirstTick, long passiveExhaustion) {
     /** TFC {@code PlayerInfo.MAX_THIRST}. */
     public static final float MAX_THIRST = 100f;
     /** TFC's default chisel mode ({@code ChiselMode.SMOOTH}). */
@@ -36,7 +40,7 @@ public record PlayerData(float thirst, long lastDrinkTick, long intoxicationTick
 
     /** A player who never joined before: TFC's field initialisers. */
     public static final PlayerData NEW = new PlayerData(MAX_THIRST, Long.MIN_VALUE, Long.MIN_VALUE,
-            DEFAULT_CHISEL_MODE, List.of());
+            DEFAULT_CHISEL_MODE, List.of(), Long.MIN_VALUE, 0L);
 
     public PlayerData {
         Objects.requireNonNull(chiselMode, "chiselMode");
@@ -47,23 +51,30 @@ public record PlayerData(float thirst, long lastDrinkTick, long intoxicationTick
     }
 
     public PlayerData withThirst(float value) {
-        return new PlayerData(Math.clamp(value, 0f, MAX_THIRST), lastDrinkTick, intoxicationTick, chiselMode, nutrition);
+        return new PlayerData(Math.clamp(value, 0f, MAX_THIRST), lastDrinkTick, intoxicationTick, chiselMode, nutrition,
+                thirstTick, passiveExhaustion);
     }
 
     public PlayerData withLastDrinkTick(long tick) {
-        return new PlayerData(thirst, tick, intoxicationTick, chiselMode, nutrition);
+        return new PlayerData(thirst, tick, intoxicationTick, chiselMode, nutrition, thirstTick, passiveExhaustion);
     }
 
     public PlayerData withIntoxicationTick(long tick) {
-        return new PlayerData(thirst, lastDrinkTick, tick, chiselMode, nutrition);
+        return new PlayerData(thirst, lastDrinkTick, tick, chiselMode, nutrition, thirstTick, passiveExhaustion);
     }
 
     public PlayerData withChiselMode(String mode) {
-        return new PlayerData(thirst, lastDrinkTick, intoxicationTick, mode, nutrition);
+        return new PlayerData(thirst, lastDrinkTick, intoxicationTick, mode, nutrition, thirstTick, passiveExhaustion);
     }
 
     public PlayerData withNutrition(List<FoodRecord> records) {
-        return new PlayerData(thirst, lastDrinkTick, intoxicationTick, chiselMode, records);
+        return new PlayerData(thirst, lastDrinkTick, intoxicationTick, chiselMode, records, thirstTick, passiveExhaustion);
+    }
+
+    /** The thirst clock: the thirst level, the tick it is valid at and the passive exhaustion left over. */
+    public PlayerData withThirstClock(float thirstValue, long tick, long exhaustionUnits) {
+        return new PlayerData(Math.clamp(thirstValue, 0f, MAX_THIRST), lastDrinkTick, intoxicationTick, chiselMode,
+                nutrition, tick, exhaustionUnits);
     }
 
     /**

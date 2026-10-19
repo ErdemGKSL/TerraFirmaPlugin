@@ -439,7 +439,9 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         playerPrecipitation.start(() -> getServer().getOnlinePlayers());
 
         // M3-SURV-06: thirst and hunger for the HUD, read on each player's thread and throttled on the global thread.
-        PlayerNeedsHudService needs = new PlayerNeedsHudService(store, scheduler, hudCache);
+        PlayerNeedsHudService needs = new PlayerNeedsHudService(store, scheduler, hudCache,
+                () -> clock.get().playerTicks());
+        getServer().getPluginManager().registerEvents(needs, this);
         needs.start(() -> getServer().getOnlinePlayers());
 
         // M2-WTH-02: snow layers, ice and melting near the players, decided off-thread and applied per region under budget.

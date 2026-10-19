@@ -21,13 +21,14 @@ import java.util.List;
  * <h2>Version history</h2>
  * <ol>
  *   <li>thirst, lastDrinkTick, intoxication, chiselMode, nutrition (M1-SVC-02)</li>
+ *   <li>thirstTick, passiveExhaustion: the lazy thirst clock (M3-SURV-03); v1 data starts unset at no exhaustion</li>
  * </ol>
  */
 public final class PlayerDataCodec {
-    public static final int VERSION = 1;
+    public static final int VERSION = 2;
 
     public static final VersionedCodec<PlayerData> CODEC = VersionedCodec.<PlayerData>builder("player_data", VERSION)
-            // .migrate(1, d -> ...) when VERSION becomes 2
+            .migrate(1, d -> d.putLong("thirstTick", Long.MIN_VALUE).putLong("passiveExhaustion", 0L))
             .build(PlayerDataCodec::write, PlayerDataCodec::read);
 
     private PlayerDataCodec() {
@@ -54,6 +55,8 @@ public final class PlayerDataCodec {
                     .putFloat("decay_modifier", r.decayModifier()));
         }
         out.putList("nutrition", records);
+        out.putLong("thirstTick", p.thirstTick());
+        out.putLong("passiveExhaustion", p.passiveExhaustion());
     }
 
     private static PlayerData read(DataMap in) {
@@ -68,6 +71,7 @@ public final class PlayerDataCodec {
                     r.getFloat("decay_modifier", 0f)));
         }
         return new PlayerData(in.requireFloat("thirst"), in.requireLong("lastDrinkTick"),
-                in.requireLong("intoxication"), in.requireString("chiselMode"), records);
+                in.requireLong("intoxication"), in.requireString("chiselMode"), records,
+                in.getLong("thirstTick", Long.MIN_VALUE), in.getLong("passiveExhaustion", 0L));
     }
 }
