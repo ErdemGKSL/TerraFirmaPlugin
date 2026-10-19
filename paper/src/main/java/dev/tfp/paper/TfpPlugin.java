@@ -59,6 +59,7 @@ import dev.tfp.paper.food.FoodMergeListener;
 import dev.tfp.paper.food.FoodDefinitionsCache;
 import dev.tfp.paper.food.ItemFoodHooks;
 import dev.tfp.paper.player.PlayerDataStore;
+import dev.tfp.paper.player.PlayerNeedsHudService;
 import dev.tfp.paper.ready.ReadyGate;
 import dev.tfp.paper.ready.ReadyGate.Signal;
 import dev.tfp.paper.scheduler.Scheduler;
@@ -436,6 +437,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         precipitation = playerPrecipitation;
         getServer().getPluginManager().registerEvents(playerPrecipitation, this);
         playerPrecipitation.start(() -> getServer().getOnlinePlayers());
+
+        // M3-SURV-06: thirst and hunger for the HUD, read on each player's thread and throttled on the global thread.
+        PlayerNeedsHudService needs = new PlayerNeedsHudService(store, scheduler, hudCache);
+        needs.start(() -> getServer().getOnlinePlayers());
 
         // M2-WTH-02: snow layers, ice and melting near the players, decided off-thread and applied per region under budget.
         // M2-WTH-04: the same service catches up the snow of a chunk on load, from the chunk's stamp (lazy, not replayed).
