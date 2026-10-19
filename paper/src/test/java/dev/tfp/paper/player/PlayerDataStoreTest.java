@@ -175,10 +175,20 @@ class PlayerDataStoreTest {
         assertThat(Files.exists(new PlayerDataFiles(dir).file(ALEX))).isTrue();
         assertThat(Files.exists(new PlayerDataFiles(dir).file(bob))).isFalse();
 
-        // bob's login was refused by another plugin after we loaded him: no quit event will come
+        // bob joined, then left without a quit event (another plugin refused the login after we loaded him)
+        assertThat(store.unloadAbsent(Set.of(ALEX, bob), 0)).isEqualTo(0);
         assertThat(store.unloadAbsent(Set.of(ALEX), 0)).isEqualTo(1);
         assertThat(store.loaded()).containsExactly(ALEX);
         assertThatThrownBy(() -> store.update(bob, d -> d)).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void aPlayerStillLoggingInIsKeptPastTheShortGrace() {
+        PlayerDataStore store = store();
+        store.loadBlocking(ALEX);
+        // never seen online yet (a slow resource pack download): the short grace does not unload him
+        assertThat(store.unloadAbsent(Set.of(), 0)).isEqualTo(0);
+        assertThat(store.loaded()).containsExactly(ALEX);
     }
 
     @Test

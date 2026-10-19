@@ -41,6 +41,8 @@ public final class PlayerDataStore {
         volatile PlayerData data;
         volatile boolean dirty;
         final long loadedAt;
+        /** Seen in the online set at least once: the login finished (a slow resource pack keeps it pending for longer). */
+        volatile boolean joined;
 
         Entry(PlayerData data, long loadedAt) {
             this.data = data;
@@ -166,8 +168,10 @@ public final class PlayerDataStore {
     }
 
     /**
-     * Unloads (and saves) players loaded at pre-login more than {@code graceNanos} ago who are not online:
-     * another plugin refused their login after we loaded them, so no quit event will come.
+     * Unloads (and saves) players who are not online and whose login is over: a player loaded at pre-login who has
+     * joined and then is absent for more than {@code graceNanos} (another plugin refused the login after we loaded them, so
+     * no quit event comes), or who never joined for more than {@link #PENDING_LOGIN_NANOS} (the login was refused or
+     * abandoned). A player still in the login (a slow resource pack download) is kept, not unloaded after the short grace.
      *
      * @return how many were unloaded
      */
@@ -175,13 +179,23 @@ public final class PlayerDataStore {
         long now = System.nanoTime();
         int n = 0;
         for (var it : online.entrySet()) {
-            if (!onlineNow.contains(it.getKey()) && now - it.getValue().loadedAt > graceNanos) {
+            Entry e = it.getValue();
+            if (onlineNow.contains(it.getKey())) {
+                e.joined = true;
+                continue;
+            }
+            long age = now - e.loadedAt;
+            boolean loginOver = e.joined ? age > graceNanos : age > PENDING_LOGIN_NANOS;
+            if (loginOver) {
                 unload(it.getKey());
                 n++;
             }
         }
         return n;
     }
+
+    /** How long a player may stay loaded before joining (the pre-login to join time, with a resource pack download). */
+    static final long PENDING_LOGIN_NANOS = java.util.concurrent.TimeUnit.MINUTES.toNanos(10);
 
     /** Saves everyone and waits (plugin disable). */
     public void close(long timeout, TimeUnit unit) {
