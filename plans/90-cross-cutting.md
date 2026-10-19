@@ -45,8 +45,9 @@ Work that runs alongside every milestone. These tasks are continuous: tick them 
   - Status (@claude): in progress. Done: `core/src/test/java/dev/tfp/core/PlatformIsolationTest.java` fails the build when core/ imports a platform package (Bukkit, Paper, NeoForge, Minecraft, CraftEngine, BetterModel and others) or uses Thread, synchronized, Bukkit, Runtime or System.exit outside a documented exception list. The survey found no platform imports; one exception is recorded: `GlobalClockHolder.publish` uses `synchronized`. Open: running the gate in CI, the Folia region-thread review of the Paper glue, and the PR-template checklist.
   - Do: a checklist in the PR template (no BukkitScheduler; owner-thread access; callbacks only snapshot + enqueue; budgeted commits; packet handlers world-free); all self-tests also run on Folia.
 
-- [ ] **X-VIS-01 Visual budget watch** · skills: craftengine-visuals-pack
+- [~] **X-VIS-01 Visual budget watch** · skills: craftengine-visuals-pack
   - Do: every PR adding blocks shows the allocation report delta per profile and version; defaults (`1.21: level-3a`, `26: level-2`) must keep ≥ 500 free solid-pool slots.
+  - Status: `VisualBudgetTest` (`defaultProfilesStayWithinTheBudgetOnTheRealCheckout`, `withinBudgetUsagePasses`, `overBudgetUsageFailsNamingThePool`) checks the real checkout's allocator usage against per-pool budgets (explicit pools: supply; solid: size minus 500 reserve; total: sum). Usage vs budget (default profiles; explicit pools 126/126 identity, 296/296 absent_clean, 170/170 absent_minor (1.21) or 174/174 (26), nether_end 0 off / 67 on, all at supply; solid vs 789 (1.21) or 989 (26)): 1.21/level-3a solid 341 (ne off), 274 (ne on); 26/level-2 solid 589 (ne off), 522 (ne on). Total budget not exceeded. Open: in-game visual check, CraftEngine pack size check, per-version pool sizes on each server version.
 
 - [ ] **X-COMPAT-01 Dependency & version updates**
   - Do: track new MC/Paper/Folia/CE/BetterModel/BetterHud releases; update `content/compat.yml` and the CI matrix; re-verify the skills' version-specific claims.
