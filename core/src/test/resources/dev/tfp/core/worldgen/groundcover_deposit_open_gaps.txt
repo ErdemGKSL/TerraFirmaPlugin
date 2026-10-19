@@ -1,0 +1,14 @@
+# TFC placements (tfc: ids, from groundcover_deposit.tsv) with no Java rule yet (M2-GEN-11). Not rules: each is listed here until
+# its rule exists, then it is removed. Sorted.
+tfc:cobble_boulder
+tfc:cobble_boulder_small_patch
+tfc:guano_patch
+tfc:mollisol_disc
+tfc:mossy_boulder
+tfc:mossy_boulder_small_patch
+tfc:powder_snow
+tfc:raw_boulder
+tfc:raw_boulder_small_patch
+tfc:rooted_dirt
+tfc:underground_loose_rocks
+tfc:water_clay_disc_with_indicator
