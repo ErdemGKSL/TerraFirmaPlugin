@@ -1,0 +1,66 @@
+group	id	configured_type	source	state	radius	count	allow_underwater	overfill	decoration_gem	decoration_rarity	decoration_radius	decoration_count	replace_rocks	list_len	features	valid_blocks	placed	placement	placed_rarity	placed_max_elevation
+simple_block	tfc:cinder_cone_obsidian_shard	minecraft:simple_block	configured_feature/cinder_cone_obsidian_shard.json	tfc:groundcover/obsidian_shard													1	heightmap;block_predicate_filter;block_predicate_filter		
+random_patch	tfc:cinder_cone_obsidian_shard_patch	minecraft:random_patch	configured_feature/cinder_cone_obsidian_shard_patch.json	tfc:cinder_cone_obsidian_shard													1	rarity_filter;in_square;volcano	3	
+simple_block	tfc:cinder_cone_pumice	minecraft:simple_block	configured_feature/cinder_cone_pumice.json	tfc:groundcover/pumice													1	heightmap;block_predicate_filter;block_predicate_filter		
+random_patch	tfc:cinder_cone_pumice_patch	minecraft:random_patch	configured_feature/cinder_cone_pumice_patch.json	tfc:cinder_cone_pumice													1	rarity_filter;in_square;volcano	3	
+fissure	tfc:diamond_volcano_fissure	tfc:fissure	configured_feature/diamond_volcano_fissure.json	lava	6	3			diamond	3	3	6					1	volcano;heightmap		
+hot_spring	tfc:emerald_empty_hot_spring	tfc:hot_spring	configured_feature/emerald_empty_hot_spring.json	air	14		0		emerald	3	5	2					1			
+hot_spring	tfc:emerald_hot_spring	tfc:hot_spring	configured_feature/emerald_hot_spring.json	spring_water	14		0		emerald	3	5	5					1			
+fissure	tfc:emerald_volcano_spring_water_fissure	tfc:fissure	configured_feature/emerald_volcano_spring_water_fissure.json	spring_water	6	3			emerald	3	3	6					0			
+hot_spring	tfc:empty_hot_spring	tfc:hot_spring	configured_feature/empty_hot_spring.json	air	14		0										1			
+spring	tfc:extra_water_surface_spring	tfc:spring	configured_feature/extra_water_surface_spring.json	water												21	1	count;in_square;height_range;climate		
+flood_fill_lake	tfc:fuji_caldera	tfc:flood_fill_lake	configured_feature/fuji_caldera.json	lava				1									1	stratovolcano;heightmap		
+flood_fill_lake	tfc:fuji_spring	tfc:flood_fill_lake	configured_feature/fuji_spring.json	spring_water				1									1	stratovolcano;heightmap		
+spring	tfc:glacial_spring	tfc:spring	configured_feature/glacial_spring.json	water												1	1	count;in_square;height_range		
+hot_spring	tfc:hot_spring	tfc:hot_spring	configured_feature/hot_spring.json	spring_water	14		0										1			
+ice_and_snow	tfc:ice_and_snow	tfc:ice_and_snow	configured_feature/ice_and_snow.json														1			
+spring	tfc:ice_sheet_spring	tfc:spring	configured_feature/ice_sheet_spring.json	water												1	1	count;in_square;height_range		
+flood_fill_lake	tfc:kelimutu_lava	tfc:flood_fill_lake	configured_feature/kelimutu_lava.json	lava				1									1	stratovolcano;heightmap		
+flood_fill_lake	tfc:kelimutu_spring_water	tfc:flood_fill_lake	configured_feature/kelimutu_spring_water.json	spring_water				1									1	stratovolcano;heightmap		
+flood_fill_lake	tfc:kelimutu_water	tfc:flood_fill_lake	configured_feature/kelimutu_water.json	water				1									1	stratovolcano;heightmap		
+hot_spring	tfc:lava_hot_spring	tfc:hot_spring	configured_feature/lava_hot_spring.json	lava	10		1						rhyolite;basalt;andesite;dacite;granite;diorite;gabbro				1	rarity_filter;in_square;heightmap;climate	20	40
+spring	tfc:lava_spring	tfc:spring	configured_feature/lava_spring.json	lava												21	1	count;in_square;height_range		
+spring	tfc:lava_surface_spring	tfc:spring	configured_feature/lava_surface_spring.json	lava												21	1	count;in_square;height_range		
+simple_block	tfc:obsidian_shard_shield_volcano	minecraft:simple_block	configured_feature/obsidian_shard_shield_volcano.json	tfc:groundcover/obsidian_shard													1	heightmap;block_predicate_filter;block_predicate_filter		
+random_patch	tfc:obsidian_shard_shield_volcano_patch	minecraft:random_patch	configured_feature/obsidian_shard_shield_volcano_patch.json	tfc:obsidian_shard_shield_volcano													1	rarity_filter;in_square	3	
+rivulet	tfc:ocean_ridge_rivulet	tfc:rivulet	configured_feature/ocean_ridge_rivulet.json														1	count;in_square;ocean_ridge		
+simple_block	tfc:pumice_shield_volcano	minecraft:simple_block	configured_feature/pumice_shield_volcano.json	tfc:groundcover/pumice													1	heightmap;block_predicate_filter;block_predicate_filter		
+random_patch	tfc:pumice_shield_volcano_patch	minecraft:random_patch	configured_feature/pumice_shield_volcano_patch.json	tfc:pumice_shield_volcano													1	rarity_filter;in_square	3	
+random_selector	tfc:random_active_hot_spring	minecraft:simple_random_selector	configured_feature/random_active_hot_spring.json											16	tfc:sapphire_empty_hot_spring;tfc:emerald_empty_hot_spring;tfc:empty_hot_spring;tfc:empty_hot_spring;tfc:sapphire_hot_spring;tfc:sapphire_hot_spring;tfc:sapphire_hot_spring;tfc:emerald_hot_spring;tfc:emerald_hot_spring;tfc:emerald_hot_spring;tfc:hot_spring;tfc:hot_spring;tfc:hot_spring;tfc:hot_spring;tfc:hot_spring;tfc:hot_spring		1	rarity_filter;in_square	50	
+random_selector	tfc:random_crater_lake_fissure	minecraft:simple_random_selector	configured_feature/random_crater_lake_fissure.json											6	tfc:crater_lake_topaz_volcano_fissure;tfc:crater_lake_topaz_volcano_fissure;tfc:crater_lake_topaz_volcano_fissure;tfc:crater_lake_diamond_volcano_fissure;tfc:crater_lake_volcano_fissure;tfc:crater_lake_volcano_fissure		1			
+random_selector	tfc:random_crater_lake_spring_water_fissure	minecraft:simple_random_selector	configured_feature/random_crater_lake_spring_water_fissure.json											6	tfc:crater_lake_sapphire_volcano_spring_water_fissure;tfc:crater_lake_sapphire_volcano_spring_water_fissure;tfc:crater_lake_emerald_volcano_spring_water_fissure;tfc:crater_lake_emerald_volcano_spring_water_fissure;tfc:crater_lake_volcano_spring_water_fissure;tfc:crater_lake_volcano_spring_water_fissure		1			
+random_selector	tfc:random_empty_hot_spring	minecraft:simple_random_selector	configured_feature/random_empty_hot_spring.json											4	tfc:sapphire_empty_hot_spring;tfc:emerald_empty_hot_spring;tfc:empty_hot_spring;tfc:empty_hot_spring		1	rarity_filter;in_square	70	
+random_selector	tfc:random_fuji_fissure	minecraft:simple_random_selector	configured_feature/random_fuji_fissure.json											6	tfc:fuji_topaz_volcano_fissure;tfc:fuji_topaz_volcano_fissure;tfc:fuji_topaz_volcano_fissure;tfc:fuji_diamond_volcano_fissure;tfc:fuji_volcano_fissure;tfc:fuji_volcano_fissure		1			
+random_selector	tfc:random_fuji_spring_water_fissure	minecraft:simple_random_selector	configured_feature/random_fuji_spring_water_fissure.json											6	tfc:fuji_sapphire_volcano_spring_water_fissure;tfc:fuji_sapphire_volcano_spring_water_fissure;tfc:fuji_emerald_volcano_spring_water_fissure;tfc:fuji_emerald_volcano_spring_water_fissure;tfc:fuji_volcano_spring_water_fissure;tfc:fuji_volcano_spring_water_fissure		1			
+random_selector	tfc:random_kelimutu_fissure	minecraft:simple_random_selector	configured_feature/random_kelimutu_fissure.json											6	tfc:kelimutu_topaz_volcano_fissure;tfc:kelimutu_topaz_volcano_fissure;tfc:kelimutu_topaz_volcano_fissure;tfc:kelimutu_diamond_volcano_fissure;tfc:kelimutu_volcano_fissure;tfc:kelimutu_volcano_fissure		1			
+random_selector	tfc:random_kelimutu_spring_water_fissure	minecraft:simple_random_selector	configured_feature/random_kelimutu_spring_water_fissure.json											6	tfc:kelimutu_sapphire_volcano_spring_water_fissure;tfc:kelimutu_sapphire_volcano_spring_water_fissure;tfc:kelimutu_emerald_volcano_spring_water_fissure;tfc:kelimutu_emerald_volcano_spring_water_fissure;tfc:kelimutu_volcano_spring_water_fissure;tfc:kelimutu_volcano_spring_water_fissure		1			
+random_selector	tfc:random_tahoma_fissure	minecraft:simple_random_selector	configured_feature/random_tahoma_fissure.json											6	tfc:tahoma_topaz_volcano_fissure;tfc:tahoma_topaz_volcano_fissure;tfc:tahoma_topaz_volcano_fissure;tfc:tahoma_diamond_volcano_fissure;tfc:tahoma_volcano_fissure;tfc:tahoma_volcano_fissure		1			
+random_selector	tfc:random_tahoma_spring_water_fissure	minecraft:simple_random_selector	configured_feature/random_tahoma_spring_water_fissure.json											6	tfc:tahoma_sapphire_volcano_spring_water_fissure;tfc:tahoma_sapphire_volcano_spring_water_fissure;tfc:tahoma_emerald_volcano_spring_water_fissure;tfc:tahoma_emerald_volcano_spring_water_fissure;tfc:tahoma_volcano_spring_water_fissure;tfc:tahoma_volcano_spring_water_fissure		1			
+random_selector	tfc:random_tuya_fissure	minecraft:simple_random_selector	configured_feature/random_tuya_fissure.json											8	tfc:tuya_topaz_volcano_fissure;tfc:tuya_topaz_volcano_fissure;tfc:tuya_topaz_volcano_fissure;tfc:tuya_diamond_volcano_fissure;tfc:tuya_volcano_fissure;tfc:tuya_volcano_fissure;tfc:tuya_volcano_fissure;tfc:tuya_volcano_fissure		1			
+random_selector	tfc:random_volcano_fissure	minecraft:simple_random_selector	configured_feature/random_volcano_fissure.json											8	tfc:topaz_volcano_fissure;tfc:topaz_volcano_fissure;tfc:topaz_volcano_fissure;tfc:diamond_volcano_fissure;tfc:volcano_fissure;tfc:volcano_fissure;tfc:volcano_fissure;tfc:volcano_fissure		1			
+hot_spring	tfc:sapphire_empty_hot_spring	tfc:hot_spring	configured_feature/sapphire_empty_hot_spring.json	air	14		0		sapphire	3	5	2					1			
+hot_spring	tfc:sapphire_hot_spring	tfc:hot_spring	configured_feature/sapphire_hot_spring.json	spring_water	14		0		sapphire	3	5	5					1			
+fissure	tfc:sapphire_volcano_spring_water_fissure	tfc:fissure	configured_feature/sapphire_volcano_spring_water_fissure.json	spring_water	6	3			sapphire	3	3	6					0			
+simple_block	tfc:stratovolcano_obsidian_shard	minecraft:simple_block	configured_feature/stratovolcano_obsidian_shard.json	tfc:groundcover/obsidian_shard													1	heightmap;block_predicate_filter;block_predicate_filter		
+random_patch	tfc:stratovolcano_obsidian_shard_patch	minecraft:random_patch	configured_feature/stratovolcano_obsidian_shard_patch.json	tfc:stratovolcano_obsidian_shard													1	rarity_filter;in_square;stratovolcano	3	
+simple_block	tfc:stratovolcano_pumice	minecraft:simple_block	configured_feature/stratovolcano_pumice.json	tfc:groundcover/pumice													1	heightmap;block_predicate_filter;block_predicate_filter		
+random_patch	tfc:stratovolcano_pumice_patch	minecraft:random_patch	configured_feature/stratovolcano_pumice_patch.json	tfc:stratovolcano_pumice													1	rarity_filter;in_square;stratovolcano	3	
+rivulet	tfc:stratovolcano_rivulet	tfc:rivulet	configured_feature/stratovolcano_rivulet.json														0			
+rivulet	tfc:sulfur_rivulet	tfc:rivulet	configured_feature/sulfur_rivulet.json														0			
+flood_fill_lake	tfc:tahoma_caldera	tfc:flood_fill_lake	configured_feature/tahoma_caldera.json	lava				1									1	stratovolcano;heightmap		
+flood_fill_lake	tfc:tahoma_spring	tfc:flood_fill_lake	configured_feature/tahoma_spring.json	spring_water				1									1	stratovolcano;heightmap		
+fissure	tfc:topaz_volcano_fissure	tfc:fissure	configured_feature/topaz_volcano_fissure.json	lava	6	3			topaz	3	3	6					1	volcano;heightmap		
+flood_fill_lake	tfc:tuya_caldera	tfc:flood_fill_lake	configured_feature/tuya_caldera.json	lava				1									1	tuya;heightmap		
+simple_block	tfc:tuya_obsidian_shard	minecraft:simple_block	configured_feature/tuya_obsidian_shard.json	tfc:groundcover/obsidian_shard													1	heightmap;block_predicate_filter;block_predicate_filter		
+random_patch	tfc:tuya_obsidian_shard_patch	minecraft:random_patch	configured_feature/tuya_obsidian_shard_patch.json	tfc:tuya_obsidian_shard													1	rarity_filter;in_square;tuya	3	
+simple_block	tfc:tuya_pumice	minecraft:simple_block	configured_feature/tuya_pumice.json	tfc:groundcover/pumice													1	heightmap;block_predicate_filter;block_predicate_filter		
+random_patch	tfc:tuya_pumice_patch	minecraft:random_patch	configured_feature/tuya_pumice_patch.json	tfc:tuya_pumice													1	rarity_filter;in_square;tuya	3	
+rivulet	tfc:tuya_rivulet	tfc:rivulet	configured_feature/tuya_rivulet.json														1	count;in_square;tuya		
+flood_fill_lake	tfc:volcano_caldera	tfc:flood_fill_lake	configured_feature/volcano_caldera.json	lava				1									1	volcano;heightmap		
+fissure	tfc:volcano_fissure	tfc:fissure	configured_feature/volcano_fissure.json	lava	6	3											1	volcano;heightmap		
+rivulet	tfc:volcano_rivulet	tfc:rivulet	configured_feature/volcano_rivulet.json														1	count;in_square;volcano		
+fissure	tfc:volcano_spring_water_fissure	tfc:fissure	configured_feature/volcano_spring_water_fissure.json	spring_water	6	3											0			
+spring	tfc:water_spring	tfc:spring	configured_feature/water_spring.json	water												21	1	count;in_square;height_range		
+spring	tfc:water_surface_spring	tfc:spring	configured_feature/water_surface_spring.json	water												21	1	count;in_square;height_range;climate		
+flood_fill_lake	tfc:wizard_island_lava	tfc:flood_fill_lake	configured_feature/wizard_island_lava.json	lava				1									1	stratovolcano;heightmap		
+flood_fill_lake	tfc:wizard_island_spring	tfc:flood_fill_lake	configured_feature/wizard_island_spring.json	spring_water				1									1	stratovolcano;heightmap		
