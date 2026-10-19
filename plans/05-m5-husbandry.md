@@ -72,10 +72,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Models: th
 
 ## Pets & mounts
 
-- [ ] **M5-PET-01 Dogs & cats with commands** · deps: M5-LIV-01
+- [~] **M5-PET-01 Dogs & cats with commands** · deps: M5-LIV-01
   - TFC: `common/entities/livestock/pet/`, `common/entities/ai/pet/`, `network/PetCommandPacket.java`
   - Do: commands via a vanilla trigger (sneak + right-click opens a small GUI) replacing the packet.
   - Done when: command self-tests.
+  - Status (@claude): pure rules done in `core/pet/`: `PetCommand` (RELAX, HOME, SIT, FOLLOW, HUNT in TFC order, saved ordinal), `PetActivity`, `PetSpecies` (cat refuses a SIT with roll below 0.1), `PetState` (command, sitting, sleeping, SIT tick, home), `PetRules` (server gate then owner check then the command transition, the menu, SIT timeout after more than 2000 ticks or a hurt pet, stop-sitting to idle at home or idle, taming when familiarity + 0.06 > 0.15 with no owner, food and hunger, the sneak-open menu gesture, the petFlags byte). Cases verified against TFC lines in `PetCommandGoldenTest` (7) and `PetRulesGoldenTest` (17): 24 pass. Config: no pet numbers come from `ServerConfig` (its cat and dog rows only set the familiarity cap, not used here). Open: the goal AI and navigation (follow, sit and stay pose, home wander), the flee and owner-lost transitions, the mount and interaction handlers on Paper, the BetterModel visuals and sit pose parts, the command item and key glue, the purr and collar dye.
 
 - [~] **M5-MNT-01 Horses, donkeys, mules, camels** · deps: M5-LIV-01, M0-BM-01
   - TFC: `common/entities/livestock/horse/`, `camel/`, `client/animation/BactrianCamelAnimation.java`
