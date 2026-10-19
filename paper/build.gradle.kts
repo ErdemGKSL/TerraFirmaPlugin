@@ -8,6 +8,8 @@ dependencies {
     // M1-SVC-03: the packet layer (dev.tfp.paper.packet only) links against the PacketEvents plugin (M0-NET-01).
     compileOnly(libs.packetevents)
     testImplementation(libs.archunit)
+    // M3-HEAT-01: the heat tooltip decoration works on PacketEvents item stacks; its test needs the classes at runtime.
+    testImplementation(libs.packetevents)
 }
 tasks.processResources {
     val props = mapOf("version" to project.version.toString())

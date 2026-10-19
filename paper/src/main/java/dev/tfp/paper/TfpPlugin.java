@@ -47,6 +47,7 @@ import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.integration.IntegrationContext;
 import dev.tfp.paper.integration.Integrations;
 import dev.tfp.paper.packet.CreativeReturnHandler;
+import dev.tfp.paper.packet.ItemDecorationHandler;
 import dev.tfp.paper.packet.NoopPacketHandler;
 import dev.tfp.paper.packet.PacketHandlerRegistry;
 import dev.tfp.paper.packet.PacketLayer;
@@ -60,6 +61,7 @@ import dev.tfp.paper.food.FoodMergeListener;
 import dev.tfp.paper.food.FoodDefinitionsCache;
 import dev.tfp.paper.food.ItemFoodHooks;
 import dev.tfp.paper.heat.HeatPdc;
+import dev.tfp.paper.heat.HeatTooltipDecoration;
 import dev.tfp.paper.heat.ItemHeatDefinitionsCache;
 import dev.tfp.paper.heat.ItemHeatHooks;
 import dev.tfp.paper.player.PlayerDataStore;
@@ -477,7 +479,18 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         this.packets = packets;
         packets.register(new NoopPacketHandler());
         if (packetEvents) {
-            packets.register(new CreativeReturnHandler());
+            CreativeReturnHandler creativeReturn = new CreativeReturnHandler();
+            packets.register(creativeReturn);
+            // M3-HEAT-01: the heat line of a heated item in outgoing inventory packets; stripped when a creative client
+            // sends the stack back.
+            ItemDecorationHandler itemDecorations = new ItemDecorationHandler();
+            HeatTooltipDecoration heatTooltip = new HeatTooltipDecoration(() -> clock.get().playerTicks(),
+                    dev.tfp.core.heat.HeatConfig.DEFAULT, itemHeatDefinitions,
+                    level -> messages.get(java.util.Locale.US, ItemHeatHooks.KEY_PREFIX
+                            + level.name().toLowerCase(java.util.Locale.ROOT)));
+            itemDecorations.add(heatTooltip::decorate);
+            creativeReturn.add(heatTooltip);
+            packets.register(itemDecorations);
             // M2-SEA-02: seasonal grass, foliage and water colours through the chunk biome palette.
             SeasonalBiomeService seasonal = new SeasonalBiomeService(clock, scheduler, id -> getServer().getWorld(id));
             seasonalBiomes = seasonal;
