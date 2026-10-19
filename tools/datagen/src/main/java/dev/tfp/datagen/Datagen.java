@@ -78,6 +78,7 @@ public final class Datagen {
         MetalFamilies.run(tfc, out);
         FruitFamilies.run(tfc, out);
         Advancements.run(tfc, out);
+        FieldGuide.run(tfc, out);
         if (!report.missing().isEmpty()) {
             throw new DatagenException("unresolved model/texture references: " + report.missing());
         }

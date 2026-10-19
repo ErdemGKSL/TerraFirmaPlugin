@@ -27,7 +27,8 @@ import java.util.stream.Stream;
 public final class OutputTree {
     /** Top-level entries of the content directory that datagen owns (everything else is left alone). */
     public static final List<String> OWNED = List.of(
-        "data", "craftengine", "betterhud", "visuals", "datapack", "advancements", "reports", Manifest.FILE, "third-party.json");
+        "data", "craftengine", "betterhud", "visuals", "datapack", "advancements", "guide", "reports", Manifest.FILE,
+        "third-party.json");
 
     private final SortedMap<String, byte[]> files = new TreeMap<>();
 

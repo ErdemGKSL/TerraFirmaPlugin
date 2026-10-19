@@ -178,6 +178,20 @@ final class Fixture {
         write(root, Advancements.SOURCE + "story/saw.json", advancement("tfc:story/root", "saw"));
         write(root, Advancements.SOURCE + "world/root.json", advancement(null, "get"));
 
+        // field guide (M6-GUIDE-01): two categories, one entry with no sortnum, and an icon of each kind
+        write(root, FieldGuide.BOOK, "{\"__comment__\": \"x\", \"name\": \"tfc.field_guide.book_name\", "
+            + "\"landing_text\": \"tfc.field_guide.book_landing_text\", \"subtitle\": \"${modVersion}\", \"use_resource_pack\": true}");
+        write(root, FieldGuide.SOURCE + "categories/getting_started.json", "{\"name\": \"Getting Started\", "
+            + "\"description\": \"Start here.\", \"icon\": \"tfc:stone/axe/sedimentary\", \"sortnum\": 0}");
+        write(root, FieldGuide.SOURCE + "categories/mechanics.json", "{\"name\": \"Miscellaneous\", "
+            + "\"description\": \"Everything else.\", \"icon\": \"tfc:metal/helmet/blue_steel\", \"sortnum\": 1}");
+        write(root, FieldGuide.SOURCE + "entries/getting_started/introduction.json", guideEntry("getting_started", "Introduction",
+            "tfc:rock/loose/granite", 0, 2));
+        write(root, FieldGuide.SOURCE + "entries/getting_started/firepit.json", guideEntry("getting_started", "Firepit",
+            "tfc:textures/gui/book/icons/firepit.png", 1, 1));
+        write(root, FieldGuide.SOURCE + "entries/mechanics/channels.json", guideEntry("mechanics", "Channels",
+            "tfc:ceramic/ingot_mold[tfc:fluid={id:\"tfc:metal/bronze\",amount:100}]", null, 3));
+
         // lang
         write(root, A + "lang/en_us.json", "{\"block.tfc.rock.raw.granite\": \"Raw Granite\", "
             + "\"item.tfc.ore.normal_hematite\": \"Normal Hematite\", \"item.tfc.ingot.copper\": \"Copper Ingot\"}");
@@ -188,6 +202,17 @@ final class Fixture {
         MetalFixture.addDefault(root);
         FruitFixture.addDefault(root);
         return root;
+    }
+
+    /** One TFC-shaped field guide entry with {@code pages} text pages; {@code sortnum} is omitted when null. */
+    static String guideEntry(String category, String name, String icon, Integer sortnum, int pages) {
+        StringBuilder p = new StringBuilder();
+        for (int i = 0; i < pages; i++) {
+            p.append(i == 0 ? "" : ", ").append("{\"type\": \"patchouli:text\", \"text\": \"Page ").append(i).append("\"}");
+        }
+        return "{\"__comment__\": \"x\", \"name\": \"" + name + "\", \"category\": \"tfc:" + category + "\", \"icon\": \""
+            + icon.replace("\"", "\\\"") + "\", \"pages\": [" + p + "], \"read_by_default\": true"
+            + (sortnum == null ? "" : ", \"sortnum\": " + sortnum) + "}";
     }
 
     /** One TFC-shaped advancement with a single criterion (inventory_changed) that is also the requirement. */
