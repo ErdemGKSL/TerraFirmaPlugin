@@ -14,6 +14,11 @@ for j in "$@"; do cp -u "$j" "$DIR/plugins/"; done
 for kv in "server-port=$PORT" "white-list=false" "enable-rcon=true" "rcon.port=$((PORT+10))" "rcon.password=spike" "online-mode=false"; do
   sed -i "/^${kv%%=*}=/d" "$DIR/server.properties"; echo "$kv" >> "$DIR/server.properties"
 done
+# CraftEngine self-hosts the pack on "auto" (the public address), which the headless client cannot reach: use loopback.
+CE_CONFIG="$DIR/plugins/CraftEngine/config.yml"
+if [ -f "$CE_CONFIG" ]; then
+  sed -i '/^  self-host:/,/^[^ ]/{s/^    ip: .*/    ip: "127.0.0.1"/;s/^    port: .*/    port: 8163/}' "$CE_CONFIG"
+fi
 cd "$DIR"
 echo $$ > server.pid
 exec /opt/jdk/25/bin/java -Xmx3G ${EXTRA_JVM:-} -Dcom.mojang.eula.agree=true -Dtfp.assertThreads=true -jar "$SERVER" --nogui
