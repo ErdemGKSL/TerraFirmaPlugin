@@ -59,6 +59,9 @@ import dev.tfp.paper.player.WaterDrinkListener;
 import dev.tfp.paper.food.FoodMergeListener;
 import dev.tfp.paper.food.FoodDefinitionsCache;
 import dev.tfp.paper.food.ItemFoodHooks;
+import dev.tfp.paper.heat.HeatPdc;
+import dev.tfp.paper.heat.ItemHeatDefinitionsCache;
+import dev.tfp.paper.heat.ItemHeatHooks;
 import dev.tfp.paper.player.PlayerDataStore;
 import dev.tfp.paper.player.NutritionEatListener;
 import dev.tfp.paper.player.PlayerNeedsHudService;
@@ -146,6 +149,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     private volatile CalendarService calendar;
     /** M3-SURV-01: food queries (stage, tooltip line, stack rule) at the current player tick. */
     private volatile ItemFoodHooks food;
+    /** M3-HEAT-01: item heat queries (temperature now, level, tooltip line). */
+    private volatile ItemHeatHooks heat;
+    /** M3-HEAT-01: the item heat definitions of the current registry snapshot (empty until the registries load). */
+    private final ItemHeatDefinitionsCache itemHeatDefinitions = new ItemHeatDefinitionsCache(this::registries);
     /** M3-SURV-02: the food definitions of the current registry snapshot (empty until the registries load). */
     private final FoodDefinitionsCache foodDefinitions = new FoodDefinitionsCache(this::registries);
     /** M2-CLIM-03: the player's ambient temperature for the HUD, and the reading for {@code /tfp debug chunk}. */
@@ -426,6 +433,9 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         ItemFoodHooks foodHooks = new ItemFoodHooks(() -> clock.get().playerTicks(), FoodConfig.DEFAULT,
                 ItemFoodHooks.DecayModifiers.byId(stack -> integrations.customItems().idOf(stack), foodDefinitions));
         food = foodHooks;
+        // M3-HEAT-01: the temperature of a heated item, lazily from its stored record and its item_heat capacity.
+        heat = new ItemHeatHooks(() -> clock.get().playerTicks(), dev.tfp.core.heat.HeatConfig.DEFAULT,
+                ItemHeatHooks.Capacities.byId(stack -> integrations.customItems().idOf(stack), itemHeatDefinitions));
         getServer().getPluginManager().registerEvents(new FoodMergeListener(foodHooks), this);
         // M3-SURV-02: eating a known food writes its nutrition record (the core rule), on the player's thread.
         getServer().getPluginManager().registerEvents(new NutritionEatListener(store,
@@ -545,6 +555,11 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     /** M2-CAL-01: the global clock; take one snapshot per operation. */
     public GlobalClockHolder clock() {
         return clock;
+    }
+
+    /** M3-HEAT-01: the item heat queries (null until enabled). */
+    public ItemHeatHooks heat() {
+        return heat;
     }
 
     /** M3-SURV-01: the food queries (null until enabled). */
@@ -891,6 +906,40 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         PlayerData updated = playerData.update(target.getUniqueId(), d -> d.withThirst(value));
         return CompletableFuture.completedFuture(Reply.ok("debug.player.header", target.getName())
                 .withDetails(List.of("thirst set to " + updated.thirst())));
+    }
+
+    @Override
+    public CompletableFuture<Reply> debugSetHeat(String name, float temperature) {
+        Player target = getServer().getPlayerExact(name);
+        if (target == null) {
+            return CompletableFuture.completedFuture(Reply.error("command.player_not_found", name));
+        }
+        ItemHeatHooks hooks = heat;
+        if (hooks == null) {
+            return CompletableFuture.completedFuture(Reply.error("command.not_enabled"));
+        }
+        CompletableFuture<Reply> out = new CompletableFuture<>();
+        scheduler.entity(target, () -> {
+            try {
+                org.bukkit.inventory.ItemStack stack = target.getInventory().getItemInMainHand();
+                if (stack.getType().isAir()) {
+                    out.complete(Reply.error("debug.heat.empty_hand", target.getName()));
+                    return;
+                }
+                if (!HeatPdc.write(stack, new dev.tfp.core.heat.HeatState(temperature, clock.get().playerTicks()))) {
+                    out.complete(Reply.error("debug.heat.not_written", target.getName()));
+                    return;
+                }
+                target.getInventory().setItemInMainHand(stack);
+                out.complete(Reply.ok("debug.heat.header", target.getName()).withDetails(List.of(
+                        "set: " + temperature + " C at tick " + clock.get().playerTicks(),
+                        "temperature now: " + hooks.temperature(stack) + " C (0 when the item has no item_heat data)",
+                        "level: " + hooks.level(stack).map(Enum::name).orElse("none"))));
+            } catch (RuntimeException e) {
+                out.completeExceptionally(e);
+            }
+        }, () -> out.complete(Reply.error("command.player_not_found", name)));
+        return out;
     }
 
     static List<String> describe(PlayerData d) {

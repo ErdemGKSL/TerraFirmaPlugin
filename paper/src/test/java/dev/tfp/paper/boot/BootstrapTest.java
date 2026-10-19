@@ -165,6 +165,11 @@ class BootstrapTest {
         }
 
         @Override
+        public CompletableFuture<Reply> debugSetHeat(String name, float temperature) {
+            return call("debugSetHeat " + name + " " + temperature, Reply.ok("debug.heat.header", name));
+        }
+
+        @Override
         public CompletableFuture<Reply> debugSetThirst(String name, float value) {
             return call("debugSetThirst " + name + " " + value, Reply.ok("debug.player.header", name));
         }
@@ -244,7 +249,7 @@ class BootstrapTest {
         assertThat(children(tfp.getChild("time").getChild("set"))).containsExactlyInAnyOrder("day", "noon", "night", "midnight", "hour");
         assertThat(children(tfp.getChild("time").getChild("add"))).containsExactlyInAnyOrder("years", "months", "days", "hours", "ticks");
         assertThat(children(tfp.getChild("reload"))).containsExactlyInAnyOrder("config", "data", "content");
-        assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "snowtime", "worldgen", "player", "thirst", "packets",
+        assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "snowtime", "worldgen", "player", "thirst", "heat", "packets",
                 "showcase");
         assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
         assertThat(tfp.getChild("debug").getChild("showcase").getCommand()).as("showcase needs a family").isNull();
