@@ -33,10 +33,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
 
 ## Decoration & building families
 
-- [ ] **M6-DECO-01 Wood families** · deps: M1-DGN-04 · skills: craftengine-blocks, craftengine-config-generation
+- [~] **M6-DECO-01 Wood families** · deps: M1-DGN-04 · skills: craftengine-blocks, craftengine-config-generation
   - TFC: `common/blocks/wood/` (stairs, slabs, fences, gates, doors, trapdoors, buttons, plates, signs, hanging signs, chests, trapped chests, bookshelves, lecterns, tool racks, shelves, barrel racks, scribing/sewing tables, looms, sluices)
   - Do: our own `tfp:block_state/slab|stairs|wall` templates (CE defaults only allow 5 slabs and 4 stairs), renderer-based fences/walls, signs via vanilla sign entities where possible.
   - Done when: all wood blocks are placeable with correct shapes; showcase.
+  - Status: `tools/datagen` `WoodFamilies` writes `craftengine/tfp/families/wood.yml` (outside `configuration/`, so CraftEngine does not load it). Verified on c3b4d9536: 20 woods from `Wood.java`, 39 blocks each (21 kinds once per wood, plus hanging and wall hanging signs per 9 metals) = 780 blocks, every blockstate checked against the checkout. Tests: `WoodFamiliesTest` (`realCheckoutHasTwentyWoodsWithTheSameBlockKinds`, `fixtureFamiliesHaveEveryKindAndMetalAndTheYamlMatches`, `missingBlockstateOfAFamilyIsRefused`); all 41 datagen tests pass. Open: renderer-based fences and walls, the sign entities, the block logic, the CE visuals check (`tfp:block_state` slab/stairs templates), the GUI tables; the generator skips silently when a checkout has no wood blockstates (kept for the existing DatagenTest fixture, to be made loud once that fixture gains the BlockType data); the barrel rack is one block, not per wood, so it is not in the families.
 
 - [ ] **M6-DECO-02 Rock & mud families** · deps: M6-DECO-01
   - TFC: `common/blocks/rock/` (stairs/slabs/walls of every rock variant, aqueducts, spikes, rope anchors), mud bricks, alabaster, wattle (+ stained), thatch
