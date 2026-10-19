@@ -58,6 +58,9 @@ final class HudLayouts {
     static final String READOUT_LAYOUTS = BetterHudPack.DIR + "layouts/tfp-readouts.yml";
     static final String POPUP_LAYOUTS = BetterHudPack.DIR + "layouts/tfp-popups.yml";
     static final String POPUPS = BetterHudPack.DIR + "popups/tfp-popups.yml";
+    /** The HUD that shows the bars, anchored bottom-centre; the bars' own placements are relative to that anchor. */
+    static final String BARS_HUDS = BetterHudPack.DIR + "huds/tfp-bars-hud.yml";
+    static final String BARS_HUD = "tfp_bars_hud";
     static final String PLACEHOLDERS = BetterHudPack.DIR + "glue/placeholders.yml";
     static final String HIDDEN = BetterHudPack.DIR + "glue/hidden-vanilla.yml";
 
@@ -71,6 +74,9 @@ final class HudLayouts {
     static final String POPUP_OPERATION = ">";
     static final int POPUP_THRESHOLD = 0;
 
+    /** The bars' HUD anchor: bottom-centre of the screen (the GUI anchors are 0/50/100 only). */
+    static final int BARS_GUI_X = 50;
+    static final int BARS_GUI_Y = 100;
     /** Anchor of the popup on the GUI (the betterhud skill, section 11: anchor at 0/50/100 only). */
     static final int POPUP_GUI_X = 50;
     static final int POPUP_GUI_Y = 100;
@@ -171,6 +177,7 @@ final class HudLayouts {
 
         Map<String, Object> barImages = new LinkedHashMap<>();
         Map<String, Object> barLayouts = new LinkedHashMap<>();
+        Map<String, Object> barHudLayouts = new LinkedHashMap<>();
         for (Element e : of(cat, "bar")) {
             if (e.unspecified()) {
                 leftOut.add(leftOut(e, UNSPECIFIED));
@@ -212,6 +219,8 @@ final class HudLayouts {
                     "align", "center", "x", p.text().x(), "y", p.text().y(), "scale", scale())));
             }
             barLayouts.put(name, layout);
+            barHudLayouts.put(String.valueOf(barHudLayouts.size() + 1),
+                m("name", name, "gui", m("x", BARS_GUI_X, "y", BARS_GUI_Y)));
             emitted.merge("bar", 1, Integer::sum);
         }
 
@@ -299,6 +308,7 @@ final class HudLayouts {
 
         out.put(IMAGES, Yaml.write(HEADER, barImages));
         out.put(BAR_LAYOUTS, Yaml.write(HEADER, barLayouts));
+        out.put(BARS_HUDS, Yaml.write(HEADER, m(BARS_HUD, m("layouts", barHudLayouts))));
         if (!readoutLayouts.isEmpty()) {
             out.put(READOUT_LAYOUTS, Yaml.write(HEADER, readoutLayouts));
         }
