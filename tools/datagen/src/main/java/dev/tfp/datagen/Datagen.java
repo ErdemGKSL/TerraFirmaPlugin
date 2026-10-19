@@ -75,6 +75,7 @@ public final class Datagen {
         WoodFamilies.run(tfc, out);
         RockFamilies.run(tfc, out);
         MudFamilies.run(tfc, out);
+        MetalFamilies.run(tfc, out);
         if (!report.missing().isEmpty()) {
             throw new DatagenException("unresolved model/texture references: " + report.missing());
         }

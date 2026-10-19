@@ -118,7 +118,7 @@ final class RockMudFixture {
      * One block of the fixture: a variants blockstate, a cube model and a texture for {@code path} (below the blockstate
      * folder), so the asset pipeline can read it. Skipped when the blockstate exists.
      */
-    private static void writeBlock(Path root, String path) throws IOException {
+    static void writeBlock(Path root, String path) throws IOException {
         String rel = TfcCheckout.ASSETS + "blockstates/" + path + ".json";
         if (Files.exists(root.resolve(rel))) {
             return;

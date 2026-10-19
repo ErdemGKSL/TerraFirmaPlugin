@@ -180,6 +180,7 @@ final class Fixture {
 
         // rock and mud families (the rock sources and blockstates the generators require; existing ones are kept)
         RockMudFixture.addDefault(root);
+        MetalFixture.addDefault(root);
         return root;
     }
 
