@@ -29,7 +29,8 @@ import org.junit.jupiter.api.Test;
  * <p>Per row: {@code duration} is the pot recipe duration in ticks, {@code temperature} the recipe temperature in C. The
  * constant rows hold the TFC values the rules use (pre-boil time, bellows air cap, device and item heating modifiers, the
  * default heat modifier of an item in a device). The Java rules that take a row are {@link PotRules} for {@code tfc:pot}
- * and {@link GrillRules} for {@code tfc:heating}. Other recipe types are open gaps, listed exactly in {@code open_gaps.txt}.
+ * and {@link GrillRules} for {@code tfc:heating}. Soup and jam recipes boil with {@link PotRules} too, and their output rules are
+ * checked by {@link PotVariantTest}. Other recipe types are open gaps, listed exactly in {@code open_gaps.txt}.
  */
 class CookingTimesGoldenTest {
     static final String TABLE = "dev/tfp/core/cooking/cooking_times.tsv";
@@ -42,7 +43,7 @@ class CookingTimesGoldenTest {
     static final Map<String, Integer> TFC_TYPE_COUNTS = Map.of("tfc:pot", 145, "tfc:pot_jam", 66, "tfc:pot_soup", 3, "tfc:heating", 884);
 
     /** Recipe types with a Java timing rule. Other types are open gaps. */
-    static final Set<String> RULE_TYPES = Set.of("tfc:pot", "tfc:heating");
+    static final Set<String> RULE_TYPES = Set.of("tfc:pot", "tfc:pot_soup", "tfc:pot_jam", "tfc:heating");
 
     private static final String[] COLUMNS = {"kind", "device", "id", "recipe_type", "duration", "temperature", "heat_fields",
         "outputs", "value"};
@@ -135,7 +136,7 @@ class CookingTimesGoldenTest {
                 expected.add(row.get("id"));
             }
         }
-        assertThat(expected).hasSize(TFC_TYPE_COUNTS.get("tfc:pot_jam") + TFC_TYPE_COUNTS.get("tfc:pot_soup"));
+        // Soup and jam recipes now have rules (PotRules timing and PotVariantRules outputs): no open gaps are left.
         Set<String> listed = new TreeSet<>();
         try (InputStream in = CookingTimesGoldenTest.class.getClassLoader().getResourceAsStream(OPEN_GAPS)) {
             assertThat(in).as("resource %s", OPEN_GAPS).isNotNull();
@@ -145,7 +146,8 @@ class CookingTimesGoldenTest {
                 }
             }
         }
-        assertThat(listed).containsExactlyElementsOf(expected);
+        assertThat(expected).as("recipes without a rule").isEmpty();
+        assertThat(listed).as("open gaps in %s", OPEN_GAPS).isEmpty();
     }
 
     private static List<Map<String, String>> recipes() {
