@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 /**
@@ -57,6 +58,8 @@ public final class AssetPipeline {
     private final Map<String, String> dropItems = new TreeMap<>();
     /** TFC food items (tfp path, {@code food/<name>}) to their hunger, from TFC's food data. */
     private final Map<String, Integer> foodItems = new TreeMap<>();
+    /** Metal material items ({@code metal/<kind>/<metal>}), a plain item each; tools and armor wait for M4-TOOL-02. */
+    private final Set<String> metalItems = new TreeSet<>();
     /** Appearance demand of every emitted block, in emission order (input of the visual allocator). */
     private final List<VisualDemand> demand = new ArrayList<>();
 
@@ -109,10 +112,28 @@ public final class AssetPipeline {
                 foodItems.put("food/" + name, hunger);
             }
         }
+        // Metal material items (M4-MET-01): one model per metal for each kind below, found by the model folders of TFC.
+        for (String kind : METAL_ITEM_KINDS) {
+            for (String f : tfc.list(TfcCheckout.ASSETS + "models/item/metal/" + kind + "/")) {
+                if (f.endsWith(".json")) {
+                    String id = "metal/" + kind + "/" + f.substring(f.lastIndexOf('/') + 1, f.length() - 5);
+                    modelQueue.add("item/" + id);
+                    metalItems.add(id);
+                }
+            }
+        }
         while (!modelQueue.isEmpty()) {
             model(modelQueue.poll());
         }
     }
+
+    /**
+     * The {@code Metal.ItemType} folders emitted as plain items: the ingot, sheet and rod forms and the tool heads and
+     * blades. Finished tools and armor need tiers, durability and recipes (M4-TOOL-02), so they are left out.
+     */
+    static final List<String> METAL_ITEM_KINDS = List.of("ingot", "double_ingot", "sheet", "double_sheet", "rod",
+        "axe_head", "chisel_head", "hammer_head", "hoe_head", "javelin_head", "knife_blade", "mace_head", "pickaxe_head",
+        "propick_head", "saw_blade", "scythe_blade", "shovel_head", "sword_blade", "fish_hook");
 
     /** The {@code hunger} of TFC's food definition for {@code name} (under the checkout's generated resources), or -1 without one. */
     private int foodHunger(String name) {
@@ -321,6 +342,14 @@ public final class AssetPipeline {
                 CeBlockStates.call("tfp:item/food", Map.of("item_lang_key", langKey("item", id), "nutrition", hunger)));
         });
         food.write("food");
+        // Metal material items: plain CE items; their heat comes from TFC's item_heat data (M3-HEAT-01), not from here.
+        ConfigFile metal = new ConfigFile();
+        for (String id : metalItems) {
+            requireItemModel(id);
+            metal.items.put(Json.TO_NS + ":" + id,
+                CeBlockStates.call("tfp:item/simple", Map.of("item_lang_key", langKey("item", id))));
+        }
+        metal.write("metal");
         reportSkipped();
     }
 
