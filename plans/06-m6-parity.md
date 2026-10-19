@@ -63,10 +63,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
   - Done when: ledger divergence rows final.
   - Status: `core/fluid/` ports the container table (`FluidContainerKind`: 12 kinds, default capacities from `ServerConfig`, usable tag or code predicate), the single-tank fill and drain (`FluidContainerRules`, the over-capacity fill is a ledger divergence), river water (`RiverWaterRules`: family, amount 8, height, source flow, flow vector) and the item-to-world/block decision table (`FluidTransferRules`). Verified: 12 capacities and the 11 `usable_in_*` tags (`usable_in_tags.tsv`, 11 files = 11 rows). Tests: `FluidContainerKindTest` (5), `FluidContainerRulesTest` (15, incl. seeded conservation), `RiverWaterRulesTest` (11), `FluidTransferRulesTest` (6): 37 passing. Open: the container block and block-entity glue, Paper fluid handling (buckets, `FluidHelpers` on the server), the in-world river flow divergence on the server, the CraftEngine visuals, the GUI.
 
-- [ ] **M6-ADV-01 Advancements** · deps: most features
+- [~] **M6-ADV-01 Advancements** · deps: most features
   - TFC: `src/main/resources/data/tfc/advancement/`, `util/advancements/`
   - Do: shipped via our datapack; custom triggers fired from our systems.
   - Done when: TFC's advancement tree is obtainable.
+  - Status: data slice done. `tools/datagen` `Advancements.java` writes `advancements/advancement_tree.json` (its own datagen-owned root, not under `data/`, so the server and `DataLoader` do not read it as vanilla advancements). It holds all 115 TFC advancements (68 story, 47 world): tree id (`tfp:`), tab, parent, title and description keys, frame, the three display flags, requirement groups, and criteria with their triggers. Two roots (`story/root`, `world/root`); every parent resolves and no cycle. Tests: `AdvancementsTest` (9: real-checkout count and closed tree; fixture renaming and sort; refusals for a missing folder, missing parent, literal title, unknown requirement, parentless non-root, cycle, non-JSON file). Open: the trigger and award glue on Paper, the in-game toast and message choice, the criteria mapping to features, the localisation keys (TFC's `tfc.advancements.*` keys are kept as they are), the GUI or book view.
 
 - [ ] **M6-CMD-01 Remaining commands** · deps: —
   - TFC: `common/commands/` (`AddTrimCommand`, `ClearWorldCommand`, `CountBlockCommand`, `PlayerCommand`, `WeatherCommand`)

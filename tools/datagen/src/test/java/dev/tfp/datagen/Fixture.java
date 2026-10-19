@@ -173,6 +173,11 @@ final class Fixture {
                 }
             }""");
 
+        // advancements (M6-ADV-01): a root per tab and one child, as TFC's tree has them
+        write(root, Advancements.SOURCE + "story/root.json", advancement(null, "get"));
+        write(root, Advancements.SOURCE + "story/saw.json", advancement("tfc:story/root", "saw"));
+        write(root, Advancements.SOURCE + "world/root.json", advancement(null, "get"));
+
         // lang
         write(root, A + "lang/en_us.json", "{\"block.tfc.rock.raw.granite\": \"Raw Granite\", "
             + "\"item.tfc.ore.normal_hematite\": \"Normal Hematite\", \"item.tfc.ingot.copper\": \"Copper Ingot\"}");
@@ -183,6 +188,17 @@ final class Fixture {
         MetalFixture.addDefault(root);
         FruitFixture.addDefault(root);
         return root;
+    }
+
+    /** One TFC-shaped advancement with a single criterion (inventory_changed) that is also the requirement. */
+    static String advancement(String parent, String criterion) {
+        return "{\"__comment__\": \"x\", " + (parent == null ? "" : "\"parent\": \"" + parent + "\", ")
+            + "\"criteria\": {\"" + criterion + "\": {\"trigger\": \"minecraft:inventory_changed\", \"conditions\": {}}}, "
+            + "\"display\": {\"icon\": {\"id\": \"minecraft:stone\"}, \"title\": {\"translate\": \"tfc.advancements.test."
+            + criterion + ".title\"}, \"description\": {\"translate\": \"tfc.advancements.test." + criterion
+            + ".description\"}, \"frame\": \"task\", \"show_toast\": true, \"announce_to_chat\": true, \"hidden\": false, "
+            + "\"background\": \"tfc:textures/block/rock/mossy_cobble/diorite.png\"}, "
+            + "\"requirements\": [[\"" + criterion + "\"]]}";
     }
 
     private static void simpleBlockstate(Path root, String id) throws IOException {
