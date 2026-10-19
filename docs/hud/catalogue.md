@@ -22,6 +22,7 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m1-int-04-ph-max-health` | max value behind the "45/50" text | M1-INT-04 | placeholder | `tfp_max_health` (snapshot) | M1 | needed | Display scale is open (M3-SURV-04: pinned display gives 850 max at average nutrition, not 50). |
 | `m1-int-04-ph-thirst` | value behind the thirst bar | M1-INT-04 | placeholder | `tfp_thirst` (snapshot, TFC max 100) | M1 | needed | Also a listener `tfp_thirst` (0..1). Rules in M3-SURV-03. |
 | `m1-int-04-ph-hunger` | value behind the hunger bar | M1-INT-04 | placeholder | `tfp_hunger` (snapshot) | M1 | needed | Also a listener `tfp_hunger`. Source is the TFC hunger model (M3-SURV-02). |
+| `m3-surv-06-ph-air` | breath left behind the air bar | M3-SURV-06 | placeholder | `tfp_air` (snapshot, vanilla breath 0..300) | M3 | needed | Also a listener `tfp_air` (0..1). Source is `Player.getRemainingAir`. |
 | `m1-int-04-ph-held-temp` | held item temperature for the popup | M1-INT-04 | placeholder | `tfp_held_temp` (snapshot, item heat from M3-HEAT-01) | M1 | needed | Popup condition `tfp_held_temp > 0` (betterhud skill). |
 | `m2-cal-02-ph-date` | calendar date text | M2-CAL-02 | placeholder | `tfp_date` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
 | `m2-cal-02-ph-season` | season name | M2-CAL-02 | placeholder | `tfp_season` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
@@ -29,6 +30,7 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m3-surv-06-health-bar` | health bar with "45/50" text | M3-SURV-06 | bar | `tfp_health`, `tfp_max_health` | M3 | needed | Spike M0-BH-01 is `[x]` for health and thirst on 1.21.11 and 26.3. TFC reference: `IngameOverlays.HEALTH`. |
 | `m3-surv-06-thirst-bar` | thirst bar | M3-SURV-06 | bar | `tfp_thirst` (listener, 0..1) | M3 | needed | Spike M0-BH-01 `[x]`. TFC reference: `IngameOverlays.THIRST`. |
 | `m3-surv-06-hunger-bar` | hunger bar | M3-SURV-06 | bar | `tfp_hunger` (listener) | M3 | needed | The BetterHud built-in `food` class only works if the vanilla food level is synced (M3-SURV-02 open item). TFC reference: `IngameOverlays.FOOD`. |
+| `m3-surv-06-air-bar` | underwater air bar (breath left) | M3-SURV-06 | bar | `tfp_air` (listener, 0..1) | M3 | needed | Replaces the vanilla air bubbles, which are no longer hidden until this bar is verified in-game. |
 | `m3-surv-06-held-temp-popup` | held item temperature, shown while above 0 | M3-SURV-06 (via M3-HEAT-01) | popup | `tfp_held_temp` | M3 | needed | Item tooltip line is separate and not HUD. |
 | `m2-cal-02-date-readout` | on-screen date and season, top-left | M2-CAL-02 | readout | `tfp_date`, `tfp_season`; text `tick: 20` | M2 | needed | M2-CAL-02 is `[x]` for commands only. A 1.21.11 screenshot showed the date, but the BetterHud element is not generated. |
 | `m2-clim-03-ambient-temp-readout` | ambient temperature line | M2-CLIM-03 | readout | `tfp_ambient_temp`; text `tick: 20` (betterhud skill: climate readouts) | M2 | needed | M2-CLIM-03 is `[x]`: its HUD line matched `/tfp debug chunk` on a 1.21.11 test server. The generated element is still needed. |
@@ -59,15 +61,15 @@ Not named by any plan item (decide in X-HUD-01 or add to M3-SURV-06):
 
 Method: a Python script (`/tmp/claude-0/-home-user-TerraFirmaPlugin/7076116e-0f7a-5b74-a249-6fd913ce4602/scratchpad/hud_counts.py`, not checked in) reads section 1. It takes each row whose first cell is a backticked id, reads the kind (column 4), the milestone (column 6) and the `unspecified in plan` text in the source and data columns, and counts them. Section 2 rows are not counted.
 
-Total elements: **21**. Of these, 4 are unspecified in plan (rows marked above).
+Total elements: **23**. Of these, 4 are unspecified in plan (rows marked above).
 
 | kind | count | of which unspecified in plan |
 |---|---|---|
-| bar | 3 | 0 |
+| bar | 4 | 0 |
 | readout | 4 | 2 |
 | popup | 2 | 1 |
 | indicator | 1 | 1 |
-| placeholder | 8 | 0 |
+| placeholder | 9 | 0 |
 | hidden-vanilla | 3 | 0 |
 | **total** | **21** | **4** |
 

@@ -100,7 +100,8 @@ final class HudLayouts {
     static final Map<String, BarPlace> BARS = Map.of(
         "m3-surv-06-health-bar", new BarPlace(new Place(-48, -40), new Place(-47, -39), new Place(-7, -40)),
         "m3-surv-06-thirst-bar", new BarPlace(new Place(53, -33), new Place(53, -33), null),
-        "m3-surv-06-hunger-bar", new BarPlace(new Place(53, -39), new Place(53, -39), null));
+        "m3-surv-06-hunger-bar", new BarPlace(new Place(53, -39), new Place(53, -39), null),
+        "m3-surv-06-air-bar", new BarPlace(new Place(53, -27), new Place(53, -27), null));
 
     static final Map<String, Place> READOUTS = Map.of(
         "m2-cal-02-date-readout", new Place(2, 2),

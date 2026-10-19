@@ -24,14 +24,14 @@ class HudLayoutsTest {
     @TempDir
     Path tmp;
 
-    /** The real catalogue counts section: 8 placeholders, 3 bars, 4 readouts, 2 popups, 1 indicator, 3 hidden-vanilla. */
+    /** The real catalogue counts section: 9 placeholders, 4 bars, 4 readouts, 2 popups, 1 indicator, 3 hidden-vanilla. */
     @Test
     void realCatalogueRowCountsMatchTheCountsSection() {
         HudLayouts.Catalogue cat = HudLayouts.parse(HudLayouts.catalogue());
 
-        assertThat(cat.elements()).hasSize(21);
+        assertThat(cat.elements()).hasSize(23);
         Map<String, Integer> expected = Map.of(
-            "placeholder", 8, "bar", 3, "readout", 4, "popup", 2, "indicator", 1, "hidden-vanilla", 3);
+            "placeholder", 9, "bar", 4, "readout", 4, "popup", 2, "indicator", 1, "hidden-vanilla", 3);
         assertThat(countsByKind(cat.elements())).isEqualTo(expected);
         assertThat(cat.total()).isEqualTo(expected);
     }
@@ -41,7 +41,7 @@ class HudLayoutsTest {
         HudLayouts.Summary s = HudLayouts.run(new OutputTree(), HudLayouts.catalogue());
 
         assertThat(s.emitted()).isEqualTo(Map.of(
-            "placeholder", 8, "bar", 3, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 3));
+            "placeholder", 9, "bar", 4, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 3));
         assertThat(s.leftOut()).hasSize(4);
         assertThat(String.join("\n", s.leftOut())).contains(
             "m3-surv-02-nutrition-readout", "m6-mech-01-rotation-readout", "m4-pros-01-result-message",
@@ -79,7 +79,7 @@ class HudLayoutsTest {
         HudLayouts.run(out, HudLayouts.catalogue());
 
         assertThat(yaml(out, HudLayouts.BAR_LAYOUTS).keySet()).containsExactlyInAnyOrder(
-            "tfp_m3_surv_06_health_bar", "tfp_m3_surv_06_thirst_bar", "tfp_m3_surv_06_hunger_bar");
+            "tfp_m3_surv_06_health_bar", "tfp_m3_surv_06_thirst_bar", "tfp_m3_surv_06_hunger_bar", "tfp_m3_surv_06_air_bar");
         assertThat(out.contains(HudLayouts.READOUT_LAYOUTS)).as("both readouts duplicate BetterHudPack").isFalse();
         assertThat(yaml(out, HudLayouts.POPUP_LAYOUTS).keySet()).containsExactly("tfp_m3_surv_06_held_temp_popup");
         assertThat(yaml(out, HudLayouts.POPUPS).keySet()).containsExactly("tfp_m3_surv_06_held_temp_popup");
@@ -174,7 +174,7 @@ class HudLayoutsTest {
         Set<Object> names = new java.util.HashSet<>();
         placeholders.forEach(p -> names.add(map(p).get("name")));
         assertThat(names).containsExactlyInAnyOrder("tfp_health", "tfp_max_health", "tfp_thirst", "tfp_hunger",
-            "tfp_held_temp", "tfp_date", "tfp_season", "tfp_ambient_temp");
+            "tfp_held_temp", "tfp_date", "tfp_season", "tfp_ambient_temp", "tfp_air");
     }
 
     @Test
@@ -219,9 +219,9 @@ class HudLayoutsTest {
 
     @Test
     void countsThatDisagreeWithTheRowsAreRefused() throws IOException {
-        Path file = write(replaceOnce(real(), "| bar | 3 | 0 |", "| bar | 4 | 0 |"));
+        Path file = write(replaceOnce(real(), "| bar | 4 | 0 |", "| bar | 5 | 0 |"));
         assertThatThrownBy(() -> HudLayouts.run(new OutputTree(), file))
-            .isInstanceOf(DatagenException.class).hasMessageContaining("kind bar has 3 rows");
+            .isInstanceOf(DatagenException.class).hasMessageContaining("kind bar has 4 rows");
     }
 
     @Test
