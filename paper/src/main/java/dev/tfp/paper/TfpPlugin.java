@@ -468,8 +468,6 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         packets.register(new NoopPacketHandler());
         if (packetEvents) {
             packets.register(new CreativeReturnHandler());
-            // M3-SURV-03: an empty-hand right-click on open water gives no interaction event; the packet triggers the drink.
-            packets.register(new dev.tfp.paper.player.EmptyHandDrinkHandler(waterDrink, scheduler));
             // M2-SEA-02: seasonal grass, foliage and water colours through the chunk biome palette.
             SeasonalBiomeService seasonal = new SeasonalBiomeService(clock, scheduler, id -> getServer().getWorld(id));
             seasonalBiomes = seasonal;
