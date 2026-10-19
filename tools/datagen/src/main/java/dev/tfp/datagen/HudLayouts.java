@@ -6,6 +6,7 @@
 package dev.tfp.datagen;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -51,6 +52,8 @@ final class HudLayouts {
     /** The vanilla sprite folder that the hidden-vanilla rows name without a folder (e.g. {@code air.png}). */
     static final String VANILLA_HUD = "gui/sprites/hud/";
     static final String IMAGES = BetterHudPack.DIR + "images/tfp-bars.yml";
+    /** The approved bar sprites (docs/art/hud, copied here as resources), by file name. */
+    private static final String BAR_ART = "/dev/tfp/datagen/hud/";
     static final String BAR_LAYOUTS = BetterHudPack.DIR + "layouts/tfp-bars.yml";
     static final String READOUT_LAYOUTS = BetterHudPack.DIR + "layouts/tfp-readouts.yml";
     static final String POPUP_LAYOUTS = BetterHudPack.DIR + "layouts/tfp-popups.yml";
@@ -197,6 +200,8 @@ final class HudLayouts {
             barImages.put(bg, m("type", "single", "file", imageFile(e.id(), "bg")));
             barImages.put(fill, m("type", "listener", "file", imageFile(e.id(), "fill"), "split", SPLIT,
                 "split-type", "left", "setting", m("listener", listener)));
+            putBarArt(out, imageFile(e.id(), "bg"));
+            putBarArt(out, imageFile(e.id(), "fill"));
             Map<String, Object> layout = m("images", m(
                 "1", m("name", bg, "x", p.bg().x(), "y", p.bg().y()),
                 "2", m("name", fill, "x", p.fill().x(), "y", p.fill().y())));
@@ -432,6 +437,19 @@ final class HudLayouts {
     /** The BetterHud name of a catalogue id: the tfp_ prefix and the id with underscores. */
     static String name(String id) {
         return PREFIX + id.replace('-', '_');
+    }
+
+    /** Copies a bar sprite into the pack's assets folder, where its image file path points (relative to assets/). */
+    private static void putBarArt(OutputTree out, String file) {
+        String resource = BAR_ART + file.substring(file.lastIndexOf('/') + 1);
+        try (InputStream in = HudLayouts.class.getResourceAsStream(resource)) {
+            if (in == null) {
+                throw new DatagenException("missing bar sprite " + resource);
+            }
+            out.put(BetterHudPack.DIR + "assets/" + file, in.readAllBytes());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private static String imageFile(String id, String part) {
