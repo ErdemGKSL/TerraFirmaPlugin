@@ -12,6 +12,7 @@ import dev.tfp.paper.integration.CustomItems;
 import dev.tfp.paper.scheduler.ThreadAsserts;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import org.bukkit.entity.Player;
@@ -20,11 +21,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 /**
  * Eating writes the player's nutrition records (M3-SURV-02). A consumed custom food whose id has a food definition
- * is recorded with the core rule ({@link NutritionEating}); anything else (vanilla food, unknown custom items, rotten
- * food) changes nothing.
+ * is recorded with the core rule ({@link NutritionEating}); anything else (vanilla food, unknown custom items) changes
+ * nothing. A rotten known food records nothing and gives TFC's rotten-food effects (Hunger II, sometimes Poison I).
  *
  * <p>Runs on the player's thread (the consume event is fired there). Vanilla's food level is read before the food is
  * applied: the event fires before vanilla changes it, so the hunger is the one TFC records at.
@@ -72,5 +75,20 @@ public final class NutritionEatListener implements Listener {
         int vanillaFood = player.getFoodLevel();
         float vanillaSaturation = player.getSaturation();
         data.update(id, d -> NutritionEating.eat(d, food, rotten, vanillaFood, vanillaSaturation, now));
+        if (rotten) {
+            // TFC PlayerInfo#eat(IFood): the rotten branch gives effects instead of nutrition
+            for (NutritionEating.RottenEffect effect
+                    : NutritionEating.rottenEffects(ThreadLocalRandom.current()::nextDouble)) {
+                player.addPotionEffect(new PotionEffect(potionType(effect.kind()), effect.durationTicks(),
+                        effect.amplifier()));
+            }
+        }
+    }
+
+    private static PotionEffectType potionType(NutritionEating.RottenEffect.Kind kind) {
+        return switch (kind) {
+            case HUNGER -> PotionEffectType.HUNGER;
+            case POISON -> PotionEffectType.POISON;
+        };
     }
 }

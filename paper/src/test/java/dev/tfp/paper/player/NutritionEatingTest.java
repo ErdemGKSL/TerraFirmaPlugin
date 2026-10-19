@@ -60,6 +60,48 @@ class NutritionEatingTest {
         assertThat(after).isSameAs(PlayerData.NEW);
     }
 
+    /**
+     * TFC {@code PlayerInfo#eat(IFood)} rotten branch, {@code PlayerInfo.java} lines 178-190: with probability 0.6
+     * Hunger (amplifier 1, 1800 ticks); only inside that, with probability 0.15, Poison (amplifier 0, 1800 ticks).
+     */
+    @Test
+    void rottenFoodGivesHungerThenPoisonWhenBothRollsPass() {
+        double[] rolls = {0.0, 0.0};
+        int[] next = {0};
+        var effects = NutritionEating.rottenEffects(() -> rolls[next[0]++]);
+
+        assertThat(effects).containsExactly(
+                new NutritionEating.RottenEffect(NutritionEating.RottenEffect.Kind.HUNGER, 1800, 1),
+                new NutritionEating.RottenEffect(NutritionEating.RottenEffect.Kind.POISON, 1800, 0));
+        assertThat(next[0]).isEqualTo(2);
+    }
+
+    /** TFC {@code PlayerInfo.java} lines 182-188: the poison roll is only made when the hunger roll passes. */
+    @Test
+    void rottenFoodGivesOnlyHungerWhenThePoisonRollFails() {
+        double[] rolls = {0.59, 0.15};
+        int[] next = {0};
+        var effects = NutritionEating.rottenEffects(() -> rolls[next[0]++]);
+
+        assertThat(effects).containsExactly(
+                new NutritionEating.RottenEffect(NutritionEating.RottenEffect.Kind.HUNGER, 1800, 1));
+        assertThat(next[0]).isEqualTo(2);
+    }
+
+    /**
+     * TFC {@code PlayerInfo.java} line 182: a failed hunger roll gives nothing and makes no second roll. The
+     * comparison is strict ({@code <}), so a roll of exactly 0.6 fails.
+     */
+    @Test
+    void rottenFoodGivesNothingWhenTheHungerRollFailsAtTheBoundary() {
+        double[] rolls = {0.6, 0.0};
+        int[] next = {0};
+        var effects = NutritionEating.rottenEffects(() -> rolls[next[0]++]);
+
+        assertThat(effects).isEmpty();
+        assertThat(next[0]).isEqualTo(1);
+    }
+
     @Test
     void eatingLeavesTheThirstAndExhaustionClocksAlone() {
         PlayerData stored = PlayerData.NEW.withThirstClock(70f, 1_000L, 123_456L);

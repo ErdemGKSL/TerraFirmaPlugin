@@ -13,6 +13,7 @@ import dev.tfp.core.recipe.food.FoodData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.DoubleSupplier;
 
 /**
  * The pure part of eating (M3-SURV-02): the stored nutrition records after a meal, from the core
@@ -26,13 +27,41 @@ import java.util.Optional;
  */
 public final class NutritionEating {
     private static final NutritionConfig CONFIG = NutritionConfig.DEFAULT;
+    /** TFC {@code PlayerInfo#eat(IFood)}: chance of Hunger from rotten food ({@code random.nextFloat() < 0.6}). */
+    static final double ROTTEN_HUNGER_CHANCE = 0.6;
+    /** TFC {@code PlayerInfo#eat(IFood)}: chance of Poison, only after Hunger applied ({@code < 0.15}). */
+    static final double ROTTEN_POISON_CHANCE = 0.15;
+    /** TFC {@code PlayerInfo#eat(IFood)}: duration of both rotten-food effects, 1800 ticks (90 seconds). */
+    public static final int ROTTEN_EFFECT_TICKS = 1800;
+
+    /** One potion effect from eating rotten food, with the vanilla amplifier (0 = level I). */
+    public record RottenEffect(Kind kind, int durationTicks, int amplifier) {
+        /** Vanilla hunger and poison, the two effects TFC gives. */
+        public enum Kind { HUNGER, POISON }
+    }
 
     private NutritionEating() {
     }
 
     /**
+     * The effects of eating one rotten food, in TFC's order. TFC {@code PlayerInfo#eat(IFood)} rolls once for Hunger II
+     * (1800 ticks); only when that applies, it rolls once more for Poison I (1800 ticks). Pure: {@code roll} supplies
+     * uniform values in [0, 1), called in that order (a single roll when Hunger does not apply).
+     */
+    public static List<RottenEffect> rottenEffects(DoubleSupplier roll) {
+        List<RottenEffect> effects = new ArrayList<>(2);
+        if (roll.getAsDouble() < ROTTEN_HUNGER_CHANCE) {
+            effects.add(new RottenEffect(RottenEffect.Kind.HUNGER, ROTTEN_EFFECT_TICKS, 1));
+            if (roll.getAsDouble() < ROTTEN_POISON_CHANCE) {
+                effects.add(new RottenEffect(RottenEffect.Kind.POISON, ROTTEN_EFFECT_TICKS, 0));
+            }
+        }
+        return effects;
+    }
+
+    /**
      * The data after eating {@code food} at player tick {@code now}. Returns {@code stored} unchanged when the food is
-     * unknown or rotten (TFC eats nothing from rotten food; the rotten effects are not built yet).
+     * unknown or rotten (TFC eats no nutrition from rotten food; its rotten effects come from {@link #rottenEffects}).
      *
      * @param vanillaFood       the vanilla food level before eating (0..20)
      * @param vanillaSaturation the vanilla saturation before eating; a negative or NaN value counts as 0
