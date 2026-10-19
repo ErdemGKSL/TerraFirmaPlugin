@@ -77,10 +77,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Models: th
   - Do: commands via a vanilla trigger (sneak + right-click opens a small GUI) replacing the packet.
   - Done when: command self-tests.
 
-- [ ] **M5-MNT-01 Horses, donkeys, mules, camels** · deps: M5-LIV-01, M0-BM-01
+- [~] **M5-MNT-01 Horses, donkeys, mules, camels** · deps: M5-LIV-01, M0-BM-01
   - TFC: `common/entities/livestock/horse/`, `camel/`, `client/animation/BactrianCamelAnimation.java`
   - Do: vanilla mount carriers (no BetterModel seats), TFC breeding/familiarity, chests on donkeys/mules, seat height tuned.
   - Done when: ride/breed self-tests; visual check of rider alignment.
+  - Status (@claude): pure rules done in `core/mount/`: `MountStats` (health 15 to 30, jump 0.4 to 1.0, speed 0.1125 to 0.3375 as floats, spawn draws, TFC's offspring attribute reflection), `MountGenes` (foal species: horse+donkey gives a mule either way, the stats inherit, the colour inherits for a horse foal), `HorseColour` (variant and markings draws in TFC order), `MountRules` (taming above 0.15, old mounts at half speed, babies not mounted, dromedary attributes), `MountBreeding` (horse-family pairs need tamed and unridden, camels mate only with their own kind, mules never). Constants checked against ServerConfig rows for horse, donkey, mule, dromedary and bactrian. Tests: `MountStatsGoldenTest` (6), `MountInheritanceGoldenTest` (8), `MountBreedingGoldenTest` (10), `MountRulesGoldenTest` (6): 30 pass. No generated data folder, so no TSV. Open: the mount entity and attribute glue, the saddle and riding controls, the BetterModel visuals, the riding AI, the item and loot glue (chest and carried items, overburden weight), the genetic size shared with M5-LIV, and the vanilla `Horse.Variant` (7) and `Markings` (5) counts (from Minecraft 1.21.1, not in the TFC tree, not verified here).
 
 ## Hunting & fishing
 
