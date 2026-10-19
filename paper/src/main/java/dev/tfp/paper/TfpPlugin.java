@@ -63,6 +63,7 @@ import dev.tfp.paper.food.FoodDefinitionsCache;
 import dev.tfp.paper.food.ItemFoodHooks;
 import dev.tfp.paper.heat.HeatPdc;
 import dev.tfp.paper.heat.HeatTooltipDecoration;
+import dev.tfp.paper.heat.ItemHeater;
 import dev.tfp.paper.heat.ItemHeatDefinitionsCache;
 import dev.tfp.paper.heat.ItemHeatHooks;
 import dev.tfp.paper.player.PlayerDataStore;
@@ -154,6 +155,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     private volatile ItemFoodHooks food;
     /** M3-HEAT-01: item heat queries (temperature now, level, tooltip line). */
     private volatile ItemHeatHooks heat;
+    /** M3-HEAT-01: one heating step of an item toward a source temperature (the glue of every heat source). */
+    private volatile ItemHeater heater;
     /** M3-HEAT-01: the item heat definitions of the current registry snapshot (empty until the registries load). */
     private final ItemHeatDefinitionsCache itemHeatDefinitions = new ItemHeatDefinitionsCache(this::registries);
     /** M3-SURV-02: the food definitions of the current registry snapshot (empty until the registries load). */
@@ -437,8 +440,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 ItemFoodHooks.DecayModifiers.byId(stack -> integrations.customItems().idOf(stack), foodDefinitions));
         food = foodHooks;
         // M3-HEAT-01: the temperature of a heated item, lazily from its stored record and its item_heat capacity.
-        heat = new ItemHeatHooks(() -> clock.get().playerTicks(), dev.tfp.core.heat.HeatConfig.DEFAULT,
-                ItemHeatHooks.Capacities.byId(stack -> integrations.customItems().idOf(stack), itemHeatDefinitions));
+        ItemHeatHooks.Capacities heatCapacities =
+                ItemHeatHooks.Capacities.byId(stack -> integrations.customItems().idOf(stack), itemHeatDefinitions);
+        heat = new ItemHeatHooks(() -> clock.get().playerTicks(), dev.tfp.core.heat.HeatConfig.DEFAULT, heatCapacities);
+        heater = new ItemHeater(() -> clock.get().playerTicks(), dev.tfp.core.heat.HeatConfig.DEFAULT, heatCapacities);
         getServer().getPluginManager().registerEvents(new FoodMergeListener(foodHooks), this);
         // M3-SURV-02: eating a known food writes its nutrition record (the core rule), on the player's thread.
         getServer().getPluginManager().registerEvents(new NutritionEatListener(store,
@@ -572,6 +577,11 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     /** M2-CAL-01: the global clock; take one snapshot per operation. */
     public GlobalClockHolder clock() {
         return clock;
+    }
+
+    /** M3-HEAT-01: the heat source glue (null until enabled). */
+    public ItemHeater heater() {
+        return heater;
     }
 
     /** M3-HEAT-01: the item heat queries (null until enabled). */
@@ -923,6 +933,49 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         PlayerData updated = playerData.update(target.getUniqueId(), d -> d.withThirst(value));
         return CompletableFuture.completedFuture(Reply.ok("debug.player.header", target.getName())
                 .withDetails(List.of("thirst set to " + updated.thirst())));
+    }
+
+    @Override
+    public CompletableFuture<Reply> debugWarm(String name, float target, int steps) {
+        Player player = getServer().getPlayerExact(name);
+        if (player == null) {
+            return CompletableFuture.completedFuture(Reply.error("command.player_not_found", name));
+        }
+        ItemHeater h = heater;
+        ItemHeatHooks hooks = heat;
+        if (h == null || hooks == null) {
+            return CompletableFuture.completedFuture(Reply.error("command.not_enabled"));
+        }
+        CompletableFuture<Reply> out = new CompletableFuture<>();
+        Runnable apply = () -> {
+            try {
+                org.bukkit.inventory.ItemStack stack = player.getInventory().getItemInMainHand();
+                if (stack.getType().isAir()) {
+                    out.complete(Reply.error("debug.heat.empty_hand", player.getName()));
+                    return;
+                }
+                java.util.Optional<Float> last = java.util.Optional.empty();
+                for (int i = 0; i < steps; i++) {
+                    last = h.heatToward(stack, target);
+                    if (last.isEmpty()) {
+                        break;
+                    }
+                }
+                player.getInventory().setItemInMainHand(stack);
+                out.complete(Reply.ok("debug.heat.header", player.getName()).withDetails(List.of(
+                        "warm: " + steps + " steps toward " + target + " C: "
+                                + last.map(t -> "now " + t + " C").orElse("not heatable (no item_heat data or a newer record)"),
+                        "level: " + hooks.level(stack).map(Enum::name).orElse("none"))));
+            } catch (RuntimeException e) {
+                out.completeExceptionally(e);
+            }
+        };
+        if (getServer().isOwnedByCurrentRegion(player)) {
+            apply.run();
+        } else {
+            scheduler.entity(player, apply, () -> out.complete(Reply.error("command.player_not_found", name)));
+        }
+        return out;
     }
 
     @Override

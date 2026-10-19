@@ -114,6 +114,40 @@ class ItemHeatHooksMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void aHeatSourceWarmsAnItemStepByStepUpToItsTemperatureAndAnUnheatableItemStaysCold() {
+        AtomicLong now = new AtomicLong(1_000L);
+        ItemHeater heater = new ItemHeater(now::get, CFG, stack -> stack.getType() == Material.COPPER_INGOT ? 2.857143f : 0f);
+        ItemStack copper = new ItemStack(Material.COPPER_INGOT);
+
+        float first = heater.heatToward(copper, 500f).orElseThrow();
+        // (coolingModifier 0.8 - 1 + 3 x heatingModifier 1.0) / 2.857143 = 0.98 degrees a step
+        assertThat(first).isCloseTo(0.98f, org.assertj.core.api.Assertions.within(0.01f));
+        assertThat(HeatPdc.read(copper)).contains(new HeatState(first, 1_000L));
+        float last = first;
+        for (int i = 0; i < 2_000; i++) {
+            last = heater.heatToward(copper, 500f).orElseThrow();
+        }
+        assertThat(last).as("capped at the source temperature").isEqualTo(500f);
+
+        ItemStack stick = new ItemStack(Material.STICK);
+        assertThat(heater.heatToward(stick, 500f)).as("no item_heat capacity").isEmpty();
+        assertThat(HeatPdc.has(stick)).isFalse();
+    }
+
+    @Test
+    void aHeatSourceDoesNotOverwriteANewerVersionRecord() {
+        ItemHeater heater = new ItemHeater(() -> 5L, CFG, ItemHeatHooks.Capacities.UNIT);
+        ItemStack stack = ingot();
+        ItemMeta meta = stack.getItemMeta();
+        var heat = meta.getPersistentDataContainer().getAdapterContext().newPersistentDataContainer();
+        heat.set(new NamespacedKey("tfp", "v"), PersistentDataType.INTEGER, HeatPdc.VERSION + 1);
+        meta.getPersistentDataContainer().set(NamespacedKey.fromString(HeatPdc.KEY),
+            PersistentDataType.TAG_CONTAINER, heat);
+        stack.setItemMeta(meta);
+        assertThat(heater.heatToward(stack, 500f)).isEmpty();
+    }
+
+    @Test
     void theTooltipLineIsTranslatedInEnglishAndTurkish() {
         ItemHeatHooks hooks = new ItemHeatHooks(() -> 5L, CFG, ItemHeatHooks.Capacities.UNIT);
         ItemStack stack = ingot();

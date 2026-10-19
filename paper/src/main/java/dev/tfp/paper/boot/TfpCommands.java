@@ -126,6 +126,9 @@ public final class TfpCommands {
          */
         CompletableFuture<Reply> debugSetHeat(String name, Float temperature);
 
+        /** Applies {@code steps} heating steps toward a source {@code target} (°C) to the player's held item. */
+        CompletableFuture<Reply> debugWarm(String name, float target, int steps);
+
         /** Packet layer and per-handler metrics. */
         CompletableFuture<Reply> debugPackets();
 
@@ -218,6 +221,14 @@ public final class TfpCommands {
                                                 .executes(run(handler, messages, (h, ctx) -> h.debugSetHeat(
                                                         StringArgumentType.getString(ctx, "name"),
                                                         FloatArgumentType.getFloat(ctx, "temperature")))))))
+                        .then(Commands.literal("warm")
+                                .then(Commands.argument("name", StringArgumentType.word())
+                                        .then(Commands.argument("target", FloatArgumentType.floatArg(0f, 1600f))
+                                                .then(Commands.argument("steps", IntegerArgumentType.integer(1, 100_000))
+                                                        .executes(run(handler, messages, (h, ctx) -> h.debugWarm(
+                                                                StringArgumentType.getString(ctx, "name"),
+                                                                FloatArgumentType.getFloat(ctx, "target"),
+                                                                IntegerArgumentType.getInteger(ctx, "steps"))))))))
                         .then(Commands.literal("packets").executes(run(handler, messages, (h, ctx) -> h.debugPackets())))
                         .then(Commands.literal("showcase")
                                 .then(Commands.argument("family", StringArgumentType.word())
