@@ -49,10 +49,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
   - Done when: showcase.
   - Status: `tools/datagen` `MetalFamilies` writes `craftengine/tfp/families/metal.yml` (data only): 19 metals with the `Metal.BlockType` kinds that TFC's `has` rule allows: block (full, slab, stairs) for all 19; exposed, weathered and oxidized block (each with slab and stairs) for the 7 weathering metals; grate for the 9 tiered metals, with its 3 weathered ages for the 4 that weather; bars, chain, lamp and trapdoor for the 9 tiered metals. 177 blocks, checked against the 13 blockstate folders (186 files = 177 + 9 anvils). The anvil is left out (M4-ANV-02) and the 9 ingot-only metals have no block. TFC has no metal wall or sheet block. Tests: `MetalFamiliesTest` (10, incl. the real checkout and the missing-data refusals), green. Open: CraftEngine visuals (appearances, `entity_renderer` for lamp and chain), block logic (lamp lit state and light, trapdoor, chain light), template checks, GUI tables, and the misc items not generated (candles, cakes, buoy, bells, jack-o'-lanterns, crates, powderkeg).
 
-- [ ] **M6-DECO-04 Fruit trees** · deps: M3-FARM-03, M2-GEN-12
+- [~] **M6-DECO-04 Fruit trees** · deps: M3-FARM-03, M2-GEN-12
   - TFC: `common/blocks/plant/fruit/` (growing branches, seasonal leaves)
   - Do: branch growth decided async from the calendar; seasonal leaf states.
   - Done when: lifecycle golden tests.
+  - Status: datagen `tools/datagen/.../FruitFamilies.java` writes `craftengine/tfp/families/fruit_tree.yml` (checked-in content verified with `verifyContent`): 8 `FruitBlocks.Tree` species × 5 kinds = 40 blocks (`leaves`, `branch`, `growing_branch`, `sapling`, `potted_sapling`; 16 with a block item: leaves and saplings; banana is a separate plant, left out). Kinds and paths are parsed from `TFCBlocks` and every blockstate is checked. Tests: `FruitFamiliesTest` (7: real checkout species, kind order, item flags, 40 paths, YAML; refused on missing source, blocks source, registration, empty enum, blockstate). Open: the CE block entries and visuals, the block logic and growth glue (lifecycle golden tests), the fruit food items, the GUI tables.
 
 ## Content completion
 
