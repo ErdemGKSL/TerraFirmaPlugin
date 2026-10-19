@@ -134,3 +134,4 @@ M6:
 - [ ] **M6-ADV-01 kalan.** Paper tetikleyici ve ödül bağlantısı, oyun içi bildirim (toast veya mesaj), ölçütlerin özelliklere eşlenmesi, yerelleştirme anahtarları, GUI.
 - [ ] **M6-CMD-01 kalan.** `/tfp` altında Brigadier kaydı (`tfc` kökü `tfp` olur), yetki kontrolleri (seviye 2), dünya erişimi (yüzey yükseklikleri, blok sınıflandırma).
 - [ ] **M6-GUIDE-01 kalan.** Kitap görünümü veya GUI (biçim açık), diğer diller, Paper öğe ve blok bağlantıları, CE kitap öğesi, sayfa çizimi.
+- Regression run, 2026-10-19 (not a new feature): HEAD 4df5ee4, `:itest:runSelfTest -Pmc=1.21.11 -Pplatform=paper` on Paper 1.21.11-132, Java 25.0.4.1: 16 cases, 15 passed, 0 failed, 1 skipped (inst.profile_restart, needs a second start in the same run dir, so not verified). SELFTEST_EXIT=0. Report: itest/build/selftest-run/paper-1.21.11/selftest-report.xml.
