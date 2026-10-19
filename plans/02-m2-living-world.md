@@ -157,10 +157,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` in the pinned TFC checko
   - Do: JMH per-chunk pipeline at N threads; pre-generate 10k chunks under spark; count exposed gem faces per chunk (validates the `level-2` overlay cost).
   - Done when: budgets are recorded in `docs/perf/`, and the overlay decision is confirmed or adjusted.
 
-- [ ] **M2-GEN-16 Spawn & world settings** · deps: M2-GEN-07
+- [~] **M2-GEN-16 Spawn & world settings** · deps: M2-GEN-07
   - TFC: `world/settings/`, `world/TFCWorldGen.java`, world preset JSON
   - Do: spawn selection (TFC spawn distance/climate), world settings config (rock layer settings, temperature/rainfall scales), vanilla structures disabled.
   - Done when: new worlds spawn players per TFC rules.
+  - Status (@claude): constants verified. `core/src/test/java/dev/tfp/core/worldgen/SpawnSettingsGoldenTest` (3 tests green) checks the Java constants against `core/src/test/resources/dev/tfp/core/worldgen/spawn_settings.tsv` (TFC preset values and the spawn search constants, each with its file and line at c3b4d9536): spawn distance 4000, spawn centre 0/0, temperature and rainfall scale 20000 with constants 0, continentalness 0.5, finite continents false, sea level 63. Gaps (open, `spawn_settings_open_gaps.txt`, no Java constant): flat bedrock, grass density, the spawn search step divisor (256), the spiral tries (1024) and the column window (16). The spawn search itself is golden-tested in `SpawnSearchGoldenTest`. Still open: the server spawn check with the offset, the gamerule and world preset glue on Paper, the spawn doc, vanilla structures off on Paper.
 
 ## Exit criteria
 TFC-like world on all targets. Maps rendered from our worldgen match TFC for test seeds. Seasons visibly change colours and weather. The worldgen JMH budget is recorded. Ledger rows for calendar, climate and worldgen are `playable`.
