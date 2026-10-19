@@ -46,6 +46,7 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Every task
   - TFC: `common/component/heat/` (`HeatComponent`, `HeatCapability`), data `item_heat/`; test `HeatingItemTest`
   - Do: lazy heat (`lastTemperature` + `lastTick`), heat transfer to containers. Tooltip line + heat glow via `custom_model_data` floats in outgoing packets (`range_dispatch` item models). Burn damage on holding very hot items.
   - Done when: ported `HeatingItemTest` + golden cooling curves; glow visual check.
+  - Status (c3b4d9536): TFC `HeatingItemTest` has one case, `testCookMeat`; its pure part is ported as `testCookMeatSetMaxVisibleTemperatureReadsBack` and `testCookMeatMaxVisibleIsTheTopLevel` in `core/src/test/java/dev/tfp/core/heat/HeatingItemTfcTest.java` (2 passing, no failures), left out are the raw-meat tag loop, the heat-capability check on the item stack and `HeatingRecipe.getRecipe`, which need the item registry and recipes. Golden cooling curves are already in `HeatGoldenTest`.
   - Status (c3b4d9536): pure rules ported and golden-tested in `core/.../core/heat/` (`HeatState`, `HeatConfig`, `HeatLevel`; 193 golden rows, lazy-vs-stepped, rules). Still open: item PDC for the heat state, the CraftEngine heat visual (`range_dispatch` glow) and the tooltip, transfer to containers, burn damage, and `HeatingItemTest` (TFC's test checks meat heating recipes through registries, so it belongs in the in-server self-test, not core).
 
 - [~] **M3-HEAT-02 Fuels & fire starting** · deps: M3-HEAT-01
