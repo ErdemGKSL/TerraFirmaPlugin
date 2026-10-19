@@ -11,7 +11,10 @@ if ! xdpyinfo -display "$DISP" > /dev/null 2>&1; then
   sleep 2
 fi
 mkdir -p "$GD"; rm -f "$GD/logs/latest.log"
-python3 "$HERE/mcclient.py" launch "$VER" --server "localhost:$PORT" --game-dir "$GD" --display "$DISP" | tail -1 > "$GD/client.pid"
+# MC_OPTIONS="lang:tr_tr fov:90" sets options.txt keys (launch rewrites the file, so a hand-made options.txt is lost).
+OPTS=()
+for o in ${MC_OPTIONS:-}; do OPTS+=(--option "$o"); done
+python3 "$HERE/mcclient.py" launch "$VER" --server "localhost:$PORT" --game-dir "$GD" --display "$DISP" ${OPTS[@]+"${OPTS[@]}"} | tail -1 > "$GD/client.pid"
 # Wait for the join (server side) - the resource pack is auto-accepted via servers.dat.
 for i in $(seq 1 120); do
   out=$(python3 "$HERE/rcon.py" $((PORT+10)) list 2>/dev/null || true)
