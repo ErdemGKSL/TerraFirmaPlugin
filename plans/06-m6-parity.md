@@ -6,10 +6,11 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted.
 
 ## Mechanical power
 
-- [ ] **M6-MECH-01 Rotation network solver** · deps: M1-THR-03 · skills: paper-folia-threading, tfc-feature-porting
+- [~] **M6-MECH-01 Rotation network solver** · deps: M1-THR-03 · skills: paper-folia-threading, tfc-feature-porting
   - TFC: `util/rotation/` (`RotationNetwork`, `RotationNetworkManager`, nodes); test `RotationNetworkTest`
   - Do: port to `core`; recompute networks via the async decision pipeline on topology changes; split networks per region safely on Folia.
   - Done when: `RotationNetworkTest` ported and green; Folia stress self-test.
+  - Status: ported to `core/rotation` (`NodeKind`, `Rotation`, `RotationNode`, `RotationNetworks`: load, addSource, add, update, remove, setSourceSpeed and the queries; `SourceSpeed.ramp`). Verified against TFC at c3b4d9536: shaft BFS and axle speed/hand (`RotationNetwork.java` 140-185, `AxleNode.java` 29-37), gearbox same-axis and perpendicular (`GearBoxBlockEntity.java` 60-70), gear chain, axle limit of five (`AxleNode.java` 21, 42-46), two sources and the conflict (`RotationNetworkManager.java` 69-96), stalled network (`Node.java` 82-86), disconnected node (`RotationNetworkManager.java` 143-151), cycle handedness check (`RotationNetwork.java` 90-101), water wheel ramp (`WaterWheelBlockEntity.java` 77-79). TFC `RotationNetworkTest`: 24 straight-line and manager cases ported with a passthrough axle. Tests (green): `RotationGoldenTest` 10, `RotationNetworkManagerPortTest` 24, `RotationDeterminismTest` 1, `SourceSpeedTest` 1. Open: the four cycle cases of `RotationNetworkTest` (need a five-face passthrough and a perpendicular inverter, not a production kind); the block and block-entity glue (`RotatingBlockEntity`, `NetworkAction`, axle, gearbox, clutch, sources, sinks); the Paper network update trigger and region threading (decide async, apply sync, split per region on Folia); CraftEngine shaft and gear visuals and models; the GUI and readout (`RotationDisplayStyle`, `BlockEntityTooltips`). TFC has no torque, stall or gear ratio at this commit, so none is ported.
 
 - [ ] **M6-MECH-02 Power sources & transmission** · deps: M6-MECH-01 · skills: craftengine-gui-furniture
   - TFC: `common/blocks/rotation/`, `common/blockentities/rotation/` (axle, encased axle, clutch, gearbox, water wheel, windmill, crankshaft)
