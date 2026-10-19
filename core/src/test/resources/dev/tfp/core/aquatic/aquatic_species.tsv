@@ -1,0 +1,38 @@
+# TFC c3b4d9536 src/generated/resources/data/tfc: the 32 aquatic species (16 fish of tfc:small_fish, 8 small and
+# critter species of the water tags, 8 large aquatic or amphibious mobs). One row per species, from tfc/fauna/<species>.json and
+# the entity_type tags. Blank field = key absent from the JSON (TFC default). months = number of months listed.
+# entity_tags = the tags of the species' tfc:entity_type folder that list it, '-' if none.
+# Rows: 32. Fauna files: 32 (each species has one).
+species	entity	fauna_file	chance	distance_below_sea_level	min_temperature	max_temperature	min_groundwater	max_groundwater	max_brightness	ignore_rivers	months	entity_tags
+bluegill	tfc:bluegill	true			-10.0	15.0				true	6	small_fish
+crappie	tfc:crappie	true			-10.0	20.0				true	6	small_fish
+lake_trout	tfc:lake_trout	true			-5.0	15.0	250.0			true	6	small_fish
+largemouth_bass	tfc:largemouth_bass	true			-14.0	16.0	200.0	500.0		true	6	small_fish
+rainbow_trout	tfc:rainbow_trout	true			-12.0	10.0	150.0			true	6	small_fish
+salmon	tfc:salmon	true			-8.0	12.0	250.0	500.0		true	6	small_fish
+smallmouth_bass	tfc:smallmouth_bass	true			-14.0	16.0	0.0	300.0		true	6	small_fish
+northern_pike	tfc:northern_pike	true			-14.0	-5.0	150.0	400.0		true	6	small_fish
+burbot	tfc:burbot	true			-16.0	-9.0	0.0	350.0		true	6	small_fish
+arctic_char	tfc:arctic_char	true			-20.0	-8.0	150.0	400.0		true	6	small_fish
+muksun	tfc:muksun	true			-20.0	-10.0	250.0	500.0		true	6	small_fish
+tilapia	tfc:tilapia	true			10.0	32.0	0.0	300.0		true	6	small_fish
+spotted_gudgeon	tfc:spotted_gudgeon	true			6.0	24.0	0.0	250.0		true	6	small_fish
+peacock_bass	tfc:peacock_bass	true			12.0	25.0	200.0	400.0		true	6	small_fish
+pacu	tfc:pacu	true			20.0	35.0	200.0	500.0		true	6	small_fish
+red_piranha	tfc:red_piranha	true			22.0	35.0	300.0	500.0		true	6	small_fish
+cod	tfc:cod	true		5		18.0					0	small_fish
+tropical_fish	tfc:tropical_fish	true		3	18.0						0	small_fish
+pufferfish	tfc:pufferfish	true		3	10.0						0	small_fish
+jellyfish	tfc:jellyfish	true		3	18.0						0	bubble_column_immune,water_ambient
+isopod	tfc:isopod	true		20		14.0					0	bubble_column_immune,caught_in_lobster_traps,water_ambient
+lobster	tfc:lobster	true		1		21.0					0	bubble_column_immune,caught_in_lobster_traps,water_ambient
+crayfish	tfc:crayfish	true		2	5.0		125.0				0	caught_in_lobster_traps,water_ambient
+horseshoe_crab	tfc:horseshoe_crab	true		1	10.0	21.0		400.0			0	bubble_column_immune,caught_in_lobster_traps,water_ambient
+dolphin	tfc:dolphin	true	10	6	10.0		200.0				0	bubble_column_immune,needs_large_fishing_bait,ocean_predators,turtle_friends,water_creatures
+orca	tfc:orca	true	10	6		19.0	100.0				0	bubble_column_immune,needs_large_fishing_bait,ocean_predators,water_creatures
+manatee	tfc:manatee	true	10	3	20.0		300.0				0	water_creatures
+squid	tfc:squid	true		15							0	bubble_column_immune,water_creatures
+octopoteuthis	tfc:octopoteuthis	true		33					0		0	bubble_column_immune,water_creatures
+turtle	tfc:turtle	true			21.0		250.0				0	water_creatures
+penguin	tfc:penguin	true				-11.0	75.0				0	bird_prey,hunted_by_ocean_predators,spawns_on_cold_blocks,water_creatures
+leopard_seal	tfc:leopard_seal	true				-9.0	105.0				0	hunted_by_ocean_predators,spawns_on_cold_blocks,water_creatures
