@@ -135,14 +135,34 @@ class ItemHeatHooksMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void theFirstClickHeatsOneStepAndTheNextOneCatchesUpThePause() {
+        AtomicLong now = new AtomicLong(1_000L);
+        ItemHeater heater = new ItemHeater(now::get, CFG, stack -> stack.getType() == Material.COPPER_INGOT ? 2.857143f : 0f);
+        ItemStack copper = new ItemStack(Material.COPPER_INGOT);
+
+        float first = heater.catchUp(copper, 933.3f, 1_000L, 3f).orElseThrow();
+        assertThat(first).as("the first click: one step").isCloseTo(0.98f, org.assertj.core.api.Assertions.within(0.01f));
+        assertThat(HeatPdc.read(copper)).isPresent();
+
+        now.set(1_200L);
+        float second = heater.catchUp(copper, 933.3f, 1_000L, 3f).orElseThrow();
+        assertThat(second).as("200 ticks after the first click").isCloseTo(0.98f + 200 * 0.98f,
+            org.assertj.core.api.Assertions.within(0.5f));
+    }
+
+    @Test
     void aCatchUpHeatsOncePerTickSinceTheSourceWasOnAndCapsAtTheTarget() {
         AtomicLong now = new AtomicLong(1_000L);
         ItemHeater heater = new ItemHeater(now::get, CFG, stack -> stack.getType() == Material.COPPER_INGOT ? 2.857143f : 0f);
         ItemStack copper = new ItemStack(Material.COPPER_INGOT);
-        // 100 ticks on the forge at 500 C from a cold ingot: one step per tick, 0.98 C each (the same as 100 single steps).
+        // A cold ingot at 500 C: the first click (tick 1000) heats one step, and 100 ticks later the pause is caught up
+        // with one step per tick, capped at the source temperature.
+        float first = heater.catchUp(copper, 500f, 1_000L, 3f).orElseThrow();
+        assertThat(first).isCloseTo(0.98f, org.assertj.core.api.Assertions.within(0.01f));
         now.set(1_100L);
         float caught = heater.catchUp(copper, 500f, 1_000L, 3f).orElseThrow();
-        assertThat(caught).as("100 ticks of heating").isCloseTo(98f, org.assertj.core.api.Assertions.within(0.1f));
+        assertThat(caught).as("100 ticks of heating after the first click")
+            .isCloseTo(0.98f + 100 * 0.98f, org.assertj.core.api.Assertions.within(0.5f));
         now.set(1_000L + 1_000_000L);
         caught = heater.catchUp(copper, 500f, 1_000L, 3f).orElseThrow();
         assertThat(caught).as("capped at the source temperature").isEqualTo(500f);

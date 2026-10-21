@@ -65,7 +65,13 @@ public final class ItemHeater {
         long tick = now.getAsLong();
         // A stack without a record starts cold at the tick the source came on; with a record, the later of the record and
         // that tick is where the source's time on the item starts.
-        HeatState state = HeatPdc.read(stack).orElseGet(() -> HeatState.cold(sinceTick));
+        Optional<HeatState> record = HeatPdc.read(stack);
+        if (record.isEmpty()) {
+            // The first click on an item: one heating step now, the record starts at this tick.
+            HeatState first = HeatState.cold(tick).heat(target, modifier, tick, capacity, config);
+            return HeatPdc.write(stack, first) ? Optional.of(first.temperature()) : Optional.empty();
+        }
+        HeatState state = record.get();
         long from = Math.max(state.lastTick(), sinceTick);
         if (tick <= from) {
             return Optional.of(state.temperatureAt(tick, capacity, config));
