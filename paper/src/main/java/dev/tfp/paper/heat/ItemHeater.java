@@ -44,6 +44,11 @@ public final class ItemHeater {
         return heatToward(stack, target, HeatState.DEFAULT_HEAT_MODIFIER);
     }
 
+    /** The current calendar tick (the clock every heat record is stamped with). */
+    public long now() {
+        return now.getAsLong();
+    }
+
     /**
      * The heating a source applies to a held item over {@code ticks} calendar ticks while it stays at {@code target}
      * (TFC heats once per tick, so a click that comes after a pause catches up the pause): the same step as

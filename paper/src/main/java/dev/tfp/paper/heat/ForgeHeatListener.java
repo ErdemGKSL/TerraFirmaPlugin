@@ -6,6 +6,7 @@
 package dev.tfp.paper.heat;
 
 import dev.tfp.core.charcoalforge.CharcoalForgeRules;
+import dev.tfp.core.heat.HeatState;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
 import java.util.Objects;
@@ -73,7 +74,11 @@ public final class ForgeHeatListener implements Listener {
         if (level.isEmpty() || level.get() <= 0) {
             return;
         }
-        if (h.heatToward(held, CharcoalForgeRules.levelTemperature(level.get())).isPresent()) {
+        // Catch-up: an item that has no record starts at the tick the forge was last clicked for it, so a pause between
+        // clicks is not heated for. Approximation: TFC heats every tick the forge burns, which needs a forge block entity.
+        long since = h.now();
+        if (h.catchUp(held, CharcoalForgeRules.levelTemperature(level.get()), since, HeatState.DEFAULT_HEAT_MODIFIER)
+                .isPresent()) {
             event.getPlayer().getInventory().setItemInMainHand(held);
             event.setUseInteractedBlock(Event.Result.DENY);
             event.setUseItemInHand(Event.Result.DENY);
