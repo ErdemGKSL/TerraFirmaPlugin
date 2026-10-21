@@ -152,7 +152,7 @@ public final class AssetPipeline {
                 modelQueue.add("item/" + id);
                 Map<String, Object> args = new LinkedHashMap<>();
                 args.put("item_lang_key", langKey("item", id));
-                args.put("material", tier.vanillaTool() + "_" + kind);
+                args.put("material", tier.vanillaTool() + "_" + VANILLA_BASE.getOrDefault(kind, kind));
                 args.put("durability", tier.uses());
                 args.put("speed", tier.speed());
                 args.put("break_power", tier.level());
@@ -196,12 +196,16 @@ public final class AssetPipeline {
     }
 
     /**
-     * The metal tool kinds emitted as mining tools, with the vanilla block tag each mines faster. The other tools (hammer,
-     * saw, knife, chisel, scythe, propick, javelin, sword, mace) are our own behaviours and wait for M4-TOOL-02.
+     * The metal tool kinds emitted as mining tools, with the vanilla block tag each mines faster. Knife, scythe and hammer use our
+     * own block tags (tfp:mineable/*). The other tools (saw, chisel, propick, javelin, sword, mace) are our own behaviours and wait for M4-TOOL-02.
      */
     static final Map<String, String> METAL_TOOL_KINDS = Map.of(
         "pickaxe", "minecraft:mineable/pickaxe", "axe", "minecraft:mineable/axe",
-        "shovel", "minecraft:mineable/shovel", "hoe", "minecraft:mineable/hoe");
+        "shovel", "minecraft:mineable/shovel", "hoe", "minecraft:mineable/hoe",
+        "knife", "tfp:mineable/knife", "scythe", "tfp:mineable/scythe", "hammer", "tfp:mineable/hammer");
+
+    /** The vanilla tool each non-vanilla kind is rendered as (hand pose, enchantability). */
+    private static final Map<String, String> VANILLA_BASE = Map.of("knife", "hoe", "scythe", "hoe", "hammer", "pickaxe");
 
     /** Metal weapon kinds with TFC's damage factor ({@code Metal.java tool(metal, factor, speed)}). */
     static final Map<String, BigDecimal> METAL_WEAPON_KINDS = Map.of(
