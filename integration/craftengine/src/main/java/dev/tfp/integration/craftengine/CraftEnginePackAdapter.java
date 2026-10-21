@@ -30,6 +30,7 @@ import net.momirealms.craftengine.core.pack.allocator.BlockStateCandidate;
 import net.momirealms.craftengine.core.pack.allocator.VisualBlockStateAllocator;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
+import org.bukkit.Bukkit;
 
 /**
  * M1-INST-03 on CraftEngine: the pack rebuild ({@link PackRebuilder}) and the solid-pool counts
@@ -105,6 +106,12 @@ final class CraftEnginePackAdapter implements PackRebuilder, VisualPools {
         ce.reloadPlugin(ce.scheduler().async(), r -> ce.scheduler().platform().run(r), true, true, true, false)
                 .thenAcceptAsync(result -> {
                     if (!result.success()) {
+                        out.complete(false);
+                        return;
+                    }
+                    // Shutdown race: the reload can finish while the server stops, after CraftEngine closed the
+                    // pack zip; triggering the workflows then only throws "zip file closed". Skip quietly.
+                    if (!ctx.plugin().isEnabled() || Bukkit.isStopping()) {
                         out.complete(false);
                         return;
                     }
