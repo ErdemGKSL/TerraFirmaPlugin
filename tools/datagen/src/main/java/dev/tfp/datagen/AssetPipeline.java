@@ -65,6 +65,8 @@ public final class AssetPipeline {
     private final Set<String> metalItems = new TreeSet<>();
     /** Metal mining tools ({@code metal/<kind>/<metal>}) with the arguments of {@code tfp:item/tool}. */
     private final Map<String, Map<String, Object>> metalTools = new TreeMap<>();
+    /** Metal weapons ({@code metal/<kind>/<metal>}) with the arguments of {@code tfp:item/weapon}. */
+    private final Map<String, Map<String, Object>> metalWeapons = new TreeMap<>();
     /** TFC's tiers, read on the first metal tool model (a checkout without tools never reads them). */
     private Map<String, Tier> tierCache;
     /** Appearance demand of every emitted block, in emission order (input of the visual allocator). */
@@ -159,6 +161,27 @@ public final class AssetPipeline {
                 metalTools.put(id, args);
             }
         });
+        // Metal weapons: attack damage only (the attack speed is not verified yet).
+        METAL_WEAPON_KINDS.forEach((kind, factor) -> {
+            for (String f : tfc.list(TfcCheckout.ASSETS + "models/item/metal/" + kind + "/")) {
+                if (!f.endsWith(".json")) {
+                    continue;
+                }
+                String metal = f.substring(f.lastIndexOf('/') + 1, f.length() - 5);
+                Tier tier = tiers().get(metal);
+                if (tier == null) {
+                    throw new DatagenException("metal weapon " + kind + "/" + metal + " has no tier in " + TIERS_SOURCE);
+                }
+                String id = "metal/" + kind + "/" + metal;
+                modelQueue.add("item/" + id);
+                Map<String, Object> args = new LinkedHashMap<>();
+                args.put("item_lang_key", langKey("item", id));
+                args.put("damage", weaponDamageModifier(tier.damage(), factor));
+                args.put("durability", tier.uses());
+                args.put("break_power", tier.level());
+                metalWeapons.put(id, args);
+            }
+        });
         while (!modelQueue.isEmpty()) {
             model(modelQueue.poll());
         }
@@ -166,10 +189,10 @@ public final class AssetPipeline {
 
     static final String TIERS_SOURCE = "src/main/java/net/dries007/tfc/common/TFCTiers.java";
     private static final Pattern TIER = Pattern.compile(
-        "create\\(\"(\\w+)\", BlockTags\\.INCORRECT_FOR_(\\w+)_TOOL, (\\d+), (\\d+), ([\\d.]+)f, [\\d.]+f, \\d+\\)");
+        "create\\(\"(\\w+)\", BlockTags\\.INCORRECT_FOR_(\\w+)_TOOL, (\\d+), (\\d+), ([\\d.]+)f, ([\\d.]+)f, \\d+\\)");
 
     /** One TFC tool tier: the level, the uses, the mining speed and the vanilla tool material it is rendered as. */
-    record Tier(int level, int uses, BigDecimal speed, String vanillaTool) {
+    record Tier(int level, int uses, BigDecimal speed, String vanillaTool, BigDecimal damage) {
     }
 
     /**
@@ -179,6 +202,18 @@ public final class AssetPipeline {
     static final Map<String, String> METAL_TOOL_KINDS = Map.of(
         "pickaxe", "minecraft:mineable/pickaxe", "axe", "minecraft:mineable/axe",
         "shovel", "minecraft:mineable/shovel", "hoe", "minecraft:mineable/hoe");
+
+    /** Metal weapon kinds with TFC's damage factor ({@code Metal.java tool(metal, factor, speed)}). */
+    static final Map<String, BigDecimal> METAL_WEAPON_KINDS = Map.of(
+        "sword", new BigDecimal("1.0"), "mace", new BigDecimal("1.3"));
+
+    /**
+     * The attack_damage modifier amount for TFC damage tier x factor. A CE item with attribute_modifiers replaces the
+     * vanilla base damage, so the in-game damage is 1 + amount (verified): amount = damage - 1.
+     */
+    static BigDecimal weaponDamageModifier(BigDecimal tierDamage, BigDecimal factor) {
+        return tierDamage.multiply(factor).subtract(BigDecimal.ONE);
+    }
 
     /** TFC's tiers by metal name. The vanilla material follows the tier's {@code INCORRECT_FOR_*} tag (netherite as diamond: no fire resistance). */
     private Map<String, Tier> tiers() {
@@ -197,7 +232,7 @@ public final class AssetPipeline {
                 default -> throw new DatagenException(TIERS_SOURCE + ": unknown tier tag INCORRECT_FOR_" + m.group(2) + "_TOOL");
             };
             out.put(m.group(1), new Tier(Integer.parseInt(m.group(3)), Integer.parseInt(m.group(4)),
-                new BigDecimal(m.group(5)), vanilla));
+                new BigDecimal(m.group(5)), vanilla, new BigDecimal(m.group(6))));
         }
         if (out.isEmpty()) {
             throw new DatagenException(TIERS_SOURCE + " has no tiers (the format changed?)");
@@ -431,6 +466,10 @@ public final class AssetPipeline {
         metalTools.forEach((id, args) -> {
             requireItemModel(id);
             metal.items.put(Json.TO_NS + ":" + id, CeBlockStates.call("tfp:item/tool", args));
+        });
+        metalWeapons.forEach((id, args) -> {
+            requireItemModel(id);
+            metal.items.put(Json.TO_NS + ":" + id, CeBlockStates.call("tfp:item/weapon", args));
         });
         metal.write("metal");
         reportSkipped();
