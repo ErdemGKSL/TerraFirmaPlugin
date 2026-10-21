@@ -47,4 +47,18 @@ class MetalWeaponsTest {
         assertThat(metal).contains("tfp:metal/knife/copper:", "tfp:metal/scythe/copper:", "tfp:metal/hammer/copper:",
             "template: tfp:item/tool", "durability: 600", "mineable_tag: tfp:mineable/hammer", "tool_tag: tfp:tools/knife");
     }
+
+    @Test
+    void emitsSawAsAnAxeMiningToolFromTheRealCheckout() {
+        Path path = Path.of(System.getProperty("tfc.checkout", "/opt/tfc"));
+        Assumptions.assumeTrue(Files.isDirectory(path.resolve(".git")), "no TFC checkout at " + path);
+        Assumptions.assumeTrue(TfcCheckout.PINNED_COMMIT.equals(TfcCheckout.resolveHead(path)), "not at the pinned commit");
+        var files = Datagen.generate(path, TfcCheckout.PINNED_COMMIT).tree().files();
+        String metal = files.entrySet().stream().filter(e -> e.getKey().endsWith("/metal.yml"))
+            .map(e -> new String(e.getValue(), StandardCharsets.UTF_8)).findFirst().orElseThrow();
+        int at = metal.indexOf("tfp:metal/saw/copper:");
+        assertThat(at).isGreaterThanOrEqualTo(0);
+        String entry = metal.substring(at, Math.min(metal.length(), at + 600));
+        assertThat(entry).contains("template: tfp:item/tool", "durability: 600", "mineable_tag: minecraft:mineable/axe");
+    }
 }
