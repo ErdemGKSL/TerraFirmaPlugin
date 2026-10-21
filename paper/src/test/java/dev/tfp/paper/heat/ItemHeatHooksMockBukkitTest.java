@@ -135,6 +135,18 @@ class ItemHeatHooksMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void aClickAfterAPauseCatchesUpFromTheRecordWithoutAStartTick() {
+        AtomicLong now = new AtomicLong(700L);
+        ItemHeater heater = new ItemHeater(now::get, CFG, stack -> stack.getType() == Material.COPPER_INGOT ? 2.857143f : 0f);
+        ItemStack copper = new ItemStack(Material.COPPER_INGOT);
+        heater.catchUp(copper, 933.3f, Long.MIN_VALUE, 3f).orElseThrow();
+        now.set(1_000L);
+        float caught = heater.catchUp(copper, 933.3f, Long.MIN_VALUE, 3f).orElseThrow();
+        assertThat(caught).as("300 ticks after the record").isCloseTo(0.98f + 300 * 0.98f,
+            org.assertj.core.api.Assertions.within(0.5f));
+    }
+
+    @Test
     void theFirstClickHeatsOneStepAndTheNextOneCatchesUpThePause() {
         AtomicLong now = new AtomicLong(1_000L);
         ItemHeater heater = new ItemHeater(now::get, CFG, stack -> stack.getType() == Material.COPPER_INGOT ? 2.857143f : 0f);

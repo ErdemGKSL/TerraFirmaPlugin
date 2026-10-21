@@ -76,8 +76,8 @@ public final class ForgeHeatListener implements Listener {
         }
         // Catch-up: an item that has no record starts at the tick the forge was last clicked for it, so a pause between
         // clicks is not heated for. Approximation: TFC heats every tick the forge burns, which needs a forge block entity.
-        long since = h.now();
-        if (h.catchUp(held, CharcoalForgeRules.levelTemperature(level.get()), since, HeatState.DEFAULT_HEAT_MODIFIER)
+        // The record's own tick is where the item's heating last stopped: no source start is needed for a stored item.
+        if (h.catchUp(held, CharcoalForgeRules.levelTemperature(level.get()), Long.MIN_VALUE, HeatState.DEFAULT_HEAT_MODIFIER)
                 .isPresent()) {
             event.getPlayer().getInventory().setItemInMainHand(held);
             event.setUseInteractedBlock(Event.Result.DENY);
