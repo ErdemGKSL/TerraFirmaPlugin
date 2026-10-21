@@ -135,6 +135,20 @@ class ItemHeatHooksMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void aCatchUpHeatsOncePerTickSinceTheSourceWasOnAndCapsAtTheTarget() {
+        AtomicLong now = new AtomicLong(1_000L);
+        ItemHeater heater = new ItemHeater(now::get, CFG, stack -> stack.getType() == Material.COPPER_INGOT ? 2.857143f : 0f);
+        ItemStack copper = new ItemStack(Material.COPPER_INGOT);
+        // 100 ticks on the forge at 500 C from a cold ingot: one step per tick, 0.98 C each (the same as 100 single steps).
+        now.set(1_100L);
+        float caught = heater.catchUp(copper, 500f, 1_000L, 3f).orElseThrow();
+        assertThat(caught).as("100 ticks of heating").isCloseTo(98f, org.assertj.core.api.Assertions.within(0.1f));
+        now.set(1_000L + 1_000_000L);
+        caught = heater.catchUp(copper, 500f, 1_000L, 3f).orElseThrow();
+        assertThat(caught).as("capped at the source temperature").isEqualTo(500f);
+    }
+
+    @Test
     void aHeatSourceDoesNotOverwriteANewerVersionRecord() {
         ItemHeater heater = new ItemHeater(() -> 5L, CFG, ItemHeatHooks.Capacities.UNIT);
         ItemStack stack = ingot();
