@@ -14,7 +14,11 @@ for t in $TARGETS; do
   code=$?
   # Anything that looks like a real problem; known-harmless lines are filtered out.
   errors=$(grep -E "ERROR|Exception|SEVERE|not owned by|Thread failed main thread check" "logs/$t.log" \
-    | grep -vE "Failed to parse packetevents version|api.github.com|Failed to load eula|EULA" | wc -l)
+    | grep -vE "Failed to parse packetevents version|api.github.com|Failed to load eula|EULA" \
+    | grep -vE "Thread-0 failed main thread check: Chunk getEntities call|Asynchronous Chunk getEntities call|Could not pass event ServerPreShutdownEvent to CraftEngine" | wc -l)
+  # CraftEngine's furniture manager calls World.getEntities on Thread-0 when the JVM shuts down before startup finished
+  # (a signal or the timeout above during startup). Reproduced with no TFP jar: CraftEngine's bug, counted on its own.
+  ce_early_stop=$(grep -cE "Asynchronous Chunk getEntities call" "logs/$t.log")
   result=$(grep '^result=' "run/$dir/spike-report.txt" 2>/dev/null || echo "result=NO_REPORT")
-  echo "$t exit=$code $result error_lines=$errors"
+  echo "$t exit=$code $result error_lines=$errors ce_early_stop=$ce_early_stop"
 done
