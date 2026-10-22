@@ -4,7 +4,7 @@ title: "Snow piles, ice piles, icicles and sea ice as CraftEngine blocks"
 area: CLIMATE
 status: open
 wave: 13
-deps: [PAR-CLIM-03, PAR-INFRA-08]
+deps: [PAR-CLIM-03, PAR-INFRA-08, PAR-INFRA-13]
 size: M
 aliases: ["M2-WTH-03", "M2-SEA-02 (sea ice)"]
 tfc_refs:

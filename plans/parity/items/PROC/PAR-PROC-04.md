@@ -4,7 +4,7 @@ title: "Quern: block, handstone, grinding, GUI-less interaction"
 area: PROC
 status: open
 wave: 7
-deps: [PAR-INFRA-02, PAR-INFRA-06]
+deps: [PAR-INFRA-02, PAR-INFRA-06, PAR-INFRA-13]
 size: M
 aliases: ["M3-PROC-01"]
 tfc_refs:

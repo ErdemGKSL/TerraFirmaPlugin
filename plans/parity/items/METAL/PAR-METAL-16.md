@@ -4,7 +4,7 @@ title: "Ingot and double-ingot piles"
 area: METAL
 status: open
 wave: 36
-deps: [PAR-INFRA-02, PAR-INFRA-08]
+deps: [PAR-INFRA-02, PAR-INFRA-08, PAR-INFRA-13]
 size: M
 aliases: ["M4-INGOT-01"]
 tfc_refs:

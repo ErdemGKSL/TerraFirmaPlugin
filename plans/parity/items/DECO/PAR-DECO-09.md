@@ -4,7 +4,7 @@ title: "Metal decoration blocks: metal blocks (and weathered), bars, chains, gra
 area: DECO
 status: open
 wave: 47
-deps: [PAR-DECO-01]
+deps: [PAR-DECO-01, PAR-INFRA-13]
 size: M
 aliases: ["M6-DECO-03"]
 tfc_refs:

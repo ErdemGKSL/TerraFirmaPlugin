@@ -4,7 +4,7 @@ title: "Wood blocks: logs, wood, stripped, leaves, saplings as CE blocks"
 area: WORLD
 status: open
 wave: 21
-deps: [PAR-INFRA-08]
+deps: [PAR-INFRA-08, PAR-INFRA-13]
 size: M
 aliases: ["M2-GEN-12 (blocks)"]
 tfc_refs:

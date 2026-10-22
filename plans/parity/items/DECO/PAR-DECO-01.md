@@ -4,7 +4,7 @@ title: "Wood families loaded in CraftEngine: planks, stairs, slabs, fences, wall
 area: DECO
 status: open
 wave: 40
-deps: [PAR-WORLD-10]
+deps: [PAR-WORLD-10, PAR-INFRA-13]
 size: M
 aliases: ["M6-DECO-01"]
 tfc_refs:

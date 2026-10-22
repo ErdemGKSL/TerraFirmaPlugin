@@ -4,7 +4,7 @@ title: "Barrel block: fluids, sealing, sealed and instant recipes, preservation"
 area: PROC
 status: open
 wave: 9
-deps: [PAR-INFRA-02, PAR-INFRA-04, PAR-INFRA-06, PAR-FLUID-01]
+deps: [PAR-INFRA-02, PAR-INFRA-04, PAR-INFRA-06, PAR-FLUID-01, PAR-INFRA-13]
 size: M
 aliases: ["M3-PROC-03"]
 tfc_refs:

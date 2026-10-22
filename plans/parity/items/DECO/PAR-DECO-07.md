@@ -4,7 +4,7 @@ title: "Mud bricks, alabaster, aggregate, fire bricks, wattle and daub, thatch"
 area: DECO
 status: open
 wave: 47
-deps: [PAR-DECO-01]
+deps: [PAR-DECO-01, PAR-INFRA-13]
 size: M
 aliases: ["M6-DECO-02 (mud)"]
 tfc_refs:

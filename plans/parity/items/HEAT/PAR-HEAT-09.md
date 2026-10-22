@@ -4,7 +4,7 @@ title: "Cooking pot on firepit: boiling, soups and jams, pot fluid, GUI"
 area: HEAT
 status: open
 wave: 15
-deps: [PAR-HEAT-07, PAR-INFRA-04]
+deps: [PAR-HEAT-07, PAR-INFRA-04, PAR-INFRA-13]
 size: M
 aliases: ["M3-HEAT-03 (pot)"]
 tfc_refs:

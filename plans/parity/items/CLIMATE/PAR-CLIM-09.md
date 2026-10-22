@@ -4,7 +4,7 @@ title: "Climate instruments: thermometer, anemometer, vane, calendar clock"
 area: CLIMATE
 status: open
 wave: 34
-deps: [PAR-INFRA-02, PAR-INFRA-08]
+deps: [PAR-INFRA-02, PAR-INFRA-08, PAR-INFRA-13]
 size: M
 aliases: []
 tfc_refs:

@@ -4,7 +4,7 @@ title: "Groundcover, loose rocks, deposits and boulders as CE blocks in generati
 area: WORLD
 status: open
 wave: 20
-deps: [PAR-INFRA-08]
+deps: [PAR-INFRA-08, PAR-INFRA-13]
 size: M
 aliases: ["M2-GEN-11"]
 tfc_refs:

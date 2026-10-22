@@ -4,7 +4,7 @@ title: "Rock families: bricks, cobble, smooth, stairs, slabs, walls, aqueducts, 
 area: DECO
 status: open
 wave: 46
-deps: [PAR-DECO-01, PAR-INFRA-10]
+deps: [PAR-DECO-01, PAR-INFRA-10, PAR-INFRA-13]
 size: M
 aliases: ["M6-DECO-02 (rock)"]
 tfc_refs:

@@ -4,7 +4,7 @@ title: "Support beams: blocks, connections, collapse prevention"
 area: PHYS
 status: open
 wave: 22
-deps: [PAR-INFRA-10, PAR-WORLD-10]
+deps: [PAR-INFRA-10, PAR-WORLD-10, PAR-INFRA-13]
 size: M
 aliases: ["M3-PHYS-03"]
 tfc_refs:

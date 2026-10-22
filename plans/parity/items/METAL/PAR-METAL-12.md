@@ -4,7 +4,7 @@ title: "Crucible block and GUI"
 area: METAL
 status: open
 wave: 33
-deps: [PAR-INFRA-03, PAR-INFRA-02, PAR-METAL-01, PAR-HEAT-04]
+deps: [PAR-INFRA-03, PAR-INFRA-02, PAR-METAL-01, PAR-HEAT-04, PAR-INFRA-13]
 size: M
 aliases: ["M4-CRUC-01 (crucible)"]
 tfc_refs:

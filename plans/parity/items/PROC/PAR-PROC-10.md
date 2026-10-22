@@ -4,7 +4,7 @@ title: "Log pile and charcoal pit"
 area: PROC
 status: open
 wave: 13
-deps: [PAR-INFRA-02, PAR-INFRA-10, PAR-HEAT-05]
+deps: [PAR-INFRA-02, PAR-INFRA-10, PAR-HEAT-05, PAR-INFRA-13]
 size: M
 aliases: ["M3-PROC-04"]
 tfc_refs:

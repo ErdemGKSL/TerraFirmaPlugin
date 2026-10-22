@@ -4,7 +4,7 @@ title: "Pit kiln: straw and log stages, lighting, lazy firing"
 area: POTTERY
 status: open
 wave: 24
-deps: [PAR-POT-01, PAR-POT-02, PAR-HEAT-05, PAR-HEAT-04]
+deps: [PAR-POT-01, PAR-POT-02, PAR-HEAT-05, PAR-HEAT-04, PAR-INFRA-13]
 size: M
 aliases: ["M3-POT-01"]
 tfc_refs:

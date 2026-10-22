@@ -4,7 +4,7 @@ title: "Firebox, stove and stove pot"
 area: HEAT
 status: open
 wave: 16
-deps: [PAR-HEAT-07]
+deps: [PAR-HEAT-07, PAR-INFRA-13]
 size: M
 aliases: []
 tfc_refs:

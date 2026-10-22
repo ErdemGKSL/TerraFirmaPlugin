@@ -4,7 +4,7 @@ title: "Drying bricks, mud bricks and thatch blocks"
 area: POTTERY
 status: open
 wave: 27
-deps: [PAR-INFRA-11, PAR-INFRA-08, PAR-CLIM-02]
+deps: [PAR-INFRA-11, PAR-INFRA-08, PAR-CLIM-02, PAR-INFRA-13]
 size: M
 aliases: ["M3-POT-04"]
 tfc_refs:

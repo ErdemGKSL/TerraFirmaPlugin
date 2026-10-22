@@ -4,7 +4,7 @@ title: "Farmland block: hydration from water (async), nutrients, hoe overlay rea
 area: FARM
 status: open
 wave: 27
-deps: [PAR-INFRA-02, PAR-GATHER-05, PAR-INFRA-11]
+deps: [PAR-INFRA-02, PAR-GATHER-05, PAR-INFRA-11, PAR-INFRA-13]
 size: M
 aliases: ["M3-FARM-01"]
 tfc_refs:

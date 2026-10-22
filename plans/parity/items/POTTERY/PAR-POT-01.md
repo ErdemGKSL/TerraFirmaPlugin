@@ -4,7 +4,7 @@ title: "Placed items: put up to four items on the ground (and the straw/log stag
 area: POTTERY
 status: open
 wave: 21
-deps: [PAR-INFRA-02, PAR-INFRA-08]
+deps: [PAR-INFRA-02, PAR-INFRA-08, PAR-INFRA-13]
 size: M
 aliases: []
 tfc_refs:

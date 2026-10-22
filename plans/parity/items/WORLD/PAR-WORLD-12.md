@@ -4,7 +4,7 @@ title: "Plant blocks: all TFC plant shapes as CE blocks in generation"
 area: WORLD
 status: open
 wave: 24
-deps: [PAR-INFRA-08]
+deps: [PAR-INFRA-08, PAR-INFRA-13]
 size: M
 aliases: ["M2-GEN-13 (blocks)"]
 tfc_refs:

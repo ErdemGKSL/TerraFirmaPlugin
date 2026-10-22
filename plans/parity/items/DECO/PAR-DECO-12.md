@@ -4,7 +4,7 @@ title: "Misc blocks: crates, buoys, cakes, golden bamboo, palm mosaic, tree root
 area: DECO
 status: open
 wave: 48
-deps: [PAR-INFRA-02]
+deps: [PAR-INFRA-02, PAR-INFRA-13]
 size: M
 aliases: []
 tfc_refs:

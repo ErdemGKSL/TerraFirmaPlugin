@@ -4,7 +4,7 @@ title: "Anvil blocks: rock anvils and metal anvils with items shown on top"
 area: METAL
 status: open
 wave: 28
-deps: [PAR-INFRA-02, PAR-INFRA-08]
+deps: [PAR-INFRA-02, PAR-INFRA-08, PAR-INFRA-13]
 size: M
 aliases: ["M4-ANV-02 (blocks)"]
 tfc_refs:

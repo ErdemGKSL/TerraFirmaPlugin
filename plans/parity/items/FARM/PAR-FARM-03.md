@@ -4,7 +4,7 @@ title: "Crop blocks: all 29 crops in every shape, seeds, dead and wild crops"
 area: FARM
 status: open
 wave: 28
-deps: [PAR-INFRA-08]
+deps: [PAR-INFRA-08, PAR-INFRA-13]
 size: M
 aliases: ["M3-FARM-02 (blocks)"]
 tfc_refs:

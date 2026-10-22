@@ -4,7 +4,7 @@ title: "Candles, candle cakes and jack-o'-lanterns: burnout, lighting, carving"
 area: HEAT
 status: open
 wave: 15
-deps: [PAR-HEAT-10]
+deps: [PAR-HEAT-10, PAR-INFRA-13]
 size: S
 aliases: ["M3-HEAT-04 (candles)", "M6-DECO-03 (candles, jack-o'-lanterns)"]
 tfc_refs:

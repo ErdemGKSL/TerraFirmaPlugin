@@ -4,7 +4,7 @@ title: "Charcoal forge block entity: creation from a charcoal pile, lighting, co
 area: METAL
 status: open
 wave: 29
-deps: [PAR-INFRA-02, PAR-HEAT-05, PAR-HEAT-04]
+deps: [PAR-INFRA-02, PAR-HEAT-05, PAR-HEAT-04, PAR-INFRA-13]
 size: M
 aliases: ["M4-FORGE-01", "owner: block-entity continuous heating"]
 tfc_refs:

@@ -4,7 +4,7 @@ title: "Metal lamps: fuel, light, lit state"
 area: METAL
 status: open
 wave: 48
-deps: [PAR-DECO-09, PAR-INFRA-04, PAR-INFRA-11]
+deps: [PAR-DECO-09, PAR-INFRA-04, PAR-INFRA-11, PAR-INFRA-13]
 size: M
 aliases: ["M4-WEATH-01 (lamps)", "M3-HEAT-04 (lamps)", "M6-DECO-03 (lamps)"]
 tfc_refs:

@@ -4,7 +4,7 @@ title: "Firepit block: placement, fuel, lazy temperature, ash, extinguish by rai
 area: HEAT
 status: open
 wave: 13
-deps: [PAR-HEAT-05, PAR-INFRA-08, PAR-HEAT-04, PAR-CLIM-02]
+deps: [PAR-HEAT-05, PAR-INFRA-08, PAR-HEAT-04, PAR-CLIM-02, PAR-INFRA-13]
 size: M
 aliases: ["M3-HEAT-03 (firepit)"]
 tfc_refs:

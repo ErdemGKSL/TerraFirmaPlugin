@@ -4,7 +4,7 @@ title: "Grill on firepit: placement, five slots, cooking, GUI"
 area: HEAT
 status: open
 wave: 15
-deps: [PAR-HEAT-07]
+deps: [PAR-HEAT-07, PAR-INFRA-13]
 size: M
 aliases: ["M3-HEAT-03 (grill)"]
 tfc_refs:

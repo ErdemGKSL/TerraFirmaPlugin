@@ -19,6 +19,7 @@ Status legend: **done** (rules, glue and visuals in game), **partial** (some lay
 | INFRA | Loot tables and TFC loot functions/conditions (util/loot) | partial | PAR-INFRA-09 |
 | INFRA | updateShape/neighborChanged connections (support beams, wattle, connected grass, fences) | partial | PAR-INFRA-10 |
 | INFRA | Calendar catch-up of block entities (CalendarEventHandler, onCalendarUpdate) | not started | PAR-INFRA-11 |
+| INFRA | Block hitboxes (VoxelShape getShape/getCollisionShape of every TFC block) on vanilla carrier states | not started | PAR-INFRA-13 |
 | CLIMATE | Calendar (ServerCalendar, CalendarTransaction, sleeping, time stop when empty) | partial | PAR-CLIM-01 |
 | CLIMATE | Rain vs snow by temperature (WeatherHelpers.getPrecipitationAt) | partial | PAR-CLIM-02 |
 | CLIMATE | Snow & ice accumulation/melting + catch-up (WeatherHelpers.onTickChunk) | partial | PAR-CLIM-03 |

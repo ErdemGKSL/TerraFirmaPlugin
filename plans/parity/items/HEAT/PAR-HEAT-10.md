@@ -4,7 +4,7 @@ title: "Torches: burnout to dead torch, relight, wall torches"
 area: HEAT
 status: open
 wave: 14
-deps: [PAR-INFRA-11, PAR-INFRA-08]
+deps: [PAR-INFRA-11, PAR-INFRA-08, PAR-INFRA-13]
 size: M
 aliases: ["M3-HEAT-04 (torch)"]
 tfc_refs:
