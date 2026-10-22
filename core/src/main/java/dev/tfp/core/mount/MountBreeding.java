@@ -4,12 +4,12 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/livestock/horse/TFCHorse.java (canMate, checkExtraBreedConditions),
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/horse/TFCHorse.java @ c3b4d9536 (canMate, checkExtraBreedConditions),
  * src/main/java/net/dries007/tfc/common/entities/livestock/horse/TFCDonkey.java (canMate, checkExtraBreedConditions),
  * src/main/java/net/dries007/tfc/common/entities/livestock/horse/TFCMule.java (canMate, isReadyToMate),
  * src/main/java/net/dries007/tfc/common/entities/livestock/horse/TFCChestedHorse.java (vanillaParentingCheck, canMate),
  * src/main/java/net/dries007/tfc/common/entities/livestock/camel/DromedaryCamel.java and BactrianCamel.java (canMate,
- * checkExtraBreedConditions) @ c3b4d9536
+ * checkExtraBreedConditions)
  */
 package dev.tfp.core.mount;
 

@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/livestock/pet/TamableMammal.java (command, sitting, sleeping,
- * the SIT_TIME and HOME memories, the petFlags byte) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/pet/TamableMammal.java @ c3b4d9536 (command, sitting, sleeping,
+ * the SIT_TIME and HOME memories, the petFlags byte)
  */
 package dev.tfp.core.pet;
 

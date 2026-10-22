@@ -4,11 +4,11 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/generated/resources/data/tfc/tags/entity_type/{universal,cold,desert,tropical}_pests.json,
+ * file: src/generated/resources/data/tfc/tags/entity_type/{universal,cold,desert,tropical}_pests.json @ c3b4d9536,
  * src/generated/resources/data/tfc/tfc/fauna/{isopod,lobster,crayfish,horseshoe_crab}.json,
  * src/generated/resources/data/tfc/tags/entity_type/caught_in_lobster_traps.json,
  * src/main/resources/data/tfc/worldgen/biome/*.json (the spawners), src/main/java/net/dries007/tfc/common/entities/TFCEntities.java
- * @ c3b4d9536 (golden values only)
+ * (golden values only)
  */
 package dev.tfp.core.critter;
 

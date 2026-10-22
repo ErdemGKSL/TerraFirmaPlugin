@@ -4,9 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/livestock/horse/HorseProperties.java (TAMED_FAMILIARITY,
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/horse/HorseProperties.java @ c3b4d9536 (TAMED_FAMILIARITY,
  * OLD_AGE_MODIFIER, tickAnimalData, mobInteract's baby check), src/main/java/net/dries007/tfc/common/entities/livestock/
- * camel/DromedaryCamel.java (createAttributes, isTamed) @ c3b4d9536
+ * camel/DromedaryCamel.java (createAttributes, isTamed)
  */
 package dev.tfp.core.mount;
 

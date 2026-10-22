@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/generated/resources/data/tfc/tags/entity_type/{universal,cold,desert,tropical}_pests.json and
- * src/main/java/net/dries007/tfc/common/TFCTags.java (the four pest tags) @ c3b4d9536
+ * file: src/generated/resources/data/tfc/tags/entity_type/{universal,cold,desert,tropical}_pests.json @ c3b4d9536 and
+ * src/main/java/net/dries007/tfc/common/TFCTags.java (the four pest tags)
  */
 package dev.tfp.core.critter;
 

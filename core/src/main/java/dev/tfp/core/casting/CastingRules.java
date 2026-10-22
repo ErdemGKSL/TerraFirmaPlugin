@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/recipes/CastingRecipe.java, CastingCraftingRecipe.java,
- * src/main/java/net/dries007/tfc/common/items/MoldItem.java (use, overrideOtherStackedOnMe) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/recipes/CastingRecipe.java @ c3b4d9536, CastingCraftingRecipe.java,
+ * src/main/java/net/dries007/tfc/common/items/MoldItem.java (use, overrideOtherStackedOnMe)
  */
 package dev.tfp.core.casting;
 

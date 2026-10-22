@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/ai/TFCBrain.java (IDLE_AT_HOME, SIT, FOLLOW, HUNT activities) and
- * src/main/java/net/dries007/tfc/common/entities/ai/pet/TamableAi.java (beginIdle) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/entities/ai/TFCBrain.java @ c3b4d9536 (IDLE_AT_HOME, SIT, FOLLOW, HUNT activities) and
+ * src/main/java/net/dries007/tfc/common/entities/ai/pet/TamableAi.java (beginIdle)
  */
 package dev.tfp.core.pet;
 

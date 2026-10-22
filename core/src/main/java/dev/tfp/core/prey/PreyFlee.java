@@ -4,12 +4,12 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/ai/prey/PreyAi.java (AVOID_RANGE, RETREAT_DURATION, wasHurtBy,
+ * file: src/main/java/net/dries007/tfc/common/entities/ai/prey/PreyAi.java @ c3b4d9536 (AVOID_RANGE, RETREAT_DURATION, wasHurtBy,
  * broadcastAvoidTarget, setAvoidTarget, wantsToStopFleeing), src/main/java/net/dries007/tfc/common/entities/ai/prey/
  * AvoidPredatorsBehavior.java (isAvoided), src/main/java/net/dries007/tfc/common/entities/ai/prey/
  * AvoidPredatorAndRammersBehavior.java (create), src/main/java/net/dries007/tfc/common/entities/ai/prey/PreyAi.java
  * (createIdleMovementBehaviors is not ported here), src/main/java/net/dries007/tfc/common/entities/prey/Prey.java
- * (hurt) @ c3b4d9536
+ * (hurt)
  */
 package dev.tfp.core.prey;
 

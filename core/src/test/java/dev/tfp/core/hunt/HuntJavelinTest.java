@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/util/loot/AnimalYieldProvider.java, NotPredatedCondition.java and the animal loot tables
- * @ c3b4d9536 (hand-checked values)
+ * file: src/main/java/net/dries007/tfc/util/loot/AnimalYieldProvider.java @ c3b4d9536, NotPredatedCondition.java and the animal loot tables
+ * (hand-checked values)
  */
 package dev.tfp.core.hunt;
 

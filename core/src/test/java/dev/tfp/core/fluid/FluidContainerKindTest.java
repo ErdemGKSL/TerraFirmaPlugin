@@ -3,8 +3,9 @@
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft), file: src/main/java/net/dries007/tfc/config/ServerConfig.java
- * @ c3b4d9536 (the capacity defaults, from the define(...) lines), src/main/java/net/dries007/tfc/common/items/TFCItems.java @ c3b4d9536
+ * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
+ * file: src/main/java/net/dries007/tfc/config/ServerConfig.java @ c3b4d9536
+ * (the capacity defaults, from the define(...) lines), src/main/java/net/dries007/tfc/common/items/TFCItems.java @ c3b4d9536
  * (the whitelist tag of each container), and the generated tags in src/generated/resources/data/tfc/tags/fluid/usable_in_*.json
  * (11 files, exported to usable_in_tags.tsv).
  */

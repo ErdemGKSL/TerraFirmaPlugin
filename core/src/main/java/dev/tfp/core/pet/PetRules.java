@@ -4,11 +4,11 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/livestock/pet/TamableMammal.java (willListenTo, receiveCommand,
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/pet/TamableMammal.java @ c3b4d9536 (willListenTo, receiveCommand,
  * mobInteract, addAdditionalSaveData flags), src/main/java/net/dries007/tfc/common/entities/livestock/pet/TFCCat.java
  * (willListenTo), src/main/java/net/dries007/tfc/common/entities/ai/pet/TamableAi.java (wantsToStopSitting, beginIdle),
  * src/main/java/net/dries007/tfc/network/PetCommandPacket.java (handle), src/main/java/net/dries007/tfc/client/screen/
- * PetCommandScreen.java (the menu) @ c3b4d9536
+ * PetCommandScreen.java (the menu)
  */
 package dev.tfp.core.pet;
 

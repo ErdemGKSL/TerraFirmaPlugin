@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/config/ServerConfig.java (lines 718-769, the *Config = ...Config.build(...) calls)
- * and src/main/java/net/dries007/tfc/config/animals/{AnimalConfig,MammalConfig,OviparousAnimalConfig}.java @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/config/ServerConfig.java @ c3b4d9536 (lines 718-769, the *Config = ...Config.build(...) calls)
+ * and src/main/java/net/dries007/tfc/config/animals/{AnimalConfig,MammalConfig,OviparousAnimalConfig}.java
  */
 package dev.tfp.core.livestock;
 

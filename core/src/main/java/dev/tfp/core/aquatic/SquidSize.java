@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/aquatic/TFCSquid.java (MAX_SIZE, MIN_SIZE, finalizeSpawn, getSizeRangeForSpawning,
- * getSize, setSize), src/main/java/net/dries007/tfc/common/entities/aquatic/Octopoteuthis.java (getLightLevel, getSizeRangeForSpawning) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/entities/aquatic/TFCSquid.java @ c3b4d9536 (MAX_SIZE, MIN_SIZE, finalizeSpawn, getSizeRangeForSpawning,
+ * getSize, setSize), src/main/java/net/dries007/tfc/common/entities/aquatic/Octopoteuthis.java (getLightLevel, getSizeRangeForSpawning)
  */
 package dev.tfp.core.aquatic;
 

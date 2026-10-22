@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/aquatic/AquaticCritter.java (canSpawnIn) and
- * src/main/java/net/dries007/tfc/common/fluids/TFCFluids.java (SALT_WATER) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/entities/aquatic/AquaticCritter.java @ c3b4d9536 (canSpawnIn) and
+ * src/main/java/net/dries007/tfc/common/fluids/TFCFluids.java (SALT_WATER)
  */
 package dev.tfp.core.critter;
 

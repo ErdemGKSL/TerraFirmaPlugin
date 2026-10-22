@@ -4,10 +4,10 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/livestock/TFCAnimalProperties.java (tickAnimalData, eatFood,
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/TFCAnimalProperties.java @ c3b4d9536 (tickAnimalData, eatFood,
  * isHungry, getAgeType, mobInteract), src/main/java/net/dries007/tfc/common/entities/livestock/CommonAnimalBehavior.java
  * (setFamiliarity, setLastFedNow, setLastFedYesterday) and src/main/java/net/dries007/tfc/config/ServerConfig.java
- * (familiarityDecayLimit) @ c3b4d9536
+ * (familiarityDecayLimit)
  */
 package dev.tfp.core.livestock;
 

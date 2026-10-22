@@ -4,9 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/TFCTags.java (HUNTED_BY_LAND_PREDATORS),
+ * file: src/main/java/net/dries007/tfc/common/TFCTags.java @ c3b4d9536 (HUNTED_BY_LAND_PREDATORS),
  * src/data/java/net/dries007/tfc/data/providers/BuiltinEntityTags.java (HUNTED_BY_LAND_PREDATORS, BIRD_PREY, LARGE_PREY),
- * src/generated/resources/data/tfc/tags/entity_type/hunted_by_land_predators.json, bird_prey.json, large_prey.json @ c3b4d9536
+ * src/generated/resources/data/tfc/tags/entity_type/hunted_by_land_predators.json, bird_prey.json, large_prey.json
  */
 package dev.tfp.core.predator;
 

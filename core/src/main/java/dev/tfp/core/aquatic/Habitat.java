@@ -4,9 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/aquatic/FreshwaterFish.java (canSpawnIn),
+ * file: src/main/java/net/dries007/tfc/common/entities/aquatic/FreshwaterFish.java @ c3b4d9536 (canSpawnIn),
  * src/main/java/net/dries007/tfc/common/entities/aquatic/TFCSquid.java (canSpawnIn),
- * src/main/java/net/dries007/tfc/common/entities/aquatic/TFCCod.java (canSpawnIn) @ c3b4d9536
+ * src/main/java/net/dries007/tfc/common/entities/aquatic/TFCCod.java (canSpawnIn)
  */
 package dev.tfp.core.aquatic;
 

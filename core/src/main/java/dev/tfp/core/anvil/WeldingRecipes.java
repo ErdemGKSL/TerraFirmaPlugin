@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/blockentities/AnvilBlockEntity.java (weld and getWeldStatus, which look up the first
- * matching welding recipe and then check its tier) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/blockentities/AnvilBlockEntity.java @ c3b4d9536 (weld and getWeldStatus, which look up the first
+ * matching welding recipe and then check its tier)
  */
 package dev.tfp.core.anvil;
 

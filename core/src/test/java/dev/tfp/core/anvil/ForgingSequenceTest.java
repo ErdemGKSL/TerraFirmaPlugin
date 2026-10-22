@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/common/component/forge/ForgeRule.java and ForgeSteps.java (matching a step history against the
- * rules) and src/main/java/net/dries007/tfc/common/blockentities/AnvilBlockEntity.java (work, the completion check) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/component/forge/ForgeRule.java @ c3b4d9536 and ForgeSteps.java (matching a step history against the
+ * rules) and src/main/java/net/dries007/tfc/common/blockentities/AnvilBlockEntity.java (work, the completion check)
  */
 package dev.tfp.core.anvil;
 

@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/generated/resources/data/tfc/loot_table/entities/*.json (small_fish and caught_in_lobster_traps species) @ c3b4d9536
+ * file: src/generated/resources/data/tfc/loot_table/entities/*.json @ c3b4d9536 (small_fish and caught_in_lobster_traps species)
  * (golden values only)
  */
 package dev.tfp.core.fishing;

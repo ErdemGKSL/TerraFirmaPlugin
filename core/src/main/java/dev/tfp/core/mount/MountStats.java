@@ -4,9 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/livestock/horse/HorseProperties.java (MIN/MAX constants,
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/horse/HorseProperties.java @ c3b4d9536 (MIN/MAX constants,
  * generateMaxHealth, generateJumpStrength, generateSpeed, applyGenes) and src/main/java/net/dries007/tfc/common/entities/
- * EntityHelpers.java (createOffspringAttribute) @ c3b4d9536
+ * EntityHelpers.java (createOffspringAttribute)
  */
 package dev.tfp.core.mount;
 

@@ -4,9 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/util/Helpers.java (tickInfestation) and src/main/java/net/dries007/tfc/ForgeEventHandler.java
+ * file: src/main/java/net/dries007/tfc/util/Helpers.java @ c3b4d9536 (tickInfestation) and src/main/java/net/dries007/tfc/ForgeEventHandler.java
  * (the container open and right-click food counts), src/main/java/net/dries007/tfc/common/blockentities/ComposterBlockEntity.java,
- * src/main/java/net/dries007/tfc/common/entities/ai/prey/PestFeastBehavior.java @ c3b4d9536
+ * src/main/java/net/dries007/tfc/common/entities/ai/prey/PestFeastBehavior.java
  */
 package dev.tfp.core.critter;
 

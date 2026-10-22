@@ -4,9 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/Faunas.java (the spawn placement predicate),
+ * file: src/main/java/net/dries007/tfc/common/entities/Faunas.java @ c3b4d9536 (the spawn placement predicate),
  * src/main/java/net/dries007/tfc/world/placement/ClimatePlacement.java (isValid),
- * src/main/java/net/dries007/tfc/util/EnvironmentHelpers.java (adjustAvgTempForElev) @ c3b4d9536.
+ * src/main/java/net/dries007/tfc/util/EnvironmentHelpers.java (adjustAvgTempForElev).
  * The weighted species pick and the group size are Minecraft's spawner rules, which TFC's biome JSON feeds; they are
  * mirrored here from Minecraft's WeightedRandom and NaturalSpawner, not from the TFC source.
  */

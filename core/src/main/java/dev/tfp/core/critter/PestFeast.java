@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/prey/Pest.java (tick, the move control) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/entities/prey/Pest.java @ c3b4d9536 (tick, the move control)
  */
 package dev.tfp.core.critter;
 

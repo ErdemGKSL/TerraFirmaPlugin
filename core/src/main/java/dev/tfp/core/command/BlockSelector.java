@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/commands/CountBlockCommand.java (the block predicate argument,
- * {@code BlockPredicateArgument.blockPredicate}, which Brigadier reads as an id, a tag or a state filter) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/commands/CountBlockCommand.java @ c3b4d9536 (the block predicate argument,
+ * {@code BlockPredicateArgument.blockPredicate}, which Brigadier reads as an id, a tag or a state filter)
  */
 package dev.tfp.core.command;
 

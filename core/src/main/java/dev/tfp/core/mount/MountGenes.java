@@ -4,10 +4,10 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/livestock/horse/HorseProperties.java (createGenes, applyGenes),
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/horse/HorseProperties.java @ c3b4d9536 (createGenes, applyGenes),
  * src/main/java/net/dries007/tfc/common/entities/livestock/horse/TFCHorse.java (createGenes isMule and markings,
  * applyGenes, getEntityTypeForBaby), src/main/java/net/dries007/tfc/common/entities/livestock/horse/TFCDonkey.java
- * (createGenes isMule, getEntityTypeForBaby) @ c3b4d9536
+ * (createGenes isMule, getEntityTypeForBaby)
  */
 package dev.tfp.core.mount;
 

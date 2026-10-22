@@ -4,10 +4,10 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/aquatic/Fish.java, AquaticCritter.java, TFCCod.java, TFCTropicalFish.java,
+ * file: src/main/java/net/dries007/tfc/common/entities/aquatic/Fish.java @ c3b4d9536, AquaticCritter.java, TFCCod.java, TFCTropicalFish.java,
  * TFCPufferfish.java, Jellyfish.java, TFCDolphin.java, Manatee.java, TFCSquid.java, Octopoteuthis.java, TFCTurtle.java, Penguin.java,
  * LeopardSeal.java; src/main/java/net/dries007/tfc/common/entities/Faunas.java (registerFish, registerAnimal, the spawn gate);
- * src/main/java/net/dries007/tfc/common/items/TFCItems.java (the mob buckets) @ c3b4d9536
+ * src/main/java/net/dries007/tfc/common/items/TFCItems.java (the mob buckets)
  */
 package dev.tfp.core.aquatic;
 

@@ -4,10 +4,10 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/util/Helpers.java (tickInfestation at line 573, choosePest at lines 615 to 641),
+ * file: src/main/java/net/dries007/tfc/util/Helpers.java @ c3b4d9536 (tickInfestation at line 573, choosePest at lines 615 to 641),
  * src/main/java/net/dries007/tfc/common/entities/prey/Pest.java (DRAG_TIME and EAT_TIME, the move control, finalizeSpawn),
  * src/main/java/net/dries007/tfc/ForgeEventHandler.java (lines 1190 to 1221 and 1445 to 1467),
- * src/main/java/net/dries007/tfc/common/blockentities/ComposterBlockEntity.java (line 67) @ c3b4d9536
+ * src/main/java/net/dries007/tfc/common/blockentities/ComposterBlockEntity.java (line 67)
  */
 package dev.tfp.core.critter;
 

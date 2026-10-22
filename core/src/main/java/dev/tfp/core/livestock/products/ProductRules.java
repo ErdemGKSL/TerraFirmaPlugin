@@ -4,11 +4,11 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/livestock/DairyAnimal.java (mobInteract, hasProduct),
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/DairyAnimal.java @ c3b4d9536 (mobInteract, hasProduct),
  * src/main/java/net/dries007/tfc/common/entities/livestock/WoolyAnimal.java (isShearable, isReadyForAnimalProduct,
  * onSheared, hasProduct, getWoolItem), src/main/java/net/dries007/tfc/common/entities/livestock/ProducingAnimal.java and
  * src/main/java/net/dries007/tfc/common/entities/livestock/ProducingMammal.java (isReadyForAnimalProduct,
- * setProductsCooldown, getProductsCooldown) @ c3b4d9536
+ * setProductsCooldown, getProductsCooldown)
  */
 package dev.tfp.core.livestock.products;
 

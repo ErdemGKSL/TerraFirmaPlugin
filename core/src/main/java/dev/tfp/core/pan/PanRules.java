@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/common/items/PanItem.java and EmptyPanItem.java @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/items/PanItem.java @ c3b4d9536 and EmptyPanItem.java
  */
 package dev.tfp.core.pan;
 

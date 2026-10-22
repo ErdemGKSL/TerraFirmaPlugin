@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/util/Metal.java, common/TFCTiers.java, common/TFCArmorMaterials.java and
- * config/ServerConfig.java @ c3b4d9536 (golden values only)
+ * file: src/main/java/net/dries007/tfc/util/Metal.java @ c3b4d9536, common/TFCTiers.java, common/TFCArmorMaterials.java and
+ * config/ServerConfig.java (golden values only)
  */
 package dev.tfp.core.tool;
 

@@ -4,9 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/recipes/ChiselRecipe.java (computeResult, getRecipe),
+ * file: src/main/java/net/dries007/tfc/common/recipes/ChiselRecipe.java @ c3b4d9536 (computeResult, getRecipe),
  * src/main/java/net/dries007/tfc/common/items/ChiselItem.java (useOn),
- * src/main/java/net/dries007/tfc/common/player/ChiselMode.java (SLAB placement) @ c3b4d9536
+ * src/main/java/net/dries007/tfc/common/player/ChiselMode.java (SLAB placement)
  */
 package dev.tfp.core.chisel;
 

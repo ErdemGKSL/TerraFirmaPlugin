@@ -3,7 +3,8 @@
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft) @ c3b4d9536. Golden values are derived by hand
+ * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
+ * file: src/main/java/net/dries007/tfc/common/blockentities/rotation/ClutchBlockEntity.java @ c3b4d9536 and util/rotation/Node.java. Golden values are derived by hand
  * from the TFC source named in each test's Javadoc; TFC has no data file for these numbers.
  */
 package dev.tfp.core.power;

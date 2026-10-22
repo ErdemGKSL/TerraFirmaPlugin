@@ -4,9 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/common/recipes/AnvilRecipe.java (hasAny, getAll, byId) and
+ * file: src/main/java/net/dries007/tfc/common/recipes/AnvilRecipe.java @ c3b4d9536 (hasAny, getAll, byId) and
  * src/main/java/net/dries007/tfc/common/blockentities/AnvilBlockEntity.java (setAndUpdateSlots, the default recipe choice)
- * @ c3b4d9536
  */
 package dev.tfp.core.anvil;
 

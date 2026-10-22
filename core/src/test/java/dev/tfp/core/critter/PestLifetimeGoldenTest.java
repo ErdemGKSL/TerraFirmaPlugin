@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/prey/Pest.java (tick, the 3 minute age test and the 1 in 500 roll, line 162)
- * @ c3b4d9536 (golden values only)
+ * file: src/main/java/net/dries007/tfc/common/entities/prey/Pest.java @ c3b4d9536 (tick, the 3 minute age test and the 1 in 500 roll, line 162)
+ * (golden values only)
  */
 package dev.tfp.core.critter;
 

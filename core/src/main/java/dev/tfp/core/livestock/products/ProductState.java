@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/livestock/ProducingAnimal.java and
- * src/main/java/net/dries007/tfc/common/entities/livestock/ProducingMammal.java (the {@code produced} field) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/ProducingAnimal.java @ c3b4d9536 and
+ * src/main/java/net/dries007/tfc/common/entities/livestock/ProducingMammal.java (the {@code produced} field)
  */
 package dev.tfp.core.livestock.products;
 

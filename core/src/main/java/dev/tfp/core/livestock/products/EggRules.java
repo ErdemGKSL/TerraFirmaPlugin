@@ -4,9 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/livestock/OviparousAnimal.java (makeEgg, hasProduct),
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/OviparousAnimal.java @ c3b4d9536 (makeEgg, hasProduct),
  * src/main/java/net/dries007/tfc/common/component/EggComponent.java (fields, canHatch) and
- * src/main/java/net/dries007/tfc/config/animals/OviparousAnimalConfig.java (hatchDays) @ c3b4d9536
+ * src/main/java/net/dries007/tfc/config/animals/OviparousAnimalConfig.java (hatchDays)
  */
 package dev.tfp.core.livestock.products;
 

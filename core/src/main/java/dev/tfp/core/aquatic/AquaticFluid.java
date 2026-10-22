@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/fluids/TFCFluids.java and src/generated/resources/data/tfc/tags/fluid/*.json @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/fluids/TFCFluids.java @ c3b4d9536 and src/generated/resources/data/tfc/tags/fluid/*.json
  */
 package dev.tfp.core.aquatic;
 

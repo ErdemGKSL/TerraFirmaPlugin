@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/aquatic/TFCSquid.java (line 43-44, 52-54, 86-107, 111-130),
- * src/main/java/net/dries007/tfc/common/entities/aquatic/Octopoteuthis.java (line 106, 151-153) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/entities/aquatic/TFCSquid.java @ c3b4d9536 (line 43-44, 52-54, 86-107, 111-130),
+ * src/main/java/net/dries007/tfc/common/entities/aquatic/Octopoteuthis.java (line 106, 151-153)
  */
 package dev.tfp.core.aquatic;
 

@@ -4,9 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/common/component/forge/Forging.java (addStep, work, isWorked, matches) and
+ * file: src/main/java/net/dries007/tfc/common/component/forge/Forging.java @ c3b4d9536 (addStep, work, isWorked, matches) and
  * src/main/java/net/dries007/tfc/common/blockentities/AnvilBlockEntity.java (work, the overwork guard and the destroy check)
- * @ c3b4d9536
  */
 package dev.tfp.core.anvil;
 

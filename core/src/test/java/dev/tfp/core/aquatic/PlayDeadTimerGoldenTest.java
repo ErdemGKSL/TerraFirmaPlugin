@@ -4,9 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/aquatic/AmphibiousAnimal.java (line 56, 111-114, 122-124),
+ * file: src/main/java/net/dries007/tfc/common/entities/aquatic/AmphibiousAnimal.java @ c3b4d9536 (line 56, 111-114, 122-124),
  * src/main/java/net/dries007/tfc/common/entities/ai/amphibian/AmphibianPlayDeadBehavior.java (line 26-34, 41, 58-59),
- * src/main/java/net/dries007/tfc/common/entities/aquatic/Penguin.java (line 41-43), LeopardSeal.java (line 41-43) @ c3b4d9536
+ * src/main/java/net/dries007/tfc/common/entities/aquatic/Penguin.java (line 41-43), LeopardSeal.java (line 41-43)
  */
 package dev.tfp.core.aquatic;
 

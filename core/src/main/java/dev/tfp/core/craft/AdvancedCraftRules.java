@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/common/recipes/AdvancedShapelessRecipe.java, AdvancedShapedRecipe.java and RecipeHelpers.java
- * (getRemainderItemsWithProvider) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/recipes/AdvancedShapelessRecipe.java @ c3b4d9536, AdvancedShapedRecipe.java and RecipeHelpers.java
+ * (getRemainderItemsWithProvider)
  */
 package dev.tfp.core.craft;
 

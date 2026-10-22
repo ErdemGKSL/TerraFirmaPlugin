@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/common/blockentities/AnvilBlockEntity.java (work) and
- * src/main/java/net/dries007/tfc/common/recipes/AnvilRecipe.java (constructor validation, bonus) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/blockentities/AnvilBlockEntity.java @ c3b4d9536 (work) and
+ * src/main/java/net/dries007/tfc/common/recipes/AnvilRecipe.java (constructor validation, bonus)
  */
 package dev.tfp.core.anvil;
 

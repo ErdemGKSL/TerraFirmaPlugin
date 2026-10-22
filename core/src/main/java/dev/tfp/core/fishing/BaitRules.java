@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/items/TFCFishingRodItem.java, common/entities/ai/GetHookedGoal.java @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/items/TFCFishingRodItem.java @ c3b4d9536, common/entities/ai/GetHookedGoal.java
  */
 package dev.tfp.core.fishing;
 

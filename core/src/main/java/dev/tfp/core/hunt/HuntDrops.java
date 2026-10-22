@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/generated/resources/data/tfc/loot_table/entities/*.json (all 83 animal and fish loot tables) and
- * src/main/java/net/dries007/tfc/util/loot/AnimalYieldProvider.java @ c3b4d9536
+ * file: src/generated/resources/data/tfc/loot_table/entities/*.json @ c3b4d9536 (all 83 animal and fish loot tables) and
+ * src/main/java/net/dries007/tfc/util/loot/AnimalYieldProvider.java
  */
 package dev.tfp.core.hunt;
 

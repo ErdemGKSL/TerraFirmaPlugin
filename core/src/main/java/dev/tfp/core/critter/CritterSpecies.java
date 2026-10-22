@@ -4,9 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/TFCEntities.java (the four critter registrations),
+ * file: src/main/java/net/dries007/tfc/common/entities/TFCEntities.java @ c3b4d9536 (the four critter registrations),
  * src/main/java/net/dries007/tfc/common/entities/aquatic/AquaticCritter.java and
- * src/generated/resources/data/tfc/tags/entity_type/caught_in_lobster_traps.json @ c3b4d9536
+ * src/generated/resources/data/tfc/tags/entity_type/caught_in_lobster_traps.json
  */
 package dev.tfp.core.critter;
 

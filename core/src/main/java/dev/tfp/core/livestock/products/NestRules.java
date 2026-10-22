@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/blockentities/NestBoxBlockEntity.java (serverTick, the lay branch,
- * the not-ready branch, the full-nest branch) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/blockentities/NestBoxBlockEntity.java @ c3b4d9536 (serverTick, the lay branch,
+ * the not-ready branch, the full-nest branch)
  */
 package dev.tfp.core.livestock.products;
 

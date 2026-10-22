@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/util/InteractionManager.java (doIngotPiling) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/util/InteractionManager.java @ c3b4d9536 (doIngotPiling)
  */
 package dev.tfp.core.pile;
 

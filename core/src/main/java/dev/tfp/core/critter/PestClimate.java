@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/util/Helpers.java (choosePest) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/util/Helpers.java @ c3b4d9536 (choosePest)
  */
 package dev.tfp.core.critter;
 

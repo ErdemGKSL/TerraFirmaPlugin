@@ -4,11 +4,11 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/ai/predator/PredatorAi.java (getAttackTarget, getDisturbedAttackTarget,
+ * file: src/main/java/net/dries007/tfc/common/entities/ai/predator/PredatorAi.java @ c3b4d9536 (getAttackTarget, getDisturbedAttackTarget,
  * isPacified, hasNearbyAttacker, MAX_WANDER_DISTANCE, MAX_ATTACK_DISTANCE, initHuntActivity, initFightActivity,
  * initRestActivity), src/main/java/net/dries007/tfc/common/entities/ai/predator/PredatorBehaviors.java (becomePassiveIf,
  * stopAttackingIf, stopAttackingIfTooFarFromHome, startSleeping, tickScheduleAndWake, wakeFromDisturbance, findNewHome),
- * src/main/java/net/dries007/tfc/common/entities/predator/Predator.java (hurt) @ c3b4d9536
+ * src/main/java/net/dries007/tfc/common/entities/predator/Predator.java (hurt)
  */
 package dev.tfp.core.predator;
 

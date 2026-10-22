@@ -4,11 +4,10 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/livestock/TFCAnimalProperties.java (isReadyToMate, onFertilized,
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/TFCAnimalProperties.java @ c3b4d9536 (isReadyToMate, onFertilized,
  * setBabyTraits, getBreedOffspring), src/main/java/net/dries007/tfc/common/entities/livestock/MammalProperties.java
  * (onFertilized, tickAnimalData birth check, birthChildren), src/main/java/net/dries007/tfc/common/entities/livestock/
  * TFCAnimal.java (canMate), src/main/java/net/dries007/tfc/common/entities/livestock/OviparousAnimal.java (makeEgg)
- * @ c3b4d9536
  */
 package dev.tfp.core.livestock;
 

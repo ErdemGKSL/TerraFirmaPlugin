@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/resources/data/tfc/worldgen/biome/*.json, the {@code spawners} entries @ c3b4d9536
+ * file: src/main/resources/data/tfc/worldgen/biome/*.json @ c3b4d9536, the {@code spawners} entries
  */
 package dev.tfp.core.spawn;
 
