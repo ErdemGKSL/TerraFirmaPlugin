@@ -2,7 +2,7 @@
 id: PAR-INFRA-05
 title: "Item tooltip pipeline: several decorations per item, TFC styles and colours"
 area: INFRA
-status: open
+status: blocked
 wave: 2
 deps: [PAR-INFRA-01]
 size: M
@@ -29,6 +29,10 @@ in_game_steps:
   - "Carry the heated ingot on the cursor (screenshot) and open a chest holding it (screenshot)"
   - "Open the player inventory, a chest and a crafting table; the server log has no 'Tooltip refresh failed' and no IndexOutOfBoundsException"
 plan:
+  - "BLOCKED 2026-10-22: rejected after 2 repairs. Code and TFC fidelity were accepted (HeatDisplayStyle colours match Heat.java, U+066D star and 1..4 threshold loop match ItemTemperatureDisplayStyle, weld-before-work suffix matches IHeatView.addTooltipInfo, magenta italic line gone so done criterion 2 is closed, scope/threading/tests/ledger/ARCHITECTURE §10.1 fine). Blocking: done criterion 1 ('two contributors render together in-game without duplicating on creative pick-up') has no screenshot evidence, and docs/verification/PAR-INFRA-05/ (captures + verdict.md, PROTOCOL §6.3) does not exist."
+  - "Reviewer next steps 1/3: have the test-runner agent run every in_game_steps entry and commit the PNG crops plus verdict.md (date, HEAD commit, versions, pass/fail per criterion) under docs/verification/PAR-INFRA-05/: heated mutton at 200 C ('ce item give Bot tfp:food/mutton; tfp debug heat Bot 200') showing the dark-green 'Expires on: ... (in ...)' line and the heat line together; 'gamemode creative Bot', pick the mutton up and put it back, before/after hovers with exactly 2 lines and no duplicates; the heated ingot carried on the cursor; a chest window holding the ingot; open the player inventory, a chest and a crafting table, then a server-log excerpt with no 'Tooltip refresh failed' and no IndexOutOfBoundsException."
+  - "Reviewer next steps 2/3: pin the 900 C case. Run 'tfp debug heat Bot 900' right before the hover (or read the temperature back at capture time); the hover must show 'Bright Red' + four U+066D marks + ' - Can Weld' (the earlier capture showed two marks and 'Can Work' because the ingot had cooled to ~810-850 C, below the ~864 C weld point). After ~35 s, without reopening the inventory, the same hover must show 'Dark Red' + four marks + ' - Can Work' in dark red (proves TooltipRefresher in game). Retake r-07 (HUD hotbar at gui3); it was captured on the 'Loading terrain...' screen."
+  - "Reviewer next steps 3/3: only then set status done, add the final Done plan line, update STATUS.md and the ledger row (drop 'Not yet: the in-game screenshot check', status glue -> playable). Non-blocking: in TooltipRefresher.run() clock.get() is read after capture() but outside its try, so a throwing clock leaves the busy flag set and stops the watch for good; fold the clock read into the captured supplier or release the flag in a finally. The view token System.identityHashCode(view) can collide between objects; acceptable, but note it if view changes are ever missed."
   - "Reopened 2026-10-22 (in-game check rejected): the done criterion 'two contributors in-game without duplicating on creative pick-up' has no screenshot evidence yet, and the cool-down case showed stale text (lore built at send time, never resent). The stale text is fixed by TooltipRefresher (below); status stays open until docs/verification/PAR-INFRA-05/ holds the captures of in_game_steps and verdict.md (PROTOCOL §6)."
   - "Current: `ItemDecorationHandler` applies one heat line to SET_SLOT/WINDOW_ITEMS with a strip on creative return."
   - "Generalise to an ordered list of `TooltipContributor`s (heat, food, size/weight, fluid contents, forging, metal info) contributed by modules; one combined `tfp:lore` marker so the strip removes exactly what we added."
