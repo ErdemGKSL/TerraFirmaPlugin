@@ -83,6 +83,9 @@ public final class Datagen {
         if (tfc.exists(ForgeDevices.FORGE_SOURCE)) { // the small fixture checkouts of the tests have no forge; ForgeDevicesTest pins the real one
             ForgeDevices.run(tfc, out);
         }
+        if (dev.tfp.datagen.gui.GuiArt.available(tfc)) { // PAR-INFRA-03: GUI images; the small fixture checkouts have no GUI textures
+            dev.tfp.datagen.gui.GuiArt.run(tfc, out);
+        }
         Advancements.run(tfc, out);
         FieldGuide.run(tfc, out);
         Locales.run(tfc, out);

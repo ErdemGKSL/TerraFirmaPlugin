@@ -1,3 +1,4 @@
 dev.tfp.paper.module.FoodModule
 dev.tfp.paper.tags.TagsModule
 dev.tfp.paper.device.DeviceModule
+dev.tfp.paper.gui.GuiModule

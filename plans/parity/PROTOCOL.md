@@ -53,6 +53,8 @@ only append or edit your own lines and never reformat or reorder other lines:
 | `content/generated/**` | only by rerunning datagen (`./gradlew :tools:datagen:generateContent -Ptfc.checkout=/opt/tfc`, checked by `verifyContent`); never by hand |
 | `ARCHITECTURE.md`, `docs/gui/catalogue.md`, `docs/hud/catalogue.md`, `docs/art/image-list.md` | your own section or rows |
 | `art/raw/<asset-id>/**` | new art for your item (image-generation skill) |
+| `paper/src/test/java/dev/tfp/paper/boot/BootstrapTest.java` | in `commandTreeStructure`, add your `/tfp debug` literal(s) to the debug-children list (own line) |
+| `tools/datagen/src/test/java/dev/tfp/datagen/CeYamlCheck.java` | in `assertValid`, add your new `configuration/*.yml` top-level section name to the allowed list (own line) |
 
 Until PAR-INFRA-01 is done, wiring in `paper/.../TfpPlugin.java` and `boot/TfpCommands.java` is a shared hub too (add your
 lines only). After it is done, wire through a `FeatureModule` instead: one class of your own implementing
