@@ -2,7 +2,7 @@
 id: PAR-METAL-10
 title: "Charcoal forge visual verification: night, neighbouring full blocks, animation frames, lit-display flicker"
 area: METAL
-status: open
+status: done
 wave: 3
 deps: []
 size: S
@@ -22,6 +22,7 @@ in_game_steps:
 plan:
   - "Capture (cheap model) and judge (Opus): heat_level 0, 4 and 7 at noon and at midnight; the forge surrounded by stone (full blocks) on 4 sides: no x-ray strip, no z-fighting of the 1.002 display over the block model; the animated glow strips cycle all frames (TFC mcmeta frametime); no flicker of the item display when the state changes (CE morph) or when walking in/out of view; luminance lights surroundings client-side."
   - "File any defect as a new item (datagen ForgeDevices fix) with the screenshots."
+  - "Done: in-game check on Paper 1.21.11 + 1.21.11 client passed every criterion (noon/midnight at heat 0/4/7, stone ring on all sides without x-ray strip, no z-fighting of the 1.002 display, all 6 distinct frames of TFC's animation cycling, no flicker on state change or re-entering view, CE luminance lights the floor); no defect, no follow-up item; evidence and verdict in docs/verification/charcoal-forge/verdict.md"
 tests:
   - "Screenshots + verdict file in docs/verification/charcoal-forge"
 done_criteria:
