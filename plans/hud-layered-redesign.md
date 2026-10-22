@@ -140,5 +140,5 @@ health bar and on the plate.
 - [x] Prompt HUD refresh: `PlayerNeedsHudService.refresh` is called after `/tfp debug thirst`, `/tfp debug hunger` and a
   drink, so the bar follows on the player's next tick instead of within the 20-tick throttle (the GUI 2 screenshot was
   taken inside that window). Test: `PlayerNeedsHudRefreshMockBukkitTest`.
-- [ ] In-game check at GUI scale 2 and 3: no armour (no bar), partial and full armour; outline colour at 8x zoom.
+- [x] In-game check at GUI scale 2 and 3 (2026-10-22, scratchpad ui/hud-v4 and hud-v5): no armour (no bar), armour 8 (40.5%) and 20 (100%), exactly one empty row above health, no overlap; every frame pixel pure black, no pink/red or semi-transparent fringe; fills match health/food/thirst; thirst refreshes within 1 s of the debug command; air colours exact (blue >= 60, red < 60; red shown at 38-41, blue at 59-61 drawn values). Open: the air fill is 5-20 air units ahead of the server value (the bar is refreshed about once per second while air changes 20 per second); red at exactly 59 was not captured because the drawn value lagged. Low priority: refresh the air bar every tick while the player is under water.
 
