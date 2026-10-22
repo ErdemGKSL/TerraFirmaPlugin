@@ -80,6 +80,18 @@ final class CeYamlCheck {
             Set<String> ids = new HashSet<>();
             for (var c : configs) {
                 for (var section : c.getValue().entrySet()) {
+                    if (section.getKey().equals("block_state_mappings")) {
+                        // A block's own fixed mapping (the charcoal forge hides real snow[layers=7]): full states, one
+                        // hop, and never a state the allocation maps or claims.
+                        var allocated = (Map<String, Object>) m.get("block_state_mappings");
+                        for (var e : ((Map<String, Object>) section.getValue()).entrySet()) {
+                            assertThat(e.getKey()).as(c.getKey()).matches(STATE);
+                            assertThat((String) e.getValue()).as(c.getKey()).matches(STATE);
+                            assertThat(allocated).as(c.getKey() + " vs " + mappings).doesNotContainKey(e.getKey())
+                                .doesNotContainKey((String) e.getValue());
+                        }
+                        continue;
+                    }
                     assertThat(section.getKey()).as(c.getKey()).isIn("blocks", "items", "equipments");
                     for (var entry : ((Map<String, Object>) section.getValue()).entrySet()) {
                         assertThat(ids.add(section.getKey() + "/" + entry.getKey())).as("duplicate id " + entry.getKey()).isTrue();

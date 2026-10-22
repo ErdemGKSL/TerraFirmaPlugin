@@ -9,6 +9,10 @@ templates#items:
     behavior:
       type: block_item
       block: ${__NAMESPACE__}:${__ID__}
+  # Display-only item drawn by a block's entity_renderer (never handed to players). render_model: the model it shows.
+  tfp:item/render:
+    material: paper
+    model: ${render_model}
   # Plain item (block drops such as ore pieces and loose rocks, until their own features land).
   tfp:item/simple:
     material: paper

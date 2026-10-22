@@ -145,6 +145,11 @@ public final class AssetPipeline {
                 modelQueue.add("item/" + device);
             }
         }
+        // Charcoal forge block models (one per heat level, from TFC's blockstate) with their parent and textures (the
+        // animated glow strips keep their .mcmeta). ForgeDevices draws them; the small test fixtures have no forge.
+        if (tfc.exists(ForgeDevices.FORGE_BLOCKSTATE)) {
+            modelQueue.addAll(ForgeDevices.forgeModels(tfc).values());
+        }
         // Metal mining tools (M4-TOOL-02 data slice): the tier of each metal is read from TFC's TFCTiers.
         METAL_TOOL_KINDS.forEach((kind, mineable) -> {
             for (String f : tfc.list(TfcCheckout.ASSETS + "models/item/metal/" + kind + "/")) {

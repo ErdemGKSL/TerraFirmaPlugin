@@ -6,7 +6,9 @@
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/blocks/devices/CharcoalForgeBlock.java @ c3b4d9536 (the block state),
  *       src/main/java/net/dries007/tfc/common/blocks/devices/BellowsBlock.java @ c3b4d9536 (the block state),
- *       src/main/resources/assets/tfc/blockstates/charcoal_forge.json and bellows.json @ c3b4d9536 (the variants)
+ *       src/main/resources/assets/tfc/blockstates/charcoal_forge.json and bellows.json @ c3b4d9536 (the variants),
+ *       src/main/java/net/dries007/tfc/common/blocks/CharcoalPileBlock.java @ c3b4d9536 (SHAPE_BY_LAYER, the forge shape),
+ *       src/main/resources/assets/tfc/models/block/charcoal_forge/*.json @ c3b4d9536 (the models, copied by AssetPipeline)
  */
 package dev.tfp.datagen;
 
@@ -31,13 +33,25 @@ import java.util.regex.Pattern;
  *       states, one model rotated by the facing.</li>
  * </ul>
  * Both entries are read from TFC's block classes (the property, its range and its default) and checked against the TFC
- * blockstates; a class or blockstate that no longer matches is an error. The appearances are placeholders (a vanilla
- * campfire for the forge, a vanilla smoker for the bellows, lit from heat level 1) until the visual allocator has a
- * forge demand: they stand in for the look and the hitbox only.
+ * blockstates; a class or blockstate that no longer matches is an error.
+ *
+ * <p><b>Forge look.</b> TFC draws every heat level with its own model ({@code charcoal_forge/heat_N}, parent
+ * {@code template_forge}): one 16×14×16 box, the sides {@code charcoal_pile}, the top the per-level texture
+ * {@code devices/charcoal_forge/N} (level 0 a still charcoal top, 1 to 7 animated glowing strips). The shape is
+ * {@code CharcoalPileBlock.SHAPE_BY_LAYER[7]} (14 px), used for selection and collision. Here every level is drawn on
+ * the vanilla state {@link #FORGE_VISUAL} ({@code snow[layers=7]}: a 14 px outline like TFC, but vanilla snow collides
+ * one layer lower, 12 px), whose block model is TFC's cold model {@code heat_0}: one vanilla state carries one model
+ * only, so the eight levels cannot each have a block model. Levels 1 to 7 add an {@code entity_renderer} item display
+ * of TFC's model for that level (an item {@code tfp:render/charcoal_forge/heat_N}), scaled by {@link #OVERLAY_SCALE}
+ * over the block model, lit with TFC's light level ({@code heat * 2}) as block light. Each level also emits TFC's
+ * light ({@code luminance: heat * 2}). Real vanilla {@code snow[layers=7]} is sent as {@link #SNOW_HIDE_TARGET}
+ * ({@code block_state_mappings}), so player-stacked snow never looks like a forge. The bellows keeps a placeholder
+ * appearance (a vanilla smoker).
  *
  * <p>The outputs are {@code craftengine/tfp/configuration/charcoal_forge.yml} and {@code bellows.yml}, so CraftEngine
  * loads them: each has the block with its settings and its loot (the block itself); the bellows also has the item that
- * places it (with the TFC item model), the forge none (TFC makes it by lighting a charcoal pile). The behaviour (the fuel, the multiblock check, the temperature, the block entity) is not in these
+ * places it (with the TFC item model), the forge none (TFC makes it by lighting a charcoal pile; its only items are
+ * the display-only render items of its lit levels). The behaviour (the fuel, the multiblock check, the temperature, the block entity) is not in these
  * entries: it is Bukkit event glue in the plugin.
  */
 final class ForgeDevices {
@@ -57,6 +71,18 @@ final class ForgeDevices {
     static final String BELLOWS_ID = Json.TO_NS + ":bellows";
 
     static final List<String> FACINGS = List.of("north", "east", "south", "west");
+    /** TFC: {@code CharcoalForgeBlock.getShape} returns {@code CharcoalPileBlock.SHAPE_BY_LAYER[7]}. */
+    static final String BLOCKS_SOURCE = "src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java";
+    static final String PILE_SOURCE = "src/main/java/net/dries007/tfc/common/blocks/CharcoalPileBlock.java";
+    /** The visual (hitbox) state of every forge level: vanilla snow's outline is 2 px per layer, 7 layers = 14 px. */
+    static final String FORGE_VISUAL = "minecraft:snow[layers=7]";
+    /** Where real vanilla snow with 7 layers is sent (a pure vanilla state no custom block uses; one hop). */
+    static final String SNOW_HIDE_TARGET = "minecraft:snow[layers=8]";
+    /** The lit overlay is drawn this much larger than the block model it covers, so the two never z-fight. */
+    static final java.math.BigDecimal OVERLAY_SCALE = new java.math.BigDecimal("1.002");
+    /** The prefix of the display-only items an entity_renderer draws for the lit levels. */
+    static final String RENDER_ITEM_PREFIX = Json.TO_NS + ":render/charcoal_forge/";
+    private static final Pattern MODEL_REF = Pattern.compile(Json.FROM_NS + ":(block/charcoal_forge/[a-z0-9_]+)");
     private static final String HEADER = "Generated by tools/datagen from TerraFirmaCraft @ "
         + TfcCheckout.PINNED_COMMIT.substring(0, 9) + ". Do not edit: fix the generator and regenerate.";
     private static final Pattern HEAT_LEVEL =
@@ -72,7 +98,14 @@ final class ForgeDevices {
     /** Writes both entries. Returns the number of server states (forge plus bellows). Fails when TFC's sources differ. */
     static int run(TfcCheckout tfc, OutputTree out) {
         HeatRange heat = heatRange(tfc);
-        out.put(FORGE_OUTPUT, Yaml.write(HEADER, forge(heat)));
+        checkShape(tfc);
+        Map<Integer, String> models = forgeModels(tfc);
+        for (String model : models.values()) {
+            if (!out.contains(AssetPipeline.RP + "models/" + model + ".json")) {
+                throw new DatagenException("forge model tfp:" + model + " was not copied by AssetPipeline");
+            }
+        }
+        out.put(FORGE_OUTPUT, Yaml.write(HEADER, forge(heat, models)));
         checkBellows(tfc);
         requireItemModel(out, "bellows");
         out.put(BELLOWS_OUTPUT, Yaml.write(HEADER, bellows()));
@@ -100,6 +133,43 @@ final class ForgeDevices {
         }
         checkVariants(tfc, FORGE_BLOCKSTATE, expected);
         return range;
+    }
+
+    /** TFC's forge shape must still be the 7-layer (14 px) charcoal pile shape that {@link #FORGE_VISUAL} matches. */
+    static void checkShape(TfcCheckout tfc) {
+        String src = require(tfc, FORGE_SOURCE);
+        if (!src.contains("return CharcoalPileBlock.SHAPE_BY_LAYER[7];") || src.contains("getCollisionShape")) {
+            throw new DatagenException(FORGE_SOURCE + ": the shape is no longer CharcoalPileBlock.SHAPE_BY_LAYER[7] "
+                + "for selection and collision; re-pick FORGE_VISUAL");
+        }
+        if (!require(tfc, BLOCKS_SOURCE).contains("lightLevel(state -> state.getValue(CharcoalForgeBlock.HEAT) * 2)")) {
+            throw new DatagenException(BLOCKS_SOURCE + ": the charcoal forge light is no longer heat * 2 (update lightLevel)");
+        }
+        if (!require(tfc, PILE_SOURCE).contains("box(0, 0, 0, 16, 14, 16),")) {
+            throw new DatagenException(PILE_SOURCE + ": SHAPE_BY_LAYER[7] is no longer 16x14x16");
+        }
+    }
+
+    /**
+     * The model of each heat level from TFC's blockstate ({@code block/charcoal_forge/heat_N}, no namespace), in level
+     * order. AssetPipeline copies them (with their parent and textures); ForgeDevices draws them.
+     */
+    static Map<Integer, String> forgeModels(TfcCheckout tfc) {
+        var variants = Json.parse(require(tfc, FORGE_BLOCKSTATE), FORGE_BLOCKSTATE).getAsJsonObject()
+            .getAsJsonObject("variants");
+        Map<Integer, String> models = new java.util.TreeMap<>();
+        for (String key : variants.keySet()) {
+            var v = variants.get(key);
+            if (!v.isJsonObject() || !v.getAsJsonObject().has("model") || v.getAsJsonObject().size() != 1) {
+                throw new DatagenException(FORGE_BLOCKSTATE + ": variant " + key + " is not one unrotated model");
+            }
+            Matcher m = MODEL_REF.matcher(v.getAsJsonObject().get("model").getAsString());
+            if (!key.startsWith("heat_level=") || !m.matches()) {
+                throw new DatagenException(FORGE_BLOCKSTATE + ": variant " + key + " is not heat_level=N -> tfc:block/charcoal_forge/...");
+            }
+            models.put(Integer.parseInt(key.substring("heat_level=".length())), m.group(1));
+        }
+        return models;
     }
 
     private static void checkBellows(TfcCheckout tfc) {
@@ -138,19 +208,51 @@ final class ForgeDevices {
         return tfc.readString(path);
     }
 
-    static Map<String, Object> forge(HeatRange heat) {
+    static Map<String, Object> forge(HeatRange heat, Map<Integer, String> models) {
         Map<String, Object> property = new LinkedHashMap<>();
         property.put("type", "int");
         property.put("range", heat.min() + "~" + heat.max());
         property.put("default", heat.min());
+        String cold = Json.TO_NS + ":" + models.get(heat.min());
         Map<String, Object> variants = new LinkedHashMap<>();
-        for (int level = heat.min(); level <= heat.max(); level++) {
-            variants.put(heat.name() + "=" + level, Map.of("appearance", level == 0 ? "cold" : "lit"));
-        }
         Map<String, Object> appearances = new LinkedHashMap<>();
-        appearances.put("cold", Map.of("state", "minecraft:campfire[lit=false]"));
-        appearances.put("lit", Map.of("state", "minecraft:campfire[lit=true]"));
-        return entry(FORGE_ID, null, Map.of(heat.name(), property), appearances, variants);
+        Map<String, Object> items = new LinkedHashMap<>();
+        for (int level = heat.min(); level <= heat.max(); level++) {
+            String model = models.get(level);
+            if (model == null) {
+                throw new DatagenException(FORGE_BLOCKSTATE + " has no model for heat_level=" + level);
+            }
+            String name = "heat_" + level;
+            Map<String, Object> appearance = new LinkedHashMap<>();
+            appearance.put("state", FORGE_VISUAL);
+            appearance.put("model", cold); // the same model on every appearance: one vanilla state, one model
+            if (level > heat.min()) {
+                String item = RENDER_ITEM_PREFIX + name;
+                Map<String, Object> brightness = new LinkedHashMap<>();
+                brightness.put("block_light", Math.min(15, lightLevel(level)));
+                brightness.put("sky_light", 15);
+                Map<String, Object> element = new LinkedHashMap<>();
+                element.put("item", item);
+                element.put("scale", OVERLAY_SCALE);
+                element.put("brightness", brightness);
+                appearance.put("entity_renderer", List.of(element));
+                items.put(item, CeBlockStates.call("tfp:item/render", Map.of("render_model", Json.TO_NS + ":" + model)));
+            }
+            appearances.put(name, appearance);
+            Map<String, Object> variant = new LinkedHashMap<>();
+            variant.put("appearance", name);
+            variant.put("settings", Map.of("luminance", lightLevel(level)));
+            variants.put(heat.name() + "=" + level, variant);
+        }
+        Map<String, Object> root = entry(FORGE_ID, null, Map.of(heat.name(), property), appearances, variants);
+        root.put("items", items);
+        root.put("block_state_mappings", Map.of(FORGE_VISUAL, SNOW_HIDE_TARGET));
+        return root;
+    }
+
+    /** TFC: {@code lightLevel(state -> state.getValue(CharcoalForgeBlock.HEAT) * 2)}. */
+    static int lightLevel(int heat) {
+        return heat * 2;
     }
 
     static Map<String, Object> bellows() {

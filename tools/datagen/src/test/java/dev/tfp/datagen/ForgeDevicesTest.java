@@ -34,9 +34,32 @@ class ForgeDevicesTest {
 
         String forge = new String(files.get(ForgeDevices.FORGE_OUTPUT), StandardCharsets.UTF_8);
         assertThat(forge).contains("tfp:charcoal_forge:", "heat_level:", "range: '0~7'", "default: 0");
-        assertThat(forge).contains("heat_level=0:", "heat_level=7:", "appearance: cold", "appearance: lit");
         assertThat(forge).contains("template: tfp:settings/device", "template: tfp:loot_table/self");
-        assertThat(forge).as("the forge has no item: TFC makes it by lighting a charcoal pile").doesNotContain("items:");
+        assertThat(forge).as("no placeholder campfire any more").doesNotContain("campfire");
+        assertThat(forge).as("the forge has no placing item: TFC makes it by lighting a charcoal pile")
+            .doesNotContain("tfp:item/block_item");
+        for (int level = 0; level <= 7; level++) {
+            assertThat(forge).contains("heat_level=" + level + ":", "appearance: heat_" + level, "luminance: " + (2 * level));
+            assertThat(files).containsKey(AssetPipeline.RP + "models/block/charcoal_forge/heat_" + level + ".json");
+            assertThat(files).containsKey(AssetPipeline.RP + "textures/block/devices/charcoal_forge/" + level + ".png");
+        }
+        assertThat(files).containsKey(AssetPipeline.RP + "models/block/charcoal_forge/template_forge.json");
+        assertThat(files).containsKey(AssetPipeline.RP + "textures/block/charcoal_pile.png");
+        assertThat(files).as("the lit tops keep their animation")
+            .containsKey(AssetPipeline.RP + "textures/block/devices/charcoal_forge/7.png.mcmeta");
+        String heat7 = new String(files.get(AssetPipeline.RP + "models/block/charcoal_forge/heat_7.json"), StandardCharsets.UTF_8);
+        assertThat(heat7).contains("tfp:block/charcoal_forge/template_forge", "tfp:block/devices/charcoal_forge/7")
+            .doesNotContain("tfc:");
+        assertThat(forge).as("every level on the 14 px snow state, all with the one cold model")
+            .contains("state: 'minecraft:snow[layers=7]'", "model: tfp:block/charcoal_forge/heat_0")
+            .doesNotContain("\n          model: tfp:block/charcoal_forge/heat_1");
+        assertThat(forge.split("state: 'minecraft:snow\\[layers=7\\]'", -1)).hasSize(9);
+        assertThat(forge).as("lit levels draw TFC's model of their level with an item display")
+            .contains("entity_renderer:", "item: tfp:render/charcoal_forge/heat_1", "item: tfp:render/charcoal_forge/heat_7",
+                "template: tfp:item/render", "render_model: tfp:block/charcoal_forge/heat_7", "block_light: 14")
+            .doesNotContain("tfp:render/charcoal_forge/heat_0");
+        assertThat(forge).as("real 7-layer snow is hidden as 8 layers")
+            .contains("block_state_mappings:", "'minecraft:snow[layers=7]': 'minecraft:snow[layers=8]'");
         String bellows = new String(files.get(ForgeDevices.BELLOWS_OUTPUT), StandardCharsets.UTF_8);
         assertThat(bellows).contains("items:", "template: tfp:item/block_item", "block.tfp.bellows");
         assertThat(files).containsKey(AssetPipeline.RP + "models/item/bellows.json");
@@ -52,5 +75,13 @@ class ForgeDevicesTest {
         assertThat(range.name()).isEqualTo("heat_level");
         assertThat(range.min()).isZero();
         assertThat(range.max()).isEqualTo(7);
+    }
+
+    @Test
+    void theForgeModelsAndShapeAreReadFromTfc() {
+        var models = ForgeDevices.forgeModels(checkout());
+        assertThat(models).hasSize(8).containsEntry(0, "block/charcoal_forge/heat_0").containsEntry(7, "block/charcoal_forge/heat_7");
+        ForgeDevices.checkShape(checkout()); // throws when TFC's forge is no longer the 14 px pile shape
+        assertThat(ForgeDevices.lightLevel(7)).isEqualTo(14);
     }
 }
