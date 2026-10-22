@@ -259,6 +259,16 @@ Deterministic and re-runnable. Hand fixes go in `tools/datagen/overrides/`. See 
 
 Details: `.claude/skills/dependency-bootstrap/`.
 
+### 12.1 Feature modules (PAR-INFRA-01)
+
+New gameplay features are wired through `dev.tfp.paper.module.FeatureModule`, not by editing `TfpPlugin` or `TfpCommands`: one class (normally in the feature's own package, public no-argument constructor) plus one appended line in `paper/src/main/resources/META-INF/services/dev.tfp.paper.module.FeatureModule` (the shaded jar merges service files).
+
+- **Discovery:** `FeatureModules.shared()` loads the modules once per class loader with `ServiceLoader`, in file order. The bootstrapper's `/tfp` tree and `TfpPlugin` share that instance. A broken line, an invalid id (`[a-z0-9_]+`) or a duplicate id costs only that module and is logged at enable.
+- **Debug commands (bootstrap):** `debugCommands(DebugTree)` adds `/tfp debug <literal>` nodes; `TfpCommands` merges them after the built-ins, which win a name clash (the module literal is skipped and reported). Commands made with `DebugTree.run`/`player` answer `command.not_enabled` while the plugin or the module is off and reply like the built-ins (translated, the console waits up to 2 s).
+- **Enable (`onEnable`):** after the plugin's own services and the packet handler registry exist, before the packet layer is installed. `ModuleContext` gives the plugin, logger, `Scheduler`, `Integrations`/`IntegrationContext`, `RegistryService`, `ConfigService`, `Messages`, `PlayerDataStore`, `ChunkDataStore`, the clock, the HUD cache, the packet registry, `listen(Listener)`, `regions(World)` and `pipeline(...)` (an `AsyncDecisionPipeline` on the CPU pool: decide async, apply sync) and `ModuleServices`, a typed lookup in which the plugin provides `ItemFoodHooks`, `FoodDefinitionsCache`, `ItemHeatHooks`, `ItemHeater` and `ItemHeatDefinitionsCache`, and a module may provide services for the modules after it. A module whose `enable` throws stays off; the others continue.
+- **Disable (`onDisable`):** enabled modules in reverse order, before the integrations, calendar, player data and scheduler stop.
+- **Worked example:** `FoodModule` registers M3-SURV-01's `FoodMergeListener` on the provided `ItemFoodHooks`. Features wired before PAR-INFRA-01 stay in `TfpPlugin` until they are touched.
+
 ## 13. Testing architecture
 
 Pyramid: pure unit/property/golden-value tests (core, worldgen; ported TFC tests) → data-load validation → worldgen determinism + jcstress → JMH budgets → MockBukkit for glue → in-server self-test harness via run-paper on {Paper, Folia} × {1.21.11, 26.3} → manual visual checklist with `/tfp debug showcase`. Folia is the primary thread-safety detector. Details: `.claude/skills/plugin-testing/`.

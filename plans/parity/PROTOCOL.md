@@ -52,7 +52,9 @@ only append or edit your own lines and never reformat or reorder other lines:
 | `art/raw/<asset-id>/**` | new art for your item (image-generation skill) |
 
 Until PAR-INFRA-01 is done, wiring in `paper/.../TfpPlugin.java` and `boot/TfpCommands.java` is a shared hub too (add your
-lines only). After it is done, wire through a `FeatureModule` instead.
+lines only). After it is done, wire through a `FeatureModule` instead: one class of your own implementing
+`dev.tfp.paper.module.FeatureModule` (listeners, services via `ModuleContext.services()`, `/tfp debug` literals via
+`DebugTree`) plus your one line in the service file above; see ARCHITECTURE.md §12.1.
 
 If the work needs another file: do not edit it. Either (a) finish what fits and add a follow-up item (next free id in the
 area, its own `files_owned`, a wave after yours) or (b) set the item to `blocked` with the reason as the first `plan` line and

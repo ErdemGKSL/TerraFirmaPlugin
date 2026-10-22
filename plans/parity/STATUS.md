@@ -10,7 +10,7 @@ Totals: 220 items; open 213, done 4, blocked 3; waves 1..56 (wave 0 = already do
 | PAR-HUD-02 | Two-layer HUD art: one master per bar, bg and fill derived by hud_layers.py | HUD | 0 | done |
 | PAR-HUD-03 | `/tfp debug hunger <name> <0..20>` for exact low-food HUD states | HUD | 0 | done |
 | PAR-METAL-07 | Charcoal forge visuals: TFC heat-level models on a snow-layer carrier | METAL | 0 | done |
-| PAR-INFRA-01 | Feature module SPI: register listeners, services and debug subcommands without editing TfpPlugin | INFRA | 1 | open |
+| PAR-INFRA-01 | Feature module SPI: register listeners, services and debug subcommands without editing TfpPlugin | INFRA | 1 | done |
 | PAR-INFRA-04 | Item data components on PDC: fluid contents and item lists (vessels, jugs, buckets, molds) | INFRA | 1 | done |
 | PAR-INFRA-07 | Tag runtime: TFC item/block/fluid/entity tags resolved for CE and vanilla ids | INFRA | 1 | open |
 | PAR-REL-01 | Test infrastructure fixes: headless client pack URL, snow-free test site, CE shutdown warning | REL | 1 | open |

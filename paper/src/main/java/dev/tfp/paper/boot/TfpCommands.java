@@ -10,6 +10,7 @@ import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import dev.tfp.core.animal.CarrierTable;
@@ -17,14 +18,19 @@ import dev.tfp.core.calendar.CalendarFormat;
 import dev.tfp.core.calendar.TimeCommand;
 import dev.tfp.core.showcase.Showcase;
 import dev.tfp.paper.i18n.Messages;
+import dev.tfp.paper.module.DebugTree;
+import dev.tfp.paper.module.FeatureModules;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -51,6 +57,7 @@ import org.bukkit.entity.Player;
  * /tfp debug animal info       the TFC animal you look at: stored record, age, scale, model (players)
  * /tfp time set day|noon|night|midnight|hour &lt;0-24&gt;   next time of day (tfp.admin, TFC TimeCommand)
  * /tfp time add years|months|days|hours &lt;n&gt; | ticks &lt;n&gt;   skip forward (tfp.admin)
+ * /tfp debug &lt;literal&gt;      added by a feature module ({@link dev.tfp.paper.module.DebugTree}, PAR-INFRA-01)
  * </pre>
  *
  * <p>Replies are translated with {@link Messages} into the sender's locale. Handlers answer with futures;
@@ -172,6 +179,12 @@ public final class TfpCommands {
      */
     public static LiteralCommandNode<CommandSourceStack> build(String pluginVersion, Supplier<Handler> handler,
             Messages messages) {
+        return build(pluginVersion, handler, messages, FeatureModules.shared());
+    }
+
+    /** {@link #build(String, Supplier, Messages)} with {@code modules}' debug literals merged under {@code debug}. */
+    public static LiteralCommandNode<CommandSourceStack> build(String pluginVersion, Supplier<Handler> handler,
+            Messages messages, FeatureModules modules) {
         Command<CommandSourceStack> version = ctx -> {
             Handler h = handler.get();
             CommandSender sender = ctx.getSource().getSender();
@@ -183,17 +196,7 @@ public final class TfpCommands {
             send(ctx.getSource().getSender(), messages, Reply.ok("reload.data.started"));
             return h.reloadData();
         });
-        return Commands.literal("tfp")
-                .requires(s -> s.getSender().hasPermission(PERMISSION))
-                .executes(version)
-                .then(Commands.literal("version").executes(version))
-                .then(Commands.literal("reload")
-                        .requires(s -> s.getSender().hasPermission(ADMIN_PERMISSION))
-                        .executes(reloadData)
-                        .then(Commands.literal("config").executes(run(handler, messages, (h, ctx) -> h.reloadSettings())))
-                        .then(Commands.literal("data").executes(reloadData))
-                        .then(Commands.literal("content").executes(run(handler, messages, (h, ctx) -> h.reloadContent()))))
-                .then(Commands.literal("debug")
+        LiteralArgumentBuilder<CommandSourceStack> debug = Commands.literal("debug")
                         .requires(s -> s.getSender().hasPermission(ADMIN_PERMISSION))
                         .then(Commands.literal("block").executes(player(handler, messages, Handler::debugBlock)))
                         .then(Commands.literal("place")
@@ -292,7 +295,25 @@ public final class TfpCommands {
                                         .executes(run(handler, messages, (h, ctx) ->
                                                 ctx.getSource().getSender() instanceof Player p
                                                         ? h.debugShowcase(p, StringArgumentType.getString(ctx, "family"))
-                                                        : CompletableFuture.completedFuture(Reply.error("command.player_only")))))))
+                                                        : CompletableFuture.completedFuture(Reply.error("command.player_only"))))));
+        // PAR-INFRA-01: the feature modules' literals, after the built-in ones (which win a name clash).
+        Set<String> builtIn = new HashSet<>();
+        debug.getArguments().forEach(n -> builtIn.add(n.getName()));
+        for (LiteralArgumentBuilder<CommandSourceStack> literal : modules.debugLiterals(builtIn,
+                (enabled, action) -> moduleCommand(handler, messages, enabled, action))) {
+            debug.then(literal);
+        }
+        return Commands.literal("tfp")
+                .requires(s -> s.getSender().hasPermission(PERMISSION))
+                .executes(version)
+                .then(Commands.literal("version").executes(version))
+                .then(Commands.literal("reload")
+                        .requires(s -> s.getSender().hasPermission(ADMIN_PERMISSION))
+                        .executes(reloadData)
+                        .then(Commands.literal("config").executes(run(handler, messages, (h, ctx) -> h.reloadSettings())))
+                        .then(Commands.literal("data").executes(reloadData))
+                        .then(Commands.literal("content").executes(run(handler, messages, (h, ctx) -> h.reloadContent()))))
+                .then(debug)
                 .then(Commands.literal("time")
                         .requires(s -> s.getSender().hasPermission(ADMIN_PERMISSION))
                         .then(Commands.literal("set")
@@ -349,6 +370,26 @@ public final class TfpCommands {
     @FunctionalInterface
     private interface Action {
         CompletableFuture<Reply> apply(Handler handler, CommandContext<CommandSourceStack> ctx);
+    }
+
+    /** A module's debug command: refused while the plugin or the module is not enabled. */
+    private static Command<CommandSourceStack> moduleCommand(Supplier<Handler> handler, Messages messages,
+            BooleanSupplier moduleEnabled, DebugTree.Action action) {
+        return ctx -> {
+            CommandSender sender = ctx.getSource().getSender();
+            if (handler.get() == null || !moduleEnabled.getAsBoolean()) {
+                send(sender, messages, Reply.error("command.not_enabled"));
+                return 0;
+            }
+            CompletableFuture<Reply> future;
+            try {
+                future = action.apply(ctx);
+            } catch (RuntimeException e) {
+                future = CompletableFuture.failedFuture(e);
+            }
+            reply(sender, messages, future);
+            return Command.SINGLE_SUCCESS;
+        };
     }
 
     private static Command<CommandSourceStack> run(Supplier<Handler> handler, Messages messages, Action action) {

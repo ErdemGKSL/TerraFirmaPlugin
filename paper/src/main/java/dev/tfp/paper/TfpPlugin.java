@@ -58,7 +58,9 @@ import dev.tfp.paper.player.PlayerData;
 import dev.tfp.paper.player.PlayerDataFiles;
 import dev.tfp.paper.player.PlayerDataListener;
 import dev.tfp.paper.player.WaterDrinkListener;
-import dev.tfp.paper.food.FoodMergeListener;
+import dev.tfp.paper.module.FeatureModules;
+import dev.tfp.paper.module.ModuleContext;
+import dev.tfp.paper.module.ModuleServices;
 import dev.tfp.paper.food.FoodDefinitionsCache;
 import dev.tfp.paper.food.ItemFoodHooks;
 import dev.tfp.paper.heat.HeatPdc;
@@ -142,6 +144,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     private ConfigService config;
     private volatile Scheduler scheduler;
     private volatile Integrations integrations;
+    private volatile IntegrationContext integrationContext;
+    /** PAR-INFRA-01: the feature modules (shared with the bootstrapper's command tree) and the services they look up. */
+    private volatile FeatureModules modules;
+    private final ModuleServices moduleServices = new ModuleServices();
     private final Messages messages = Messages.fromJar();
     private final ChunkDataStore chunkData = new PdcChunkDataStore();
     private volatile PacketHandlerRegistry packets;
@@ -201,6 +207,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         // behaviours/functions/conditions here (must happen in onLoad).
         IntegrationContext ctx = new IntegrationContext(this, getLogger(), readyGate, () -> scheduler, hudCache, clock,
                 getDataPath().toAbsolutePath().getParent(), foodDefinitions);
+        integrationContext = ctx;
         integrations = Integrations.discover(ctx, name -> getServer().getPluginManager().getPlugin(name) != null,
                 TfpPlugin.class.getClassLoader());
         integrations.onLoad();
@@ -458,7 +465,12 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         // M4-FORGE-01: a right-click on a lit charcoal forge heats the held item one step toward the forge's temperature.
         getServer().getPluginManager().registerEvents(
                 new dev.tfp.paper.heat.ForgeHeatListener(integrations::customBlocks, () -> heater), this);
-        getServer().getPluginManager().registerEvents(new FoodMergeListener(foodHooks), this);
+        // M3-SURV-01's FoodMergeListener is wired by FoodModule (PAR-INFRA-01) on the services provided here.
+        moduleServices.provide(ItemFoodHooks.class, foodHooks);
+        moduleServices.provide(FoodDefinitionsCache.class, foodDefinitions);
+        moduleServices.provide(ItemHeatHooks.class, heat);
+        moduleServices.provide(ItemHeater.class, heater);
+        moduleServices.provide(ItemHeatDefinitionsCache.class, itemHeatDefinitions);
         // M3-SURV-02: eating a known food writes its nutrition record (the core rule), on the player's thread.
         getServer().getPluginManager().registerEvents(new NutritionEatListener(store,
                 () -> clock.get().playerTicks(), integrations.customItems(), foodDefinitions, foodHooks, scheduler),
@@ -525,6 +537,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             getServer().getPluginManager().registerEvents(seasonal, this);
             seasonal.start(() -> getServer().getWorlds(), () -> getServer().getOnlinePlayers());
         }
+        enableModules(store, packets);
         PacketLayer layer = PacketLayers.create(packetEvents);
         try {
             layer.install(packets);
@@ -536,8 +549,28 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         getLogger().info("Packet layer: " + layer.describe());
     }
 
+    /**
+     * PAR-INFRA-01: enables the feature modules of {@code META-INF/services/dev.tfp.paper.module.FeatureModule}, after
+     * the plugin's services exist and before the packet layer is installed (modules may register packet handlers).
+     */
+    private void enableModules(PlayerDataStore store, PacketHandlerRegistry packetHandlers) {
+        FeatureModules m = FeatureModules.shared();
+        modules = m;
+        ModuleContext context = new ModuleContext.Of(this, getLogger(), scheduler, integrations, integrationContext,
+                registryService, config, messages, store, chunkData, clock, hudCache, packetHandlers, moduleServices);
+        List<String> enabled = m.enableAll(context, getLogger());
+        getLogger().info("Feature modules: " + (enabled.isEmpty() ? "none" : String.join(", ", enabled)));
+        for (String problem : m.problems()) {
+            getLogger().warning("Feature modules: " + problem);
+        }
+    }
+
     @Override
     public void onDisable() {
+        FeatureModules m = modules;
+        if (m != null) {
+            m.disableAll(getLogger()); // before the integrations and the scheduler stop
+        }
         packetLayer.uninstall();
         if (integrations != null) {
             integrations.onDisable();
@@ -618,6 +651,16 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     /** M5-ENT-01: the animal service (null until enabled). */
     public dev.tfp.paper.animal.AnimalService animals() {
         return animals;
+    }
+
+    /** PAR-INFRA-01: the feature modules (null until enabled). */
+    public FeatureModules modules() {
+        return modules;
+    }
+
+    /** PAR-INFRA-01: the services the plugin and the modules provide. */
+    public ModuleServices moduleServices() {
+        return moduleServices;
     }
 
     public ChunkDataStore chunkData() {

@@ -2,7 +2,7 @@
 id: PAR-INFRA-01
 title: "Feature module SPI: register listeners, services and debug subcommands without editing TfpPlugin"
 area: INFRA
-status: open
+status: done
 wave: 1
 deps: []
 size: M
@@ -27,6 +27,7 @@ plan:
   - "Let modules contribute `tfp debug <sub>` literals through a `DebugTree` builder that TfpCommands merges into the existing tree."
   - "Move one existing feature (food: FoodMergeListener + FoodStampProcessor wiring) onto a module as the worked example; leave the rest where it is."
   - "Document the convention in ARCHITECTURE.md (module section) and in plans/parity/PROTOCOL.md 'Shared hubs'."
+  - "Done: dev.tfp.paper.module (FeatureModule, FeatureModules, ModuleContext, ModuleServices, DebugTree, FoodModule), TfpPlugin enables/disables modules and provides food/heat services, TfpCommands merges module debug literals (built-ins win clashes). There was no FoodStampProcessor class; FoodModule moves FoodMergeListener only (stamping stays in ItemFoodHooks). Tests: FeatureModulesTest (8), FoodModuleMockBukkitTest (2), BootstrapTest unchanged and green. ARCHITECTURE.md §12.1."
 tests:
   - "paper: ServiceLoader discovery test with a fake module (enable/disable order, debug literal merged)"
   - "paper: BootstrapTest still green (the /tfp tree is unchanged apart from module literals)"
