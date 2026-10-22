@@ -31,4 +31,6 @@ done_criteria:
 
 # PAR-INFRA-11: Catch-up trigger service: chunk load, interaction and visible-area sweep for lazy blocks
 
+> see_not_parity: NP-SIM-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

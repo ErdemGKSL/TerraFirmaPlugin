@@ -27,4 +27,6 @@ done_criteria:
 
 # PAR-FAUNA-01: Entity model import: TFC bbmodels and Java animations converted to BetterModel
 
+> see_not_parity: NP-ENT-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

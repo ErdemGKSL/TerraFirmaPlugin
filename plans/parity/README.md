@@ -14,6 +14,7 @@ this folder (HUD and charcoal forge work included: there is no out-of-loop categ
 | `STATUS.md` | one row per item (id, title, area, wave, status); updated by the worker in the same commit as the item file |
 | `INVENTORY.md` | the TFC feature inventory with the current parity status of each feature and the item that closes it, features already at parity, and the features impossible on vanilla clients with their closest equivalent |
 | `items/<AREA>/<ID>.md` | one work item; YAML front matter holds every field the loop parses |
+| `NOT-PARITY.md` | what stays outside parity on purpose (owner decisions), what is impossible on vanilla clients (with the substitute to build) and what is deferred; entries are `audit: skip` and are never re-added as items |
 
 Older planning files stay as history and context: `plans/0*-m*.md`, `plans/90-cross-cutting.md`, `plans/gaps.md`,
 `plans/hud-layered-redesign.md`. Their open entries were migrated here; each item lists the old ids in `aliases`. When an old

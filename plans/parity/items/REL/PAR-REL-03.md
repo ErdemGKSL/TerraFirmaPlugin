@@ -24,4 +24,6 @@ done_criteria:
 
 # PAR-REL-03: Dependency and version updates (MC, Paper, Folia, CE, BetterModel, BetterHud)
 
+> see_not_parity: NP-PLAT-01, NP-PLAT-02 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

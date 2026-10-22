@@ -252,6 +252,8 @@ Status legend: **done** (rules, glue and visuals in game), **partial** (some lay
 
 ## Impossible on vanilla clients (closest planned equivalent)
 
+Auditor: `NOT-PARITY.md` is the full list of what stays outside parity (design decisions, impossible on vanilla, deferred); its entries are marked `audit: skip` and are not gaps, so never add them back as missing features or new items.
+
 | TFC feature | why impossible | closest equivalent | item |
 |---|---|---|---|
 | Custom world fluids (salt, spring, river water, molten metal, other TFC fluids as blocks) | vanilla clients only render vanilla fluids | vanilla water/lava + biome-based salt-ness + server-side river current; non-vanilla fluids only in containers | PAR-FLUID-03 |

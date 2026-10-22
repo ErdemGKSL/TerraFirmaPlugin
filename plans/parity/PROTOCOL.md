@@ -30,6 +30,8 @@ cold from this file. Repository rules in `CLAUDE.md` still apply; where they are
    `paper-folia-threading` for anything scheduled, async, packets or persistence; the `craftengine*` sub-skills for blocks,
    items, visuals, GUIs; `bettermodel`, `betterhud`, `model-authoring`, `image-generation`, `plugin-testing` as relevant.
 3. Read every path in `tfc_refs` in `/opt/tfc`. Keep TFC's constants, formulas and order of random draws.
+4. If your item hits something listed in `NOT-PARITY.md` (or carries a `see_not_parity` line), build the substitute listed
+   there and do not try to reach TFC's exact behaviour; record no follow-up item for that difference.
 
 ## 3. Stay inside `files_owned`
 
