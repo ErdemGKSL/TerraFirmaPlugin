@@ -4,7 +4,7 @@ title: "Metal decoration blocks: metal blocks (and weathered), bars, chains, gra
 area: DECO
 status: open
 wave: 47
-deps: [PAR-DECO-01, PAR-INFRA-13]
+deps: [PAR-DECO-01, PAR-INFRA-13, PAR-INFRA-17]
 size: M
 aliases: ["M6-DECO-03"]
 tfc_refs:
@@ -21,10 +21,12 @@ in_game_steps:
   - "tfp debug showcase metal"
 plan:
   - "Load the 177 metal family blocks (lamps in PAR-METAL-19); chains as vanilla chain carriers, bars as iron bars carriers where pools allow, otherwise entity_renderer."
+  - "Renderer cubes (metal blocks) use PAR-INFRA-17's `tfp:block/rendered_cube` template with destroy_stages, TFC metal sounds and material particles."
 tests:
   - "tools/datagen: MetalFamiliesTest"
 done_criteria:
   - "Metal showcase screenshot"
+  - "Feel checklist of docs/research/ore-entity-renderer-design.md 6 passes for every renderer-drawn cube of this item (cracks via destroy_stages track progress, the material's particles and sounds, TFC mining time/tool tier, light at noon/midnight/torch, no z-fighting or seams, full-block outline and hitbox, no leftover display after /fill or TNT, pick-block gives the block's item, no ring at distance), screenshots in docs/verification/PAR-DECO-09/"
 ---
 
 # PAR-DECO-09: Metal decoration blocks: metal blocks (and weathered), bars, chains, grates, trapdoors

@@ -4,7 +4,7 @@ title: "Groundcover, loose rocks, deposits and boulders as CE blocks in generati
 area: WORLD
 status: open
 wave: 20
-deps: [PAR-INFRA-08, PAR-INFRA-13]
+deps: [PAR-INFRA-08, PAR-INFRA-13, PAR-INFRA-15]
 size: M
 aliases: ["M2-GEN-11"]
 tfc_refs:
@@ -29,6 +29,7 @@ in_game_steps:
 plan:
   - "Generate CE blocks: loose rocks (21 rocks, plain/mossy, button-hitbox carrier), small ores (graded), groundcover (sticks, bones, clam, feather, flint, guano, driftwood, mollusk, seaweed, pumice, rotten flesh, salt lick, podzol...), ore deposits per rock and ore (gravel-like)."
   - "Wire GroundcoverBlocks to write CE ids; add the missing rules: underground loose rocks, the 6 boulders, guano, water clay, rooted dirt and mollisol discs, powder snow."
+  - "Ore overlay (2026-10-22): small ores stay button-carrier groundcover with their own model (not overlays); deposits stay full-block models (per rock at level-0/1, rock-agnostic at level-2); ore blocks themselves are drawn by PAR-INFRA-15/16 and must not get visuals here."
 tests:
   - "tools/datagen: counts vs TFC registries"
   - "core: GroundcoverDepositGoldenTest open-gap list empty"

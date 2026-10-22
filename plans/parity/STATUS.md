@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 221 items; open 214, done 4, blocked 3; waves 1..56 (wave 0 = already done).
+Totals: 227 items; open 216, done 8, blocked 3; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -29,22 +29,27 @@ Totals: 221 items; open 214, done 4, blocked 3; waves 1..56 (wave 0 = already do
 | PAR-HUD-08 | Held item temperature popup with real values | HUD | 4 | open |
 | PAR-INFRA-10 | Neighbour-update runner: block shape updates decided async, applied sync | INFRA | 4 | open |
 | PAR-INFRA-11 | Catch-up trigger service: chunk load, interaction and visible-area sweep for lazy blocks | INFRA | 4 | open |
+| PAR-WORLD-17 | Ore overlay spike S1: measure exposed ore faces per chunk and the overlay entity budget | WORLD | 4 | open |
 | PAR-HUD-06 | HUD polish: health frame asymmetry, ambient temperature bar and info plate, pulse animation | HUD | 5 | open |
 | PAR-PROC-01 | Knapping GUI: 5x5 grid for stone, clay, fire clay, leather and goat horn | PROC | 5 | open |
 | PAR-PROC-19 | Misc materials as CE items: ores, gems, powders, fibres, cloth, paper, glue, straw, mortar, spawn eggs | PROC | 5 | open |
 | PAR-SURV-01 | All TFC food items generated as CE items with food_stamp and food data | SURV | 5 | open |
+| PAR-INFRA-17 | Renderer-cube feel (spike S2): destroy_stages, particles, sounds and mining for display-drawn full blocks | INFRA | 5 | open |
 | PAR-HUD-07 | HUD per MC version and TFC display styles: 26.x sprite list, XP bar style, health display style | HUD | 6 | open |
 | PAR-PROC-02 | Workbench crafting: the plain 2,255 shaped/shapeless recipes as CE recipe YAML | PROC | 6 | open |
 | PAR-SURV-02 | Food tooltip: expiry/rotten, traits, nutrition lines | SURV | 6 | open |
 | PAR-SURV-03 | Eating completion: undefined foods, peaceful, rotten advancement hook, in-game check | SURV | 6 | open |
+| PAR-INFRA-15 | Ore overlay datagen: ores take the host rock visual, overlay item models, always-on allocator rule, profiles level-0..2 only | INFRA | 6 | open |
 | PAR-PROC-03 | Advanced crafting: TFC advanced recipes, food combining, casting crafting, vanilla recipe leakage | PROC | 7 | open |
 | PAR-PROC-04 | Quern: block, handstone, grinding, GUI-less interaction | PROC | 7 | open |
 | PAR-PROC-05 | Scraping hides on a log | PROC | 7 | open |
 | PAR-SURV-04 | Thirst completion: thirst effects, rain drinking, salt water, open-water drinking decision | SURV | 7 | open |
+| PAR-INFRA-16 | Ore overlay runtime: packet-only face overlays, neighbour-driven refresh, Folia-safe, feel checklist | INFRA | 7 | open |
 | PAR-FLUID-01 | Fluids as container contents: registry of TFC fluids, colours, debug fill | FLUID | 8 | open |
 | PAR-SURV-05 | Health and damage: TFC health scale, physical damage types, entity and armour resistances | SURV | 8 | open |
 | PAR-SURV-06 | Item size and weight on Paper: container limits, overburdened and exhausted, tooltip | SURV | 8 | open |
 | PAR-SURV-07 | Player tab screens: calendar, nutrition and climate pages opened from outside the inventory | SURV | 8 | open |
+| PAR-REL-12 | Visual and overlay budget guards: profile-vs-pool unit test, overlay entities-per-chunk itest budget | REL | 8 | open |
 | PAR-FLUID-02 | Buckets: wooden bucket, red and blue steel buckets, fluid placement policy | FLUID | 9 | open |
 | PAR-FLUID-03 | Salt water, spring water and river water in the world | FLUID | 9 | open |
 | PAR-PROC-08 | Barrel block: fluids, sealing, sealed and instant recipes, preservation | PROC | 9 | open |

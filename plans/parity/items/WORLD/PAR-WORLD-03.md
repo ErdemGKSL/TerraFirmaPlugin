@@ -4,7 +4,7 @@ title: "Worldgen performance: JMH chunk budget, vanilla baseline and exposed-gem
 area: WORLD
 status: open
 wave: 17
-deps: [PAR-WORLD-02]
+deps: [PAR-WORLD-02, PAR-WORLD-17]
 size: M
 aliases: ["M2-GEN-15", "M2-GEN-07 (JMH)"]
 tfc_refs:
@@ -17,6 +17,7 @@ in_game_steps: []
 plan:
   - "JMH of TfcTerrain.fill at 1/4/8 threads; pre-generate the same 10k chunks on vanilla and TFC worlds under spark and compare chunks/s."
   - "Count exposed gem faces per chunk to confirm or change the level-2 gem overlay; write the decision in ARCHITECTURE.md."
+  - "Ore overlay (2026-10-22): the exposed-gem count is superseded by PAR-WORLD-17 (all ores are overlays, census and entity budget); write only the worldgen cost here and link the S1 verdict for the overlay decision."
 tests:
   - "JMH results committed"
 done_criteria:

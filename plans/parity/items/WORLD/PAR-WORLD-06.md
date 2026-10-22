@@ -19,6 +19,7 @@ in_game_steps:
   - "Fresh world; spectator mode; fly underground near spawn and screenshot a cave"
 plan:
   - "Port the vanilla CaveWorldCarver/CanyonWorldCarver tunnel shapes with TFC's configured_carver parameters (probability, y range, radii), feeding the existing CaveCarver carve decision; keep it deterministic per chunk seed."
+  - "Ore overlay (2026-10-22): once caves and canyons generate, rerun PAR-WORLD-17's `ore.census` (exposure was measured on a vanilla proxy before caves existed) and update docs/spikes/S1-ore-overlay.md; if the p95 exceeds the gate, raise an owner question about the overlay defaults."
 tests:
   - "core: golden tunnel masks from a vanilla+TFC oracle for 20 chunks"
 done_criteria:

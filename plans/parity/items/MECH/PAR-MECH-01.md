@@ -4,7 +4,7 @@ title: "Rotation network blocks: axle, encased axle, gearbox, clutch, creative m
 area: MECH
 status: open
 wave: 49
-deps: [PAR-INFRA-10, PAR-INFRA-08]
+deps: [PAR-INFRA-10, PAR-INFRA-08, PAR-INFRA-17]
 size: M
 aliases: ["M6-MECH-01"]
 tfc_refs:
@@ -27,11 +27,13 @@ in_game_steps:
   - "place creative motor + 5 axles + gearbox; tfp debug rotation (new)"
 plan:
   - "Blocks persist their node; topology changes enqueue RotationNetworks updates (decide async, apply sync), split per region on Folia; port the 4 remaining RotationNetworkTest cycle cases."
+  - "Full-cube mechanical blocks (encased axle, gearbox, clutch) drawn as renderer cubes use PAR-INFRA-17's `tfp:block/rendered_cube` template with destroy_stages and TFC sounds."
 tests:
   - "core: RotationNetworkManagerPortTest + 4 cycle cases"
   - "itest: Folia stress"
 done_criteria:
   - "A creative motor drives an axle line and gearbox (debug readout of speeds)"
+  - "Feel checklist of docs/research/ore-entity-renderer-design.md 6 passes for every renderer-drawn cube of this item (cracks via destroy_stages track progress, the material's particles and sounds, TFC mining time/tool tier, light at noon/midnight/torch, no z-fighting or seams, full-block outline and hitbox, no leftover display after /fill or TNT, pick-block gives the block's item, no ring at distance), screenshots in docs/verification/PAR-MECH-01/"
 ---
 
 # PAR-MECH-01: Rotation network blocks: axle, encased axle, gearbox, clutch, creative motor

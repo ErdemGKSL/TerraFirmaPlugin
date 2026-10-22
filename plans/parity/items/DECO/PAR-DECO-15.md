@@ -4,7 +4,7 @@ title: "Visual budget re-check after all block families"
 area: DECO
 status: open
 wave: 49
-deps: [PAR-DECO-01, PAR-DECO-06, PAR-DECO-07, PAR-DECO-09, PAR-WORLD-12]
+deps: [PAR-DECO-01, PAR-DECO-06, PAR-DECO-07, PAR-DECO-09, PAR-WORLD-12, PAR-REL-12, PAR-INFRA-15]
 size: S
 aliases: ["X-VIS-01"]
 tfc_refs:
@@ -16,6 +16,7 @@ ui: false
 in_game_steps: []
 plan:
   - "Regenerate the allocation report with every family loaded; confirm >= 500 free solid-pool slots per default profile and version; document any profile change."
+  - "Profiles are level-0, level-1, level-2 only (2026-10-22; ores are overlays in every profile, demand 768/648/568 for all of TFC); confirm >= 500 free solid-pool slots for level-2 (the default on both families) and every other profile through PAR-REL-12's ProfilePoolGuardTest."
 tests:
   - "VisualBudgetTest"
 done_criteria:

@@ -20,6 +20,8 @@ Status legend: **done** (rules, glue and visuals in game), **partial** (some lay
 | INFRA | updateShape/neighborChanged connections (support beams, wattle, connected grass, fences) | partial | PAR-INFRA-10 |
 | INFRA | Calendar catch-up of block entities (CalendarEventHandler, onCalendarUpdate) | not started | PAR-INFRA-11 |
 | INFRA | Block hitboxes (VoxelShape getShape/getCollisionShape of every TFC block) on vanilla carrier states | not started | PAR-INFRA-13 |
+| INFRA | Ore block look (two-layer `tfc:block/ore`/`ore_column` model: host rock + ore overlay) as host-rock visual + exposed-face display overlays (owner decision 2026-10-22) | partial | PAR-INFRA-15, PAR-INFRA-16 |
+| INFRA | Mining feedback of display-drawn full blocks (cracks, break particles, sounds, mining time; no TFC counterpart beyond the vanilla block behaviour) | not started | PAR-INFRA-17 |
 | CLIMATE | Calendar (ServerCalendar, CalendarTransaction, sleeping, time stop when empty) | partial | PAR-CLIM-01 |
 | CLIMATE | Rain vs snow by temperature (WeatherHelpers.getPrecipitationAt) | partial | PAR-CLIM-02 |
 | CLIMATE | Snow & ice accumulation/melting + catch-up (WeatherHelpers.onTickChunk) | partial | PAR-CLIM-03 |
@@ -38,6 +40,7 @@ Status legend: **done** (rules, glue and visuals in game), **partial** (some lay
 | WORLD | TFCAquifer barrier noise | partial | PAR-WORLD-07 |
 | WORLD | Ore veins (disc/pipe/kaolin) | partial | PAR-WORLD-08 |
 | WORLD | Groundcover / loose rock / ore deposit / small ore blocks | placeholder | PAR-WORLD-09 |
+| WORLD | Exposed ore faces per chunk and overlay entity budget (vein data `configured_feature/vein`, caves; budget input, no TFC counterpart) | not started | PAR-WORLD-17 |
 | WORLD | Wood base blocks (Wood.BlockType log/wood/leaves/sapling) | placeholder | PAR-WORLD-10 |
 | WORLD | Tree features (ForestFeature, TreeHelpers, structure templates) | partial | PAR-WORLD-11 |
 | WORLD | Plant blocks (Plant enum: grasses, flowers, shrubs, tall, water, floating, epiphytes, creeping) | placeholder | PAR-WORLD-12 |
@@ -228,6 +231,7 @@ Status legend: **done** (rules, glue and visuals in game), **partial** (some lay
 | REL | Release | not started | PAR-REL-09 |
 | REL | 2D art not in TFC (176 assets in docs/art/image-list.md) | partial | PAR-REL-10 |
 | REL | Docs | partial | PAR-REL-11 |
+| REL | Visual profile pool guard and overlay entity budget (no TFC counterpart) | not started | PAR-REL-12 |
 
 ## Features already at parity (no open item)
 
@@ -237,7 +241,7 @@ Status legend: **done** (rules, glue and visuals in game), **partial** (some lay
 | CLIMATE | Climate model (OverworldClimateModel, Koppen, solar) | done (rules)  | ClimateGoldenTest, SolarGoldenTest; HUD readout = `/tfp debug chunk` |
 | CLIMATE | Climate ranges (49 files) | done (rules) | ClimateRangeTest; consumers wire it in their items |
 | WORLD | Noise library, layer framework, region generator rules, rivers, chunk data, biome heights and density, surface rules, aquifer decision, cluster ore veins, groundcover/deposit rules, tree/plant/coral rules, calderas and hot springs, spawn search | done (rules + glue, golden vs TFC) | ledger 'World generation' rows; open parts are PAR-WORLD-* |
-| WORLD | Rock, ore (graded), soil, sand full-cube CE blocks | done | content/generated/.../configuration/{rock,ore,soil}, ledger 'Rocks, ores, soils' playable |
+| WORLD | Rock, ore (graded), soil, sand full-cube CE blocks | done | content/generated/.../configuration/{rock,ore,soil}, ledger 'Rocks, ores, soils' playable; ore look moves to host rock + exposed-face overlays (PAR-INFRA-15/16, 2026-10-22) |
 | INFRA | Plugin skeleton, installer of CE/BM/BH content, scheduler abstraction, AsyncDecisionPipeline, chunk data store, packet layer, registries and datagen v1, self-test harness | done | plans/00-m0-spikes.md and 01-m1-skeleton.md (all ticked) |
 | SURV | Food decay rules, item PDC codec, food_stamp processor, stack merging | done (rules + glue) | FoodDecayGoldenTest, FoodMergeListenerMockBukkitTest |
 | SURV | Nutrition rules and eating record, rotten effects, vanilla food sync | done (rules + glue) | NutritionGoldenTest, NutritionEatingTest; in-game eat of tfp:food/mutton |

@@ -4,7 +4,7 @@ title: "TFC falling blocks: canFallThrough, landing, damage"
 area: PHYS
 status: open
 wave: 16
-deps: []
+deps: [PAR-INFRA-16]
 size: S
 aliases: []
 tfc_refs:
@@ -23,6 +23,7 @@ in_game_steps:
   - "screenshot after it lands"
 plan:
   - "Spawn vanilla FallingBlock entities carrying the CE block state (CE falling block support or our PDC + land listener); landing places the CE state, breaks blocks it can fall through (canFallThrough), damages entities as TFC."
+  - "Ore overlay (2026-10-22): a falling block carrying a tfp ore state calls `OreOverlays.attachToFalling` (PAR-INFRA-16) so the ore keeps its overlay while it falls."
 tests:
   - "paper: MockBukkit land places the CE state"
 done_criteria:

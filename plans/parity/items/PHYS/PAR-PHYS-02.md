@@ -4,7 +4,7 @@ title: "Collapse runner: mining triggers collapses decided async, applied as fal
 area: PHYS
 status: open
 wave: 17
-deps: [PAR-PHYS-01, PAR-INFRA-10]
+deps: [PAR-PHYS-01, PAR-INFRA-10, PAR-INFRA-16]
 size: M
 aliases: ["M3-PHYS-01"]
 tfc_refs:
@@ -26,6 +26,7 @@ in_game_steps:
 plan:
   - "On BlockBreakEvent of #can_trigger_collapse with a pickaxe: snapshot the support area, CollapseRules decides (real/fake chance, radius) off-thread, the commit queue turns raw rock into falling cobble per collapse recipe in budgeted batches; WorldTracker propagation ticks become delayed decisions."
   - "Folia: the collapse area is clipped to the owning region; neighbours in other regions get a scheduled follow-up."
+  - "Ore overlay (2026-10-22): collapses turn rich -> normal -> poor ore into falling blocks (TFC collapse recipes); overlays follow through the block-change packets and the falling-block attachment of PAR-INFRA-16; check no overlay is left in the air after a collapse."
 tests:
   - "core: CollapseGoldenTest exists"
   - "paper: fake-clock collapse commits"

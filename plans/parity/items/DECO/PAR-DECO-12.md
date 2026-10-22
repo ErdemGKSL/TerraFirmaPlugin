@@ -4,7 +4,7 @@ title: "Misc blocks: crates, buoys, cakes, golden bamboo, palm mosaic, tree root
 area: DECO
 status: open
 wave: 48
-deps: [PAR-INFRA-02, PAR-INFRA-13]
+deps: [PAR-INFRA-02, PAR-INFRA-13, PAR-INFRA-17]
 size: M
 aliases: []
 tfc_refs:
@@ -27,10 +27,12 @@ in_game_steps:
   - "tfp debug showcase misc"
 plan:
   - "Crates (storage, crateEnableAutomation, content preview on look via actionbar instead of CrateOverlays), buoys floating, TFC cakes, decorative blocks."
+  - "Crates and workbenches drawn as renderer cubes (level-1 and up) use PAR-INFRA-17's `tfp:block/rendered_cube` template with destroy_stages, TFC wood sounds and material particles."
 tests:
   - "tools/datagen counts"
 done_criteria:
   - "Showcase screenshot"
+  - "Feel checklist of docs/research/ore-entity-renderer-design.md 6 passes for every renderer-drawn cube of this item (cracks via destroy_stages track progress, the material's particles and sounds, TFC mining time/tool tier, light at noon/midnight/torch, no z-fighting or seams, full-block outline and hitbox, no leftover display after /fill or TNT, pick-block gives the block's item, no ring at distance), screenshots in docs/verification/PAR-DECO-12/"
 ---
 
 # PAR-DECO-12: Misc blocks: crates, buoys, cakes, golden bamboo, palm mosaic, tree roots, light block
