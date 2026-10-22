@@ -5,6 +5,7 @@
  */
 package dev.tfp.integration.craftengine;
 
+import dev.tfp.integration.craftengine.device.DeviceBlockBehaviour;
 import dev.tfp.paper.integration.Integration;
 import dev.tfp.paper.integration.IntegrationContext;
 import dev.tfp.paper.integration.IntegrationProvider;
@@ -23,6 +24,8 @@ public final class CraftEngineProvider implements IntegrationProvider {
         CraftEngineBehaviours behaviours = new CraftEngineBehaviours()
                 // M3-SURV-01: dates food items on every CraftEngine build (give, loot, recipe result).
                 .itemProcessor(FoodStampProcessor.PATH, FoodStampProcessor.factory(context.clock(), context.foods()));
+        // PAR-INFRA-02/18: the tfp:device block behaviour and the CraftEngine device store.
+        DeviceBlockBehaviour.register(behaviours);
         return new CraftEngineIntegration(context, behaviours);
     }
 }

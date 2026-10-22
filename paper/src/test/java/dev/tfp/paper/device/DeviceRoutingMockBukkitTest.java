@@ -14,6 +14,7 @@ import dev.tfp.core.persist.DataMap;
 import dev.tfp.core.persist.VersionedCodec;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.FakeCustomBlocks;
+import dev.tfp.paper.integration.FakeCustomItems;
 import dev.tfp.paper.scheduler.ServerScheduler;
 import dev.tfp.paper.testing.MockServerTest;
 import java.nio.ByteBuffer;
@@ -107,7 +108,8 @@ class DeviceRoutingMockBukkitTest extends MockServerTest {
     @BeforeEach
     void setUp() {
         world = server.addSimpleWorld("devices");
-        service = new DeviceService(new DeviceKinds(), blocks, () -> store, now::get, stacks, Logger.getLogger("test"));
+        service = new DeviceService(new DeviceKinds(), blocks, () -> store, now::get, stacks, new FakeCustomItems(),
+                Logger.getLogger("test"));
         service.register(ProbeDevice.kind());
         service.register(DeviceKind.builder("tfp:device/counter", COUNTER, new Counter(0))
                 .slots(1)

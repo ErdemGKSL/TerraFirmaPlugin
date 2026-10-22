@@ -15,21 +15,26 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The two device callbacks that come from Bukkit events rather than from the {@code tfp:device} CraftEngine behaviour
- * (PAR-INFRA-02): a left click ({@link DeviceHandler#attack}) and a placement ({@link DeviceHandler#placed}). Both only
- * hand over to the {@link DeviceService} on the block's region thread.
+ * The device callbacks that come from Bukkit events rather than from the {@code tfp:device} CraftEngine behaviour
+ * (PAR-INFRA-02): a left click ({@link DeviceHandler#attack}), a placement ({@link DeviceHandler#placed}) and the
+ * dropped item of a {@link DeviceKind.RemoveBehaviour#SAVE} device (PAR-INFRA-18). All only hand over to the
+ * {@link DeviceService} on the region thread.
  *
  * <ul>
  *   <li>Placement is handed to a region task after the event, so it sees the final outcome of the event (a later
  *       cancellation reverts the block and the task finds no device). The placed stack is copied during the event,
- *       before the server uses it up. When CraftEngine stores the block entity relative to {@code BlockPlaceEvent}
- *       (its {@code BlockItemBehavior} places before firing it) and how soon a Folia region task runs are checked in
- *       game by PAR-INFRA-18.</li>
+ *       before the server uses it up. Order with CraftEngine 26.9.2 ({@code BlockItemBehavior.place}, read from its
+ *       bytecode by PAR-INFRA-18): the block is set first, which creates the block entity and stamps a fresh record
+ *       ({@code DeviceController.onLoad}); then {@code BlockPlaceEvent} and {@code CustomBlockPlaceEvent} fire; if
+ *       neither is cancelled, {@code loadCustomDataFromItem} restores a SAVE record from the item and the stack
+ *       shrinks, all in the same call. The region task runs on a later tick on Paper and on Folia (the region
+ *       scheduler never runs a task inline), so {@code placed} always sees the stamped or restored record.</li>
  *   <li>Attack runs inline when the event thread owns the block (always on Paper; on Folia the player's region),
  *       otherwise on the block's region. As vanilla, which only calls {@code Block.attack} from a survival/adventure
  *       start-destroy that was not refused: skipped in creative and when the click was denied.</li>
@@ -51,6 +56,12 @@ public final class DeviceListener implements Listener {
         EquipmentSlot hand = event.getHand();
         ItemStack placed = event.getItemInHand().clone();
         scheduler.region(block.getLocation(), () -> devices.placed(block, player, hand, placed));
+    }
+
+    /** A SAVE device's own drop gets its record; the item's region thread, which is also the removed block's. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onItemSpawn(ItemSpawnEvent event) {
+        devices.stampSavedDrop(event.getEntity());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

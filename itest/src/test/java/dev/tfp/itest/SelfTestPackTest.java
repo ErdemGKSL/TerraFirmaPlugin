@@ -34,9 +34,10 @@ class SelfTestPackTest {
         Files.createDirectories(plugins.resolve("CraftEngine/resources"));
         String second = SelfTestPack.install(plugins, getClass().getClassLoader(), "1.0");
         Path target = plugins.resolve("CraftEngine/resources/tfpitest");
-        assertThat(second).contains("2 written");
+        assertThat(second).contains("3 written"); // pack.yml, blocks.yml, devices.yml (PAR-INFRA-18)
         assertThat(target.resolve("pack.yml")).exists();
         assertThat(target.resolve("configuration/blocks.yml")).exists();
-        assertThat(SelfTestPack.install(plugins, getClass().getClassLoader(), "1.0")).contains("0 written", "2 unchanged");
+        assertThat(target.resolve("configuration/devices.yml")).exists();
+        assertThat(SelfTestPack.install(plugins, getClass().getClassLoader(), "1.0")).contains("0 written", "3 unchanged");
     }
 }

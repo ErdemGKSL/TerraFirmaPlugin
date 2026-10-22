@@ -16,18 +16,27 @@ import dev.tfp.core.persist.DataMap;
 import dev.tfp.core.persist.PersistException;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
+import dev.tfp.paper.integration.CustomItems;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 /**
  * The device framework's runtime (PAR-INFRA-02): finds the {@link DeviceKind} of a custom block, loads its record from
@@ -42,10 +51,20 @@ import org.bukkit.inventory.ItemStack;
  * <p>Unreadable records (a newer plugin version, corruption) are never overwritten: the device answers nothing until
  * the data is readable again. Handler exceptions are logged and the interaction passes; nothing is written.
  *
+ * <p>{@link DeviceKind.RemoveBehaviour#SAVE} (PAR-INFRA-18): removal keeps the caught-up record for a few seconds
+ * under the block position; the block's own drop (its custom item id equals the block id) spawning there gets it as
+ * item PDC {@link #ITEM_KEY} ({@link #stampSavedDrop}, from {@code ItemSpawnEvent}), and placing that item restores it
+ * ({@link #fromItem}, from CraftEngine's {@code loadCustomDataFromItem}).
+ *
  * <p>Threads: every method runs on the region thread that owns the block (the {@link CustomBlocks} and
- * {@link DeviceStore} calls enforce it). The registry is thread-safe.
+ * {@link DeviceStore} calls enforce it). The registry and the pending saves are thread-safe.
  */
 public final class DeviceService implements DeviceRouter {
+    /** Item PDC key of a saved device record ({@link DeviceKind.RemoveBehaviour#SAVE}): the kind codec's bytes. */
+    public static final NamespacedKey ITEM_KEY = new NamespacedKey("tfp", "device");
+    /** How long a removed SAVE device waits for its dropped item (drops spawn in the same tick). */
+    static final long SAVE_WINDOW_NANOS = TimeUnit.SECONDS.toNanos(5);
+
     /** What {@code /tfp debug device} shows. */
     public record Inspection(String kindId, BlockStateRef state, Optional<DeviceRecord<?>> record, long now,
             String problem) {
@@ -54,25 +73,37 @@ public final class DeviceService implements DeviceRouter {
     private record Loaded<S>(DeviceKind<S> kind, DeviceRecord<S> record, boolean stored) {
     }
 
+    private record SaveKey(UUID world, int x, int y, int z) {
+    }
+
+    private record PendingSave(String blockId, byte[] bytes, long expiresNanos) {
+    }
+
     private final DeviceKinds kinds;
     private final CustomBlocks blocks;
     private final Supplier<DeviceStore> store;
     private final LongSupplier playerTicks;
     private final StackCodec stacks;
+    private final CustomItems items;
     private final Logger logger;
+    private final Map<SaveKey, PendingSave> pendingSaves = new ConcurrentHashMap<>();
+    /** Monotonic nanos (tests replace it). */
+    LongSupplier nanos = System::nanoTime;
 
     /**
      * @param blocks      custom block lookups (to find the block id)
      * @param store       the device data store (read per call: the CraftEngine adapter installs it in onLoad)
      * @param playerTicks the calendar's player ticks (TFC {@code Calendars.SERVER.getTicks()}); one read per call
+     * @param items       custom item lookups (to recognise a SAVE device's own dropped item)
      */
     public DeviceService(DeviceKinds kinds, CustomBlocks blocks, Supplier<DeviceStore> store, LongSupplier playerTicks,
-            StackCodec stacks, Logger logger) {
+            StackCodec stacks, CustomItems items, Logger logger) {
         this.kinds = Objects.requireNonNull(kinds, "kinds");
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.store = Objects.requireNonNull(store, "store");
         this.playerTicks = Objects.requireNonNull(playerTicks, "playerTicks");
         this.stacks = Objects.requireNonNull(stacks, "stacks");
+        this.items = Objects.requireNonNull(items, "items");
         this.logger = Objects.requireNonNull(logger, "logger");
     }
 
@@ -177,7 +208,12 @@ public final class DeviceService implements DeviceRouter {
         Block block = world.getBlockAt(x, y, z);
         DeviceContext<S> ctx = new DeviceContext<>(kind, block, state, null, null, ItemStack.empty(), record, now, stacks);
         kind.handler().removed(ctx);
-        if (kind.removal() == DeviceKind.RemoveBehaviour.DROP) {
+        if (kind.removal() == DeviceKind.RemoveBehaviour.SAVE) {
+            long t = nanos.getAsLong();
+            pendingSaves.values().removeIf(p -> t - p.expiresNanos() > 0);
+            pendingSaves.put(new SaveKey(world.getUID(), x, y, z),
+                    new PendingSave(state.id(), kind.codec().toBytes(record), t + SAVE_WINDOW_NANOS));
+        } else if (kind.removal() == DeviceKind.RemoveBehaviour.DROP) {
             // TFC Helpers.spawnItem(level, pos, stack): new ItemEntity at the block centre, vanilla's random motion,
             // pickup delay 0. CraftWorld.dropItem sets pickupDelay = 10 before the consumer runs, so reset it there.
             Location centre = new Location(world, x + 0.5, y + 0.5, z + 0.5);
@@ -185,6 +221,73 @@ public final class DeviceService implements DeviceRouter {
                 world.dropItem(centre, stack, item -> item.setPickupDelay(0));
             }
         }
+    }
+
+    // ---- SAVE: record on the dropped item ------------------------------------------------------------
+
+    /**
+     * An item entity spawned ({@code ItemSpawnEvent}): if a SAVE device was just removed at its block position and the
+     * item is that device's own block item, the device's record goes onto it as {@link #ITEM_KEY}. Region thread of
+     * the item.
+     *
+     * @return true if the item was stamped
+     */
+    public boolean stampSavedDrop(Item entity) {
+        if (pendingSaves.isEmpty()) {
+            return false;
+        }
+        Location l = entity.getLocation();
+        SaveKey key = new SaveKey(l.getWorld().getUID(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
+        PendingSave p = pendingSaves.get(key);
+        if (p == null) {
+            return false;
+        }
+        if (nanos.getAsLong() - p.expiresNanos() > 0) {
+            pendingSaves.remove(key, p);
+            return false;
+        }
+        ItemStack stack = entity.getItemStack();
+        if (!items.idOf(stack).filter(p.blockId()::equals).isPresent() || !pendingSaves.remove(key, p)) {
+            return false;
+        }
+        stack.editMeta(meta -> meta.getPersistentDataContainer().set(ITEM_KEY, PersistentDataType.BYTE_ARRAY,
+                p.bytes()));
+        entity.setItemStack(stack);
+        return true;
+    }
+
+    /** Saves still waiting for their dropped item (tests). */
+    int pendingSaves() {
+        return pendingSaves.size();
+    }
+
+    /** The record saved on {@code item} ({@link #ITEM_KEY}), or empty. */
+    public static Optional<byte[]> savedRecord(ItemStack item) {
+        if (StackCodec.isEmpty(item) || !item.hasItemMeta()) {
+            return Optional.empty();
+        }
+        ItemMeta meta = item.getItemMeta();
+        return Optional.ofNullable(meta.getPersistentDataContainer().get(ITEM_KEY, PersistentDataType.BYTE_ARRAY));
+    }
+
+    @Override
+    public Optional<DataMap> fromItem(String blockId, ItemStack item) {
+        Optional<byte[]> saved = savedRecord(item);
+        Optional<DeviceKind<?>> kind = kinds.find(blockId);
+        if (saved.isEmpty() || kind.isEmpty()) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(restamped(kind.get(), saved.get(), playerTicks.getAsLong()));
+        } catch (PersistException e) {
+            logger.warning("Device " + blockId + ": the record saved on the placed item is unreadable; placed empty: "
+                    + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    private static <S> DataMap restamped(DeviceKind<S> kind, byte[] bytes, long now) {
+        return kind.codec().encode(kind.codec().fromBytes(bytes).withLastUpdateTick(now));
     }
 
     // ---- inspection --------------------------------------------------------------------------------

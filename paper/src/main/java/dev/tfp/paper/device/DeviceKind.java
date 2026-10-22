@@ -34,12 +34,19 @@ import org.bukkit.inventory.ItemStack;
 public final class DeviceKind<S> {
     private static final Pattern ID = Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");
 
-    /** TFC {@code DeviceBlock.InventoryRemoveBehavior}. {@code SAVE} (keep contents on the dropped item) is PAR-INFRA-18. */
+    /** TFC {@code DeviceBlock.InventoryRemoveBehavior}. */
     public enum RemoveBehaviour {
         /** The contents vanish with the block. */
         NOOP,
         /** TFC {@code ejectInventory}: every non-empty slot is spawned at the block centre. */
-        DROP
+        DROP,
+        /**
+         * TFC {@code SAVE} (PAR-INFRA-18): nothing is ejected; the whole record (state and slots) goes onto the
+         * block's own dropped item (item PDC {@code tfp:device}, TFC's {@code collectImplicitComponents} + the loot
+         * table's {@code copy_components}) and placing that item restores it (TFC {@code applyImplicitComponents}).
+         * No drop (creative, wrong tool) loses the contents, as in TFC.
+         */
+        SAVE
     }
 
     /** TFC {@code IItemHandler.isItemValid(slot, stack)}: whether {@code stack} may go into {@code slot}. */

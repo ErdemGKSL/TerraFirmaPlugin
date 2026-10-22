@@ -47,6 +47,17 @@ public interface DeviceRouter {
      */
     Optional<DataMap> created(String blockId);
 
+    /**
+     * A player placed the device from {@code item} (CraftEngine's {@code BlockItemBehavior}, after the placement events,
+     * before the stack shrinks; TFC {@code applyImplicitComponents}). Returns the record map to store when the item
+     * carries a saved record ({@link DeviceKind.RemoveBehaviour#SAVE}): its state and slots, {@code lastUpdateTick}
+     * stamped now (time in item form is not simulated, as TFC's {@code lastUpdateTick} is not on the item). Empty
+     * otherwise. Region thread of the block.
+     */
+    default Optional<DataMap> fromItem(String blockId, ItemStack item) {
+        return Optional.empty();
+    }
+
     /** A right click on the device. @return true if a handler consumed it (the click is cancelled) */
     boolean use(Block block, Player player, EquipmentSlot hand, ItemStack item);
 

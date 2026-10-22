@@ -11,8 +11,11 @@ import dev.tfp.integration.craftengine.TfpBlockEntityController;
 import dev.tfp.paper.device.DeviceBridge;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
+import net.momirealms.craftengine.core.item.Item;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * The block-entity controller of every {@code tfp:device} block (PAR-INFRA-02). It stores the device's record map
@@ -25,7 +28,9 @@ import org.bukkit.World;
  * </pre>
  *
  * <p>{@link #onRemove} (region thread; the block was broken, exploded or replaced by another block) hands the last
- * record to the device router, which drops the inventory. {@link #onLoad} stamps a device that has no record yet.
+ * record to the device router, which drops the inventory (or keeps it for the dropped item, {@code SAVE}).
+ * {@link #onLoad} stamps a device that has no record yet; {@link #loadCustomDataFromItem} restores a record saved on
+ * the placed item (PAR-INFRA-18).
  * Unloading is not removal and does nothing. No ticker.
  */
 public final class DeviceController extends TfpBlockEntityController<DataMap> {
@@ -78,6 +83,32 @@ public final class DeviceController extends TfpBlockEntityController<DataMap> {
             return;
         }
         DeviceBridge.router().created(blockId).ifPresent(this::write);
+    }
+
+    /**
+     * CraftEngine's {@code BlockItemBehavior}: a player placed this device from a CraftEngine block item, after
+     * {@code onLoad} stamped it and after the placement events (TFC {@code applyImplicitComponents}). A record saved
+     * on the item ({@code SAVE} removal) replaces the fresh one. Region thread.
+     */
+    @Override
+    public void loadCustomDataFromItem(Item item) {
+        BlockEntity be = blockEntity;
+        if (be == null || item == null) {
+            return;
+        }
+        try {
+            restoreFrom(be.blockState.owner().value().id().toString(), ItemStackUtils.getBukkitStack(item));
+        } catch (RuntimeException e) {
+            LOG.log(Level.SEVERE, "Device at " + be.pos + ": restoring the record saved on the placed item failed", e);
+        }
+    }
+
+    /** Stores the router's restored record of {@code stack}, if it carries one. */
+    void restoreFrom(String blockId, ItemStack stack) {
+        if (hasUnreadableData()) {
+            return;
+        }
+        DeviceBridge.router().fromItem(blockId, stack).ifPresent(this::write);
     }
 
     @Override

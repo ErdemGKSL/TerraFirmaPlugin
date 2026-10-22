@@ -2,7 +2,7 @@
 id: PAR-INFRA-18
 title: "Device framework wiring: register tfp:device with CraftEngine, self-test device.roundtrip, SAVE removal"
 area: INFRA
-status: open
+status: done
 wave: 3
 deps: [PAR-INFRA-02]
 size: S
@@ -28,6 +28,7 @@ plan:
   - "Check in game when CraftEngine stores the device block entity relative to `BlockPlaceEvent` (its `BlockItemBehavior` places before firing the event) and when the `placed` region task runs on Folia; correct the `DeviceListener` javadoc, ARCHITECTURE.md §7.1 and the ledger divergence row on placement accordingly (review note on PAR-INFRA-02)."
   - "Add `DeviceRoundTripCase` (`device.roundtrip`, SelfTestSuite hub): place the probe, right click with an item (slot filled, record stamped), advance the calendar, right click again (catch-up called once with the gap), unload/reload the chunk and restart (record kept), break it (the item drops, block entity gone)."
   - "Add `DeviceKind.RemoveBehaviour.SAVE` (TFC `InventoryRemoveBehavior.SAVE`): the dropped block item keeps the record (item PDC `tfp:device`), placing it restores the record (`DeviceController.loadCustomDataFromItem`)."
+  - "Done: `DeviceBlockBehaviour.register` in `CraftEngineProvider.create`; `/tfp debug device` registered (BootstrapTest pins it); `RemoveBehaviour.SAVE` (record kept 5 s after removal, stamped as item PDC `tfp:device` on the device's own block item from `ItemSpawnEvent`, restored by `DeviceController.loadCustomDataFromItem` → `DeviceRouter.fromItem` with `lastUpdateTick` stamped at placement); placement order checked against CE 26.9.2 `BlockItemBehavior.place` bytecode (block entity stamped before `BlockPlaceEvent`, item record restored after the events in the same call, `placed` region task a later tick), DeviceListener javadoc, ARCHITECTURE.md §7.1 and ledger updated; self-test `device.roundtrip` (`tfpitest:device/probe` in the self-test pack) passed both starts on Paper 1.21.11 and Folia 1.21.11; tests: DeviceSaveMockBukkitTest (4), SelfTestSuiteTest/SelfTestPackTest counts updated for the new case and pack file. Pick-block copying contents recorded as a divergence."
 tests:
   - "itest: DeviceRoundTripCase passes on Paper 1.21.11 and Folia (run delegated per PROTOCOL 5.3)"
   - "paper: MockBukkit test for SAVE (record on the item, restored on placement)"

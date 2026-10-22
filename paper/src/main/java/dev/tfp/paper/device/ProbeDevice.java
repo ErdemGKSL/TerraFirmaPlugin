@@ -12,15 +12,16 @@ import org.bukkit.inventory.ItemStack;
 /**
  * The framework's own test device (PAR-INFRA-02), used by the tests and the self-test {@code device.roundtrip}
  * (PAR-INFRA-18). Not a TFC block: it has no content of its own and is not registered in production; the self-test
- * registers it ({@code services().require(DeviceService.class).register(ProbeDevice.kind())}) on a CraftEngine block
- * {@code tfp:device/probe} with behaviour {@code tfp:device}.
+ * registers it ({@code register(ProbeDevice.kind("tfpitest:device/probe", DROP))}) for its CraftEngine block
+ * {@code tfpitest:device/probe} with behaviour {@code tfp:device}.
  *
  * <ul>
  *   <li>State: player ticks simulated so far and the number of right clicks.</li>
  *   <li>Catch-up: adds the elapsed ticks.</li>
  *   <li>Right click with an item: one of it goes into the first slot that takes it (consumed).</li>
  *   <li>Main-hand right click otherwise: counts the click (consumed).</li>
- *   <li>Four slots, any item, dropped on break.</li>
+ *   <li>Four slots, any item, dropped on break ({@link #kind()}; {@link #kind(String, DeviceKind.RemoveBehaviour)}
+ *       for another id or removal).</li>
  * </ul>
  */
 public final class ProbeDevice {
@@ -41,10 +42,18 @@ public final class ProbeDevice {
     }
 
     public static DeviceKind<State> kind() {
-        return DeviceKind.builder(ID, CODEC, new State(0, 0))
+        return kind(ID, DeviceKind.RemoveBehaviour.DROP);
+    }
+
+    /**
+     * The probe under another block id (the self-test pack's {@code tfpitest:device/probe}) and removal behaviour
+     * (tests of {@link DeviceKind.RemoveBehaviour#SAVE}).
+     */
+    public static DeviceKind<State> kind(String id, DeviceKind.RemoveBehaviour removal) {
+        return DeviceKind.builder(id, CODEC, new State(0, 0))
                 .slots(4)
                 .advance(ADVANCE)
-                .removal(DeviceKind.RemoveBehaviour.DROP)
+                .removal(removal)
                 .handler(new DeviceHandler<>() {
                     @Override
                     public DeviceResult<State> useWithItem(DeviceContext<State> ctx) {

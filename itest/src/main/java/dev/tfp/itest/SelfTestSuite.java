@@ -12,6 +12,7 @@ import dev.tfp.itest.cases.CalendarPersistCase;
 import dev.tfp.itest.cases.ConfigCase;
 import dev.tfp.itest.cases.CraftEngineBlockRoundTripCase;
 import dev.tfp.itest.cases.CraftEnginePackIssuesCase;
+import dev.tfp.itest.cases.DeviceRoundTripCase;
 import dev.tfp.itest.cases.ItemDataRoundTripCase;
 import dev.tfp.itest.cases.MetalRunCase;
 import dev.tfp.itest.cases.PacketNoopCase;
@@ -48,6 +49,7 @@ public final class SelfTestSuite {
                 new ItemDataRoundTripCase(),
                 new CraftEnginePackIssuesCase(),
                 new CraftEngineBlockRoundTripCase(),
+                new DeviceRoundTripCase(),
                 new WorldgenTerrainCase(),
                 new MetalRunCase(),
                 new ProfileRestartCase(),

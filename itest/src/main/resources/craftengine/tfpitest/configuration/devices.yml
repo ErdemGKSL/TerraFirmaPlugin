@@ -1,0 +1,13 @@
+# The device probe of device.roundtrip (PAR-INFRA-18): a plain cube with the tfp:device behaviour. The self-test
+# registers the framework's ProbeDevice kind for this id (DeviceService.register), so it places, stores a record,
+# catches up and drops its slots like any device.
+blocks:
+  tfpitest:device/probe:
+    settings:
+      hardness: 1.0
+      resistance: 1.0
+    behavior:
+      type: tfp:device
+    state:
+      auto_state: solid
+      texture: minecraft:block/iron_block
