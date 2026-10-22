@@ -9,6 +9,7 @@ import dev.tfp.core.install.ConfigEdit;
 import dev.tfp.core.install.InstallStatus.EditResult;
 import dev.tfp.paper.integration.HudReloader;
 import dev.tfp.paper.integration.PackRebuilder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -19,7 +20,7 @@ import java.util.logging.Logger;
 /**
  * M1-INST-02 on a fresh server (ARCHITECTURE.md §12 step 4): BetterHud writes its {@code config.yml} only on its
  * first start, after our {@code onLoad}, so its edits (e.g. {@code default-hud} without {@code test_hud}, with {@code tfp_date_hud}) end as
- * {@code FILE_MISSING}. Once BetterHud has enabled ({@code PluginEnableEvent}, or {@code ServerLoadEvent} if it
+ * {@code FILE_MISSING} (and so does the demo compass edit, {@code compasses/default_compass.yml}). Once BetterHud has enabled ({@code PluginEnableEvent}, or {@code ServerLoadEvent} if it
  * already was), {@link #betterHudEnabled} applies them on the io executor, then asks {@link PackRebuildTrigger} for the
  * CraftEngine pack build, which reloads BetterHud inside it (M0-BH-01). Only without CraftEngine is BetterHud
  * reloaded directly (skipped while it is already reloading).
@@ -55,8 +56,11 @@ public final class PendingHudEdit {
             return CompletableFuture.completedFuture(List.of());
         }
         return CompletableFuture.supplyAsync(() -> {
-            List<EditResult> edits = Installer.applyPending(inputs, TARGET, log);
-            if (!edits.isEmpty() && edits.stream().allMatch(e -> e.outcome() == ConfigEdit.Outcome.FILE_MISSING)) {
+            List<EditResult> config = Installer.applyPending(inputs, TARGET, log);
+            List<EditResult> edits = new ArrayList<>(config);
+            // BetterHud writes its demo compass file in the same first start.
+            edits.addAll(Installer.applyPending(inputs, ConfigEdit.Target.BETTERHUD_DEMO_COMPASS, log));
+            if (!config.isEmpty() && config.stream().allMatch(e -> e.outcome() == ConfigEdit.Outcome.FILE_MISSING)) {
                 started.set(false); // not written yet: the ServerLoadEvent fallback tries again
             } else if (edits.stream().anyMatch(e -> e.outcome() == ConfigEdit.Outcome.APPLIED)) {
                 reload();

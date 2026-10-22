@@ -76,8 +76,13 @@ class InstallerTest {
         write(plugins.resolve("CraftEngine/config.yml"), CE_CONFIG);
         write(plugins.resolve("CraftEngine/resources/remove_shulker_head/pack.yml"), "namespace: minecraft\nenable: true\n");
         write(plugins.resolve("BetterHud/config.yml"), BH_CONFIG);
+        write(plugins.resolve(DEMO_COMPASS), DEMO_COMPASS_YML);
         write(plugins.resolve("BetterModel/config.yml"), "# BM\npack-type: zip\n");
     }
+
+    static final String DEMO_COMPASS = "BetterHud/compasses/default_compass.yml";
+    /** The start of BetterHud's shipped demo compass. */
+    static final String DEMO_COMPASS_YML = "default_compass:\n  type: circle\n  default: true\n  scale: 0.75\n";
 
     static void write(Path p, String text) throws IOException {
         Files.createDirectories(p.getParent());
@@ -100,6 +105,7 @@ class InstallerTest {
                 .isEqualTo(CE_CONFIG.replace("delay-configuration-load: true", "delay-configuration-load: false"));
         assertThat(Files.readString(plugins.resolve("BetterHud/config.yml"))).contains("default-hud: [tfp_date_hud, tfp_bars_hud]\nmerge-with");
         assertThat(Files.readString(plugins.resolve("CraftEngine/resources/remove_shulker_head/pack.yml"))).contains("enable: false");
+        assertThat(Files.readString(plugins.resolve(DEMO_COMPASS))).contains("  default: false\n");
         assertThat(first.status().restartRequired()).isTrue();
         assertThat(first.status().degraded()).isTrue();
         assertThat(first.status().packRebuild()).isTrue();
@@ -446,9 +452,11 @@ class InstallerTest {
     /** A fresh server: BetterHud has no config.yml at our onLoad. */
     Installer.Result runWithoutBetterHudConfig() throws IOException {
         Files.delete(plugins.resolve("BetterHud/config.yml"));
+        Files.delete(plugins.resolve(DEMO_COMPASS));
         Installer.Result r = run(AutoInstall.DEFAULTS, ALL);
         assertThat(Installer.pending(r, ConfigEdit.Target.BETTERHUD_CONFIG)).isTrue();
         write(plugins.resolve("BetterHud/config.yml"), BH_CONFIG); // BetterHud's own first start
+        write(plugins.resolve(DEMO_COMPASS), DEMO_COMPASS_YML);
         return r;
     }
 
@@ -473,6 +481,9 @@ class InstallerTest {
         assertThat(edits).filteredOn(e -> e.edit().key().equals("default-hud"))
                 .singleElement().extracting(EditResult::outcome).isEqualTo(Outcome.APPLIED);
         assertThat(Files.readString(plugins.resolve("BetterHud/config.yml"))).contains("default-hud: [tfp_date_hud, tfp_bars_hud]");
+        assertThat(edits).filteredOn(e -> e.edit().target() == ConfigEdit.Target.BETTERHUD_DEMO_COMPASS)
+                .singleElement().extracting(EditResult::outcome).isEqualTo(Outcome.APPLIED);
+        assertThat(Files.readString(plugins.resolve(DEMO_COMPASS))).contains("  default: false\n");
         assertThat(Files.readString(stateDir().resolve(ThirdPartyConfigEditor.RECORD_FILE)))
                 .contains(ThirdPartyEdits.all(1353).stream().filter(e -> e.key().equals("default-hud")).findFirst().orElseThrow().id());
         // no direct BetterHud reload while it is still starting: the CraftEngine build reloads it (hud-paper-* logs)
@@ -502,12 +513,14 @@ class InstallerTest {
     void betterHudConfigStillMissingAtEnableIsTriedAgainAtServerLoad() throws IOException {
         Installer.Result r = runWithoutBetterHudConfig();
         Files.delete(plugins.resolve("BetterHud/config.yml"));
+        Files.delete(plugins.resolve(DEMO_COMPASS));
         FakeHudReloader hud = new FakeHudReloader();
         FakePackRebuilder ce = new FakePackRebuilder();
         PendingHudEdit pending = pendingHudEdit(r, hud, ce, new PackRebuildTrigger(r, stateDir(), ce,
                 new FakeVisualPools(), null, null, 500, Runnable::run, LOG));
         assertThat(pending.betterHudEnabled("BetterHud").join()).allMatch(e -> e.outcome() == Outcome.FILE_MISSING);
         write(plugins.resolve("BetterHud/config.yml"), BH_CONFIG);
+        write(plugins.resolve(DEMO_COMPASS), DEMO_COMPASS_YML);
         assertThat(pending.betterHudEnabled("BetterHud").join()).anyMatch(e -> e.outcome() == Outcome.APPLIED);
         assertThat(hud.reloads()).isZero();
         assertThat(ce.requests()).isZero(); // CraftEngine has not loaded: its planned rebuild covers the edit

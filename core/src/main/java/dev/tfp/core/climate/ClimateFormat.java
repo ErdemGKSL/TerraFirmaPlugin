@@ -10,7 +10,8 @@ import dev.tfp.core.calendar.CalendarFormat;
 /**
  * Text for climate values, shared by the HUD placeholders and {@code /tfp debug chunk}. Pure and locale-free: the
  * decimal separator is always {@code .}, and the rounding is done in tenths with integer arithmetic, so 0 never shows
- * as "-0.0". The unit is ASCII ({@code C}, not a degree sign) because the generated HUD font is not known to contain one.
+ * as "-0.0". The temperature unit is TFC's {@code °C} ({@code tfc.tooltip.temperature_celsius} = {@code "%s°C"}); the
+ * HUD font merges the vanilla bitmap font, whose {@code ascii.png} has the degree sign.
  */
 public final class ClimateFormat {
     /** Shown while a value is not known yet. */
@@ -19,10 +20,10 @@ public final class ClimateFormat {
     private ClimateFormat() {
     }
 
-    /** {@code 12.3 C}, one decimal place, or {@link #UNKNOWN} for NaN. */
+    /** {@code 12.3°C}, one decimal place, or {@link #UNKNOWN} for NaN. */
     public static String temperature(double celsius) {
         String tenths = tenths(celsius);
-        return tenths == null ? UNKNOWN : tenths + " C";
+        return tenths == null ? UNKNOWN : tenths + "\u00B0C";
     }
 
     /** {@code 250.0 mm}, one decimal place, or {@link #UNKNOWN} for NaN. */

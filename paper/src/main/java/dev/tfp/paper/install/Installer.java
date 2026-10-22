@@ -340,7 +340,7 @@ public final class Installer {
                     ConfigEdit.Target t = e.edit().target();
                     // BetterHud/BetterModel enable after us and write their config.yml on their first start.
                     // BetterHud's edits are applied again once it has enabled (PendingHudEdit).
-                    if (t == ConfigEdit.Target.BETTERHUD_CONFIG) {
+                    if (t == ConfigEdit.Target.BETTERHUD_CONFIG || t == ConfigEdit.Target.BETTERHUD_DEMO_COMPASS) {
                         log.info("Config edit pending: " + what + " (" + t.path()
                                 + " does not exist yet; applied once BetterHud has enabled)");
                     } else if (t == ConfigEdit.Target.BETTERMODEL_CONFIG) {

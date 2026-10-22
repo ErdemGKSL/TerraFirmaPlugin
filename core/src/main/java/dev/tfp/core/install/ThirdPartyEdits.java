@@ -62,6 +62,8 @@ public final class ThirdPartyEdits {
                         new Rule.All(List.of(new Rule.ListWithout("test_hud"), new Rule.ListWith("tfp_date_hud"),
                                 new Rule.ListWith("tfp_bars_hud"))),
                         Effect.RELOAD, false, "BetterHud's demo HUD would be shown to every player; the TFC date and bars HUDs must be shown"),
+                new ConfigEdit(Target.BETTERHUD_DEMO_COMPASS, "default_compass.default", new Rule.NotEquals("true", "false"),
+                        Effect.RELOAD, false, "BetterHud's demo compass would be shown to every player; TFC has no compass on the HUD"),
                 new ConfigEdit(Target.BETTERHUD_CONFIG, "merge-with-external-resources", new Rule.Equals("true"),
                         Effect.RELOAD, false, "BetterHud merges into CraftEngine's pack"),
                 new ConfigEdit(Target.BETTERHUD_CONFIG, "pack-type", new Rule.NotEquals("none", "zip"),

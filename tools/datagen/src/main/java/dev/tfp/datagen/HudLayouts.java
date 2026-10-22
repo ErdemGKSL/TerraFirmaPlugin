@@ -39,8 +39,9 @@ import java.util.regex.Pattern;
  * {@code glue/hidden-vanilla.yml}, two lists that the Java placeholder glue and the installer read. BetterHud does not
  * read {@code glue/}, so the installer must not copy it into the pack folder (dependency-bootstrap).
  *
- * <p>Placements (GUI pixel offsets) are not in the catalogue. They are the skeleton coordinates of the betterhud skill
- * (section 11, placeholders to tune in game), keyed by catalogue id. An element without a placement is an error.
+ * <p>Placements (GUI pixel offsets) are not in the catalogue. They follow TFC's {@code IngameOverlays} geometry (see
+ * {@link #BARS}), keyed by catalogue id. An element without a placement is an error. The bar sprites come from
+ * {@link HudBarArt} (TFC's overlay sheet).
  */
 final class HudLayouts {
     static final String CATALOGUE = "docs/hud/catalogue.md";
@@ -52,7 +53,7 @@ final class HudLayouts {
     /** The vanilla sprite folder that the hidden-vanilla rows name without a folder (e.g. {@code air.png}). */
     static final String VANILLA_HUD = "gui/sprites/hud/";
     static final String IMAGES = BetterHudPack.DIR + "images/tfp-bars.yml";
-    /** The approved bar sprites (docs/art/hud, copied here as resources), by file name. */
+    /** The datagen's HUD resources (hidden-vanilla list, transparent sprite, the TFC overlay sheet of {@link HudBarArt}). */
     private static final String BAR_ART = "/dev/tfp/datagen/hud/";
     /** The vanilla HUD sprite folder in CraftEngine's pack (the content is installed under plugins/CraftEngine/resources/tfp/). */
     private static final String CE_PACK_SPRITES = "craftengine/tfp/resourcepack/assets/minecraft/textures/gui/sprites/hud/";
@@ -75,6 +76,8 @@ final class HudLayouts {
     static final String POPUP_SHOWN_WHILE = "shown while above 0";
     static final String POPUP_OPERATION = ">";
     static final int POPUP_THRESHOLD = 0;
+    /** The unit after the held temperature, as TFC writes it ({@code tfc.tooltip.temperature_celsius} = {@code "%s°C"}). */
+    static final String DEGREES_C = "\u00B0C";
 
     /** The bars' HUD anchor: bottom-centre of the screen (the GUI anchors are 0/50/100 only). */
     static final int BARS_GUI_X = 50;
@@ -93,15 +96,61 @@ final class HudLayouts {
     record BarPlace(Place bg, Place fill, Place text) {
     }
 
+    /** A layout condition: the layout shows while {@code value operation threshold} holds. */
+    record ShownWhile(String value, String operation, int threshold) {
+    }
+
     /**
-     * Health on the left, thirst and hunger on the right, centred on the screen. The group sat about 125 screen px left
-     * of centre, so the earlier offsets (health -91, food +10) move right by 43 units (about 125 px at 2.9 px per unit).
+     * TFC's HUD geometry ({@code IngameOverlays}, GUI pixels from the bottom-centre of the screen; y is the top of the
+     * sprite's visible pixels, x the centre of the layout, because BetterHud centres a layout on its images by default):
+     * <ul>
+     *   <li>health: 81x9 at {@code centre-91 .. centre-10}, top {@code H-39} (TFC {@code leftHeight} 39); the
+     *       "850/850" text is centred on the bar at {@code y+1}, so its 7 px glyphs and shadow stay inside the 9 px bar;</li>
+     *   <li>hunger: 81x5 at {@code centre+10 .. centre+91}, top {@code H-35} (TFC draws food at {@code rightHeight}
+     *       39 + 4);</li>
+     *   <li>thirst: one 6 px step above hunger (TFC {@code rightHeight += 6}), top {@code H-41};</li>
+     *   <li>air: one more step above thirst, top {@code H-47}, where TFC leaves the vanilla bubbles.</li>
+     * </ul>
+     * Every bar ends at {@code H-31} or higher; the vanilla XP bar starts at {@code H-29} and the hotbar at
+     * {@code H-22}, so nothing overlaps them, and the XP level number (centred, at most about 9 px either side) sits in
+     * the 20 px gap between the two columns. Same numbers at every GUI scale (BetterHud scales GUI pixels like vanilla).
      */
+    static final int LEFT_X = -50;
+    static final int RIGHT_X = 51;
+    static final int HEALTH_Y = -39;
+    static final int HUNGER_Y = -35;
+    static final int ROW_STEP = 6;
+    /**
+     * Text x for a text centred on its bar: BetterHud centres the layout on its images (default {@code offset: center})
+     * but places a centred text at its own x, so the text needs bar x + about half the bar width. 41 is what centred the
+     * old text on its bar in the 2026-10-22 screenshots (bar x -48, text x -7).
+     */
+    static final int TEXT_ON_BAR_DX = 41;
+
     static final Map<String, BarPlace> BARS = Map.of(
-        "m3-surv-06-health-bar", new BarPlace(new Place(-48, -40), new Place(-47, -39), new Place(-7, -40)),
-        "m3-surv-06-thirst-bar", new BarPlace(new Place(53, -33), new Place(53, -33), null),
-        "m3-surv-06-hunger-bar", new BarPlace(new Place(53, -39), new Place(53, -39), null),
-        "m3-surv-06-air-bar", new BarPlace(new Place(53, -27), new Place(53, -27), null));
+        "m3-surv-06-health-bar", new BarPlace(new Place(LEFT_X, HEALTH_Y), new Place(LEFT_X, HEALTH_Y),
+            new Place(LEFT_X + TEXT_ON_BAR_DX, HEALTH_Y + 1)),
+        "m3-surv-06-hunger-bar", new BarPlace(new Place(RIGHT_X, HUNGER_Y), new Place(RIGHT_X, HUNGER_Y), null),
+        "m3-surv-06-thirst-bar", new BarPlace(new Place(RIGHT_X, HUNGER_Y - ROW_STEP),
+            new Place(RIGHT_X, HUNGER_Y - ROW_STEP), null),
+        "m3-surv-06-air-bar", new BarPlace(new Place(RIGHT_X, HUNGER_Y - 2 * ROW_STEP),
+            new Place(RIGHT_X, HUNGER_Y - 2 * ROW_STEP), null));
+
+    /** Vanilla's full breath ({@code Player.getMaxAirSupply}), the top of {@code tfp_air}. */
+    static final int FULL_AIR = 300;
+
+    /**
+     * Bars that are hidden while their condition is false. The air bar shows only below full breath, like the vanilla
+     * bubbles TFC keeps: not on dry land, not while the head is above water.
+     */
+    static final Map<String, ShownWhile> SHOWN_WHILE = Map.of(
+        "m3-surv-06-air-bar", new ShownWhile("tfp_air", "<", FULL_AIR));
+
+    /**
+     * Text shadow ({@code outline}, ARGB hex) of the health text: TFC's {@code HEALTH_TEXT_SHADOW_COLOR} (104, 0, 0),
+     * so the white digits read on the red bar and on the dark empty bar alike.
+     */
+    static final String HEALTH_TEXT_SHADOW = "FF680000";
 
     static final Map<String, Place> READOUTS = Map.of(
         "m2-cal-02-date-readout", new Place(2, 2),
@@ -223,7 +272,14 @@ final class HudLayouts {
                 layout.put("texts", m("1", m("name", FONT,
                     "pattern", "[" + e.tokens().get(0) + "]//[" + e.tokens().get(1) + "]",
                     "placeholder-string-format", m("number", "#"),
-                    "align", "center", "x", p.text().x(), "y", p.text().y(), "scale", scale())));
+                    "align", "center", "x", p.text().x(), "y", p.text().y(), "scale", scale(),
+                    "outline", HEALTH_TEXT_SHADOW)));
+            }
+            ShownWhile when = SHOWN_WHILE.get(e.id());
+            if (when != null) {
+                requireKnown(e, when.value(), names);
+                layout.put("conditions", m("1", m("first", when.value(), "second", when.threshold(),
+                    "operation", when.operation())));
             }
             barLayouts.put(name, layout);
             barHudLayouts.put(String.valueOf(barHudLayouts.size() + 1),
@@ -261,7 +317,7 @@ final class HudLayouts {
                 continue;
             }
             readoutLayouts.put(name(e.id()), m("texts", m("1", m("name", FONT, "pattern", pattern, "align", "left",
-                "x", at.x(), "y", at.y(), "scale", scale(), "tick", Integer.parseInt(tick.group(1))))));
+                "x", at.x(), "y", at.y(), "scale", scale(), "outline", true, "tick", Integer.parseInt(tick.group(1))))));
             emitted.merge("readout", 1, Integer::sum);
         }
 
@@ -282,8 +338,9 @@ final class HudLayouts {
             String value = e.tokens().get(0);
             requireKnown(e, value, names);
             String name = name(e.id());
-            popupLayouts.put(name, m("texts", m("1", m("name", FONT, "pattern", "[" + value + "]", "align", "center",
-                "x", 0, "y", 0, "scale", scale()))));
+            popupLayouts.put(name, m("texts", m("1", m("name", FONT, "pattern", "[" + value + "]" + DEGREES_C,
+                "placeholder-string-format", m("number", "#"), "align", "center",
+                "x", 0, "y", 0, "scale", scale(), "outline", true))));
             popups.put(name, m("default", true,
                 "conditions", m("1", m("first", value, "second", POPUP_THRESHOLD, "operation", POPUP_OPERATION)),
                 "layouts", m("1", m("name", name, "gui", m("x", POPUP_GUI_X, "y", POPUP_GUI_Y),
@@ -457,17 +514,9 @@ final class HudLayouts {
         return PREFIX + id.replace('-', '_');
     }
 
-    /** Copies a bar sprite into the pack's assets folder, where its image file path points (relative to assets/). */
+    /** Writes a bar sprite ({@link HudBarArt}) into the pack's assets folder, where its image file path points (relative to assets/). */
     private static void putBarArt(OutputTree out, String file) {
-        String resource = BAR_ART + file.substring(file.lastIndexOf('/') + 1);
-        try (InputStream in = HudLayouts.class.getResourceAsStream(resource)) {
-            if (in == null) {
-                throw new DatagenException("missing bar sprite " + resource);
-            }
-            out.put(BetterHudPack.DIR + "assets/" + file, in.readAllBytes());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        out.put(BetterHudPack.DIR + "assets/" + file, HudBarArt.png(file.substring(file.lastIndexOf('/') + 1)));
     }
 
     /**

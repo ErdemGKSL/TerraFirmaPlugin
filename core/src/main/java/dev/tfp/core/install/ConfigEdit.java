@@ -36,6 +36,8 @@ public record ConfigEdit(Target target, String key, Rule rule, Effect effect, bo
         CRAFTENGINE_CONFIG("CraftEngine", "CraftEngine/config.yml"),
         CRAFTENGINE_SHULKER_PACK("CraftEngine", "CraftEngine/resources/remove_shulker_head/pack.yml"),
         BETTERHUD_CONFIG("BetterHud", "BetterHud/config.yml"),
+        /** BetterHud's demo compass, written on its first start like its config.yml. */
+        BETTERHUD_DEMO_COMPASS("BetterHud", "BetterHud/compasses/default_compass.yml"),
         BETTERMODEL_CONFIG("BetterModel", "BetterModel/config.yml");
 
         private final String plugin;

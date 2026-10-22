@@ -13,7 +13,8 @@ import java.util.Set;
  * as {@code /content/betterhud/tfp} in the jar ({@code dependency-bootstrap} §5).
  *
  * <p>M2-CAL-02: the date and season text, top-left, updated every 20 ticks. M2-CLIM-03 adds the ambient
- * temperature line below it (same font, same tick). The HUD is not {@code default}, so
+ * temperature line below it (same font, same tick). Both texts carry a black shadow ({@code outline: true}) so they
+ * read over a bright sky or snow (2026-10-22 screenshot review). The HUD is not {@code default}, so
  * it is shown to nobody until a {@code default-hud} edit lists it (the M1 decision keeps the default HUD empty).
  * Every id has the {@code tfp_} prefix; the font is BetterHud's default font (no {@code file}).
  */
@@ -48,6 +49,7 @@ final class BetterHudPack {
                   x: 2
                   y: 2
                   scale: 0.5
+                  outline: true
                   tick: 20
             tfp_ambient_temp:
               texts:
@@ -58,6 +60,7 @@ final class BetterHudPack {
                   x: 2
                   y: 12
                   scale: 0.5
+                  outline: true
                   tick: 20
             """;
 

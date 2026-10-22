@@ -188,6 +188,98 @@ class HudLayoutsTest {
         assertThat(out.contains(HudLayouts.HIDDEN)).isTrue();
     }
 
+    /** Vanilla's XP bar starts 29 GUI px above the bottom, the hotbar 22 px; the XP number is centred, 9 px either side. */
+    @Test
+    void barsSitAboveTheXpRowAndOutsideTheXpNumber() {
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+
+        Map<String, Object> layouts = yaml(out, HudLayouts.BAR_LAYOUTS);
+        for (String bar : layouts.keySet()) {
+            Map<String, Object> bg = map(map(map(layouts.get(bar)).get("images")).get("1"));
+            String sprite = bar.substring("tfp_".length()) + "_bg.png";
+            int height = HudBarArt.image(sprite).getHeight();
+            int top = (Integer) bg.get("y");
+            int x = (Integer) bg.get("x");
+            assertThat(top + height).as(bar + " bottom").isLessThanOrEqualTo(-30);
+            int left = x - HudBarArt.WIDTH / 2;
+            int right = left + HudBarArt.WIDTH;
+            assertThat(right <= -9 || left >= 9).as(bar + " clear of the XP number").isTrue();
+            assertThat(left).as(bar).isGreaterThanOrEqualTo(-92);
+            assertThat(right).as(bar).isLessThanOrEqualTo(92);
+        }
+    }
+
+    @Test
+    void rightColumnBarsHaveOneHeightAndOneStepLikeTfc() {
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+
+        Map<String, Object> layouts = yaml(out, HudLayouts.BAR_LAYOUTS);
+        int hunger = top(layouts, "tfp_m3_surv_06_hunger_bar");
+        int thirst = top(layouts, "tfp_m3_surv_06_thirst_bar");
+        int air = top(layouts, "tfp_m3_surv_06_air_bar");
+        assertThat(List.of(hunger - thirst, thirst - air)).containsOnly(HudLayouts.ROW_STEP);
+        for (String s : List.of("hunger", "thirst", "air")) {
+            assertThat(HudBarArt.image("m3_surv_06_" + s + "_bar_fill.png").getHeight()).as(s).isEqualTo(HudBarArt.BAR_HEIGHT);
+        }
+        assertThat(HudBarArt.BAR_HEIGHT).isLessThan(HudLayouts.ROW_STEP);
+        assertThat(top(layouts, "tfp_m3_surv_06_health_bar") + HudBarArt.HEALTH_HEIGHT).isEqualTo(hunger + HudBarArt.BAR_HEIGHT);
+    }
+
+    @Test
+    void healthTextSitsInsideTheThickBarWithTfcShadow() {
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+
+        Map<String, Object> bar = map(yaml(out, HudLayouts.BAR_LAYOUTS).get("tfp_m3_surv_06_health_bar"));
+        Map<String, Object> text = map(map(bar.get("texts")).get("1"));
+        int barTop = top(yaml(out, HudLayouts.BAR_LAYOUTS), "tfp_m3_surv_06_health_bar");
+        int glyphs = 7; // the vanilla font at scale 0.5
+        assertThat((Integer) text.get("y")).isEqualTo(barTop + 1);
+        assertThat((Integer) text.get("y") + glyphs + 1).as("glyphs and shadow").isLessThanOrEqualTo(barTop + HudBarArt.HEALTH_HEIGHT);
+        assertThat(text).containsEntry("outline", "FF680000").containsEntry("align", "center");
+        assertThat(HudBarArt.HEALTH_HEIGHT).isEqualTo(9);
+    }
+
+    @Test
+    void airBarIsHiddenAtFullBreathAndTheOtherBarsAlwaysShow() {
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+
+        Map<String, Object> layouts = yaml(out, HudLayouts.BAR_LAYOUTS);
+        Map<String, Object> air = map(map(map(layouts.get("tfp_m3_surv_06_air_bar")).get("conditions")).get("1"));
+        assertThat(air).containsEntry("first", "tfp_air").containsEntry("second", 300).containsEntry("operation", "<");
+        for (String bar : List.of("tfp_m3_surv_06_health_bar", "tfp_m3_surv_06_hunger_bar", "tfp_m3_surv_06_thirst_bar")) {
+            assertThat(map(layouts.get(bar))).as(bar).doesNotContainKey("conditions");
+        }
+    }
+
+    @Test
+    void popupShowsTheHeldTemperatureInWholeDegreesCelsius() {
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+
+        Map<String, Object> text = map(map(map(yaml(out, HudLayouts.POPUP_LAYOUTS).get("tfp_m3_surv_06_held_temp_popup"))
+            .get("texts")).get("1"));
+        assertThat(text).containsEntry("pattern", "[tfp_held_temp]\u00B0C").containsEntry("outline", true);
+        assertThat(map(text.get("placeholder-string-format"))).containsEntry("number", "#");
+    }
+
+    @Test
+    void barSpritesInThePackAreTheTfcSlices() {
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+
+        for (String file : HudBarArt.SLICES.keySet()) {
+            assertThat(out.get(BetterHudPack.DIR + "assets/tfp/hud/" + file)).as(file).isEqualTo(HudBarArt.png(file));
+        }
+    }
+
+    private static int top(Map<String, Object> layouts, String bar) {
+        return (Integer) map(map(map(layouts.get(bar)).get("images")).get("1")).get("y");
+    }
+
     @Test
     void missingCatalogueIsRefused() {
         assertThatThrownBy(() -> HudLayouts.run(new OutputTree(), tmp.resolve("nope.md")))

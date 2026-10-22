@@ -156,6 +156,17 @@ class ThirdPartyEditsTest {
     }
 
     @Test
+    void betterHudDemoCompassNoLongerDefault() throws IOException {
+        ConfigEdit e = edit(Target.BETTERHUD_DEMO_COMPASS, "default_compass.default");
+        Plan p = applyOne(e, fixture("betterhud-default-compass.yml"), 1);
+        assertThat(get(p.text(), "default_compass", "default")).isEqualTo(false);
+        assertThat(get(p.text(), "default_compass", "type")).isEqualTo("circle");
+        // A file without the demo compass (owner removed it) is left alone: no half compass is created.
+        assertThat(e.plan("my_compass:\n  type: circle\n", null).outcome()).isEqualTo(Outcome.UNCHANGED);
+        assertThat(e.plan("default_compass:\n  type: circle\n", null).outcome()).isEqualTo(Outcome.UNCHANGED);
+    }
+
+    @Test
     void betterHudMergeSettings() throws IOException {
         String bh = fixture("betterhud-config.yml");
         for (String key : List.of("merge-with-external-resources", "pack-type", "enable-self-host")) {
@@ -183,10 +194,11 @@ class ThirdPartyEditsTest {
 
     @Test
     void allEditsOnFreshFilesTogether() throws IOException {
-        // First start on a fresh server: only delay-configuration-load and the demo HUD need changing.
+        // First start on a fresh server: only delay-configuration-load, the demo HUD and the demo compass need changing.
         Map<Target, String> files = Map.of(Target.CRAFTENGINE_CONFIG, fixture("craftengine-config.yml"),
                 Target.CRAFTENGINE_SHULKER_PACK, fixture("remove-shulker-head-pack.yml"),
-                Target.BETTERHUD_CONFIG, fixture("betterhud-config.yml"), Target.BETTERMODEL_CONFIG, fixture("bettermodel-config.yml"));
+                Target.BETTERHUD_CONFIG, fixture("betterhud-config.yml"), Target.BETTERMODEL_CONFIG, fixture("bettermodel-config.yml"),
+                Target.BETTERHUD_DEMO_COMPASS, fixture("betterhud-default-compass.yml"));
         List<String> applied = new ArrayList<>();
         for (ConfigEdit e : EDITS) {
             Plan p = e.plan(files.get(e.target()), null);
@@ -197,7 +209,8 @@ class ThirdPartyEditsTest {
             }
         }
         assertThat(applied).containsExactly("CraftEngine/config.yml#misc.delay-configuration-load",
-                "CraftEngine/resources/remove_shulker_head/pack.yml#enable", "BetterHud/config.yml#default-hud");
+                "CraftEngine/resources/remove_shulker_head/pack.yml#enable", "BetterHud/config.yml#default-hud",
+                "BetterHud/compasses/default_compass.yml#default_compass.default");
     }
 
     @Test

@@ -12,16 +12,16 @@ import org.junit.jupiter.api.Test;
 class ClimateFormatTest {
     @Test
     void temperatureHasOneDecimalPlaceAndAUnit() {
-        assertThat(ClimateFormat.temperature(12.34)).isEqualTo("12.3 C");
-        assertThat(ClimateFormat.temperature(20f)).isEqualTo("20.0 C");
-        assertThat(ClimateFormat.temperature(-12.0)).isEqualTo("-12.0 C");
+        assertThat(ClimateFormat.temperature(12.34)).isEqualTo("12.3\u00B0C");
+        assertThat(ClimateFormat.temperature(20f)).isEqualTo("20.0\u00B0C");
+        assertThat(ClimateFormat.temperature(-12.0)).isEqualTo("-12.0\u00B0C");
     }
 
     @Test
     void roundsHalfUpInTenthsAndNeverShowsNegativeZero() {
-        assertThat(ClimateFormat.temperature(-3.26)).isEqualTo("-3.3 C");
-        assertThat(ClimateFormat.temperature(-0.04)).isEqualTo("0.0 C");
-        assertThat(ClimateFormat.temperature(0.0)).isEqualTo("0.0 C");
+        assertThat(ClimateFormat.temperature(-3.26)).isEqualTo("-3.3\u00B0C");
+        assertThat(ClimateFormat.temperature(-0.04)).isEqualTo("0.0\u00B0C");
+        assertThat(ClimateFormat.temperature(0.0)).isEqualTo("0.0\u00B0C");
     }
 
     @Test

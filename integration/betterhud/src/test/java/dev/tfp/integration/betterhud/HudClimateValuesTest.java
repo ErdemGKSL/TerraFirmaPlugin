@@ -15,7 +15,7 @@ class HudClimateValuesTest {
     void ambientTemperatureIsOneDecimalPlace() {
         assertThat(HudClimateValues.TEXTS.keySet()).containsExactly("tfp_ambient_temp");
         HudSnapshot reading = HudSnapshot.DEFAULT.withAmbientTemperature(12.34);
-        assertThat(HudClimateValues.TEXTS.get("tfp_ambient_temp").apply(reading)).isEqualTo("12.3 C");
+        assertThat(HudClimateValues.TEXTS.get("tfp_ambient_temp").apply(reading)).isEqualTo("12.3\u00B0C");
     }
 
     @Test
