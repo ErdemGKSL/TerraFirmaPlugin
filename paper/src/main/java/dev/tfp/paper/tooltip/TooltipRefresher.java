@@ -34,6 +34,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
@@ -44,9 +45,12 @@ import org.bukkit.inventory.ItemStack;
  * player, "decide async, apply sync":
  *
  * <ol>
- *   <li>snapshot (the player's entity thread): the stacks of the open view (top and bottom, or the player's own
- *       inventory when nothing is open) and the cursor that carry a heat or food record, as immutable
- *       {@link TooltipItem}s, and one clock reading;
+ *   <li>snapshot (the player's entity thread): the stacks of the open view's top and bottom inventories (read
+ *       through {@link Inventory#getContents()}, never by raw view slot: {@link InventoryView#countSlots()} is
+ *       top size + bottom size, and the player inventory's size counts equipment slots that the 46-slot crafting menu
+ *       does not expose, so raw slot {@code countSlots() - 1} does not exist there) and the cursor that carry a heat or
+ *       food record, as immutable {@link TooltipItem}s, and one clock reading. A failing snapshot releases the
+ *       in-flight flag and is logged once per watch;
  *   <li>decide (CPU pool): each such stack's lines ({@link TooltipPipeline#lines}) are its key; the view needs a resend
  *       when a key differs from the one of the previous run, or, for a stack first seen (just sent), from its lines one
  *       period earlier;
@@ -62,8 +66,10 @@ public final class TooltipRefresher implements Listener {
     public static final long PERIOD_TICKS = 20;
     /** The language the keys are computed in; a level, star or expiry change shows in every language at once. */
     static final String KEY_LOCALE = "en_us";
-    /** The cursor's slot in a snapshot (raw view slots are 0 and up). */
+    /** The cursor's key in a snapshot. */
     static final int CURSOR = -1;
+    /** The key of bottom-inventory slot {@code i} in a snapshot is {@code BOTTOM + i}; top slot {@code i} is {@code i}. */
+    static final int BOTTOM = 1000;
 
     private final Scheduler scheduler;
     private final TooltipPipeline pipeline;
@@ -129,7 +135,10 @@ public final class TooltipRefresher implements Listener {
         }
         InventoryView view = player.getOpenInventory();
         int token = System.identityHashCode(view);
-        Map<Integer, TooltipItem> items = snapshot(view);
+        Map<Integer, TooltipItem> items = capture(w, player.getName(), () -> snapshot(view, ids, traits));
+        if (items == null) {
+            return;
+        }
         ClockSnapshot now = clock.get();
         CompletableFuture.supplyAsync(() -> w.state.observe(token, items, now, pipeline), scheduler.cpuExecutor())
                 .whenComplete((resend, error) -> {
@@ -160,21 +169,53 @@ public final class TooltipRefresher implements Listener {
                 });
     }
 
-    /** The stacks of {@code view} and its cursor that carry a time-dependent record, by raw slot. Owner thread. */
-    private Map<Integer, TooltipItem> snapshot(InventoryView view) {
-        Map<Integer, TooltipItem> out = new LinkedHashMap<>();
-        int slots = view.countSlots();
-        for (int i = 0; i < slots; i++) {
-            TooltipItem item = item(view.getItem(i), ids, traits);
-            if (item != null) {
-                out.put(i, item);
+    /**
+     * Runs {@code snapshot} while holding {@code w}'s in-flight flag (already taken). On a failure the flag is released,
+     * so the next period tries again, and the first failure of the watch is logged; returns null then. Owner thread.
+     */
+    Map<Integer, TooltipItem> capture(Watch w, String who, Supplier<Map<Integer, TooltipItem>> snapshot) {
+        try {
+            return snapshot.get();
+        } catch (RuntimeException e) {
+            w.busy.set(false);
+            if (w.warned.compareAndSet(false, true) && log != null) {
+                log.log(Level.WARNING, "Tooltip refresh failed for " + who
+                        + " (snapshot; further failures for this player are not logged)", e);
             }
+            return null;
         }
+    }
+
+    /**
+     * The stacks of {@code view} and its cursor that carry a time-dependent record: top slot {@code i} under key
+     * {@code i}, bottom slot {@code i} (the player inventory, off-hand and armour included) under {@code BOTTOM + i},
+     * the cursor under {@link #CURSOR}. The keys are stable within one view, which is all the decision compares. Owner
+     * thread.
+     */
+    static Map<Integer, TooltipItem> snapshot(InventoryView view, Function<ItemStack, Optional<String>> ids,
+            Function<String, FoodTrait> traits) {
+        Map<Integer, TooltipItem> out = new LinkedHashMap<>();
+        add(out, 0, view.getTopInventory(), ids, traits);
+        add(out, BOTTOM, view.getBottomInventory(), ids, traits);
         TooltipItem cursor = item(view.getCursor(), ids, traits);
         if (cursor != null) {
             out.put(CURSOR, cursor);
         }
         return out;
+    }
+
+    private static void add(Map<Integer, TooltipItem> out, int base, Inventory inventory,
+            Function<ItemStack, Optional<String>> ids, Function<String, FoodTrait> traits) {
+        if (inventory == null) {
+            return;
+        }
+        ItemStack[] contents = inventory.getContents();
+        for (int i = 0; i < contents.length; i++) {
+            TooltipItem item = item(contents[i], ids, traits);
+            if (item != null) {
+                out.put(base + i, item);
+            }
+        }
     }
 
     /**
@@ -206,9 +247,10 @@ public final class TooltipRefresher implements Listener {
                 TooltipData.of(Map.copyOf(values)));
     }
 
-    /** One player's watch: the task, the in-flight flag and the keys of the previous run. */
-    private static final class Watch {
+    /** One player's watch: the task, the in-flight flag, the logged-once flag and the keys of the previous run. */
+    static final class Watch {
         final AtomicBoolean busy = new AtomicBoolean();
+        final AtomicBoolean warned = new AtomicBoolean();
         final RefreshState state = new RefreshState(PERIOD_TICKS);
         volatile Scheduler.TaskHandle task;
     }
