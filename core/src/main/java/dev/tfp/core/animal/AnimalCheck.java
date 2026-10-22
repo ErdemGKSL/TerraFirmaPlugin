@@ -5,7 +5,8 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/entities/livestock/TFCAnimalProperties.java @ c3b4d9536
- * (tickAnimalData: the age part, getAgeType)
+ * (tickAnimalData: the age part, getAgeType) and src/main/java/net/dries007/tfc/common/entities/prey/WildAnimal.java
+ * (tick: the grow-up, isBaby), same commit
  */
 package dev.tfp.core.animal;
 
@@ -18,7 +19,8 @@ import java.util.Optional;
  * The per-animal check decision (M5-ENT-01), pure. TFC runs {@code tickAnimalData} every 20 game ticks and updates
  * {@code lastAge} when the stage changes. Our glue runs this on a staggered 20-tick entity task and when the model is
  * (re)created: it derives the stage lazily from the stored ticks, applies TFC's one-shot old-age mark
- * ({@link LivestockRules#markElderlyIfDue}), and says whether the record must be written and whether the visible stage
+ * ({@link LivestockRules#markElderlyIfDue}), clears a wild baby's flag once its lazy grow-up tick has passed
+ * ({@link WildAnimalRoll}), and says whether the record must be written and whether the visible stage
  * changed. Nothing is counted between checks, so a gap (unloaded chunk) changes nothing but the read time.
  */
 public final class AnimalCheck {
@@ -37,10 +39,17 @@ public final class AnimalCheck {
     private AnimalCheck() {
     }
 
-    /** TFC {@code getAgeType()}; animals without livestock rules (TFC's wild animals) are always adult. */
+    /**
+     * TFC {@code getAgeType()} for livestock. Animals without livestock rules (TFC's wild animals) are
+     * {@link LivestockAge#CHILD} while their baby flag holds ({@code WildAnimal.isBaby}) and adult otherwise: they have
+     * no old age.
+     */
     public static LivestockAge ageAt(AnimalRecord record, long playerTicks) {
         Optional<LivestockSpecies> species = species(record);
-        return species.isPresent() ? LivestockRules.ageAt(record.state(), species.get(), playerTicks) : LivestockAge.ADULT;
+        if (species.isPresent()) {
+            return LivestockRules.ageAt(record.state(), species.get(), playerTicks);
+        }
+        return record.wildBabyAt(playerTicks) ? LivestockAge.CHILD : LivestockAge.ADULT;
     }
 
     /**
@@ -57,6 +66,8 @@ public final class AnimalCheck {
             if (!marked.equals(record.state())) {
                 next = record.withState(marked);
             }
+        } else if (record.baby() && !record.wildBabyAt(playerTicks)) {
+            next = record.grownUp(); // TFC WildAnimal.tick: setBaby(false), at the lazily drawn tick
         }
         LivestockAge age = ageAt(next, playerTicks);
         return new Decision(next, age, next != record, age != lastApplied);

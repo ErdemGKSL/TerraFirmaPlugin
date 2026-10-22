@@ -25,7 +25,8 @@ import org.bukkit.persistence.PersistentDataType;
  * <pre>
  * tfp:animal = { tfp:v: int, tfp:species: string, tfp:male: bool, tfp:familiarity: float, tfp:familiarityTick: long,
  *   tfp:birthTick: long, tfp:oldTick: long, tfp:lastFedTick: long, tfp:lastMateTick: long, tfp:uses: int,
- *   tfp:fertilized: bool, tfp:pregnantDay: long, tfp:size: int, tfp:variant: string }
+ *   tfp:fertilized: bool, tfp:pregnantDay: long, tfp:size: int, tfp:variant: string, tfp:baby: bool,
+ *   tfp:growtick: long }
  * </pre>
  * Keys are {@link AnimalRecord#toMap()}'s, lower-cased (PDC keys are {@code [a-z0-9._-]}). Other PDC entries are kept.
  *
@@ -33,7 +34,9 @@ import org.bukkit.persistence.PersistentDataType;
  *
  * <h2>Version history</h2>
  * <ol>
- *   <li>the fields above (M5-ENT-01)</li>
+ *   <li>the fields above without {@code baby} and {@code growtick} (M5-ENT-01)</li>
+ *   <li>{@code baby} and {@code growtick}: TFC {@code WildAnimal}'s baby flag and its lazy grow-up tick; version 1
+ *       entries read as not a baby</li>
  * </ol>
  */
 public final class AnimalPdc {

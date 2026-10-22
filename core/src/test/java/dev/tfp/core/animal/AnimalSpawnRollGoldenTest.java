@@ -119,16 +119,25 @@ class AnimalSpawnRollGoldenTest {
     }
 
     @Test
-    void hintsForceTheBranchWithoutDrawingTheFloat() {
-        Script child = new Script(true, 5 * DAY, 0);
+    void hintsForceTheBranchButKeepTheFloatDraw() {
+        // 0.99f would be the adult branch; CHILD forces the baby branch, and the float is still consumed.
+        Script child = new Script(true, 0.99f, 5 * DAY, 0);
         AnimalSpawnRoll.Rolled c = AnimalSpawnRoll.roll(child, 192, NOW, AnimalSpawnRoll.AgeHint.CHILD, false);
         child.assertDone();
+        assertThat(child.bounds).containsExactly(10 * DAY, 15);
         assertThat(c.state().male()).isFalse();
         assertThat(c.state().birthTick()).isEqualTo(NOW - 5L * DAY);
 
-        Script old = new Script(false, 0, 0);
+        // 0.01f would be the baby branch; OLD forces the adult branch.
+        Script old = new Script(false, 0.01f, 0, 0);
         AnimalSpawnRoll.Rolled o = AnimalSpawnRoll.roll(old, 192, NOW, AnimalSpawnRoll.AgeHint.OLD, null);
         old.assertDone();
+        assertThat(old.bounds).containsExactly(192, 15);
         assertThat(LivestockRules.ageAt(o.state(), LivestockSpecies.COW, NOW)).isEqualTo(LivestockAge.OLD);
+
+        Script adult = new Script(true, 0.01f, 3, 1);
+        AnimalSpawnRoll.Rolled a = AnimalSpawnRoll.roll(adult, 192, NOW, AnimalSpawnRoll.AgeHint.ADULT, null);
+        adult.assertDone();
+        assertThat(a.state().birthTick()).isEqualTo(NOW - 195L * DAY);
     }
 }

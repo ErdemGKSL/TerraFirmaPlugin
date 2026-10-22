@@ -65,10 +65,10 @@ public final class AnimalSpawnRoll {
     }
 
     /**
-     * As {@link #roll(Draws, int, long)}; a hint forces the branch of {@code getRandomGrowth} instead of drawing it
-     * ({@code CHILD}: the baby branch, {@code ADULT}/{@code OLD}: the adult branch), and {@code OLD} also marks the
-     * animal old from the tick before {@code now}. {@code male} overrides the gender draw (it is still drawn, so the
-     * later draws stay in TFC's order).
+     * As {@link #roll(Draws, int, long)}; a hint forces the branch of {@code getRandomGrowth} ({@code CHILD}: the baby
+     * branch, {@code ADULT}/{@code OLD}: the adult branch), and {@code OLD} also marks the animal old from the tick
+     * before {@code now}. {@code male} overrides the gender. Both overrides keep their draw ({@code nextBoolean()} and
+     * {@code nextFloat()} are always made and their results discarded), so the draws stay in TFC's order.
      */
     public static Rolled roll(Draws draws, int daysToAdult, long now, AgeHint hint, Boolean male) {
         boolean drawnMale = draws.nextBoolean();
@@ -83,8 +83,9 @@ public final class AnimalSpawnRoll {
 
     /** TFC {@code EntityHelpers.getRandomGrowth}: the birth tick. */
     static long randomGrowth(Draws draws, int daysToAdult, long now, AgeHint hint) {
+        boolean drawnBaby = draws.nextFloat() < BABY_CHANCE; // always drawn, as TFC does
         boolean baby = switch (hint) {
-            case RANDOM -> draws.nextFloat() < BABY_CHANCE;
+            case RANDOM -> drawnBaby;
             case CHILD -> true;
             case ADULT, OLD -> false;
         };

@@ -53,6 +53,11 @@ public record Carrier(String id, float width, float height, String category, int
         return id.substring(id.indexOf(':') + 1);
     }
 
+    /** Whether TFC's class for this species extends {@code WildAnimal} (gender and baby flag, no size). */
+    public boolean wildAnimal() {
+        return WildAnimalRoll.isWildAnimal(id);
+    }
+
     /** The livestock rules of this species ({@link LivestockSpecies}); empty for TFC's wild animals. */
     public Optional<LivestockSpecies> livestock() {
         try {

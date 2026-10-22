@@ -1239,10 +1239,11 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                     CompletableFuture<Reply> out = new CompletableFuture<>();
                     Runnable read = () -> {
                         dev.tfp.core.animal.AnimalRecord r = service.record(e).orElseThrow();
+                        String locale = Messages.code(player);
                         out.complete(Reply.ok("debug.animal.spawned", row.id(), row.carrier(), format(loc),
-                                dev.tfp.core.animal.AnimalCheck.ageAt(r, clock.get().playerTicks()).name()
-                                        .toLowerCase(java.util.Locale.ROOT),
-                                r.state().male() ? "male" : "female",
+                                dev.tfp.paper.animal.AnimalService.ageName(messages, locale,
+                                        dev.tfp.core.animal.AnimalCheck.ageAt(r, clock.get().playerTicks())),
+                                dev.tfp.paper.animal.AnimalService.gender(messages, locale, r.state().male()),
                                 r.geneticSize() == dev.tfp.core.animal.AnimalScale.NO_SIZE ? "-" : r.geneticSize()));
                     };
                     if (!scheduler.entity(e, read, () -> out.complete(Reply.error("debug.animal.none", DEBUG_REACH)))) {
@@ -1267,7 +1268,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             }
             if (!scheduler.entity(target, () -> {
                 try {
-                    out.complete(service.describe(target)
+                    out.complete(service.describe(target, messages, Messages.code(player))
                             .map(lines -> Reply.ok("debug.animal.header",
                                     service.record(target).orElseThrow().species(), target.getType().getKey().toString())
                                     .withDetails(lines))

@@ -56,10 +56,48 @@ class AnimalAgeLazyTest {
     }
 
     @Test
-    void wildAnimalsAreAlwaysAdult() {
+    void wildAdultsStayAdult() {
         AnimalRecord deer = new AnimalRecord("tfc:deer", AnimalState.spawned(true, 0, 0), AnimalScale.NO_SIZE, "");
         assertThat(AnimalCheck.ageAt(deer, 0)).isEqualTo(LivestockAge.ADULT);
         assertThat(AnimalCheck.ageAt(deer, 1_000L * DAY)).isEqualTo(LivestockAge.ADULT);
+        assertThat(AnimalCheck.decide(deer, 1_000L * DAY, 0, LivestockAge.ADULT).recordChanged()).isFalse();
+    }
+
+    @Test
+    void wildBabyIsAChildUntilItsGrowTickAndTheCheckThenClearsTheFlag() {
+        long grow = 12_000L;
+        AnimalRecord fawn = new AnimalRecord("tfc:deer", AnimalState.spawned(false, 0, 0), AnimalScale.NO_SIZE, "",
+                true, grow);
+        AnimalCheck.Decision before = AnimalCheck.decide(fawn, grow - 1, 0, null);
+        assertThat(before.age()).isEqualTo(LivestockAge.CHILD);
+        assertThat(before.recordChanged()).isFalse();
+        assertThat(before.record()).isSameAs(fawn);
+
+        AnimalCheck.Decision at = AnimalCheck.decide(fawn, grow, 0, LivestockAge.CHILD);
+        assertThat(at.age()).isEqualTo(LivestockAge.ADULT);
+        assertThat(at.recordChanged()).isTrue();
+        assertThat(at.stageChanged()).isTrue();
+        assertThat(at.record().baby()).isFalse();
+        assertThat(at.record().growTick()).isEqualTo(AnimalRecord.NO_GROW_TICK);
+        // The child factor: half size while a baby, full size after.
+        assertThat(AnimalScale.modelMultiplier(fawn.geneticSize(), before.age())).isEqualTo(0.5f);
+        assertThat(AnimalScale.modelMultiplier(fawn.geneticSize(), at.age())).isEqualTo(1f);
+    }
+
+    @Test
+    void wildBabyCodecRoundTripsAndVersionOneReadsAsNotABaby() {
+        AnimalRecord fawn = new AnimalRecord("tfc:deer", AnimalState.spawned(false, 5, 5), AnimalScale.NO_SIZE, "",
+                true, 8_000L);
+        assertThat(AnimalRecord.fromMap(fawn.toMap())).contains(fawn);
+
+        java.util.Map<String, Object> v1 = new java.util.LinkedHashMap<>(fawn.toMap());
+        v1.put(AnimalRecord.V, 1);
+        v1.remove(AnimalRecord.BABY);
+        v1.remove(AnimalRecord.GROW_TICK);
+        assertThat(AnimalRecord.fromMap(v1)).get().satisfies(r -> {
+            assertThat(r.baby()).isFalse();
+            assertThat(r.growTick()).isEqualTo(AnimalRecord.NO_GROW_TICK);
+        });
     }
 
     @Test

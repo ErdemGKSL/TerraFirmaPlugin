@@ -10,6 +10,7 @@ import dev.tfp.core.animal.AnimalRecord;
 import dev.tfp.core.animal.AnimalScale;
 import dev.tfp.core.animal.AnimalSpawnRoll;
 import dev.tfp.core.animal.Carrier;
+import dev.tfp.core.animal.WildAnimalRoll;
 import dev.tfp.core.calendar.CalendarTicks;
 import dev.tfp.core.calendar.TimeCommand;
 import dev.tfp.core.livestock.LivestockAge;
@@ -42,7 +43,9 @@ import org.bukkit.entity.LivingEntity;
  * <ol>
  *   <li>First start: a child {@code tfc:cow} spawns on a cow carrier in a force-loaded chunk. Its PDC record, the SCALE
  *       attribute ({@code AGE_SCALES}), the vanilla baby flag and one model are checked, then the calendar is moved past
- *       its adulthood and the staggered check must turn it adult. The carrier, its chunk and a marker are kept.</li>
+ *       its adulthood and the staggered check must turn it adult. The carrier, its chunk and a marker are kept. A
+ *       child {@code tfc:deer} (TFC {@code WildAnimal}) is spawned next to it: its record must hold the baby flag and a
+ *       grow-up tick on a 4000-tick boundary, its carrier the vanilla baby flag; it is then removed.</li>
  *   <li>Second start: the carrier is found again; the record is unchanged, it is still adult, its check runs and its
  *       model is back. Then it is removed with its chunk ticket and the marker.</li>
  * </ol>
@@ -125,6 +128,7 @@ public final class AnimalSpawnPersistCase implements SelfTestCase {
         if (!OnThread.poll(CHECK, () -> animals.checks(e) >= 1)) {
             throw new AssertionError("the staggered check did not run within " + CHECK.toSeconds() + " s");
         }
+        String fawn = wildBaby(tfp, animals, at);
         // Move the calendar past adulthood (adulthood is in player-day units of 28 800 ticks, /tfp time adds 24 000).
         long adultTick = record.state().birthTick()
                 + (long) cow.livestock().orElseThrow().adulthoodDays() * LivestockRules.PLAYER_TICKS_IN_DEFAULT_DAY;
@@ -165,7 +169,44 @@ public final class AnimalSpawnPersistCase implements SelfTestCase {
             p.store(w, "animal.spawn_persist first start");
         }
         return "first start: child tfc:cow " + e.getUniqueId() + " (size " + record.geneticSize() + ") on "
-                + e.getType().getKey() + ", 1 model, adult after +" + days + " days; kept for the second start";
+                + e.getType().getKey() + ", 1 model, adult after +" + days + " days; kept for the second start; "
+                + fawn;
+    }
+
+    /** A child {@code tfc:deer}: TFC's wild baby flag on the record and the carrier, then removed. */
+    private static String wildBaby(TfpPlugin tfp, AnimalService animals, Location at) throws Exception {
+        Scheduler s = tfp.scheduler();
+        EntityModels models = tfp.integrations().entityModels();
+        Carrier deer = animals.table().find("tfc:deer").orElseThrow();
+        Entity d = OnThread.await(animals.spawn(at, deer, AnimalSpawnRoll.AgeHint.CHILD, null), STEP,
+                "spawning tfc:deer");
+        try {
+            AnimalRecord r = OnThread.entity(s, d, STEP, () -> animals.record(d).orElseThrow(
+                    () -> new AssertionError("no tfp:animal record on the deer carrier")));
+            long now = tfp.clock().get().playerTicks();
+            if (!r.baby() || r.growTick() <= now || r.growTick() % WildAnimalRoll.GROW_INTERVAL_TICKS != 0) {
+                throw new AssertionError("wild child: expected the baby flag and a future boundary grow tick, got " + r);
+            }
+            if (AnimalCheck.ageAt(r, now) != LivestockAge.CHILD) {
+                throw new AssertionError("wild child reads " + AnimalCheck.ageAt(r, now));
+            }
+            String expect = "baby=true scale=1.0";
+            String body = OnThread.entity(s, d, STEP, () -> bodyOf(d));
+            if (!body.equals(expect)) {
+                throw new AssertionError("wild child carrier: expected " + expect + ", got " + body);
+            }
+            int wantModels = deer.modelOrFallback().isPresent() ? 1 : 0;
+            if (!OnThread.poll(STEP, () -> models.modelCount(d) == wantModels)) {
+                throw new AssertionError("wild child: expected " + wantModels + " model(s), got " + models.modelCount(d));
+            }
+            return "child tfc:deer: baby until tick " + r.growTick();
+        } finally {
+            OnThread.entity(s, d, STEP, () -> {
+                models.detach(d);
+                d.remove();
+                return null;
+            });
+        }
     }
 
     private static String secondStart(TfpPlugin tfp, AnimalService animals, Path marker) throws Exception {

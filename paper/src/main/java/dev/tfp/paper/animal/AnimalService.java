@@ -5,8 +5,9 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/entities/livestock/TFCAnimalProperties.java @ c3b4d9536
- * (initCommonAnimalData, setGeneticSize, tickAnimalData) and
- * src/main/java/net/dries007/tfc/common/entities/livestock/TFCAnimal.java (isBaby), same commit
+ * (initCommonAnimalData, setGeneticSize, tickAnimalData),
+ * src/main/java/net/dries007/tfc/common/entities/livestock/TFCAnimal.java (isBaby) and
+ * src/main/java/net/dries007/tfc/common/entities/prey/WildAnimal.java (finalizeSpawn, tick, getAge), same commit
  */
 package dev.tfp.paper.animal;
 
@@ -18,11 +19,13 @@ import dev.tfp.core.animal.AnimalScale;
 import dev.tfp.core.animal.AnimalSpawnRoll;
 import dev.tfp.core.animal.Carrier;
 import dev.tfp.core.animal.CarrierTable;
+import dev.tfp.core.animal.WildAnimalRoll;
 import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.livestock.AnimalState;
 import dev.tfp.core.livestock.LivestockAge;
 import dev.tfp.core.livestock.LivestockRules;
+import dev.tfp.paper.i18n.Messages;
 import dev.tfp.paper.integration.EntityModels;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.util.ArrayList;
@@ -58,11 +61,12 @@ import org.bukkit.event.entity.EntityEnterLoveModeEvent;
  *
  * <ul>
  *   <li><b>Spawn</b> ({@link #spawn}): the carrier from {@link CarrierTable} on the location's region thread, silent,
- *       persistent, no equipment, AI on; TFC's spawn roll ({@link AnimalSpawnRoll}) written to the PDC; the SCALE
+ *       persistent, no equipment, AI on; TFC's spawn roll ({@link AnimalSpawnRoll} for livestock,
+ *       {@link WildAnimalRoll} for wild animals: gender, 10% baby, lazy grow-up tick) written to the PDC; the SCALE
  *       attribute set to TFC's {@code AGE_SCALES} as {@code setGeneticSize} does; the model attached.</li>
  *   <li><b>Scale</b>: BetterModel's entity scaler multiplies the SCALE attribute (M0-BM-01), so the model gets
- *       {@link AnimalScale#modelMultiplier} (TFC's render scale, times 0.5 for a child). The carrier's vanilla baby
- *       flag follows TFC's {@code isBaby} (age locked), which halves its hitbox as in TFC.</li>
+ *       {@link AnimalScale#modelMultiplier} (TFC's render scale, times 0.5 for a child or a wild baby). The carrier's
+ *       vanilla baby flag follows TFC's {@code isBaby} (age locked), which halves its hitbox as in TFC.</li>
  *   <li><b>Check</b>: an entity-scheduler task every {@value #PERIOD} ticks, first after {@code 1 + uuid hash mod 20}
  *       ticks so animals do not all run on one tick. It snapshots the PDC record and the clock and asks
  *       {@link AnimalCheck#decide} (pure, core); it writes the record only when the old-age mark is set, and re-applies
@@ -138,7 +142,8 @@ public final class AnimalService implements Listener {
     /**
      * Spawns {@code carrier}'s species at {@code at}, on the location's region thread.
      *
-     * @param hint the age to give it ({@code RANDOM} is TFC's roll; TFC's wild animals are always adult)
+     * @param hint the age to give it ({@code RANDOM} is TFC's roll; a wild animal's {@code CHILD} is a baby, and its
+     *             {@code OLD} is an adult, as TFC's wild animals have no old age)
      * @param male the gender, or null for TFC's draw
      * @return the carrier entity; fails if the calendar is not loaded or the carrier type is not a living entity
      */
@@ -166,10 +171,34 @@ public final class AnimalService implements Listener {
         return out;
     }
 
-    /** TFC's spawn roll for livestock; TFC's wild animals keep only a gender and no genetic size. */
+    /**
+     * TFC's spawn roll: {@code initCommonAnimalData} for livestock, {@code WildAnimal.finalizeSpawn} (gender, baby,
+     * lazy grow-up tick) for wild animals. Other species (TFC's vanilla-based fish, critters and pets without livestock
+     * rules) keep only a gender.
+     */
     AnimalRecord roll(Carrier carrier, long now, AnimalSpawnRoll.AgeHint hint, Boolean male) {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
         if (carrier.livestock().isEmpty()) {
+            if (carrier.wildAnimal()) {
+                WildAnimalRoll.Rolled w = WildAnimalRoll.roll(new WildAnimalRoll.Draws() {
+                    @Override
+                    public boolean nextBoolean() {
+                        return rnd.nextBoolean();
+                    }
+
+                    @Override
+                    public float nextFloat() {
+                        return rnd.nextFloat();
+                    }
+
+                    @Override
+                    public double nextDouble() {
+                        return rnd.nextDouble();
+                    }
+                }, now, hint, male);
+                return new AnimalRecord(carrier.id(), AnimalState.spawned(w.male(), now, now), AnimalScale.NO_SIZE, "",
+                        w.baby(), w.growTick());
+            }
             boolean m = male != null ? male : rnd.nextBoolean();
             return new AnimalRecord(carrier.id(), AnimalState.spawned(m, now, now), AnimalScale.NO_SIZE, "");
         }
@@ -338,8 +367,11 @@ public final class AnimalService implements Listener {
             if (d.recordChanged()) {
                 AnimalPdc.write(e.getPersistentDataContainer(), d.record());
             }
+            // Carriers can come back from a restart with NoAI (M0-BM-01), so the first check after load restores AI. It
+            // is deliberately not re-checked later: NoAI set afterwards comes from an operator or another plugin
+            // (/data, a freeze command) and is theirs to undo.
             if (t.applied == null && e instanceof Mob mob && !mob.hasAI()) {
-                mob.setAI(true); // carriers can come back from a restart with NoAI (M0-BM-01)
+                mob.setAI(true);
             }
             if (d.stageChanged()) {
                 ensureModel(e, d.record(), d.age());
@@ -361,8 +393,11 @@ public final class AnimalService implements Listener {
 
     // ---- diagnostics -------------------------------------------------------------------------------
 
-    /** {@code /tfp debug animal info} lines for {@code e}; owning thread. Empty if it is not one of our animals. */
-    public Optional<List<String>> describe(Entity e) {
+    /**
+     * {@code /tfp debug animal info} lines for {@code e}, in {@code locale} ({@code lang/*.properties},
+     * {@code debug.animal.info.*}); owning thread. Empty if it is not one of our animals.
+     */
+    public Optional<List<String>> describe(Entity e, Messages messages, String locale) {
         Optional<AnimalRecord> record = record(e);
         if (record.isEmpty()) {
             return Optional.empty();
@@ -373,20 +408,41 @@ public final class AnimalService implements Listener {
         List<String> lines = new ArrayList<>();
         Optional<Carrier> carrier = table.find(r.species());
         LivestockAge age = AnimalCheck.ageAt(r, now.playerTicks());
-        lines.add("gender: " + (s.male() ? "male" : "female") + ", age: " + age.name().toLowerCase(java.util.Locale.ROOT)
-                + (now.isSet() ? "" : " (calendar not loaded)"));
-        lines.add("genetic size: " + (r.geneticSize() == AnimalScale.NO_SIZE ? "none" : r.geneticSize())
-                + ", SCALE base " + AnimalScale.ageScale(r.geneticSize()) + " x model " + AnimalScale.modelMultiplier(
-                        r.geneticSize(), age) + " = " + AnimalScale.modelScale(r.geneticSize(), age));
+        lines.add(messages.get(locale, "debug.animal.info.gender_age", gender(messages, locale, s.male()),
+                ageName(messages, locale, age),
+                now.isSet() ? "" : messages.get(locale, "debug.animal.info.calendar_unset")));
+        lines.add(messages.get(locale, "debug.animal.info.size",
+                r.geneticSize() == AnimalScale.NO_SIZE ? messages.get(locale, "debug.animal.info.size_none")
+                        : r.geneticSize(),
+                AnimalScale.ageScale(r.geneticSize()), AnimalScale.modelMultiplier(r.geneticSize(), age),
+                AnimalScale.modelScale(r.geneticSize(), age)));
         if (e instanceof LivingEntity living && living.getAttribute(Attribute.SCALE) != null) {
-            lines.add("SCALE attribute now: " + living.getAttribute(Attribute.SCALE).getBaseValue());
+            lines.add(messages.get(locale, "debug.animal.info.scale_now",
+                    living.getAttribute(Attribute.SCALE).getBaseValue()));
         }
-        lines.add("birth tick: " + s.birthTick() + ", old tick: " + s.oldTick() + ", now: " + now.playerTicks());
-        carrier.flatMap(Carrier::livestock).ifPresent(sp -> lines.add("familiarity: "
-                + LivestockRules.familiarityAt(s, now.playerTicks()) + ", uses: " + s.uses() + ", adult after "
-                + sp.adulthoodDays() + " days"));
-        lines.add("model: " + carrier.flatMap(Carrier::modelOrFallback).orElse("none") + " (" + models.get().modelCount(e)
-                + " attached), check: " + (checking(e) ? "running, " + checks(e) + " run(s)" : "not running"));
+        lines.add(messages.get(locale, "debug.animal.info.ticks", s.birthTick(), s.oldTick(), now.playerTicks()));
+        if (r.baby()) {
+            lines.add(messages.get(locale, "debug.animal.info.wild_baby", r.growTick()));
+        }
+        carrier.flatMap(Carrier::livestock).ifPresent(sp -> lines.add(messages.get(locale,
+                "debug.animal.info.livestock", LivestockRules.familiarityAt(s, now.playerTicks()), s.uses(),
+                sp.adulthoodDays())));
+        lines.add(messages.get(locale, "debug.animal.info.model",
+                carrier.flatMap(Carrier::modelOrFallback).orElseGet(() -> messages.get(locale,
+                        "debug.animal.info.model_none")),
+                models.get().modelCount(e),
+                checking(e) ? messages.get(locale, "debug.animal.info.check_running", checks(e))
+                        : messages.get(locale, "debug.animal.info.check_stopped")));
         return Optional.of(lines);
+    }
+
+    /** The translated gender word ({@code debug.animal.male|female}). */
+    public static String gender(Messages messages, String locale, boolean male) {
+        return messages.get(locale, male ? "debug.animal.male" : "debug.animal.female");
+    }
+
+    /** The translated stage word ({@code debug.animal.age.child|adult|old}). */
+    public static String ageName(Messages messages, String locale, LivestockAge age) {
+        return messages.get(locale, "debug.animal.age." + age.name().toLowerCase(java.util.Locale.ROOT));
     }
 }

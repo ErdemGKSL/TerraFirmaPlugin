@@ -51,6 +51,12 @@ class AnimalPdcMockBukkitTest extends MockServerTest {
         AnimalRecord wild = new AnimalRecord("tfc:deer", AnimalState.spawned(true, 10, 10), 0, "");
         AnimalPdc.write(pdc, wild);
         assertThat(AnimalPdc.read(pdc)).contains(wild);
+        AnimalRecord fawn = new AnimalRecord("tfc:deer", AnimalState.spawned(false, 10, 10), 0, "", true, 16_000L);
+        AnimalPdc.write(pdc, fawn);
+        assertThat(AnimalPdc.read(pdc)).contains(fawn);
+        nested = pdc.get(ROOT, PersistentDataType.TAG_CONTAINER);
+        assertThat(nested.get(new NamespacedKey("tfp", "baby"), PersistentDataType.BOOLEAN)).isTrue();
+        assertThat(nested.get(new NamespacedKey("tfp", "growtick"), PersistentDataType.LONG)).isEqualTo(16_000L);
         assertThat(AnimalPdc.write(pdc, null)).isTrue();
         assertThat(AnimalPdc.has(pdc)).isFalse();
         assertThat(pdc.get(foreign, PersistentDataType.INTEGER)).isEqualTo(7);
