@@ -2,7 +2,7 @@
 id: PAR-INFRA-02
 title: "Device block framework: CraftEngine block behaviour routing, per-block state and lazy catch-up hooks"
 area: INFRA
-status: open
+status: done
 wave: 2
 deps: [PAR-INFRA-01]
 size: M
@@ -32,6 +32,8 @@ plan:
   - "Add `DeviceInventory` (fixed slot list stored in the device state, dropped on break; TFC InventoryBlockEntity semantics incl. `canInsert` predicates)."
   - "Add `CatchUp` hook: a device state carries `lastUpdateTick`; on interaction, on chunk load (via PAR-INFRA-11) and on GUI open the kind's pure `advance(state, now)` runs and the result is written back on the region thread (TFC `ICalendarTickable.onCalendarUpdate`)."
   - "Add `tfp debug device` (looked-at block: kind, decoded state, lastUpdateTick)."
+  - "Note: the CraftEngine behaviour can only be registered from `CraftEngineProvider.create` (our onLoad), which is outside this item's files. `DeviceBlockBehaviour.register(behaviours)` is ready and installs the CE device store; the one-line call, the self-test `device.roundtrip` (needs itest files), `SAVE` removal and registering `/tfp debug device` (built as `DeviceModule.addDebugCommand`; `BootstrapTest` pins the debug literal set) moved to follow-up PAR-INFRA-18. Left click and placement are routed from Bukkit events (`DeviceListener`); `CustomBlocks.java` needed no change (adding methods would break `Absent` and `CraftEngineIntegration`, which this item does not own)."
+  - "Done: core/device (DeviceRecord, ItemBlob, DeviceRecordCodec, CatchUp), paper/device (DeviceKind, DeviceKinds, DeviceHandler/Context/Result, DeviceInventory, DeviceService, DeviceStore, DeviceRouter, DeviceBridge, DeviceListener, ProbeDevice, DeviceModule; /tfp debug device built, registered by PAR-INFRA-18), integration/craftengine/device (DeviceBlockBehaviour tfp:device, DeviceController, CraftEngineDeviceStore); tests core DeviceCoreTest (9), integration DeviceControllerTest (4), paper DeviceRoutingMockBukkitTest (8); ARCHITECTURE.md §7.1; ledger feature row + 4 divergences; follow-up PAR-INFRA-18."
 tests:
   - "integration/craftengine: controller round-trip for a fake DeviceKind"
   - "paper: MockBukkit routing test (use, break drops inventory, catch-up called once with the elapsed ticks)"

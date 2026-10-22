@@ -14,7 +14,7 @@ Totals: 227 items; open 216, done 8, blocked 3; waves 1..56 (wave 0 = already do
 | PAR-INFRA-04 | Item data components on PDC: fluid contents and item lists (vessels, jugs, buckets, molds) | INFRA | 1 | done |
 | PAR-INFRA-07 | Tag runtime: TFC item/block/fluid/entity tags resolved for CE and vanilla ids | INFRA | 1 | done |
 | PAR-REL-01 | Test infrastructure fixes: headless client pack URL, snow-free test site, CE shutdown warning | REL | 1 | done |
-| PAR-INFRA-02 | Device block framework: CraftEngine block behaviour routing, per-block state and lazy catch-up hooks | INFRA | 2 | open |
+| PAR-INFRA-02 | Device block framework: CraftEngine block behaviour routing, per-block state and lazy catch-up hooks | INFRA | 2 | done |
 | PAR-INFRA-03 | GUI framework: textured chest GUIs, title glyphs, buttons, progress bars, alignment | INFRA | 2 | blocked |
 | PAR-INFRA-05 | Item tooltip pipeline: several decorations per item, TFC styles and colours | INFRA | 2 | open |
 | PAR-INFRA-12 | Self-test case: item data PDC round trip on a real server (nested food/heat inside tfp:contents) | INFRA | 2 | open |
@@ -25,6 +25,7 @@ Totals: 227 items; open 216, done 8, blocked 3; waves 1..56 (wave 0 = already do
 | PAR-INFRA-09 | Block and entity loot runtime: TFC loot tables evaluated on Paper | INFRA | 3 | open |
 | PAR-METAL-10 | Charcoal forge visual verification: night, neighbouring full blocks, animation frames, lit-display flicker | METAL | 3 | open |
 | PAR-INFRA-13 | Hitbox carrier selector: every CE block gets the vanilla state whose collision and selection shape best match TFC's | INFRA | 3 | open |
+| PAR-INFRA-18 | Device framework wiring: register tfp:device with CraftEngine, self-test device.roundtrip, SAVE removal | INFRA | 3 | open |
 | PAR-HUD-05 | HUD vs vanilla armour row: no overlap with armour worn, health text inside its bar | HUD | 4 | open |
 | PAR-HUD-08 | Held item temperature popup with real values | HUD | 4 | open |
 | PAR-INFRA-10 | Neighbour-update runner: block shape updates decided async, applied sync | INFRA | 4 | open |

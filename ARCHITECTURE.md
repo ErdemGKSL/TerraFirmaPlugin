@@ -138,6 +138,22 @@ All codecs carry a version number and have migration tests. The shared layer is 
 
 The global clock is `core/clock/GlobalClockHolder`: one volatile immutable `ClockSnapshot` (player ticks, calendar ticks, month length, running), published by the calendar on the global scheduler (M2), read lock-free anywhere.
 
+### 7.1 Device blocks (PAR-INFRA-02)
+
+A TFC device (`DeviceBlock` + `InventoryBlockEntity` + `ICalendarTickable`) is a CraftEngine block whose behaviour is **`tfp:device`** plus a **`DeviceKind<S>`** registered on the Paper side. Feature code never sees CraftEngine:
+
+| Piece | Where | Role |
+|---|---|---|
+| `DeviceRecord<S>` | `core/device` | Immutable: the kind's state `S`, the fixed slot list (`ItemBlob` = Paper-serialized stack bytes), `lastUpdateTick` (player ticks, `NEVER` until first access). `DeviceRecordCodec`: envelope `{v, last, slots, state}`, the state nested with its own `VersionedCodec`; slot lists are padded, never truncated |
+| `CatchUp` | `core/device` | Pure lazy substitute of `ICalendarTickable`: first access stamps, later accesses call the kind's `Advance.advance(record, last, now)` once for the whole gap |
+| `DeviceKind<S>` / `DeviceKinds` | `paper/device` | Block id or id prefix (longest wins) → state codec, initial state, slots, slot limit, `SlotFilter` (`isItemValid`), `Advance`, `DeviceHandler` (useWithItem → use, attack, placed, neighbourChanged, removed), `RemoveBehaviour` (`DROP`/`NOOP`) |
+| `DeviceService` | `paper/device` (module `device`, service `DeviceService`) | Per callback on the region thread: block id via `CustomBlocks` → kind → record from `DeviceStore` → catch-up → handler → write back only if changed. `catchUp(Block)` is the hook for chunk load (PAR-INFRA-11) and GUI open (PAR-INFRA-03). Unreadable records are never overwritten |
+| `DeviceInventory<S>` | `paper/device` | Immutable ItemStack view of the slots with TFC insert/extract (`core/itemdata/ItemSlotRules`) |
+| `tfp:device` behaviour, `DeviceController`, `CraftEngineDeviceStore` | `integration/craftengine/device` | The behaviour gives every state a `DeviceController` (opaque record map under NBT `tfp:device`, a `TfpBlockEntityController<DataMap>`), routes `useOnBlock` (consumed → `SUCCESS_AND_CANCEL`) and `neighborChanged`; `onRemove` routes the last record (inventory drop). No ticker, no random tick |
+| `DeviceBridge` | `paper/device` | Process-wide meeting point: the CE adapter installs the store when it registers `tfp:device` (onLoad), the module installs the router (onEnable); CE behaviours read it per callback, so `/ce reload` is harmless |
+
+Left click and placement come from Bukkit events (`DeviceListener`; placement runs one tick later, after CE stored the block entity). Handlers stay short; anything that changes other blocks goes through an `AsyncDecisionPipeline`. `/tfp debug device` shows the looked-at device. The behaviour registration line in `CraftEngineProvider`, registering `/tfp debug device` and the in-server self-test `device.roundtrip` are PAR-INFRA-18.
+
 ## 8. World generation
 
 - `worldgen/` ports TFC's `RegionGenerator` pipeline (continents, climate, biomes, rocks, rivers, lakes), layers, river fractal, rock layers, surface builders, veins, features and structures (tree `.nbt` templates).
