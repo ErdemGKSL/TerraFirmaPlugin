@@ -100,9 +100,9 @@ public final class Tags {
                 return;
             }
             rules.set(r);
-            // Re-pair on the next lookup: a snapshot that cannot match any registry version.
-            TagSnapshot s = current.get();
-            current.compareAndSet(s, new TagSnapshot(-1, s.registry(), r, server));
+            // Re-pair on the next lookup: a snapshot that cannot match any registry version. Retried until it holds,
+            // so a concurrent snapshot() that read the old rules before the set cannot win the swap with them.
+            current.updateAndGet(s -> s.rules() == r ? s : new TagSnapshot(-1, s.registry(), r, server));
         });
     }
 

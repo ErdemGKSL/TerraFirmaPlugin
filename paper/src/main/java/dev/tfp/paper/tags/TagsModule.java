@@ -14,8 +14,8 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 /**
- * PAR-INFRA-07: provides the {@link Tags} service to later modules ({@code services().require(Tags.class)}). Listed
- * early in the service file so recipe, device and food modules can use it.
+ * PAR-INFRA-07: provides the {@link Tags} service to later modules ({@code services().require(Tags.class)}). It must
+ * be listed in the service file before any module that requires {@code Tags} (modules are enabled in file order).
  */
 public final class TagsModule implements FeatureModule {
     public static final String ID = "tags";
@@ -39,6 +39,7 @@ public final class TagsModule implements FeatureModule {
                 err -> context.logger().log(Level.WARNING, "Cannot reload the tag rules; keeping the previous ones", err));
         context.services().provide(Tags.class, tags);
         context.logger().fine("Tag rules: " + initial.size(TagType.ITEM) + " item, " + initial.size(TagType.BLOCK)
-                + " block tags");
+                + " block tags; common (c:) table: " + initial.commonSize(TagType.ITEM) + " item, "
+                + initial.commonSize(TagType.BLOCK) + " block tags");
     }
 }

@@ -18,6 +18,9 @@ import org.bukkit.entity.EntityType;
 /**
  * The server's own (vanilla and datapack) tags, for vanilla ids (PAR-INFRA-07). Any thread: it only reads the
  * server's tag and registry maps.
+ *
+ * <p>Paper ships no NeoForge common ({@code c:}) tags, so {@link #BUKKIT} answers false for them; their vanilla members
+ * come from the common-tag table of {@link TagRules} instead (a base layer next to the server's tag).
  */
 public interface ServerTags {
     /** Whether the server's tag {@code tag} of {@code type} contains vanilla {@code id}; false for unknown tags/ids. */
