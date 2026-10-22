@@ -136,14 +136,15 @@ on 2026-10-22. These entries apply to them anyway.
 
 ### Visuals and blocks
 
-#### NP-VIS-01: Visual budget profiles (ore grades may share a look)
-- **TFC**: Each ore has 3 grades on each rock, every one with its own texture. tfc_refs:
-  `src/main/resources/assets/tfc/textures/block/ore`.
-- **Ours**: The visual budget profiles in `ARCHITECTURE.md` §9.1 decide this. The default on 1.21.x is `level-3a`: poor and
-  normal share a visual and rich stays distinct. The default on 26.x is `level-2`: all grades are distinct, deposits do not
-  depend on the rock, and the 9 gem ores look like rock until they are exposed. The owner can choose another profile.
-- **Why**: Vanilla clients have a limited number of block states, and some must stay free for other CraftEngine packs.
-- **Items**: PAR-DECO-15, PAR-WORLD-03, PAR-WORLD-09.
+#### NP-VIS-01: Ores drawn as overlays on exposed faces (buried ores look like their host rock)
+- **TFC**: Each ore has 3 grades on each rock, every one a two-layer block model (rock + ore overlay) seen from every side.
+  tfc_refs: `src/main/resources/assets/tfc/textures/block/ore`, `src/main/resources/assets/tfc/models/block/ore.json`.
+- **Ours** (owner decision 2026-10-22, every profile): the ore keeps its CE block and shows its host rock's visual; the ore
+  texture is a packet-only display overlay on each exposed face within a ≈48 m client cutoff (outcrops at full range).
+  Grades stay distinct. Buried ores look like rock. Profiles are now `level-0`..`level-2` (`ARCHITECTURE.md` §9.1); at
+  `level-2` (default) deposits do not depend on the rock. Design: `docs/research/ore-entity-renderer-design.md`.
+- **Why**: Vanilla clients have a limited number of block states, and most must stay free for other CraftEngine packs.
+- **Items**: PAR-WORLD-17, PAR-INFRA-15, PAR-INFRA-16, PAR-INFRA-17, PAR-REL-12, PAR-DECO-15, PAR-WORLD-03, PAR-WORLD-09.
 - **audit: skip**
 
 #### NP-VIS-02: Metal blocks, mechanical blocks, crates and workbenches drawn as display entities

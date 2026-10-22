@@ -53,14 +53,14 @@ Sources: `references/research-report.md` (CE @ `b3079c5` + vanilla client jars 1
 | **Total** | 1953 | 1957 | 2157 | 2217 |
 
 **Demand** (TFC, deduped by model content; `scratchpad` scripts reproduced in the report):
-- ores 1113 (53 ore types × 21 rocks; flatten base+overlay into one texture per ore×rock, because ≤1.21.11 solid-layer visuals ignore alpha);
+- ores 1113 (53 ore types × 21 rocks) as full cubes. **Since 2026-10-22 ores take 0**: they share the host rock's visual and draw the ore as exposed-face overlays (below);
 - rock ~190 (hardened **shares** raw's visual);
 - logs/wood 240, planks 21, soils ~65, connected grass ~48, sand/sandstone ~28, deposits 84;
 - deco: metal blocks 61, alabaster 51, crate/workbench 40.
 
-Mechanical blocks (clutch/encased axle, 180) are rare, so they go to `entity_renderer` and take no budget. Core terrain ≈ 1790 fits every version. With deco ≈ 1940, it fits 26.x with ~250 spare, but 1.21.x is ~0–70 short depending on Nether/End. Close that gap by moving the rarest deco (metal blocks) to renderers or the leaves pool (sparse blocks only). **Merging ore grades is not needed.**
+Mechanical blocks (clutch/encased axle, 180) are rare, so they go to `entity_renderer` and take no budget. Core terrain ≈ 1790 fits every version. With deco ≈ 1940, it fits 26.x with ~250 spare, but 1.21.x is ~0–70 short depending on Nether/End. Close that gap by moving the rarest deco (metal blocks) to renderers or the leaves pool (sparse blocks only). **Merging ore grades is not needed.** With ores as overlays the whole TFC demand is 568–768 and fits every version with most of the solid pool free.
 
-Allocation order: `solid` → identity duplicates → (Nether/End) → absent-in-TFC (clean ones before minor-caveat ones) → leaves pool for sparse cubes → `transparent` + renderer. Reserve option: exposed-only overlay for the rarest gem ores. It works if each exposed face gets a display positioned in the air cell and shifted back 0.01 (inside the block the light is 0, so it renders black), but Community CE has no culling, so it's only for rare ores. Measure exposed faces per chunk first.
+Allocation order: `solid` → identity duplicates → (Nether/End) → absent-in-TFC (clean ones before minor-caveat ones) → leaves pool for sparse cubes → `transparent` + renderer. **Ores (decided 2026-10-22): exposed-face overlays for all ores.** The ore block keeps its CE id and state and uses the host rock's raw visual; each exposed face gets a packet-only `item_display` positioned in the air cell and pulled back to 0.01 (inside the block the light is 0, so it would render black). Community CE has no culling and CE renderers are fixed per appearance, so this is our own packet layer with distance gating (≈48 m cutoff, 4-chunk send radius), a per-player cap and rate limiting; ≈1.8 k entities per player typical, ≈7.8 k worst. Full design: `docs/research/ore-entity-renderer-design.md`; census spike PAR-WORLD-17.
 
 Also required: a datapack that edits client-relevant tags for repurposed blocks (ambient-sound tags, `#crystal_sound_blocks`, `#impermeable` for waterlogged double slabs). Also intercept vanilla mechanics that would create repurposed blocks in a TFC world: lava+water → cobblestone/stone/obsidian/basalt, concrete-powder hardening, copper oxidation, recipes and loot.
 
@@ -71,16 +71,26 @@ Also required: a datapack that edits client-relevant tags for repurposed blocks 
   3. emits **full state strings** (never `block:N`);
   4. emits `block_state_mappings` hiding real instances of every repurposed state, without repeating CE's internal lines;
   5. reports used/available per pool and per MC version, and fails CI on overflow.
-  If it still doesn't fit, **ask the user** (e.g. merge ore-grade visuals on 1.21.x only). Never degrade silently.
+  If it still doesn't fit, **ask the user**. Never degrade silently.
 - The installed `mappings.yml` is frozen at first install, so pool sizes differ per server. After `CraftEngineReloadEvent`, check the pool candidate counts at runtime and warn on shortfall.
 - First-time `auto_state` allocation can be nondeterministic with multi-threaded loading. Prefer explicit assignments from datagen, or seed `cache/visual_block_states.json`. Run `/ce clean-cache visual_block_states` after removing blocks.
 
 ## Visual budget profiles (decided; spec in ARCHITECTURE.md §9.1)
-The allocator implements **all** profiles `level-0` … `level-3b`, and the owner selects one per MC version family in config (`visuals.profile`). Defaults: **`level-3a` on 1.21.x, `level-2` on 26.x.** Always on:
+The allocator implements the profiles `level-0`, `level-1` and `level-2`; the owner selects one per MC version family in config (`visuals.profile`). `level-3a`/`level-3b` (ore-grade merging) were removed on 2026-10-22: a config that still names them is read as `level-2` with a startup warning. Defaults: **`level-2` on 1.21.x and 26.x.** Always on, in every profile:
+- ores: host rock visual + exposed-face overlays (grades distinct, 0 visual states);
 - metal and mechanical blocks via `entity_renderer`;
 - hardened = raw;
-- flattened ore textures;
 - button states (not tripwire) for groundcover.
+
+| Profile | Adds | Demand (all of TFC) | Solid left 1.21.11 | Solid left 26.3 |
+|---|---|---|---|---|
+| `level-0` | nothing | 768 | 1122 (1189) | 1382 (1449) |
+| `level-1` | crate/workbench → renderer; wood axes share a visual | 648 | 1242 (1289) | 1489 (1489) |
+| `level-2` | deposits rock-agnostic | 568 | 1289 (1289) | 1489 (1489) |
+
+Values without Nether/End blocks (with them). `level-2` is the highest profile: if even it does not fit the runtime pool counts, fail with the shortfall and the options, never degrade.
+
+Every renderer-drawn block (ore overlays, metal blocks, crates, mechanical blocks) must pass the feel checklist in `docs/research/ore-entity-renderer-design.md` §6: cracks that track progress (CE `destroy_stages` for renderer cubes, a cracked overlay variant for ores), the material's particles and sounds, TFC mining speed, no flicker when a neighbour changes, correct light, no z-fighting or seams, a normal outline, no leftovers after explosions/`/fill`, the right pick-block item, and no visible ring at the cutoff.
 
 Rules when implementing:
 - datagen emits one allocation per (profile × version family) into the jar; the installer writes the selected one;
