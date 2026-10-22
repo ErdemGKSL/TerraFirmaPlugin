@@ -40,8 +40,8 @@ import java.util.regex.Pattern;
  * read {@code glue/}, so the installer must not copy it into the pack folder (dependency-bootstrap).
  *
  * <p>Placements (GUI pixel offsets) are not in the catalogue. They follow TFC's {@code IngameOverlays} geometry (see
- * {@link #BARS}), keyed by catalogue id. An element without a placement is an error. The bar sprites come from
- * {@link HudBarArt} (TFC's overlay sheet).
+ * {@link #BAR_SPECS}, {@link #OVERLAYS}), keyed by catalogue id. An element without a placement is an error. The art
+ * comes from {@link HudArt} (two pixel-aligned layers per bar, {@code plans/hud-layered-redesign.md}).
  */
 final class HudLayouts {
     static final String CATALOGUE = "docs/hud/catalogue.md";
@@ -53,12 +53,14 @@ final class HudLayouts {
     /** The vanilla sprite folder that the hidden-vanilla rows name without a folder (e.g. {@code air.png}). */
     static final String VANILLA_HUD = "gui/sprites/hud/";
     static final String IMAGES = BetterHudPack.DIR + "images/tfp-bars.yml";
-    /** The datagen's HUD resources (hidden-vanilla list, transparent sprite, the TFC overlay sheet of {@link HudBarArt}). */
+    /** The datagen's HUD resources (hidden-vanilla list, transparent sprite; the art is read through {@link HudArt}). */
     private static final String BAR_ART = "/dev/tfp/datagen/hud/";
     /** The vanilla HUD sprite folder in CraftEngine's pack (the content is installed under plugins/CraftEngine/resources/tfp/). */
     private static final String CE_PACK_SPRITES = "craftengine/tfp/resourcepack/assets/minecraft/textures/gui/sprites/hud/";
     static final String BAR_LAYOUTS = BetterHudPack.DIR + "layouts/tfp-bars.yml";
     static final String READOUT_LAYOUTS = BetterHudPack.DIR + "layouts/tfp-readouts.yml";
+    /** The plate and thermometer layouts of the top-left info HUD ({@link BetterHudPack#HUDS} lists them). */
+    static final String INFO_LAYOUTS = BetterHudPack.DIR + "layouts/tfp-info.yml";
     static final String POPUP_LAYOUTS = BetterHudPack.DIR + "layouts/tfp-popups.yml";
     static final String POPUPS = BetterHudPack.DIR + "popups/tfp-popups.yml";
     /** The HUD that shows the bars, anchored bottom-centre; the bars' own placements are relative to that anchor. */
@@ -67,7 +69,8 @@ final class HudLayouts {
     static final String PLACEHOLDERS = BetterHudPack.DIR + "glue/placeholders.yml";
     static final String HIDDEN = BetterHudPack.DIR + "glue/hidden-vanilla.yml";
 
-    static final List<String> KINDS = List.of("placeholder", "bar", "readout", "popup", "indicator", "hidden-vanilla");
+    static final List<String> KINDS = List.of("placeholder", "bar", "overlay", "readout", "popup", "indicator",
+        "hidden-vanilla");
     static final String UNSPECIFIED = "unspecified in plan";
     static final String ELEMENTS_HEADING = "## 1. Elements";
     static final String COUNTS_HEADING = "## 3. Counts";
@@ -85,72 +88,84 @@ final class HudLayouts {
     /** Anchor of the popup on the GUI (the betterhud skill, section 11: anchor at 0/50/100 only). */
     static final int POPUP_GUI_X = 50;
     static final int POPUP_GUI_Y = 100;
-    /** Bar fill steps (the skill keeps split at 25 to 50). */
-    static final int SPLIT = 50;
+    /** The info HUD of {@link BetterHudPack} (top-left: plate, date, thermometer, temperature). */
+    static final String INFO_HUD = "info";
+    static final String BARS = "bars";
+
+    /** z-order inside a layout (higher is drawn in front). */
+    static final int LAYER_OVERLAY = 0;
+    static final int LAYER_BG = 1;
+    static final int LAYER_FILL = 2;
+    static final int LAYER_TEXT = 3;
 
     /** A placement in GUI pixels from the layout anchor. */
     record Place(int x, int y) {
     }
 
-    /** The background, fill and optional text of a bar. The text is set only for a value with a max. */
-    record BarPlace(Place bg, Place fill, Place text) {
+    /** A condition {@code value operation threshold} on a placeholder number. */
+    record Cond(String value, String operation, int threshold) {
     }
 
-    /** A layout condition: the layout shows while {@code value operation threshold} holds. */
-    record ShownWhile(String value, String operation, int threshold) {
+    /** A text drawn on a bar, {@code x}/{@code y} relative to the bar's canvas origin. */
+    record Text(String pattern, int x, int y, String align, Object outline) {
+    }
+
+    /** A fill variant: shown instead of the plain fill while all {@code when} hold (the plain fill gets the negation of the first). */
+    record Variant(String name, List<Cond> when) {
     }
 
     /**
-     * TFC's HUD geometry ({@code IngameOverlays}, GUI pixels from the bottom-centre of the screen; y is the top of the
-     * sprite's visible pixels, x the centre of the layout, because BetterHud centres a layout on its images by default):
-     * <ul>
-     *   <li>health: 81x9 at {@code centre-91 .. centre-10}, top {@code H-39} (TFC {@code leftHeight} 39); the
-     *       "850/850" text is centred on the bar at {@code y+1}, so its 7 px glyphs and shadow stay inside the 9 px bar;</li>
-     *   <li>hunger: 81x5 at {@code centre+10 .. centre+91}, top {@code H-35} (TFC draws food at {@code rightHeight}
-     *       39 + 4);</li>
-     *   <li>thirst: one 6 px step above hunger (TFC {@code rightHeight += 6}), top {@code H-41};</li>
-     *   <li>air: one more step above thirst, top {@code H-47}, where TFC leaves the vanilla bubbles.</li>
-     * </ul>
-     * Every bar ends at {@code H-31} or higher; the vanilla XP bar starts at {@code H-29} and the hotbar at
-     * {@code H-22}, so nothing overlaps them, and the XP level number (centred, at most about 9 px either side) sits in
-     * the 20 px gap between the two columns. Same numbers at every GUI scale (BetterHud scales GUI pixels like vanilla).
+     * A two-layer bar ({@code plans/hud-layered-redesign.md}): canvas origin {@code x}/{@code y} (layouts use
+     * {@code offset: left}, so x is the canvas's left edge), the HUD it belongs to ({@link #BARS} or {@link #INFO_HUD}),
+     * its texts, the conditions under which the whole bar shows, the fill variants and the fill's frame count.
+     * {@code split} 0 means one frame per interior pixel column.
      */
-    static final int LEFT_X = -50;
-    static final int RIGHT_X = 51;
-    static final int HEALTH_Y = -39;
-    static final int HUNGER_Y = -35;
-    static final int ROW_STEP = 6;
-    /**
-     * Text x for a text centred on its bar: BetterHud centres the layout on its images (default {@code offset: center})
-     * but places a centred text at its own x, so the text needs bar x + about half the bar width. 41 is what centred the
-     * old text on its bar in the 2026-10-22 screenshots (bar x -48, text x -7).
-     */
-    static final int TEXT_ON_BAR_DX = 41;
+    record BarSpec(String art, int x, int y, String hud, List<Text> texts, List<Cond> shownWhile, List<Variant> variants,
+                   int split) {
+    }
 
-    static final Map<String, BarPlace> BARS = Map.of(
-        "m3-surv-06-health-bar", new BarPlace(new Place(LEFT_X, HEALTH_Y), new Place(LEFT_X, HEALTH_Y),
-            new Place(LEFT_X + TEXT_ON_BAR_DX, HEALTH_Y + 1)),
-        "m3-surv-06-hunger-bar", new BarPlace(new Place(RIGHT_X, HUNGER_Y), new Place(RIGHT_X, HUNGER_Y), null),
-        "m3-surv-06-thirst-bar", new BarPlace(new Place(RIGHT_X, HUNGER_Y - ROW_STEP),
-            new Place(RIGHT_X, HUNGER_Y - ROW_STEP), null),
-        "m3-surv-06-air-bar", new BarPlace(new Place(RIGHT_X, HUNGER_Y - 2 * ROW_STEP),
-            new Place(RIGHT_X, HUNGER_Y - 2 * ROW_STEP), null));
+    /** A single-layer image (the info plate) at a HUD gui anchor; {@code flipX} ships a mirrored copy. */
+    record OverlaySpec(String file, int guiX, int guiY, int x, int y, boolean flipX, double opacity, List<Cond> shownWhile,
+                       String hud) {
+    }
 
     /** Vanilla's full breath ({@code Player.getMaxAirSupply}), the top of {@code tfp_air}. */
     static final int FULL_AIR = 300;
-
-    /**
-     * Bars that are hidden while their condition is false. The air bar shows only below full breath, like the vanilla
-     * bubbles TFC keeps: not on dry land, not while the head is above water.
-     */
-    static final Map<String, ShownWhile> SHOWN_WHILE = Map.of(
-        "m3-surv-06-air-bar", new ShownWhile("tfp_air", "<", FULL_AIR));
+    /** Below 3 s of breath the air fill turns red. */
+    static final int CRITICAL_AIR = 60;
+    static final List<Cond> UNDERWATER = List.of(new Cond("tfp_air", "<", FULL_AIR));
 
     /**
      * Text shadow ({@code outline}, ARGB hex) of the health text: TFC's {@code HEALTH_TEXT_SHADOW_COLOR} (104, 0, 0),
      * so the white digits read on the red bar and on the dark empty bar alike.
      */
     static final String HEALTH_TEXT_SHADOW = "FF680000";
+
+    /**
+     * Placement (GUI pixels from the bottom-centre; {@code H} = GUI height). Vanilla: XP bar H-29..H-25, hotbar
+     * H-22..H-1, armour row H-49..H-41 on the left, XP number centred around H-35..H-28.
+     * <ul>
+     *   <li>health 81x10: columns centre-90..-10, rows H-40..H-31 (TFC's left column); text centred, glyph rows
+     *       H-39..H-33 and the shadow row inside the 8-row interior;</li>
+     *   <li>right column, all 81x7 at centre+11..+91, one 8-row step apart (one empty row between bars): hunger
+     *       H-37..H-31, thirst H-45..H-39, air H-53..H-47 (only while {@code tfp_air < 300}; red fill below 60).</li>
+     * </ul>
+     */
+    static final Map<String, BarSpec> BAR_SPECS = Map.of(
+        "m3-surv-06-health-bar", new BarSpec("m3_surv_06_health_bar", -90, -40, BARS,
+            List.of(new Text("[tfp_health]//[tfp_max_health]", 40, 1, "center", HEALTH_TEXT_SHADOW)), List.of(), List.of(), 0),
+        "m3-surv-06-hunger-bar", new BarSpec("m3_surv_06_hunger_bar", 11, -37, BARS, List.of(), List.of(), List.of(), 0),
+        "m3-surv-06-thirst-bar", new BarSpec("m3_surv_06_thirst_bar", 11, -45, BARS, List.of(), List.of(), List.of(), 0),
+        "m3-surv-06-air-bar", new BarSpec("m3_surv_06_air_bar", 11, -53, BARS, List.of(), UNDERWATER,
+            List.of(new Variant("critical", List.of(new Cond("tfp_air", "<", CRITICAL_AIR)))), 0),
+        "m2-clim-03-ambient-temp-bar", new BarSpec("m2_clim_03_ambient_temp_bar", 6, 13, INFO_HUD, List.of(), List.of(),
+            List.of(), 0));
+
+    /** Single-layer images: the plate behind the date and temperature lines (top-left, {@link BetterHudPack}). */
+    static final Map<String, List<OverlaySpec>> OVERLAYS = Map.of(
+        "m2-cal-02-info-plate", List.of(
+            new OverlaySpec("m2_cal_02_info_plate.png", 0, 0, 1, 1, false, 1.0, List.of(), INFO_HUD)));
+
 
     static final Map<String, Place> READOUTS = Map.of(
         "m2-cal-02-date-readout", new Place(2, 2),
@@ -172,6 +187,7 @@ final class HudLayouts {
     private static final Pattern ID_CELL = Pattern.compile("^`([a-z0-9-]+)`$");
     private static final Pattern TOKEN = Pattern.compile("`([^`]+)`");
     private static final Pattern TICK = Pattern.compile("tick: (\\d+)");
+    private static final Pattern PLACEHOLDER = Pattern.compile("\\[([a-z0-9_]+)]");
     private static final Pattern FILE_COUNT = Pattern.compile("\\((\\d+) files?\\)");
     private static final Pattern SEPARATOR = Pattern.compile("^\\|[-| ]+\\|$");
 
@@ -234,57 +250,126 @@ final class HudLayouts {
         Map<String, Object> barImages = new LinkedHashMap<>();
         Map<String, Object> barLayouts = new LinkedHashMap<>();
         Map<String, Object> barHudLayouts = new LinkedHashMap<>();
+        Map<String, Object> infoLayouts = new LinkedHashMap<>();
         for (Element e : of(cat, "bar")) {
             if (e.unspecified()) {
                 leftOut.add(leftOut(e, UNSPECIFIED));
                 continue;
             }
-            BarPlace p = BARS.get(e.id());
-            if (p == null) {
-                throw new DatagenException(row(e) + ": no bar placement in HudLayouts.BARS");
+            BarSpec spec = BAR_SPECS.get(e.id());
+            if (spec == null) {
+                throw new DatagenException(row(e) + ": no bar spec in HudLayouts.BAR_SPECS");
             }
             for (String t : e.tokens()) {
                 requireKnown(e, t, names);
             }
-            String name = name(e.id());
-            String bg = name + "_bg";
-            String fill = name + "_fill";
             Map<String, Object> listener;
             if (e.tokens().size() == 2 && !e.data().contains("listener")) {
                 listener = m("class", "placeholder", "value", e.tokens().get(0), "max", e.tokens().get(1));
-                if (p.text() == null) {
-                    throw new DatagenException(row(e) + ": a value and a max need a text placement in HudLayouts.BARS");
-                }
             } else if (e.tokens().size() == 1 && e.data().contains("listener")) {
                 listener = m("class", e.tokens().get(0));
             } else {
                 throw new DatagenException(row(e) + ": a bar names a value and a max, or one listener");
             }
-            barImages.put(bg, m("type", "single", "file", imageFile(e.id(), "bg")));
-            barImages.put(fill, m("type", "listener", "file", imageFile(e.id(), "fill"), "split", SPLIT,
-                "split-type", "left", "setting", m("listener", listener)));
-            putBarArt(out, imageFile(e.id(), "bg"));
-            putBarArt(out, imageFile(e.id(), "fill"));
-            Map<String, Object> layout = m("images", m(
-                "1", m("name", bg, "x", p.bg().x(), "y", p.bg().y()),
-                "2", m("name", fill, "x", p.fill().x(), "y", p.fill().y())));
-            if (e.tokens().size() == 2) {
-                layout.put("texts", m("1", m("name", FONT,
-                    "pattern", "[" + e.tokens().get(0) + "]//[" + e.tokens().get(1) + "]",
-                    "placeholder-string-format", m("number", "#"),
-                    "align", "center", "x", p.text().x(), "y", p.text().y(), "scale", scale(),
-                    "outline", HEALTH_TEXT_SHADOW)));
+            HudArt.Bar art = HudArt.bar(spec.art());
+            if (!art.variants().equals(spec.variants().stream().map(Variant::name).sorted().toList())) {
+                throw new DatagenException(row(e) + ": fill variants " + art.variants() + " in " + spec.art()
+                    + ".layers.json do not match HudLayouts.BAR_SPECS");
             }
-            ShownWhile when = SHOWN_WHILE.get(e.id());
-            if (when != null) {
-                requireKnown(e, when.value(), names);
-                layout.put("conditions", m("1", m("first", when.value(), "second", when.threshold(),
-                    "operation", when.operation())));
+            String name = name(e.id());
+            int split = spec.split() > 0 ? spec.split() : art.interiorWidth();
+            barImages.put(name + "_bg", m("type", "single", "file", artPath(art.bgFile())));
+            putArt(out, art.bgFile());
+            List<String> fills = new ArrayList<>();
+            fills.add(art.fillFile());
+            spec.variants().forEach(v -> fills.add(art.variantFile(v.name())));
+            for (String f : fills) {
+                barImages.put(imageName(f), m("type", "listener", "file", artPath(f), "split", split,
+                    "split-type", "left", "setting", m("listener", listener)));
+                putArt(out, f);
             }
-            barLayouts.put(name, layout);
-            barHudLayouts.put(String.valueOf(barHudLayouts.size() + 1),
-                m("name", name, "gui", m("x", BARS_GUI_X, "y", BARS_GUI_Y)));
+
+            Map<String, Object> images = new LinkedHashMap<>();
+            images.put("1", layer(name + "_bg", spec.x(), spec.y() + HudArt.firstOpaqueRow(art.bgFile()), LAYER_BG, List.of(), e, names));
+            List<Cond> plain = new ArrayList<>();
+            for (Variant v : spec.variants()) {
+                plain.add(new Cond(v.when().get(0).value(), negate(v.when().get(0).operation()), v.when().get(0).threshold()));
+            }
+            images.put("2", layer(imageName(art.fillFile()), spec.x(), spec.y() + HudArt.firstOpaqueRow(art.fillFile()),
+                LAYER_FILL, plain.isEmpty() ? List.of() : List.of(plain.get(0)), e, names));
+            Map<String, Object> layout = m("offset", "left", "images", images);
+            for (Variant v : spec.variants()) {
+                String vf = art.variantFile(v.name());
+                Map<String, Object> img = layer(imageName(vf), spec.x(), spec.y() + HudArt.firstOpaqueRow(vf), LAYER_FILL,
+                    v.when(), e, names);
+                images.put(String.valueOf(images.size() + 1), img);
+            }
+            if (!spec.texts().isEmpty()) {
+                Map<String, Object> texts = new LinkedHashMap<>();
+                for (Text t : spec.texts()) {
+                    for (Matcher ph = PLACEHOLDER.matcher(t.pattern()); ph.find(); ) {
+                        requireKnown(e, ph.group(1), names);
+                    }
+                    texts.put(String.valueOf(texts.size() + 1), m("name", FONT, "pattern", t.pattern(),
+                        "placeholder-string-format", m("number", "#"), "align", t.align(),
+                        "x", spec.x() + t.x(), "y", spec.y() + t.y(), "scale", scale(), "outline", t.outline(),
+                        "layer", LAYER_TEXT));
+                }
+                layout.put("texts", texts);
+            }
+            if (!spec.shownWhile().isEmpty()) {
+                layout.put("conditions", conditions(spec.shownWhile(), e, names));
+            }
+            boolean info = spec.hud().equals(INFO_HUD);
+            (info ? infoLayouts : barLayouts).put(name, layout);
+            if (!info) {
+                barHudLayouts.put(String.valueOf(barHudLayouts.size() + 1),
+                    m("name", name, "gui", m("x", BARS_GUI_X, "y", BARS_GUI_Y)));
+            }
             emitted.merge("bar", 1, Integer::sum);
+        }
+
+        for (Element e : of(cat, "overlay")) {
+            List<OverlaySpec> specs = OVERLAYS.get(e.id());
+            if (specs == null) {
+                throw new DatagenException(row(e) + ": no overlay spec in HudLayouts.OVERLAYS");
+            }
+            for (String t : e.tokens()) {
+                requireKnown(e, t, names);
+            }
+            String name = name(e.id());
+            for (int i = 0; i < specs.size(); i++) {
+                OverlaySpec o = specs.get(i);
+                // A mirrored copy is its own file: BetterHud names generated textures by file path (first wins), so a
+                // second image with flip: [x] on the same file could silently reuse the unflipped texture.
+                String art = o.flipX() ? HudArt.mirroredFile(o.file()) : o.file();
+                String image = imageName(art);
+                barImages.put(image, m("type", "single", "file", artPath(art)));
+                out.put(BetterHudPack.DIR + "assets/" + artPath(art), o.flipX() ? HudArt.mirrored(o.file()) : HudArt.bytes(art));
+                String layoutName = specs.size() == 1 ? name : name + "_" + (i + 1);
+                Map<String, Object> entry = m("name", image, "x", o.x(), "y", o.y() + HudArt.firstOpaqueRow(o.file()),
+                    "layer", LAYER_OVERLAY);
+                if (o.opacity() < 1.0) {
+                    entry.put("opacity", BigDecimal.valueOf(o.opacity()));
+                }
+                Map<String, Object> layout = m("offset", "left", "images", m("1", entry));
+                if (!o.shownWhile().isEmpty()) {
+                    layout.put("conditions", conditions(o.shownWhile(), e, names));
+                }
+                if (o.hud().equals(INFO_HUD)) {
+                    infoLayouts.put(layoutName, layout);
+                } else {
+                    barLayouts.put(layoutName, layout);
+                    barHudLayouts.put(String.valueOf(barHudLayouts.size() + 1),
+                        m("name", layoutName, "gui", m("x", o.guiX(), "y", o.guiY())));
+                }
+            }
+            emitted.merge("overlay", 1, Integer::sum);
+        }
+        for (String id : infoLayouts.keySet()) {
+            if (!BetterHudPack.INFO_LAYOUTS.contains(id)) {
+                throw new DatagenException(id + " is not listed in BetterHudPack.INFO_LAYOUTS, so no HUD would show it");
+            }
         }
 
         Map<String, Object> readoutLayouts = new LinkedHashMap<>();
@@ -372,6 +457,7 @@ final class HudLayouts {
 
         out.put(IMAGES, Yaml.write(HEADER, barImages));
         out.put(BAR_LAYOUTS, Yaml.write(HEADER, barLayouts));
+        out.put(INFO_LAYOUTS, Yaml.write(HEADER, infoLayouts));
         out.put(BARS_HUDS, Yaml.write(HEADER, m(BARS_HUD, m("layouts", barHudLayouts))));
         putHiddenVanillaSprites(out);
         if (!readoutLayouts.isEmpty()) {
@@ -514,9 +600,47 @@ final class HudLayouts {
         return PREFIX + id.replace('-', '_');
     }
 
-    /** Writes a bar sprite ({@link HudBarArt}) into the pack's assets folder, where its image file path points (relative to assets/). */
-    private static void putBarArt(OutputTree out, String file) {
-        out.put(BetterHudPack.DIR + "assets/" + file, HudBarArt.png(file.substring(file.lastIndexOf('/') + 1)));
+    /** Copies a HUD art resource ({@link HudArt}) into the pack's assets folder, where its image path points. */
+    private static void putArt(OutputTree out, String file) {
+        out.put(BetterHudPack.DIR + "assets/" + artPath(file), HudArt.bytes(file));
+    }
+
+    /** The image's path relative to the pack's {@code assets/} folder. */
+    static String artPath(String file) {
+        return "tfp/hud/" + file;
+    }
+
+    /** The BetterHud image id of an art file: {@code tfp_} + the file name without {@code .png}. */
+    static String imageName(String file) {
+        return PREFIX + file.substring(0, file.length() - ".png".length());
+    }
+
+    private static Map<String, Object> layer(String image, int x, int y, int layer, List<Cond> when, Element e,
+                                             Set<String> names) {
+        Map<String, Object> img = m("name", image, "x", x, "y", y, "layer", layer);
+        if (!when.isEmpty()) {
+            img.put("conditions", conditions(when, e, names));
+        }
+        return img;
+    }
+
+    private static Map<String, Object> conditions(List<Cond> when, Element e, Set<String> names) {
+        Map<String, Object> c = new LinkedHashMap<>();
+        for (Cond w : when) {
+            requireKnown(e, w.value(), names);
+            c.put(String.valueOf(c.size() + 1), m("first", w.value(), "second", w.threshold(), "operation", w.operation()));
+        }
+        return c;
+    }
+
+    private static String negate(String op) {
+        return switch (op) {
+            case "<" -> ">=";
+            case "<=" -> ">";
+            case ">" -> "<=";
+            case ">=" -> "<";
+            default -> throw new DatagenException("cannot negate " + op);
+        };
     }
 
     /**
@@ -551,10 +675,6 @@ final class HudLayouts {
             }
         }
         return lines;
-    }
-
-    private static String imageFile(String id, String part) {
-        return "tfp/hud/" + id.replace('-', '_') + "_" + part + ".png";
     }
 
     private static BigDecimal scale() {

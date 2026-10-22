@@ -42,6 +42,15 @@ class BetterHudAdapterTest {
         assertThat(HudValues.LISTENERS.get("tfp_hunger").applyAsDouble(s)).isEqualTo(0.5);
     }
 
+    /** The thermometer maps -20..40 °C to 0..1 and is empty without a reading. */
+    @Test
+    void thermometer() {
+        assertThat(HudValues.thermometer(-20)).isZero();
+        assertThat(HudValues.thermometer(10)).isEqualTo(0.5);
+        assertThat(HudValues.thermometer(55)).isEqualTo(1);
+        assertThat(HudValues.thermometer(Double.NaN)).isZero();
+    }
+
     /** M2-CAL-02: the clock text placeholders read the published clock only, and show a dash before the first reading. */
     @Test
     void clockTextPlaceholdersFormatThePublishedClock() {

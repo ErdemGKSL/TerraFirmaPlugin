@@ -47,7 +47,17 @@ final class HudValues {
         l.put("tfp_thirst", s -> ratio(s.thirst(), HudSnapshot.MAX_THIRST));
         l.put("tfp_hunger", s -> ratio(s.hunger(), HudSnapshot.MAX_HUNGER));
         l.put("tfp_air", s -> ratio(s.air(), HudSnapshot.MAX_AIR));
+        l.put("tfp_ambient_temp", s -> thermometer(s.ambientTemperature()));
         LISTENERS = Collections.unmodifiableMap(l);
+    }
+
+    /** The thermometer bar's range: {@link #THERMOMETER_MIN} °C (empty) to {@link #THERMOMETER_MIN} + {@link #THERMOMETER_SPAN} °C (full). */
+    static final double THERMOMETER_MIN = -20;
+    static final double THERMOMETER_SPAN = 60;
+
+    /** The ambient temperature as the thermometer fill, 0..1; 0 while no reading exists (NaN). */
+    static double thermometer(double celsius) {
+        return Double.isNaN(celsius) ? 0 : ratio(celsius - THERMOMETER_MIN, THERMOMETER_SPAN);
     }
 
     static double ratio(double value, double max) {
