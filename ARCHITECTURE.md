@@ -256,6 +256,17 @@ old five levels.
 - Vanilla-block suppression (M1-INST-04): `core/visuals/Suppression` decides per creation path from the allocation's `suppressed_blocks.json` + mappings (lava + water → the look-alike, e.g. `stone`; everything else cancelled); `paper/suppression/SuppressionListener` applies it in TFC worlds (form/spread/fade/fertilize/entity-change/place events, drops, loot, crafting, smelting; dispensers and `/setblock`/`/fill` best effort).
 - **Switching profiles is safe for existing worlds.** It only changes client-side visual mappings. CE block ids and saved data stay the same. It needs a restart and a pack rebuild, both done automatically.
 
+### 9.2 Hitbox carriers (PAR-INFRA-13)
+
+A CE block's collision and outline are those of its visual vanilla state, so datagen picks that state with one selector
+(`tools/datagen/.../hitbox/HitboxCarrier`), never per family: every candidate state is scored against TFC's selection and
+collision boxes by voxel IoU (0.6 selection + 0.4 collision) times a shape-quality factor, after hard filters (banned
+client-behaviour blocks, light/water/particles, more connected pieces than TFC's shape, low bounding-box fill, off-centre
+outlines, and an owner ban list of multi-piece-looking blocks such as sea pickles, candles and turtle eggs for object
+classes). Classes may carry an owner-ordered carrier list with fallbacks (large vessel: heavy_core, then a lone cobblestone
+wall post); a fallback taken or any residual mismatch gets a ledger divergence. Placed items always use a pressure-plate
+state. Rare blocks may use a hitbox-only carrier (shared empty model) with the look from `entity_renderer`.
+
 ## 10. Packet layer
 
 - Library: **PacketEvents 2.14.x** (M0-NET-01), as an optional plugin dependency (`packetevents` in `paper-plugin.yml` and `compat.yml`). Without it the server runs without seasonal colours and item tooltips.
