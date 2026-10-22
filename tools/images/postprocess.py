@@ -42,6 +42,10 @@ def main() -> None:
     p.add_argument("--size", required=True, type=parse_size, help="pixel-art size, e.g. 16x16")
     p.add_argument("--upscale", type=int, default=1, help="integer nearest-neighbour upscale after processing")
     p.add_argument("--trim", action="store_true", help="crop fully transparent borders before resizing")
+    p.add_argument("--trim-alpha", type=int, default=1,
+                   help="with --trim: pixels with alpha below this count as transparent (ignores faint noise)")
+    p.add_argument("--resample", choices=["box", "nearest"], default="box",
+                   help="downscale filter: box (smooth) or nearest (samples cell centres, keeps hard pixel-art edges)")
     p.add_argument("--alpha-threshold", type=int, default=128, help="alpha below this becomes 0, else 255")
     p.add_argument("--translucent", action="store_true", help="keep alpha as-is (skip binarization)")
     p.add_argument("--palette-from", type=Path, nargs="*", default=[], help="reference PNGs to sample a palette from")
@@ -49,12 +53,13 @@ def main() -> None:
     args = p.parse_args()
 
     img = Image.open(args.input).convert("RGBA")
-    if args.trim and (bbox := img.getbbox()):
+    if args.trim and (bbox := img.getchannel("A").point(lambda a: 255 if a >= args.trim_alpha else 0).getbbox()):
         img = img.crop(bbox)
 
     w, h = args.size
     shrinking = img.width >= w and img.height >= h
-    img = img.resize((w, h), Image.Resampling.BOX if shrinking else Image.Resampling.NEAREST)
+    shrink_filter = Image.Resampling.NEAREST if args.resample == "nearest" else Image.Resampling.BOX
+    img = img.resize((w, h), shrink_filter if shrinking else Image.Resampling.NEAREST)
 
     alpha = img.getchannel("A")
     if not args.translucent:

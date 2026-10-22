@@ -9,4 +9,4 @@ Post-process:
 
 Status: generated, pending review. In-game check open (plans/gaps.md, M3-SURV-06).
 
-Superseded 2026-10-22 (HUD remaster): the HUD bars are now sliced from TFC's `textures/gui/icons/overlay.png` by `tools/datagen` `HudBarArt`; this image and its copy in docs/art/hud are no longer used by the datagen.
+Superseded 2026-10-22 (HUD remaster): the HUD bars were first sliced from TFC's overlay sheet, then redesigned as two-layer bars from new masters (`art/raw/hud-*`, `plans/hud-layered-redesign.md`); this image is no longer used.

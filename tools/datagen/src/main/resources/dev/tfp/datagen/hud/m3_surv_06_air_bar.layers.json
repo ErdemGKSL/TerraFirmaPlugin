@@ -1,0 +1,38 @@
+{
+ "name": "m3_surv_06_air_bar",
+ "canvas": [
+  150,
+  24
+ ],
+ "interior": [
+  [
+   23,
+   11,
+   138,
+   16
+  ]
+ ],
+ "variants": {
+  "low": {
+   "saturation": 0.35,
+   "value": 0.85,
+   "tint": [
+    150,
+    175,
+    190
+   ],
+   "tint_amount": 0.25
+  },
+  "critical": {
+   "saturation": 1.0,
+   "value": 1.0,
+   "tint": [
+    235,
+    64,
+    52
+   ],
+   "tint_amount": 0.7,
+   "tint_by_value": true
+  }
+ }
+}
