@@ -172,6 +172,8 @@ The resource pack is a single pack built and hosted by CraftEngine. BetterModel'
 
 Other CraftEngine packs (installed by server owners, or written by us later) draw from CE's `auto_state: solid` pool. TFC therefore takes its own visuals from non-pool sources first (identity-duplicate states, vanilla blocks absent from TFC worlds, optionally Nether/End blocks) and limits its solid-pool use. All profiles are implemented. The owner picks one per MC version in config.
 
+What CraftEngine offers beyond these pools: there is no CE setting that raises the vanilla full-cube cap. The options are entity overlays, `destroy_stages`, Premium culling and the CE client mod, ranked in `docs/research/ce-block-visual-workarounds-2.md`.
+
 **Always on, in every profile:**
 - metal blocks and mechanical blocks (clutch, encased axle, ...) are drawn with `entity_renderer` (approved);
 - hardened rock shares raw rock's visual;
