@@ -2,7 +2,7 @@
 id: PAR-INFRA-04
 title: "Item data components on PDC: fluid contents and item lists (vessels, jugs, buckets, molds)"
 area: INFRA
-status: open
+status: done
 wave: 1
 deps: []
 size: M
@@ -25,6 +25,8 @@ plan:
   - "Add versioned PDC codecs `tfp:fluid` (fluid id + amount) and `tfp:contents` (list of serialized ItemStacks, bounded) with the same rules as FoodPdc/HeatPdc (newer version kept untouched)."
   - "Add `ItemFluids` (read/write/fill/drain on ItemStack via core FluidContainerRules) and `ItemContents` (vessel slots)."
   - "Make heat and food codecs read nested item lists (a vessel's contents keep their food dates)."
+  - "Note: FoodPdc/HeatPdc needed no change: each `tfp:contents` slot is the whole serialized stack with its own PDC, so `FoodPdc.read`/`HeatPdc.read` work on the slots `ContentsPdc` returns. MockBukkit cannot serialize nested PDC containers, so the nested test uses an in-memory slot codec; the real-server check is the follow-up PAR-INFRA-12."
+  - "Done: core/itemdata (ItemSlotRules insert/extract, ItemDataMatching merge rule, ItemListLimits), paper/itemdata (FluidPdc tfp:fluid, ContentsPdc tfp:contents, ItemFluids, ItemContents); tests core ItemDataRulesTest (5), paper ItemDataPdcMockBukkitTest (8); two ledger divergences."
 tests:
   - "paper: MockBukkit round trip for both codecs incl. unknown newer version"
   - "core: fill/drain golden rows already exist; add the stack-merge rule for fluid items (no merge when contents differ)"
