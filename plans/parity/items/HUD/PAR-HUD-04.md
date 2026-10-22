@@ -2,7 +2,7 @@
 id: PAR-HUD-04
 title: "Two-layer HUD in-game verification at GUI scale 2 and 3 (full, low, submerged)"
 area: HUD
-status: open
+status: done
 wave: 3
 deps: []
 size: S
@@ -25,6 +25,7 @@ plan:
   - "Run the plan §6 checklist through a cheap-model capture agent: GUI scale 2 and 3, states full / low / submerged (RCON recipes in plans/gaps.md UI-defects entry, now with `tfp debug hunger`)."
   - "At 8x crops check: the fill never covers the frame, the empty channel shows at 0%, layer order 1/2/3, vertical trim compensation, air bar only below full air directly above thirst and red below 60, `offset: left` puts x at the canvas left edge."
   - "If a layer is off, apply the fallback of plan §1 (split = interior width or sequence frames) in HudLayouts.java."
+  - "Done: headless Paper 1.21.11 + 1.21.11 client at GUI scale 2 and 3, full / low / empty / submerged; every check passes, no layer off, HudLayouts.java unchanged; crops + verdict in docs/hud/screenshots/par-hud-04/ (pointer in docs/verification/PAR-HUD-04/), catalogue §5 and ledger feature row updated."
 tests:
   - "Screenshots committed under docs/hud/screenshots with a short verdict file"
 done_criteria:
