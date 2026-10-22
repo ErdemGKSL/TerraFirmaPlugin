@@ -4,7 +4,7 @@ title: "Large vessel (and glazed): nine slots, sealing, preservation, automation
 area: POTTERY
 status: open
 wave: 26
-deps: [PAR-INFRA-03, PAR-POT-02]
+deps: [PAR-INFRA-03, PAR-POT-02, PAR-INFRA-13]
 size: M
 aliases: ["M3-POT-03"]
 tfc_refs:

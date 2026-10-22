@@ -4,7 +4,7 @@ title: "Lobster traps"
 area: FAUNA
 status: open
 wave: 45
-deps: [PAR-FAUNA-13]
+deps: [PAR-FAUNA-13, PAR-INFRA-13]
 size: S
 aliases: ["M5-FISH-01 (traps)"]
 tfc_refs:

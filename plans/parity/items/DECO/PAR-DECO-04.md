@@ -4,7 +4,7 @@ title: "Chests, trapped chests and barrel racks per wood"
 area: DECO
 status: open
 wave: 46
-deps: [PAR-DECO-01, PAR-SURV-06]
+deps: [PAR-DECO-01, PAR-SURV-06, PAR-INFRA-13]
 size: S
 aliases: []
 tfc_refs:

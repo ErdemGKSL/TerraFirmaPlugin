@@ -4,7 +4,7 @@ title: "Bowls and powder bowls (wooden and ceramic bowl blocks)"
 area: POTTERY
 status: open
 wave: 27
-deps: [PAR-INFRA-02]
+deps: [PAR-INFRA-02, PAR-INFRA-13]
 size: S
 aliases: []
 tfc_refs:

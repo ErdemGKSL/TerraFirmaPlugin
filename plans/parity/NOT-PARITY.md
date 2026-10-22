@@ -270,9 +270,9 @@ These need a client mod. The column "ours" is the substitute a worker builds, an
 - **TFC**: Keys to place an item (V), cycle the chisel mode, stack food and pour faster. tfc_refs:
   `B/client/TFCKeyBindings.java`, `B/network/PlaceBlockSpecialPacket.java`, `B/network/CycleChiselModePacket.java`,
   `B/network/StackFoodPacket.java`, `B/network/PourFasterPacket.java`.
-- **Ours**: Sneak + right-click to place items, sneak + swap-hand to cycle the chisel mode, automatic food stacking, and
+- **Ours**: Place item (V): hold right-click >= 1 s on the top face of a solid block (the client repeats the use packet every 4 ticks; 5 events over 1 s place; shorter presses keep the item's tap action, items whose tap acts on the world keep that action and are never placed this way; use-duration items such as food and jugs place only while sneaking); quadrant = corner nearest the cursor; empty-hand or sneak right-click takes the item back; touch/Bedrock and accessibility fallback: double-tap sneak, then right-click (config `placed-items.gesture`); hitbox carrier: a pressure-plate state (PAR-POT-01, PAR-INFRA-13). Sneak + swap-hand to cycle the chisel mode, automatic food stacking, and
   sneaking while pouring to pour faster.
-- **Why**: Vanilla clients send no custom key events.
+- **Why**: Vanilla clients send no custom key events. Block items and rocks cannot become placed items (their right-click places them as blocks); TFC's V can.
 - **Items**: PAR-POT-01, PAR-TOOL-09, PAR-METAL-13, PAR-SURV-01.
 - **audit: skip**
 

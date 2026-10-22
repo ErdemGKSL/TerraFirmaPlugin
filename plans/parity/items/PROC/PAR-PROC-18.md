@@ -4,7 +4,7 @@ title: "Powderkeg"
 area: PROC
 status: open
 wave: 14
-deps: [PAR-INFRA-03, PAR-INFRA-02]
+deps: [PAR-INFRA-03, PAR-INFRA-02, PAR-INFRA-13]
 size: M
 aliases: ["M6-DECO-03 (powderkeg)"]
 tfc_refs:

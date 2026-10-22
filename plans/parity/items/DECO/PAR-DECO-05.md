@@ -4,7 +4,7 @@ title: "Tool racks, shelves, bookshelves, lecterns"
 area: DECO
 status: open
 wave: 46
-deps: [PAR-DECO-01, PAR-INFRA-02]
+deps: [PAR-DECO-01, PAR-INFRA-02, PAR-INFRA-13]
 size: M
 aliases: []
 tfc_refs:

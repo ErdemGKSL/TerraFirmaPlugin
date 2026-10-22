@@ -4,7 +4,7 @@ title: "Nest box: laying, hatching, GUI"
 area: FAUNA
 status: open
 wave: 43
-deps: [PAR-FAUNA-06, PAR-INFRA-03, PAR-INFRA-02]
+deps: [PAR-FAUNA-06, PAR-INFRA-03, PAR-INFRA-02, PAR-INFRA-13]
 size: M
 aliases: ["M5-LIV-02 (nest box)"]
 tfc_refs:
