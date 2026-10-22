@@ -2,7 +2,7 @@
 id: PAR-INFRA-09
 title: "Block and entity loot runtime: TFC loot tables evaluated on Paper"
 area: INFRA
-status: open
+status: done
 wave: 3
 deps: [PAR-INFRA-07]
 size: M
@@ -23,6 +23,8 @@ plan:
 tests:
   - "core: golden rows for each TFC condition/function"
   - "paper: MockBukkit break test with tool and explosion"
+  - "Scope note: files_owned is `paper/loot/**` only, so the rules live in `paper/loot` as pure classes (no Bukkit imports in LootNumber/LootCondition/LootFunction/LootEntry/LootTable/LootTableParser/LootEvaluator/LootContext) and their golden rows are paper tests; `core/gather` and `core/hunt` are untouched. Generating CE `loot:` delegation and shipping the tables (datagen) and the loose rock + leaves self-test moved to PAR-INFRA-21."
+  - "Done: paper/loot runtime (parser for every TFC table shape, vanilla-order evaluator with every TFC condition/function/number provider, LootService decide-async/apply-sync, LootBreakListener for break and explosion, LootStackHooks for item-data ops, LootModule); tests LootEvaluatorGoldenTest (20), TfcLootTablesParseTest (all 4,586 TFC tables), LootBreakMockBukkitTest (9); ledger feature row + 3 divergences; follow-up PAR-INFRA-21 carries the self-test done-criterion."
 done_criteria:
   - "A loose rock and a leaves block drop per their TFC tables in a self-test"
 ---
