@@ -2,6 +2,8 @@
 
 Phased TODO plans for porting TerraFirmaCraft to TerraFirmaPlugin. Scope and priorities come from `PRD.md`, the design from `ARCHITECTURE.md`, and per-feature status/divergences live in `docs/porting/ledger.md`.
 
+**Master backlog: `plans/parity/`** (one file per work item, parallel waves, worker protocol); the files below are history and context, their open entries were migrated there.
+
 | File | Milestone | Goal | Plan status (checkbox counts) |
 |---|---|---|---|
 | `00-m0-spikes.md` | M0: Spikes | Answer the open technical questions before building on them | Done (11 of 11) |
