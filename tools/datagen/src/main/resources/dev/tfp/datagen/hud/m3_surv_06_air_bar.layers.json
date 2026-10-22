@@ -1,2 +1,2 @@
 {"name": "m3_surv_06_air_bar", "canvas": [81, 7], "interior": [[1, 1, 80, 6]], "ring": "shade",
- "variants": {"critical": {"saturation": 1.0, "value": 1.0, "tint": [235, 64, 52], "tint_amount": 0.7, "tint_by_value": true}}}
+ "variants": {"critical": {"saturation": 1.0, "value": 1.0, "tint": [235, 64, 52], "tint_amount": 0.9, "tint_by_value": true}}}

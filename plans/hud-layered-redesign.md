@@ -44,7 +44,7 @@ H-49..H-41 (left), XP number centred around H-35..H-28.
 | health | `m3-surv-06-health-bar` | 81x10 | x 1..79, y 1..8 | x centre-90..-10, rows H-40..H-31 | bg, fill, text "850/850" (inside, TFC shadow) | `tfp_health` / `tfp_max_health` |
 | hunger | `m3-surv-06-hunger-bar` | 81x7 | x 1..79, y 1..5 | x centre+11..+91, rows H-37..H-31 | bg, fill | listener `tfp_hunger` |
 | thirst | `m3-surv-06-thirst-bar` | 81x7 | x 1..79, y 1..5 | same x, rows H-45..H-39 | bg, fill | listener `tfp_thirst` |
-| air | `m3-surv-06-air-bar` | 81x7 | x 1..79, y 1..5 | same x, rows H-53..H-47 (directly above thirst) | bg, fill (simple bubble row), fill_critical (red tint below 60 air) | listener `tfp_air`; shown while `tfp_air < 300` |
+| air | `m3-surv-06-air-bar` | 81x7 | x 1..79, y 1..5 | same x, rows H-53..H-47 (directly above thirst) | bg, fill (plain flat light-blue fill, no bubbles), fill_critical (red tint below 60 air) | listener `tfp_air`; shown while `tfp_air < 300` |
 | ambient temperature | `m2-clim-03-ambient-temp-bar` | 64x8 | tube x 1..62 y 2..5 + bulb | top-left under the date (screen 6,13) | bg, fill | listener `tfp_ambient_temp` ((t + 20) / 60, clamped) |
 | date and season, temperature text | `m2-cal-02-date-readout`, `m2-clim-03-ambient-temp-readout` | text on a plain plate 124x22 (`m2-cal-02-info-plate`, single layer) | none | top-left | plate, text | text |
 | held temperature popup | `m3-surv-06-held-temp-popup` | text only | none | centre, H-60 | text | text |

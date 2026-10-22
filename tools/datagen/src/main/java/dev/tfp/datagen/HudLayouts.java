@@ -136,10 +136,11 @@ final class HudLayouts {
     static final List<Cond> UNDERWATER = List.of(new Cond("tfp_air", "<", FULL_AIR));
 
     /**
-     * Text shadow ({@code outline}, ARGB hex) of the health text: TFC's {@code HEALTH_TEXT_SHADOW_COLOR} (104, 0, 0),
-     * so the white digits read on the red bar and on the dark empty bar alike.
+     * Text shadow ({@code outline}, ARGB hex) of the health text: neutral black, so the white digits read crisply on
+     * the red fill and on the grey empty channel alike. TFC's {@code HEALTH_TEXT_SHADOW_COLOR} (104, 0, 0) looked muddy
+     * over the grey empty part in game (review 2026-10-22); ledger divergence.
      */
-    static final String HEALTH_TEXT_SHADOW = "FF680000";
+    static final String HEALTH_TEXT_SHADOW = "FF000000";
 
     /**
      * Placement (GUI pixels from the bottom-centre; {@code H} = GUI height). Vanilla: XP bar H-29..H-25, hotbar

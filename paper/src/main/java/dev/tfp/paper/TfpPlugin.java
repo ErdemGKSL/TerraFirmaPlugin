@@ -989,6 +989,28 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     }
 
     @Override
+    public CompletableFuture<Reply> debugSetHunger(String name, int value) {
+        Player target = getServer().getPlayerExact(name);
+        if (target == null) {
+            return CompletableFuture.completedFuture(Reply.error("command.player_not_found", name));
+        }
+        // The food level is entity state: written on the player's own thread (Folia), the HUD picks it up from there.
+        CompletableFuture<Reply> out = new CompletableFuture<>();
+        boolean scheduled = scheduler.entity(target, () -> {
+            try {
+                target.setFoodLevel(value);
+                out.complete(Reply.ok("debug.hunger.done", target.getName(), target.getFoodLevel()));
+            } catch (RuntimeException e) {
+                out.completeExceptionally(e);
+            }
+        }, () -> out.complete(Reply.error("command.player_not_found", name)));
+        if (!scheduled) {
+            out.complete(Reply.error("command.player_not_found", name));
+        }
+        return out;
+    }
+
+    @Override
     public CompletableFuture<Reply> debugWarm(String name, float target, int steps) {
         Player player = getServer().getPlayerExact(name);
         if (player == null) {

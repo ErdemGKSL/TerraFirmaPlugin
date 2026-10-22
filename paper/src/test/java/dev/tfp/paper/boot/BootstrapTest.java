@@ -185,6 +185,11 @@ class BootstrapTest {
         }
 
         @Override
+        public CompletableFuture<Reply> debugSetHunger(String name, int value) {
+            return call("debugSetHunger " + name + " " + value, Reply.ok("debug.hunger.done", name, value));
+        }
+
+        @Override
         public CompletableFuture<Reply> debugPackets() {
             return call("debugPackets", new Reply(true, "debug.packets.header", List.of(), List.of("noop: calls=0")));
         }
@@ -270,7 +275,7 @@ class BootstrapTest {
         assertThat(children(tfp.getChild("time").getChild("set"))).containsExactlyInAnyOrder("day", "noon", "night", "midnight", "hour");
         assertThat(children(tfp.getChild("time").getChild("add"))).containsExactlyInAnyOrder("years", "months", "days", "hours", "ticks");
         assertThat(children(tfp.getChild("reload"))).containsExactlyInAnyOrder("config", "data", "content");
-        assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "snowtime", "worldgen", "player", "thirst", "heat", "warm", "place", "packets",
+        assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "snowtime", "worldgen", "player", "thirst", "hunger", "heat", "warm", "place", "packets",
                 "showcase", "animal");
         assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
         assertThat(tfp.getChild("debug").getChild("showcase").getCommand()).as("showcase needs a family").isNull();
@@ -336,6 +341,29 @@ class BootstrapTest {
         assertThat(out).containsExactly("Block at world 1 2 3:", "  vanilla: minecraft:stone", "Chunk 0, 0 in world:",
                 "Player data of Alex:");
         assertThatThrownBy(() -> d.execute("tfp debug block", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
+                .isInstanceOf(CommandSyntaxException.class);
+    }
+
+    /** {@code debug hunger <name> <0..20>}: sets the food level; values outside 0..20 and a missing value are syntax errors. */
+    @Test
+    void debugHungerSetsTheFoodLevel() throws CommandSyntaxException {
+        FakeHandler h = new FakeHandler();
+        CommandDispatcher<CommandSourceStack> d = dispatcher(h);
+        List<String> out = new ArrayList<>();
+        d.execute("tfp debug hunger Steve 3", Fakes.source(ADMIN, out));
+        d.execute("tfp debug hunger Steve 0", Fakes.source(ADMIN, out));
+        d.execute("tfp debug hunger Steve 20", Fakes.source(ADMIN, out));
+        assertThat(h.calls).containsExactly("debugSetHunger Steve 3", "debugSetHunger Steve 0", "debugSetHunger Steve 20");
+        assertThat(out).containsExactly("Food level of Steve set to 3.", "Food level of Steve set to 0.",
+                "Food level of Steve set to 20.");
+        out.clear();
+        d.execute("tfp debug hunger Steve 7", Fakes.playerSource("Ayşe", java.util.Locale.forLanguageTag("tr-TR"), ADMIN, out));
+        assertThat(out).containsExactly("Steve oyuncusunun açlık değeri 7 olarak ayarlandı.");
+        for (String bad : List.of("tfp debug hunger Steve 21", "tfp debug hunger Steve -1", "tfp debug hunger Steve")) {
+            assertThatThrownBy(() -> d.execute(bad, Fakes.source(ADMIN, out))).as(bad)
+                    .isInstanceOf(CommandSyntaxException.class);
+        }
+        assertThatThrownBy(() -> d.execute("tfp debug hunger Steve 5", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
                 .isInstanceOf(CommandSyntaxException.class);
     }
 

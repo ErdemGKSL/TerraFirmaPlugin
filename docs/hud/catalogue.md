@@ -27,10 +27,10 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m2-cal-02-ph-date` | calendar date text | M2-CAL-02 | placeholder | `tfp_date` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
 | `m2-cal-02-ph-season` | season name | M2-CAL-02 | placeholder | `tfp_season` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
 | `m2-clim-03-ph-ambient-temp` | ambient temperature at the player | M2-CLIM-03 | placeholder | `tfp_ambient_temp` (snapshot, movement throttle) | M2 | needed | Also a listener `tfp_ambient_temp` (-20..40 °C as 0..1, `HudValues.thermometer`) for the thermometer bar. Chunk climate input is neutral until the M2-GEN-05 wiring (ledger divergence). |
-| `m3-surv-06-health-bar` | health bar with "45/50" text | M3-SURV-06 | bar | `tfp_health`, `tfp_max_health` | M3 | needed | Spike M0-BH-01 is `[x]` for health and thirst on 1.21.11 and 26.3. TFC reference: `IngameOverlays.HEALTH`. TFC's 81x9 sprite; the text sits inside the bar with TFC's dark-red shadow (section 5). |
+| `m3-surv-06-health-bar` | health bar with "45/50" text | M3-SURV-06 | bar | `tfp_health`, `tfp_max_health` | M3 | needed | Spike M0-BH-01 is `[x]` for health and thirst on 1.21.11 and 26.3. TFC reference: `IngameOverlays.HEALTH`. TFC's 81x9 sprite; the text sits inside the bar with a black shadow (TFC's dark-red one looked muddy over the empty channel; section 5, ledger). |
 | `m3-surv-06-thirst-bar` | thirst bar | M3-SURV-06 | bar | `tfp_thirst` (listener, 0..1) | M3 | needed | Spike M0-BH-01 `[x]`. TFC reference: `IngameOverlays.THIRST`. TFC's 81x5 sprite, one 6 px step above hunger (section 5). |
 | `m3-surv-06-hunger-bar` | hunger bar | M3-SURV-06 | bar | `tfp_hunger` (listener) | M3 | needed | The BetterHud built-in `food` class only works if the vanilla food level is synced (M3-SURV-02 open item). TFC reference: `IngameOverlays.FOOD`. TFC's 81x5 food sprite recoloured orange (divergence, section 5). |
-| `m3-surv-06-air-bar` | air bar (breath left), bubble fill | M3-SURV-06 | bar | `tfp_air` (listener, 0..1) | M3 | needed | Replaces the vanilla air bubbles (hidden by `m3-surv-06-hide-air`). Compact 81x7 bar directly above thirst, only while `tfp_air < 300`; red fill below 60 (section 5). |
+| `m3-surv-06-air-bar` | air bar (breath left), plain light-blue fill | M3-SURV-06 | bar | `tfp_air` (listener, 0..1) | M3 | needed | Replaces the vanilla air bubbles (hidden by `m3-surv-06-hide-air`). Compact 81x7 bar directly above thirst, only while `tfp_air < 300`; red fill below 60 (section 5). |
 | `m3-surv-06-held-temp-popup` | held item temperature, shown while above 0 | M3-SURV-06 (via M3-HEAT-01) | popup | `tfp_held_temp` | M3 | needed | Item tooltip line is separate and not HUD. Text `[tfp_held_temp]°C`, whole degrees, black shadow. |
 | `m2-clim-03-ambient-temp-bar` | thermometer bar beside the temperature line, top-left | M2-CLIM-03 | bar | `tfp_ambient_temp` (listener, -20..40 °C) | M2 | needed | Icy blue to hot red; on the info plate (section 5). |
 | `m2-cal-02-info-plate` | stone plate behind the date and temperature lines | M2-CAL-02 | overlay | `tfp_date` (backs the date readout) | M2 | needed | 124x22 at 1,1. |
@@ -113,16 +113,16 @@ GUI pixels from the bottom-centre (`H` = GUI height) unless noted:
 
 | element | canvas | interior (fill mask) | columns | rows | z (layer) | shown |
 |---|---|---|---|---|---|---|
-| health + "850/850" | 81x10 | x 1..79, y 1..8 | centre-90 .. centre-10 | H-40 .. H-31 | bg 1, fill 2, text 3 (shadow `FF680000`) | always |
+| health + "850/850" | 81x10 | x 1..79, y 1..8 | centre-90 .. centre-10 | H-40 .. H-31 | bg 1, fill 2, text 3 (shadow `FF000000`, black) | always |
 | hunger | 81x7 | x 1..79, y 1..5 | centre+11 .. centre+91 | H-37 .. H-31 | bg 1, fill 2 | always |
 | thirst | 81x7 | x 1..79, y 1..5 | same | H-45 .. H-39 | bg 1, fill 2 | always |
-| air (bubbles) | 81x7 | x 1..79, y 1..5 | same | H-53 .. H-47 | bg 1, fill / fill_critical 2 | `tfp_air < 300`; red fill below 60 |
+| air (plain fill) | 81x7 | x 1..79, y 1..5 | same | H-53 .. H-47 | bg 1, fill / fill_critical 2 | `tfp_air < 300`; red fill below 60 (one condition on the value, the same at every GUI scale; `HudLayoutsTest.airRedThresholdIsOneScaleIndependentConditionAt60`) |
 | info plate | 124x22 | single layer | screen x 1..124 (gui 0/0) | screen y 1..22 | 0 | always |
 | thermometer | 64x8 | tube x 1..62 y 2..5, bulb x 1..3 y 1 and 6 | screen x 6..69 | screen y 13..20 | bg 1, fill 2 | always |
 | date / temperature text | text | | x 6 / x 73 | y 5 / y 13 | 3 | always |
 
 Vanilla for comparison: XP bar H-29 .. H-25, hotbar H-22 .. H-1, armour row H-49 .. H-41 (left), XP number centred around H-35 .. H-28. No bar overlaps them; the right column has one empty row between bars.
 
-Divergences from TFC (ledger): new plain art instead of TFC's overlay sheet; hunger is orange; air is a bar above thirst instead of the vanilla bubbles (same visibility rule: only below full breath); a thermometer bar and plate on the HUD (TFC shows climate in the inventory's climate screen). The BetterHud demo compass is switched off.
+Divergences from TFC (ledger): new plain art instead of TFC's overlay sheet; hunger is orange; black health-text shadow instead of TFC's dark red; air is a plain light-blue bar above thirst instead of the vanilla bubbles (same visibility rule: only below full breath); a thermometer bar and plate on the HUD (TFC shows climate in the inventory's climate screen). The BetterHud demo compass is switched off.
 
 Not verified in game yet: `layer` order and the `offset: left` reading (from the BetterHud 2.0 bytecode, `LayoutComponentContainer`).

@@ -61,6 +61,8 @@ public final class TfpCommands {
     public static final String ADMIN_PERMISSION = "tfp.admin";
     /** The most chunks one {@code /tfp debug worldgen} times (they run on the command's thread). */
     public static final int MAX_WORLDGEN_CHUNKS = 2000;
+    /** Vanilla's full food bar, the top of {@code /tfp debug hunger} (TFC hunger is the vanilla food level). */
+    public static final int MAX_FOOD_LEVEL = 20;
 
     /** A translated reply: a message key with arguments, plus untranslated technical detail lines. */
     public record Reply(boolean ok, String key, List<Object> args, List<String> details) {
@@ -125,6 +127,9 @@ public final class TfpCommands {
 
         /** Test aid: sets the thirst of the online player {@code name} (0..100). */
         CompletableFuture<Reply> debugSetThirst(String name, float value);
+
+        /** Test aid: sets the vanilla food level (TFC hunger, 0..20) of the online player {@code name}. */
+        CompletableFuture<Reply> debugSetHunger(String name, int value);
 
         /**
          * Writes {@code temperature} (°C, now) into the heat state of the player's held item; with {@code null} it
@@ -234,6 +239,12 @@ public final class TfpCommands {
                                                 .executes(run(handler, messages, (h, ctx) -> h.debugSetThirst(
                                                         StringArgumentType.getString(ctx, "name"),
                                                         FloatArgumentType.getFloat(ctx, "value")))))))
+                        .then(Commands.literal("hunger")
+                                .then(Commands.argument("name", StringArgumentType.word())
+                                        .then(Commands.argument("value", IntegerArgumentType.integer(0, MAX_FOOD_LEVEL))
+                                                .executes(run(handler, messages, (h, ctx) -> h.debugSetHunger(
+                                                        StringArgumentType.getString(ctx, "name"),
+                                                        IntegerArgumentType.getInteger(ctx, "value")))))))
                         .then(Commands.literal("heat")
                                 .then(Commands.argument("name", StringArgumentType.word())
                                         .executes(run(handler, messages, (h, ctx) -> h.debugSetHeat(

@@ -260,7 +260,7 @@ class HudLayoutsTest {
         int interiorBottom = spec.y() + art.interior().get(0).y1(); // exclusive
         assertThat((Integer) text.get("y")).isGreaterThanOrEqualTo(interiorTop);
         assertThat((Integer) text.get("y") + glyphs + 1).as("glyphs and shadow").isLessThanOrEqualTo(interiorBottom);
-        assertThat(text).containsEntry("outline", "FF680000").containsEntry("align", "center")
+        assertThat(text).containsEntry("outline", "FF000000").containsEntry("align", "center")
             .containsEntry("x", spec.x() + art.width() / 2).containsEntry("layer", HudLayouts.LAYER_TEXT);
     }
 
@@ -293,6 +293,41 @@ class HudLayoutsTest {
         }
         assertThat(hunger.y() - thirst.y()).isEqualTo(h + 1);
         assertThat(thirst.y() - airSpec.y()).isEqualTo(h + 1);
+    }
+
+    /**
+     * The red air threshold is a BetterHud condition on the {@code tfp_air} value (ticks of breath), not a pixel
+     * quantity: there is one air layout, placed once in one HUD, with no per-GUI-scale copy, so GUI scale 2 and 3 switch
+     * to the red fill at exactly the same air value. Pinned on the datagen output and, when a previous
+     * {@code generateContent} left it (it is git-ignored), on the generated pack the test servers install.
+     */
+    @Test
+    void airRedThresholdIsOneScaleIndependentConditionAt60() throws IOException {
+        assertThat(HudLayouts.CRITICAL_AIR).isEqualTo(60);
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+        Path generated = HudLayouts.catalogue().getParent().getParent().getParent()
+            .resolve("content/generated/content/" + HudLayouts.BAR_LAYOUTS);
+        List<Map<String, Object>> sources = new java.util.ArrayList<>(List.of(yaml(out, HudLayouts.BAR_LAYOUTS)));
+        if (Files.isRegularFile(generated)) {
+            sources.add(map(new org.yaml.snakeyaml.Yaml().load(Files.readString(generated))));
+        }
+        for (Map<String, Object> layouts : sources) {
+            List<String> airLayouts = layouts.keySet().stream().filter(k -> k.contains("air")).toList();
+            assertThat(airLayouts).as("one air layout, no per-scale copy").containsExactly("tfp_m3_surv_06_air_bar");
+            Map<String, Object> images = map(map(layouts.get("tfp_m3_surv_06_air_bar")).get("images"));
+            List<String> thresholds = new java.util.ArrayList<>();
+            for (Object image : images.values()) {
+                Object conds = map(image).get("conditions");
+                if (conds != null) {
+                    for (Object c : map(conds).values()) {
+                        assertThat(map(c)).containsEntry("first", "tfp_air");
+                        thresholds.add(map(c).get("operation") + " " + map(c).get("second"));
+                    }
+                }
+            }
+            assertThat(thresholds).containsExactlyInAnyOrder(">= 60", "< 60");
+        }
     }
 
     @Test
