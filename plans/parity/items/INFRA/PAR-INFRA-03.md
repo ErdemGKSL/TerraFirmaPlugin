@@ -28,7 +28,7 @@ in_game_steps:
   - "tfp debug gui sample"
   - "Screenshot at GUI scale 2 and 3; slots and background line up to the pixel"
 plan:
-  - "Done 2026-10-22 (8d3513a cherry-picked; BootstrapTest and CeYamlCheck made shared hubs); still pending: the PROTOCOL §6 screenshot check at GUI scales 1 to 4."
+  - "Done 2026-10-22 (8d3513a cherry-picked; BootstrapTest and CeYamlCheck made shared hubs); screenshot check done 2026-10-22 at GUI scales 1 to 3 (scale 4 clamps to 3 at 1280x720): art, slots, title, button and centring pass to the pixel. Open: retake the scale 2 hover-slot shot, capture scale 4 at 1920x1080, hover a slot without art."
   - "Build the framework pieces of docs/gui/catalogue.md section 2: `fw-title-glyphs` (CE `<image>`/`<shift>` title builder), `fw-title-refresh` (rate-limited `InventoryView#setTitle`), `fw-overlay-layers`, `fw-progress-bars` (15x5 temperature bar, tank, progress arrows as glyph frames), `fw-slot-layouts`, `fw-buttons` (button slot items with empty item model + tooltip), `fw-alignment` (pixel math at GUI scale 1-4), `fw-background-art` (datagen copies TFC `textures/gui/*.png` into CE images + font)."
   - "Java API: `TfpGui` (builder: background image, slots map, buttons, overlays), `GuiSession` (per viewer, refresh throttled to 4/s), click routing on the player's entity scheduler, slot predicates from DeviceInventory."
   - "One sample screen (a 9-slot storage) behind `tfp debug gui sample` to prove alignment."
