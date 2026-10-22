@@ -61,9 +61,9 @@ class BetterModelAdapterTest {
     }
 
     @Test
-    void jarModelsListsTheBovinePlaceholder() throws Exception {
+    void jarModelsListsTheSpikeModels() throws Exception {
         List<ModelSource> models = JarModels.load(getClass().getClassLoader(), JarModels.DEFAULT_FOLDER);
-        assertThat(models).extracting(ModelSource::id).containsExactly("tfp_example_bovine");
+        assertThat(models).extracting(ModelSource::id).containsExactly("tfp_example_bovine", "tfp_deer");
         try (InputStream in = models.getFirst().open().open()) {
             String json = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             assertThat(json).contains("\"elements\"").contains("\"outliner\"");

@@ -6,7 +6,7 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Models: th
 
 ## Entity framework
 
-- [ ] **M5-ENT-01 Animal framework** · deps: M1-INT-03, M2-CAL-01, M0-BM-01 · skills: bettermodel, paper-folia-threading
+- [~] **M5-ENT-01 Animal framework** · deps: M1-INT-03, M2-CAL-01, M0-BM-01 · skills: bettermodel, paper-folia-threading
   - TFC: `common/entities/livestock/TFCAnimal.java`, `CommonAnimalData.java`, `Age.java`, `Gender.java`, `common/entities/EntityHelpers.java`
   - Do:
     - a carrier choice table per family; `setSilent(true)` with our sounds;
@@ -15,6 +15,7 @@ Paths are relative to `src/main/java/net/dries007/tfc/` unless noted. Models: th
     - the model attached on the entity scheduler; visual state re-applied in `CreateEntityTrackerEvent`; baby scale from age;
     - throttled, staggered Mob Goals.
   - Done when: golden aging tests; self-test persistence across chunk reload, `/bm reload` and restart (variant/tint/parts kept).
+  - Status: framework slice in place. Core `core/.../animal/`: `AnimalScale` (TFC `AGE_SCALES`, render scale, child 0.5, float32), `AnimalSpawnRoll` (`initCommonAnimalData` + `getRandomGrowth`, draws injected in TFC's order), `Carrier`/`CarrierTable` + `carriers.tsv` (83 TFC living types with TFC and carrier hitboxes, deltas, flags, model ids), `AnimalRecord` (versioned primitive-map codec over `AnimalState`), `AnimalCheck` (lazy stage + `markElderlyIfDue`). Paper `paper/.../animal/`: `AnimalPdc` (`tfp:animal` nested container), `AnimalService` (spawn on the region thread, SCALE attribute = `AGE_SCALES`, model scaler = render scale x child 0.5, re-apply on model creation and on every model load, staggered 20-tick entity check with `1 + uuid hash mod 20` delay, vanilla love mode cancelled); `/tfp debug animal spawn|info`; `tfp_deer` jar model. Tests: `AnimalScaleGoldenTest`, `AnimalSpawnRollGoldenTest`, `CarrierTableTest`, `AnimalAgeLazyTest`, `AnimalPdcMockBukkitTest`, `BootstrapTest.debugAnimal`, self-test `animal.spawn_persist` (two starts; green on Paper and Folia 1.21.11, both starts, 18 cases with the thread-check log cases). Open: goal AI replacing carrier goals (M5-LIV/WILD/PET), TFC sounds, variant and old-age textures and per-species models (M5-ENT-02), in-game screenshots of the child/adult scale and `/bm reload`.
 
 - [ ] **M5-ENT-02 Model import & conversion pipeline** · deps: M5-ENT-01 · skills: model-authoring, tfc-asset-migration
   - TFC: `resources/entity_models/*.bbmodel` (44), `client/model/entity/*Model.java` and `client/animation/*.java` (128 animations)

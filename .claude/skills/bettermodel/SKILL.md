@@ -96,5 +96,6 @@ Full API tables, event list, config keys, the TFC bbmodel audit and open questio
 - Verified in M0-BM-01: face UVs of `uv [0,0,0,0]` in a .bbmodel make the model invisible in BetterModel 3.5.1, even with `box_uv`; real per-face rectangles render.
 - Verified in M0-BM-01: after a restart, carriers that load before the models are registered get no tracker (`trackerExistsOnLoad=false`); re-attaching them in `PluginEndReloadEvent` restores it.
 - Verified in M0-BM-01: a baby flag alone does not shrink a `ModelScaler.entity()` model; SCALE attribute 0.5 and `multiply(0.5f)` both do.
+- Decided in M5-ENT-01 (`AnimalService`): set the carrier's SCALE attribute to TFC's `AGE_SCALES` value and attach with `ModelScaler.entity().multiply(renderScale x (child ? 0.5 : 1))`; the scaler multiplies the attribute, so the attribute factor is never applied twice. Change the scale with `EntityModels.rescale` (also inside `onModelCreated`), and re-attach on `EntityModels.onReady` for carriers that loaded before the models existed. Checked by the `animal.spawn_persist` self-test.
 - Verified in M0-BM-01: tint kept in our PDC survives a restart and `/bm reload` only through the `CreateEntityTrackerEvent` re-apply (with re-apply off it is lost).
 - Verified in M0-BM-01: the first CraftEngine pack build can omit bettermodel entries; a second `ce reload all` includes them.

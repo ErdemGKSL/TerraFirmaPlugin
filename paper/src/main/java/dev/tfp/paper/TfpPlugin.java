@@ -151,6 +151,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     /** M2-CAL-01: the published clock (lock-free reads anywhere) and the service that advances it. */
     private final GlobalClockHolder clock = new GlobalClockHolder();
     private volatile CalendarService calendar;
+    /** M5-ENT-01: TFC animals on vanilla carriers (null until enabled). */
+    private volatile dev.tfp.paper.animal.AnimalService animals;
     /** M3-SURV-01: food queries (stage, tooltip line, stack rule) at the current player tick. */
     private volatile ItemFoodHooks food;
     /** M3-HEAT-01: item heat queries (temperature now, level, tooltip line). */
@@ -434,6 +436,13 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         calendar = cal;
         cal.start(scheduler);
 
+        // M5-ENT-01: TFC animals on vanilla carriers: PDC record, lazy age and scale, model re-apply, staggered check.
+        dev.tfp.paper.animal.AnimalService animalService =
+                new dev.tfp.paper.animal.AnimalService(scheduler, clock, integrations::entityModels, getLogger());
+        animals = animalService;
+        animalService.start();
+        getServer().getPluginManager().registerEvents(animalService, this);
+
         // M3-SURV-01: TFC's food stack rule in inventory clicks, pickups and hopper moves (lazy: dates in player ticks).
         // M3-SURV-02: each food's decay_modifier from its food definition (1 for items without one).
         ItemFoodHooks foodHooks = new ItemFoodHooks(() -> clock.get().playerTicks(), FoodConfig.DEFAULT,
@@ -600,6 +609,11 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     /** M2-CAL-01: the calendar service (null until enabled). */
     public CalendarService calendar() {
         return calendar;
+    }
+
+    /** M5-ENT-01: the animal service (null until enabled). */
+    public dev.tfp.paper.animal.AnimalService animals() {
+        return animals;
     }
 
     public ChunkDataStore chunkData() {
@@ -1154,6 +1168,99 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                         .withDetails(ShowcasePlacer.details(r)));
             });
         });
+    }
+
+    @Override
+    public CompletableFuture<Reply> debugAnimalSpawn(Player player, String species, String ageArg, String genderArg) {
+        dev.tfp.paper.animal.AnimalService service = animals;
+        if (service == null) {
+            return CompletableFuture.completedFuture(Reply.error("command.not_enabled"));
+        }
+        java.util.Optional<dev.tfp.core.animal.Carrier> carrier = service.table().find(species.toLowerCase(java.util.Locale.ROOT));
+        if (carrier.isEmpty()) {
+            return CompletableFuture.completedFuture(Reply.error("debug.animal.unknown", species));
+        }
+        dev.tfp.core.animal.AnimalSpawnRoll.AgeHint hint = dev.tfp.core.animal.AnimalSpawnRoll.AgeHint.RANDOM;
+        if (ageArg != null) {
+            try {
+                hint = dev.tfp.core.animal.AnimalSpawnRoll.AgeHint.valueOf(ageArg.toUpperCase(java.util.Locale.ROOT));
+            } catch (IllegalArgumentException e) {
+                hint = null;
+            }
+            if (hint == null || hint == dev.tfp.core.animal.AnimalSpawnRoll.AgeHint.RANDOM) {
+                return CompletableFuture.completedFuture(Reply.error("debug.animal.bad_age", ageArg));
+            }
+        }
+        Boolean male = null;
+        if (genderArg != null) {
+            male = switch (genderArg.toLowerCase(java.util.Locale.ROOT)) {
+                case "male" -> Boolean.TRUE;
+                case "female" -> Boolean.FALSE;
+                default -> null;
+            };
+            if (male == null) {
+                return CompletableFuture.completedFuture(Reply.error("debug.animal.bad_gender", genderArg));
+            }
+        }
+        if (!clock.get().isSet()) {
+            return CompletableFuture.completedFuture(Reply.error("time.not_loaded"));
+        }
+        CompletableFuture<Location> at = new CompletableFuture<>();
+        if (!scheduler.entity(player, () -> at.complete(player.getLocation()), () -> at.complete(null))) {
+            return CompletableFuture.completedFuture(Reply.error("command.player_only"));
+        }
+        dev.tfp.core.animal.AnimalSpawnRoll.AgeHint age = hint;
+        Boolean gender = male;
+        dev.tfp.core.animal.Carrier row = carrier.get();
+        return at.thenCompose(loc -> loc == null ? CompletableFuture.completedFuture(Reply.error("command.player_only"))
+                : service.spawn(loc, row, age, gender).thenCompose(e -> {
+                    CompletableFuture<Reply> out = new CompletableFuture<>();
+                    Runnable read = () -> {
+                        dev.tfp.core.animal.AnimalRecord r = service.record(e).orElseThrow();
+                        out.complete(Reply.ok("debug.animal.spawned", row.id(), row.carrier(), format(loc),
+                                dev.tfp.core.animal.AnimalCheck.ageAt(r, clock.get().playerTicks()).name()
+                                        .toLowerCase(java.util.Locale.ROOT),
+                                r.state().male() ? "male" : "female",
+                                r.geneticSize() == dev.tfp.core.animal.AnimalScale.NO_SIZE ? "-" : r.geneticSize()));
+                    };
+                    if (!scheduler.entity(e, read, () -> out.complete(Reply.error("debug.animal.none", DEBUG_REACH)))) {
+                        out.complete(Reply.error("debug.animal.none", DEBUG_REACH));
+                    }
+                    return out;
+                }));
+    }
+
+    @Override
+    public CompletableFuture<Reply> debugAnimalInfo(Player player) {
+        dev.tfp.paper.animal.AnimalService service = animals;
+        if (service == null) {
+            return CompletableFuture.completedFuture(Reply.error("command.not_enabled"));
+        }
+        CompletableFuture<Reply> out = new CompletableFuture<>();
+        boolean scheduled = scheduler.entity(player, () -> {
+            org.bukkit.entity.Entity target = player.getTargetEntity(DEBUG_REACH);
+            if (target == null) {
+                out.complete(Reply.error("debug.animal.none", DEBUG_REACH));
+                return;
+            }
+            if (!scheduler.entity(target, () -> {
+                try {
+                    out.complete(service.describe(target)
+                            .map(lines -> Reply.ok("debug.animal.header",
+                                    service.record(target).orElseThrow().species(), target.getType().getKey().toString())
+                                    .withDetails(lines))
+                            .orElseGet(() -> Reply.error("debug.animal.none", DEBUG_REACH)));
+                } catch (RuntimeException e) {
+                    out.completeExceptionally(e);
+                }
+            }, () -> out.complete(Reply.error("debug.animal.none", DEBUG_REACH)))) {
+                out.complete(Reply.error("debug.animal.none", DEBUG_REACH));
+            }
+        }, () -> out.complete(Reply.error("command.player_only")));
+        if (!scheduled) {
+            out.complete(Reply.error("command.player_only"));
+        }
+        return out;
     }
 
     private CompletableFuture<List<String>> showcaseIds() {

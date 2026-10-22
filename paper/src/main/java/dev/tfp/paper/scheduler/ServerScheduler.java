@@ -63,6 +63,15 @@ public final class ServerScheduler implements Scheduler {
     }
 
     @Override
+    public TaskHandle entityRepeating(Entity entity, long initialDelayTicks, long periodTicks, Runnable task,
+            Runnable retired) {
+        Runnable g = guarded(task);
+        ScheduledTask t = entity.getScheduler().runAtFixedRate(plugin, st -> g.run(),
+                retired == null ? null : guarded(retired), Math.max(1, initialDelayTicks), Math.max(1, periodTicks));
+        return t == null ? null : wrap(t);
+    }
+
+    @Override
     public void global(Runnable task) {
         Bukkit.getGlobalRegionScheduler().execute(plugin, guarded(task));
     }

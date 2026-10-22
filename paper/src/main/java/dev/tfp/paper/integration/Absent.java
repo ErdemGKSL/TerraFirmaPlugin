@@ -104,6 +104,11 @@ final class Absent {
         }
 
         @Override
+        public boolean rescale(Entity carrier, float scale) {
+            return false;
+        }
+
+        @Override
         public boolean tint(Entity carrier, int rgb) {
             return false;
         }
@@ -128,6 +133,10 @@ final class Absent {
 
         @Override
         public void onModelCreated(Consumer<Entity> hook) {
+        }
+
+        @Override
+        public void onReady(Runnable hook) {
         }
     };
 

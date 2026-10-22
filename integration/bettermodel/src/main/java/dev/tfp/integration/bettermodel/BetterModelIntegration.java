@@ -60,6 +60,7 @@ public final class BetterModelIntegration implements Integration, EntityModels {
     private final IntegrationContext ctx;
     private final Map<String, ModelSource> sources = new ConcurrentHashMap<>();
     private final List<Consumer<Entity>> createdHooks = new CopyOnWriteArrayList<>();
+    private final List<Runnable> readyHooks = new CopyOnWriteArrayList<>();
     private final List<ModelEventListener> subscriptions = new CopyOnWriteArrayList<>();
     /**
      * The tracker whose {@link CreateEntityTrackerEvent} is being handled on this thread. BetterModel fires the
@@ -139,6 +140,13 @@ public final class BetterModelIntegration implements Integration, EntityModels {
             }
             ctx.logger().info("BetterModel models ready (" + (success.firstLoad() ? "first load" : "reload") + ")");
             ctx.readyGate().signal(ReadyGate.Signal.BETTERMODEL_MODELS_READY);
+            for (Runnable hook : readyHooks) {
+                try {
+                    hook.run();
+                } catch (RuntimeException e) {
+                    ctx.logger().log(Level.SEVERE, "models-ready hook failed", e);
+                }
+            }
         } else if (result instanceof BetterModelPlatform.ReloadResult.Failure) {
             ctx.logger().severe("BetterModel reload failed: " + result + "; animated entities stay unavailable");
             ctx.readyGate().waive(ReadyGate.Signal.BETTERMODEL_MODELS_READY, "BetterModel failed to load models");
@@ -210,9 +218,25 @@ public final class BetterModelIntegration implements Integration, EntityModels {
         if (renderer.isEmpty()) {
             return false;
         }
-        ModelScaler scaler = scale == 1f ? ModelScaler.entity() : ModelScaler.entity().multiply(scale);
+        ModelScaler scaler = scalerOf(scale);
         renderer.get().getOrCreate(BukkitAdapter.adapt(carrier), TrackerModifier.DEFAULT, t -> t.scaler(scaler));
         return true;
+    }
+
+    /** {@code EntityTracker.scaler} on the carrier's trackers, the same scaler {@link #attach} gives a new tracker. */
+    @Override
+    public boolean rescale(Entity carrier, float scale) {
+        ThreadAsserts.owned(carrier);
+        List<EntityTracker> trackers = trackersOf(carrier);
+        ModelScaler scaler = scalerOf(scale);
+        for (EntityTracker t : trackers) {
+            t.scaler(scaler);
+        }
+        return !trackers.isEmpty();
+    }
+
+    private static ModelScaler scalerOf(float scale) {
+        return scale == 1f ? ModelScaler.entity() : ModelScaler.entity().multiply(scale);
     }
 
     /** {@code TrackerUpdateAction.tint} on every bone, as in the M0-BM-01 spike (there on the body bone and its children). */
@@ -263,5 +287,10 @@ public final class BetterModelIntegration implements Integration, EntityModels {
     @Override
     public void onModelCreated(Consumer<Entity> hook) {
         createdHooks.add(hook);
+    }
+
+    @Override
+    public void onReady(Runnable hook) {
+        readyHooks.add(hook);
     }
 }

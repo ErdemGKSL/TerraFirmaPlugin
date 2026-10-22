@@ -1,4 +1,8 @@
 # Models registered with BetterModel from the plugin jar (ModelAssetsEvent), one id per line; the file is
-# <id>.bbmodel next to this index. tfp_example_bovine is the M1 placeholder from
-# tools/models/species/tfp_example_bovine.json (generated, copied from spikes/bm-01); datagen replaces this list.
+# <id>.bbmodel next to this index. Both are the M0-BM-01 spike outputs, copied unchanged from
+# spikes/bm-01/src/main/resources/models (made by spikes/bm-01/tools/prep-models.sh):
+#   tfp_example_bovine  placeholder from tools/models/species/tfp_example_bovine.json (M1)
+#   tfp_deer            TFC's Deer model with the DeerModel.java walk/run converted (M5-ENT-01 uses it for tfc:deer)
+# datagen replaces this list (M5-ENT-02).
 tfp_example_bovine
+tfp_deer

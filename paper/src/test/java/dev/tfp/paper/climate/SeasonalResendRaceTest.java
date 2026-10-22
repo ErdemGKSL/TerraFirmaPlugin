@@ -86,6 +86,12 @@ class SeasonalResendRaceTest {
         }
 
         @Override
+        public TaskHandle entityRepeating(Entity entity, long initialDelayTicks, long periodTicks, Runnable task,
+                Runnable retired) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void global(Runnable task) {
             throw new UnsupportedOperationException();
         }

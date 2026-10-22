@@ -9,6 +9,9 @@ This project reimplements and adapts code, data and assets from TerraFirmaCraft:
 Ported source files name the TerraFirmaCraft file and commit they derive from in their header.
 core/src/test/resources/tfc-sample/ holds unmodified TerraFirmaCraft data files (EUPL-1.2, commit
 c3b4d9536b82e5a9746dd793c586720a74108057) used as test fixtures; its SOURCES.txt lists each file's TFC path.
+integration/bettermodel/src/main/resources/bettermodel/models/tfp_deer.bbmodel is TerraFirmaCraft's
+resources/entity_models/Deer-Bedrock.bbmodel (EUPL-1.2, same commit) with the DeerModel.java walk and run animations
+converted by tools/models/tfc_anim/convert.py.
 This project is not affiliated with or endorsed by the TerraFirmaCraft team.
 
 Third-party material with other licenses (inherited from TerraFirmaCraft):

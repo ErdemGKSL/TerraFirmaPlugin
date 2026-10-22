@@ -12,6 +12,7 @@ import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import dev.tfp.core.animal.CarrierTable;
 import dev.tfp.core.calendar.CalendarFormat;
 import dev.tfp.core.calendar.TimeCommand;
 import dev.tfp.core.showcase.Showcase;
@@ -46,6 +47,8 @@ import org.bukkit.entity.Player;
  * /tfp debug player [name]     player data (yours without a name)
  * /tfp debug packets           packet handler metrics
  * /tfp debug showcase &lt;family&gt; every variant of rocks|soils|ores in a grid at your position (players)
+ * /tfp debug animal spawn &lt;species&gt; [child|adult|old] [male|female]   a TFC animal on its carrier at your position (players)
+ * /tfp debug animal info       the TFC animal you look at: stored record, age, scale, model (players)
  * /tfp time set day|noon|night|midnight|hour &lt;0-24&gt;   next time of day (tfp.admin, TFC TimeCommand)
  * /tfp time add years|months|days|hours &lt;n&gt; | ticks &lt;n&gt;   skip forward (tfp.admin)
  * </pre>
@@ -134,6 +137,15 @@ public final class TfpCommands {
 
         /** Packet layer and per-handler metrics. */
         CompletableFuture<Reply> debugPackets();
+
+        /**
+         * M5-ENT-01: spawns the TFC animal {@code species} ({@code cow} or {@code tfc:cow}) at the player; {@code age}
+         * is {@code child|adult|old} or null for TFC's roll, {@code gender} {@code male|female} or null.
+         */
+        CompletableFuture<Reply> debugAnimalSpawn(Player player, String species, String age, String gender);
+
+        /** M5-ENT-01: the TFC animal the player looks at. */
+        CompletableFuture<Reply> debugAnimalInfo(Player player);
 
         /** Places every loaded variant of {@code family} ({@code rocks|soils|ores}) in a grid next to {@code player}. */
         CompletableFuture<Reply> debugShowcase(Player player, String family);
@@ -239,6 +251,27 @@ public final class TfpCommands {
                                                                 FloatArgumentType.getFloat(ctx, "target"),
                                                                 IntegerArgumentType.getInteger(ctx, "steps"))))))))
                         .then(Commands.literal("packets").executes(run(handler, messages, (h, ctx) -> h.debugPackets())))
+                        .then(Commands.literal("animal")
+                                .then(Commands.literal("info").executes(player(handler, messages, Handler::debugAnimalInfo)))
+                                .then(Commands.literal("spawn")
+                                        .then(Commands.argument("species", StringArgumentType.word())
+                                                .suggests((c, b) -> {
+                                                    CarrierTable.get().all().forEach(r -> b.suggest(r.name()));
+                                                    return b.buildFuture();
+                                                })
+                                                .executes(animalSpawn(handler, messages, false, false))
+                                                .then(Commands.argument("age", StringArgumentType.word())
+                                                        .suggests((c, b) -> {
+                                                            List.of("child", "adult", "old").forEach(b::suggest);
+                                                            return b.buildFuture();
+                                                        })
+                                                        .executes(animalSpawn(handler, messages, true, false))
+                                                        .then(Commands.argument("gender", StringArgumentType.word())
+                                                                .suggests((c, b) -> {
+                                                                    List.of("male", "female").forEach(b::suggest);
+                                                                    return b.buildFuture();
+                                                                })
+                                                                .executes(animalSpawn(handler, messages, true, true)))))))
                         .then(Commands.literal("showcase")
                                 .then(Commands.argument("family", StringArgumentType.word())
                                         .suggests((c, b) -> {
@@ -274,6 +307,16 @@ public final class TfpCommands {
                                 .then(timeAdd(handler, messages, TimeCommand.Unit.HOURS, "hours"))
                                 .then(timeAdd(handler, messages, TimeCommand.Unit.TICKS, "ticks"))))
                 .build();
+    }
+
+    private static Command<CommandSourceStack> animalSpawn(Supplier<Handler> handler, Messages messages, boolean age,
+            boolean gender) {
+        return run(handler, messages, (h, ctx) ->
+                ctx.getSource().getSender() instanceof Player p
+                        ? h.debugAnimalSpawn(p, StringArgumentType.getString(ctx, "species"),
+                                age ? StringArgumentType.getString(ctx, "age") : null,
+                                gender ? StringArgumentType.getString(ctx, "gender") : null)
+                        : CompletableFuture.completedFuture(Reply.error("command.player_only")));
     }
 
     private static Command<CommandSourceStack> timeSet(Supplier<Handler> handler, Messages messages, String label,

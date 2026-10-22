@@ -33,10 +33,14 @@ public final class FakeEntityModels implements EntityModels {
     private final Map<UUID, List<Played>> played = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> tints = new ConcurrentHashMap<>();
     private final List<Consumer<Entity>> hooks = new CopyOnWriteArrayList<>();
+    private final List<Runnable> readyHooks = new CopyOnWriteArrayList<>();
     private volatile boolean ready;
 
     public void setReady(boolean ready) {
         this.ready = ready;
+        if (ready) {
+            readyHooks.forEach(Runnable::run);
+        }
     }
 
     public Map<String, ModelSource> sources() {
@@ -85,6 +89,16 @@ public final class FakeEntityModels implements EntityModels {
     }
 
     @Override
+    public boolean rescale(Entity carrier, float scale) {
+        Attached a = attached.get(carrier.getUniqueId());
+        if (a == null) {
+            return false;
+        }
+        attached.put(carrier.getUniqueId(), new Attached(a.modelId(), scale));
+        return true;
+    }
+
+    @Override
     public boolean tint(Entity carrier, int rgb) {
         if (!attached.containsKey(carrier.getUniqueId())) {
             return false;
@@ -125,5 +139,10 @@ public final class FakeEntityModels implements EntityModels {
     @Override
     public void onModelCreated(Consumer<Entity> hook) {
         hooks.add(hook);
+    }
+
+    @Override
+    public void onReady(Runnable hook) {
+        readyHooks.add(hook);
     }
 }

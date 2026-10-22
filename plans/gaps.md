@@ -123,8 +123,9 @@ M4:
 - [ ] **M4-WEATH-01 kalan.** Paper hava bağlantısı, telafi tetikleyicisi (chunk yükleme veya etkileşim), CE oksitlenme durumları, lamba bloku ve görselleri, lamba GUI'si.
 
 M5:
+- [ ] **M5-ENT-01 kalan.** Çerçeve var (taşıyıcı tablosu, PDC kaydı, tembel yaş ve ölçek, model yeniden uygulama, kademeli 20 tick kontrolü, `animal.spawn_persist`). Açık: taşıyıcının vanilla hedefleri yerine tür AI'si (LIV/WILD/PET), TFC sesleri, varyant ve yaşlı dokuları ve tür modelleri (M5-ENT-02), çocuk/yetişkin ölçeği ve `/bm reload` sonrası oyun içi ekran görüntüleri.
 - [ ] **M5-ENT-03 kalan.** `RegisterSpawnPlacementsEvent` bağlantısı, chunk başı vanilla üst sınırı (TFC kodu değil), BetterModel varlık görünümü.
-- [ ] **M5-LIV-01 kalan.** Varlık çerçevesi bağlantısı (PDC'de taşıyıcı durumu), BetterModel görselleri, besleme ve çiftleşme etkileşimleri, chunk yüklemede takvim telafisi.
+- [ ] **M5-LIV-01 kalan.** Varlık çerçevesi bağlantısı artık var (M5-ENT-01, `AnimalPdc`/`AnimalService`); kalan: BetterModel tür görselleri, besleme ve çiftleşme etkileşimleri, chunk yüklemede takvim telafisi.
 - [ ] **M5-LIV-02 kalan.** Taşıyıcının ürün tick'i (PDC), süt, kırpma ve yumurta olayları, `markElderlyIfDue`, kırpılmış bölüm görünümü.
 - [ ] **M5-MNT-01 kalan.** Binek varlığı ve öznitelik bağlantısı, eyer ve binme kontrolleri, BetterModel görselleri, binme AI'si, eşya ve yük (sandık, yük ağırlığı), genetik boyut.
 - [ ] **M5-HUNT-01 kalan.** Av yaratığı AI'si (M5-WILD-01), mızrak ve düşürme bağlantısı (varlık, ölüm, kasaplık), et ve deri öğeleri ve modeller, loot sayımı.

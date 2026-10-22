@@ -190,6 +190,17 @@ class BootstrapTest {
         }
 
         @Override
+        public CompletableFuture<Reply> debugAnimalSpawn(Player player, String species, String age, String gender) {
+            return call("debugAnimalSpawn " + player.getName() + " " + species + " " + age + " " + gender,
+                    Reply.ok("debug.animal.spawned", "tfc:" + species, "minecraft:cow", "world 0 64 0", "child", "male", 9));
+        }
+
+        @Override
+        public CompletableFuture<Reply> debugAnimalInfo(Player player) {
+            return call("debugAnimalInfo " + player.getName(), Reply.error("debug.animal.none", 8));
+        }
+
+        @Override
         public CompletableFuture<Reply> debugShowcase(Player player, String family) {
             return call("debugShowcase " + player.getName() + " " + family,
                     Reply.ok("debug.showcase.done", family, 3, 4, 5, 3, "world 2 64 2"));
@@ -260,7 +271,7 @@ class BootstrapTest {
         assertThat(children(tfp.getChild("time").getChild("add"))).containsExactlyInAnyOrder("years", "months", "days", "hours", "ticks");
         assertThat(children(tfp.getChild("reload"))).containsExactlyInAnyOrder("config", "data", "content");
         assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "snowtime", "worldgen", "player", "thirst", "heat", "warm", "place", "packets",
-                "showcase");
+                "showcase", "animal");
         assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
         assertThat(tfp.getChild("debug").getChild("showcase").getCommand()).as("showcase needs a family").isNull();
         assertThat(children(tfp.getChild("debug").getChild("player"))).containsExactly("name");
@@ -416,6 +427,27 @@ class BootstrapTest {
         assertThat(suggestions.getList()).extracting(com.mojang.brigadier.suggestion.Suggestion::getText)
                 .containsExactly("ores", "rocks", "soils");
         assertThatThrownBy(() -> d.execute("tfp debug showcase", alex)).isInstanceOf(CommandSyntaxException.class);
+    }
+
+    /** M5-ENT-01: {@code /tfp debug animal spawn|info} reach the handler for players only; species are suggested. */
+    @Test
+    void debugAnimal() throws Exception {
+        FakeHandler h = new FakeHandler();
+        CommandDispatcher<CommandSourceStack> d = dispatcher(h);
+        List<String> out = new ArrayList<>();
+        d.execute("tfp debug animal spawn cow", Fakes.source(ADMIN, out));
+        assertThat(out).containsExactly("Only a player can use this command.");
+        CommandSourceStack alex = Fakes.playerSource("Alex", java.util.Locale.US, ADMIN, out);
+        d.execute("tfp debug animal spawn cow", alex);
+        d.execute("tfp debug animal spawn cow child", alex);
+        d.execute("tfp debug animal spawn deer old female", alex);
+        d.execute("tfp debug animal info", alex);
+        assertThat(h.calls).containsExactly("debugAnimalSpawn Alex cow null null", "debugAnimalSpawn Alex cow child null",
+                "debugAnimalSpawn Alex deer old female", "debugAnimalInfo Alex");
+        var suggestions = d.getCompletionSuggestions(d.parse("tfp debug animal spawn de", alex)).get();
+        assertThat(suggestions.getList()).extracting(com.mojang.brigadier.suggestion.Suggestion::getText).contains("deer");
+        assertThatThrownBy(() -> d.execute("tfp debug animal spawn cow child", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
+                .isInstanceOf(CommandSyntaxException.class);
     }
 
     /**

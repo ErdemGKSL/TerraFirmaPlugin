@@ -6,6 +6,7 @@
 package dev.tfp.itest;
 
 import dev.tfp.itest.cases.BetterHudPlaceholderCase;
+import dev.tfp.itest.cases.AnimalSpawnPersistCase;
 import dev.tfp.itest.cases.BetterModelSpawnCase;
 import dev.tfp.itest.cases.CalendarPersistCase;
 import dev.tfp.itest.cases.ConfigCase;
@@ -50,6 +51,7 @@ public final class SelfTestSuite {
                 new ProfileRestartCase(),
                 new SuppressionCase(),
                 new BetterModelSpawnCase(),
+                new AnimalSpawnPersistCase(),
                 new BetterHudPlaceholderCase(),
                 new PacketNoopCase());
     }

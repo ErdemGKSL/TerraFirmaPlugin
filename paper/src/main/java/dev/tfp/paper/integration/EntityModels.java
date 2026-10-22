@@ -34,6 +34,14 @@ public interface EntityModels {
     boolean attach(Entity carrier, String modelId, float scale);
 
     /**
+     * Sets the scale of the carrier's attached models (the same meaning as {@link #attach}'s {@code scale}: a factor on
+     * the carrier's SCALE attribute). Also works inside an {@link #onModelCreated} hook. Owning thread.
+     *
+     * @return false if the carrier has no model
+     */
+    boolean rescale(Entity carrier, float scale);
+
+    /**
      * Tints every bone of the carrier's models ({@code 0xRRGGBB}; {@code 0xFFFFFF} = untinted). Not persisted
      * by the model plugin: features store the colour (entity PDC) and re-apply it from {@link #onModelCreated}.
      * Owning thread.
@@ -60,4 +68,11 @@ public interface EntityModels {
      * idempotent and must not throw (exceptions are logged and swallowed).
      */
     void onModelCreated(Consumer<Entity> hook);
+
+    /**
+     * Runs {@code hook} after every successful model load (the first load and each model-plugin reload), on the thread
+     * that finished the load. Carriers that loaded before the models existed get no model by themselves (M0-BM-01), so
+     * features re-attach theirs here, each on its own entity thread. Must not throw.
+     */
+    void onReady(Runnable hook);
 }

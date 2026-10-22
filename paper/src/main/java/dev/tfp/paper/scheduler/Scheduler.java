@@ -40,6 +40,14 @@ public interface Scheduler {
 
     boolean entityDelayed(Entity entity, long delayTicks, Runnable task, Runnable retired);
 
+    /**
+     * Runs {@code task} on the entity's owning thread every {@code periodTicks}, first after {@code initialDelayTicks}.
+     * {@code retired} runs once if the entity is removed (also when its chunk unloads); the task then stops.
+     *
+     * @return the task, or null if the entity was already removed
+     */
+    TaskHandle entityRepeating(Entity entity, long initialDelayTicks, long periodTicks, Runnable task, Runnable retired);
+
     void global(Runnable task);
 
     TaskHandle globalRepeating(long initialDelayTicks, long periodTicks, Runnable task);
