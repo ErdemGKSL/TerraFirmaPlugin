@@ -38,9 +38,16 @@ class PlayerDataStoreTest {
     Path dir;
     final ExecutorService io = Executors.newVirtualThreadPerTaskExecutor();
 
+    /**
+     * Drains the writer before JUnit deletes {@link #dir}: some tests start saves they never wait for
+     * ({@code unloadAbsent} saves in the background), and a write still creating its temp file and renaming it
+     * into {@code dir} made the @TempDir cleanup fail now and then. Interrupting instead ({@code shutdownNow})
+     * would not help: the interrupted write can still leave its temp file behind.
+     */
     @AfterEach
-    void stop() {
-        io.shutdownNow();
+    void stop() throws InterruptedException {
+        io.shutdown();
+        assertThat(io.awaitTermination(10, TimeUnit.SECONDS)).as("pending player data writes finished").isTrue();
     }
 
     static PlayerData played() {
