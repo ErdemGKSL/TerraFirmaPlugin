@@ -205,6 +205,20 @@ class DataLoaderTest {
                         .containsExactly("data/tfp/recipe/a.json $.result.id: unknown item 'tfp:ghost'"));
     }
 
+    @Test
+    void onlyNamedSideTablesMayLieAtTheRoot() throws IOException {
+        // PAR-INFRA-14: datagen's NeoForge common-tag table sits next to the id tables and is not loaded as data.
+        Path root = tmp.resolve("roots");
+        write(root, DataLoader.COMMON_TAGS_FILE, "{\"item\": {\"c:rods/wooden\": [\"minecraft:stick\"]}}");
+        assertThat(load(root).tags().size(TagType.ITEM)).isZero();
+        write(root, "stray.json", "{}");
+        write(root, "tfp/" + DataLoader.COMMON_TAGS_FILE, "{}");
+        assertThatThrownBy(() -> load(root))
+                .isInstanceOfSatisfying(DataLoadException.class, e -> assertThat(e.errors()).containsExactlyInAnyOrder(
+                        "roots/stray.json: not inside <namespace>/<folder>/",
+                        "roots/tfp/" + DataLoader.COMMON_TAGS_FILE + ": not inside <namespace>/<folder>/"));
+    }
+
     static String malformedMessage(String json) {
         try {
             StrictJson.parse(json, "x");

@@ -6,12 +6,26 @@ plugins {
     id("tfp.java-conventions")
     application
 }
+// PAR-INFRA-14: the NeoForge universal jar TFC pins; CommonTags reads its data/c/tags. Datagen-only, never shipped.
+val neoforgeJar: Configuration by configurations.creating {
+    isCanBeConsumed = false
+    isTransitive = false
+}
 dependencies {
     implementation(project(":core"))
     implementation(libs.gson)
     testImplementation(libs.snakeyaml)
+    neoforgeJar("${libs.neoforge.get()}:universal@jar")
 }
 application { mainClass = "dev.tfp.datagen.Datagen" }
+
+// Passes the jar as -Dtfp.neoforgeJar=<path> and tracks it as an input.
+fun JavaForkOptions.neoforgeJarProperty(task: Task) {
+    task.inputs.files(neoforgeJar).withPropertyName("neoforgeJar").withPathSensitivity(PathSensitivity.NONE)
+    jvmArgumentProviders.add(CommandLineArgumentProvider {
+        listOf("-Dtfp.neoforgeJar=" + neoforgeJar.singleFile.absolutePath)
+    })
+}
 
 // Checkout location: -Ptfc.checkout=..., else $TFC_CHECKOUT, else /opt/tfc. The pinned commit is checked by the CLI.
 val tfcCheckout = providers.gradleProperty("tfc.checkout")
@@ -27,6 +41,7 @@ tasks.test {
     // The full-checkout test runs only when the pinned checkout is present.
     systemProperty("tfc.checkout", tfcCheckout.get())
     systemProperty("tfp.repoRoot", rootProject.layout.projectDirectory.asFile.absolutePath)
+    neoforgeJarProperty(this)
 }
 
 // Output of generateContent: -Ptfp.contentDir=<dir> (tools/worktree/share-build.sh builds shared store entries this
@@ -43,6 +58,7 @@ tasks.register<JavaExec>("generateContent") {
     val useDefault = out.absoluteFile == contentDir.asFile.absoluteFile
     val link = generatedRoot.toPath()
     args(tfcCheckout.get(), out.absolutePath)
+    neoforgeJarProperty(this)
     doFirst {
         // content/generated may be a symlink to a read-only shared store entry (share-build.sh). Regenerating
         // unshares it: drop the link (never the entry) and write a real directory in this worktree.
@@ -66,6 +82,7 @@ tasks.register<JavaExec>("verifyContent") {
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass = "dev.tfp.datagen.Datagen"
     args(tfcCheckout.get(), contentDir.asFile.absolutePath, "--check")
+    neoforgeJarProperty(this)
 }
 
 // Lists watched TFC paths changed since docs/porting/tfc-pin.txt (offline; needs a TFC clone with history).

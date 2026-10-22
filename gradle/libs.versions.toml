@@ -19,6 +19,8 @@ run-paper = "3.1.0"
 mockbukkit = "4.116.3"
 # Server-side only (Paper ships 2.25.2 on 1.21.11, 2.26.0 on 26.3): the itest log tap (M1-TEST-01).
 log4j = "2.25.2"
+# TFC's NeoForge (build.gradle.kts neoForgeVersion @ c3b4d9536); datagen reads the universal jar's data/c/tags (PAR-INFRA-14).
+neoforge = "21.1.234"
 
 [libraries]
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
@@ -37,6 +39,7 @@ assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 mockbukkit = { module = "org.mockbukkit.mockbukkit:mockbukkit-v1.21", version.ref = "mockbukkit" }
 log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 archunit = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
+neoforge = { module = "net.neoforged:neoforge", version.ref = "neoforge" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }

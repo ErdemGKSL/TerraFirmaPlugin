@@ -10,6 +10,7 @@ import dev.tfp.core.Tfp;
 import dev.tfp.core.json.DecodeContext;
 import dev.tfp.core.json.Ids;
 import dev.tfp.core.json.StrictJson;
+import dev.tfp.core.registry.DataLoader;
 import dev.tfp.core.tag.TagFile;
 import dev.tfp.core.tag.TagType;
 import java.io.IOException;
@@ -56,7 +57,7 @@ public final class TagRules {
      * form ({@code "ns:id"}, {@code "#ns:tag"}, {@code {"id": ..., "required": false}}); other top-level keys (source,
      * licence notes) are ignored.
      */
-    public static final String COMMON_TAGS_FILE = "neoforge_common_tags.json";
+    public static final String COMMON_TAGS_FILE = DataLoader.COMMON_TAGS_FILE;
 
     public static final TagRules EMPTY = new TagRules(Map.of(), Map.of(), 0);
 

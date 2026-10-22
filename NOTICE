@@ -19,6 +19,10 @@ Third-party material with other licenses (inherited from TerraFirmaCraft):
   - Sounds: CC0 unless otherwise noted.
   - rock_slide_long_3: CC-BY-4.0, modified from https://freesound.org/people/Benboncan/sounds/60085/
   - bsc5p_radec_min.json star catalog: CC-BY-4.0, from https://github.com/frostoven/BSC5P-JSON-XYZ
+Generated from other projects' data (not copied into content/ as files):
+  - data/neoforge_common_tags.json (tools/datagen CommonTags): the vanilla Minecraft ids NeoForge 21.1.234 lists in its
+    common (c:) tags, read from NeoForge's universal jar (data/c/tags). NeoForge: LGPL-2.1-only,
+    https://github.com/neoforged/NeoForge. Only tag names and vanilla ids are kept; no NeoForge code is shipped.
 Add an entry here whenever an asset with a different license is copied into content/.
 
 .claude/skills/imagegen-mcp/ is the Agent Skill shipped by codex-imagegen-mcp

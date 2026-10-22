@@ -64,8 +64,20 @@ public final class DataLoader {
     /** Second-level folders holding TFC definition managers ({@code data/tfc/tfc/...}; {@code tfp} after renaming). */
     public static final Set<String> DEFINITION_ROOTS = Set.of("tfc", "tfp");
 
-    /** Files allowed directly in a data root: datagen's id tables (read separately, see {@link KnownIds#fromDataRoot}). */
-    public static final Set<String> ROOT_FILES = Set.of(KnownIds.ID_MAP_FILE, KnownIds.EXTERNAL_TAGS_FILE);
+    /**
+     * Datagen's NeoForge common-tag table ({@code tools/datagen CommonTags}, PAR-INFRA-14): the vanilla members NeoForge
+     * gives the {@code c:} tags. Not registry data: the loader does not read it (it holds no ids of ours and defines no
+     * tags of ours); the Paper tag runtime ({@code paper/tags/TagRules}) reads it as the base layer of {@code c:} tags.
+     */
+    public static final String COMMON_TAGS_FILE = "neoforge_common_tags.json";
+
+    /**
+     * The only files allowed directly in a data root, each by exact name: datagen's side tables, which other readers
+     * load ({@link KnownIds#fromDataRoot} for the id map and external tags, {@link #COMMON_TAGS_FILE} for the tag
+     * runtime). Any other top-level file is still an error, and these names are not special below the root.
+     */
+    public static final Set<String> ROOT_FILES =
+            Set.of(KnownIds.ID_MAP_FILE, KnownIds.EXTERNAL_TAGS_FILE, COMMON_TAGS_FILE);
 
     private static final String CONDITIONS = "neoforge:conditions";
 

@@ -16,6 +16,11 @@ dependencyResolutionManagement {
         // Modrinth Maven: CraftEngine/BetterModel/BetterHud/PacketEvents plugin jars (they contain their APIs).
         maven("https://api.modrinth.com/maven") { content { includeGroup("maven.modrinth") } }
         mavenCentral()
+        // NeoForge universal jar (datagen reads its data/c/tags, PAR-INFRA-14); only that module comes from here.
+        exclusiveContent {
+            forRepository { maven("https://maven.neoforged.net/releases") }
+            filter { includeModule("net.neoforged", "neoforge") }
+        }
     }
 }
 
