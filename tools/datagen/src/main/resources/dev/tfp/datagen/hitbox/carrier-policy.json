@@ -1,5 +1,5 @@
 {
-  "about": "PAR-INFRA-13: how each vanilla block of vanilla-shapes-<version>.json may serve as a hitbox carrier. presence: absent = never in a TFC world (usable as is); natural = occurs in TFC worlds (usable only with a one-hop hide mapping); player = players craft or place it in TFC (never usable); reserved = kept for another family; reference = dumped for comparison only. Every dumped block must be listed here or in hard_ban. replaceable_only: the states that are really replaceable when the dump's flag (BlockState.canBeReplaced(), the material flag) is wider: SnowLayerBlock lets any other item replace only layers=1 (a held snow layer adds a layer to any count below 8, see the snow notes in the item).",
+  "about": "PAR-INFRA-13: how each vanilla block of vanilla-shapes-<version>.json may serve as a hitbox carrier. presence: absent = never in a TFC world (usable as is); natural = occurs in TFC worlds (usable only with a one-hop hide mapping); player = players craft or place it in TFC (never usable); reserved = kept for another family; reference = dumped for comparison only. only_class: the one shape class that may use the block (reserved by its class override); every other class rejects it. Every dumped block must be listed here or in hard_ban. replaceable_only: the states that are really replaceable when the dump's flag (BlockState.canBeReplaced(), the material flag) is wider: SnowLayerBlock lets any other item replace only layers=1 (a held snow layer adds a layer to any count below 8, see the snow notes in the item).",
   "blocks": {
     "minecraft:snow": {"presence": "natural", "hide": "nearest_free_value:layers", "replaceable_only": ["minecraft:snow[layers=1]"], "note": "TFC snowfall places vanilla snow layers 1-8; real instances of a used layer count are sent as the nearest unused count"},
     "minecraft:white_carpet": {"presence": "player", "note": "wool carpets are crafted in TFC"},
@@ -35,8 +35,8 @@
     "minecraft:brown_mushroom": {"presence": "absent", "note": "emits light 1"},
     "minecraft:red_mushroom": {"presence": "absent", "note": "6x6x6, no collision"},
     "minecraft:lily_pad": {"presence": "absent", "note": "TFC uses its own lily pad"},
-    "minecraft:heavy_core": {"presence": "absent", "note": "only in trial-chamber vaults (structures off), no recipe"},
-    "minecraft:cobblestone_wall": {"presence": "absent", "note": "lone post only; no vanilla structures or recipes in TFC worlds"},
+    "minecraft:heavy_core": {"presence": "absent", "only_class": "large_vessel", "note": "only in trial-chamber vaults (structures off), no recipe; its one usable state is the large vessel's carrier (class override)"},
+    "minecraft:cobblestone_wall": {"presence": "absent", "only_class": "large_vessel", "note": "lone post only; no vanilla structures or recipes in TFC worlds; the whole block is reserved for the large-vessel fallback (all 162 states share one empty model)"},
     "minecraft:cactus": {"presence": "absent", "note": "vanilla cactus never grows in TFC worlds; damage is server-side only"},
     "minecraft:smoker": {"presence": "absent", "note": "lit states make particles and light"},
     "minecraft:composter": {"presence": "absent", "note": "hollow box; filling is server-side"},

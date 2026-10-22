@@ -64,6 +64,9 @@ class TfcShapesTest {
         assertThat(rows.get("tfc:ceramic/large_vessel[sealed=true]").selection().height()).isEqualTo(12);
         assertThat(rows.get("tfc:wood/leaves").seeThrough()).isTrue();
         assertThat(rows.get("tfc:wood/leaves").collision().isEmpty()).isTrue();
+        // WattleBlock.getCollisionShape: unwoven wattle has a full outline and no collision.
+        assertThat(rows.get("tfc:wattle[woven=false]").collision().isEmpty()).isTrue();
+        assertThat(rows.get("tfc:wattle[woven=false]").seeThrough()).isTrue();
         assertThat(rows.get("tfc:rock/raw").selection()).isEqualTo(Shape.FULL);
     }
 

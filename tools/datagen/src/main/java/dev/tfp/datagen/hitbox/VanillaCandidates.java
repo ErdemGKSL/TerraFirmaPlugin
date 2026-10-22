@@ -50,8 +50,12 @@ public final class VanillaCandidates {
         }
     }
 
-    /** The policy of one candidate block. {@code hide}: e.g. {@code nearest_free_value:layers}, or null. */
-    public record BlockPolicy(Presence presence, String hide, int statesConsumed, Set<String> replaceableOnly, String note) {
+    /**
+     * The policy of one candidate block. {@code hide}: e.g. {@code nearest_free_value:layers}, or null. {@code onlyClass}:
+     * the one TFC shape class allowed to use the block (its class override reserves it), or null for every class.
+     */
+    public record BlockPolicy(Presence presence, String hide, int statesConsumed, Set<String> replaceableOnly, String note,
+            String onlyClass) {
     }
 
     private final Map<String, Map<String, VState>> byVersion;
@@ -128,7 +132,7 @@ public final class VanillaCandidates {
             blocks.put(e.getKey(), new BlockPolicy(Presence.valueOf(o.get("presence").getAsString().toUpperCase(Locale.ROOT)),
                 o.has("hide") ? o.get("hide").getAsString() : null,
                 o.has("states_consumed") ? o.get("states_consumed").getAsInt() : 1, replaceableOnly(o),
-                o.get("note").getAsString()));
+                o.get("note").getAsString(), o.has("only_class") ? o.get("only_class").getAsString() : null));
         }
         Map<String, String> hardBan = new TreeMap<>();
         p.getAsJsonObject("hard_ban").entrySet().forEach(e -> hardBan.put(e.getKey(), e.getValue().getAsString()));

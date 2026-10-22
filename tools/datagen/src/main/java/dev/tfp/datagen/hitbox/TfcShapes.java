@@ -105,6 +105,7 @@ public final class TfcShapes {
         Map<String, String> m = new LinkedHashMap<>();
         m.put("tfc:wood/leaves", null);
         m.put("tfc:thatch", "new ThatchBlock(ExtendedProperties.of(MapColor.SAND).strength(0.6F, 0.4F).noOcclusion()");
+        m.put("tfc:wattle[woven=false]", "new WattleBlock(ExtendedProperties.of(MapColor.WOOD).strength(0.3F).noOcclusion()");
         m.put("tfc:lobster_trap", "new LobsterTrapBlock(ExtendedProperties.of(MapColor.METAL).strength(3f).sound(SoundType.METAL).noOcclusion()");
         return m;
     }
@@ -188,6 +189,12 @@ public final class TfcShapes {
             List.of("getShape(")));
         s.add(Spec.of("tfc:thatch", "thatch", Kind.CUBE, List.of(B + "ThatchBlock.java"), "Shapes.block()", "Shapes.empty()",
             List.of("getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context)\n    {\n        return Shapes.empty();"),
+            List.of("getShape(")));
+        // WattleBlock.getCollisionShape: unwoven wattle (a frame without the weave) has no collision; the outline stays the
+        // full cube of ExtendedBlock (no getShape override in WattleBlock or StainedWattleBlock).
+        s.add(Spec.of("tfc:wattle[woven=false]", "wattle", Kind.CUBE, List.of(B + "WattleBlock.java", B + "StainedWattleBlock.java"),
+            "Shapes.block()", "Shapes.empty()",
+            List.of("return state.getValue(WOVEN) ? super.getCollisionShape(state, level, pos, context) : Shapes.empty();"),
             List.of("getShape(")));
         s.add(Spec.of("tfc:rock/raw", "full_cube", Kind.CUBE, List.of(rock), "Shapes.block()", "same",
             List.of("RAW("), List.of()));

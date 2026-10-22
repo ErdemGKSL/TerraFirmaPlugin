@@ -19,7 +19,8 @@ import java.util.Map;
  * <p>Three appearance strategies ({@link #strategy()}):
  * <ul>
  *   <li>{@link Strategy#REPURPOSED_STATE}: an explicit vanilla state that never occurs in a TFC world, optionally with our
- *       own model (the charcoal forge on {@code snow[layers=7]}, the bellows on a smoker). Display entities may be added
+ *       own model (the charcoal forge on {@code snow[layers=7]}, the bellows on {@code dirt_path}; both chosen by
+ *       {@code dev.tfp.datagen.hitbox.HitboxCarrier}). Display entities may be added
  *       as an overlay (the forge's lit levels).</li>
  *   <li>{@link Strategy#AUTO_STATE}: a free state from one of CraftEngine's {@code auto_state} pools, with our model.</li>
  *   <li>{@link Strategy#ENTITY_RENDERER}: the carrier is drawn empty ({@code transparent: true}) and the whole look comes

@@ -39,7 +39,8 @@ import java.util.function.Predicate;
  * outline from its own shapes).
  *
  * <p><b>Hard filters</b> (listed with their reason in {@link Choice#rejected()}): states missing in a version of the
- * family, blocks the policy marks player/reserved/reference, the hard-ban list, lit states of blocks with client
+ * family, blocks the policy marks player/reserved/reference, blocks reserved for another shape class ({@code only_class}:
+ * heavy_core and cobblestone_wall belong to the large vessel's override), the hard-ban list, lit states of blocks with client
  * particles, the owner's object ban list for every class except ground pieces, light-emitting states unless TFC emits
  * the same light, waterlogged states unless TFC's state is waterlogged, random-offset states, natural states with no
  * free hide target, and the geometric quality filter ({@link #geometricRejection}).
@@ -237,6 +238,9 @@ public final class HitboxCarrier {
         BlockPolicy p = v.policy(block);
         if (p.presence() != Presence.ABSENT && p.presence() != Presence.NATURAL) {
             return p.presence().name().toLowerCase(java.util.Locale.ROOT) + ": " + p.note();
+        }
+        if (p.onlyClass() != null && !p.onlyClass().equals(tfc.row().shapeClass())) {
+            return "reserved for class " + p.onlyClass();
         }
         String excluded = v.excludedState(state);
         if (excluded != null) {

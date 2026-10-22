@@ -509,6 +509,15 @@
       "from": "ThatchBlock.java Shapes.block() / Shapes.empty()"
     },
     {
+      "key": "tfc:wattle[woven=false]",
+      "class": "wattle",
+      "kind": "cube",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [],
+      "see_through": true,
+      "from": "WattleBlock.java Shapes.block() / Shapes.empty()"
+    },
+    {
       "key": "tfc:rock/raw",
       "class": "full_cube",
       "kind": "cube",

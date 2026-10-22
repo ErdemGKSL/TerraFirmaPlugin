@@ -70,7 +70,11 @@ class HitboxCarrierTest {
         pin("tfc:pot", "minecraft:cactus[age=0]", 2120.0 / 3256, 2120.0 / 3060);
         pin("tfc:farmland", "minecraft:farmland[moisture=0]", 1, 1);
         pin("tfc:rock/spike[part=base]", "minecraft:cactus[age=0]", 2304.0 / 3136, 2160.0 / 3084);
-        pin("tfc:rock/spike[part=middle]", WALL_POST, 1, 1024.0 / 1536);
+        // cobblestone_wall and heavy_core are reserved for the large vessel (policy only_class): the middle falls to the cactus,
+        // below MIN_SCORE, so the spike family item must ask the owner before it emits the block (ledger row).
+        pin("tfc:rock/spike[part=middle]", "minecraft:cactus[age=0]", 1024.0 / 3136, 960.0 / 3004);
+        assertThat(rejected(select("tfc:rock/spike[part=middle]", VersionFamily.V1_21), WALL_POST))
+            .extracting(Rejected::reason).asString().startsWith("reserved for class large_vessel");
         pin("tfc:rock/spike[part=tip]", "minecraft:lightning_rod[facing=down,powered=false,waterlogged=false]", 1, 1);
         pin("tfc:rock/loose[count=1]", BUTTON, 48.0 / 72, 1);
         pin("tfc:rock/loose[count=2]", PLATE, 144.0 / 340, 1);
@@ -85,6 +89,7 @@ class HitboxCarrierTest {
         // Residual (ledger): TFC leaves have no collision, no full-outline vanilla state without collision is allowed.
         pin("tfc:wood/leaves", "auto_state:leaves", 1, 0);
         pin("tfc:thatch", "auto_state:leaves", 1, 0);
+        pin("tfc:wattle[woven=false]", "auto_state:leaves", 1, 0);
     }
 
     @Test

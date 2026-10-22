@@ -277,7 +277,8 @@ Implemented (PAR-INFRA-13): the data lives in `tools/datagen/src/main/resources/
 shapes ported, needles that fail datagen when TFC changes a shape method; `TfcShapesTest` regenerates it).
 `vanilla-shapes-<version>.json` (1.21.4, 1.21.11, 26.1.2, 26.3) are dumps of `getShape`/`getCollisionShape` from each
 server jar; `carrier-policy.json` says per vanilla block whether it is absent from TFC worlds, natural (usable with a
-one-hop hide target), player-made, reserved or banned. IoUs are exact (coordinate-compressed grid, no voxel resolution).
+one-hop hide target), player-made, reserved or banned, and `only_class` reserves a block for one shape class (heavy_core and
+cobblestone_wall belong to the large vessel's override list). IoUs are exact (coordinate-compressed grid, no voxel resolution).
 Penalties: x0.97 for a hide mapping, x0.9 for a replaceable state, x0.9 for an opaque full cube under a non-full or
 see-through block. A family is scored on its worst version. `HitboxDemands` lists every appearance datagen emits on an
 explicit carrier; `HitboxAllocation` serves them in one pass per profile x family (one look per vanilla state, hide targets
@@ -285,7 +286,9 @@ never carriers, hitbox-only for rare blocks below 0.5, overflow fails) and write
 Generators that write one file for every family take `HitboxAllocation.agreed(...)`, which fails if the families disagree.
 A carrier drawn in its vanilla look (placeholders) needs no hide mapping. CE pools (`auto_state`) stand for
 VisualAllocator's full cubes and only hold appearances with a model; the selector never uses a state VisualAllocator can
-allocate. `HardcodedCarrierTest` forbids vanilla state literals outside `hitbox/` and `visuals/`.
+allocate. `HardcodedCarrierTest` forbids vanilla state literals outside `hitbox/` and `visuals/`; `GeneratedCarrierTest`
+checks the output: every explicit appearance `state:` in the generated CE YAML (bare stateless ids included) equals
+`HitboxAllocation.agreed(...)` of its demand, and every generator `block_state_mappings` entry is a selector hide mapping.
 
 ## 10. Packet layer
 
