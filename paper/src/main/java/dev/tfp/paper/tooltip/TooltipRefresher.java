@@ -32,8 +32,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
@@ -98,6 +100,29 @@ public final class TooltipRefresher implements Listener {
         watch(event.getPlayer());
     }
 
+    /**
+     * Re-arms the watch after a respawn. Paper's entity scheduler ends a repeating task (and runs its retired callback)
+     * when it fires while its entity is removed from the world, and a dead player is removed from the world from the
+     * end of the death animation until the respawn: a player who stayed on the death screen for more than about a
+     * second lost the refresher for the rest of the session (in-game check 2026-10-22: a cooling ingot kept its 900 C
+     * text after a death). The player itself is not retired, so a new task on it runs once it is back in a world.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onRespawn(PlayerRespawnEvent event) {
+        watch(event.getPlayer());
+    }
+
+    /** Same as {@link #onRespawn}: a dimension change also removes the player from a world for a moment. */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onChangedWorld(PlayerChangedWorldEvent event) {
+        watch(event.getPlayer());
+    }
+
+    /** Whether {@code player} has a live watch (tests and debug). */
+    boolean watching(UUID player) {
+        return watches.containsKey(player);
+    }
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         Watch w = watches.remove(event.getPlayer().getUniqueId());
@@ -139,7 +164,16 @@ public final class TooltipRefresher implements Listener {
         if (items == null) {
             return;
         }
-        ClockSnapshot now = clock.get();
+        ClockSnapshot now;
+        try {
+            now = clock.get();
+        } catch (RuntimeException e) {
+            // Same as a failing snapshot: release the flag so the next period tries again.
+            capture(w, player.getName(), () -> {
+                throw e;
+            });
+            return;
+        }
         CompletableFuture.supplyAsync(() -> w.state.observe(token, items, now, pipeline), scheduler.cpuExecutor())
                 .whenComplete((resend, error) -> {
                     if (error != null) {

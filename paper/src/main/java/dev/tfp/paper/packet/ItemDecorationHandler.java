@@ -8,6 +8,7 @@ package dev.tfp.paper.packet;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
+import com.github.retrooper.packetevents.protocol.component.PatchableComponentMap;
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemLore;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
@@ -304,12 +305,23 @@ public final class ItemDecorationHandler implements PacketHandler {
                 @Override
                 public void lore(List<Component> lines) {
                     if (lines.isEmpty()) {
-                        item.unsetComponent(ComponentTypes.LORE);
+                        resetLore(item.getComponents());
                     } else {
                         item.setComponent(ComponentTypes.LORE, new ItemLore(new ArrayList<>(lines)));
                     }
                 }
             });
+        }
+
+        /**
+         * Returns the stack's lore to its item type's default by dropping the lore patch. Not
+         * {@code unsetComponent}: since 1.21.5 every item type has a default (empty) lore, so unsetting writes an
+         * explicit removal ({@code !minecraft:lore}) into the patch. On the creative return path that removal reached
+         * the server stack, which then no longer stacked with a fresh copy of the same item (in-game check
+         * 2026-10-22: creative pick-up and put-back of a mutton left {@code "!minecraft:lore": {}} on it).
+         */
+        public static void resetLore(PatchableComponentMap components) {
+            components.getPatches().remove(ComponentTypes.LORE);
         }
 
         @Override
