@@ -18,7 +18,7 @@ Totals: 227 items; open 216, done 8, blocked 3; waves 1..56 (wave 0 = already do
 | PAR-INFRA-03 | GUI framework: textured chest GUIs, title glyphs, buttons, progress bars, alignment | INFRA | 2 | done |
 | PAR-INFRA-05 | Item tooltip pipeline: several decorations per item, TFC styles and colours | INFRA | 2 | blocked |
 | PAR-INFRA-12 | Self-test case: item data PDC round trip on a real server (nested food/heat inside tfp:contents) | INFRA | 2 | done |
-| PAR-INFRA-08 | Device datagen: shared CE templates for device blocks (states, loot self, hitbox carriers, entity_renderer) | INFRA | 2 | open |
+| PAR-INFRA-08 | Device datagen: shared CE templates for device blocks (states, loot self, hitbox carriers, entity_renderer) | INFRA | 2 | done |
 | PAR-INFRA-14 | NeoForge common tags: datagen emits the vanilla members of the c: tags (neoforge_common_tags.json) | INFRA | 2 | blocked |
 | PAR-HUD-04 | Two-layer HUD in-game verification at GUI scale 2 and 3 (full, low, submerged) | HUD | 3 | open |
 | PAR-INFRA-06 | Recipe runtime on Paper: ItemStack ingredient matching, indexed lookups, output modifiers | INFRA | 3 | open |
@@ -30,6 +30,7 @@ Totals: 227 items; open 216, done 8, blocked 3; waves 1..56 (wave 0 = already do
 | PAR-HUD-08 | Held item temperature popup with real values | HUD | 4 | open |
 | PAR-INFRA-10 | Neighbour-update runner: block shape updates decided async, applied sync | INFRA | 4 | open |
 | PAR-INFRA-11 | Catch-up trigger service: chunk load, interaction and visible-area sweep for lazy blocks | INFRA | 4 | open |
+| PAR-INFRA-19 | Device generators on the shared spec: Firepit, Grill, Pot and ForgeDevices write through DeviceSpecs + DeviceYaml | INFRA | 4 | open |
 | PAR-WORLD-17 | Ore overlay spike S1: measure exposed ore faces per chunk and the overlay entity budget | WORLD | 4 | open |
 | PAR-HUD-06 | HUD polish: health frame asymmetry, ambient temperature bar and info plate, pulse animation | HUD | 5 | open |
 | PAR-PROC-01 | Knapping GUI: 5x5 grid for stone, clay, fire clay, leather and goat horn | PROC | 5 | open |

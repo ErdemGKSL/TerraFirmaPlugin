@@ -80,6 +80,7 @@ public final class Datagen {
         Firepit.run(tfc, out);
         Grill.run(tfc, out);
         Pot.run(tfc, out);
+        dev.tfp.datagen.device.DeviceTemplates.run(out); // PAR-INFRA-08: tfp:block/device and tfp:block/device_rendered
         if (tfc.exists(ForgeDevices.FORGE_SOURCE)) { // the small fixture checkouts of the tests have no forge; ForgeDevicesTest pins the real one
             ForgeDevices.run(tfc, out);
         }
