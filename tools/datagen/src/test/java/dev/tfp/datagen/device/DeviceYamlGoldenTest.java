@@ -19,7 +19,6 @@ import org.yaml.snakeyaml.Yaml;
 /** PAR-INFRA-08: spec to YAML goldens, one device per appearance strategy, and the spec checks. */
 class DeviceYamlGoldenTest {
     private static final String HEADER = "# " + DeviceYaml.HEADER + "\n";
-    private static final BigDecimal ONE = new BigDecimal("1");
     private static final DeviceProperty FACING = DeviceProperty.names("facing", List.of("north", "south"), "north");
     private static final DeviceProperty LIT = DeviceProperty.bool("lit", false);
 
@@ -30,8 +29,8 @@ class DeviceYamlGoldenTest {
             .appearance(DeviceAppearance.modelled("north", DeviceAppearance.Carrier.state("minecraft:smoker[facing=north,lit=false]"), "tfp:block/test"))
             .appearance(DeviceAppearance.vanilla("south", DeviceAppearance.Carrier.state("minecraft:smoker[facing=south,lit=false]")))
             .everyState(s -> s.get("facing"), null)
-            .settings(ONE, new BigDecimal("2.5"))
-            .lootSelf()
+            .settings(DeviceBlockSpec.Settings.of("1", "2.5", DeviceSound.WOOD, "axe"))
+            .loot(DeviceLoot.self())
             .deviceBehaviour()
             .blockItem("block.tfp.test.repurposed")
             .build();
@@ -45,8 +44,8 @@ class DeviceYamlGoldenTest {
             .appearance(DeviceAppearance.modelled("idle", DeviceAppearance.Carrier.pool("solid"), "tfp:block/test_idle"))
             .appearance(DeviceAppearance.modelled("burning", DeviceAppearance.Carrier.pool("solid", "tfp:test/auto_burning"), "tfp:block/test_burning"))
             .everyState(s -> "true".equals(s.get("lit")) ? "burning" : "idle", s -> "true".equals(s.get("lit")) ? 15 : 0)
-            .settings(ONE, ONE)
-            .lootSelf()
+            .settings(DeviceBlockSpec.Settings.of("1", "1", DeviceSound.STONE, "pickaxe"))
+            .loot(new DeviceLoot(List.of(new DeviceLoot.Pool("tfp:powder/wood_ash", null), new DeviceLoot.Pool(null, 2))))
             .deviceBehaviour()
             .build();
     }
@@ -61,8 +60,8 @@ class DeviceYamlGoldenTest {
                 List.of(DeviceAppearance.Renderer.item("tfp:render/test/lit").scaled(new BigDecimal("0.5"))
                     .translated("0,0.25,0").rotated("0,90,0").lit(15, 15))))
             .everyState(s -> "true".equals(s.get("lit")) ? "lit" : "unlit", null)
-            .settings(new BigDecimal("2"), new BigDecimal("2"))
-            .lootSelf()
+            .settings(DeviceBlockSpec.Settings.of("2", "2", DeviceSound.NETHER_WART, "pickaxe"))
+            .loot(DeviceLoot.item("minecraft:charcoal", 7))
             .deviceBehaviour()
             .renderItem("tfp:render/test/unlit", "tfp:block/test/unlit")
             .renderItem("tfp:render/test/lit", "tfp:block/test/lit")
@@ -77,10 +76,16 @@ class DeviceYamlGoldenTest {
             blocks:
               tfp:test/repurposed:
                 settings:
-                  template: tfp:settings/device
-                  arguments:
-                    device_hardness: 1.0
-                    device_resistance: 2.5
+                  hardness: 1.0
+                  resistance: 2.5
+                  sounds:
+                    break: minecraft:block.wood.break
+                    step: minecraft:block.wood.step
+                    place: minecraft:block.wood.place
+                    hit: minecraft:block.wood.hit
+                    fall: minecraft:block.wood.fall
+                  tags:
+                    - minecraft:mineable/axe
                 loot:
                   template: tfp:loot_table/self
                 behavior:
@@ -117,6 +122,14 @@ class DeviceYamlGoldenTest {
                 arguments:
                   device_hardness: 1.0
                   device_resistance: 2.5
+                  device_sound_break: minecraft:block.wood.break
+                  device_sound_step: minecraft:block.wood.step
+                  device_sound_place: minecraft:block.wood.place
+                  device_sound_hit: minecraft:block.wood.hit
+                  device_sound_fall: minecraft:block.wood.fall
+                  device_tool_tag: minecraft:mineable/axe
+                loot:
+                  template: tfp:loot_table/self
                 states:
                   properties:
                     facing:
@@ -156,6 +169,29 @@ class DeviceYamlGoldenTest {
                 arguments:
                   device_hardness: 1.0
                   device_resistance: 1.0
+                  device_sound_break: minecraft:block.stone.break
+                  device_sound_step: minecraft:block.stone.step
+                  device_sound_place: minecraft:block.stone.place
+                  device_sound_hit: minecraft:block.stone.hit
+                  device_sound_fall: minecraft:block.stone.fall
+                  device_tool_tag: minecraft:mineable/pickaxe
+                loot:
+                  pools:
+                    - rolls: 1
+                      conditions:
+                        - type: survives_explosion
+                      entries:
+                        - type: item
+                          item: tfp:powder/wood_ash
+                    - rolls: 1
+                      conditions:
+                        - type: survives_explosion
+                      entries:
+                        - type: item
+                          item: tfp:test/auto
+                          functions:
+                            - type: set_count
+                              count: 2
                 states:
                   properties:
                     lit:
@@ -205,6 +241,18 @@ class DeviceYamlGoldenTest {
                 arguments:
                   device_hardness: 2.0
                   device_resistance: 2.0
+                  device_sound_break: minecraft:block.nether_wart.break
+                  device_sound_step: minecraft:block.stone.step
+                  device_sound_place: minecraft:item.nether_wart.plant
+                  device_sound_hit: minecraft:block.stone.hit
+                  device_sound_fall: minecraft:block.stone.fall
+                  device_tool_tag: minecraft:mineable/pickaxe
+                loot:
+                  template: tfp:loot_table/item_count
+                  arguments:
+                    loot_item: minecraft:charcoal
+                    loot_count_min: 7
+                    loot_count_max: 7
                 states:
                   properties:
                     lit:
@@ -264,11 +312,11 @@ class DeviceYamlGoldenTest {
         // Only lit is named: CraftEngine would read facing as a wildcard.
         assertThatThrownBy(() -> new DeviceBlockSpec("tfp:test/bad", List.of(LIT, FACING),
             List.of(DeviceAppearance.vanilla("a", DeviceAppearance.Carrier.state("minecraft:stone"))),
-            List.of(new DeviceVariant(Map.of("lit", "false"), "a", null)), null, false, false, null, Map.of(), Map.of()))
+            List.of(new DeviceVariant(Map.of("lit", "false"), "a", null)), null, null, false, null, Map.of(), Map.of()))
             .isInstanceOf(DatagenException.class).hasMessageContaining("must name exactly the properties");
         assertThatThrownBy(() -> new DeviceBlockSpec("tfp:test/bad", List.of(LIT),
             List.of(DeviceAppearance.vanilla("a", DeviceAppearance.Carrier.state("minecraft:stone"))),
-            List.of(new DeviceVariant(Map.of("lit", "maybe"), "a", null)), null, false, false, null, Map.of(), Map.of()))
+            List.of(new DeviceVariant(Map.of("lit", "maybe"), "a", null)), null, null, false, null, Map.of(), Map.of()))
             .isInstanceOf(DatagenException.class).hasMessageContaining("no valid value for lit");
         assertThat(b.everyState(s -> "a", null).build().stateCount()).isEqualTo(4);
     }
@@ -277,11 +325,11 @@ class DeviceYamlGoldenTest {
     void everyStateHasExactlyOneVariant() {
         DeviceAppearance a = DeviceAppearance.vanilla("a", DeviceAppearance.Carrier.state("minecraft:stone"));
         assertThatThrownBy(() -> new DeviceBlockSpec("tfp:test/bad", List.of(LIT), List.of(a),
-            List.of(new DeviceVariant(Map.of("lit", "false"), "a", null)), null, false, false, null, Map.of(), Map.of()))
+            List.of(new DeviceVariant(Map.of("lit", "false"), "a", null)), null, null, false, null, Map.of(), Map.of()))
             .isInstanceOf(DatagenException.class).hasMessageContaining("1 variants for 2 server states");
         assertThatThrownBy(() -> new DeviceBlockSpec("tfp:test/bad", List.of(LIT), List.of(a),
             List.of(new DeviceVariant(Map.of("lit", "false"), "a", null), new DeviceVariant(Map.of("lit", "false"), "a", null)),
-            null, false, false, null, Map.of(), Map.of()))
+            null, null, false, null, Map.of(), Map.of()))
             .isInstanceOf(DatagenException.class).hasMessageContaining("two variants");
     }
 
@@ -319,11 +367,70 @@ class DeviceYamlGoldenTest {
     }
 
     @Test
-    void theTemplatesOnlyFitSpecsWithSettingsLootAndBehaviour() {
-        DeviceBlockSpec placeholder = DeviceSpecs.firepitFamily("tfp:test/firepit", List.of(LIT),
-            DeviceAppearance.Carrier.state("minecraft:campfire[lit=true]"), DeviceAppearance.Carrier.state("minecraft:campfire[lit=false]"));
+    void theTemplatesOnlyFitSpecsWithSettingsAndBehaviour() {
+        DeviceBlockSpec placeholder = DeviceBlockSpec.builder("tfp:test/placeholder").property(LIT)
+            .appearance(DeviceAppearance.vanilla("a", DeviceAppearance.Carrier.state("minecraft:campfire[lit=true]")))
+            .everyState(s -> "a", null).build();
         assertThatThrownBy(() -> DeviceYaml.templated(placeholder)).isInstanceOf(DatagenException.class)
             .hasMessageContaining("write it literally");
         assertThat(DeviceYaml.literal(placeholder).toString()).doesNotContain("settings", "loot", "behavior");
+    }
+
+    /** The firepit family carries TFC's lit light (litBlockEmission(15)), settings and loot (the grill's two pools). */
+    @Test
+    void firepitFamilyHasTfcLightSettingsAndLoot() {
+        DeviceBlockSpec grill = DeviceSpecs.firepitFamily("tfp:test/grill", List.of(LIT),
+            DeviceAppearance.Carrier.state("minecraft:campfire[lit=true]"), DeviceAppearance.Carrier.state("minecraft:campfire[lit=false]"),
+            DeviceBlockSpec.Settings.of("0.4", "0.4", DeviceSound.NETHER_WART, "pickaxe"),
+            DeviceLoot.items("tfp:powder/wood_ash", "tfp:wrought_iron_grill"), 15);
+        assertThat(grill.variants()).extracting(DeviceVariant::luminance).containsExactly(0, 15);
+        assertThat(DeviceYaml.writeLiteral(grill)).isEqualTo(HEADER + """
+            blocks:
+              tfp:test/grill:
+                settings:
+                  hardness: 0.4
+                  resistance: 0.4
+                  sounds:
+                    break: minecraft:block.nether_wart.break
+                    step: minecraft:block.stone.step
+                    place: minecraft:item.nether_wart.plant
+                    hit: minecraft:block.stone.hit
+                    fall: minecraft:block.stone.fall
+                  tags:
+                    - minecraft:mineable/pickaxe
+                loot:
+                  pools:
+                    - rolls: 1
+                      conditions:
+                        - type: survives_explosion
+                      entries:
+                        - type: item
+                          item: tfp:powder/wood_ash
+                    - rolls: 1
+                      conditions:
+                        - type: survives_explosion
+                      entries:
+                        - type: item
+                          item: tfp:wrought_iron_grill
+                states:
+                  properties:
+                    lit:
+                      type: boolean
+                      default: false
+                  appearances:
+                    lit:
+                      state: 'minecraft:campfire[lit=true]'
+                    unlit:
+                      state: 'minecraft:campfire[lit=false]'
+                  variants:
+                    lit=false:
+                      appearance: unlit
+                      settings:
+                        luminance: 0
+                    lit=true:
+                      appearance: lit
+                      settings:
+                        luminance: 15
+            """);
     }
 }

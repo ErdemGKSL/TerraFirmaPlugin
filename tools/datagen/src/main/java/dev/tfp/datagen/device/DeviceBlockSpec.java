@@ -5,7 +5,10 @@
  */
 package dev.tfp.datagen.device;
 
+import com.google.gson.JsonElement;
 import dev.tfp.datagen.DatagenException;
+import dev.tfp.datagen.Json;
+import dev.tfp.datagen.TfcCheckout;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,6 +19,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Everything datagen needs to write one TFC device block as a CraftEngine entry (PAR-INFRA-08): the state properties,
@@ -32,24 +37,97 @@ import java.util.function.ToIntFunction;
  * @param properties       the state properties in TFC's {@code builder.add} order (variant keys follow it)
  * @param appearances      the appearances; the first is CraftEngine's fallback
  * @param variants         one per server state, in property-product order
- * @param settings         hardness and resistance (template {@code tfp:settings/device}), or null for none (placeholder
- *                         entries that CraftEngine does not load yet)
- * @param lootSelf         whether the block drops itself ({@code tfp:loot_table/self})
+ * @param settings         hardness, resistance, sounds and mining tool tag (TFC's block properties and mineable tag), or
+ *                         null for none (placeholder entries that CraftEngine does not load yet)
+ * @param loot             what the block drops (TFC's loot table), or null for nothing (placeholders)
  * @param behaviour        whether the block carries the {@code tfp:device} behaviour (PAR-INFRA-02)
  * @param blockItemLangKey the lang key of the item that places the block (same id), or null when there is none
  * @param renderItems      display-only item id to the model it shows ({@code tfp:item/render}), in order
  * @param stateMappings    {@code block_state_mappings} the entry needs (real vanilla states sent as another state)
  */
 public record DeviceBlockSpec(String id, List<DeviceProperty> properties, List<DeviceAppearance> appearances,
-        List<DeviceVariant> variants, Settings settings, boolean lootSelf, boolean behaviour, String blockItemLangKey,
+        List<DeviceVariant> variants, Settings settings, DeviceLoot loot, boolean behaviour, String blockItemLangKey,
         Map<String, String> renderItems, Map<String, String> stateMappings) {
 
-    /** The {@code tfp:settings/device} arguments. */
-    public record Settings(BigDecimal hardness, BigDecimal resistance) {
+    /**
+     * The block settings TFC gives a device: {@code strength(hardness, resistance)}, {@code sound(...)} and the
+     * {@code minecraft:mineable/<tool>} tag the block is in (mining speed only: TFC devices do not require the tool).
+     */
+    public record Settings(BigDecimal hardness, BigDecimal resistance, DeviceSound sound, String toolTag) {
+        static final String TFC_BLOCKS = "src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java";
+        static final String MINEABLE = TfcCheckout.GENERATED + "data/minecraft/tags/block/mineable/";
+        static final List<String> TOOLS = List.of("axe", "hoe", "pickaxe", "shovel");
+        private static final Pattern STRENGTH = Pattern.compile("\\.strength\\(([0-9.]+)[fF]?(?:,\\s*([0-9.]+)[fF]?)?\\)");
+        private static final Pattern SOUND = Pattern.compile("\\.sound\\(((?:SoundType|TFCSounds)\\.[A-Z_]+)\\)");
+
         public Settings {
             if (hardness == null || resistance == null || hardness.signum() < 0 || resistance.signum() < 0) {
                 throw new DatagenException("device hardness and resistance must be given and not negative");
             }
+            if (sound == null) {
+                throw new DatagenException("device settings need a sound");
+            }
+            if (toolTag == null || !toolTag.matches("minecraft:mineable/[a-z_]+")) {
+                throw new DatagenException("device tool tag " + toolTag + " is not minecraft:mineable/<tool>");
+            }
+        }
+
+        /** {@code strength(h)} sets both. */
+        public static Settings of(String hardness, String resistance, DeviceSound sound, String tool) {
+            return new Settings(new BigDecimal(hardness), new BigDecimal(resistance), sound, "minecraft:mineable/" + tool);
+        }
+
+        /**
+         * Reads TFC's settings of {@code tfc:<block>}: strength and sound from its registration line in
+         * {@code TFCBlocks.java}, the tool from the generated {@code minecraft:mineable/*} tags (exactly one must hold it).
+         */
+        public static Settings fromTfc(TfcCheckout tfc, String block) {
+            String line = null;
+            for (String l : tfc.readString(TFC_BLOCKS).split("\n")) {
+                if (l.matches(".*\\bregister(NoItem)?\\(\"" + Pattern.quote(block) + "\",.*")) {
+                    if (line != null) {
+                        throw new DatagenException(TFC_BLOCKS + ": tfc:" + block + " is registered twice");
+                    }
+                    line = l;
+                }
+            }
+            if (line == null) {
+                throw new DatagenException(TFC_BLOCKS + ": no registration of tfc:" + block);
+            }
+            Matcher st = STRENGTH.matcher(line);
+            Matcher so = SOUND.matcher(line);
+            if (!st.find() || !so.find()) {
+                throw new DatagenException(TFC_BLOCKS + ": tfc:" + block + " has no strength(...) or sound(...)");
+            }
+            String hardness = st.group(1);
+            String resistance = st.group(2) == null ? hardness : st.group(2);
+            String tool = null;
+            for (String t : TOOLS) {
+                String src = MINEABLE + t + ".json";
+                JsonElement tag = Json.parse(tfc.readString(src), src);
+                for (JsonElement v : tag.getAsJsonObject().getAsJsonArray("values")) {
+                    if (v.isJsonPrimitive() && v.getAsString().equals(Json.FROM_NS + ":" + block)) {
+                        if (tool != null) {
+                            throw new DatagenException("tfc:" + block + " is in two mineable tags: " + tool + ", " + t);
+                        }
+                        tool = t;
+                    }
+                }
+            }
+            if (tool == null) {
+                throw new DatagenException("tfc:" + block + " is in no minecraft:mineable tag");
+            }
+            return of(hardness, resistance, DeviceSound.ofJava(so.group(1)), tool);
+        }
+
+        /** CraftEngine {@code settings}: hardness, resistance, sounds, the mineable tag. */
+        Map<String, Object> yaml() {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("hardness", hardness);
+            m.put("resistance", resistance);
+            m.put("sounds", sound.yaml());
+            m.put("tags", List.of(toolTag));
+            return m;
         }
     }
 
@@ -172,7 +250,7 @@ public record DeviceBlockSpec(String id, List<DeviceProperty> properties, List<D
         private final Map<String, String> renderItems = new LinkedHashMap<>();
         private final Map<String, String> stateMappings = new LinkedHashMap<>();
         private Settings settings;
-        private boolean lootSelf;
+        private DeviceLoot loot;
         private boolean behaviour;
         private String blockItemLangKey;
 
@@ -203,13 +281,13 @@ public record DeviceBlockSpec(String id, List<DeviceProperty> properties, List<D
             return this;
         }
 
-        public Builder settings(BigDecimal hardness, BigDecimal resistance) {
-            settings = new Settings(hardness, resistance);
+        public Builder settings(Settings s) {
+            settings = s;
             return this;
         }
 
-        public Builder lootSelf() {
-            lootSelf = true;
+        public Builder loot(DeviceLoot l) {
+            loot = l;
             return this;
         }
 
@@ -237,7 +315,7 @@ public record DeviceBlockSpec(String id, List<DeviceProperty> properties, List<D
         }
 
         public DeviceBlockSpec build() {
-            return new DeviceBlockSpec(id, properties, appearances, variants, settings, lootSelf, behaviour,
+            return new DeviceBlockSpec(id, properties, appearances, variants, settings, loot, behaviour,
                 blockItemLangKey, renderItems, stateMappings);
         }
     }

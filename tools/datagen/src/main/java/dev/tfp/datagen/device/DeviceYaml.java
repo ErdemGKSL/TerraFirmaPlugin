@@ -15,14 +15,13 @@ import java.util.Map;
  * Writes a {@link DeviceBlockSpec} as CraftEngine YAML (PAR-INFRA-08), in one of two forms.
  *
  * <ul>
- *   <li>{@link #literal}: the settings call ({@code tfp:settings/device}), the loot ({@code tfp:loot_table/self}), the
- *       behaviour and the states written out in the entry. Each part is optional, so the device entries generated
- *       before the shared templates (firepit, grill, pot: states only; charcoal forge, bellows: settings, loot, states)
- *       come out byte for byte as before.</li>
+ *   <li>{@link #literal}: the settings (TFC's hardness, resistance, sounds and mineable tag), the loot, the behaviour and
+ *       the states written out in the entry. Settings, loot and behaviour are each optional (placeholder entries that
+ *       CraftEngine does not load yet).</li>
  *   <li>{@link #templated}: the entry calls {@code tfp:block/device} (or {@code tfp:block/device_rendered} when an
- *       appearance draws display entities), which holds the settings, the self loot and the {@code tfp:device}
- *       behaviour ({@link DeviceTemplates}); only the arguments and the states are written in the entry. For devices
- *       whose behaviour exists, so CraftEngine loads them.</li>
+ *       appearance draws display entities), which holds the settings and the {@code tfp:device} behaviour
+ *       ({@link DeviceTemplates}); the arguments, the loot and the states are written in the entry. For devices whose
+ *       behaviour exists, so CraftEngine loads them.</li>
  * </ul>
  * Both forms add the placing item ({@code tfp:item/block_item}), the display-only render items ({@code tfp:item/render})
  * and the entry's own {@code block_state_mappings}.
@@ -49,10 +48,10 @@ public final class DeviceYaml {
     public static Map<String, Object> literal(DeviceBlockSpec spec) {
         Map<String, Object> block = new LinkedHashMap<>();
         if (spec.settings() != null) {
-            block.put("settings", call(DeviceTemplates.SETTINGS, settingsArguments(spec)));
+            block.put("settings", spec.settings().yaml());
         }
-        if (spec.lootSelf()) {
-            block.put("loot", Map.of("template", DeviceTemplates.LOOT_SELF));
+        if (spec.loot() != null) {
+            block.put("loot", spec.loot().yaml(spec.id()));
         }
         if (spec.behaviour()) {
             block.put("behavior", Map.of("type", DeviceTemplates.BEHAVIOUR));
@@ -62,27 +61,22 @@ public final class DeviceYaml {
     }
 
     /**
-     * {@code blocks: <id>: {template: tfp:block/device[_rendered], arguments, states}} plus the items and mappings.
-     * Fails for a spec that has no settings, no self loot or no device behaviour: the templates always add all three.
+     * {@code blocks: <id>: {template: tfp:block/device[_rendered], arguments, loot?, states}} plus the items and
+     * mappings. Fails for a spec that has no settings or no device behaviour: the templates always add both.
      */
     public static Map<String, Object> templated(DeviceBlockSpec spec) {
-        if (spec.settings() == null || !spec.lootSelf() || !spec.behaviour()) {
-            throw new DatagenException(spec.id() + ": the device templates add settings, self loot and the tfp:device "
-                + "behaviour; this spec lacks " + (spec.settings() == null ? "settings" : !spec.lootSelf() ? "self loot" : "the behaviour")
-                + ", write it literally");
+        if (spec.settings() == null || !spec.behaviour()) {
+            throw new DatagenException(spec.id() + ": the device templates add settings and the tfp:device behaviour; "
+                + "this spec lacks " + (spec.settings() == null ? "settings" : "the behaviour") + ", write it literally");
         }
         Map<String, Object> block = new LinkedHashMap<>();
         block.put("template", spec.rendered() ? DeviceTemplates.DEVICE_RENDERED : DeviceTemplates.DEVICE);
-        block.put("arguments", settingsArguments(spec));
+        block.put("arguments", DeviceTemplates.arguments(spec.settings()));
+        if (spec.loot() != null) {
+            block.put("loot", spec.loot().yaml(spec.id()));
+        }
         block.put("states", states(spec));
         return root(spec, block);
-    }
-
-    private static Map<String, Object> settingsArguments(DeviceBlockSpec spec) {
-        Map<String, Object> args = new LinkedHashMap<>();
-        args.put(DeviceTemplates.ARG_HARDNESS, spec.settings().hardness());
-        args.put(DeviceTemplates.ARG_RESISTANCE, spec.settings().resistance());
-        return args;
     }
 
     /** {@code states: {properties, appearances, variants}}. */

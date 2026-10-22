@@ -28,25 +28,33 @@ class DeviceTemplatesTest {
             'templates#device':
               tfp:block/device:
                 settings:
-                  template: tfp:settings/device
-                  arguments:
-                    device_hardness: '${device_hardness}'
-                    device_resistance: '${device_resistance}'
-                loot:
-                  template: tfp:loot_table/self
+                  hardness: '${device_hardness}'
+                  resistance: '${device_resistance}'
+                  sounds:
+                    break: '${device_sound_break}'
+                    step: '${device_sound_step}'
+                    place: '${device_sound_place}'
+                    hit: '${device_sound_hit}'
+                    fall: '${device_sound_fall}'
+                  tags:
+                    - '${device_tool_tag}'
                 behavior:
                   type: tfp:device
               tfp:block/device_rendered:
                 settings:
-                  template: tfp:settings/device
-                  arguments:
-                    device_hardness: '${device_hardness}'
-                    device_resistance: '${device_resistance}'
+                  hardness: '${device_hardness}'
+                  resistance: '${device_resistance}'
+                  sounds:
+                    break: '${device_sound_break}'
+                    step: '${device_sound_step}'
+                    place: '${device_sound_place}'
+                    hit: '${device_sound_hit}'
+                    fall: '${device_sound_fall}'
+                  tags:
+                    - '${device_tool_tag}'
                   can_occlude: false
                   is_suffocating: false
                   is_view_blocking: false
-                loot:
-                  template: tfp:loot_table/self
                 behavior:
                   type: tfp:device
             """);
@@ -55,8 +63,8 @@ class DeviceTemplatesTest {
 
     /**
      * A model of CraftEngine's map-template merge (template body deep-merged with the caller's extra keys, placeholders
-     * substituted): a templated spec ends with the settings call, the self loot, the behaviour and its own states, the
-     * same block the literal form writes plus the behaviour.
+     * substituted, also inside lists): a templated spec ends with TFC's settings, the behaviour and its own loot and
+     * states, the same block the literal form writes.
      */
     @Test
     @SuppressWarnings("unchecked")
@@ -95,6 +103,9 @@ class DeviceTemplatesTest {
             Map<String, Object> out = new LinkedHashMap<>();
             m.forEach((k, v) -> out.put((String) k, substitute(v, args)));
             return out;
+        }
+        if (node instanceof List<?> l) {
+            return l.stream().map(v -> substitute(v, args)).toList();
         }
         if (node instanceof String s && s.startsWith("${") && s.endsWith("}")) {
             String name = s.substring(2, s.length() - 1);
