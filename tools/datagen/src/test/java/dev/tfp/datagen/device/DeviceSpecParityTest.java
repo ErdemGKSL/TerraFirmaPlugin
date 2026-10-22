@@ -11,6 +11,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import dev.tfp.datagen.Datagen;
 import dev.tfp.datagen.DatagenException;
 import dev.tfp.datagen.TfcCheckout;
+import dev.tfp.datagen.hitbox.HitboxAllocation;
+import dev.tfp.datagen.hitbox.HitboxDemands;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -81,9 +83,10 @@ class DeviceSpecParityTest {
         TfcCheckout tfc = checkout();
         SortedMap<String, byte[]> files = Datagen.generate(tfc.root(), TfcCheckout.PINNED_COMMIT).tree().files();
 
-        var lit = DeviceAppearance.Carrier.state("minecraft:campfire[lit=true]");
-        var unlit = DeviceAppearance.Carrier.state("minecraft:campfire[lit=false]");
+        // PAR-INFRA-13: the carriers come from the hitbox carrier selector's allocation.
         for (String device : List.of("firepit", "grill", "pot")) {
+            var lit = DeviceAppearance.Carrier.state(HitboxAllocation.agreed("tfp:" + device, "lit").state());
+            var unlit = DeviceAppearance.Carrier.state(HitboxAllocation.agreed("tfp:" + device, "unlit").state());
             DeviceBlockSpec spec = DeviceSpecs.firepitFamily("tfp:" + device, firepitProps(), lit, unlit,
                 DeviceBlockSpec.Settings.fromTfc(tfc, device), DeviceLoot.fromTfc(tfc, device), 15);
             assertThat(spec.stateCount()).isEqualTo(20);
@@ -100,17 +103,19 @@ class DeviceSpecParityTest {
         for (int level = 0; level <= 7; level++) {
             models.put(level, "tfp:block/charcoal_forge/heat_" + level);
         }
+        var forgeCarrier = HitboxAllocation.agreed("tfp:charcoal_forge", HitboxDemands.FORGE_APPEARANCE);
         DeviceBlockSpec forge = DeviceSpecs.charcoalForge("tfp:charcoal_forge", DeviceProperty.range("heat_level", 0, 7, 0),
-            models, DeviceAppearance.Carrier.state("minecraft:snow[layers=7]"), new BigDecimal("1.002"),
+            models, DeviceAppearance.Carrier.state(forgeCarrier.state()), new BigDecimal("1.002"),
             "tfp:render/charcoal_forge/", heat -> heat * 2, DeviceBlockSpec.Settings.fromTfc(tfc, "charcoal_forge"),
-            DeviceLoot.fromTfc(tfc, "charcoal_forge"), Map.of("minecraft:snow[layers=7]", "minecraft:snow[layers=8]"));
+            DeviceLoot.fromTfc(tfc, "charcoal_forge"), Map.of(forgeCarrier.state(), forgeCarrier.hideTarget()));
+        assertThat(forgeCarrier.state()).isEqualTo("minecraft:snow[layers=7]");
         assertThat(forge.strategies()).containsExactly(DeviceAppearance.Strategy.REPURPOSED_STATE);
         assertThat(forge.rendered()).isTrue();
         assertMatchesApartFromLegacySettings(files, PACK + "configuration/charcoal_forge.yml", forge);
 
         DeviceBlockSpec bellows = DeviceSpecs.facing("tfp:bellows",
             DeviceProperty.names("facing", List.of("north", "east", "south", "west"), "north"),
-            f -> "minecraft:smoker[facing=" + f + ",lit=false]", "block.tfp.bellows",
+            f -> HitboxAllocation.agreed("tfp:bellows", f).state(), "block.tfp.bellows",
             DeviceBlockSpec.Settings.fromTfc(tfc, "bellows"), DeviceLoot.fromTfc(tfc, "bellows"));
         assertMatchesApartFromLegacySettings(files, PACK + "configuration/bellows.yml", bellows);
 

@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 233 items; open 212, done 18, blocked 3; waves 1..56 (wave 0 = already done).
+Totals: 234 items; open 211, done 20, blocked 3; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -24,7 +24,7 @@ Totals: 233 items; open 212, done 18, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-INFRA-06 | Recipe runtime on Paper: ItemStack ingredient matching, indexed lookups, output modifiers | INFRA | 3 | done |
 | PAR-INFRA-09 | Block and entity loot runtime: TFC loot tables evaluated on Paper | INFRA | 3 | done |
 | PAR-METAL-10 | Charcoal forge visual verification: night, neighbouring full blocks, animation frames, lit-display flicker | METAL | 3 | done |
-| PAR-INFRA-13 | Hitbox carrier selector: every CE block gets the vanilla state whose collision and selection shape best match TFC's | INFRA | 3 | open |
+| PAR-INFRA-13 | Hitbox carrier selector: every CE block gets the vanilla state whose collision and selection shape best match TFC's | INFRA | 3 | done |
 | PAR-INFRA-18 | Device framework wiring: register tfp:device with CraftEngine, self-test device.roundtrip, SAVE removal | INFRA | 3 | done |
 | PAR-HUD-05 | HUD vs vanilla armour row: no overlap with armour worn, health text inside its bar | HUD | 4 | open |
 | PAR-HUD-08 | Held item temperature popup with real values | HUD | 4 | open |
@@ -36,6 +36,7 @@ Totals: 233 items; open 212, done 18, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-INFRA-22 | Correct-tool gate for delegated block loot: CustomBlocks.isCorrectTool over CraftEngine's tool check | INFRA | 4 | open |
 | PAR-WORLD-17 | Ore overlay spike S1: measure exposed ore faces per chunk and the overlay entity budget | WORLD | 4 | open |
 | PAR-HUD-06 | HUD polish: health frame asymmetry, ambient temperature bar and info plate, pulse animation | HUD | 5 | open |
+| PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 5 | open |
 | PAR-PROC-01 | Knapping GUI: 5x5 grid for stone, clay, fire clay, leather and goat horn | PROC | 5 | open |
 | PAR-PROC-19 | Misc materials as CE items: ores, gems, powders, fibres, cloth, paper, glue, straw, mortar, spawn eggs | PROC | 5 | open |
 | PAR-SURV-01 | All TFC food items generated as CE items with food_stamp and food data | SURV | 5 | open |

@@ -12,6 +12,8 @@
  */
 package dev.tfp.datagen;
 
+import dev.tfp.datagen.hitbox.HitboxAllocation;
+import dev.tfp.datagen.hitbox.HitboxDemands;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -39,14 +41,14 @@ import java.util.regex.Pattern;
  * {@code template_forge}): one 16×14×16 box, the sides {@code charcoal_pile}, the top the per-level texture
  * {@code devices/charcoal_forge/N} (level 0 a still charcoal top, 1 to 7 animated glowing strips). The shape is
  * {@code CharcoalPileBlock.SHAPE_BY_LAYER[7]} (14 px), used for selection and collision. Here every level is drawn on
- * the vanilla state {@link #FORGE_VISUAL} ({@code snow[layers=7]}: a 14 px outline like TFC, but vanilla snow collides
- * one layer lower, 12 px), whose block model is TFC's cold model {@code heat_0}: one vanilla state carries one model
+ * the hitbox carrier the selector picks ({@link #forgeCarrier()}, PAR-INFRA-13: {@code snow[layers=7]}, a 14 px outline
+ * like TFC, but vanilla snow collides one layer lower, 12 px), whose block model is TFC's cold model {@code heat_0}: one vanilla state carries one model
  * only, so the eight levels cannot each have a block model. Levels 1 to 7 add an {@code entity_renderer} item display
  * of TFC's model for that level (an item {@code tfp:render/charcoal_forge/heat_N}), scaled by {@link #OVERLAY_SCALE}
  * over the block model, lit with TFC's light level ({@code heat * 2}) as block light. Each level also emits TFC's
- * light ({@code luminance: heat * 2}). Real vanilla {@code snow[layers=7]} is sent as {@link #SNOW_HIDE_TARGET}
- * ({@code block_state_mappings}), so player-stacked snow never looks like a forge. The bellows keeps a placeholder
- * appearance (a vanilla smoker).
+ * light ({@code luminance: heat * 2}). Real vanilla instances of the carrier are sent as the selector's hide target
+ * ({@code snow[layers=8]}, {@code block_state_mappings}), so natural snow never looks like a forge. The bellows keeps a
+ * placeholder appearance: the vanilla look of its selected carrier, one per facing.
  *
  * <p>The outputs are {@code craftengine/tfp/configuration/charcoal_forge.yml} and {@code bellows.yml}, so CraftEngine
  * loads them: each has the block with its settings and its loot (the block itself); the bellows also has the item that
@@ -74,10 +76,6 @@ final class ForgeDevices {
     /** TFC: {@code CharcoalForgeBlock.getShape} returns {@code CharcoalPileBlock.SHAPE_BY_LAYER[7]}. */
     static final String BLOCKS_SOURCE = "src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java";
     static final String PILE_SOURCE = "src/main/java/net/dries007/tfc/common/blocks/CharcoalPileBlock.java";
-    /** The visual (hitbox) state of every forge level: vanilla snow's outline is 2 px per layer, 7 layers = 14 px. */
-    static final String FORGE_VISUAL = "minecraft:snow[layers=7]";
-    /** Where real vanilla snow with 7 layers is sent (a pure vanilla state no custom block uses; one hop). */
-    static final String SNOW_HIDE_TARGET = "minecraft:snow[layers=8]";
     /** The lit overlay is drawn this much larger than the block model it covers, so the two never z-fight. */
     static final java.math.BigDecimal OVERLAY_SCALE = new java.math.BigDecimal("1.002");
     /** The prefix of the display-only items an entity_renderer draws for the lit levels. */
@@ -100,6 +98,10 @@ final class ForgeDevices {
         HeatRange heat = heatRange(tfc);
         checkShape(tfc);
         Map<Integer, String> models = forgeModels(tfc);
+        if (!HitboxDemands.FORGE_MODEL.equals(Json.TO_NS + ":" + models.get(heat.min()))) {
+            throw new DatagenException("the forge's cold model is tfp:" + models.get(heat.min()) + ", the hitbox demand says "
+                + HitboxDemands.FORGE_MODEL);
+        }
         for (String model : models.values()) {
             if (!out.contains(AssetPipeline.RP + "models/" + model + ".json")) {
                 throw new DatagenException("forge model tfp:" + model + " was not copied by AssetPipeline");
@@ -135,12 +137,12 @@ final class ForgeDevices {
         return range;
     }
 
-    /** TFC's forge shape must still be the 7-layer (14 px) charcoal pile shape that {@link #FORGE_VISUAL} matches. */
+    /** TFC's forge shape must still be the 7-layer (14 px) charcoal pile shape the hitbox shape table was read with. */
     static void checkShape(TfcCheckout tfc) {
         String src = require(tfc, FORGE_SOURCE);
         if (!src.contains("return CharcoalPileBlock.SHAPE_BY_LAYER[7];") || src.contains("getCollisionShape")) {
             throw new DatagenException(FORGE_SOURCE + ": the shape is no longer CharcoalPileBlock.SHAPE_BY_LAYER[7] "
-                + "for selection and collision; re-pick FORGE_VISUAL");
+                + "for selection and collision; regenerate hitbox/tfc-shapes.json");
         }
         if (!require(tfc, BLOCKS_SOURCE).contains("lightLevel(state -> state.getValue(CharcoalForgeBlock.HEAT) * 2)")) {
             throw new DatagenException(BLOCKS_SOURCE + ": the charcoal forge light is no longer heat * 2 (update lightLevel)");
@@ -224,7 +226,7 @@ final class ForgeDevices {
             }
             String name = "heat_" + level;
             Map<String, Object> appearance = new LinkedHashMap<>();
-            appearance.put("state", FORGE_VISUAL);
+            appearance.put("state", forgeCarrier().state());
             appearance.put("model", cold); // the same model on every appearance: one vanilla state, one model
             if (level > heat.min()) {
                 String item = RENDER_ITEM_PREFIX + name;
@@ -246,7 +248,10 @@ final class ForgeDevices {
         }
         Map<String, Object> root = entry(FORGE_ID, null, Map.of(heat.name(), property), appearances, variants);
         root.put("items", items);
-        root.put("block_state_mappings", Map.of(FORGE_VISUAL, SNOW_HIDE_TARGET));
+        HitboxAllocation.Assignment carrier = forgeCarrier();
+        if (carrier.hideTarget() != null) {
+            root.put("block_state_mappings", Map.of(carrier.state(), carrier.hideTarget()));
+        }
         return root;
     }
 
@@ -263,10 +268,29 @@ final class ForgeDevices {
         Map<String, Object> appearances = new LinkedHashMap<>();
         Map<String, Object> variants = new LinkedHashMap<>();
         for (String f : FACINGS) {
-            appearances.put(f, Map.of("state", "minecraft:smoker[facing=" + f + ",lit=false]"));
+            appearances.put(f, Map.of("state", bellowsCarrier(f).state()));
             variants.put("facing=" + f, Map.of("appearance", f));
         }
         return entry(BELLOWS_ID, "bellows", Map.of("facing", property), appearances, variants);
+    }
+
+    /** The forge's carrier (every heat level): explicit state with our model, and its hide target. */
+    static HitboxAllocation.Assignment forgeCarrier() {
+        HitboxAllocation.Assignment a = HitboxAllocation.agreed(FORGE_ID, HitboxDemands.FORGE_APPEARANCE);
+        if (a.mode() != HitboxAllocation.Mode.MODEL) {
+            throw new DatagenException("the charcoal forge carrier is " + a.mode() + ", ForgeDevices writes an explicit model");
+        }
+        return a;
+    }
+
+    /** The bellows' carrier for one facing (its vanilla look; placeholder). */
+    static HitboxAllocation.Assignment bellowsCarrier(String facing) {
+        HitboxAllocation.Assignment a = HitboxAllocation.agreed(BELLOWS_ID, facing);
+        if (a.mode() != HitboxAllocation.Mode.VANILLA || a.hideTarget() != null) {
+            throw new DatagenException("the bellows carrier is " + a.mode() + " with hide " + a.hideTarget()
+                + ", ForgeDevices writes a plain vanilla look");
+        }
+        return a;
     }
 
     /** @param itemName the name of the item that places the block, or null when there is none */

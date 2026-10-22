@@ -20,8 +20,8 @@ import java.util.Map;
  *
  * <p>TFC's pot blockstate {@code pot.json} is a multipart: an axis part for the pot model
  * {@code firepit_pot} and a lit part for the flame, with no smoke level. {@link Firepit#checkMultipart} checks that
- * every state matches a part and that only {@code lit} and {@code axis} are named. Appearances are the firepit's
- * placeholder campfire states (see {@link Firepit}).
+ * every state matches a part and that only {@code lit} and {@code axis} are named. The two appearances sit on the carriers
+ * the hitbox selector picks for TFC's pot shape, in their vanilla look (placeholders, see {@link Firepit}).
  *
  * <p>The output is {@code craftengine/tfp/devices/pot.yml}, outside the CraftEngine {@code configuration/} folder, so
  * CraftEngine does not load it yet. The pot's behaviour (the boiling, the soups and jams, the fluid transfer, the block

@@ -1,0 +1,12 @@
+{
+  "about": "PAR-INFRA-13 owner decisions: a shape class may carry an ordered carrier list that overrides the IoU ranking. The selector takes the first entry that exists in the version family, is free in the budget and has no unusable.json row. Every fallback taken (an entry after the first) needs a ledger Divergences row.",
+  "classes": {
+    "large_vessel": [
+      {"carrier": "minecraft:heavy_core[waterlogged=false]", "reason": "owner: one solid centred 8x8x8 box; never in a TFC world; waterlogged=true would show water"},
+      {"carrier": "minecraft:cobblestone_wall[east=none,north=none,south=none,up=true,waterlogged=false,west=none]", "reason": "owner fallback: lone wall post 8x16x8 (collision 24 px); the client may draw a connected arm for a tick after a predicted neighbour change"}
+    ],
+    "placed_item": [
+      {"carrier": "minecraft:heavy_weighted_pressure_plate[power=0]", "reason": "owner rule: every placed item uses a pressure-plate outline (14x1x14, no collision) whatever the item or count; the items are item displays"}
+    ]
+  }
+}

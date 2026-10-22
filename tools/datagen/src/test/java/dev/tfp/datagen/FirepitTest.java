@@ -109,6 +109,15 @@ class FirepitTest {
             .isInstanceOf(DatagenException.class).hasMessageContaining("BlockStateProperties.FACING");
     }
 
+    /**
+     * The carriers the hitbox selector picks (PAR-INFRA-13): firepit 16x6x16 against TFC's 2 px plate + 12x4 core (IoU 0.71),
+     * grill 5 snow layers (0.62 / 0.56), pot a cactus 14x16x14 (0.65 / 0.69). The same for lit and unlit (one TFC shape).
+     */
+    static final Map<String, String> SELECTED = Map.of(
+        Firepit.BLOCK_ID, "minecraft:daylight_detector[inverted=false,power=0]",
+        Grill.BLOCK_ID, "minecraft:snow[layers=5]",
+        Pot.BLOCK_ID, "minecraft:cactus[age=0]");
+
     /** The firepit entry: see {@link #assertEntry(String, int, String, String)}. */
     static void assertEntry(String yaml, int smokeMax) {
         assertEntry(yaml, smokeMax, Firepit.BLOCK_ID, Firepit.OUTPUT);
@@ -131,8 +140,13 @@ class FirepitTest {
 
         Map<?, ?> appearances = (Map<?, ?>) states.get("appearances");
         assertThat(appearances.keySet().stream().map(String::valueOf).toList()).containsExactly(Firepit.LIT_APPEARANCE, Firepit.UNLIT_APPEARANCE);
-        assertThat(appearances.get(Firepit.LIT_APPEARANCE)).isEqualTo(Map.of("state", Firepit.LIT_STATE));
-        assertThat(appearances.get(Firepit.UNLIT_APPEARANCE)).isEqualTo(Map.of("state", Firepit.UNLIT_STATE));
+        // PAR-INFRA-13: both appearances sit on the hitbox selector's carrier for TFC's shape, in its vanilla look.
+        String carrier = SELECTED.get(blockId);
+        assertThat(appearances.get(Firepit.LIT_APPEARANCE)).isEqualTo(Map.of("state", carrier));
+        assertThat(appearances.get(Firepit.UNLIT_APPEARANCE)).isEqualTo(Map.of("state", carrier));
+        assertThat(Firepit.carrier(blockId, Firepit.LIT_APPEARANCE)).isEqualTo(carrier);
+        assertThat(yaml).as("no placeholder campfire: lit campfires make client smoke").doesNotContain("campfire")
+            .as("a vanilla look needs no hide mapping").doesNotContain("block_state_mappings");
 
         Map<?, ?> variants = (Map<?, ?>) states.get("variants");
         assertThat(variants).hasSize(2 * (smokeMax + 1) * 2);

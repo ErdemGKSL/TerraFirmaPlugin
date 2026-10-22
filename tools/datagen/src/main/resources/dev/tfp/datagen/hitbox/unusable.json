@@ -1,0 +1,4 @@
+{
+  "about": "PAR-INFRA-13: class-override carriers that failed an in-game check. One row per failure: class, carrier, version family (1.21 or 26), the failed check, the date and the verification path. A row makes the selector skip that entry and take the next one (which then needs a ledger Divergences row).",
+  "rows": []
+}

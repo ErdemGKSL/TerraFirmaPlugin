@@ -272,6 +272,21 @@ classes). Classes may carry an owner-ordered carrier list with fallbacks (large 
 wall post); a fallback taken or any residual mismatch gets a ledger divergence. Placed items always use a pressure-plate
 state. Rare blocks may use a hitbox-only carrier (shared empty model) with the look from `entity_renderer`.
 
+Implemented (PAR-INFRA-13): the data lives in `tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/`.
+`tfc-shapes.json` is generated from the pinned TFC sources (`TfcShapes`: VoxelShape constants evaluated, code-built
+shapes ported, needles that fail datagen when TFC changes a shape method; `TfcShapesTest` regenerates it).
+`vanilla-shapes-<version>.json` (1.21.4, 1.21.11, 26.1.2, 26.3) are dumps of `getShape`/`getCollisionShape` from each
+server jar; `carrier-policy.json` says per vanilla block whether it is absent from TFC worlds, natural (usable with a
+one-hop hide target), player-made, reserved or banned. IoUs are exact (coordinate-compressed grid, no voxel resolution).
+Penalties: x0.97 for a hide mapping, x0.9 for a replaceable state, x0.9 for an opaque full cube under a non-full or
+see-through block. A family is scored on its worst version. `HitboxDemands` lists every appearance datagen emits on an
+explicit carrier; `HitboxAllocation` serves them in one pass per profile x family (one look per vanilla state, hide targets
+never carriers, hitbox-only for rare blocks below 0.5, overflow fails) and writes `reports/hitbox-carriers-<family>.md`.
+Generators that write one file for every family take `HitboxAllocation.agreed(...)`, which fails if the families disagree.
+A carrier drawn in its vanilla look (placeholders) needs no hide mapping. CE pools (`auto_state`) stand for
+VisualAllocator's full cubes and only hold appearances with a model; the selector never uses a state VisualAllocator can
+allocate. `HardcodedCarrierTest` forbids vanilla state literals outside `hitbox/` and `visuals/`.
+
 ## 10. Packet layer
 
 - Library: **PacketEvents 2.14.x** (M0-NET-01), as an optional plugin dependency (`packetevents` in `paper-plugin.yml` and `compat.yml`). Without it the server runs without seasonal colours and item tooltips.

@@ -1,0 +1,697 @@
+{
+  "generated": "tools/datagen hitbox.TfcShapes from TerraFirmaCraft @ c3b4d9536; do not edit, regenerate (TfcShapesTest prints how)",
+  "units": "pixels; selection = getShape, collision = getCollisionShape (empty = noCollission)",
+  "rows": [
+    {
+      "key": "tfc:charcoal_pile[layers=1]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 2, 16]],
+      "collision": [],
+      "from": "CharcoalPileBlock.java SHAPE_BY_LAYER[1] / SHAPE_BY_LAYER[0]"
+    },
+    {
+      "key": "tfc:charcoal_pile[layers=2]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 4, 16]],
+      "collision": [[0, 0, 0, 16, 2, 16]],
+      "from": "CharcoalPileBlock.java SHAPE_BY_LAYER[2] / SHAPE_BY_LAYER[1]"
+    },
+    {
+      "key": "tfc:charcoal_pile[layers=3]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 6, 16]],
+      "collision": [[0, 0, 0, 16, 4, 16]],
+      "from": "CharcoalPileBlock.java SHAPE_BY_LAYER[3] / SHAPE_BY_LAYER[2]"
+    },
+    {
+      "key": "tfc:charcoal_pile[layers=4]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 6, 16]],
+      "from": "CharcoalPileBlock.java SHAPE_BY_LAYER[4] / SHAPE_BY_LAYER[3]"
+    },
+    {
+      "key": "tfc:charcoal_pile[layers=5]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 10, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16]],
+      "from": "CharcoalPileBlock.java SHAPE_BY_LAYER[5] / SHAPE_BY_LAYER[4]"
+    },
+    {
+      "key": "tfc:charcoal_pile[layers=6]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16]],
+      "collision": [[0, 0, 0, 16, 10, 16]],
+      "from": "CharcoalPileBlock.java SHAPE_BY_LAYER[6] / SHAPE_BY_LAYER[5]"
+    },
+    {
+      "key": "tfc:charcoal_pile[layers=7]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 14, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16]],
+      "from": "CharcoalPileBlock.java SHAPE_BY_LAYER[7] / SHAPE_BY_LAYER[6]"
+    },
+    {
+      "key": "tfc:charcoal_pile[layers=8]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 14, 16]],
+      "from": "CharcoalPileBlock.java SHAPE_BY_LAYER[8] / SHAPE_BY_LAYER[7]"
+    },
+    {
+      "key": "tfc:charcoal_forge",
+      "class": "charcoal_forge",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 14, 16]],
+      "collision": [[0, 0, 0, 16, 14, 16]],
+      "from": "CharcoalForgeBlock.java CharcoalPileBlock.SHAPE_BY_LAYER[7] / same"
+    },
+    {
+      "key": "tfc:bloom[layers=1]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 2, 16]],
+      "collision": [[0, 0, 0, 16, 2, 16]],
+      "from": "BloomBlock.java SHAPE_BY_LAYER[1] / same"
+    },
+    {
+      "key": "tfc:bloom[layers=2]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 4, 16]],
+      "collision": [[0, 0, 0, 16, 4, 16]],
+      "from": "BloomBlock.java SHAPE_BY_LAYER[2] / same"
+    },
+    {
+      "key": "tfc:bloom[layers=3]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 6, 16]],
+      "collision": [[0, 0, 0, 16, 6, 16]],
+      "from": "BloomBlock.java SHAPE_BY_LAYER[3] / same"
+    },
+    {
+      "key": "tfc:bloom[layers=4]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16]],
+      "from": "BloomBlock.java SHAPE_BY_LAYER[4] / same"
+    },
+    {
+      "key": "tfc:bloom[layers=5]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 10, 16]],
+      "collision": [[0, 0, 0, 16, 10, 16]],
+      "from": "BloomBlock.java SHAPE_BY_LAYER[5] / same"
+    },
+    {
+      "key": "tfc:bloom[layers=6]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16]],
+      "from": "BloomBlock.java SHAPE_BY_LAYER[6] / same"
+    },
+    {
+      "key": "tfc:bloom[layers=7]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 14, 16]],
+      "collision": [[0, 0, 0, 16, 14, 16]],
+      "from": "BloomBlock.java SHAPE_BY_LAYER[7] / same"
+    },
+    {
+      "key": "tfc:bloom[layers=8]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "from": "BloomBlock.java SHAPE_BY_LAYER[8] / same"
+    },
+    {
+      "key": "tfc:ingot_pile[count=1]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 2, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 2, 15.75]],
+      "from": "IngotPileBlock.java SHAPES[0] / same"
+    },
+    {
+      "key": "tfc:ingot_pile[count=9]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 4, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 4, 15.75]],
+      "from": "IngotPileBlock.java SHAPES[1] / same"
+    },
+    {
+      "key": "tfc:ingot_pile[count=17]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 6, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 6, 15.75]],
+      "from": "IngotPileBlock.java SHAPES[2] / same"
+    },
+    {
+      "key": "tfc:ingot_pile[count=25]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 8, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 8, 15.75]],
+      "from": "IngotPileBlock.java SHAPES[3] / same"
+    },
+    {
+      "key": "tfc:ingot_pile[count=33]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 10, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 10, 15.75]],
+      "from": "IngotPileBlock.java SHAPES[4] / same"
+    },
+    {
+      "key": "tfc:ingot_pile[count=41]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 12, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 12, 15.75]],
+      "from": "IngotPileBlock.java SHAPES[5] / same"
+    },
+    {
+      "key": "tfc:ingot_pile[count=49]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 14, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 14, 15.75]],
+      "from": "IngotPileBlock.java SHAPES[6] / same"
+    },
+    {
+      "key": "tfc:ingot_pile[count=57]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 16, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 16, 15.75]],
+      "from": "IngotPileBlock.java SHAPES[7] / same"
+    },
+    {
+      "key": "tfc:firepit",
+      "class": "firepit",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 2, 16], [2, 2, 2, 14, 6, 14]],
+      "collision": [[0, 0, 0, 16, 2, 16], [2, 2, 2, 14, 6, 14]],
+      "from": "FirepitBlock.java BASE_SHAPE / same"
+    },
+    {
+      "key": "tfc:grill",
+      "class": "grill",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 2, 16], [2, 2, 2, 14, 11, 14]],
+      "collision": [[0, 0, 0, 16, 2, 16], [2, 2, 2, 14, 11, 14]],
+      "from": "GrillBlock.java GRILL_SHAPE / same"
+    },
+    {
+      "key": "tfc:pot",
+      "class": "pot",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 2, 16], [2, 2, 2, 14, 14, 14]],
+      "collision": [[0, 0, 0, 16, 2, 16], [2, 2, 2, 14, 14, 14]],
+      "from": "PotBlock.java POT_SHAPE / same"
+    },
+    {
+      "key": "tfc:bellows[facing=north]",
+      "class": "bellows",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 2], [0, 0, 14, 16, 16, 16], [2, 2, 2, 14, 14, 14]],
+      "collision": [[0, 0, 0, 16, 16, 2], [0, 0, 14, 16, 16, 16], [2, 2, 2, 14, 14, 14]],
+      "from": "BellowsBlock.java (ported)"
+    },
+    {
+      "key": "tfc:bellows[facing=east]",
+      "class": "bellows",
+      "kind": "object",
+      "selection": [[0, 0, 0, 2, 16, 16], [14, 0, 0, 16, 16, 16], [2, 2, 2, 14, 14, 14]],
+      "collision": [[0, 0, 0, 2, 16, 16], [14, 0, 0, 16, 16, 16], [2, 2, 2, 14, 14, 14]],
+      "from": "BellowsBlock.java (ported)"
+    },
+    {
+      "key": "tfc:bellows[facing=south]",
+      "class": "bellows",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 2], [0, 0, 14, 16, 16, 16], [2, 2, 2, 14, 14, 14]],
+      "collision": [[0, 0, 0, 16, 16, 2], [0, 0, 14, 16, 16, 16], [2, 2, 2, 14, 14, 14]],
+      "from": "BellowsBlock.java (ported)"
+    },
+    {
+      "key": "tfc:bellows[facing=west]",
+      "class": "bellows",
+      "kind": "object",
+      "selection": [[0, 0, 0, 2, 16, 16], [14, 0, 0, 16, 16, 16], [2, 2, 2, 14, 14, 14]],
+      "collision": [[0, 0, 0, 2, 16, 16], [14, 0, 0, 16, 16, 16], [2, 2, 2, 14, 14, 14]],
+      "from": "BellowsBlock.java (ported)"
+    },
+    {
+      "key": "tfc:farmland",
+      "class": "farmland",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 15, 16]],
+      "collision": [[0, 0, 0, 16, 15, 16]],
+      "from": "FarmlandBlock.java SHAPE / same"
+    },
+    {
+      "key": "tfc:rock/spike[part=base]",
+      "class": "spike",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 16, 14]],
+      "collision": [[2, 0, 2, 14, 16, 14]],
+      "from": "RockSpikeBlock.java BASE_SHAPE / same"
+    },
+    {
+      "key": "tfc:rock/spike[part=middle]",
+      "class": "spike",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12]],
+      "collision": [[4, 0, 4, 12, 16, 12]],
+      "from": "RockSpikeBlock.java MIDDLE_SHAPE / same"
+    },
+    {
+      "key": "tfc:rock/spike[part=tip]",
+      "class": "spike",
+      "kind": "object",
+      "selection": [[6, 0, 6, 10, 16, 10]],
+      "collision": [[6, 0, 6, 10, 16, 10]],
+      "from": "RockSpikeBlock.java TIP_SHAPE / same"
+    },
+    {
+      "key": "tfc:rock/loose[count=1]",
+      "class": "loose_rock_1",
+      "kind": "ground",
+      "selection": [[5, 0, 5, 11, 2, 11]],
+      "collision": [],
+      "from": "LooseRockBlock.java ONE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:rock/loose[count=2]",
+      "class": "loose_rock_2",
+      "kind": "ground",
+      "selection": [[2, 0, 2, 14, 2, 14]],
+      "collision": [],
+      "from": "LooseRockBlock.java TWO / Shapes.empty()"
+    },
+    {
+      "key": "tfc:rock/loose[count=3]",
+      "class": "loose_rock_3",
+      "kind": "ground",
+      "selection": [[5, 0, 5, 11, 4, 11]],
+      "collision": [],
+      "from": "LooseRockBlock.java THREE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:ore/small",
+      "class": "small_ore",
+      "kind": "ground",
+      "selection": [[5, 0, 5, 11, 2, 11]],
+      "collision": [],
+      "from": "GroundcoverBlock.java SMALL / Shapes.empty()"
+    },
+    {
+      "key": "tfc:groundcover[shape=small]",
+      "class": "groundcover_small",
+      "kind": "ground",
+      "selection": [[5, 0, 5, 11, 2, 11]],
+      "collision": [],
+      "from": "GroundcoverBlock.java SMALL / Shapes.empty()"
+    },
+    {
+      "key": "tfc:groundcover[shape=medium]",
+      "class": "groundcover_medium",
+      "kind": "ground",
+      "selection": [[5, 0, 5, 11, 4, 11]],
+      "collision": [],
+      "from": "GroundcoverBlock.java MEDIUM / Shapes.empty()"
+    },
+    {
+      "key": "tfc:groundcover[shape=flat]",
+      "class": "groundcover_flat",
+      "kind": "ground",
+      "selection": [[2, 0, 2, 14, 2, 14]],
+      "collision": [],
+      "from": "GroundcoverBlock.java FLAT / Shapes.empty()"
+    },
+    {
+      "key": "tfc:groundcover[shape=pixel_high]",
+      "class": "groundcover_pixel_high",
+      "kind": "ground",
+      "selection": [[0, 0, 0, 16, 1, 16]],
+      "collision": [],
+      "from": "GroundcoverBlock.java PIXEL_HIGH / Shapes.empty()"
+    },
+    {
+      "key": "tfc:groundcover[shape=twig]",
+      "class": "groundcover_twig",
+      "kind": "ground",
+      "selection": [[2, 0, 2, 14, 2, 14]],
+      "collision": [],
+      "from": "GroundcoverBlock.java TWIG / Shapes.empty()"
+    },
+    {
+      "key": "tfc:placed_item[item_0=false,item_1=false,item_2=false,item_3=false]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=true,item_1=false,item_2=false,item_3=false]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[8, 0, 8, 16, 1, 16]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=false,item_1=true,item_2=false,item_3=false]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[0, 0, 8, 8, 1, 16]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=true,item_1=true,item_2=false,item_3=false]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[0, 0, 8, 16, 1, 16]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=false,item_1=false,item_2=true,item_3=false]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 1, 8]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=true,item_1=false,item_2=true,item_3=false]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 1, 16]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=false,item_1=true,item_2=true,item_3=false]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 1, 8], [0, 0, 8, 8, 1, 16]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=true,item_1=true,item_2=true,item_3=false]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 1, 16], [0, 0, 8, 8, 1, 16]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=false,item_1=false,item_2=false,item_3=true]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 1, 8]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=true,item_1=false,item_2=false,item_3=true]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 1, 8], [8, 0, 8, 16, 1, 16]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=false,item_1=true,item_2=false,item_3=true]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 1, 16]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=true,item_1=true,item_2=false,item_3=true]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 1, 16], [8, 0, 8, 16, 1, 16]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=false,item_1=false,item_2=true,item_3=true]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 1, 8]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=true,item_1=false,item_2=true,item_3=true]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 1, 8], [8, 0, 8, 16, 1, 16]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=false,item_1=true,item_2=true,item_3=true]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 1, 8], [0, 0, 8, 8, 1, 16]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:placed_item[item_0=true,item_1=true,item_2=true,item_3=true]",
+      "class": "placed_item",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 1, 16]],
+      "collision": [],
+      "from": "PlacedItemBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/leaves",
+      "class": "leaves",
+      "kind": "cube",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [],
+      "see_through": true,
+      "from": "TFCLeavesBlock.java Shapes.block() / Shapes.empty()"
+    },
+    {
+      "key": "tfc:thatch",
+      "class": "thatch",
+      "kind": "cube",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [],
+      "see_through": true,
+      "from": "ThatchBlock.java Shapes.block() / Shapes.empty()"
+    },
+    {
+      "key": "tfc:rock/raw",
+      "class": "full_cube",
+      "kind": "cube",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "from": "Rock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:wood/barrel[axis=y,sealed=true]",
+      "class": "barrel_upright",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 16, 14]],
+      "collision": [[2, 0, 2, 14, 16, 14]],
+      "from": "SealableDeviceBlock.java SHAPE / same"
+    },
+    {
+      "key": "tfc:wood/barrel[axis=y,sealed=false]",
+      "class": "barrel_upright",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 1, 14], [2, 1, 2, 14, 16, 3], [2, 1, 3, 3, 16, 14], [13, 1, 3, 14, 16, 14], [3, 1, 13, 13, 16, 14]],
+      "collision": [[2, 0, 2, 14, 1, 14], [2, 1, 2, 14, 16, 3], [2, 1, 3, 3, 16, 14], [13, 1, 3, 14, 16, 14], [3, 1, 13, 13, 16, 14]],
+      "from": "SealableDeviceBlock.java SHAPE_UNSEALED / same"
+    },
+    {
+      "key": "tfc:wood/barrel[axis=x,rack=false]",
+      "class": "barrel_side",
+      "kind": "object",
+      "selection": [[0, 0, 2, 16, 12, 14]],
+      "collision": [[0, 0, 2, 16, 12, 14]],
+      "from": "BarrelBlock.java SHAPE_X / same"
+    },
+    {
+      "key": "tfc:wood/barrel[axis=x,rack=true]",
+      "class": "barrel_side",
+      "kind": "object",
+      "selection": [[0, 0, 0, 2, 12, 16], [14, 0, 0, 16, 12, 16], [2, 0, 2, 14, 12, 14], [0, 12, 0, 2, 16, 2], [14, 12, 0, 16, 16, 2], [0, 12, 14, 2, 16, 16], [14, 12, 14, 16, 16, 16], [2, 14, 0, 14, 16, 16], [0, 14, 2, 2, 16, 14], [14, 14, 2, 16, 16, 14]],
+      "collision": [[0, 0, 0, 2, 12, 16], [14, 0, 0, 16, 12, 16], [2, 0, 2, 14, 12, 14], [0, 12, 0, 2, 16, 2], [14, 12, 0, 16, 16, 2], [0, 12, 14, 2, 16, 16], [14, 12, 14, 16, 16, 16], [2, 14, 0, 14, 16, 16], [0, 14, 2, 2, 16, 14], [14, 14, 2, 16, 16, 14]],
+      "from": "BarrelBlock.java SHAPE_X_RACK / same"
+    },
+    {
+      "key": "tfc:wood/barrel[axis=z,rack=false]",
+      "class": "barrel_side",
+      "kind": "object",
+      "selection": [[2, 0, 0, 14, 12, 16]],
+      "collision": [[2, 0, 0, 14, 12, 16]],
+      "from": "BarrelBlock.java SHAPE_Z / same"
+    },
+    {
+      "key": "tfc:wood/barrel[axis=z,rack=true]",
+      "class": "barrel_side",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 2], [2, 0, 2, 14, 12, 16], [0, 0, 14, 2, 16, 16], [14, 0, 14, 16, 16, 16], [0, 12, 0, 2, 16, 2], [14, 12, 0, 16, 16, 2], [2, 14, 0, 14, 16, 16], [0, 14, 2, 2, 16, 14], [14, 14, 2, 16, 16, 14]],
+      "collision": [[0, 0, 0, 16, 12, 2], [2, 0, 2, 14, 12, 16], [0, 0, 14, 2, 16, 16], [14, 0, 14, 16, 16, 16], [0, 12, 0, 2, 16, 2], [14, 12, 0, 16, 16, 2], [2, 14, 0, 14, 16, 16], [0, 14, 2, 2, 16, 14], [14, 14, 2, 16, 16, 14]],
+      "from": "BarrelBlock.java SHAPE_Z_RACK / same"
+    },
+    {
+      "key": "tfc:barrel_rack",
+      "class": "barrel_rack",
+      "kind": "object",
+      "selection": [[0, 0, 0, 2, 16, 2], [14, 0, 0, 16, 16, 2], [0, 0, 14, 2, 16, 16], [14, 0, 14, 16, 16, 16], [2, 14, 0, 14, 16, 16], [0, 14, 2, 2, 16, 14], [14, 14, 2, 16, 16, 14]],
+      "collision": [[0, 0, 0, 2, 16, 2], [14, 0, 0, 16, 16, 2], [0, 0, 14, 2, 16, 16], [14, 0, 14, 16, 16, 16], [2, 14, 0, 14, 16, 16], [0, 14, 2, 2, 16, 14], [14, 14, 2, 16, 16, 14]],
+      "from": "BarrelRackBlock.java BarrelBlock.RACK_SHAPE / same"
+    },
+    {
+      "key": "tfc:powderkeg[sealed=true]",
+      "class": "powderkeg",
+      "kind": "object",
+      "selection": [[1, 0, 1, 15, 16, 15]],
+      "collision": [[1, 0, 1, 15, 16, 15]],
+      "from": "PowderkegBlock.java SHAPE / same"
+    },
+    {
+      "key": "tfc:powderkeg[sealed=false]",
+      "class": "powderkeg",
+      "kind": "object",
+      "selection": [[1, 0, 1, 15, 1, 15], [1, 1, 1, 15, 16, 2], [1, 1, 2, 2, 16, 15], [14, 1, 2, 15, 16, 15], [2, 1, 14, 14, 16, 15]],
+      "collision": [[1, 0, 1, 15, 1, 15], [1, 1, 1, 15, 16, 2], [1, 1, 2, 2, 16, 15], [14, 1, 2, 15, 16, 15], [2, 1, 14, 14, 16, 15]],
+      "from": "PowderkegBlock.java SHAPE_UNSEALED / same"
+    },
+    {
+      "key": "tfc:ceramic/large_vessel[sealed=false]",
+      "class": "large_vessel",
+      "kind": "object",
+      "selection": [[3, 0, 3, 13, 10, 13]],
+      "collision": [[3, 0, 3, 13, 10, 13]],
+      "from": "LargeVesselBlock.java OPENED_SHAPE / same"
+    },
+    {
+      "key": "tfc:ceramic/large_vessel[sealed=true]",
+      "class": "large_vessel",
+      "kind": "object",
+      "selection": [[3, 0, 3, 13, 11, 13], [2.5, 9.5, 2.5, 13.5, 11, 3], [2.5, 9.5, 3, 3, 11, 13.5], [13, 9.5, 3, 13.5, 11, 13.5], [3, 9.5, 13, 13, 11, 13.5], [7, 11, 7, 9, 12, 9]],
+      "collision": [[3, 0, 3, 13, 11, 13], [2.5, 9.5, 2.5, 13.5, 11, 3], [2.5, 9.5, 3, 3, 11, 13.5], [13, 9.5, 3, 13.5, 11, 13.5], [3, 9.5, 13, 13, 11, 13.5], [7, 11, 7, 9, 12, 9]],
+      "from": "LargeVesselBlock.java CLOSED_SHAPE / same"
+    },
+    {
+      "key": "tfc:nest_box",
+      "class": "nest_box",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 5, 14]],
+      "collision": [[2, 0, 2, 14, 5, 14]],
+      "from": "NestBoxBlock.java SHAPE / same"
+    },
+    {
+      "key": "tfc:ceramic/bowl",
+      "class": "bowl",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 3, 14]],
+      "collision": [[2, 0, 2, 14, 3, 14]],
+      "from": "BowlBlock.java SHAPE / same"
+    },
+    {
+      "key": "tfc:crucible",
+      "class": "crucible",
+      "kind": "object",
+      "selection": [[3, 0, 3, 13, 2, 13], [1, 1, 1, 15, 16, 3], [1, 1, 3, 3, 16, 15], [13, 1, 3, 15, 16, 15], [3, 1, 13, 13, 16, 15]],
+      "collision": [[3, 0, 3, 13, 2, 13], [1, 1, 1, 15, 16, 3], [1, 1, 3, 3, 16, 15], [13, 1, 3, 15, 16, 15], [3, 1, 13, 13, 16, 15]],
+      "from": "CrucibleBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/shelf[thick=false]",
+      "class": "shelf",
+      "kind": "object",
+      "selection": [[0, 15, 0, 16, 16, 16]],
+      "collision": [[0, 15, 0, 16, 16, 16]],
+      "from": "ShelfBlock.java TOP_SHAPE / TOP_SHAPE"
+    },
+    {
+      "key": "tfc:wood/shelf[thick=true]",
+      "class": "shelf",
+      "kind": "object",
+      "selection": [[0, 14, 0, 16, 16, 16]],
+      "collision": [[0, 15, 0, 16, 16, 16]],
+      "from": "ShelfBlock.java TOP_SHAPE_TALL / TOP_SHAPE"
+    },
+    {
+      "key": "tfc:wood/tool_rack[facing=north]",
+      "class": "tool_rack",
+      "kind": "object",
+      "selection": [[0, 0, 14, 16, 16, 16]],
+      "collision": [[0, 0, 14, 16, 16, 16]],
+      "from": "ToolRackBlock.java SHAPE_NORTH / same"
+    },
+    {
+      "key": "tfc:wood/tool_rack[facing=east]",
+      "class": "tool_rack",
+      "kind": "object",
+      "selection": [[0, 0, 0, 2, 16, 16]],
+      "collision": [[0, 0, 0, 2, 16, 16]],
+      "from": "ToolRackBlock.java SHAPE_EAST / same"
+    },
+    {
+      "key": "tfc:wood/tool_rack[facing=south]",
+      "class": "tool_rack",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 2]],
+      "collision": [[0, 0, 0, 16, 16, 2]],
+      "from": "ToolRackBlock.java SHAPE_SOUTH / same"
+    },
+    {
+      "key": "tfc:wood/tool_rack[facing=west]",
+      "class": "tool_rack",
+      "kind": "object",
+      "selection": [[14, 0, 0, 16, 16, 16]],
+      "collision": [[14, 0, 0, 16, 16, 16]],
+      "from": "ToolRackBlock.java SHAPE_WEST / same"
+    },
+    {
+      "key": "tfc:lobster_trap",
+      "class": "lobster_trap",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "LobsterTrapBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:drying_bricks[count=2]",
+      "class": "drying_bricks",
+      "kind": "object",
+      "selection": [[2, 0, 1, 6, 3, 7], [10, 0, 1, 14, 3, 7]],
+      "collision": [[2, 0, 1, 6, 3, 7], [10, 0, 1, 14, 3, 7]],
+      "from": "DryingBricksBlock.java SHAPE_2 / same"
+    }
+  ]
+}
