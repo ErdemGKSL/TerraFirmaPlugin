@@ -25,7 +25,8 @@ import org.bukkit.World;
  * </pre>
  *
  * <p>{@link #onRemove} (region thread; the block was broken, exploded or replaced by another block) hands the last
- * record to the device router, which drops the inventory. Unloading is not removal and does nothing. No ticker.
+ * record to the device router, which drops the inventory. {@link #onLoad} stamps a device that has no record yet.
+ * Unloading is not removal and does nothing. No ticker.
  */
 public final class DeviceController extends TfpBlockEntityController<DataMap> {
     /** Our key's path: the data is stored as {@code tfp:device}. */
@@ -50,6 +51,33 @@ public final class DeviceController extends TfpBlockEntityController<DataMap> {
     /** Replaces the record map (a copy is kept) and marks the chunk for saving. Region thread. */
     public void write(DataMap map) {
         setData(map.copy());
+    }
+
+    /**
+     * CraftEngine added the block entity to a loaded chunk: on creation (placement by anyone, a command, the API, first
+     * access of a generated device) and when its chunk loads. A device without a stored record gets a fresh one with
+     * {@code lastUpdateTick} stamped now, so its time starts with its block entity (TFC's block entity ticks from
+     * creation). Region thread.
+     */
+    @Override
+    public void onLoad() {
+        BlockEntity be = blockEntity;
+        if (be == null) {
+            return;
+        }
+        try {
+            stampIfFresh(be.blockState.owner().value().id().toString());
+        } catch (RuntimeException e) {
+            LOG.log(Level.SEVERE, "Device at " + be.pos + ": stamping its creation failed", e);
+        }
+    }
+
+    /** Stores the router's stamped fresh record when nothing (readable or not) is stored yet. */
+    void stampIfFresh(String blockId) {
+        if (hasUnreadableData() || data().size() != 0) {
+            return;
+        }
+        DeviceBridge.router().created(blockId).ifPresent(this::write);
     }
 
     @Override

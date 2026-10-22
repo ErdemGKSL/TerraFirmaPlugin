@@ -6,6 +6,7 @@
 package dev.tfp.paper.device;
 
 import dev.tfp.core.persist.DataMap;
+import java.util.Optional;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -31,7 +32,20 @@ public interface DeviceRouter {
         @Override
         public void removed(World world, int x, int y, int z, String blockId, DataMap data) {
         }
+
+        @Override
+        public Optional<DataMap> created(String blockId) {
+            return Optional.empty();
+        }
     };
+
+    /**
+     * A device block entity was created or loaded without any stored record (placement by a player, a command, the
+     * CraftEngine API or worldgen). Returns the record map to store at once: a fresh record of the block's kind with
+     * {@code lastUpdateTick} stamped now, so the device's time starts when its block entity does (TFC: the block entity
+     * ticks from its creation). Empty when {@code blockId} is no device kind. Touches no world; any thread.
+     */
+    Optional<DataMap> created(String blockId);
 
     /** A right click on the device. @return true if a handler consumed it (the click is cancelled) */
     boolean use(Block block, Player player, EquipmentSlot hand, ItemStack item);

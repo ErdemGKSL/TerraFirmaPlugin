@@ -10,11 +10,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import dev.tfp.core.device.DeviceRecord;
 import dev.tfp.core.device.ItemBlob;
 import dev.tfp.core.persist.DataMap;
+import dev.tfp.paper.device.DeviceBridge;
 import dev.tfp.paper.device.DeviceKind;
+import dev.tfp.paper.device.DeviceRouter;
 import dev.tfp.paper.device.ProbeDevice;
+import java.util.Optional;
 import net.momirealms.craftengine.libraries.nbt.CompoundTag;
 import net.momirealms.craftengine.libraries.nbt.NBT;
 import net.momirealms.craftengine.libraries.nbt.StringTag;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -72,6 +80,57 @@ class DeviceControllerTest {
         assertThat(c.read().requireInt("x")).isEqualTo(1);
         c.read().putInt("x", 3);
         assertThat(c.read().requireInt("x")).isEqualTo(1);
+    }
+
+    /** A router that only answers {@link DeviceRouter#created}: the probe kind stamped at {@code tick}. */
+    private static DeviceRouter creating(long tick) {
+        return new DeviceRouter() {
+            @Override
+            public boolean use(Block block, Player player, EquipmentSlot hand, ItemStack item) {
+                return false;
+            }
+
+            @Override
+            public void neighbourChanged(Block block) {
+            }
+
+            @Override
+            public void removed(World world, int x, int y, int z, String blockId, DataMap data) {
+            }
+
+            @Override
+            public Optional<DataMap> created(String blockId) {
+                return KIND.covers(blockId)
+                        ? Optional.of(KIND.codec().encode(KIND.fresh().withLastUpdateTick(tick)))
+                        : Optional.empty();
+            }
+        };
+    }
+
+    @Test
+    void creationStampsOnlyADeviceWithoutARecord() {
+        DeviceRouter router = creating(777);
+        DeviceBridge.installRouter(router);
+        try {
+            DeviceController fresh = new DeviceController(null);
+            fresh.stampIfFresh(ProbeDevice.ID);
+            assertThat(KIND.codec().decode(fresh.read()).lastUpdateTick()).isEqualTo(777);
+
+            DeviceRecord<ProbeDevice.State> old = KIND.fresh().withLastUpdateTick(5);
+            DeviceController stored = new DeviceController(null);
+            stored.write(KIND.codec().encode(old));
+            stored.stampIfFresh(ProbeDevice.ID); // a chunk load of a written device changes nothing
+            assertThat(KIND.codec().decode(stored.read())).isEqualTo(old);
+
+            DeviceController other = new DeviceController(null);
+            other.stampIfFresh("tfp:not_a_device");
+            assertThat(other.read().size()).isZero();
+        } finally {
+            DeviceBridge.clearRouter(router);
+        }
+        DeviceController noRouter = new DeviceController(null);
+        noRouter.stampIfFresh(ProbeDevice.ID); // module not enabled yet: first access stamps instead
+        assertThat(noRouter.read().size()).isZero();
     }
 
     @Test

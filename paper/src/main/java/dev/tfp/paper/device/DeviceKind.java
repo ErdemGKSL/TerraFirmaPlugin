@@ -14,6 +14,7 @@ import dev.tfp.core.device.DeviceRecord;
 import dev.tfp.core.device.DeviceRecordCodec;
 import dev.tfp.core.persist.VersionedCodec;
 import java.util.Objects;
+import java.util.function.IntUnaryOperator;
 import java.util.regex.Pattern;
 import org.bukkit.inventory.ItemStack;
 
@@ -53,7 +54,7 @@ public final class DeviceKind<S> {
     private final VersionedCodec<S> stateCodec;
     private final S initial;
     private final int slots;
-    private final int slotLimit;
+    private final IntUnaryOperator slotLimit;
     private final SlotFilter filter;
     private final CatchUp.Advance<S> advance;
     private final DeviceHandler<S> handler;
@@ -104,9 +105,12 @@ public final class DeviceKind<S> {
         return slots;
     }
 
-    /** TFC {@code getSlotLimit}: the most items one slot holds (also capped by the item's max stack size). */
-    public int slotLimit() {
-        return slotLimit;
+    /**
+     * TFC {@code ISlotCallback.getSlotStackLimit(slot)}: the most items {@code slot} holds (also capped by the item's
+     * max stack size). Per slot, as TFC's anvil (catalyst 64, others 1) or quern (handstone 1, others 64).
+     */
+    public int slotLimit(int slot) {
+        return slotLimit.applyAsInt(slot);
     }
 
     public SlotFilter filter() {
@@ -141,7 +145,7 @@ public final class DeviceKind<S> {
         private final VersionedCodec<S> stateCodec;
         private final S initial;
         private int slots;
-        private int slotLimit = 64;
+        private IntUnaryOperator slotLimit = slot -> 64;
         private SlotFilter filter = SlotFilter.ANY;
         private CatchUp.Advance<S> advance = CatchUp.Advance.none();
         private DeviceHandler<S> handler = new DeviceHandler<>() {
@@ -165,11 +169,22 @@ public final class DeviceKind<S> {
             return this;
         }
 
+        /** The same limit for every slot (TFC's default {@code getSlotStackLimit} is 64). */
         public Builder<S> slotLimit(int limit) {
             if (limit < 1) {
                 throw new IllegalArgumentException(id + ": slotLimit < 1");
             }
-            this.slotLimit = limit;
+            this.slotLimit = slot -> limit;
+            return this;
+        }
+
+        /**
+         * A limit per slot, TFC {@code getSlotStackLimit(int slot)}; for example the anvil's
+         * {@code slot -> slot == SLOT_CATALYST ? 64 : 1}. Must answer at least 1 for every declared slot; checked at
+         * {@link #build()}.
+         */
+        public Builder<S> slotLimit(IntUnaryOperator limitOfSlot) {
+            this.slotLimit = Objects.requireNonNull(limitOfSlot, "limitOfSlot");
             return this;
         }
 
@@ -194,6 +209,11 @@ public final class DeviceKind<S> {
         }
 
         public DeviceKind<S> build() {
+            for (int slot = 0; slot < slots; slot++) {
+                if (slotLimit.applyAsInt(slot) < 1) {
+                    throw new IllegalArgumentException(id + ": slot limit of slot " + slot + " < 1");
+                }
+            }
             return new DeviceKind<>(this);
         }
     }

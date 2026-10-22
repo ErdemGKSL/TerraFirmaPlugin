@@ -24,7 +24,7 @@ import org.bukkit.entity.Player;
  * PAR-INFRA-02: the device framework on the module SPI. Provides {@link DeviceService} to later modules
  * ({@code services().require(DeviceService.class)}, then {@code register(kind)}), installs it as the router of the
  * {@code tfp:device} CraftEngine behaviour ({@link DeviceBridge}), listens for left clicks and placements, registers
- * the {@link ProbeDevice} and carries {@code /tfp debug device} (the device the player looks at: kind, decoded state,
+ * no kinds of its own (the test-only {@link ProbeDevice} is registered by the self-test) and carries {@code /tfp debug device} (the device the player looks at: kind, decoded state,
  * slots, lastUpdateTick; registered by PAR-INFRA-18, see {@link #addDebugCommand}). Must be listed before every module that registers device kinds.
  */
 public final class DeviceModule implements FeatureModule {
@@ -44,7 +44,6 @@ public final class DeviceModule implements FeatureModule {
     public void enable(ModuleContext context) {
         DeviceService s = new DeviceService(new DeviceKinds(), context.integrations().customBlocks(), DeviceBridge::store,
                 () -> context.clock().get().playerTicks(), StackCodec.PAPER, context.logger());
-        s.register(ProbeDevice.kind());
         context.services().provide(DeviceService.class, s);
         context.listen(new DeviceListener(s, context.scheduler()));
         scheduler = context.scheduler();

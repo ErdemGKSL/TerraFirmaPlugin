@@ -11,6 +11,10 @@ package dev.tfp.integration.craftengine.device;
 
 import dev.tfp.integration.craftengine.CraftEngineBehaviours;
 import dev.tfp.paper.device.DeviceBridge;
+import java.lang.ref.WeakReference;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
@@ -39,13 +43,17 @@ import org.bukkit.inventory.ItemStack;
  * is chosen by the block id on the Paper side.
  *
  * <ul>
- *   <li>{@link #useOnBlock}: a right click; consumed → {@code SUCCESS_AND_CANCEL} (the Bukkit event is cancelled, no
- *       vanilla item use follows), otherwise {@code PASS}.</li>
+ *   <li>{@link #useOnBlock}: a right click with either hand, also an empty one (CraftEngine calls it like vanilla's
+ *       {@code useItemOn}). The router runs the kind's {@code useWithItem} and, for the main hand only, {@code use};
+ *       consumed → {@code SUCCESS_AND_CANCEL} (the Bukkit event is cancelled, no vanilla item use follows), otherwise
+ *       {@code PASS} (never {@code TRY_EMPTY_HAND}, so CraftEngine's own {@code useWithoutItem} call never repeats
+ *       {@code use}).</li>
  *   <li>{@link #neighborChanged}: a neighbour changed (NMS callback, region thread).</li>
  *   <li>Removal: {@link DeviceController#onRemove}.</li>
  *   <li>Left click and placement come from Bukkit events in the Paper module.</li>
  * </ul>
- * No random tick, no ticker (lazy catch-up). Holds no state: CraftEngine rebuilds behaviours on every reload.
+ * No random tick, no ticker (lazy catch-up). Holds no per-block state (only a weak level → world lookup cache):
+ * CraftEngine rebuilds behaviours on every reload.
  */
 public final class DeviceBlockBehaviour extends BukkitBlockBehavior implements EntityBlock {
     /** {@code type: tfp:device} in block YAML. */
@@ -106,10 +114,22 @@ public final class DeviceBlockBehaviour extends BukkitBlockBehavior implements E
         }
     }
 
-    /** The Bukkit world of an NMS level (a handful of worlds: a linear scan, no NMS access). */
-    private static World worldOf(Object level) {
+    /**
+     * NMS level → Bukkit world, filled on the first neighbour update of each level. Weak keys (a level does not
+     * override equals, so identity) and weak values: an unloaded world is not kept alive. Shared by every region thread.
+     */
+    private static final Map<Object, WeakReference<World>> WORLDS = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /** The Bukkit world of an NMS level: a cached lookup; a miss scans the loaded worlds once. */
+    static World worldOf(Object level) {
+        WeakReference<World> ref = WORLDS.get(level);
+        World cached = ref == null ? null : ref.get();
+        if (cached != null) {
+            return cached;
+        }
         for (World w : Bukkit.getWorlds()) {
             if (BukkitAdaptor.adapt(w).minecraftWorld() == level) {
+                WORLDS.put(level, new WeakReference<>(w));
                 return w;
             }
         }

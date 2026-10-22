@@ -11,14 +11,15 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * The framework's own test device (PAR-INFRA-02), used by the tests and the self-test {@code device.roundtrip}
- * (PAR-INFRA-18). Not a TFC block: it has no content of its own and is inert unless a CraftEngine block
- * {@code tfp:device/probe} with behaviour {@code tfp:device} exists.
+ * (PAR-INFRA-18). Not a TFC block: it has no content of its own and is not registered in production; the self-test
+ * registers it ({@code services().require(DeviceService.class).register(ProbeDevice.kind())}) on a CraftEngine block
+ * {@code tfp:device/probe} with behaviour {@code tfp:device}.
  *
  * <ul>
  *   <li>State: player ticks simulated so far and the number of right clicks.</li>
  *   <li>Catch-up: adds the elapsed ticks.</li>
  *   <li>Right click with an item: one of it goes into the first slot that takes it (consumed).</li>
- *   <li>Right click otherwise: counts the click (consumed).</li>
+ *   <li>Main-hand right click otherwise: counts the click (consumed).</li>
  *   <li>Four slots, any item, dropped on break.</li>
  * </ul>
  */
@@ -47,6 +48,9 @@ public final class ProbeDevice {
                 .handler(new DeviceHandler<>() {
                     @Override
                     public DeviceResult<State> useWithItem(DeviceContext<State> ctx) {
+                        if (StackCodec.isEmpty(ctx.item())) {
+                            return DeviceResult.pass(); // empty hand: on to use (main hand only)
+                        }
                         ItemStack one = ctx.item().clone();
                         one.setAmount(1);
                         DeviceInventory.Insert<State> r = ctx.inventory().insert(one);

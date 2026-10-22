@@ -18,7 +18,7 @@ import org.bukkit.inventory.ItemStack;
 /**
  * The fixed slot list of a device (TFC {@code InventoryBlockEntity}'s {@code ItemStackHandler}) as an immutable view
  * over a {@link DeviceRecord} (PAR-INFRA-02). Changes return a new inventory; {@link #record()} is what a handler
- * stores. Insert follows TFC's handler: the kind's {@link DeviceKind.SlotFilter} ({@code isItemValid}), the slot limit
+ * stores. Insert follows TFC's handler: the kind's {@link DeviceKind.SlotFilter} ({@code isItemValid}), the slot's limit
  * and the item's max stack size ({@link ItemSlotRules}). Stacks handed out are copies.
  *
  * <p>Threads: region thread of the device (stacks are decoded there).
@@ -55,7 +55,7 @@ public final class DeviceInventory<S> {
         return stacks.decode(record.slot(slot));
     }
 
-    /** Replaces the slot (no filter check: TFC {@code setStackInSlot}). */
+    /** Replaces the slot (no filter or limit check: TFC {@code setStackInSlot}). */
     public DeviceInventory<S> set(int slot, ItemStack stack) {
         return with(record.withSlot(slot, stacks.encode(stack)));
     }
@@ -65,15 +65,23 @@ public final class DeviceInventory<S> {
         return slot >= 0 && slot < kind.slots() && !StackCodec.isEmpty(stack) && kind.filter().canInsert(slot, stack);
     }
 
-    /** TFC {@code insertItem(slot, stack, false)}. {@code stack} is not modified. */
+    /**
+     * TFC {@code insertItem(slot, stack, false)} (NeoForge {@code ItemStackHandler}): the room is
+     * {@code min(slot limit, max stack size) - content}; when there is none (also when {@link #set} overfilled the slot)
+     * the stack comes back unchanged. {@code stack} is not modified.
+     */
     public Insert<S> insert(int slot, ItemStack stack) {
         if (StackCodec.isEmpty(stack)) {
             return new Insert<>(this, ItemStack.empty());
         }
         ItemStack content = get(slot);
         boolean empty = StackCodec.isEmpty(content);
+        int limit = kind.slotLimit(slot);
+        if (!empty && content.getAmount() >= Math.min(stack.getMaxStackSize(), limit)) {
+            return new Insert<>(this, stack.clone());
+        }
         ItemSlotRules.Insert r = ItemSlotRules.insert(empty ? 0 : content.getAmount(), stack.getAmount(),
-                !empty && content.isSimilar(stack), canInsert(slot, stack), stack.getMaxStackSize(), kind.slotLimit());
+                !empty && content.isSimilar(stack), canInsert(slot, stack), stack.getMaxStackSize(), limit);
         if (r.remainderCount() == stack.getAmount()) {
             return new Insert<>(this, stack.clone());
         }
@@ -98,13 +106,17 @@ public final class DeviceInventory<S> {
         return new Insert<>(inv, rest);
     }
 
-    /** TFC {@code extractItem(slot, amount, false)}. */
+    /**
+     * TFC {@code extractItem(slot, amount, false)}: at most {@code amount} and at most the item's max stack size (an
+     * overfilled slot gives out one stack at a time).
+     */
     public Extract<S> extract(int slot, int amount) {
         ItemStack content = get(slot);
         if (StackCodec.isEmpty(content) || amount <= 0) {
             return new Extract<>(this, ItemStack.empty());
         }
-        ItemSlotRules.Extract r = ItemSlotRules.extract(content.getAmount(), amount);
+        ItemSlotRules.Extract r = ItemSlotRules.extract(content.getAmount(),
+                Math.min(amount, content.getMaxStackSize()));
         ItemStack out = content.clone();
         out.setAmount(r.extractedCount());
         ItemStack left = content.clone();

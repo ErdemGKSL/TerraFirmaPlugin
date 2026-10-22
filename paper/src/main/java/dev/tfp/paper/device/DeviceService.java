@@ -102,9 +102,23 @@ public final class DeviceService implements DeviceRouter {
         return route(block, player, EquipmentSlot.HAND, ItemStack.empty(), Op.ATTACK);
     }
 
-    /** A player placed the device (one tick after the placement, {@link DeviceListener}). */
-    public void placed(Block block, Player player) {
-        route(block, player, null, ItemStack.empty(), Op.PLACED);
+    /**
+     * A player placed the device (after the placement event, {@link DeviceListener}).
+     *
+     * @param item a copy of the placed stack, taken during the event (TFC {@code setPlacedBy}'s stack)
+     */
+    public void placed(Block block, Player player, EquipmentSlot hand, ItemStack item) {
+        route(block, player, hand, StackCodec.isEmpty(item) ? ItemStack.empty() : item.clone(), Op.PLACED);
+    }
+
+    @Override
+    public Optional<DataMap> created(String blockId) {
+        Optional<DeviceKind<?>> kind = kinds.find(blockId);
+        return kind.map(k -> stamped(k, playerTicks.getAsLong()));
+    }
+
+    private static <S> DataMap stamped(DeviceKind<S> kind, long now) {
+        return kind.codec().encode(kind.fresh().withLastUpdateTick(now));
     }
 
     @Override
@@ -164,10 +178,11 @@ public final class DeviceService implements DeviceRouter {
         DeviceContext<S> ctx = new DeviceContext<>(kind, block, state, null, null, ItemStack.empty(), record, now, stacks);
         kind.handler().removed(ctx);
         if (kind.removal() == DeviceKind.RemoveBehaviour.DROP) {
-            // TFC Helpers.spawnItem(level, pos, stack): an item entity at the block centre, vanilla's random motion.
+            // TFC Helpers.spawnItem(level, pos, stack): new ItemEntity at the block centre, vanilla's random motion,
+            // pickup delay 0. CraftWorld.dropItem sets pickupDelay = 10 before the consumer runs, so reset it there.
             Location centre = new Location(world, x + 0.5, y + 0.5, z + 0.5);
             for (ItemStack stack : ctx.inventory().contents()) {
-                world.dropItem(centre, stack);
+                world.dropItem(centre, stack, item -> item.setPickupDelay(0));
             }
         }
     }
@@ -241,8 +256,10 @@ public final class DeviceService implements DeviceRouter {
         switch (op) {
             case USE -> {
                 DeviceContext<S> ctx = new DeviceContext<>(kind, block, state, player, hand, item, record, now, stacks);
-                DeviceResult<S> first = StackCodec.isEmpty(item) ? DeviceResult.pass() : handler.useWithItem(ctx);
-                if (first.consumed()) {
+                // vanilla ServerPlayerGameMode.useItemOn: useItemOn for the clicking hand (also when empty), then
+                // useWithoutItem only for the main hand (CraftEngine: TRY_EMPTY_HAND && hand == MAIN_HAND)
+                DeviceResult<S> first = handler.useWithItem(ctx);
+                if (first.consumed() || hand != EquipmentSlot.HAND) {
                     result = first;
                 } else {
                     // TFC: PASS_TO_DEFAULT_BLOCK_INTERACTION → useWithoutItem, on the record useWithItem left

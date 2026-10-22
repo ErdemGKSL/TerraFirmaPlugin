@@ -11,26 +11,44 @@ package dev.tfp.paper.device;
  * snapshotted and handed to an {@code AsyncDecisionPipeline} ("decide async, apply sync"); the callback only answers
  * from the record. Defaults do nothing and pass.
  *
- * <p>Order of a right click, as TFC's {@code Block.useItemOn} then {@code useWithoutItem}: with a non-empty hand
- * {@link #useWithItem} runs first; if it passes, {@link #use} runs.
+ * <p><b>Never change other blocks from a handler</b> (no {@code setType}, no CraftEngine placement, no neighbour
+ * writes): a handler only returns the device's new record. Changes to the world around the device are decided async
+ * and applied by the region commit queue (ARCHITECTURE.md §7.1).
+ *
+ * <p>Order of a right click, as vanilla's {@code ServerPlayerGameMode.useItemOn}: {@link #useWithItem} (TFC
+ * {@code useItemOn}) runs for the clicking hand, also when that hand is empty; if it passes and the hand is the main
+ * hand, {@link #use} (TFC {@code useWithoutItem}) runs. An off-hand click never reaches {@link #use}. CraftEngine skips
+ * both while the player sneaks with an item in either hand, as vanilla.
  */
 public interface DeviceHandler<S> {
-    /** TFC {@code useItemOn}: a right click holding {@link DeviceContext#item()} (not empty). */
+    /**
+     * TFC {@code useItemOn}: a right click with {@link DeviceContext#hand()}, holding {@link DeviceContext#item()},
+     * which may be empty (as TFC; for example {@code BarrelBlock} toggles the seal on an empty hand + sneak here).
+     */
     default DeviceResult<S> useWithItem(DeviceContext<S> ctx) {
         return DeviceResult.pass();
     }
 
-    /** TFC {@code useWithoutItem}: a right click that no item handled (the hand may be empty or not). */
+    /**
+     * TFC {@code useWithoutItem}: a main-hand right click that {@link #useWithItem} passed (the hand may hold an item).
+     */
     default DeviceResult<S> use(DeviceContext<S> ctx) {
         return DeviceResult.pass();
     }
 
-    /** TFC {@code attack}: a left click on the device (it is not broken yet). */
+    /**
+     * TFC {@code attack}: a left click on the device (it is not broken yet). Not called in creative mode or when the
+     * click was denied (protection plugins), as vanilla.
+     */
     default DeviceResult<S> attack(DeviceContext<S> ctx) {
         return DeviceResult.pass();
     }
 
-    /** TFC {@code setPlacedBy}: a player placed the device; runs on the tick after the placement. */
+    /**
+     * TFC {@code setPlacedBy}: a player placed the device; runs after the placement event, on the block's region.
+     * {@link DeviceContext#item()} is a copy of the placed stack (before it was used up) and {@link DeviceContext#hand()}
+     * the hand it came from.
+     */
     default DeviceResult<S> placed(DeviceContext<S> ctx) {
         return DeviceResult.pass();
     }

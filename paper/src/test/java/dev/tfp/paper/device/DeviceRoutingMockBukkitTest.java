@@ -130,7 +130,7 @@ class DeviceRoutingMockBukkitTest extends MockServerTest {
 
                     @Override
                     public DeviceResult<Counter> placed(DeviceContext<Counter> ctx) {
-                        events.add("placed:" + ctx.player().getName());
+                        events.add("placed:" + ctx.player().getName() + ":" + ctx.hand() + ":" + ctx.item().getType());
                         return DeviceResult.pass();
                     }
 
@@ -221,6 +221,68 @@ class DeviceRoutingMockBukkitTest extends MockServerTest {
         assertThat(drops.getFirst().getItemStack().getType()).isEqualTo(Material.COBBLESTONE);
         assertThat(drops.getFirst().getItemStack().getAmount()).isEqualTo(2);
         assertThat(drops.getFirst().getLocation().getX()).isEqualTo(2.5);
+        assertThat(drops.getFirst().getPickupDelay()).isZero(); // TFC new ItemEntity: no pickup delay
+    }
+
+    /** A kind that records which use callbacks ran, with which hand and whether the stack was empty. */
+    private Block handsDevice(List<String> calls, int x) {
+        blocks.known("tfp:device/hands");
+        service.register(DeviceKind.builder("tfp:device/hands", COUNTER, new Counter(0))
+                .handler(new DeviceHandler<>() {
+                    @Override
+                    public DeviceResult<Counter> useWithItem(DeviceContext<Counter> ctx) {
+                        calls.add("withItem:" + ctx.hand() + ":" + (ctx.item().isEmpty() ? "empty" : ctx.item().getType()));
+                        return DeviceResult.pass();
+                    }
+
+                    @Override
+                    public DeviceResult<Counter> use(DeviceContext<Counter> ctx) {
+                        calls.add("use:" + ctx.hand());
+                        return DeviceResult.pass();
+                    }
+                })
+                .build());
+        return device("tfp:device/hands", x);
+    }
+
+    @Test
+    void useWithItemRunsForEmptyHandsAndUseOnlyForTheMainHand() {
+        List<String> calls = new ArrayList<>();
+        Block block = handsDevice(calls, 20);
+        PlayerMock player = server.addPlayer();
+
+        // vanilla: useItemOn with the (empty) stack, then useWithoutItem for the main hand only
+        service.use(block, player, EquipmentSlot.HAND, ItemStack.empty());
+        assertThat(calls).containsExactly("withItem:HAND:empty", "use:HAND");
+        calls.clear();
+        // the off-hand packet of the same click: useItemOn only, use never runs a second time
+        service.use(block, player, EquipmentSlot.OFF_HAND, ItemStack.empty());
+        assertThat(calls).containsExactly("withItem:OFF_HAND:empty");
+        calls.clear();
+        service.use(block, player, EquipmentSlot.OFF_HAND, new ItemStack(Material.STICK));
+        assertThat(calls).containsExactly("withItem:OFF_HAND:STICK");
+        calls.clear();
+        service.use(block, player, EquipmentSlot.HAND, new ItemStack(Material.STICK));
+        assertThat(calls).containsExactly("withItem:HAND:STICK", "use:HAND");
+    }
+
+    @Test
+    void offHandClickDoesNotRepeatTheProbesPlainUse() {
+        Block block = device(ProbeDevice.ID, 22);
+        PlayerMock player = server.addPlayer();
+        assertThat(service.use(block, player, EquipmentSlot.HAND, ItemStack.empty())).isTrue();
+        assertThat(service.use(block, player, EquipmentSlot.OFF_HAND, ItemStack.empty())).isFalse();
+        assertThat(stored(block, probe()).state().uses()).isEqualTo(1);
+    }
+
+    @Test
+    void creationStampsAFreshRecordOfTheKind() {
+        now.set(4_242);
+        DataMap created = service.created("tfp:device/counter/oak").orElseThrow();
+        DeviceRecord<Counter> rec = counter().codec().decode(created);
+        assertThat(rec.lastUpdateTick()).isEqualTo(4_242);
+        assertThat(rec.state()).isEqualTo(new Counter(0));
+        assertThat(service.created("tfp:not_a_device")).isEmpty();
     }
 
     @Test
@@ -245,12 +307,24 @@ class DeviceRoutingMockBukkitTest extends MockServerTest {
                     new ItemStack(Material.STONE), player, true, EquipmentSlot.HAND));
             assertThat(events).isEmpty(); // runs on the next tick, after CraftEngine stored the block
             server.getScheduler().performOneTick();
-            assertThat(events).containsExactly("placed:" + player.getName());
+            // TFC setPlacedBy gets the placed stack: copied during the event
+            assertThat(events).containsExactly("placed:" + player.getName() + ":HAND:STONE");
             assertThat(stored(block, counter()).lastUpdateTick()).isEqualTo(1_000);
 
             server.getPluginManager().callEvent(new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK,
                     ItemStack.empty(), block, org.bukkit.block.BlockFace.UP));
             assertThat(events).endsWith("attack:" + player.getName());
+            int seen = events.size();
+
+            // vanilla calls Block.attack neither for a refused click nor in creative
+            PlayerInteractEvent denied = new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, ItemStack.empty(),
+                    block, org.bukkit.block.BlockFace.UP);
+            denied.setUseInteractedBlock(org.bukkit.event.Event.Result.DENY);
+            server.getPluginManager().callEvent(denied);
+            player.setGameMode(org.bukkit.GameMode.CREATIVE);
+            server.getPluginManager().callEvent(new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK,
+                    ItemStack.empty(), block, org.bukkit.block.BlockFace.UP));
+            assertThat(events).hasSize(seen);
 
             service.neighbourChanged(block);
             assertThat(events).endsWith("neighbour");
@@ -333,5 +407,44 @@ class DeviceRoutingMockBukkitTest extends MockServerTest {
         assertThat(out.inventory().contents()).hasSize(2);
         assertThat(out.inventory().cleared().contents()).isEmpty();
         assertThat(CatchUp.elapsed(DeviceRecord.NEVER, 5)).isZero();
+    }
+
+    @Test
+    void slotLimitsArePerSlotLikeTfcsAnvil() {
+        // TFC AnvilBlockEntity.getSlotStackLimit: slot == SLOT_CATALYST (2) ? 64 : 1
+        DeviceKind<Counter> anvil = DeviceKind.builder("tfp:device/anvil_like", COUNTER, new Counter(0))
+                .slots(3)
+                .slotLimit(slot -> slot == 2 ? 64 : 1)
+                .build();
+        assertThat(anvil.slotLimit(0)).isEqualTo(1);
+        assertThat(anvil.slotLimit(2)).isEqualTo(64);
+        DeviceInventory<Counter> inv = new DeviceInventory<>(anvil, anvil.fresh(), stacks);
+        DeviceInventory.Insert<Counter> r = inv.insert(new ItemStack(Material.IRON_INGOT, 10));
+        assertThat(r.inventory().get(0).getAmount()).isEqualTo(1);
+        assertThat(r.inventory().get(1).getAmount()).isEqualTo(1);
+        assertThat(r.inventory().get(2).getAmount()).isEqualTo(8);
+        assertThat(r.remainder().isEmpty()).isTrue();
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> DeviceKind.builder("tfp:device/bad", COUNTER,
+                new Counter(0)).slots(2).slotLimit(slot -> slot == 1 ? 0 : 64).build())
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void overfilledSlotsNeitherCreateItemsOnInsertNorGiveMoreThanAStack() {
+        DeviceKind<Counter> kind = DeviceKind.builder("tfp:device/over", COUNTER, new Counter(0))
+                .slots(1)
+                .slotLimit(16)
+                .build();
+        // set() has no limit, as TFC setStackInSlot
+        DeviceInventory<Counter> inv = new DeviceInventory<>(kind, kind.fresh(), stacks)
+                .set(0, new ItemStack(Material.STONE, 40));
+        DeviceInventory.Insert<Counter> in = inv.insert(0, new ItemStack(Material.STONE, 5));
+        assertThat(in.remainder().getAmount()).isEqualTo(5); // unchanged: the remaining limit is <= 0
+        assertThat(in.inventory().get(0).getAmount()).isEqualTo(40);
+
+        DeviceInventory<Counter> huge = inv.set(0, new ItemStack(Material.STONE, 100));
+        DeviceInventory.Extract<Counter> out = huge.extract(0, 100);
+        assertThat(out.extracted().getAmount()).isEqualTo(64); // capped at getMaxStackSize
+        assertThat(out.inventory().get(0).getAmount()).isEqualTo(36);
     }
 }
