@@ -19,7 +19,7 @@ Totals: 227 items; open 216, done 8, blocked 3; waves 1..56 (wave 0 = already do
 | PAR-INFRA-05 | Item tooltip pipeline: several decorations per item, TFC styles and colours | INFRA | 2 | blocked |
 | PAR-INFRA-12 | Self-test case: item data PDC round trip on a real server (nested food/heat inside tfp:contents) | INFRA | 2 | done |
 | PAR-INFRA-08 | Device datagen: shared CE templates for device blocks (states, loot self, hitbox carriers, entity_renderer) | INFRA | 2 | open |
-| PAR-INFRA-14 | NeoForge common tags: datagen emits the vanilla members of the c: tags (neoforge_common_tags.json) | INFRA | 2 | open |
+| PAR-INFRA-14 | NeoForge common tags: datagen emits the vanilla members of the c: tags (neoforge_common_tags.json) | INFRA | 2 | blocked |
 | PAR-HUD-04 | Two-layer HUD in-game verification at GUI scale 2 and 3 (full, low, submerged) | HUD | 3 | open |
 | PAR-INFRA-06 | Recipe runtime on Paper: ItemStack ingredient matching, indexed lookups, output modifiers | INFRA | 3 | open |
 | PAR-INFRA-09 | Block and entity loot runtime: TFC loot tables evaluated on Paper | INFRA | 3 | open |
