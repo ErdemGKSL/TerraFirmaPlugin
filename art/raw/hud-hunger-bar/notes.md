@@ -1,23 +1,25 @@
 # hud-hunger-bar
 
-Spec: master for the two-layer HUD bar `m3_surv_06_hunger_bar` (81x6), frame + FULL fill in one image (`plans/hud-layered-redesign.md`).
+Spec: master for the two-layer HUD bar `m3_surv_06_hunger_bar` (81x7), frame + FULL fill in one image (`plans/hud-layered-redesign.md`).
 Both layers are derived from this one master, never generated separately. Used by `tools/datagen` `HudLayouts.BAR_SPECS`.
+Style (owner feedback 2026-10-22): plain and restrained like TFC's own bars; the first, ornate attempt (files directly in
+this folder, if any) is superseded by the plain one in the subfolder named below.
 
 Generated with the imagegen CLI (the MCP tools did not load in this session), 2026-10-22:
 
-    npx -y codex-imagegen-mcp@0.2 generate "<prompt>" -a 21:9 -b transparent -n 2 -o art/raw/hud-hunger-bar/
+    npx -y codex-imagegen-mcp@0.2 generate "<prompt>" -a 21:9 -b transparent -n 2 -o art/raw/hud-hunger-bar/<v>/
 
 Prompt:
 
-> Game HUD sprite, Minecraft-style pixel art, hard pixel edges, no anti-aliasing, no text, no letters, no numbers, flat shading, light from top-left, in the style of the TerraFirmaCraft mod HUD. Fully transparent background around the sprite. The sprite fills the whole image width, centred vertically. A very long thin horizontal hunger bar, 13 times wider than tall, shown completely FULL. A crisp 1 pixel black outline around it with slightly rounded ends. The whole inside is filled edge to edge with warm orange: light golden-orange highlight row on top, saturated orange middle, darker burnt-orange bottom row, faint vertical segment notches every fifth of the length. No icons.
+> Simple clean game HUD bar sprite in plain Minecraft pixel-art style, like the plain bars of the TerraFirmaCraft mod: a crisp 1 pixel black outline with square ends cut by one pixel at the corners, flat fill colour with only one slightly lighter row along the top and one slightly darker row along the bottom, very limited palette of 3 to 4 colours, no gloss, no segments, no ornaments, no icons, no glow, no texture noise, no text. Hard pixel edges, no anti-aliasing. Fully transparent background. The bar spans the whole image width and is centred vertically. A very long thin bar 13 times wider than tall, shown completely FULL, filled with flat orange (main orange, light orange top row, burnt orange bottom row).
 
-Picked: `095425-game-hud-sprite-minecraft-style-pixel-ar-1.png` (the other variant is kept for comparison).
+Picked: `v2/100746-simple-clean-game-hud-bar-sprite-in-plai-1.png`.
 
 Post-process (master):
 
-    python3 tools/images/postprocess.py art/raw/hud-hunger-bar/095425-game-hud-sprite-minecraft-style-pixel-ar-1.png docs/art/hud/m3_surv_06_hunger_bar_master.png --size 81x6 --trim --trim-alpha 128 --colors 12
+    python3 tools/images/postprocess.py art/raw/hud-hunger-bar/v2/100746-simple-clean-game-hud-bar-sprite-in-plai-1.png docs/art/hud/m3_surv_06_hunger_bar_master.png --size 81x7 --trim --trim-alpha 128 --colors 6 --resample nearest
 
-Layers (bg + fill, same canvas, interior mask in the spec):
+Layers (bg + fill, same canvas, interior mask and frame shading in the spec):
 
     python3 tools/images/hud_layers.py docs/art/hud/m3_surv_06_hunger_bar_master.png tools/datagen/src/main/resources/dev/tfp/datagen/hud/m3_surv_06_hunger_bar.layers.json tools/datagen/src/main/resources/dev/tfp/datagen/hud --check-dir <scratch>
 

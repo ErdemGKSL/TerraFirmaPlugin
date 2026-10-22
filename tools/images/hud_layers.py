@@ -9,8 +9,9 @@ The spec (JSON) names the bar and its fill mask:
     "name": "m3_surv_06_health_bar",          # output prefix
     "canvas": [81, 10],                        # must equal the master's size
     "interior": [[1, 1, 80, 9]],              # fill mask: rectangles [x0, y0, x1, y1), canvas pixels
-    "ring": "shade",                           # optional: "shade" darkens light frame pixels (thin bars whose
-                                               #   downscaled outline blended with the fill); "keep" (default)
+    "ring": "shade",                           # optional: "shade" darkens frame pixels that are not already dark
+                                               #   (the downscaled outline blends with the fill at the ends of thin
+                                               #   bars), so the frame reads as one plain dark border; "keep" (default)
     "variants": {"low": {...}, "critical": {...}}   # optional extra fills, see VARIANT_OPS
   }
 
@@ -34,7 +35,7 @@ from PIL import Image
 
 EMPTY_SATURATION = 0.25   # share of the original saturation kept in the empty interior
 EMPTY_VALUE = 0.32        # brightness multiplier of the empty interior
-RING_SHADE_LIGHTNESS = 0.45   # with "ring": "shade", frame pixels lighter than this (0..1) ...
+RING_SHADE_LIGHTNESS = 0.25   # with "ring": "shade", frame pixels whose brightest channel exceeds this (0..1) ...
 RING_SHADE_VALUE = 0.30       # ... are darkened to this share of their brightness
 
 
@@ -95,7 +96,7 @@ def derive(master, spec):
                 b[x, y] = hsv_map(p, lambda hh, s, v: (hh, s * EMPTY_SATURATION, v * EMPTY_VALUE))
             elif p[3]:
                 ring += 1
-                if spec.get("ring", "keep") == "shade" and sum(p[:3]) / 765 > RING_SHADE_LIGHTNESS:
+                if spec.get("ring", "keep") == "shade" and max(p[:3]) / 255 > RING_SHADE_LIGHTNESS:
                     p = hsv_map(p, lambda hh, s, v: (hh, s, v * RING_SHADE_VALUE))
                 b[x, y] = p
     if ring == 0:

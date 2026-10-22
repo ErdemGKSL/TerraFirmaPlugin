@@ -2,7 +2,7 @@
 
 Owner request, 2026-10-22: redesign every HUD image from scratch. Every bar is two layers that overlay pixel-perfect:
 a **background** (empty bar: frame + empty interior) drawn behind, and a **foreground fill** (interior only, no frame)
-drawn in front and clipped by the current value. Includes the new underwater air gauge. Step 1 (TFC geometry, air hidden
+drawn in front and clipped by the current value. Includes the air bar above food and thirst. Step 1 (TFC geometry, air hidden
 at full, degree sign, demo compass off) is commit `ee2e674`; this plan replaces its art.
 
 ## 1. How BetterHud draws and clips (read from the BetterHud 2.0 jar, `kr.toxicity.hud`)
@@ -32,24 +32,26 @@ full-canvas PNGs written by the datagen (no trimming difference between frames).
 
 ## 2. Elements
 
+Owner feedback (2026-10-22, applied): **plain style** close to TFC's own bars (1 px dark frame, flat fill with one
+lighter and one darker row, 3-4 colours per bar, no ornaments, ripples, glows or busy motifs) and a **compact air bar**
+directly above the food and thirst bars (no large gauge, no screen overlay).
+
 GUI pixels from the bottom-centre anchor (`H` = GUI height). Vanilla: XP bar H-29..H-25, hotbar H-22..H-1, armour row
 H-49..H-41 (left), XP number centred around H-35..H-28.
 
 | element | id (catalogue) | canvas | interior (fill mask) | place | layers | value |
 |---|---|---|---|---|---|---|
-| health | `m3-surv-06-health-bar` | 81x10 | x 1..79, y 1..8 | x centre-90..-10, rows H-40..H-31 | bg, fill, text "850/850" (inside, TFC shadow) | listener `tfp_health` |
-| hunger | `m3-surv-06-hunger-bar` | 81x6 | x 1..79, y 1..4 | x centre+11..+91, rows H-36..H-31 | bg, fill | listener `tfp_hunger` |
-| thirst | `m3-surv-06-thirst-bar` | 81x6 | x 1..79, y 1..4 | same x, rows H-43..H-38 | bg, fill | listener `tfp_thirst` |
-| underwater air gauge | `m3-surv-06-air-bar` | 140x18 | the bubble channel rectangle (measured on the master, stored in `layers.json`) | centred, rows H-70..H-53 | bg (frame, lungs porthole, ripple water line, empty channel), fill (bubbles), fill-low, fill-critical, seconds text in the right plate | listener `tfp_air`; shown while `tfp_air < 300` |
-| underwater vignette | `m3-surv-06-underwater-vignette` (new, kind `bar`-less image) | 112x72 per corner, top-left + mirrored top-right | none (single layer, translucent) | screen corners (HUD gui 0/0 and 100/0) | one layer, `layer: -1` | shown while `tfp_air < 300` |
-| ambient temperature | `m2-clim-03-ambient-temp-readout` | 60x8 thermometer bar next to the text | x 1..58, y 1..6 | top-left under the date | bg, fill, text | listener `tfp_ambient_temp` (new: (t + 20) / 60, clamped) |
-| date and season | `m2-cal-02-date-readout` | text only on a plate 128x22 behind both lines | none | top-left | plate (single), text | text |
+| health | `m3-surv-06-health-bar` | 81x10 | x 1..79, y 1..8 | x centre-90..-10, rows H-40..H-31 | bg, fill, text "850/850" (inside, TFC shadow) | `tfp_health` / `tfp_max_health` |
+| hunger | `m3-surv-06-hunger-bar` | 81x7 | x 1..79, y 1..5 | x centre+11..+91, rows H-37..H-31 | bg, fill | listener `tfp_hunger` |
+| thirst | `m3-surv-06-thirst-bar` | 81x7 | x 1..79, y 1..5 | same x, rows H-45..H-39 | bg, fill | listener `tfp_thirst` |
+| air | `m3-surv-06-air-bar` | 81x7 | x 1..79, y 1..5 | same x, rows H-53..H-47 (directly above thirst) | bg, fill (simple bubble row), fill_critical (red tint below 60 air) | listener `tfp_air`; shown while `tfp_air < 300` |
+| ambient temperature | `m2-clim-03-ambient-temp-bar` | 64x8 | tube x 1..62 y 2..5 + bulb | top-left under the date (screen 6,13) | bg, fill | listener `tfp_ambient_temp` ((t + 20) / 60, clamped) |
+| date and season, temperature text | `m2-cal-02-date-readout`, `m2-clim-03-ambient-temp-readout` | text on a plain plate 124x22 (`m2-cal-02-info-plate`, single layer) | none | top-left | plate, text | text |
 | held temperature popup | `m3-surv-06-held-temp-popup` | text only | none | centre, H-60 | text | text |
 | compass | BetterHud demo | none | none | none | switched off by the installer (step 1) | none |
 
-Low/empty state: the background interior is the dark "empty" texture derived from the fill (section 3), so an empty bar
-reads as a dark recessed channel inside the frame. The gauge switches fill to `fill_low` (cooler, desaturated) below
-100 air (5 s) and to `fill_critical` (red tinge) below 60 air (3 s), with a 1 s opacity pulse on the critical layout.
+Low/empty state: the background interior is the darkened, desaturated version of the fill (section 3), so an empty bar
+reads as a dark channel inside the frame and a low bar as a short coloured stub at its left.
 
 ## 3. Art pipeline (one master per bar, both layers derived)
 
@@ -64,7 +66,9 @@ reads as a dark recessed channel inside the frame. The gauge switches fill to `f
    - `bg.png` = master; interior pixels replaced by the *empty* version of the master's interior (same pixels darkened
      and desaturated, fully opaque), so the empty channel keeps the fill's texture.
    - `fill.png` = transparent canvas of the same size; only the master's interior pixels copied in.
-   - `fill_<variant>.png` = `fill.png` with the variant transform.
+   - `fill_<variant>.png` = `fill.png` with the variant transform (the air bar's red `critical` fill).
+   - `"ring": "shade"` darkens frame pixels that are not already dark, so the frame is one plain dark border even where
+     downscaling blended the outline with the fill.
    - It also writes `overlay-check.png` (bg + fill at 0 %, 50 %, 100 %, 8x nearest) for the human check.
    - It fails if the master has a transparent pixel inside the interior (a hole would show through) or if the frame ring
      is empty.
@@ -76,16 +80,13 @@ reads as a dark recessed channel inside the frame. The gauge switches fill to `f
 
 - `HudBarArt` (TFC slices) is replaced by `HudArt`: loads each bar's `bg`/`fill`(+variants) PNGs and `layers.json`
   from the resources, exposes canvas size, interior mask and first opaque row.
-- `HudLayouts.BARS` becomes a table of `BarSpec(id, canvas, barX, barY, text?, shownWhile?, variants)`; images are
-  emitted with `layer`, `y = barY + firstOpaqueRow`, the same `x` for both layers, `split = interior width`
-  (one frame per pixel column), `split-type: left`.
-- Gauge: three fill images in one layout with element `conditions` on `tfp_air` (normal >= 100, low 60..99,
-  critical < 60); the critical one in its own layout with `animations: {duration: 20, opacity-equation: ...}`.
-- Vignette: a `single` image, two layouts (top-left; top-right uses `flip: [x]` of the same PNG) in `tfp_bars_hud`
-  with HUD gui anchors 0/0 and 100/0, condition `tfp_air < 300`.
-- New placeholders/listeners (catalogue rows + `integration/betterhud/HudValues`): number `tfp_air_seconds`
-  (`ceil(air / 20)`), listener `tfp_ambient_temp` ((t + 20) / 60 clamped to 0..1).
-- Catalogue: section 1 rows (vignette, thermometer), section 5 rewritten as the layer table above, counts updated.
+- `HudLayouts.BAR_SPECS` holds `BarSpec(art, x, y, hud, texts, shownWhile, variants, split)`; layouts get
+  `offset: left`, both layers the same `x`, `y = barY + firstOpaqueRow`, `layer` 1 (bg) / 2 (fill) / 3 (text), and
+  `split = interior width` (one frame per pixel column), `split-type: left`. A variant is an extra fill image in the same
+  layout with element `conditions`; the plain fill gets the negated condition.
+- `HudLayouts.OVERLAYS`: single-layer images (the info plate), written into the info HUD of `BetterHudPack`.
+- New listener `tfp_ambient_temp` (`integration/betterhud/HudValues.thermometer`).
+- Catalogue: rows for the thermometer bar and the plate (kind `overlay`), section 5 = the layer table, counts updated.
 
 ## 5. Tests
 
@@ -96,8 +97,9 @@ reads as a dark recessed channel inside the frame. The gauge switches fill to `f
 - the frame ring (bg opaque pixels outside the interior) is non-empty;
 - emitted layout: both layers same `x`; each image `y = barY + firstOpaqueRow`; `layer` bg < fill < text;
   split-type left and split = interior width;
-- placement: no bar overlaps the XP row (bottom <= H-31), the hotbar, the armour row (left column top >= H-40) or the
-  XP number; the gauge and vignette are conditioned on `tfp_air < 300`; vignette corners never reach the hotbar rows;
+- placement: no bar overlaps the XP row (bottom <= H-31), the hotbar, the armour row (left column top >= H-48) or the
+  XP number; the right column has one x, one size and one empty row between bars, air on top; the air bar is
+  conditioned on `tfp_air < 300` and swaps to the red fill below 60;
 - the PNG bytes in the pack are the resource bytes (no re-encoding drift);
 - `tools/images/hud_layers.py` is deterministic (same input, same bytes) — checked by a datagen test that recomputes
   the masks from the PNGs, and by running the script twice in CI-free manual check (`notes.md`).
@@ -105,9 +107,9 @@ reads as a dark recessed channel inside the frame. The gauge switches fill to `f
 ## 6. Screenshot checks (headless client, delegated to a Haiku agent)
 
 GUI scale 2 and 3, Paper 1.21.11, RCON as in `plans/gaps.md` (full / low / submerged): crop the hotbar region and
-the top corners; check at 8x zoom that the fill never covers the frame, that the empty channel shows at 0 %, that the
-gauge appears only under water and switches to low/critical, that the vignette stays out of the hotbar and health
-rows, that text sits inside the health bar.
+the top-left corner; check at 8x zoom that the fill never covers the frame, that the empty channel shows at 0 %, that
+the air bar appears only under water directly above thirst and turns red below 3 s, that the text sits inside the
+health bar and on the plate.
 
 ## 7. Order of work and commits
 

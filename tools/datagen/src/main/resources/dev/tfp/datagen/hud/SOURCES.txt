@@ -1,3 +1,0 @@
-tfc-overlay.png: unmodified copy of TerraFirmaCraft src/main/resources/assets/tfc/textures/gui/icons/overlay.png
-at commit c3b4d9536b82e5a9746dd793c586720a74108057 (EUPL-1.2, see NOTICE). HudBarArt slices the HUD bar sprites from it;
-HudBarArtTest checks that the copy still equals the pinned checkout's file.
