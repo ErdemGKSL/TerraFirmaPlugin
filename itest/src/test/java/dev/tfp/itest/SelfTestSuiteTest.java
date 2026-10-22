@@ -31,7 +31,8 @@ class SelfTestSuiteTest {
                 .anyMatch(n -> n.startsWith("bh.placeholder")).anyMatch(n -> n.startsWith("packet.noop_measured"))
                 .anyMatch(n -> n.startsWith("inst.profile_restart")).anyMatch(n -> n.startsWith("inst.suppression")).anyMatch(n -> n.startsWith("calendar.persist"))
                 .anyMatch(n -> n.startsWith("worldgen.terrain_generates"))
-                .anyMatch(n -> n.startsWith("metal.run_rules")).anyMatch(n -> n.startsWith("animal.spawn_persist"));
-        assertThat(cases).hasSize(16);
+                .anyMatch(n -> n.startsWith("metal.run_rules")).anyMatch(n -> n.startsWith("animal.spawn_persist"))
+                .anyMatch(n -> n.startsWith("itemdata.pdc_roundtrip"));
+        assertThat(cases).hasSize(17);
     }
 }
