@@ -2,7 +2,7 @@
 id: PAR-INFRA-03
 title: "GUI framework: textured chest GUIs, title glyphs, buttons, progress bars, alignment"
 area: INFRA
-status: open
+status: blocked
 wave: 2
 deps: [PAR-INFRA-01]
 size: M
@@ -28,6 +28,7 @@ in_game_steps:
   - "tfp debug gui sample"
   - "Screenshot at GUI scale 2 and 3; slots and background line up to the pixel"
 plan:
+  - "BLOCKED (2026-10-22): the whole item is built and its own tests pass (core/gui, paper/gui with GuiModule and `/tfp debug gui sample`, datagen gui/GuiArt writing configuration/gui.yml and the GUI PNGs, catalogue and ledger rows) in the worker's local commit 8d3513a `PAR-INFRA-03 (unpublished)`, not pushed. Publishing it breaks two tests in files outside files_owned, each needing a one-line addition: paper/src/test/java/dev/tfp/paper/boot/BootstrapTest.java `commandTreeStructure` lists every `/tfp debug` literal (add \"gui\"; any module adding a literal through DebugTree hits this), and tools/datagen/src/test/java/dev/tfp/datagen/CeYamlCheck.java `assertValid` allows only blocks/items/equipments sections in configuration/*.yml (add \"images\"). Unblock: make those two files a shared hub (or add the lines), cherry-pick 8d3513a, then run the PROTOCOL §6 screenshot check at GUI scales 1 to 4."
   - "Build the framework pieces of docs/gui/catalogue.md section 2: `fw-title-glyphs` (CE `<image>`/`<shift>` title builder), `fw-title-refresh` (rate-limited `InventoryView#setTitle`), `fw-overlay-layers`, `fw-progress-bars` (15x5 temperature bar, tank, progress arrows as glyph frames), `fw-slot-layouts`, `fw-buttons` (button slot items with empty item model + tooltip), `fw-alignment` (pixel math at GUI scale 1-4), `fw-background-art` (datagen copies TFC `textures/gui/*.png` into CE images + font)."
   - "Java API: `TfpGui` (builder: background image, slots map, buttons, overlays), `GuiSession` (per viewer, refresh throttled to 4/s), click routing on the player's entity scheduler, slot predicates from DeviceInventory."
   - "One sample screen (a 9-slot storage) behind `tfp debug gui sample` to prove alignment."
