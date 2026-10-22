@@ -2,7 +2,7 @@
 id: PAR-INFRA-07
 title: "Tag runtime: TFC item/block/fluid/entity tags resolved for CE and vanilla ids"
 area: INFRA
-status: open
+status: done
 wave: 1
 deps: []
 size: S
@@ -18,6 +18,7 @@ in_game_steps: []
 plan:
   - "Current: core/tag loads tag JSON; `external_tags.json` maps vanilla tags; no Paper lookup from a live ItemStack/Block."
   - "Add `Tags` service: `is(ItemStack, tagId)`, `is(Block/CE state, tagId)`, `is(EntityType, tagId)` with CE ids via the CustomItems/CustomBlocks adapters and vanilla tags via Bukkit Tag; snapshot per data reload."
+  - "Done: paper/tags (Tags service via TagsModule, TagSnapshot, TagRules include/remove graph, ServerTags over Bukkit.getTag); 10 MockBukkit tests in paper/src/test/java/dev/tfp/paper/tags (synthetic and the shipped data); ledger row and divergence. PAR-INFRA-06 gets it with services().require(Tags.class)."
 tests:
   - "paper: MockBukkit tests for a CE id in a TFC tag, a vanilla id via a vanilla tag, nested tags"
 done_criteria:

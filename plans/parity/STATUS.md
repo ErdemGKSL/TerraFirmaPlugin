@@ -12,7 +12,7 @@ Totals: 220 items; open 213, done 4, blocked 3; waves 1..56 (wave 0 = already do
 | PAR-METAL-07 | Charcoal forge visuals: TFC heat-level models on a snow-layer carrier | METAL | 0 | done |
 | PAR-INFRA-01 | Feature module SPI: register listeners, services and debug subcommands without editing TfpPlugin | INFRA | 1 | done |
 | PAR-INFRA-04 | Item data components on PDC: fluid contents and item lists (vessels, jugs, buckets, molds) | INFRA | 1 | done |
-| PAR-INFRA-07 | Tag runtime: TFC item/block/fluid/entity tags resolved for CE and vanilla ids | INFRA | 1 | open |
+| PAR-INFRA-07 | Tag runtime: TFC item/block/fluid/entity tags resolved for CE and vanilla ids | INFRA | 1 | done |
 | PAR-REL-01 | Test infrastructure fixes: headless client pack URL, snow-free test site, CE shutdown warning | REL | 1 | open |
 | PAR-INFRA-02 | Device block framework: CraftEngine block behaviour routing, per-block state and lazy catch-up hooks | INFRA | 2 | open |
 | PAR-INFRA-03 | GUI framework: textured chest GUIs, title glyphs, buttons, progress bars, alignment | INFRA | 2 | open |
