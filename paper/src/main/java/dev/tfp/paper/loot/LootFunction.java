@@ -36,7 +36,11 @@ public sealed interface LootFunction {
         }
     }
 
-    /** {@code minecraft:limit_count}: clamps the count into {@code [min, max]} (either bound open). */
+    /**
+     * {@code minecraft:limit_count}: clamps the count into {@code [min, max]} (either bound open), min evaluated first.
+     * With both bounds this is vanilla's {@code Mth.clamp(v, min, max)} = {@code Math.min(Math.max(v, min), max)}, so
+     * {@code max} wins when {@code min > max}.
+     */
     record LimitCount(LootNumber min, LootNumber max, List<LootCondition> conditions) implements LootFunction {
         public LimitCount {
             conditions = List.copyOf(conditions);

@@ -44,7 +44,10 @@ public sealed interface LootCondition {
         }
     }
 
-    /** {@code minecraft:random_chance}: {@code nextFloat() < chance} (the draw comes first, as in vanilla). */
+    /**
+     * {@code minecraft:random_chance}: {@code nextFloat() < chance}. As in vanilla, {@code chance} is evaluated first (it may
+     * draw itself), then the float is drawn.
+     */
     record RandomChance(LootNumber chance) implements LootCondition {
         public RandomChance {
             Objects.requireNonNull(chance, "chance");
@@ -52,8 +55,8 @@ public sealed interface LootCondition {
 
         @Override
         public boolean test(LootContext context, LootRandom random) {
-            float roll = random.nextFloat();
-            return roll < chance.getFloat(context, random);
+            float threshold = chance.getFloat(context, random);
+            return random.nextFloat() < threshold;
         }
     }
 

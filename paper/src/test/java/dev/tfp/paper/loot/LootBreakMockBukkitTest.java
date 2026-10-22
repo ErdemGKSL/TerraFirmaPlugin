@@ -33,6 +33,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.BeforeEach;
@@ -146,6 +147,8 @@ class LootBreakMockBukkitTest extends MockServerTest {
     private final InlineScheduler scheduler = new InlineScheduler();
     private final AtomicReference<RandomGenerator> random = new AtomicReference<>(LOW);
     private final AtomicReference<LootStackHooks> hooks = new AtomicReference<>(LootStackHooks.NONE);
+    private final AtomicReference<LootBreakListener.CorrectTool> correctTool =
+            new AtomicReference<>(LootBreakListener.CorrectTool.ANY);
     private LootService service;
     private WorldMock world;
     private PlayerMock player;
@@ -169,7 +172,8 @@ class LootBreakMockBukkitTest extends MockServerTest {
                 stack -> items.idOf(stack).or(() -> Optional.of(stack.getType().getKey().toString())),
                 (item, tag) -> item.equals("minecraft:shears") && tag.equals("c:tools/shear"), scheduler,
                 hooks::get, random::get, Logger.getLogger("loot-test"));
-        server.getPluginManager().registerEvents(new LootBreakListener(service, blocks), plugin());
+        server.getPluginManager().registerEvents(new LootBreakListener(service, blocks,
+                (block, tool) -> correctTool.get().test(block, tool)), plugin());
         world = server.addSimpleWorld("loot");
         player = server.addPlayer();
         player.setGameMode(GameMode.SURVIVAL);
@@ -274,6 +278,64 @@ class LootBreakMockBukkitTest extends MockServerTest {
         assertThat(droppedItems()).singleElement().satisfies(s -> assertThat(s.getAmount()).isEqualTo(2));
         assertThat(LootService.radiusFromYield(0.25f)).isEqualTo(4f);
         assertThat(LootService.radiusFromYield(1f)).isNull();
+    }
+
+    @Test
+    void destroyWithoutDecayPassesNoRadiusWhateverTheYield() {
+        random.set(HIGH);
+        Block block = place(0, LOOSE, Map.of("count", "2"));
+        server.getPluginManager().callEvent(new EntityExplodeEvent(player, block.getLocation(),
+                new ArrayList<>(List.of(block)), 0.25f, ExplosionResult.DESTROY));
+        assertThat(droppedItems()).as("no radius: survives_explosion and explosion_decay pass")
+                .singleElement().satisfies(s -> assertThat(s.getAmount()).isEqualTo(2));
+    }
+
+    @Test
+    void explosionsThatKeepTheirBlocksDropNothing() {
+        // Wind charges and breezes are TRIGGER_BLOCK: Paper lists nearby blocks with yield 1 but does not destroy them.
+        for (ExplosionResult result : List.of(ExplosionResult.TRIGGER_BLOCK, ExplosionResult.KEEP)) {
+            Block block = place(0, LOOSE, Map.of("count", "3"));
+            server.getPluginManager().callEvent(new EntityExplodeEvent(player, block.getLocation(),
+                    new ArrayList<>(List.of(block)), 1.0f, result));
+            server.getPluginManager().callEvent(new BlockExplodeEvent(block, block.getState(),
+                    new ArrayList<>(List.of(block)), 1.0f, result));
+        }
+        assertThat(droppedItems()).isEmpty();
+        assertThat(scheduler.regionTasks).isZero();
+    }
+
+    @Test
+    void blockExplosionsDropLikeEntityExplosions() {
+        Block block = place(0, LOOSE, Map.of("count", "2"));
+        server.getPluginManager().callEvent(new BlockExplodeEvent(block, block.getState(),
+                new ArrayList<>(List.of(block)), 1.0f, ExplosionResult.DESTROY));
+        assertThat(droppedItems()).singleElement().satisfies(s -> assertThat(s.getAmount()).isEqualTo(2));
+    }
+
+    @Test
+    void anIncorrectToolDropsNothing() {
+        // TFC: ServerPlayerGameMode skips playerDestroy (and so the loot) without hasCorrectToolForDrops.
+        List<ItemStack> seen = new ArrayList<>();
+        correctTool.set((block, tool) -> {
+            seen.add(tool);
+            return false;
+        });
+        BlockBreakEvent event = breakWith(place(0, LOOSE, Map.of("count", "3")), new ItemStack(Material.STICK));
+        assertThat(event.isDropItems()).as("the block's own drops stay off too").isFalse();
+        assertThat(seen).extracting(ItemStack::getType).containsExactly(Material.STICK);
+        assertThat(droppedItems()).isEmpty();
+        assertThat(scheduler.regionTasks).isZero();
+    }
+
+    @Test
+    void aBreakAnotherPluginSetToDropNothingIsRespected() {
+        Block block = place(0, LOOSE, Map.of("count", "3"));
+        player.getInventory().setItemInMainHand(null);
+        BlockBreakEvent event = new BlockBreakEvent(block, player);
+        event.setDropItems(false);
+        server.getPluginManager().callEvent(event);
+        assertThat(droppedItems()).isEmpty();
+        assertThat(scheduler.regionTasks).isZero();
     }
 
     @Test

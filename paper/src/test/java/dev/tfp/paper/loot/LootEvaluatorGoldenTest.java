@@ -279,6 +279,25 @@ class LootEvaluatorGoldenTest {
     }
 
     @Test
+    void randomChanceEvaluatesItsChanceBeforeTheDraw() {
+        // vanilla LootItemRandomChanceCondition: chance.getFloat(ctx) first, then nextFloat()
+        String json = "{\"pools\":[{\"rolls\":1,\"entries\":[{\"type\":\"item\",\"name\":\"a:x\"}],"
+                + "\"conditions\":[{\"condition\":\"random_chance\","
+                + "\"chance\":{\"type\":\"uniform\",\"min\":0,\"max\":1}}]}]}";
+        // chance 0.2, roll 0.5: fails (the reversed order would read roll 0.2 < chance 0.5)
+        assertThat(roll(json, LootContext.builder().build(), 0.2f, 0.5f)).isEmpty();
+        assertThat(roll(json, LootContext.builder().build(), 0.5f, 0.2f)).containsExactly(LootDrop.of("a:x", 1));
+    }
+
+    @Test
+    void limitCountClampsLikeMthClamp() {
+        // Mth.clamp(v, min, max) = min(max(v, min), max): with min > max the max wins
+        String json = "{\"pools\":[{\"rolls\":1,\"entries\":[{\"type\":\"item\",\"name\":\"a:x\"}]}],"
+                + "\"functions\":[{\"function\":\"limit_count\",\"limit\":{\"min\":5,\"max\":3}}]}";
+        assertThat(roll(json, LootContext.builder().build())).containsExactly(LootDrop.of("a:x", 3));
+    }
+
+    @Test
     void tfpRenamedTypesReadAsTfc() {
         String json = "{\"pools\":[{\"rolls\":1,\"entries\":[{\"type\":\"minecraft:item\",\"name\":\"tfp:rock/raw/granite\","
                 + "\"conditions\":[{\"condition\":\"tfp:is_isolated\"}]}]}]}";

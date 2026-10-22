@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 229 items; open 212, done 13, blocked 4; waves 1..56 (wave 0 = already done).
+Totals: 232 items; open 211, done 18, blocked 3; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -33,6 +33,7 @@ Totals: 229 items; open 212, done 13, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-INFRA-19 | Device generators on the shared spec: Firepit, Grill, Pot and ForgeDevices write through DeviceSpecs + DeviceYaml | INFRA | 4 | open |
 | PAR-INFRA-20 | Datagen exports TFC's overrides of vanilla recipes (data/minecraft/recipe, 66 files) | INFRA | 4 | open |
 | PAR-INFRA-21 | Loot delegation: datagen ships TFC loot tables, CE blocks that need TFC conditions drop through the Paper loot runtime | INFRA | 4 | open |
+| PAR-INFRA-22 | Correct-tool gate for delegated block loot: CustomBlocks.isCorrectTool over CraftEngine's tool check | INFRA | 4 | open |
 | PAR-WORLD-17 | Ore overlay spike S1: measure exposed ore faces per chunk and the overlay entity budget | WORLD | 4 | open |
 | PAR-HUD-06 | HUD polish: health frame asymmetry, ambient temperature bar and info plate, pulse animation | HUD | 5 | open |
 | PAR-PROC-01 | Knapping GUI: 5x5 grid for stone, clay, fire clay, leather and goat horn | PROC | 5 | open |

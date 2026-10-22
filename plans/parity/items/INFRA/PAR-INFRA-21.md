@@ -4,7 +4,7 @@ title: "Loot delegation: datagen ships TFC loot tables, CE blocks that need TFC 
 area: INFRA
 status: open
 wave: 4
-deps: [PAR-INFRA-09]
+deps: [PAR-INFRA-09, PAR-INFRA-22]
 size: M
 aliases: []
 tfc_refs:
@@ -25,6 +25,7 @@ plan:
   - "Add `LootTableExport` (one `run` line in Datagen.generate): copy TFC's block and entity loot tables, ids renamed tfc -> tfp exactly as the other data (item names, block names in block_state_property, `tfc:` condition/function/number types become `tfp:`, which `LootTableParser` reads as TFC's), into `content/generated/content/data/tfp/loot_table/`. Ship only the tables of blocks we generate and of entities we have, and only those whose shape the CE templates cannot express (any TFC condition or function, `block_state_property` counts, `copy_components`, `crop_yield_uniform`, explosion decay)."
   - "For those blocks, `AssetPipeline.loot` writes no CE `loot:` (or an empty table) so the runtime is the only drop source; blocks whose table matches a template keep plain CE loot. Remove `tfp:loot_table/rock_to_loose` once raw rock is delegated and update the ledger rows (raw rock `is_isolated`, loot delegation)."
   - "Self-test case `loot` (SelfTestSuite hub line): place `tfp:rock/loose/granite[count=3]` and `tfp:wood/leaves/oak`, break each as a survival player (empty hand; shears), assert the dropped item entities match the TFC tables (3 loose rocks; leaves with shears, no leaves by hand)."
+  - "Before delegating: PAR-INFRA-22 must have wired the correct-tool check (else rock, ore and metal blocks drop their table by hand). Decide the startup window (tables load async; a delegated block drops nothing until they are loaded): hold delegated breaks until loaded, or keep the recorded divergence. Check that a delegated CE block in an explosion does not also drop its carrier's vanilla item or CE loot (no double drops)."
 tests:
   - "datagen: export count and renamed ids against the real checkout; every exported table parses with `LootTableParser`"
   - "itest: loot case on Paper 1.21.11"

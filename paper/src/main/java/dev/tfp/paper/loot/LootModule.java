@@ -18,7 +18,9 @@ import java.util.logging.Level;
 /**
  * PAR-INFRA-09: provides {@link LootService} ({@code services().require(LootService.class)}) and the break/explosion
  * listener. Tables load on the CPU pool from the jar's data root ({@code content/data/<ns>/loot_table}); until the load
- * finishes the set is empty and blocks keep their CraftEngine drops. Must come after {@code TagsModule} in the service file.
+ * finishes the set is empty, so a block whose drops are delegated to this runtime (no CraftEngine {@code loot:}) drops
+ * nothing in that startup window (recorded divergence; PAR-INFRA-21 decides whether to hold breaks until loaded). Must come
+ * after {@code TagsModule} in the service file.
  */
 public final class LootModule implements FeatureModule {
     public static final String ID = "loot";
