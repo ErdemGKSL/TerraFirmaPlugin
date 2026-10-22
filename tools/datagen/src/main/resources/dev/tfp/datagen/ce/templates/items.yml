@@ -62,3 +62,69 @@ templates#items:
     model: ${__NAMESPACE__}:item/${__ID__}
     settings:
       break_power: ${break_power}
+  # Metal armor piece (helmet, chestplate, greaves, boots). material: the vanilla piece for the hand and inventory behaviour.
+  # durability, armor, toughness, knockback, enchantability: TFC's TFCArmorMaterials for the slot. rarity: the metal's Rarity.
+  # The attribute modifiers replace the material's own. repairable is removed: TFC's material has no repair ingredient.
+  # metal: the equipment asset (equipments section of metal.yml). The equip sound is the vanilla iron one, as TFC's sounds play.
+  tfp:item/armor:
+    material: ${material}
+    data:
+      item_name: <!i><lang:${item_lang_key}>
+      max_stack_size: 1
+      max_damage: ${durability}
+      rarity: ${rarity}
+      enchantable:
+        value: ${enchantability}
+      attribute_modifiers:
+        - type: armor
+          amount: ${armor}
+          operation: add_value
+          slot: ${slot}
+        - type: armor_toughness
+          amount: ${toughness}
+          operation: add_value
+          slot: ${slot}
+        - type: knockback_resistance
+          amount: ${knockback}
+          operation: add_value
+          slot: ${slot}
+      remove_components:
+        - repairable
+    model: ${__NAMESPACE__}:item/${__ID__}
+    settings:
+      equipment:
+        asset_id: ${__NAMESPACE__}:${metal}
+        slot: ${slot}
+        equip_sound: minecraft:item.armor.equip_iron
+  # Metal horse armor (TFC AnimalArmorItem, body slot, the chest values). The equippable component is written raw so it keeps
+  # the vanilla horse armor's allowed_entities (horses only) and damage_on_hurt false (a TFC 1.21.1 horse never wears it down).
+  tfp:item/horse_armor:
+    material: ${material}
+    data:
+      item_name: <!i><lang:${item_lang_key}>
+      max_stack_size: 1
+      max_damage: ${durability}
+      rarity: ${rarity}
+      attribute_modifiers:
+        - type: armor
+          amount: ${armor}
+          operation: add_value
+          slot: ${slot}
+        - type: armor_toughness
+          amount: ${toughness}
+          operation: add_value
+          slot: ${slot}
+        - type: knockback_resistance
+          amount: ${knockback}
+          operation: add_value
+          slot: ${slot}
+      remove_components:
+        - repairable
+      components:
+        minecraft:equippable:
+          slot: ${slot}
+          asset_id: ${__NAMESPACE__}:${metal}
+          equip_sound: minecraft:entity.horse.armor
+          allowed_entities: minecraft:horse
+          damage_on_hurt: false
+    model: ${__NAMESPACE__}:item/${__ID__}

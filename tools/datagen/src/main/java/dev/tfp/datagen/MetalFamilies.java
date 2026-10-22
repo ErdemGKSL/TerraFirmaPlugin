@@ -50,8 +50,11 @@ final class MetalFamilies {
     private static final Pattern METAL_CONSTANT = Pattern.compile("^ {4}([A-Z_]+)\\((.*)\\)[,;]?\\s*$", Pattern.MULTILINE);
     private static final Pattern BLOCK_TYPE_CONSTANT = Pattern.compile("^ {8}([A-Z_]+)\\((PartType\\.[A-Z_]+)\\b", Pattern.MULTILINE);
 
-    /** One {@code Metal} constant: its name, its {@code PartType} name, and its weathering resistance ({@code -1} = none). */
-    record MetalConstant(String name, String partType, float weathering) {
+    /**
+     * One {@code Metal} constant: its name, its {@code PartType} name, its weathering resistance ({@code -1} = none) and its
+     * item rarity ({@code Rarity} constant name, e.g. {@code UNCOMMON}).
+     */
+    record MetalConstant(String name, String partType, float weathering, String rarity) {
     }
 
     /** One {@code Metal.BlockType} constant: its blockstate folder, its shape and the {@code PartType} it is registered with. */
@@ -147,7 +150,10 @@ final class MetalFamilies {
             if (!PART_TYPES.contains(partType)) {
                 throw new DatagenException(SOURCE + ": constant " + m.group(1) + " has unknown part type " + partType);
             }
-            out.add(new MetalConstant(m.group(1), partType, weathering));
+            if (!args[2].startsWith("Rarity.")) {
+                throw new DatagenException(SOURCE + ": constant " + m.group(1) + " has no Rarity argument");
+            }
+            out.add(new MetalConstant(m.group(1), partType, weathering, args[2].substring("Rarity.".length())));
         }
         if (out.isEmpty()) {
             throw new DatagenException(SOURCE + ": no constants in public enum Metal");

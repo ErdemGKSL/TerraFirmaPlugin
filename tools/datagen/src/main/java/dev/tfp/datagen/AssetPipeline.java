@@ -61,14 +61,22 @@ public final class AssetPipeline {
     private final Map<String, String> dropItems = new TreeMap<>();
     /** TFC food items (tfp path, {@code food/<name>}) to their hunger, from TFC's food data. */
     private final Map<String, Integer> foodItems = new TreeMap<>();
-    /** Metal material items ({@code metal/<kind>/<metal>}), a plain item each; tools and armor wait for M4-TOOL-02. */
+    /** Metal material items and unfinished armor parts ({@code metal/<kind>/<metal>}), a plain item each. */
     private final Set<String> metalItems = new TreeSet<>();
     /** Metal mining tools ({@code metal/<kind>/<metal>}) with the arguments of {@code tfp:item/tool}. */
     private final Map<String, Map<String, Object>> metalTools = new TreeMap<>();
     /** Metal weapons ({@code metal/<kind>/<metal>}) with the arguments of {@code tfp:item/weapon}. */
     private final Map<String, Map<String, Object>> metalWeapons = new TreeMap<>();
+    /** Metal armor and horse armor ({@code metal/<kind>/<metal>}) with the arguments of {@code tfp:item/armor} or {@code tfp:item/horse_armor}. */
+    private final Map<String, Map<String, Object>> metalArmor = new TreeMap<>();
+    /** The metals with armor: the {@code equipments} entries and their layer textures. */
+    private final Set<String> armorMetals = new TreeSet<>();
     /** TFC's tiers, read on the first metal tool model (a checkout without tools never reads them). */
     private Map<String, Tier> tierCache;
+    /** TFC's armor materials, read on the first metal armor model. */
+    private Map<String, ArmorMaterial> armorCache;
+    /** The item rarity of each metal (lower case), read from TFC's {@code Metal} constants on the first armor model. */
+    private Map<String, String> rarityCache;
     /** Appearance demand of every emitted block, in emission order (input of the visual allocator). */
     private final List<VisualDemand> demand = new ArrayList<>();
 
@@ -182,10 +190,159 @@ public final class AssetPipeline {
                 metalWeapons.put(id, args);
             }
         });
+        // Metal armor and horse armor: durability, armor, toughness, knockback resistance and enchantability from TFCArmorMaterials.
+        METAL_ARMOR_KINDS.forEach((kind, piece) -> {
+            for (String f : tfc.list(TfcCheckout.ASSETS + "models/item/metal/" + kind + "/")) {
+                if (!f.endsWith(".json")) {
+                    continue;
+                }
+                String metal = f.substring(f.lastIndexOf('/') + 1, f.length() - 5);
+                ArmorMaterial mat = armorMaterials().get(metal);
+                String rarity = rarities().get(metal);
+                if (mat == null || rarity == null) {
+                    throw new DatagenException("metal armor " + kind + "/" + metal + " has no material in " + ARMOR_SOURCE
+                        + " or no Metal constant in " + MetalFamilies.SOURCE);
+                }
+                String id = "metal/" + kind + "/" + metal;
+                modelQueue.add("item/" + id);
+                metalArmor.put(id, armorArgs(langKey("item", id), piece, mat, rarity, metal));
+                armorMetals.add(metal);
+            }
+        });
+        for (String metal : armorMetals) {
+            armorLayer("models/armor/" + metal + "_layer_1", "humanoid", metal);
+            armorLayer("models/armor/" + metal + "_layer_2", "humanoid_leggings", metal);
+            armorLayer("entity/horse/armor/horse_armor_" + metal, "horse_body", metal);
+        }
         while (!modelQueue.isEmpty()) {
             model(modelQueue.poll());
         }
     }
+
+    static final String ARMOR_SOURCE = "src/main/java/net/dries007/tfc/common/TFCArmorMaterials.java";
+    private static final Pattern ARMOR_REGISTER = Pattern.compile(
+        "public static final Id (\\w+) = register\\(\"(\\w+)\", TFCSounds\\.\\w+,\\s*"
+            + "(\\d+), (\\d+), (\\d+), (\\d+), (\\d+), (\\d+), (\\d+), (\\d+), (\\d+), ([\\d.]+)f, ([\\d.]+)f\\);");
+
+    /**
+     * One TFC armor material ({@code TFCArmorMaterials.register}): durability and armor points per slot (feet, legs, chest,
+     * head; the horse body uses the chest), enchantability, toughness and knockback resistance.
+     */
+    record ArmorMaterial(int feetDurability, int legsDurability, int chestDurability, int headDurability,
+                         int feetArmor, int legsArmor, int chestArmor, int headArmor,
+                         int enchantability, BigDecimal toughness, BigDecimal knockback) {
+        int durability(String slot) {
+            return switch (slot) {
+                case "head" -> headDurability;
+                case "chest", "body" -> chestDurability;
+                case "legs" -> legsDurability;
+                case "feet" -> feetDurability;
+                default -> throw new IllegalArgumentException(slot);
+            };
+        }
+
+        int armor(String slot) {
+            return switch (slot) {
+                case "head" -> headArmor;
+                case "chest", "body" -> chestArmor;
+                case "legs" -> legsArmor;
+                case "feet" -> feetArmor;
+                default -> throw new IllegalArgumentException(slot);
+            };
+        }
+    }
+
+    /** One armor kind: the equipment slot (CE and vanilla name), the vanilla material and the template it is emitted with. */
+    record ArmorPiece(String slot, String material, String template) {
+    }
+
+    /**
+     * The {@code Metal.ItemType} armor folders: TFC's {@code ArmorItem.Type} (helmet head, chestplate chest, greaves legs,
+     * boots feet) and the horse armor ({@code AnimalArmorItem}, body slot, chest values), each with the vanilla item whose hand
+     * and inventory behaviour it takes.
+     */
+    static final Map<String, ArmorPiece> METAL_ARMOR_KINDS = Map.of(
+        "helmet", new ArmorPiece("head", "iron_helmet", "tfp:item/armor"),
+        "chestplate", new ArmorPiece("chest", "iron_chestplate", "tfp:item/armor"),
+        "greaves", new ArmorPiece("legs", "iron_leggings", "tfp:item/armor"),
+        "boots", new ArmorPiece("feet", "iron_boots", "tfp:item/armor"),
+        "horse_armor", new ArmorPiece("body", "iron_horse_armor", "tfp:item/horse_armor"));
+
+    /** The template arguments of one armor piece. */
+    static Map<String, Object> armorArgs(String langKey, ArmorPiece piece, ArmorMaterial mat, String rarity, String metal) {
+        Map<String, Object> args = new LinkedHashMap<>();
+        args.put("item_lang_key", langKey);
+        args.put("material", piece.material());
+        args.put("slot", piece.slot());
+        args.put("durability", mat.durability(piece.slot()));
+        args.put("armor", mat.armor(piece.slot()));
+        args.put("toughness", mat.toughness());
+        args.put("knockback", mat.knockback());
+        args.put("enchantability", mat.enchantability());
+        args.put("rarity", rarity);
+        args.put("metal", metal);
+        return args;
+    }
+
+    /** TFC's armor materials by name. Every {@code register} line of the source must match the expected format. */
+    private Map<String, ArmorMaterial> armorMaterials() {
+        if (armorCache == null) {
+            armorCache = parseArmorMaterials(tfc.readString(ARMOR_SOURCE));
+        }
+        return armorCache;
+    }
+
+    /** Parses {@code TFCArmorMaterials.java}. Fails on a {@code register} line in another format, or when there is none. */
+    static Map<String, ArmorMaterial> parseArmorMaterials(String source) {
+        Map<String, ArmorMaterial> out = new java.util.HashMap<>();
+        for (String line : source.split("\n")) {
+            if (!line.contains(" = register(")) {
+                continue;
+            }
+            java.util.regex.Matcher m = ARMOR_REGISTER.matcher(line.strip());
+            if (!m.matches()) {
+                throw new DatagenException(ARMOR_SOURCE + ": unexpected armor material line (the format changed?): " + line.strip());
+            }
+            int[] n = new int[9];
+            for (int i = 0; i < 9; i++) {
+                n[i] = Integer.parseInt(m.group(3 + i));
+            }
+            out.put(m.group(2), new ArmorMaterial(n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[8],
+                new BigDecimal(m.group(12)), new BigDecimal(m.group(13))));
+        }
+        if (out.isEmpty()) {
+            throw new DatagenException(ARMOR_SOURCE + " has no armor materials (the format changed?)");
+        }
+        return out;
+    }
+
+    /** The item rarity of each metal, from TFC's {@code Metal} constants (TFC {@code base(metal)} sets it on every item). */
+    private Map<String, String> rarities() {
+        if (rarityCache == null) {
+            Map<String, String> out = new java.util.HashMap<>();
+            for (MetalFamilies.MetalConstant c : MetalFamilies.metals(tfc.readString(MetalFamilies.SOURCE))) {
+                out.put(c.name().toLowerCase(java.util.Locale.ROOT), c.rarity().toLowerCase(java.util.Locale.ROOT));
+            }
+            rarityCache = out;
+        }
+        return rarityCache;
+    }
+
+    /** Copies one TFC armor layer texture to {@code textures/entity/equipment/<layer>/<metal>.png}, where the equipment asset reads it. */
+    private void armorLayer(String tfcPath, String layer, String metal) {
+        String src = TfcCheckout.ASSETS + "textures/" + tfcPath + ".png";
+        if (!tfc.exists(src)) {
+            report.missing("texture tfc:" + tfcPath + " (armor layer " + layer + " of " + metal + ")");
+            return;
+        }
+        out.put(RP + "textures/" + EQUIPMENT_TEXTURES + layer + "/" + metal + ".png", tfc.read(src));
+        report.count("armor_layers_copied");
+    }
+
+    /** Where the vanilla equipment asset {@code tfp:<metal>} reads its layer textures (below {@code textures/}). */
+    static final String EQUIPMENT_TEXTURES = "entity/equipment/";
+    /** The equipment layers of the metal armor: the humanoid body, the leggings and the horse armor. */
+    static final List<String> ARMOR_LAYERS = List.of("humanoid", "humanoid_leggings", "horse_body");
 
     static final String TIERS_SOURCE = "src/main/java/net/dries007/tfc/common/TFCTiers.java";
     private static final Pattern TIER = Pattern.compile(
@@ -197,7 +354,7 @@ public final class AssetPipeline {
 
     /**
      * The metal tool kinds emitted as mining tools, with the vanilla block tag each mines faster. Knife, scythe and hammer use our
-     * own block tags (tfp:mineable/*). The saw mines like an axe (vanilla axe tag). The other tools (chisel, propick, javelin, sword, mace) are our own behaviours and wait for M4-TOOL-02.
+     * own block tags (tfp:mineable/*). The saw mines like an axe (vanilla axe tag). The sword and mace are weapons (below); the chisel, propick and javelin are our own behaviours and are open.
      */
     static final Map<String, String> METAL_TOOL_KINDS = Map.of(
         "pickaxe", "minecraft:mineable/pickaxe", "axe", "minecraft:mineable/axe",
@@ -247,12 +404,13 @@ public final class AssetPipeline {
     }
 
     /**
-     * The {@code Metal.ItemType} folders emitted as plain items: the ingot, sheet and rod forms and the tool heads and
-     * blades. Finished tools and armor need tiers, durability and recipes (M4-TOOL-02), so they are left out.
+     * The {@code Metal.ItemType} folders emitted as plain items: the ingot, sheet and rod forms, the tool heads and
+     * blades and the unfinished armor parts (TFC: a plain {@code Item}). Tools and armor have their own kinds below.
      */
     static final List<String> METAL_ITEM_KINDS = List.of("ingot", "double_ingot", "sheet", "double_sheet", "rod",
         "axe_head", "chisel_head", "hammer_head", "hoe_head", "javelin_head", "knife_blade", "mace_head", "pickaxe_head",
-        "propick_head", "saw_blade", "scythe_blade", "shovel_head", "sword_blade", "fish_hook");
+        "propick_head", "saw_blade", "scythe_blade", "shovel_head", "sword_blade", "fish_hook",
+        "unfinished_helmet", "unfinished_chestplate", "unfinished_greaves", "unfinished_boots");
 
     /** The {@code hunger} of TFC's food definition for {@code name} (under the checkout's generated resources), or -1 without one. */
     private int foodHunger(String name) {
@@ -278,6 +436,9 @@ public final class AssetPipeline {
             return;
         }
         JsonObject json = Json.parse(tfc.readString(src), src).getAsJsonObject();
+        if (json.has("loader") && (Json.FROM_NS + ":trim").equals(json.get("loader").getAsString())) {
+            json = untrimmed(json, src);
+        }
         if (json.has("loader")) {
             throw new DatagenException(src + ": model loader " + json.get("loader") + " has no converter yet");
         }
@@ -303,6 +464,23 @@ public final class AssetPipeline {
         }
         out.put(RP + "models/" + path + ".json", Json.write(Json.rename(json)));
         report.count("models_copied");
+    }
+
+    /**
+     * {@code tfc:trim} (TFC's armor item model: the armor texture plus an overlay for the trim material, drawn by a client
+     * model loader) → a plain generated item model over the armor texture. The trim overlay of the icon is not drawn.
+     */
+    private static JsonObject untrimmed(JsonObject json, String src) {
+        JsonObject textures = json.has("textures") ? json.getAsJsonObject("textures") : new JsonObject();
+        if (!textures.has("armor")) {
+            throw new DatagenException(src + ": tfc:trim model has no armor texture");
+        }
+        JsonObject model = new JsonObject();
+        model.addProperty("parent", "minecraft:item/generated");
+        JsonObject tex = new JsonObject();
+        tex.add("layer0", textures.get("armor"));
+        model.add("textures", tex);
+        return model;
     }
 
     /** {@code tfc:block/ore} (rock cube + overlay cube) → one cube_all model over a flattened texture. */
@@ -476,6 +654,20 @@ public final class AssetPipeline {
             requireItemModel(id);
             metal.items.put(Json.TO_NS + ":" + id, CeBlockStates.call("tfp:item/weapon", args));
         });
+        metalArmor.forEach((id, args) -> {
+            requireItemModel(id);
+            metal.items.put(Json.TO_NS + ":" + id,
+                CeBlockStates.call(METAL_ARMOR_KINDS.get(id.split("/")[1]).template(), args));
+        });
+        // One vanilla equipment asset per armor metal (1.21.2+ component equipment): the layers TFC's ArmorMaterial.Layer draws.
+        for (String m : armorMetals) {
+            Map<String, Object> equipment = new LinkedHashMap<>();
+            equipment.put("type", "component");
+            for (String layer : ARMOR_LAYERS) {
+                equipment.put(layer, Json.TO_NS + ":" + m);
+            }
+            metal.equipments.put(Json.TO_NS + ":" + m, equipment);
+        }
         metal.write("metal");
         reportSkipped();
     }
@@ -642,13 +834,14 @@ public final class AssetPipeline {
         return m;
     }
 
-    /** One generated configuration file: a blocks section and an items section. */
+    /** One generated configuration file: a blocks section, an items section and an equipments section. */
     private final class ConfigFile {
         final Map<String, Object> blocks = new LinkedHashMap<>();
         final Map<String, Object> items = new LinkedHashMap<>();
+        final Map<String, Object> equipments = new LinkedHashMap<>();
 
         void write(String name) {
-            if (blocks.isEmpty() && items.isEmpty()) {
+            if (blocks.isEmpty() && items.isEmpty() && equipments.isEmpty()) {
                 return;
             }
             Map<String, Object> root = new LinkedHashMap<>();
@@ -657,6 +850,9 @@ public final class AssetPipeline {
             }
             if (!items.isEmpty()) {
                 root.put("items", items);
+            }
+            if (!equipments.isEmpty()) {
+                root.put("equipments", equipments);
             }
             out.put(CONFIG + name + ".yml", Yaml.write(HEADER, root));
             report.count("ce_config_files");

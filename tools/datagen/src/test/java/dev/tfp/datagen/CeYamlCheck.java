@@ -80,7 +80,7 @@ final class CeYamlCheck {
             Set<String> ids = new HashSet<>();
             for (var c : configs) {
                 for (var section : c.getValue().entrySet()) {
-                    assertThat(section.getKey()).as(c.getKey()).isIn("blocks", "items");
+                    assertThat(section.getKey()).as(c.getKey()).isIn("blocks", "items", "equipments");
                     for (var entry : ((Map<String, Object>) section.getValue()).entrySet()) {
                         assertThat(ids.add(section.getKey() + "/" + entry.getKey())).as("duplicate id " + entry.getKey()).isTrue();
                         assertThat(entry.getKey()).startsWith("tfp:");
