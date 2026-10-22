@@ -2,7 +2,7 @@
 id: PAR-INFRA-06
 title: "Recipe runtime on Paper: ItemStack ingredient matching, indexed lookups, output modifiers"
 area: INFRA
-status: open
+status: done
 wave: 3
 deps: [PAR-INFRA-07]
 size: M
@@ -22,6 +22,7 @@ plan:
   - "Implement the hooks against ItemStack (CE id or vanilla id, tags from PAR-INFRA-07, `tfc:not_rotten`, `tfc:heatable`, `tfc:has_trait`, fluid ingredients through PAR-INFRA-04)."
   - "Index each recipe type by input item id (immutable snapshot rebuilt on `/tfp reload data`) so device lookups are O(1)."
   - "Apply output modifiers (copy_food, copy_heat, add_trait, damage_inputs...) to real ItemStacks."
+  - "Done: paper/recipe: `Recipes` service (RecipeModule, `services().require(Recipes.class)`) holding an immutable `RecipeIndex` (every type in item, block, fluid and string-key spaces per `RecipeTypes.SPECS`; tags expanded exactly via `TagMembers` over the tag snapshot and the server's vanilla ids; precise ingredients are wildcards; candidates in id order, first match wins), rebuilt off-thread on the CPU pool when the registry snapshot or tag rules change (the previous index served meanwhile, ~1.5 s for 6177 recipes); `ItemIngredientContext` (CE/vanilla id, Tags, ItemFoodHooks, ItemHeatHooks, ItemFluids); `ItemModifierHooks` (every TFC output modifier on ItemStacks; forging bonus, bowl, flower cutting, bait, glass, powder, meal and custom-item remainders through `ModifierExtensions` for their owning items). Tests: 24 in paper/src/test/java/dev/tfp/paper/recipe (synthetic index, ItemStack ingredients and modifiers on MockBukkit, the shipped data: every type indexed, per-type counts vs TFC, indexed == linear scan for every known item over 13 types). Ledger row + 3 divergences. Follow-up PAR-INFRA-20: datagen does not export TFC's 66 overrides of vanilla crafting recipes (data/minecraft/recipe), so crafting counts are 1686/569 vs TFC's 1734/587; all other types equal TFC."
 tests:
   - "paper: MockBukkit tests for each ingredient type and output modifier"
   - "paper: lookup returns TFC's first-by-id recipe for overlapping inputs"
