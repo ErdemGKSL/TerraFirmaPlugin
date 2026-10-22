@@ -134,6 +134,8 @@ final class HudLayouts {
     /** Below 3 s of breath the air fill turns red. */
     static final int CRITICAL_AIR = 60;
     static final List<Cond> UNDERWATER = List.of(new Cond("tfp_air", "<", FULL_AIR));
+    /** The armour bar shows while the player has any armour (like air, hidden in the common no-armour state). */
+    static final List<Cond> ARMORED = List.of(new Cond("tfp_armor", ">", 0));
 
     /**
      * Text shadow ({@code outline}, ARGB hex) of the health text: neutral black, so the white digits read crisply on
@@ -143,18 +145,27 @@ final class HudLayouts {
     static final String HEALTH_TEXT_SHADOW = "FF000000";
 
     /**
-     * Placement (GUI pixels from the bottom-centre; {@code H} = GUI height). Vanilla: XP bar H-29..H-25, hotbar
-     * H-22..H-1, armour row H-49..H-41 on the left, XP number centred around H-35..H-28.
+     * Layout placement (GUI pixels from the bottom-centre anchor; {@code H} = GUI height). Vanilla: XP bar H-29..H-25,
+     * hotbar H-22..H-1, armour row H-49..H-41 on the left (hidden: the armour bar replaces it), XP number centred around
+     * H-35..H-28.
      * <ul>
-     *   <li>health 81x10: columns centre-90..-10, rows H-40..H-31 (TFC's left column); text centred, glyph rows
-     *       H-39..H-33 and the shadow row inside the 8-row interior;</li>
-     *   <li>right column, all 81x7 at centre+11..+91, one 8-row step apart (one empty row between bars): hunger
+     *   <li>left column, 81 wide at layout x -90: health 81x10 rows H-40..H-31 (TFC's left column; text centred, glyph
+     *       rows H-39..H-33 and the shadow row inside the 8-row interior), armour 81x7 rows H-48..H-42 directly above it
+     *       with one empty row (H-41) between (only while {@code tfp_armor > 0});</li>
+     *   <li>right column, all 81x7 at layout x +11, one 8-row step apart (one empty row between bars): hunger
      *       H-37..H-31, thirst H-45..H-39, air H-53..H-47 (only while {@code tfp_air < 300}; red fill below 60).</li>
      * </ul>
+     * On screen the BetterHud bottom-centre anchor lands {@link #SCREEN_SHIFT_X} px left of the layout x (measured in the
+     * GUI scale 2 and 3 screenshots of 2026-10-22: the right column at centre+10..+90). So the left column is on screen at
+     * centre-91..-11, exactly vanilla's hearts, and the right column at centre+10..+90, exactly vanilla's food row: the
+     * two columns mirror each other about the hotbar's centre line (the hotbar is centre-91..+90).
      */
+    static final int SCREEN_SHIFT_X = -1;
+
     static final Map<String, BarSpec> BAR_SPECS = Map.of(
         "m3-surv-06-health-bar", new BarSpec("m3_surv_06_health_bar", -90, -40, BARS,
             List.of(new Text("[tfp_health]//[tfp_max_health]", 40, 1, "center", HEALTH_TEXT_SHADOW)), List.of(), List.of(), 0),
+        "m3-surv-06-armor-bar", new BarSpec("m3_surv_06_armor_bar", -90, -48, BARS, List.of(), ARMORED, List.of(), 0),
         "m3-surv-06-hunger-bar", new BarSpec("m3_surv_06_hunger_bar", 11, -37, BARS, List.of(), List.of(), List.of(), 0),
         "m3-surv-06-thirst-bar", new BarSpec("m3_surv_06_thirst_bar", 11, -45, BARS, List.of(), List.of(), List.of(), 0),
         "m3-surv-06-air-bar", new BarSpec("m3_surv_06_air_bar", 11, -53, BARS, List.of(), UNDERWATER,

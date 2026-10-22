@@ -167,6 +167,8 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
     private volatile PlayerClimateService climate;
     /** M2-WTH-01: what falls at the player's position (rain or snow), for {@code /tfp debug chunk}. */
     private volatile PrecipitationService precipitation;
+    /** M3-SURV-06: the needs HUD publisher; debug commands that change a need republish through it at once. */
+    private volatile PlayerNeedsHudService needsHud;
     /** M2-WTH-02/04: the snow service, for {@code /tfp debug snowtime} (its next-unload override). */
     private volatile SnowService snow;
     /** M2-SEA-02: the seasonal biome tables behind the chunk packet rewrite. */
@@ -479,8 +481,10 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 () -> clock.get().playerTicks());
         getServer().getPluginManager().registerEvents(needs, this);
         needs.start(() -> getServer().getOnlinePlayers());
+        needsHud = needs;
         // M3-SURV-03: right-click a water source with an empty main hand drinks (TFC's trigger for the drink packet).
-        WaterDrinkListener waterDrink = new WaterDrinkListener(store, () -> clock.get().playerTicks(), hudCache);
+        WaterDrinkListener waterDrink = new WaterDrinkListener(store, () -> clock.get().playerTicks(), hudCache,
+                needs::refresh);
         getServer().getPluginManager().registerEvents(waterDrink, this);
 
         // M2-WTH-02: snow layers, ice and melting near the players, decided off-thread and applied per region under budget.
@@ -984,8 +988,17 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
             return CompletableFuture.completedFuture(Reply.error("command.player_not_found", name));
         }
         PlayerData updated = playerData.update(target.getUniqueId(), d -> d.withThirst(value));
+        refreshNeedsHud(target);
         return CompletableFuture.completedFuture(Reply.ok("debug.player.header", target.getName())
                 .withDetails(List.of("thirst set to " + updated.thirst())));
+    }
+
+    /** Republishes the player's needs HUD now, so a debug change shows at once (no-op before the service exists). */
+    private void refreshNeedsHud(Player target) {
+        PlayerNeedsHudService service = needsHud;
+        if (service != null) {
+            service.refresh(target);
+        }
     }
 
     @Override
@@ -999,6 +1012,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         boolean scheduled = scheduler.entity(target, () -> {
             try {
                 target.setFoodLevel(value);
+                refreshNeedsHud(target);
                 out.complete(Reply.ok("debug.hunger.done", target.getName(), target.getFoodLevel()));
             } catch (RuntimeException e) {
                 out.completeExceptionally(e);

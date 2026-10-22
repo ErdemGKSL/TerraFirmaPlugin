@@ -12,6 +12,7 @@ package dev.tfp.paper.player;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.scheduler.ThreadAsserts;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
@@ -43,15 +44,25 @@ public final class WaterDrinkListener implements Listener {
     private final PlayerDataStore data;
     private final LongSupplier playerTicks;
     private final HudSnapshotCache hud;
+    private final Consumer<Player> changed;
 
     /**
      * @param playerTicks the calendar's player tick ({@code ClockSnapshot.playerTicks}), any thread
      * @param hud          the ambient temperature for the heat share of the decay
+     * @param changed      called on the player's thread after a drink changed the thirst (the HUD republishes at once,
+     *                     {@code PlayerNeedsHudService.refresh})
      */
-    public WaterDrinkListener(PlayerDataStore data, LongSupplier playerTicks, HudSnapshotCache hud) {
+    public WaterDrinkListener(PlayerDataStore data, LongSupplier playerTicks, HudSnapshotCache hud,
+            Consumer<Player> changed) {
         this.data = data;
         this.playerTicks = playerTicks;
         this.hud = hud;
+        this.changed = changed;
+    }
+
+    /** Without a change callback: the HUD picks the drink up at its next throttled publish. */
+    public WaterDrinkListener(PlayerDataStore data, LongSupplier playerTicks, HudSnapshotCache hud) {
+        this(data, playerTicks, hud, p -> { });
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -99,6 +110,7 @@ public final class WaterDrinkListener implements Listener {
         long now = playerTicks.getAsLong();
         float temperature = (float) hud.snapshot(id).ambientTemperature();
         data.update(id, d -> WaterDrink.drink(d, now, temperature, true));
+        changed.accept(player);
     }
 
     /** Whether {@code source} is closer to the player's eye than {@code other} (block centres). */

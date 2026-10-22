@@ -31,7 +31,8 @@ class BetterHudAdapterTest {
         cache.put(player, new HudSnapshot(45, 50, 30, 10, 1200));
         HudSnapshot s = cache.snapshot(player);
         assertThat(HudValues.NUMBERS.keySet())
-                .containsExactly("tfp_health", "tfp_max_health", "tfp_thirst", "tfp_hunger", "tfp_held_temp", "tfp_air");
+                .containsExactly("tfp_health", "tfp_max_health", "tfp_thirst", "tfp_hunger", "tfp_held_temp", "tfp_air",
+                        "tfp_armor");
         assertThat(HudValues.NUMBERS.get("tfp_health").applyAsDouble(s)).isEqualTo(45);
         assertThat(HudValues.NUMBERS.get("tfp_max_health").applyAsDouble(s)).isEqualTo(50);
         assertThat(HudValues.NUMBERS.get("tfp_thirst").applyAsDouble(s)).isEqualTo(30);
@@ -40,6 +41,18 @@ class BetterHudAdapterTest {
         assertThat(HudValues.LISTENERS.get("tfp_health").applyAsDouble(s)).isEqualTo(0.9);
         assertThat(HudValues.LISTENERS.get("tfp_thirst").applyAsDouble(s)).isEqualTo(0.3);
         assertThat(HudValues.LISTENERS.get("tfp_hunger").applyAsDouble(s)).isEqualTo(0.5);
+    }
+
+    /** Armour: the raw attribute as the number, 0..1 on vanilla's 20-point scale as the bar (full at 20 and above). */
+    @Test
+    void armourReadsTheAttributeOnVanillasTwentyPointScale() {
+        HudSnapshot none = HudSnapshot.DEFAULT;
+        assertThat(HudValues.NUMBERS.get("tfp_armor").applyAsDouble(none)).isZero();
+        assertThat(HudValues.LISTENERS.get("tfp_armor").applyAsDouble(none)).isZero();
+        HudSnapshot iron = none.withArmor(15);
+        assertThat(HudValues.NUMBERS.get("tfp_armor").applyAsDouble(iron)).isEqualTo(15);
+        assertThat(HudValues.LISTENERS.get("tfp_armor").applyAsDouble(iron)).isEqualTo(0.75);
+        assertThat(HudValues.LISTENERS.get("tfp_armor").applyAsDouble(none.withArmor(24))).isEqualTo(1);
     }
 
     /** The thermometer maps -20..40 °C to 0..1 and is empty without a reading. */

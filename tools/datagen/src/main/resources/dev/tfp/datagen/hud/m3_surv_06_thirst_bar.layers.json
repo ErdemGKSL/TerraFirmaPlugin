@@ -1,1 +1,1 @@
-{"name": "m3_surv_06_thirst_bar", "canvas": [81, 7], "interior": [[1, 1, 80, 6]], "ring": "shade"}
+{"name": "m3_surv_06_thirst_bar", "canvas": [81, 7], "interior": [[1, 1, 80, 6]], "ring": "outline", "colors": 3, "palette": ["#000000", "#0044c9", "#0078fb", "#219efc", "#303640", "#3c4650", "#3f4951"]}

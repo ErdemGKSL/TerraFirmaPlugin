@@ -1,2 +1,1 @@
-{"name": "m3_surv_06_air_bar", "canvas": [81, 7], "interior": [[1, 1, 80, 6]], "ring": "shade",
- "variants": {"critical": {"saturation": 1.0, "value": 1.0, "tint": [235, 64, 52], "tint_amount": 0.9, "tint_by_value": true}}}
+{"name": "m3_surv_06_air_bar", "canvas": [81, 7], "interior": [[1, 1, 80, 6]], "ring": "outline", "colors": 3, "variants": {"critical": {"saturation": 1.0, "value": 1.0, "tint": [235, 64, 52], "tint_amount": 0.9, "tint_by_value": true}}, "palette": ["#000000", "#41474b", "#464d50", "#484d50", "#6dbde9", "#7ecdfb", "#94d6fb", "#d55654", "#df504b", "#e1514b"]}

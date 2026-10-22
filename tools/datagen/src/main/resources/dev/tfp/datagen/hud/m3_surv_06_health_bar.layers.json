@@ -1,1 +1,1 @@
-{"name": "m3_surv_06_health_bar", "canvas": [81, 10], "interior": [[1, 1, 80, 9]], "ring": "shade"}
+{"name": "m3_surv_06_health_bar", "canvas": [81, 10], "interior": [[1, 1, 80, 9]], "ring": "outline", "colors": 3, "palette": ["#000000", "#312627", "#3f3131", "#514141", "#9a0814", "#c5121b", "#fc383b"]}

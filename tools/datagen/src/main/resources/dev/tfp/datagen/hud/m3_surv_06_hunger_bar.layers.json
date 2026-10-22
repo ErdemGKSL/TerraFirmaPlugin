@@ -1,1 +1,1 @@
-{"name": "m3_surv_06_hunger_bar", "canvas": [81, 7], "interior": [[1, 1, 80, 6]], "ring": "shade"}
+{"name": "m3_surv_06_hunger_bar", "canvas": [81, 7], "interior": [[1, 1, 80, 6]], "ring": "outline", "colors": 3, "palette": ["#000000", "#423832", "#4c4139", "#50483f", "#cf4b02", "#ef6201", "#fa9226"]}

@@ -23,6 +23,7 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m1-int-04-ph-thirst` | value behind the thirst bar | M1-INT-04 | placeholder | `tfp_thirst` (snapshot, TFC max 100) | M1 | needed | Also a listener `tfp_thirst` (0..1). Rules in M3-SURV-03. |
 | `m1-int-04-ph-hunger` | value behind the hunger bar | M1-INT-04 | placeholder | `tfp_hunger` (snapshot) | M1 | needed | Also a listener `tfp_hunger`. Source is the TFC hunger model (M3-SURV-02). |
 | `m3-surv-06-ph-air` | breath left behind the air bar | M3-SURV-06 | placeholder | `tfp_air` (snapshot, vanilla breath 0..300) | M3 | needed | Also a listener `tfp_air` (0..1). Source is `Player.getRemainingAir`. |
+| `m3-surv-06-ph-armor` | armour points behind the armour bar | M3-SURV-06 | placeholder | `tfp_armor` (snapshot, vanilla armour attribute 0..30) | M3 | needed | Also a listener `tfp_armor` (0..1 on vanilla's 20-point scale; TFC's best full set, blue or red steel, is 3+6+8+3 = 20, `TFCArmorMaterials`). Source is `Attribute.ARMOR`. |
 | `m1-int-04-ph-held-temp` | held item temperature for the popup | M1-INT-04 | placeholder | `tfp_held_temp` (snapshot, item heat from M3-HEAT-01) | M1 | needed | Popup condition `tfp_held_temp > 0` (betterhud skill). |
 | `m2-cal-02-ph-date` | calendar date text | M2-CAL-02 | placeholder | `tfp_date` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
 | `m2-cal-02-ph-season` | season name | M2-CAL-02 | placeholder | `tfp_season` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
@@ -31,6 +32,7 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m3-surv-06-thirst-bar` | thirst bar | M3-SURV-06 | bar | `tfp_thirst` (listener, 0..1) | M3 | needed | Spike M0-BH-01 `[x]`. TFC reference: `IngameOverlays.THIRST`. TFC's 81x5 sprite, one 6 px step above hunger (section 5). |
 | `m3-surv-06-hunger-bar` | hunger bar | M3-SURV-06 | bar | `tfp_hunger` (listener) | M3 | needed | The BetterHud built-in `food` class only works if the vanilla food level is synced (M3-SURV-02 open item). TFC reference: `IngameOverlays.FOOD`. TFC's 81x5 food sprite recoloured orange (divergence, section 5). |
 | `m3-surv-06-air-bar` | air bar (breath left), plain light-blue fill | M3-SURV-06 | bar | `tfp_air` (listener, 0..1) | M3 | needed | Replaces the vanilla air bubbles (hidden by `m3-surv-06-hide-air`). Compact 81x7 bar directly above thirst, only while `tfp_air < 300`; red fill below 60 (section 5). |
+| `m3-surv-06-armor-bar` | armour bar (armour points), plain steel-grey fill | M3-SURV-06 | bar | `tfp_armor` (listener, 0..1) | M3 | needed | Replaces the vanilla armour row (hidden by `m3-surv-06-hide-armor`). Thin 81x7 bar directly above health with one empty row between, only while `tfp_armor > 0` (section 5). |
 | `m3-surv-06-held-temp-popup` | held item temperature, shown while above 0 | M3-SURV-06 (via M3-HEAT-01) | popup | `tfp_held_temp` | M3 | needed | Item tooltip line is separate and not HUD. Text `[tfp_held_temp]°C`, whole degrees, black shadow. |
 | `m2-clim-03-ambient-temp-bar` | thermometer bar beside the temperature line, top-left | M2-CLIM-03 | bar | `tfp_ambient_temp` (listener, -20..40 °C) | M2 | needed | Icy blue to hot red; on the info plate (section 5). |
 | `m2-cal-02-info-plate` | stone plate behind the date and temperature lines | M2-CAL-02 | overlay | `tfp_date` (backs the date readout) | M2 | needed | 124x22 at 1,1. |
@@ -43,47 +45,48 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m3-surv-06-hide-hearts` | vanilla hearts row | M3-SURV-06 | hidden-vanilla | transparent `gui/sprites/hud/heart/*.png` (47 files) | M3 | needed | Spike M0-BH-01 `[x]`. The set also hides the vanilla mount-health row (`heart/vehicle_*`). See section 2. |
 | `m3-surv-06-hide-food` | vanilla food row | M3-SURV-06 | hidden-vanilla | transparent `gui/sprites/hud/food_*.png` (6 files) | M3 | needed | Spike M0-BH-01 `[x]`. |
 | `m3-surv-06-hide-air` | vanilla air bubbles | M3-SURV-06 | hidden-vanilla | transparent `air.png`, `air_bursting.png`, `air_empty.png` | M3 | needed | Spike M0-BH-01 `[x]`. |
+| `m3-surv-06-hide-armor` | vanilla armour row | M3-SURV-06 | hidden-vanilla | transparent `armor_empty.png`, `armor_full.png`, `armor_half.png` | M3 | needed | Replaced by `m3-surv-06-armor-bar`, so nothing duplicates. |
 
 ## 2. Vanilla bars to hide
 
-The plans name three bars to hide. The hotbar and crosshair stay (M0-BH-01 done-when: "the hotbar is kept"). The sprite list is from the betterhud skill (section 6.2 of its research report) and must be rechecked per MC version (X-HUD-01).
+The plans name four bars to hide (the armour row since the armour bar, 2026-10-22). The hotbar and crosshair stay (M0-BH-01 done-when: "the hotbar is kept"). The sprite list is from the betterhud skill (section 6.2 of its research report) and must be rechecked per MC version (X-HUD-01).
 
 | vanilla bar | plan item that hides it | sprites to ship as transparent | notes |
 |---|---|---|---|
 | hearts (health row) | M3-SURV-06 "Hide vanilla hearts/food/air"; spike M0-BH-01 | `gui/sprites/hud/heart/*.png`, all 47 in 1.21.11 (incl. `container*`, `vehicle_*`, `*_blinking`, `hardcore_*`) | Also hides the mount-health row (`vehicle_*`). See "not named" below. |
 | food (hunger row) | M3-SURV-06; spike M0-BH-01 | `gui/sprites/hud/food_*.png` (6) | |
 | air (bubbles) | M3-SURV-06; spike M0-BH-01 | `gui/sprites/hud/air.png`, `air_bursting.png`, `air_empty.png` | |
+| armour row | M3-SURV-06 armour bar (owner request 2026-10-22) | `gui/sprites/hud/armor_empty.png`, `armor_full.png`, `armor_half.png` | Replaced by the armour bar above health. |
 
 Not named by any plan item (decide in X-HUD-01 or add to M3-SURV-06):
 - **Experience bar and XP level.** No plan item names it. TFC hides the vanilla XP bar under a config switch (`IngameOverlays.EXPERIENCE`). The research report keeps XP.
 - **Mount health and jump meter.** No plan item names them. The heart set hides the mount-health row unless `vehicle_*` is excluded (the report flags this as "decide"). TFC draws its own mount-health row (`IngameOverlays.MOUNT_HEALTH`) and jump bar (`IngameOverlays.JUMP_BAR`).
-- **Armor bar.** No plan item names it. The research report lists `armor_*.png` as optional.
 
 ## 3. Counts
 
 Method: a Python script (`/tmp/claude-0/-home-user-TerraFirmaPlugin/7076116e-0f7a-5b74-a249-6fd913ce4602/scratchpad/hud_counts.py`, not checked in) reads section 1. It takes each row whose first cell is a backticked id, reads the kind (column 4), the milestone (column 6) and the `unspecified in plan` text in the source and data columns, and counts them. Section 2 rows are not counted.
 
-Total elements: **25**. Of these, 4 are unspecified in plan (rows marked above).
+Total elements: **28**. Of these, 4 are unspecified in plan (rows marked above).
 
 | kind | count | of which unspecified in plan |
 |---|---|---|
-| bar | 5 | 0 |
+| bar | 6 | 0 |
 | overlay | 1 | 0 |
 | readout | 4 | 2 |
 | popup | 2 | 1 |
 | indicator | 1 | 1 |
-| placeholder | 9 | 0 |
-| hidden-vanilla | 3 | 0 |
-| **total** | **25** | **4** |
+| placeholder | 10 | 0 |
+| hidden-vanilla | 4 | 0 |
+| **total** | **28** | **4** |
 
 | milestone | elements | of which placeholder | of which unspecified in plan |
 |---|---|---|---|
 | M1 | 5 | 5 | 0 |
 | M2 | 7 | 3 | 0 |
-| M3 | 10 | 1 | 1 |
+| M3 | 13 | 2 | 1 |
 | M4 | 1 | 0 | 1 |
 | M6 | 2 | 0 | 2 |
-| **total** | **25** | **9** | **4** |
+| **total** | **28** | **10** | **4** |
 
 ## 4. TFC overlay reference (not counted)
 
@@ -109,20 +112,23 @@ From `src/main/java/net/dries007/tfc/client/` at `c3b4d9536`. `IngameOverlays` i
 
 Plan and rules: `plans/hud-layered-redesign.md`. Source of truth: `tools/datagen` `HudLayouts.BAR_SPECS` / `OVERLAYS` (placement), `HudArt` and the art resources (`tools/datagen/src/main/resources/dev/tfp/datagen/hud/`). Style: plain, close to TFC's own bars (1 px dark frame, flat fill with one lighter and one darker row, 3-4 colours per bar, no ornaments). Every bar is two layers derived from one generated master (`docs/art/hud/<name>_master.png`, raws and prompts in `art/raw/hud-*/`) by `tools/images/hud_layers.py`: `<name>_bg.png` (frame + darkened empty interior) behind and `<name>_fill.png` (interior only) in front, same canvas; BetterHud clips the fill left-to-right (`listener`, `split-type: left`, one frame per interior column). All layouts use `offset: left` (x = the canvas's left edge) and each layer's y is the bar's y plus the layer's first opaque row (BetterHud trims transparent rows without moving the image down).
 
-GUI pixels from the bottom-centre (`H` = GUI height) unless noted:
+GUI pixels from the bottom-centre (`H` = GUI height) unless noted. Columns are given twice: the **layout** x that the datagen writes (`HudLayouts.BAR_SPECS`) and the **screen** columns measured in the GUI scale 2 and 3 screenshots (2026-10-22), where BetterHud's bottom-centre anchor lands 1 px left of the layout x (`HudLayouts.SCREEN_SHIFT_X`). On screen the left column is vanilla's hearts (centre-91 .. -11) and the right column vanilla's food row (centre+10 .. +90): mirror images about the hotbar's centre line (hotbar centre-91 .. +90). (Before 2026-10-22 this table gave the right column as centre+11 .. +91, which mixed the layout x with screen pixels; the layout did not change.)
 
-| element | canvas | interior (fill mask) | columns | rows | z (layer) | shown |
-|---|---|---|---|---|---|---|
-| health + "850/850" | 81x10 | x 1..79, y 1..8 | centre-90 .. centre-10 | H-40 .. H-31 | bg 1, fill 2, text 3 (shadow `FF000000`, black) | always |
-| hunger | 81x7 | x 1..79, y 1..5 | centre+11 .. centre+91 | H-37 .. H-31 | bg 1, fill 2 | always |
-| thirst | 81x7 | x 1..79, y 1..5 | same | H-45 .. H-39 | bg 1, fill 2 | always |
-| air (plain fill) | 81x7 | x 1..79, y 1..5 | same | H-53 .. H-47 | bg 1, fill / fill_critical 2 | `tfp_air < 300`; red fill below 60 (one condition on the value, the same at every GUI scale; `HudLayoutsTest.airRedThresholdIsOneScaleIndependentConditionAt60`) |
-| info plate | 124x22 | single layer | screen x 1..124 (gui 0/0) | screen y 1..22 | 0 | always |
-| thermometer | 64x8 | tube x 1..62 y 2..5, bulb x 1..3 y 1 and 6 | screen x 6..69 | screen y 13..20 | bg 1, fill 2 | always |
-| date / temperature text | text | | x 6 / x 73 | y 5 / y 13 | 3 | always |
+| element | canvas | interior (fill mask) | layout x | screen columns | rows | z (layer) | shown |
+|---|---|---|---|---|---|---|---|
+| armour | 81x7 | x 1..79, y 1..5 | -90 | centre-91 .. centre-11 | H-48 .. H-42 (one empty row, H-41, above health) | bg 1, fill 2 | `tfp_armor > 0` (plain steel-grey fill, 0..20 points) |
+| health + "850/850" | 81x10 | x 1..79, y 1..8 | -90 | centre-91 .. centre-11 | H-40 .. H-31 | bg 1, fill 2, text 3 (shadow `FF000000`, black) | always |
+| hunger | 81x7 | x 1..79, y 1..5 | +11 | centre+10 .. centre+90 | H-37 .. H-31 | bg 1, fill 2 | always |
+| thirst | 81x7 | x 1..79, y 1..5 | +11 | same | H-45 .. H-39 | bg 1, fill 2 | always |
+| air (plain fill) | 81x7 | x 1..79, y 1..5 | +11 | same | H-53 .. H-47 | bg 1, fill / fill_critical 2 | `tfp_air < 300`; red fill below 60 (one condition on the value, the same at every GUI scale; `HudLayoutsTest.airRedThresholdIsOneScaleIndependentConditionAt60`) |
+| info plate | 124x22 | single layer | 1 | screen x 1..124 (gui 0/0) | screen y 1..22 | 0 | always |
+| thermometer | 64x8 | tube x 1..62 y 2..5, bulb x 1..3 y 1 and 6 | 6 | screen x 6..69 | screen y 13..20 | bg 1, fill 2 | always |
+| date / temperature text | text | | | x 6 / x 73 | y 5 / y 13 | 3 | always |
 
-Vanilla for comparison: XP bar H-29 .. H-25, hotbar H-22 .. H-1, armour row H-49 .. H-41 (left), XP number centred around H-35 .. H-28. No bar overlaps them; the right column has one empty row between bars.
+Vanilla for comparison: XP bar H-29 .. H-25, hotbar H-22 .. H-1, armour row H-49 .. H-41 (left, hidden and replaced by the armour bar), XP number centred around H-35 .. H-28. No bar overlaps the XP bar, its number or the hotbar; both columns have one empty row between bars (`HudLayoutsTest.barsStayClearOfTheXpRowHotbarAndXpNumber`, `leftColumnIsArmourAboveHealthWithOneEmptyRow`, `columnsMirrorEachOtherOnScreen`). Status effect icons are drawn top-right, far from both columns.
 
-Divergences from TFC (ledger): new plain art instead of TFC's overlay sheet; hunger is orange; black health-text shadow instead of TFC's dark red; air is a plain light-blue bar above thirst instead of the vanilla bubbles (same visibility rule: only below full breath); a thermometer bar and plate on the HUD (TFC shows climate in the inventory's climate screen). The BetterHud demo compass is switched off.
+Art pipeline (2026-10-22): every PNG is indexed colour (4-bit for the bars, 8-bit for the thermometer ramp), index 0 the only transparent entry, one fixed palette per bar pinned in its `layers.json` (outline black first, the same index order in master, bg and fills), losslessly compressed (`tools/images/hud_palette.py`). The frame is pure black (`"ring": "outline"`): the earlier `"shade"` turned the fill-coloured end columns of the downscaled masters into a dark red (orange, blue) fringe at the bar ends. Before/after crops: `art/raw/hud-defringe/`.
+
+Divergences from TFC (ledger): new plain art instead of TFC's overlay sheet; an armour bar instead of vanilla's armour icons (TFC keeps the vanilla row); hunger is orange; black health-text shadow instead of TFC's dark red; air is a plain light-blue bar above thirst instead of the vanilla bubbles (same visibility rule: only below full breath); a thermometer bar and plate on the HUD (TFC shows climate in the inventory's climate screen). The BetterHud demo compass is switched off.
 
 Not verified in game yet: `layer` order and the `offset: left` reading (from the BetterHud 2.0 bytecode, `LayoutComponentContainer`).

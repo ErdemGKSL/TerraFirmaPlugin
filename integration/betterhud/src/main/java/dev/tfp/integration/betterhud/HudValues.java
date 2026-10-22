@@ -25,7 +25,8 @@ final class HudValues {
      * Number placeholders. Thirst and hunger are published by {@code PlayerNeedsHudService}; the placeholders read the
      * player's latest snapshot and fall back to {@link HudSnapshot#DEFAULT} before the first publish. Health and max
      * health are published by {@code PlayerNeedsHudService} on TFC's scale. {@code tfp_held_temp} has no stored item
-     * heat yet (0 via the snapshot).
+     * heat yet (0 via the snapshot). {@code tfp_armor} is the vanilla armour attribute (0..30), its listener 0..1 on
+     * vanilla's 20-point scale (BetterHud's own {@code armor} listener would need its built-in placeholder; ours reads the snapshot).
      */
     static final Map<String, ToDoubleFunction<HudSnapshot>> NUMBERS;
 
@@ -40,6 +41,7 @@ final class HudValues {
         n.put("tfp_hunger", HudSnapshot::hunger);
         n.put("tfp_held_temp", HudSnapshot::heldTemperature);
         n.put("tfp_air", HudSnapshot::air);
+        n.put("tfp_armor", HudSnapshot::armor);
         NUMBERS = Collections.unmodifiableMap(n);
 
         Map<String, ToDoubleFunction<HudSnapshot>> l = new LinkedHashMap<>();
@@ -47,6 +49,7 @@ final class HudValues {
         l.put("tfp_thirst", s -> ratio(s.thirst(), HudSnapshot.MAX_THIRST));
         l.put("tfp_hunger", s -> ratio(s.hunger(), HudSnapshot.MAX_HUNGER));
         l.put("tfp_air", s -> ratio(s.air(), HudSnapshot.MAX_AIR));
+        l.put("tfp_armor", s -> ratio(s.armor(), HudSnapshot.MAX_ARMOR));
         l.put("tfp_ambient_temp", s -> thermometer(s.ambientTemperature()));
         LISTENERS = Collections.unmodifiableMap(l);
     }

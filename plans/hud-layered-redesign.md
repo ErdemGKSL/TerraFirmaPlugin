@@ -36,12 +36,15 @@ Owner feedback (2026-10-22, applied): **plain style** close to TFC's own bars (1
 lighter and one darker row, 3-4 colours per bar, no ornaments, ripples, glows or busy motifs) and a **compact air bar**
 directly above the food and thirst bars (no large gauge, no screen overlay).
 
-GUI pixels from the bottom-centre anchor (`H` = GUI height). Vanilla: XP bar H-29..H-25, hotbar H-22..H-1, armour row
-H-49..H-41 (left), XP number centred around H-35..H-28.
+GUI pixels from the bottom-centre anchor (`H` = GUI height), layout x (on screen BetterHud lands 1 px left:
+`HudLayouts.SCREEN_SHIFT_X`, so health/armour are vanilla's hearts columns centre-91..-11 and the right column vanilla's
+food columns centre+10..+90, mirror images). Vanilla: XP bar H-29..H-25, hotbar H-22..H-1, armour row H-49..H-41 (left,
+hidden since the armour bar), XP number centred around H-35..H-28.
 
 | element | id (catalogue) | canvas | interior (fill mask) | place | layers | value |
 |---|---|---|---|---|---|---|
 | health | `m3-surv-06-health-bar` | 81x10 | x 1..79, y 1..8 | x centre-90..-10, rows H-40..H-31 | bg, fill, text "850/850" (inside, TFC shadow) | `tfp_health` / `tfp_max_health` |
+| armour | `m3-surv-06-armor-bar` | 81x7 | x 1..79, y 1..5 | x centre-90..-10 (same as health), rows H-48..H-42 (one empty row above health) | bg, fill (plain steel grey) | listener `tfp_armor` (vanilla armour attribute / 20); shown while `tfp_armor > 0`; vanilla armour row hidden |
 | hunger | `m3-surv-06-hunger-bar` | 81x7 | x 1..79, y 1..5 | x centre+11..+91, rows H-37..H-31 | bg, fill | listener `tfp_hunger` |
 | thirst | `m3-surv-06-thirst-bar` | 81x7 | x 1..79, y 1..5 | same x, rows H-45..H-39 | bg, fill | listener `tfp_thirst` |
 | air | `m3-surv-06-air-bar` | 81x7 | x 1..79, y 1..5 | same x, rows H-53..H-47 (directly above thirst) | bg, fill (plain flat light-blue fill, no bubbles), fill_critical (red tint below 60 air) | listener `tfp_air`; shown while `tfp_air < 300` |
@@ -67,8 +70,12 @@ reads as a dark channel inside the frame and a low bar as a short coloured stub 
      and desaturated, fully opaque), so the empty channel keeps the fill's texture.
    - `fill.png` = transparent canvas of the same size; only the master's interior pixels copied in.
    - `fill_<variant>.png` = `fill.png` with the variant transform (the air bar's red `critical` fill).
-   - `"ring": "shade"` darkens frame pixels that are not already dark, so the frame is one plain dark border even where
-     downscaling blended the outline with the fill.
+   - `"ring": "outline"` (2026-10-22, replaces `"shade"`) snaps every frame pixel to pure black: the downscale left
+     fill-coloured end columns that `"shade"` turned into a dark red/orange/blue fringe (`art/raw/hud-defringe/`).
+   - The master's alpha is binarized and its interior quantized to a few of its own colours (`"colors"`); every layer is
+     saved as an indexed PNG with the bar's pinned `"palette"` (black first, same index order in all layers) by
+     `tools/images/hud_palette.py` (4-bit when it fits, max lossless compression); the cleaned master
+     `<name>_master.png` is written next to the layers.
    - It also writes `overlay-check.png` (bg + fill at 0 %, 50 %, 100 %, 8x nearest) for the human check.
    - It fails if the master has a transparent pixel inside the interior (a hole would show through) or if the frame ring
      is empty.
@@ -97,8 +104,12 @@ reads as a dark channel inside the frame and a low bar as a short coloured stub 
 - the frame ring (bg opaque pixels outside the interior) is non-empty;
 - emitted layout: both layers same `x`; each image `y = barY + firstOpaqueRow`; `layer` bg < fill < text;
   split-type left and split = interior width;
-- placement: no bar overlaps the XP row (bottom <= H-31), the hotbar, the armour row (left column top >= H-48) or the
-  XP number; the right column has one x, one size and one empty row between bars, air on top; the air bar is
+- placement: no bar overlaps the XP row (bottom <= H-31), the hotbar, the XP number or another bar; the armour bar sits
+  above health at the same x with one empty row and shows only while `tfp_armor > 0`; on screen the two columns mirror
+  each other (`HudLayoutsTest.columnsMirrorEachOtherOnScreen`);
+- art hygiene (`HudArtTest`): every HUD PNG is indexed colour with no semi-transparent pixel, the outer ring of every
+  background is dark neutral and every bar frame pure black, the layers share the palette order and fill over bg equals
+  the cleaned master; the right column has one x, one size and one empty row between bars, air on top; the air bar is
   conditioned on `tfp_air < 300` and swaps to the red fill below 60;
 - the PNG bytes in the pack are the resource bytes (no re-encoding drift);
 - `tools/images/hud_layers.py` is deterministic (same input, same bytes) — checked by a datagen test that recomputes
@@ -117,3 +128,17 @@ health bar and on the plate.
 2. `tools/images/hud_layers.py` + its use on the masters; raws, prompts, layers.json, derived PNGs (commit).
 3. Datagen `HudArt`, layouts, placeholders/listeners, tests, catalogue (commit).
 4. Gaps/ledger, screenshot instructions (commit, push).
+
+## 8. Armour bar, defringe, indexed PNGs, prompt refresh (2026-10-22, owner review)
+
+- [x] Armour bar `m3-surv-06-armor-bar` (81x7, grey, master `art/raw/hud-armor-bar/`), placeholder/listener `tfp_armor`
+  (`HudSnapshot.armor`, `Attribute.ARMOR`, published by `PlayerNeedsHudService`), vanilla armour row hidden
+  (`m3-surv-06-hide-armor`), catalogue rows, datagen spec, tests.
+- [x] Defringe and indexed-colour PNGs for every HUD image (section 3, `art/raw/hud-defringe/notes.md`).
+- [x] Column positions: the right column on screen is centre+10..+90 = vanilla's food row, the mirror of health at
+  centre-91..-11 (vanilla's hearts); the catalogue's old "+11..+91" mixed the layout x with screen pixels. No move.
+- [x] Prompt HUD refresh: `PlayerNeedsHudService.refresh` is called after `/tfp debug thirst`, `/tfp debug hunger` and a
+  drink, so the bar follows on the player's next tick instead of within the 20-tick throttle (the GUI 2 screenshot was
+  taken inside that window). Test: `PlayerNeedsHudRefreshMockBukkitTest`.
+- [ ] In-game check at GUI scale 2 and 3: no armour (no bar), partial and full armour; outline colour at 8x zoom.
+
