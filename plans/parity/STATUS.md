@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 232 items; open 211, done 18, blocked 3; waves 1..56 (wave 0 = already done).
+Totals: 233 items; open 212, done 18, blocked 3; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -40,6 +40,7 @@ Totals: 232 items; open 211, done 18, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-PROC-19 | Misc materials as CE items: ores, gems, powders, fibres, cloth, paper, glue, straw, mortar, spawn eggs | PROC | 5 | open |
 | PAR-SURV-01 | All TFC food items generated as CE items with food_stamp and food data | SURV | 5 | open |
 | PAR-INFRA-17 | Renderer-cube feel (spike S2): destroy_stages, particles, sounds and mining for display-drawn full blocks | INFRA | 5 | open |
+| PAR-METAL-20 | Charcoal forge lit tops turned 180°: the heat_N item display must match TFC's block-model orientation | METAL | 5 | open |
 | PAR-HUD-07 | HUD per MC version and TFC display styles: 26.x sprite list, XP bar style, health display style | HUD | 6 | open |
 | PAR-PROC-02 | Workbench crafting: the plain 2,255 shaped/shapeless recipes as CE recipe YAML | PROC | 6 | open |
 | PAR-SURV-02 | Food tooltip: expiry/rotten, traits, nutrition lines | SURV | 6 | open |
