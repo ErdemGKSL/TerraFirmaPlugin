@@ -61,6 +61,16 @@ class ItemDataRulesTest {
         assertThat(ItemDataMatching.fluidsMatch(new FluidAmount("a", 0), new FluidAmount("b", 0))).isTrue();
     }
 
+    /** TFC: a filled fluid item has a max stack size of 1, so only empty ones share a stack. */
+    @Test
+    void filledFluidItemsNeverMerge() {
+        FluidAmount water = new FluidAmount("minecraft:water", 1000);
+        assertThat(ItemDataMatching.fluidsAllowMerge(water, new FluidAmount("minecraft:water", 1000))).isFalse();
+        assertThat(ItemDataMatching.fluidsAllowMerge(water, FluidAmount.EMPTY)).isFalse();
+        assertThat(ItemDataMatching.fluidsAllowMerge(null, water)).isFalse();
+        assertThat(ItemDataMatching.fluidsAllowMerge(null, FluidAmount.EMPTY)).isTrue();
+    }
+
     @Test
     void itemListsMatchSlotBySlot() {
         List<String> a = Arrays.asList("x", null, "y");

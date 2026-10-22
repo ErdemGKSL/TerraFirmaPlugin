@@ -8,7 +8,9 @@ package dev.tfp.core.itemdata;
 /**
  * The bounds of the stored item list ({@code tfp:contents}). TFC's {@code ItemListComponent} codec has no bound; ours
  * keeps a crafted or corrupted item from carrying an unbounded payload into every inventory packet and chunk save (see the
- * ledger divergence). The largest TFC item list on an item is the small vessel's 4 slots; the bounds leave ample room.
+ * ledger divergence). The largest TFC {@code tfc:contents} lists on an item are the powderkeg's 12 slots
+ * ({@code PowderkegBlockEntity.SLOTS}) and the large vessel's 9 ({@code LargeVesselBlockEntity.SLOTS}); the bounds leave
+ * ample room. (The small vessel's 4 slots are not an item list in TFC but {@code VesselComponent.itemContent}.)
  */
 public final class ItemListLimits {
     /** The most slots a stored item list may hold. */

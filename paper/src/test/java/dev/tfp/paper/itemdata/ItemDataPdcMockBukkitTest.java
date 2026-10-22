@@ -170,7 +170,7 @@ class ItemDataPdcMockBukkitTest extends MockServerTest {
         assertThat(FluidPdc.has(jug)).isFalse();
     }
 
-    /** Caller: a 4-slot vessel takes items through ItemContents, with TFC's slot rules. */
+    /** Caller: a 4-slot item container takes items through ItemContents, with TFC's slot rules. */
     @Test
     void vesselInsertAndExtract() {
         ItemStack vessel = new ItemStack(Material.DECORATED_POT);
@@ -189,15 +189,18 @@ class ItemDataPdcMockBukkitTest extends MockServerTest {
         assertThat(ItemContents.slots(vessel, 4)).allMatch(ItemStack::isEmpty);
     }
 
-    /** No merge when the fluid or the item list differs. */
+    /** TFC never stacks a filled fluid item, even with equal contents; item lists merge only when equal. */
     @Test
-    void mergeNeedsEqualContents() {
+    void mergeNeedsEmptyFluidAndEqualContents() {
         ItemStack a = new ItemStack(Material.BUCKET);
         ItemStack b = new ItemStack(Material.BUCKET);
         assertThat(ItemContents.canMerge(a, b)).isTrue();
         FluidPdc.write(a, new FluidAmount(WATER, 1000));
         assertThat(ItemContents.canMerge(a, b)).isFalse();
         FluidPdc.write(b, new FluidAmount(WATER, 1000));
+        assertThat(ItemContents.canMerge(a, b)).isFalse();
+        FluidPdc.write(a, FluidAmount.EMPTY);
+        FluidPdc.write(b, FluidAmount.EMPTY);
         assertThat(ItemContents.canMerge(a, b)).isTrue();
 
         ContentsPdc.write(a, List.of(new ItemStack(Material.RAW_COPPER, 2)));
@@ -205,5 +208,49 @@ class ItemDataPdcMockBukkitTest extends MockServerTest {
         assertThat(ItemContents.canMerge(a, b)).isFalse();
         ContentsPdc.write(b, List.of(new ItemStack(Material.RAW_COPPER, 2)));
         assertThat(ItemContents.canMerge(a, b)).isTrue();
+    }
+
+    /** A filled item stacks to 1 (TFC getMaxStackSize); drained, it gets its own size back and equals a fresh one. */
+    @Test
+    void filledItemsStackToOne() {
+        ItemStack bucket = new ItemStack(Material.BUCKET);
+        int own = bucket.getMaxStackSize();
+        assertThat(own).isGreaterThan(1);
+        assertThat(ItemFluids.fill(bucket, new FluidAmount(WATER, 1000), 1000, true)).isEqualTo(1000);
+        assertThat(bucket.getMaxStackSize()).isEqualTo(1);
+        assertThat(ItemFluids.drain(bucket, 1000)).isEqualTo(new FluidAmount(WATER, 1000));
+        assertThat(bucket.getMaxStackSize()).isEqualTo(own);
+        assertThat(bucket.getItemMeta().hasMaxStackSize()).isFalse();
+        assertThat(bucket).isEqualTo(new ItemStack(Material.BUCKET));
+
+        // An item with its own max stack size override (a CE item definition) gets that override back.
+        ItemStack jug = new ItemStack(Material.FLOWER_POT);
+        ItemMeta meta = jug.getItemMeta();
+        meta.setMaxStackSize(8);
+        jug.setItemMeta(meta);
+        ItemStack fresh = jug.clone();
+        ItemFluids.fill(jug, new FluidAmount(WATER, 100), 100, true);
+        assertThat(jug.getMaxStackSize()).isEqualTo(1);
+        ItemFluids.drain(jug, 40);
+        assertThat(jug.getMaxStackSize()).isEqualTo(1);
+        ItemFluids.drain(jug, 60);
+        assertThat(jug.getMaxStackSize()).isEqualTo(8);
+        assertThat(jug).isEqualTo(fresh);
+    }
+
+    /** Filling or draining a stack of several items would duplicate fluid: it is refused and the stack is unchanged. */
+    @Test
+    void stacksOfSeveralAreNeitherFilledNorDrained() {
+        ItemStack buckets = new ItemStack(Material.BUCKET, 16);
+        ItemStack before = buckets.clone();
+        assertThat(ItemFluids.fill(buckets, new FluidAmount(WATER, 1000), 1000, true)).isZero();
+        assertThat(buckets).isEqualTo(before);
+
+        ItemStack one = buckets.asOne();
+        assertThat(ItemFluids.fill(one, new FluidAmount(WATER, 1000), 1000, true)).isEqualTo(1000);
+        one.setAmount(2);
+        assertThat(ItemFluids.drain(one, 1000)).isEqualTo(FluidAmount.EMPTY);
+        assertThat(ItemFluids.drain(one, new FluidAmount(WATER, 1000))).isEqualTo(FluidAmount.EMPTY);
+        assertThat(ItemFluids.content(one)).isEqualTo(new FluidAmount(WATER, 1000));
     }
 }

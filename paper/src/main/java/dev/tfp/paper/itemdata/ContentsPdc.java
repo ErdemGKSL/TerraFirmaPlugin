@@ -22,8 +22,9 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
- * The item PDC codec of an item list (TFC's {@code ItemListComponent}, PAR-INFRA-04): the slots of a small vessel and
- * of other items that carry items. Stored under {@value #KEY} as a nested container:
+ * The item PDC codec of an item list (TFC's {@code ItemListComponent}, {@code tfc:contents}, PAR-INFRA-04): the slots
+ * of the sealed large vessel and the powderkeg kept on their block items. (The small vessel's slots are TFC
+ * {@code VesselComponent}, not this list.) Stored under {@value #KEY} as a nested container:
  * <pre>
  * tfp:contents = { tfp:v: int (version), tfp:items: [byte[] per slot: ItemStack.serializeAsBytes, empty array = empty slot] }
  * </pre>

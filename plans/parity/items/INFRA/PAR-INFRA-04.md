@@ -27,6 +27,7 @@ plan:
   - "Make heat and food codecs read nested item lists (a vessel's contents keep their food dates)."
   - "Note: FoodPdc/HeatPdc needed no change: each `tfp:contents` slot is the whole serialized stack with its own PDC, so `FoodPdc.read`/`HeatPdc.read` work on the slots `ContentsPdc` returns. MockBukkit cannot serialize nested PDC containers, so the nested test uses an in-memory slot codec; the real-server check is the follow-up PAR-INFRA-12."
   - "Done: core/itemdata (ItemSlotRules insert/extract, ItemDataMatching merge rule, ItemListLimits), paper/itemdata (FluidPdc tfp:fluid, ContentsPdc tfp:contents, ItemFluids, ItemContents); tests core ItemDataRulesTest (5), paper ItemDataPdcMockBukkitTest (8); two ledger divergences."
+  - "Review fix: filled fluid items never stack (TFC FluidContainerItem/MoldItem.getMaxStackSize = 1 with fluid): FluidPdc sets max stack size 1 on fill and restores the item's own size on empty; ItemContents.canMerge is false when either holds fluid; ItemFluids fill/drain refuse stacks of more than one item (no fluid duplication). Corrected TFC ids (tfc:contents, not tfc:item_list) and list sizes (powderkeg 12, large vessel 9; the small vessel is VesselComponent, its alloy needs its own codec). Tests: core ItemDataRulesTest (6), paper ItemDataPdcMockBukkitTest (10)."
 tests:
   - "paper: MockBukkit round trip for both codecs incl. unknown newer version"
   - "core: fill/drain golden rows already exist; add the stack-merge rule for fluid items (no merge when contents differ)"

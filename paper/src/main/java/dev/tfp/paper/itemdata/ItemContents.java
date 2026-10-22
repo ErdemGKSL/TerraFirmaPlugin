@@ -17,7 +17,8 @@ import java.util.function.Predicate;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The slots of an item that carries items (a small vessel's 4 slots), backed by {@link ContentsPdc} and TFC's slot rules
+ * The slots of an item that carries items (TFC {@code tfc:contents}: the sealed large vessel and the powderkeg, and their
+ * block items), backed by {@link ContentsPdc} and TFC's slot rules
  * in {@link ItemSlotRules}. The caller supplies the container's slot count, slot capacity and {@code canContain}
  * predicate (TFC {@code ItemContainerInfo}). A stack whose entry has a newer version is never changed.
  *
@@ -54,6 +55,8 @@ public final class ItemContents {
         List<ItemStack> list = slots(container, slots);
         ItemStack inSlot = list.get(slot);
         boolean slotEmpty = ContentsPdc.isEmpty(inSlot);
+        // Bukkit isSimilar is TFC's ItemStack.isSameItemSameComponents on Paper: same item and same components, count
+        // ignored (CraftItemStack compares the item and the component patch).
         ItemSlotRules.Insert in = ItemSlotRules.insert(slotEmpty ? 0 : inSlot.getAmount(), stack.getAmount(),
                 !slotEmpty && inSlot.isSimilar(stack), canContain.test(stack), stack.getMaxStackSize(), slotCapacity);
         if (in.remainderCount() == stack.getAmount()) {
@@ -98,6 +101,7 @@ public final class ItemContents {
         if (ea || eb) {
             return ea && eb;
         }
+        // Count + isSimilar is TFC's ItemStack.matches on Paper (isSimilar compares the item and the components).
         return a.getAmount() == b.getAmount() && a.isSimilar(b);
     }
 
@@ -107,10 +111,11 @@ public final class ItemContents {
     }
 
     /**
-     * Whether two fluid or item carrying stacks may merge by their item data: equal fluid content and equal item lists
-     * (TFC: vanilla merges only on equal components). Other item data is the caller's (or vanilla's) check.
+     * Whether two fluid or item carrying stacks may merge by their item data: neither holds fluid (TFC never stacks a
+     * filled fluid item) and their item lists are equal (TFC: vanilla merges only on equal components). Other item data,
+     * and items that never stack at all (the small vessel, the jug), are the caller's (or the item definition's) check.
      */
     public static boolean canMerge(ItemStack a, ItemStack b) {
-        return ItemFluids.fluidsMatch(a, b) && contentsMatch(a, b);
+        return ItemFluids.fluidsAllowMerge(a, b) && contentsMatch(a, b);
     }
 }

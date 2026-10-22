@@ -6,7 +6,9 @@
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/component/fluid/FluidComponent.java @ c3b4d9536 (equals),
  *       src/main/java/net/dries007/tfc/common/component/item/ItemListComponent.java @ c3b4d9536 (equals),
- *       src/main/java/net/dries007/tfc/common/component/item/ItemComponent.java @ c3b4d9536 (equals of lists)
+ *       src/main/java/net/dries007/tfc/common/component/item/ItemComponent.java @ c3b4d9536 (equals of lists),
+ *       src/main/java/net/dries007/tfc/common/items/FluidContainerItem.java @ c3b4d9536 (getMaxStackSize),
+ *       src/main/java/net/dries007/tfc/common/items/MoldItem.java @ c3b4d9536 (getMaxStackSize)
  */
 package dev.tfp.core.itemdata;
 
@@ -15,9 +17,12 @@ import java.util.List;
 import java.util.function.BiPredicate;
 
 /**
- * The stack-merge rule of the fluid and item-list item data. In TFC both are data components, and vanilla merges two
- * stacks only when every component is equal; so two buckets, jugs, vessels or molds stack only when their fluid
- * (fluid and amount) and their item list (slot by slot: item, data and count) are equal. Any thread.
+ * The stack-merge rules of the fluid and item-list item data. In TFC both are data components, and vanilla merges two
+ * stacks only when every component is equal. On top of that TFC never stacks a filled fluid item:
+ * {@code FluidContainerItem.getMaxStackSize} (buckets, bottles) and {@code MoldItem.getMaxStackSize} return 1 whenever
+ * the item holds fluid, the jug is {@code stacksTo(1)} and {@code VesselItem.getMaxStackSize} is always 1. So empty fluid
+ * items stack, filled ones never do ({@link #fluidsAllowMerge}); item lists ({@code tfc:contents}, on the sealed large
+ * vessel's and the powderkeg's block items) stack only when equal slot by slot ({@link #listsMatch}). Any thread.
  */
 public final class ItemDataMatching {
 
@@ -32,6 +37,14 @@ public final class ItemDataMatching {
         FluidAmount x = a == null ? FluidAmount.EMPTY : a;
         FluidAmount y = b == null ? FluidAmount.EMPTY : b;
         return x.equals(y);
+    }
+
+    /**
+     * Whether two fluid items may share a stack by their fluid: only when both are empty (TFC returns a max stack size of
+     * 1 for every filled fluid item, so two equal filled buckets still never stack). A missing component reads as empty.
+     */
+    public static boolean fluidsAllowMerge(FluidAmount a, FluidAmount b) {
+        return (a == null || a.isEmpty()) && (b == null || b.isEmpty());
     }
 
     /**

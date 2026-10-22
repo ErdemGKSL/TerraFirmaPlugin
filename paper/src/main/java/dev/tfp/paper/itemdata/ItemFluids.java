@@ -16,10 +16,12 @@ import java.util.function.Predicate;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Fill and drain of a fluid-holding item (bucket, jug, glass bottle, mold, small vessel), backed by {@link FluidPdc} and
+ * Fill and drain of a fluid-holding item (bucket, jug, glass bottle, mold), backed by {@link FluidPdc} and
  * TFC's rules in {@link FluidContainerRules}. The caller supplies the capacity and the {@code canContain} fact (the
  * {@code tfc:usable_in_*} fluid tag or the container's code predicate). A stack whose entry has a newer version is never
- * changed: it fills and drains nothing.
+ * changed: it fills and drains nothing. Only a single item is filled or drained: a stack of more than one (empty buckets
+ * stack) fills and drains nothing, so the caller splits one item off first and gives the rest back, as TFC does. Writing
+ * a fluid also sets the max stack size to 1 (see {@link FluidPdc}).
  *
  * <p>Threads: call on the thread that owns the stack.
  */
@@ -34,12 +36,12 @@ public final class ItemFluids {
     }
 
     /**
-     * Fills the stack with as much of {@code input} as fits and writes the result.
+     * Fills the stack (one item) with as much of {@code input} as fits and writes the result.
      *
-     * @return the amount taken from {@code input}
+     * @return the amount taken from {@code input}; 0 when the stack is not exactly one item
      */
     public static int fill(ItemStack stack, FluidAmount input, int capacity, boolean canContain) {
-        if (stack == null || FluidPdc.isNewer(stack)) {
+        if (!single(stack) || FluidPdc.isNewer(stack)) {
             return 0;
         }
         FluidContainerRules.Fill fill = FluidContainerRules.fill(content(stack), input, capacity, canContain);
@@ -55,12 +57,12 @@ public final class ItemFluids {
     }
 
     /**
-     * Drains up to {@code amount} from the stack and writes the result.
+     * Drains up to {@code amount} from the stack (one item) and writes the result.
      *
-     * @return the fluid drained, {@link FluidAmount#EMPTY} when nothing
+     * @return the fluid drained, {@link FluidAmount#EMPTY} when nothing or when the stack is not exactly one item
      */
     public static FluidAmount drain(ItemStack stack, int amount) {
-        if (stack == null || FluidPdc.isNewer(stack)) {
+        if (!single(stack) || FluidPdc.isNewer(stack)) {
             return FluidAmount.EMPTY;
         }
         FluidContainerRules.Drain drain = FluidContainerRules.drain(content(stack), amount);
@@ -81,8 +83,21 @@ public final class ItemFluids {
         return drain(stack, resource.amount());
     }
 
-    /** Whether two stacks' fluid contents allow a merge (equal fluid and amount, see {@link ItemDataMatching}). */
+    /** Whether two stacks' fluid contents are equal (same fluid and amount, see {@link ItemDataMatching#fluidsMatch}). */
     public static boolean fluidsMatch(ItemStack a, ItemStack b) {
         return ItemDataMatching.fluidsMatch(content(a), content(b));
+    }
+
+    /** Whether two stacks may merge by their fluid: only when neither holds fluid (TFC never stacks a filled item). */
+    public static boolean fluidsAllowMerge(ItemStack a, ItemStack b) {
+        return ItemDataMatching.fluidsAllowMerge(content(a), content(b));
+    }
+
+    /**
+     * Whether fill/drain may change this stack: exactly one item. Changing a larger stack would fill or drain every item
+     * in it for the fluid of one, duplicating fluid.
+     */
+    static boolean single(ItemStack stack) {
+        return stack != null && !stack.getType().isAir() && stack.getAmount() == 1;
     }
 }
