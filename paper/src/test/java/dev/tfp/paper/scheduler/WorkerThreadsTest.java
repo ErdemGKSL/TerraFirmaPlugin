@@ -43,12 +43,65 @@ class WorkerThreadsTest {
 
     @Test
     void taskExceptionsAreReportedAndWorkersSurvive() throws Exception {
-        w.cpu.execute(() -> {
-            throw new IllegalStateException("boom");
-        });
-        CountDownLatch after = new CountDownLatch(1);
-        w.cpu.execute(after::countDown);
-        assertThat(after.await(5, TimeUnit.SECONDS)).isTrue();
-        assertThat(errors).anySatisfy(e -> assertThat(e).hasMessage("boom"));
+        // One worker, so both tasks run on it in order: no race between the report and the next task.
+        List<Throwable> seen = new CopyOnWriteArrayList<>();
+        WorkerThreads single = new WorkerThreads(1, seen::add);
+        try {
+            CompletableFuture<String> failedOn = new CompletableFuture<>();
+            single.cpu.execute(() -> {
+                failedOn.complete(Thread.currentThread().getName());
+                throw new IllegalStateException("boom");
+            });
+            CompletableFuture<String> after = CompletableFuture.supplyAsync(() -> Thread.currentThread().getName(),
+                    single.cpu);
+            assertThat(after.get(5, TimeUnit.SECONDS)).isEqualTo(failedOn.get(5, TimeUnit.SECONDS)); // same worker
+            assertThat(seen).singleElement().satisfies(e -> assertThat(e).hasMessage("boom")); // reported once
+        } finally {
+            single.shutdown(1000);
+        }
+    }
+
+    @Test
+    void exceptionIsReportedBeforeAnyTaskQueuedBehindIt() throws Exception {
+        CountDownLatch reported = new CountDownLatch(1);
+        WorkerThreads single = new WorkerThreads(1, e -> reported.countDown());
+        try {
+            single.cpu.execute(() -> {
+                throw new IllegalStateException("boom");
+            });
+            CompletableFuture<Long> seenAfter = CompletableFuture.supplyAsync(reported::getCount, single.cpu);
+            assertThat(seenAfter.get(5, TimeUnit.SECONDS)).isZero();
+        } finally {
+            single.shutdown(1000);
+        }
+    }
+
+    @Test
+    void parallelWorkersEachReportTheirOwnFailureOnce() throws Exception {
+        CountDownLatch bothRunning = new CountDownLatch(2);
+        for (int i = 0; i < 2; i++) {
+            String msg = "boom" + i;
+            w.cpu.execute(() -> {
+                bothRunning.countDown();
+                throw new IllegalStateException(msg);
+            });
+        }
+        // Each worker reports before it takes another task, so a barrier task per worker fences both reports.
+        CountDownLatch fence = new CountDownLatch(2);
+        CountDownLatch release = new CountDownLatch(1);
+        for (int i = 0; i < 2; i++) {
+            w.cpu.execute(() -> {
+                fence.countDown();
+                try {
+                    release.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+        }
+        assertThat(fence.await(5, TimeUnit.SECONDS)).isTrue();
+        release.countDown();
+        assertThat(bothRunning.getCount()).isZero();
+        assertThat(errors).extracting(Throwable::getMessage).containsExactlyInAnyOrder("boom0", "boom1");
     }
 }

@@ -5,6 +5,7 @@
  */
 package dev.tfp.paper.scheduler;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -36,12 +37,20 @@ public final class WorkerThreads {
             t.setUncaughtExceptionHandler((th, e) -> onError.accept(e));
             return t;
         };
+        // A throwing task is caught on its worker and reported exactly once, before that worker takes its next task.
+        // (Reporting from afterExecute let the exception propagate: the worker died, was replaced, and the uncaught
+        // handler reported it a second time, after later tasks may already have run on the other workers.)
         this.cpu = new ThreadPoolExecutor(n, n, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), cpuFactory) {
             @Override
-            protected void afterExecute(Runnable r, Throwable t) {
-                if (t != null) {
-                    onError.accept(t);
-                }
+            public void execute(Runnable command) {
+                Objects.requireNonNull(command, "command");
+                super.execute(() -> {
+                    try {
+                        command.run();
+                    } catch (Throwable t) {
+                        onError.accept(t);
+                    }
+                });
             }
         };
         this.io = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name(IO_PREFIX, 0).factory());
