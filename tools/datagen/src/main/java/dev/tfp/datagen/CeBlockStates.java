@@ -133,7 +133,9 @@ public final class CeBlockStates {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("template", template);
         if (!args.isEmpty()) {
-            m.put("arguments", new LinkedHashMap<>(args));
+            // Map.of iterates in a per-JVM random order; sort unordered maps so the output is byte-identical per run.
+            m.put("arguments", args instanceof LinkedHashMap<?, ?> || args instanceof java.util.SortedMap<?, ?>
+                ? new LinkedHashMap<>(args) : new LinkedHashMap<>(new java.util.TreeMap<>(args)));
         }
         return m;
     }

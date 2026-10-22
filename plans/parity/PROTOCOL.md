@@ -11,6 +11,9 @@ cold from this file. Repository rules in `CLAUDE.md` still apply; where they are
 3. `git pull --rebase --autostash origin <branch>` so you start from the latest tree. Other agents and workflows commit in the
    same tree: never use `git add -A`, `git add .`, `git commit -a`, `git stash` without `--autostash` semantics, `reset --hard`,
    `checkout -- <path>` on files you did not change, or any history rewrite.
+4. After creating or entering a worktree, run `tools/worktree/share-build.sh`. It links `content/generated` to a shared,
+   read-only copy keyed by the datagen inputs, so worktrees do not each hold ~110 MB. `generateContent` turns the link back
+   into a private copy by itself. See `tools/worktree/README.md`.
 
 ## 1. Pick an item
 

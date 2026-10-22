@@ -1,3 +1,6 @@
+import java.io.File
+import java.nio.file.Files
+
 // CLI: pinned TFC checkout -> content/ + reports. Deterministic output.
 plugins {
     id("tfp.java-conventions")
@@ -26,12 +29,35 @@ tasks.test {
     systemProperty("tfp.repoRoot", rootProject.layout.projectDirectory.asFile.absolutePath)
 }
 
+// Output of generateContent: -Ptfp.contentDir=<dir> (tools/worktree/share-build.sh builds shared store entries this
+// way), else this worktree's content/generated/content.
+val contentOut = providers.gradleProperty("tfp.contentDir").map { file(it) }.orElse(contentDir.asFile)
+val generatedRoot = rootProject.layout.projectDirectory.dir("content/generated").asFile
+
 tasks.register<JavaExec>("generateContent") {
     group = "datagen"
-    description = "Regenerates content/generated/content from the pinned TFC checkout."
+    description = "Regenerates content/generated/content (or -Ptfp.contentDir) from the pinned TFC checkout."
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass = "dev.tfp.datagen.Datagen"
-    args(tfcCheckout.get(), contentDir.asFile.absolutePath)
+    val out = contentOut.get()
+    val useDefault = out.absoluteFile == contentDir.asFile.absoluteFile
+    val link = generatedRoot.toPath()
+    args(tfcCheckout.get(), out.absolutePath)
+    doFirst {
+        // content/generated may be a symlink to a read-only shared store entry (share-build.sh). Regenerating
+        // unshares it: drop the link (never the entry) and write a real directory in this worktree.
+        if (useDefault && Files.isSymbolicLink(link)) {
+            Files.delete(link)
+            logger.lifecycle("generateContent: content/generated was a shared link; writing a private copy")
+        }
+        var p: File? = out.absoluteFile
+        while (p != null) {
+            if (File(p, ".tfp-shared-entry").exists()) {
+                throw GradleException("refusing to write into the shared store entry $p; drop -Ptfp.contentDir")
+            }
+            p = p.canonicalFile.parentFile
+        }
+    }
 }
 
 tasks.register<JavaExec>("verifyContent") {

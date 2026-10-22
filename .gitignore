@@ -8,4 +8,5 @@ spikes/logs/
 !build-logic/src/main/kotlin/dev/tfp/build/
 **/.gradle/
 .kotlin/
-content/generated/
+# No trailing slash: content/generated may be a symlink into the shared store (tools/worktree/share-build.sh).
+/content/generated
