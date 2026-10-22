@@ -15,6 +15,10 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
  *
  * <p>Netty thread, under the {@link PacketHandler} rules. Recognise our own additions by a marker the
  * decorator put in the stack's {@code custom_data} (M0-NET-01 used a line count), never by text.
+ *
+ * <p>Tooltip lines go through {@link dev.tfp.paper.tooltip.TooltipPipeline} instead (PAR-INFRA-05): one marker for
+ * every contributor's lines, stripped by {@link ItemDecorationHandler}. This interface stays for decorations that
+ * are not lore lines (the heat glow's model data) and the start-up heat decoration until it moves (PAR-HEAT-02).
  */
 public interface ClientItemDecoration {
     /** Stable name for logs. */
