@@ -54,3 +54,20 @@ val verifyIntegrationServices = tasks.register("verifyIntegrationServices") {
     }
 }
 tasks.named("check") { dependsOn(verifyIntegrationServices) }
+
+// PAR-INFRA-24: the shaded jar must ship the generated content; :content:jar already fails without it, this checks the
+// result (a jar without /content starts but cannot load anything).
+val verifyPluginContent = tasks.register("verifyPluginContent") {
+    group = "verification"
+    val jar = tasks.shadowJar.flatMap { it.archiveFile }
+    inputs.file(jar)
+    doLast {
+        val required = listOf("content/data/id_map.json", "content/craftengine/tfp/pack.yml")
+        val missing = ZipFile(jar.get().asFile).use { z -> required.filter { z.getEntry(it) == null } }
+        check(missing.isEmpty()) {
+            "${jar.get().asFile.name} lacks $missing: run :tools:datagen:generateContent (or tools/worktree/share-build.sh)"
+        }
+    }
+}
+tasks.shadowJar { finalizedBy(verifyPluginContent) }
+tasks.named("check") { dependsOn(verifyPluginContent) }

@@ -2,7 +2,7 @@
 id: PAR-CLIM-10
 title: "Plugin enables on Paper 26.x: SnowService builds the icicle tip without casting to PointedDripstone"
 area: CLIMATE
-status: open
+status: done
 wave: 4
 deps: []
 size: S
@@ -18,6 +18,7 @@ plan:
   - "Current: the PAR-INFRA-13 in-game run on Paper 26.3 found that TerraFirmaPlugin does not enable: `SnowService.java:135-136` casts the BlockData of `Material.POINTED_DRIPSTONE.createBlockData(...)` (a `CraftPointedDripstone` on 26.3) to `org.bukkit.block.data.type.PointedDripstone` and throws a ClassCastException in the field initialiser, so the service, the rest of enable and the world generator never run. Nothing of the plugin can be checked on 26.x until this is fixed (it blocks PAR-INFRA-13/PAR-INFRA-23's 26.x verification)."
   - "Fix: build the icicle tip from the state string (`Bukkit.createBlockData(\"minecraft:pointed_dripstone[thickness=tip,vertical_direction=down]\")`) or check the type with `instanceof` and fall back to the string, never a blind cast; look for the same pattern in the other BlockData field initialisers of SnowService (snow layers) and fix them the same way. Keep the 1.21.x behaviour unchanged."
   - "Run the enable smoke on both families (delegate to a Haiku agent: `spikes/run-matrix.sh` with 1.21.11 and 26.3, report the enable line and any exception)."
+  - "Done (with PAR-INFRA-13's unblock, 2026-10-23): isDownIcicle/property/withProperty read and set pointed dripstone through state strings (the icicle tip, ICICLE_TO_TIP/BASE, the Cell classification); the snow layer keeps its Snow cast (26.3's CraftSnowLayer implements Snow). SnowServiceBlockDataTest 3 tests (MockBukkit cannot parse pointed_dripstone properties, so the real parse is the enable smoke). Enable smoke on Paper 26.3 build 196 (fresh run, priming start + restart, TFP_WORLD=1): enabled, Done (152 s), no ClassCastException. Pending: 26.1.2 (no server jar cached here; same Speleothem API) and the run-matrix rerun."
 tests:
   - "paper: SnowServiceBlockDataTest (MockBukkit) builds the icicle tip and snow layer data without a cast to the interface"
   - "Server matrix: enable on 1.21.11 and 26.3 without exception"

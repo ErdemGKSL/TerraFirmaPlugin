@@ -2,7 +2,7 @@
 id: PAR-INFRA-24
 title: "Packaging: :dist:shadowJar always ships the generated content (content/data/id_map.json) without share-build.sh"
 area: INFRA
-status: open
+status: done
 wave: 4
 deps: []
 size: S
@@ -16,6 +16,7 @@ in_game_steps: []
 plan:
   - "Current: the PAR-INFRA-13 in-game run found that `./gradlew :dist:shadowJar` alone builds a plugin jar without `content/data/id_map.json` (and the rest of the generated content); it works only after `tools/worktree/share-build.sh`, which links `content/generated` to a store entry holding `content/...`. `content/build.gradle.kts` packs `from(\"generated\")` with no dependency on `:tools:datagen:generateContent` and no check that `content/generated/content` exists, so an empty or missing tree silently gives a content-less jar."
   - "Fix: make the content jar fail (or depend on generateContent when `-Ptfc.checkout` is set) when `content/generated/content/data/id_map.json` is missing, and add a dist check (like `verifyIntegrationServices`) that the shaded jar contains `content/data/id_map.json` and `content/craftengine/tfp/pack.yml`. Do not copy the ~110 MB tree into build/ (see the comment in content/build.gradle.kts)."
+  - "Done (with PAR-INFRA-13's unblock, 2026-10-23): reproduced (content/generated moved away: the shaded jar had 0 content/ entries). content/build.gradle.kts: :content:jar fails before packing when content/generated lacks content/data/id_map.json or content/craftengine/tfp/pack.yml, naming generateContent and share-build.sh. dist/build.gradle.kts: verifyPluginContent finalizes shadowJar and is part of check; it failed on the shaded jar with id_map.json removed and passes on a normal build."
 tests:
   - "dist: a verification task fails on a jar without content/data/id_map.json and passes on a normal build"
 done_criteria:

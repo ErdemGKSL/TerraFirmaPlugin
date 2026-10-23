@@ -41,6 +41,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Chunk;
+import org.bukkit.Bukkit;
 import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -54,7 +55,6 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.FaceAttachable;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Waterlogged;
-import org.bukkit.block.data.type.PointedDripstone;
 import org.bukkit.block.data.type.Snow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -132,10 +132,9 @@ public final class SnowService implements Listener {
     private final BlockData ice = Material.ICE.createBlockData();
     private final BlockData seaIce = Material.BLUE_ICE.createBlockData();
     private final BlockData snowOneLayer = Material.SNOW.createBlockData(d -> ((Snow) d).setLayers(1));
-    private final BlockData icicleTip = Material.POINTED_DRIPSTONE.createBlockData(d -> {
-        ((PointedDripstone) d).setVerticalDirection(BlockFace.DOWN);
-        ((PointedDripstone) d).setThickness(PointedDripstone.Thickness.TIP);
-    });
+    // Pointed dripstone is read and built through its state string, never through a BlockData interface: Paper 26.x's
+    // CraftPointedDripstone implements only Speleothem, so a cast to PointedDripstone throws (PAR-CLIM-10).
+    private final BlockData icicleTip = Bukkit.createBlockData(ICICLE_TIP);
 
     public SnowService(GlobalClockHolder clock, Scheduler scheduler) {
         this.clock = clock;
@@ -539,13 +538,11 @@ public final class SnowService implements Listener {
                     c.withAbove() && above != null ? above.data() : null), null);
             case PLACE_ICICLE -> SnowBlock.of(icicleTip);
             case ICICLE_TO_BASE, ICICLE_TO_TIP -> {
-                if (!(old.data() instanceof PointedDripstone d)) {
+                if (!isDownIcicle(old.data())) {
                     yield null;
                 }
-                PointedDripstone n = (PointedDripstone) d.clone();
-                n.setThickness(c.kind() == SnowRule.Kind.ICICLE_TO_TIP ? PointedDripstone.Thickness.TIP
-                        : PointedDripstone.Thickness.FRUSTUM);
-                yield SnowBlock.of(n);
+                yield SnowBlock.of(Bukkit.createBlockData(withProperty(old.data().getAsString(), "thickness",
+                        c.kind() == SnowRule.Kind.ICICLE_TO_TIP ? "tip" : "frustum")));
             }
             case SET_SNOW_LAYERS -> {
                 if (!(old.data() instanceof Snow d)) {
@@ -610,7 +607,7 @@ public final class SnowService implements Listener {
             kind = SnowRule.Block.SEA_ICE;
         } else if (m == Material.PACKED_ICE || m == Material.FROSTED_ICE) {
             kind = SnowRule.Block.OTHER_ICE;
-        } else if (d instanceof PointedDripstone p && p.getVerticalDirection() == BlockFace.DOWN) {
+        } else if (isDownIcicle(d)) {
             kind = SnowRule.Block.ICICLE;
         } else if (m == Material.WATER) {
             kind = !salty && isWaterSource(d) ? SnowRule.Block.WATER : SnowRule.Block.LIQUID;
@@ -629,6 +626,57 @@ public final class SnowService implements Listener {
         }
         return new Cell(kind, layers, isWaterFluid(d), snowSurvivesOn(below), d.isFaceSturdy(BlockFace.DOWN, BlockSupport.FULL),
                 holdsAbove(d), sky);
+    }
+
+    /** The icicle tip the weather places: a downward pointed dripstone tip. */
+    static final String ICICLE_TIP = "minecraft:pointed_dripstone[thickness=tip,vertical_direction=down]";
+
+    /** A pointed dripstone that hangs down (TFC's icicle), read from the state string so it works on 1.21.x and 26.x. */
+    static boolean isDownIcicle(BlockData d) {
+        return d.getMaterial() == Material.POINTED_DRIPSTONE && "down".equals(property(d.getAsString(), "vertical_direction"));
+    }
+
+    /** The value of {@code key} in a block state string such as {@code minecraft:snow[layers=3]}, or null. */
+    static String property(String state, String key) {
+        int open = state.indexOf('[');
+        if (open < 0 || !state.endsWith("]")) {
+            return null;
+        }
+        for (String kv : state.substring(open + 1, state.length() - 1).split(",")) {
+            int eq = kv.indexOf('=');
+            if (eq > 0 && kv.substring(0, eq).trim().equals(key)) {
+                return kv.substring(eq + 1).trim();
+            }
+        }
+        return null;
+    }
+
+    /** {@code state} with {@code key} set to {@code value} (added when absent); the other properties keep their order. */
+    static String withProperty(String state, String key, String value) {
+        int open = state.indexOf('[');
+        if (open < 0 || !state.endsWith("]")) {
+            return state + "[" + key + "=" + value + "]";
+        }
+        StringBuilder out = new StringBuilder(state.substring(0, open + 1));
+        boolean found = false;
+        String body = state.substring(open + 1, state.length() - 1);
+        for (String kv : body.isEmpty() ? new String[0] : body.split(",")) {
+            int eq = kv.indexOf('=');
+            String k = eq > 0 ? kv.substring(0, eq).trim() : kv.trim();
+            if (out.length() > open + 1) {
+                out.append(',');
+            }
+            if (k.equals(key)) {
+                out.append(key).append('=').append(value);
+                found = true;
+            } else {
+                out.append(kv.trim());
+            }
+        }
+        if (!found) {
+            out.append(out.length() > open + 1 ? "," : "").append(key).append('=').append(value);
+        }
+        return out.append(']').toString();
     }
 
     static boolean isWaterSource(BlockData d) {
