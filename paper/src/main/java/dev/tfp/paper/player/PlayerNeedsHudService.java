@@ -11,6 +11,8 @@ import dev.tfp.core.food.NutritionState;
 import dev.tfp.core.health.HealthConfig;
 import dev.tfp.core.health.HealthDisplay;
 import dev.tfp.core.recipe.food.FoodData;
+import dev.tfp.paper.TfpPlugin;
+import dev.tfp.paper.heat.ItemHeatHooks;
 import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.scheduler.Scheduler;
@@ -22,13 +24,17 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Health, max health, thirst, hunger, air and armour for the HUD (M3-SURV-04, M3-SURV-06, M3-SURV-03). The thirst is evaluated lazily here
@@ -46,6 +52,11 @@ import org.bukkit.event.player.PlayerJoinEvent;
  * Health uses the health modifier of the player's stored nutrition records ({@link PlayerData#nutrition()}) at the vanilla
  * food level ({@link #healthModifier}). Without stored data the modifier of TFC's average nutrition is used (850 max with
  * nothing eaten at full food). A player with nothing eaten at full food has the same modifier, so a new player sees no change.
+ *
+ * <p>PAR-HUD-08: the temperature of the main-hand stack ({@link ItemHeatHooks#temperature}, lazy from the stored heat
+ * record and the calendar tick, nothing ticks) is published as {@link HudSnapshot#heldTemperature()} on the same
+ * reading. The popup shows while it is above 0 °C, the range in which TFC's {@code ItemTemperatureDisplayStyle.format}
+ * shows a temperature at all ({@link #heldTemperature(float)}).
  */
 public final class PlayerNeedsHudService implements Listener {
     /** The throttle: one reading per player per second. */
@@ -55,14 +66,49 @@ public final class PlayerNeedsHudService implements Listener {
     private final Scheduler scheduler;
     private final HudSnapshotCache hud;
     private final LongSupplier playerTicks;
+    private final ToDoubleFunction<ItemStack> stackTemperature;
 
-    /** @param playerTicks the calendar's player tick ({@code ClockSnapshot.playerTicks}), any thread */
+    /**
+     * @param playerTicks the calendar's player tick ({@code ClockSnapshot.playerTicks}), any thread. The held item
+     *        temperature comes from the plugin's {@link ItemHeatHooks} ({@link TfpPlugin#heat()}), looked up at each
+     *        reading (it is null until the heat glue is enabled; the value is 0 until then)
+     */
     public PlayerNeedsHudService(PlayerDataStore data, Scheduler scheduler, HudSnapshotCache hud,
             LongSupplier playerTicks) {
+        this(data, scheduler, hud, playerTicks, PlayerNeedsHudService::pluginHeat);
+    }
+
+    /** @param stackTemperature the temperature of a stack now in °C (owner thread of the stack) */
+    PlayerNeedsHudService(PlayerDataStore data, Scheduler scheduler, HudSnapshotCache hud, LongSupplier playerTicks,
+            ToDoubleFunction<ItemStack> stackTemperature) {
         this.data = data;
         this.scheduler = scheduler;
         this.hud = hud;
         this.playerTicks = playerTicks;
+        this.stackTemperature = stackTemperature;
+    }
+
+    /** The stack's temperature through the providing plugin's heat hooks; 0 before they exist or outside the plugin. */
+    private static double pluginHeat(ItemStack stack) {
+        if (stack == null || stack.getType().isAir()) {
+            return 0;
+        }
+        ItemHeatHooks hooks;
+        try {
+            hooks = JavaPlugin.getPlugin(TfpPlugin.class).heat();
+        } catch (IllegalArgumentException | IllegalStateException | ClassCastException e) {
+            return 0; // not loaded by the plugin class loader (unit tests)
+        }
+        return hooks == null ? 0 : hooks.temperature(stack);
+    }
+
+    /**
+     * The value published for a held stack at {@code temperature} °C: the temperature itself while it is above 0 (TFC
+     * {@code ItemTemperatureDisplayStyle.format} formats only positive temperatures), else 0, so the popup condition
+     * {@code tfp_held_temp > 0} hides it. NaN reads as 0.
+     */
+    static double heldTemperature(float temperature) {
+        return temperature > 0f ? temperature : 0;
     }
 
     /**
@@ -140,13 +186,26 @@ public final class PlayerNeedsHudService implements Listener {
         HealthDisplay health = HealthDisplay.of((float) player.getHealth(), (float) player.getMaxHealth(), modifier,
                 HealthConfig.DEFAULT);
         hud.publish(player, withNeeds(base, evaluated, player.getFoodLevel()).withHealth(health.health(), health.maxHealth())
-                .withAir(player.getRemainingAir()).withArmor(armor(player)));
+                .withAir(player.getRemainingAir()).withArmor(armor(player))
+                .withHeldTemperature(heldTemperature((float) stackTemperature.applyAsDouble(
+                        player.getInventory().getItemInMainHand()))));
     }
 
     /** The player's armour points (vanilla {@code Attribute.ARMOR}, equipment and effects included); 0 without one. */
     static double armor(Player player) {
         AttributeInstance armor = player.getAttribute(Attribute.ARMOR);
         return armor == null ? 0 : armor.getValue();
+    }
+
+    /**
+     * PAR-HUD-08: a hotbar slot change republishes at once (on the player's thread, after the slot changed), so the
+     * held temperature popup follows the selected stack without waiting for the throttle.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onHeld(PlayerItemHeldEvent event) {
+        if (hud.isActive()) {
+            refresh(event.getPlayer());
+        }
     }
 
     /** Restarts the thirst clock when the player joins (see the class comment). */

@@ -48,4 +48,14 @@ class PlayerNeedsHudServiceTest {
     private static PlayerData withThirst(float thirst) {
         return PlayerData.NEW.withThirst(thirst);
     }
+
+    /** PAR-HUD-08: positive temperatures publish as they are (TFC formats only {@code > 0}); the rest is 0. */
+    @Test
+    void heldTemperatureIsPositiveOrZero() {
+        assertThat(PlayerNeedsHudService.heldTemperature(900f)).isEqualTo(900);
+        assertThat(PlayerNeedsHudService.heldTemperature(0.5f)).isEqualTo(0.5);
+        assertThat(PlayerNeedsHudService.heldTemperature(0f)).isZero();
+        assertThat(PlayerNeedsHudService.heldTemperature(-3f)).isZero();
+        assertThat(PlayerNeedsHudService.heldTemperature(Float.NaN)).isZero();
+    }
 }
