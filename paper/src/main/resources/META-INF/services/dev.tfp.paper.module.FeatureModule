@@ -5,3 +5,4 @@ dev.tfp.paper.gui.GuiModule
 dev.tfp.paper.tooltip.TooltipModule
 dev.tfp.paper.recipe.RecipeModule
 dev.tfp.paper.loot.LootModule
+dev.tfp.paper.catchup.CatchUpModule

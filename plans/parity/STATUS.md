@@ -30,7 +30,7 @@ Totals: 239 items; open 212, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-HUD-05 | HUD vs vanilla armour row: no overlap with armour worn, health text inside its bar | HUD | 4 | done |
 | PAR-HUD-08 | Held item temperature placeholders with real values (popup layout and in-game check in PAR-HUD-10) | HUD | 4 | done |
 | PAR-INFRA-10 | Neighbour-update runner: block shape updates decided async, applied sync | INFRA | 4 | open |
-| PAR-INFRA-11 | Catch-up trigger service: chunk load, interaction and visible-area sweep for lazy blocks | INFRA | 4 | open |
+| PAR-INFRA-11 | Catch-up trigger service: chunk load, interaction and visible-area sweep for lazy blocks | INFRA | 4 | done |
 | PAR-INFRA-19 | Device generators on the shared spec: Firepit, Grill, Pot and ForgeDevices write through DeviceSpecs + DeviceYaml | INFRA | 4 | open |
 | PAR-INFRA-20 | Datagen exports TFC's overrides of vanilla recipes (data/minecraft/recipe, 66 files) | INFRA | 4 | open |
 | PAR-INFRA-21 | Loot delegation: datagen ships TFC loot tables, CE blocks that need TFC conditions drop through the Paper loot runtime | INFRA | 4 | open |
@@ -43,6 +43,7 @@ Totals: 239 items; open 212, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-PROC-01 | Knapping GUI: 5x5 grid for stone, clay, fire clay, leather and goat horn | PROC | 5 | open |
 | PAR-PROC-19 | Misc materials as CE items: ores, gems, powders, fibres, cloth, paper, glue, straw, mortar, spawn eggs | PROC | 5 | open |
 | PAR-SURV-01 | All TFC food items generated as CE items with food_stamp and food data | SURV | 5 | open |
+| PAR-INFRA-25 | Catch-up service wiring: self-test catchup.lazyblock, config.yml keys, device indexing on placement | INFRA | 5 | open |
 | PAR-INFRA-17 | Renderer-cube feel (spike S2): destroy_stages, particles, sounds and mining for display-drawn full blocks | INFRA | 5 | open |
 | PAR-METAL-20 | Charcoal forge lit tops turned 180°: the heat_N item display must match TFC's block-model orientation | METAL | 5 | open |
 | PAR-HUD-07 | HUD per MC version and TFC display styles: 26.x sprite list, XP bar style, health display style | HUD | 6 | open |

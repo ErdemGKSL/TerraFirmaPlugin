@@ -159,6 +159,23 @@ Left click and placement come from Bukkit events (`DeviceListener`). Left click 
 
 **Device block datagen (PAR-INFRA-08).** Datagen describes every device block as a `DeviceBlockSpec` (`tools/datagen/.../device/`): the TFC state properties, appearances with a hitbox carrier (repurposed vanilla state, `auto_state` pool, or a transparent carrier whose look is `entity_renderer` displays), one variant per server state with its luminance, TFC's settings (strength and sound from `TFCBlocks.java`, tool from the generated mineable tags), TFC's loot (read from the device's loot table: self, an item, an item × count or several pools, never assumed to be the block itself), the `tfp:device` behaviour, the block item, render items and own `block_state_mappings`. `DeviceYaml` writes it literally or as a call of the CE templates `tfp:block/device` / `tfp:block/device_rendered` (`configuration/templates/device.yml`: settings from `device_*` arguments and `tfp:device`; the rendered one is not occluding, suffocating or view-blocking). Loot is never in the templates: the entry writes its own beside the call. A device uses the templated form once its behaviour exists and CE knows `tfp:device`; placeholder entries stay literal and outside `configuration/`.
 
+### 7.2 Catch-up triggers for lazy blocks (PAR-INFRA-11)
+
+Lazy blocks (crops, bushes, torches, drying bricks, weathering, saplings, devices) store a timestamp plus base values and are never ticked. **`CatchUpService`** (`paper/catchup`, module `catchup`, service `CatchUpService`) decides when they are brought up to date:
+
+| Piece | Where | Role |
+|---|---|---|
+| `LazyBlockIndex` | `core/catchup` | Immutable position → kind id map of one chunk, (y, z, x) order, versioned codec (kind table + 8 bytes per entry), stored in the chunk PDC as `tfp:catchup/index`. Chunk-scale data: the per-block state stays in the block (CE block entity or block state) |
+| `CatchUpAdvance<S>` | `core/catchup` | The kind's pure catch-up `advance(state, now)`; an equal result means no change. `device(CatchUp.Advance)` adapts a device rule |
+| `SweepArea` | `core/catchup` | Chunks within the sweep radius of a player, nearest first; the "due" rule of the sweep period |
+| `CatchUpKinds` | `paper/catchup` | `register(kind, pureAdvance)` (region-thread `read`/`write` + pure advance) or `registerDirect(id, Direct)` (a framework that owns the read-advance-write cycle, e.g. `tfp:device` → `DeviceService.catchUp`) |
+| `CatchUpService` | `paper/catchup` | `track(block, kind)` on placement, `untrack` on break; triggers: chunk load (index bytes copied on the region thread, decoded on the worker pool, then queued), interaction (`touch`, the clicked block only), sweep. The decoded index of a loaded chunk is cached until unload |
+| `CatchUpFeeder` | `paper/catchup` | Per-chunk queue of blocks waiting for their snapshot, drained on the owner thread under the feed budget (1 ms per region per tick); a block queued twice is handed on once; an unloaded chunk is dropped, never loaded |
+| per-kind `AsyncDecisionPipeline` | `paper/catchup` | One per kind and world: snapshot = `read` (+ the calendar's player ticks), decide = `advance` on the worker pool, commit re-validated by `RegionCommitQueue` under the commit budget (1 ms). A `read` of `null` (block gone) prunes its index entry, batched per chunk |
+| `CatchUpSweep` | `paper/catchup` | Global task every `sweepPeriodTicks` (600) → each player's entity thread → region tasks for the chunks within `sweepRadiusChunks` (4); a chunk caught up within the period (loaded, or seen by another player) is skipped |
+
+An entry whose kind is not registered (its module disabled) is kept and skipped. Interaction catch-up is asynchronous; a kind that must see the caught-up state inside the interaction catches up itself (devices do). Settings come from JVM properties `tfp.catchup.*` until their `config.yml` keys exist (PAR-INFRA-25). `ProbeCatchUp` (vanilla wheat whose age follows the calendar) is a test-only kind for the self-test.
+
 ## 8. World generation
 
 - `worldgen/` ports TFC's `RegionGenerator` pipeline (continents, climate, biomes, rocks, rivers, lakes), layers, river fractal, rock layers, surface builders, veins, features and structures (tree `.nbt` templates).
