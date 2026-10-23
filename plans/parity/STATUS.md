@@ -27,7 +27,7 @@ Totals: 236 items; open 211, done 22, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-INFRA-13 | Hitbox carrier selector: every CE block gets the vanilla state whose collision and selection shape best match TFC's | INFRA | 3 | done |
 | PAR-INFRA-18 | Device framework wiring: register tfp:device with CraftEngine, self-test device.roundtrip, SAVE removal | INFRA | 3 | done |
 | PAR-CLIM-10 | Plugin enables on Paper 26.x: SnowService builds the icicle tip without casting to PointedDripstone | CLIMATE | 4 | done |
-| PAR-HUD-05 | HUD vs vanilla armour row: no overlap with armour worn, health text inside its bar | HUD | 4 | open |
+| PAR-HUD-05 | HUD vs vanilla armour row: no overlap with armour worn, health text inside its bar | HUD | 4 | done |
 | PAR-HUD-08 | Held item temperature popup with real values | HUD | 4 | open |
 | PAR-INFRA-10 | Neighbour-update runner: block shape updates decided async, applied sync | INFRA | 4 | open |
 | PAR-INFRA-11 | Catch-up trigger service: chunk load, interaction and visible-area sweep for lazy blocks | INFRA | 4 | open |
@@ -37,6 +37,7 @@ Totals: 236 items; open 211, done 22, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-INFRA-22 | Correct-tool gate for delegated block loot: CustomBlocks.isCorrectTool over CraftEngine's tool check | INFRA | 4 | open |
 | PAR-INFRA-24 | Packaging: :dist:shadowJar always ships the generated content (content/data/id_map.json) without share-build.sh | INFRA | 4 | done |
 | PAR-WORLD-17 | Ore overlay spike S1: measure exposed ore faces per chunk and the overlay entity budget | WORLD | 4 | open |
+| PAR-HUD-09 | Mount health bar: the ridden animal's health as a second health bar, as TFC's MOUNT_HEALTH | HUD | 5 | open |
 | PAR-HUD-06 | HUD polish: health frame asymmetry, ambient temperature bar and info plate, pulse animation | HUD | 5 | open |
 | PAR-PROC-01 | Knapping GUI: 5x5 grid for stone, clay, fire clay, leather and goat horn | PROC | 5 | open |
 | PAR-PROC-19 | Misc materials as CE items: ores, gems, powders, fibres, cloth, paper, glue, straw, mortar, spawn eggs | PROC | 5 | open |

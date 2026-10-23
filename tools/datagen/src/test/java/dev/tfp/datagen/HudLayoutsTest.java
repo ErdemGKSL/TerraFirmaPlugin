@@ -272,6 +272,63 @@ class HudLayoutsTest {
     }
 
     /**
+     * PAR-HUD-05, armour worn. Vanilla (1.21.11 {@code Gui.renderPlayerHealth}) draws the armour row at H-49..H-41 on the
+     * left whenever armour is above 0; with one heart row (max health 20, TFC's 50 is still 10 hearts of the vanilla
+     * attribute) it sits right on top of the health bar (H-40..H-31): the rows touch. So with armour worn: the vanilla
+     * armour sprites are transparent, the armour bar is the only thing drawn above health, it shares no row with the
+     * health frame or its text, and the health text (glyphs and shadow) stays inside the health interior. The right
+     * column with a living mount: vanilla draws the vehicle hearts from H-39 upwards in place of the food row (up to
+     * three rows of ten, H-59 at most) and the horse jump bar on the XP row; the vehicle hearts are transparent, and no
+     * bar reaches the XP row. The XP number (centred, H-35..H-28) is cleared for levels up to three digits (17 px).
+     */
+    @Test
+    void armourWornNeitherTouchesHealthNorItsText() {
+        HudLayouts.BarSpec health = HudLayouts.BAR_SPECS.get("m3-surv-06-health-bar");
+        HudLayouts.BarSpec armor = HudLayouts.BAR_SPECS.get("m3-surv-06-armor-bar");
+        HudArt.Bar healthArt = HudArt.bar(health.art());
+        HudArt.Bar armorArt = HudArt.bar(armor.art());
+        int vanillaArmorTop = -49;
+        int vanillaArmorBottom = -41; // inclusive
+        int healthTop = health.y();
+        int healthBottom = health.y() + healthArt.height() - 1;
+        assertThat(healthTop).as("health frame top row").isEqualTo(-40);
+        assertThat(healthBottom).as("health frame bottom row").isEqualTo(-31);
+        assertThat(vanillaArmorBottom + 1).as("vanilla's armour row touches the health frame, so it must be hidden")
+            .isEqualTo(healthTop);
+
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+        for (String sprite : List.of("armor_empty.png", "armor_full.png", "armor_half.png", "heart/vehicle_full.png",
+            "heart/vehicle_half.png", "heart/vehicle_container.png")) {
+            assertThat(out.contains("craftengine/tfp/resourcepack/assets/minecraft/textures/gui/sprites/hud/" + sprite))
+                .as(sprite + " transparent").isTrue();
+        }
+
+        // The armour bar (shown only with armour) replaces the vanilla row inside its rows, one empty row above health.
+        int armorTop = armor.y();
+        int armorBottom = armor.y() + armorArt.height() - 1;
+        assertThat(armorTop).isGreaterThanOrEqualTo(vanillaArmorTop);
+        assertThat(armorBottom).isLessThan(vanillaArmorBottom);
+        assertThat(healthTop - armorBottom).as("rows from the armour bar to the health frame").isEqualTo(2);
+
+        Map<String, Object> bar = map(yaml(out, HudLayouts.BAR_LAYOUTS).get("tfp_m3_surv_06_health_bar"));
+        Map<String, Object> text = map(map(bar.get("texts")).get("1"));
+        int textTop = (Integer) text.get("y");
+        int textBottom = textTop + 7; // 7 glyph rows at scale 0.5, then the shadow row
+        assertThat(textTop).as("health text below the armour bar").isGreaterThan(armorBottom + 1);
+        assertThat(textTop).isGreaterThanOrEqualTo(health.y() + healthArt.interior().get(0).y0());
+        assertThat(textBottom).isLessThan(health.y() + healthArt.interior().get(0).y1());
+
+        // Right column and the XP row: nothing at or below H-30, nothing within 9 px of the centre.
+        for (String right : List.of("m3-surv-06-hunger-bar", "m3-surv-06-thirst-bar", "m3-surv-06-air-bar")) {
+            HudLayouts.BarSpec r = HudLayouts.BAR_SPECS.get(right);
+            assertThat(r.y() + HudArt.bar(r.art()).height()).as(right + " clear of the jump bar").isLessThanOrEqualTo(-30);
+            assertThat(r.x() + HudLayouts.SCREEN_SHIFT_X).as(right + " clear of a 3-digit XP number").isGreaterThanOrEqualTo(9);
+        }
+        assertThat(armor.x() + HudLayouts.SCREEN_SHIFT_X + armorArt.width()).isLessThanOrEqualTo(-9);
+    }
+
+    /**
      * On screen (layout x + {@link HudLayouts#SCREEN_SHIFT_X}) the left column is vanilla's hearts (centre-91..-11) and
      * the right column vanilla's food row (centre+10..+90): mirror images about the hotbar's centre line at -0.5.
      */
