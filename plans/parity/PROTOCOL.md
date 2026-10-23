@@ -76,6 +76,13 @@ the blocking file/item. Report it in your final message.
 5. Feature code reaches CraftEngine/BetterModel/BetterHud only through `integration/*` adapters.
 6. Particles only for explicit actions. 2D art only through the imagegen MCP and the `image-generation` skill; 3D models only
    through `model-authoring`.
+7. Game modes (owner rule, 2026-10-23): every player-facing feature must behave correctly per game mode, the way vanilla and
+   TFC do. In creative and spectator the TFC needs and their HUD are off: no thirst, hunger, nutrition or saturation drain, no
+   temperature damage or effects, no heavy/overburdened effects, and the health, hunger, thirst, air and armour bars and the
+   held-item popups are hidden (spectator also hides hotbar-bound HUD, like vanilla). Adventure behaves like survival. Switching
+   game mode updates the HUD and pauses/resumes the needs at once (lazy state: no catch-up of the time spent in creative or
+   spectator). Think about these edge cases in every item (game mode, death and respawn, dimension and world change, flying,
+   vehicles, being in water or lava, invulnerability, peaceful difficulty) and add a test for the ones the item touches.
 
 ## 5. Test it
 
