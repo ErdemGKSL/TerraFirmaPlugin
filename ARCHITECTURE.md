@@ -176,6 +176,20 @@ Lazy blocks (crops, bushes, torches, drying bricks, weathering, saplings, device
 
 An entry whose kind is not registered (its module disabled) is kept and skipped. Interaction catch-up is asynchronous; a kind that must see the caught-up state inside the interaction catches up itself (devices do). Settings come from JVM properties `tfp.catchup.*` until their `config.yml` keys exist (PAR-INFRA-25). `ProbeCatchUp` (vanilla wheat whose age follows the calendar) is a test-only kind for the self-test.
 
+### 7.3 Neighbour-update runner for block shapes (PAR-INFRA-10)
+
+TFC's `updateShape` (support beam connections, snowy connected grass, wattle, fences of TFC woods) becomes a **`ShapeRule<S>`** (`core/neighbour`): `blockIds()` (cheap pre-filter), `appliesTo(state)`, a pure `decide(Neighbourhood)` over an immutable 3x3x3 copy (`null` = unknown, never air) and `provisional(placed)`. **`NeighbourService`** (`paper/neighbour`, module `neighbour`, service `NeighbourService`) holds one atomically swapped `ShapeRules` set and one `NeighbourRunner` per world:
+
+| Step | Thread | What happens |
+|---|---|---|
+| trigger | owner region | `BlockPhysicsEvent` (the notified block) and `BlockPlaceEvent` reach `NeighbourListener`; a block whose vanilla or CraftEngine id no rule lists returns at once. Feature code that places a rule's block calls `placeProvisional`, which writes the provisional state now |
+| coalesce | owner region | `request(pos)` adds to the chunk's set for this tick; one flush task per chunk hands the distinct positions to the pipeline (the pipeline additionally merges submits while a decision is in flight) |
+| snapshot | owner region | the 3x3x3 cube (`NeighbourSnapshot`, border chunks read on their owner) |
+| decide | worker pool | `ShapeRules.decide`: the first applying rule's new centre state, only if it differs |
+| apply | owner region | `RegionCommitQueue` re-validates against the live block and writes under the 1 ms budget (stale → re-decided); each write requests its six face neighbours, which is the cascade |
+
+States are `BlockStateRef`s: CraftEngine states through the `CustomBlocks` adapter, vanilla blocks as their block data string. Writes never apply vanilla physics. A decision changes only its own centre, so a chain placed in one tick converges with one commit per changed block. Rules must be idempotent or the runner never settles.
+
 ## 8. World generation
 
 - `worldgen/` ports TFC's `RegionGenerator` pipeline (continents, climate, biomes, rocks, rivers, lakes), layers, river fractal, rock layers, surface builders, veins, features and structures (tree `.nbt` templates).
