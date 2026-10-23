@@ -49,7 +49,7 @@ class PotTest {
     void realCheckoutEmitsTheTwentyPotStates() {
         TfcCheckout tfc = FirepitTest.realCheckout();
 
-        assertThat(Pot.props(tfc).stream().map(Firepit.Prop::name).toList()).containsExactly("lit", "smoke_level", "axis");
+        assertThat(Pot.props(tfc).stream().map(dev.tfp.datagen.device.DeviceProperty::name).toList()).containsExactly("lit", "smoke_level", "axis");
 
         OutputTree out = new OutputTree();
         assertThat(Pot.run(tfc, out)).isEqualTo(2 * 5 * 2);
@@ -139,6 +139,8 @@ class PotTest {
     static void writePot(Path root, String classSource, String blockstate) throws IOException {
         Fixture.write(root, Pot.SOURCE, classSource);
         Fixture.write(root, Pot.BLOCKSTATE, blockstate);
+        FirepitTest.writeDeviceData(root, FirepitTest.registration("POT", "pot", "PotBlock"), "pot", "pickaxe",
+            List.of("tfc:powder/wood_ash", "tfc:ceramic/pot"));
     }
 
     static void writeBlockstate(Path root, List<String> parts) throws IOException {

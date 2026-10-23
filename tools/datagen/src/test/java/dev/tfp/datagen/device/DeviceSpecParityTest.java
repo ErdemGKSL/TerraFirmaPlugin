@@ -26,14 +26,13 @@ import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 
 /**
- * PAR-INFRA-08: the shared spec against TFC and against the device entries generated today. Runs the whole datagen on the
- * real pinned checkout (skipped without it). Each device spec is built with TFC's settings
+ * PAR-INFRA-08 / PAR-INFRA-19: the shared spec against TFC and against the device entries the generators write. Runs the
+ * whole datagen on the real pinned checkout (skipped without it). Each device spec is built with TFC's settings
  * ({@link DeviceBlockSpec.Settings#fromTfc}: strength and sound from {@code TFCBlocks.java}, the tool from the mineable
  * tags), TFC's loot ({@link DeviceLoot#fromTfc}) and, for the firepit family, TFC's lit light. The test checks those
- * values against TFC's numbers, then that {@link DeviceYaml#literal} gives the same states, items and mappings as the
- * file the old generators wrote. The old generators' settings, loot and firepit light are placeholders recorded in the
- * ledger's Divergences (fixed when they switch to the spec, PAR-INFRA-19); the test pins them so that switch has to update
- * this test and the ledger together. Also checks that the device templates are written into
+ * values against TFC's numbers, then that every file {@code Firepit}, {@code Grill}, {@code Pot} and {@code ForgeDevices}
+ * write is exactly {@link DeviceYaml#writeLiteral} of that spec (the generators go through the spec, with TFC's settings,
+ * loot and light; no placeholder left). Also checks that the device templates are written into
  * {@code configuration/templates/} and that every template the spec calls exists in the pack.
  */
 class DeviceSpecParityTest {
@@ -78,8 +77,14 @@ class DeviceSpecParityTest {
         assertThatThrownBy(() -> DeviceLoot.fromTfc(tfc, "crucible")).isInstanceOf(DatagenException.class);
     }
 
+    /**
+     * PAR-INFRA-19: the generators write through the spec. Each device file the whole datagen writes is byte-identical to
+     * {@link DeviceYaml#writeLiteral} of the spec built here from TFC's values with the {@link DeviceSpecs} factories and
+     * the hitbox selector's carriers, so no generator builds its CraftEngine map by hand, and the entries carry TFC's
+     * settings, loot and (firepit family) lit light 15.
+     */
     @Test
-    void existingDeviceEntriesMatchTheSpecApartFromTheRecordedPlaceholders() {
+    void deviceGeneratorsWriteTheSpecWithTfcValues() {
         TfcCheckout tfc = checkout();
         SortedMap<String, byte[]> files = Datagen.generate(tfc.root(), TfcCheckout.PINNED_COMMIT).tree().files();
 
@@ -91,12 +96,10 @@ class DeviceSpecParityTest {
                 DeviceBlockSpec.Settings.fromTfc(tfc, device), DeviceLoot.fromTfc(tfc, device), 15);
             assertThat(spec.stateCount()).isEqualTo(20);
             String text = text(files, PACK + "devices/" + device + ".yml");
-            Map<String, Object> generated = load(text);
-            // Ledger divergence (placeholder entries outside configuration/, not loaded): no settings, loot or light.
-            assertThat(block(generated, spec.id())).doesNotContainKeys("settings", "loot");
-            assertThat(text).doesNotContain("luminance");
-            assertThat(withoutSettingsAndLoot(load(DeviceYaml.writeLiteral(spec)), spec.id(), true)).as(device)
-                .isEqualTo(generated);
+            assertThat(text).as(device).isEqualTo(DeviceYaml.writeLiteral(spec));
+            Map<String, Object> block = block(load(text), spec.id());
+            assertThat(block).containsKeys("settings", "loot").doesNotContainKeys("template", "behavior");
+            assertThat(text).contains("luminance: 15", "luminance: 0", "minecraft:mineable/pickaxe", "tfp:powder/wood_ash");
         }
 
         Map<Integer, String> models = new LinkedHashMap<>();
@@ -111,47 +114,25 @@ class DeviceSpecParityTest {
         assertThat(forgeCarrier.state()).isEqualTo("minecraft:snow[layers=7]");
         assertThat(forge.strategies()).containsExactly(DeviceAppearance.Strategy.REPURPOSED_STATE);
         assertThat(forge.rendered()).isTrue();
-        assertMatchesApartFromLegacySettings(files, PACK + "configuration/charcoal_forge.yml", forge);
+        assertThat(text(files, PACK + "configuration/charcoal_forge.yml")).isEqualTo(DeviceYaml.writeLiteral(forge));
 
         DeviceBlockSpec bellows = DeviceSpecs.facing("tfp:bellows",
             DeviceProperty.names("facing", List.of("north", "east", "south", "west"), "north"),
             f -> HitboxAllocation.agreed("tfp:bellows", f).state(), "block.tfp.bellows",
             DeviceBlockSpec.Settings.fromTfc(tfc, "bellows"), DeviceLoot.fromTfc(tfc, "bellows"));
-        assertMatchesApartFromLegacySettings(files, PACK + "configuration/bellows.yml", bellows);
+        assertThat(text(files, PACK + "configuration/bellows.yml")).isEqualTo(DeviceYaml.writeLiteral(bellows));
+
+        // The placeholder device settings template is no longer called by any generated entry.
+        for (var e : files.entrySet()) {
+            if (e.getKey().startsWith(PACK + "configuration/") && !e.getKey().startsWith(PACK + "configuration/templates/")) {
+                assertThat(new String(e.getValue(), StandardCharsets.UTF_8)).as(e.getKey())
+                    .doesNotContain("template: tfp:settings/device");
+            }
+        }
 
         String templates = text(files, DeviceTemplates.OUTPUT);
         assertThat(templates).isEqualTo(dev.tfp.datagen.Yaml.write(DeviceTemplates.HEADER, DeviceTemplates.yaml()));
         assertCalledTemplatesExist(files, templates);
-    }
-
-    /**
-     * Ledger divergence: ForgeDevices writes {@code tfp:settings/device} (hardness and resistance 1, stone sounds,
-     * pickaxe, basedrum) and self loot for both the forge and the bellows. Everything else equals the spec.
-     */
-    @SuppressWarnings("unchecked")
-    private static void assertMatchesApartFromLegacySettings(SortedMap<String, byte[]> files, String path,
-            DeviceBlockSpec spec) {
-        Map<String, Object> generated = load(text(files, path));
-        Map<String, Object> block = block(generated, spec.id());
-        Map<String, Object> legacySettings = (Map<String, Object>) block.get("settings");
-        assertThat(legacySettings).containsEntry("template", "tfp:settings/device");
-        assertThat((Map<String, Object>) legacySettings.get("arguments"))
-            .containsEntry("device_hardness", 1.0).containsEntry("device_resistance", 1.0);
-        assertThat(block.get("loot")).isEqualTo(Map.of("template", DeviceLoot.LOOT_SELF));
-        assertThat(withoutSettingsAndLoot(load(DeviceYaml.writeLiteral(spec)), spec.id(), false)).as(path)
-            .isEqualTo(withoutSettingsAndLoot(generated, spec.id(), false));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> withoutSettingsAndLoot(Map<String, Object> root, String id, boolean variantLight) {
-        Map<String, Object> block = block(root, id);
-        block.remove("settings");
-        block.remove("loot");
-        if (variantLight) {
-            Map<String, Object> variants = (Map<String, Object>) ((Map<String, Object>) block.get("states")).get("variants");
-            variants.values().forEach(v -> ((Map<String, Object>) v).remove("settings"));
-        }
-        return root;
     }
 
     @SuppressWarnings("unchecked")

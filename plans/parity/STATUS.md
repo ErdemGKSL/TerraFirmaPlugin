@@ -31,7 +31,7 @@ Totals: 239 items; open 212, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-HUD-08 | Held item temperature placeholders with real values (popup layout and in-game check in PAR-HUD-10) | HUD | 4 | done |
 | PAR-INFRA-10 | Neighbour-update runner: block shape updates decided async, applied sync | INFRA | 4 | open |
 | PAR-INFRA-11 | Catch-up trigger service: chunk load, interaction and visible-area sweep for lazy blocks | INFRA | 4 | done |
-| PAR-INFRA-19 | Device generators on the shared spec: Firepit, Grill, Pot and ForgeDevices write through DeviceSpecs + DeviceYaml | INFRA | 4 | open |
+| PAR-INFRA-19 | Device generators on the shared spec: Firepit, Grill, Pot and ForgeDevices write through DeviceSpecs + DeviceYaml | INFRA | 4 | done |
 | PAR-INFRA-20 | Datagen exports TFC's overrides of vanilla recipes (data/minecraft/recipe, 66 files) | INFRA | 4 | open |
 | PAR-INFRA-21 | Loot delegation: datagen ships TFC loot tables, CE blocks that need TFC conditions drop through the Paper loot runtime | INFRA | 4 | open |
 | PAR-INFRA-22 | Correct-tool gate for delegated block loot: CustomBlocks.isCorrectTool over CraftEngine's tool check | INFRA | 4 | open |

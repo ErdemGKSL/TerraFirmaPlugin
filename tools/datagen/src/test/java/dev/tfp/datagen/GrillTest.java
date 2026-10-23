@@ -49,7 +49,7 @@ class GrillTest {
     void realCheckoutEmitsTheTwentyGrillStates() {
         TfcCheckout tfc = FirepitTest.realCheckout();
 
-        assertThat(Grill.props(tfc).stream().map(Firepit.Prop::name).toList()).containsExactly("lit", "smoke_level", "axis");
+        assertThat(Grill.props(tfc).stream().map(dev.tfp.datagen.device.DeviceProperty::name).toList()).containsExactly("lit", "smoke_level", "axis");
 
         OutputTree out = new OutputTree();
         assertThat(Grill.run(tfc, out)).isEqualTo(2 * 5 * 2);
@@ -139,6 +139,8 @@ class GrillTest {
     static void writeGrill(Path root, String classSource, String blockstate) throws IOException {
         Fixture.write(root, Grill.SOURCE, classSource);
         Fixture.write(root, Grill.BLOCKSTATE, blockstate);
+        FirepitTest.writeDeviceData(root, FirepitTest.registration("GRILL", "grill", "GrillBlock"), "grill", "pickaxe",
+            List.of("tfc:powder/wood_ash", "tfc:wrought_iron_grill"));
     }
 
     static void writeBlockstate(Path root, List<String> parts) throws IOException {

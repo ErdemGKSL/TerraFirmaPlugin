@@ -51,7 +51,7 @@ class FirepitTest {
     void realCheckoutEmitsTheTwentyFirepitStates() {
         TfcCheckout tfc = realCheckout();
 
-        assertThat(Firepit.props(tfc).stream().map(Firepit.Prop::name).toList()).containsExactly("lit", "smoke_level", "axis");
+        assertThat(Firepit.props(tfc).stream().map(dev.tfp.datagen.device.DeviceProperty::name).toList()).containsExactly("lit", "smoke_level", "axis");
 
         OutputTree out = new OutputTree();
         assertThat(Firepit.run(tfc, out)).isEqualTo(2 * 5 * 2);
@@ -109,6 +109,48 @@ class FirepitTest {
             .isInstanceOf(DatagenException.class).hasMessageContaining("BlockStateProperties.FACING");
     }
 
+    /** PAR-INFRA-19: the lit light comes from TFC's registration, not a constant. */
+    @Test
+    void litLightIsReadFromTheRegistration() throws IOException {
+        Path root = checkout();
+        writeFirepit(root, 4, DEFINITION, allVisualVariants());
+        writeDeviceData(root, registration("FIREPIT", "firepit", "FirepitBlock").replace("litBlockEmission(15)", "litBlockEmission(9)"),
+            "firepit", "pickaxe", List.of("tfc:powder/wood_ash"));
+        OutputTree out = new OutputTree();
+        Firepit.run(TfcCheckout.open(root, PIN), out);
+        String yaml = new String(out.get(Firepit.OUTPUT), StandardCharsets.UTF_8);
+        assertThat(yaml).contains("luminance: 9").doesNotContain("luminance: 15");
+    }
+
+    @Test
+    void registrationWithoutLitEmissionIsRefused() throws IOException {
+        Path root = checkout();
+        writeFirepit(root, 4, DEFINITION, allVisualVariants());
+        writeDeviceData(root, registration("FIREPIT", "firepit", "FirepitBlock").replace(".lightLevel(litBlockEmission(15))", ""),
+            "firepit", "pickaxe", List.of("tfc:powder/wood_ash"));
+        assertThatThrownBy(() -> Firepit.run(TfcCheckout.open(root, PIN), new OutputTree()))
+            .isInstanceOf(DatagenException.class).hasMessageContaining("litBlockEmission");
+    }
+
+    @Test
+    void missingLootTableIsRefused() throws IOException {
+        Path root = checkout();
+        writeFirepit(root, 4, DEFINITION, allVisualVariants());
+        Files.delete(root.resolve(TfcCheckout.MAIN + "data/tfc/loot_table/blocks/firepit.json"));
+        assertThatThrownBy(() -> Firepit.run(TfcCheckout.open(root, PIN), new OutputTree()))
+            .isInstanceOf(DatagenException.class).hasMessageContaining("no TFC loot table for firepit");
+    }
+
+    @Test
+    void blockInNoMineableTagIsRefused() throws IOException {
+        Path root = checkout();
+        writeFirepit(root, 4, DEFINITION, allVisualVariants());
+        writeDeviceData(root, registration("FIREPIT", "firepit", "FirepitBlock"), "firepit", "none",
+            List.of("tfc:powder/wood_ash"));
+        assertThatThrownBy(() -> Firepit.run(TfcCheckout.open(root, PIN), new OutputTree()))
+            .isInstanceOf(DatagenException.class).hasMessageContaining("in no minecraft:mineable tag");
+    }
+
     /**
      * The carriers the hitbox selector picks (PAR-INFRA-13): firepit 16x6x16 against TFC's 2 px plate + 12x4 core (IoU 0.71),
      * grill 5 snow layers (0.62 / 0.56), pot a cactus 14x16x14 (0.65 / 0.69). The same for lit and unlit (one TFC shape).
@@ -148,10 +190,56 @@ class FirepitTest {
         assertThat(yaml).as("no placeholder campfire: lit campfires make client smoke").doesNotContain("campfire")
             .as("a vanilla look needs no hide mapping").doesNotContain("block_state_mappings");
 
+        // PAR-INFRA-19: TFC's lightLevel(litBlockEmission(15)): 15 when lit, 0 otherwise.
         Map<?, ?> variants = (Map<?, ?>) states.get("variants");
         assertThat(variants).hasSize(2 * (smokeMax + 1) * 2);
-        assertThat(variants.get("lit=true,smoke_level=0,axis=x")).isEqualTo(Map.of("appearance", Firepit.LIT_APPEARANCE));
-        assertThat(variants.get("lit=false," + "smoke_level=" + smokeMax + ",axis=z")).isEqualTo(Map.of("appearance", Firepit.UNLIT_APPEARANCE));
+        assertThat(variants.get("lit=true,smoke_level=0,axis=x"))
+            .isEqualTo(Map.of("appearance", Firepit.LIT_APPEARANCE, "settings", Map.of("luminance", 15)));
+        assertThat(variants.get("lit=false," + "smoke_level=" + smokeMax + ",axis=z"))
+            .isEqualTo(Map.of("appearance", Firepit.UNLIT_APPEARANCE, "settings", Map.of("luminance", 0)));
+
+        // PAR-INFRA-19: TFC's strength(0.4F, 0.4F), SoundType.NETHER_WART and minecraft:mineable/pickaxe.
+        Map<?, ?> block = (Map<?, ?>) ((Map<?, ?>) root.get("blocks")).get(blockId);
+        assertThat(block.keySet().stream().map(String::valueOf).toList()).containsExactly("settings", "loot", "states");
+        Map<?, ?> settings = (Map<?, ?>) block.get("settings");
+        assertThat(settings.get("hardness")).isEqualTo(0.4);
+        assertThat(settings.get("resistance")).isEqualTo(0.4);
+        assertThat(settings.get("tags")).isEqualTo(List.of("minecraft:mineable/pickaxe"));
+        assertThat(settings.get("sounds")).isEqualTo(Map.of("break", "minecraft:block.nether_wart.break",
+            "step", "minecraft:block.stone.step", "place", "minecraft:item.nether_wart.plant",
+            "hit", "minecraft:block.stone.hit", "fall", "minecraft:block.stone.fall"));
+        assertThat(yaml).as("no placeholder device settings").doesNotContain("tfp:settings/device");
+        assertThat(drops(block.get("loot"))).as("TFC's loot table of " + blockId).isEqualTo(DROPS.get(blockId));
+    }
+
+    /** TFC's drops of the firepit family at the pinned commit (renamed to tfp:), one pool each. */
+    static final Map<String, List<String>> DROPS = Map.of(
+        Firepit.BLOCK_ID, List.of("tfp:powder/wood_ash"),
+        Grill.BLOCK_ID, List.of("tfp:powder/wood_ash", "tfp:wrought_iron_grill"),
+        Pot.BLOCK_ID, List.of("tfp:powder/wood_ash", "tfp:ceramic/pot"));
+
+    /**
+     * The items a written device loot drops, one per pool, in order: the {@code tfp:loot_table/item} template call or the
+     * literal pools (each rolled once under {@code survives_explosion}, one item entry, no count).
+     */
+    static List<String> drops(Object loot) {
+        Map<?, ?> m = (Map<?, ?>) loot;
+        if (m.containsKey("template")) {
+            assertThat(m.get("template")).isEqualTo("tfp:loot_table/item");
+            return List.of(String.valueOf(((Map<?, ?>) m.get("arguments")).get("loot_item")));
+        }
+        List<String> out = new java.util.ArrayList<>();
+        for (Object p : (List<?>) m.get("pools")) {
+            Map<?, ?> pool = (Map<?, ?>) p;
+            assertThat(pool.get("rolls")).isEqualTo(1);
+            assertThat(pool.get("conditions")).isEqualTo(List.of(Map.of("type", "survives_explosion")));
+            List<?> entries = (List<?>) pool.get("entries");
+            assertThat(entries).hasSize(1);
+            assertThat(((Map<?, ?>) entries.getFirst()).get("type")).isEqualTo("item");
+            assertThat(((Map<?, ?>) entries.getFirst()).containsKey("functions")).isFalse();
+            out.add(String.valueOf(((Map<?, ?>) entries.getFirst()).get("item")));
+        }
+        return out;
     }
 
     /** The four lit x axis variants that TFC's blockstate has. */
@@ -177,6 +265,50 @@ class FirepitTest {
         Fixture.write(root, Firepit.PROPERTIES, "public final class TFCBlockStateProperties\n{\n"
             + "    public static final IntegerProperty SMOKE_LEVEL = IntegerProperty.create(\"smoke_level\", 0, " + smokeMax + ");\n}\n");
         writeBlockstate(root, variants);
+        writeDeviceData(root, registration("FIREPIT", "firepit", "FirepitBlock"), "firepit", "pickaxe",
+            List.of("tfc:powder/wood_ash"));
+    }
+
+    /** A firepit-family registration of {@code TFCBlocks} as TFC writes it at the pinned commit (shortened tail). */
+    static String registration(String constant, String block, String className) {
+        return "    public static final Id<Block> " + constant + " = register(\"" + block + "\", () -> new " + className
+            + "(ExtendedProperties.of(MapColor.DIRT).strength(0.4F, 0.4F).sound(SoundType.NETHER_WART).randomTicks()"
+            + ".noOcclusion().lightLevel(litBlockEmission(15)).blockEntity(TFCBlockEntities." + constant + ")));";
+    }
+
+    /**
+     * The TFC data the device spec reads for {@code tfc:<block>}: its registration line added to {@code TFCBlocks.java}
+     * (kept with the lines other fixtures wrote), the block added to {@code minecraft:mineable/<tool>} (all four tool tags
+     * exist) and its loot table, one {@code survives_explosion} pool per dropped item, as TFC's mcresources writes them.
+     */
+    static void writeDeviceData(Path root, String registration, String block, String tool, List<String> drops)
+            throws IOException {
+        Path blocks = root.resolve(Firepit.TFC_BLOCKS);
+        String text = Files.exists(blocks) ? Files.readString(blocks) : "public final class TFCBlocks\n{\n}\n";
+        java.util.List<String> lines = new java.util.ArrayList<>(List.of(text.split("\n", -1)));
+        lines.removeIf(l -> l.contains("register(\"" + block + "\","));
+        int end = lines.lastIndexOf("}");
+        lines.add(end, registration);
+        Fixture.write(root, Firepit.TFC_BLOCKS, String.join("\n", lines));
+        for (String t : List.of("axe", "hoe", "pickaxe", "shovel")) {
+            String rel = TfcCheckout.GENERATED + "data/minecraft/tags/block/mineable/" + t + ".json";
+            Path p = root.resolve(rel);
+            com.google.gson.JsonObject tag = Files.exists(p)
+                ? com.google.gson.JsonParser.parseString(Files.readString(p)).getAsJsonObject() : new com.google.gson.JsonObject();
+            com.google.gson.JsonArray values = tag.has("values") ? tag.getAsJsonArray("values") : new com.google.gson.JsonArray();
+            values.remove(new com.google.gson.JsonPrimitive("tfc:" + block));
+            if (t.equals(tool)) {
+                values.add("tfc:" + block);
+            }
+            tag.add("values", values);
+            Fixture.write(root, rel, tag.toString());
+        }
+        StringBuilder loot = new StringBuilder("{\"type\": \"minecraft:block\", \"pools\": [");
+        for (int i = 0; i < drops.size(); i++) {
+            loot.append(i == 0 ? "" : ", ").append("{\"name\": \"loot_pool\", \"rolls\": 1, \"entries\": [{\"type\": \"minecraft:item\", ")
+                .append("\"name\": \"").append(drops.get(i)).append("\"}], \"conditions\": [{\"condition\": \"minecraft:survives_explosion\"}]}");
+        }
+        Fixture.write(root, TfcCheckout.MAIN + "data/tfc/loot_table/blocks/" + block + ".json", loot.append("]}").toString());
     }
 
     private static void writeBlockstate(Path root, List<String> variants) throws IOException {

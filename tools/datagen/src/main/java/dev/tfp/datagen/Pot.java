@@ -5,10 +5,15 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/blocks/devices/PotBlock.java @ c3b4d9536 (the class declaration; its state is inherited from FirepitBlock),
- *       src/main/resources/assets/tfc/blockstates/pot.json @ c3b4d9536 (the multipart parts of the lit x axis states)
+ *       src/main/resources/assets/tfc/blockstates/pot.json @ c3b4d9536 (the multipart parts of the lit x axis states),
+ *       src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java @ c3b4d9536 (strength, sound, lightLevel(litBlockEmission(15))),
+ *       src/main/resources/data/tfc/loot_table/blocks/pot.json @ c3b4d9536 (wood ash and the ceramic pot)
  */
 package dev.tfp.datagen;
 
+import dev.tfp.datagen.device.DeviceBlockSpec;
+import dev.tfp.datagen.device.DeviceProperty;
+import dev.tfp.datagen.device.DeviceYaml;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +26,8 @@ import java.util.Map;
  * <p>TFC's pot blockstate {@code pot.json} is a multipart: an axis part for the pot model
  * {@code firepit_pot} and a lit part for the flame, with no smoke level. {@link Firepit#checkMultipart} checks that
  * every state matches a part and that only {@code lit} and {@code axis} are named. The two appearances sit on the carriers
- * the hitbox selector picks for TFC's pot shape, in their vanilla look (placeholders, see {@link Firepit}).
+ * the hitbox selector picks for TFC's pot shape, in their vanilla look (placeholders, see {@link Firepit}). The entry is the
+ * shared device spec ({@link Firepit#spec}) with TFC's settings, loot (wood ash and {@code tfp:ceramic/pot}) and lit light.
  *
  * <p>The output is {@code craftengine/tfp/devices/pot.yml}, outside the CraftEngine {@code configuration/} folder, so
  * CraftEngine does not load it yet. The pot's behaviour (the boiling, the soups and jams, the fluid transfer, the block
@@ -39,15 +45,15 @@ final class Pot {
 
     /** Writes the pot entry. Returns the number of server states. Fails when TFC's sources do not match. */
     static int run(TfcCheckout tfc, OutputTree out) {
-        List<Firepit.Prop> props = props(tfc);
-        List<Map<String, String>> states = Firepit.combinations(props);
+        List<DeviceProperty> props = props(tfc);
+        List<Map<String, String>> states = DeviceBlockSpec.combinations(props);
         Firepit.checkMultipart(tfc, BLOCKSTATE, states);
-        out.put(OUTPUT, Yaml.write(Firepit.HEADER, Firepit.yaml(BLOCK_ID, props, states)));
+        out.put(OUTPUT, DeviceYaml.writeLiteral(Firepit.spec(tfc, BLOCK_ID, props)));
         return states.size();
     }
 
     /** The pot's block state properties: the firepit's, in {@code builder.add} order. */
-    static List<Firepit.Prop> props(TfcCheckout tfc) {
+    static List<DeviceProperty> props(TfcCheckout tfc) {
         return Firepit.inheritedProps(tfc, SOURCE, CLASS);
     }
 }

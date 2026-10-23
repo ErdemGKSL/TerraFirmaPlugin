@@ -2,7 +2,7 @@
 id: PAR-INFRA-19
 title: "Device generators on the shared spec: Firepit, Grill, Pot and ForgeDevices write through DeviceSpecs + DeviceYaml"
 area: INFRA
-status: open
+status: done
 wave: 4
 deps: [PAR-INFRA-08, PAR-INFRA-13]
 size: S
@@ -28,6 +28,8 @@ plan:
   - "Replace `Firepit.yaml`/`propertyYaml` and `ForgeDevices.forge`/`bellows`/`entry` with the spec: map `Firepit.Prop` to `DeviceProperty` (or drop `Prop`), build the spec with `DeviceSpecs` and the carriers PAR-INFRA-13's selector chose, write it with `DeviceYaml.writeLiteral`. Keep every TFC source check where it is."
   - "Use TFC's values, not today's output: build each spec with `DeviceBlockSpec.Settings.fromTfc(tfc, id)` and `DeviceLoot.fromTfc(tfc, id)` (firepit/grill/pot: 0.4/0.4, nether wart sounds, pickaxe, light 15 when lit via `firepitFamily(..., 15)`, wood ash plus grill/pot item; bellows: 3.0/3.0, wood sounds, axe, self; charcoal forge: 0.2/0.2, `tfp:block.charcoal.*` sounds, shovel, 7 `minecraft:charcoal`). This replaces `tfp:settings/device` (hardness 1, stone, pickaxe, basedrum) and the self loot ForgeDevices writes, and the missing settings, loot and light of the firepit family. Then remove the two ledger divergence rows about those placeholders (charcoal forge/bellows; firepit/grill/pot) and update `DeviceSpecParityTest`, which pins them."
   - "When a device's behaviour exists (PAR-HEAT-06/08/09, the forge's), its owner switches it to `DeviceYaml.writeTemplated` (`tfp:block/device`) and moves it into `configuration/devices/`; not part of this item."
+  - "Note: `DeviceSpecs`' class comment (PAR-INFRA-08's file, not owned here) still says the generators do not use the factories; the `tfp:settings/device` template in `ce/templates/settings.yml` (not owned) is now called by no entry. Both can be cleaned up by their owners."
+  - "Done: Firepit/Grill/Pot build `DeviceSpecs.firepitFamily` (Prop dropped for `DeviceProperty`, lit light read from TFC's `litBlockEmission(N)`), ForgeDevices builds `charcoalForge`/`facing`, all with `Settings.fromTfc` + `DeviceLoot.fromTfc`, written by `DeviceYaml.writeLiteral`. Generated diff reviewed: firepit/grill/pot gain settings, loot and luminance 15/0; charcoal forge 0.2/0.2, charcoal sounds, shovel, 7 charcoal; bellows 3.0/3.0, wood, axe, self; states/items/mappings unchanged. Tests: FirepitTest 10 (4 new), GrillTest 8, PotTest 8, ForgeDevicesTest 3, DeviceSpecParityTest 2 (byte-equal to the spec), VisualBudgetTest green; :core:test :paper:test :tools:datagen:test verifyContent green. Ledger: two placeholder divergence rows removed, sound row updated, feature row added."
 tests:
   - "tools/datagen: FirepitTest, GrillTest, PotTest, ForgeDevicesTest green with unchanged generated output (or reviewed diff)"
   - "DeviceSpecParityTest turned into a check that the generators call the spec (or removed when the generators are the only writers)"

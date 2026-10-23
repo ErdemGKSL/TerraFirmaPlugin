@@ -10,6 +10,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +36,18 @@ class ForgeDevicesTest {
 
         String forge = new String(files.get(ForgeDevices.FORGE_OUTPUT), StandardCharsets.UTF_8);
         assertThat(forge).contains("tfp:charcoal_forge:", "heat_level:", "range: '0~7'", "default: 0");
-        assertThat(forge).contains("template: tfp:settings/device", "template: tfp:loot_table/self");
+        // PAR-INFRA-19: TFC's strength(0.2F), TFCSounds.CHARCOAL, mineable/shovel and 7 charcoal (the forge has no item).
+        assertThat(forge).doesNotContain("tfp:settings/device", "tfp:loot_table/self");
+        Map<?, ?> forgeBlock = block(forge, ForgeDevices.FORGE_ID);
+        Map<?, ?> forgeSettings = (Map<?, ?>) forgeBlock.get("settings");
+        assertThat(forgeSettings.get("hardness")).isEqualTo(0.2);
+        assertThat(forgeSettings.get("resistance")).isEqualTo(0.2);
+        assertThat(forgeSettings.get("tags")).isEqualTo(List.of("minecraft:mineable/shovel"));
+        assertThat(forgeSettings.get("sounds")).isEqualTo(Map.of("break", "tfp:block.charcoal.break",
+            "step", "tfp:block.charcoal.step", "place", "tfp:block.charcoal.place", "hit", "tfp:block.charcoal.hit",
+            "fall", "tfp:block.charcoal.fall"));
+        assertThat(forgeBlock.get("loot")).isEqualTo(Map.of("template", "tfp:loot_table/item_count",
+            "arguments", Map.of("loot_item", "minecraft:charcoal", "loot_count_min", 7, "loot_count_max", 7)));
         assertThat(forge).as("no placeholder campfire any more").doesNotContain("campfire");
         assertThat(forge).as("the forge has no placing item: TFC makes it by lighting a charcoal pile")
             .doesNotContain("tfp:item/block_item");
@@ -64,9 +77,23 @@ class ForgeDevicesTest {
         assertThat(bellows).contains("items:", "template: tfp:item/block_item", "block.tfp.bellows");
         assertThat(files).containsKey(AssetPipeline.RP + "models/item/bellows.json");
         assertThat(bellows).contains("tfp:bellows:", "facing:", "default: north");
+        // PAR-INFRA-19: TFC's strength(3.0f), SoundType.WOOD, mineable/axe; it drops itself.
+        Map<?, ?> bellowsBlock = block(bellows, ForgeDevices.BELLOWS_ID);
+        Map<?, ?> bellowsSettings = (Map<?, ?>) bellowsBlock.get("settings");
+        assertThat(bellowsSettings.get("hardness")).isEqualTo(3.0);
+        assertThat(bellowsSettings.get("resistance")).isEqualTo(3.0);
+        assertThat(bellowsSettings.get("tags")).isEqualTo(List.of("minecraft:mineable/axe"));
+        assertThat(((Map<?, ?>) bellowsSettings.get("sounds")).get("break")).isEqualTo("minecraft:block.wood.break");
+        assertThat(bellowsBlock.get("loot")).isEqualTo(Map.of("template", "tfp:loot_table/self"));
+        assertThat(bellows).doesNotContain("tfp:settings/device", "luminance");
         for (String f : ForgeDevices.FACINGS) {
             assertThat(bellows).contains("facing=" + f + ":");
         }
+    }
+
+    private static Map<?, ?> block(String yaml, String id) {
+        Map<?, ?> root = (Map<?, ?>) CeYamlCheck.parse(yaml, id);
+        return (Map<?, ?>) ((Map<?, ?>) root.get("blocks")).get(id);
     }
 
     @Test
