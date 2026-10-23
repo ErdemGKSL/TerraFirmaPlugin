@@ -36,7 +36,8 @@ class GeneratedCarrierTest {
         SortedMap<String, byte[]> files = Datagen.generate(RealCheckout.open().root(), TfcCheckout.PINNED_COMMIT).tree().files();
         List<String> problems = new ArrayList<>();
         int states = 0;
-        int mappings = 0;
+        java.util.SortedSet<String> checkedIds = new java.util.TreeSet<>();
+        java.util.SortedSet<String> mappings = new java.util.TreeSet<>();
         for (Map.Entry<String, byte[]> e : files.entrySet()) {
             String path = e.getKey();
             if (!path.startsWith("craftengine/") || !path.endsWith(".yml")) {
@@ -61,6 +62,7 @@ class GeneratedCarrierTest {
                         }
                         if (app.get("state") instanceof String state) {
                             states++;
+                            checkedIds.add(id);
                             check(path, id, a.getKey(), state, problems);
                         }
                     }
@@ -68,9 +70,9 @@ class GeneratedCarrierTest {
             }
             if (top.get("block_state_mappings") instanceof Map<?, ?> m) {
                 for (Map.Entry<?, ?> x : m.entrySet()) {
-                    mappings++;
                     String from = String.valueOf(x.getKey());
                     String to = String.valueOf(x.getValue());
+                    mappings.add(from + " -> " + to);
                     boolean fromSelector = HitboxDemands.all().stream()
                         .map(d -> HitboxAllocation.agreed(d.blockId(), d.appearance()))
                         .anyMatch(a -> a.state().equals(from) && to.equals(a.hideTarget()));
@@ -81,8 +83,13 @@ class GeneratedCarrierTest {
             }
         }
         // Today: the forge (8 heat levels), the bellows (4 facings), the firepit, grill and pot (lit, unlit); forge hide.
+        // The exact sets are pinned so that a generator silently dropping out of craftengine/ fails here; a family item
+        // that adds an explicit-state block adds its id to this list.
         assertThat(states).isGreaterThanOrEqualTo(18);
-        assertThat(mappings).isGreaterThanOrEqualTo(1);
+        assertThat(checkedIds).as("block ids whose explicit appearance states were checked")
+            .containsExactly("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot");
+        assertThat(mappings).as("generator block_state_mappings")
+            .containsExactly("minecraft:snow[layers=7] -> minecraft:snow[layers=8]");
         assertThat(problems).as("take carriers from dev.tfp.datagen.hitbox.HitboxAllocation").isEmpty();
     }
 
