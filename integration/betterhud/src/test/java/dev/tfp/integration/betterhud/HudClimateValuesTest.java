@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class HudClimateValuesTest {
     @Test
     void ambientTemperatureIsOneDecimalPlace() {
-        assertThat(HudClimateValues.TEXTS.keySet()).containsExactly("tfp_ambient_temp", "tfp_held_heat");
+        assertThat(HudClimateValues.TEXTS.keySet()).containsExactly("tfp_ambient_temp", "tfp_held_heat", "tfp_held_heat_color");
         HudSnapshot reading = HudSnapshot.DEFAULT.withAmbientTemperature(12.34);
         assertThat(HudClimateValues.TEXTS.get("tfp_ambient_temp").apply(reading)).isEqualTo("12.3\u00B0C");
     }
@@ -37,13 +37,43 @@ class HudClimateValuesTest {
         assertThat(text.apply(HudSnapshot.DEFAULT)).isEmpty();
     }
 
-    /** The en_us names of TFC's {@code tfc.enum.heat.*} keys. */
+    /** The level names come from our en_us lang ({@code heat.level.*}, TFC's {@code tfc.enum.heat.*} en_us names). */
     @Test
-    void levelNamesAreTfcEnUs() {
-        assertThat(HudClimateValues.levelName(HeatLevel.VERY_HOT)).isEqualTo("Very Hot");
-        assertThat(HudClimateValues.levelName(HeatLevel.YELLOW_WHITE)).isEqualTo("Yellow White");
-        assertThat(HudClimateValues.levelName(HeatLevel.BRILLIANT_WHITE)).isEqualTo("Brilliant White");
-        assertThat(HudClimateValues.levelName(HeatLevel.ORANGE)).isEqualTo("Orange");
+    void levelNamesAreTheEnUsLangEntries() {
+        // VERY_HOT 210..480: one star past 264; YELLOW_WHITE 1300..1400: two past 1340; ORANGE 930..1100: none at 931
+        assertThat(HudClimateValues.heatText(300)).isEqualTo("Very Hot٭");
+        assertThat(HudClimateValues.heatText(1350)).isEqualTo("Yellow White٭٭");
+        assertThat(HudClimateValues.heatText(931)).isEqualTo("Orange");
+    }
+
+    /** The text and colour are empty exactly where TFC's {@code Heat.getHeat} (our {@link HeatLevel#of}) has no level. */
+    @Test
+    void textIsEmptyExactlyWhereThereIsNoHeatLevel() {
+        float[] samples = {Float.NaN, -50f, -0.001f, 0f, Float.MIN_VALUE, 0.001f, 1f, 79.9f, 80f, 729.9f, 730f, 1499.9f,
+                1500f, 1599f, 1600f, 2000f};
+        for (float t : samples) {
+            boolean hasLevel = HeatLevel.of(t).isPresent();
+            assertThat(HudClimateValues.heatText(t).isEmpty()).as("text at %s", t).isEqualTo(!hasLevel);
+            assertThat(HudClimateValues.heatColor(t).isEmpty()).as("colour at %s", t).isEqualTo(!hasLevel);
+        }
+        assertThat(HudClimateValues.heatText(1550)).isEqualTo("Brilliant White");
+    }
+
+    /** TFC {@code Heat.getColor}: GRAY, DARK_RED, RED, GOLD, YELLOW, WHITE by level group, as chat-colour hex codes. */
+    @Test
+    void heldHeatColourIsTfcHeatColour() {
+        var colour = HudClimateValues.TEXTS.get("tfp_held_heat_color");
+        assertThat(colour.apply(HudSnapshot.DEFAULT.withHeldTemperature(900))).isEqualTo("#ff5555"); // BRIGHT_RED: RED
+        assertThat(colour.apply(HudSnapshot.DEFAULT.withHeldTemperature(40))).isEqualTo("#aaaaaa"); // WARMING: GRAY
+        assertThat(colour.apply(HudSnapshot.DEFAULT.withHeldTemperature(479))).isEqualTo("#aaaaaa"); // VERY_HOT: GRAY
+        assertThat(colour.apply(HudSnapshot.DEFAULT.withHeldTemperature(500))).isEqualTo("#aa0000"); // FAINT_RED
+        assertThat(colour.apply(HudSnapshot.DEFAULT.withHeldTemperature(700))).isEqualTo("#aa0000"); // DARK_RED
+        assertThat(colour.apply(HudSnapshot.DEFAULT.withHeldTemperature(1000))).isEqualTo("#ffaa00"); // ORANGE: GOLD
+        assertThat(colour.apply(HudSnapshot.DEFAULT.withHeldTemperature(1150))).isEqualTo("#ffff55"); // YELLOW
+        assertThat(colour.apply(HudSnapshot.DEFAULT.withHeldTemperature(1350))).isEqualTo("#ffff55"); // YELLOW_WHITE
+        assertThat(colour.apply(HudSnapshot.DEFAULT.withHeldTemperature(1450))).isEqualTo("#ffffff"); // WHITE
+        assertThat(colour.apply(HudSnapshot.DEFAULT.withHeldTemperature(1550))).isEqualTo("#ffffff"); // BRILLIANT_WHITE
+        assertThat(colour.apply(HudSnapshot.DEFAULT)).isEmpty();
     }
 
     /** The number placeholder the popup condition reads is the snapshot value. */

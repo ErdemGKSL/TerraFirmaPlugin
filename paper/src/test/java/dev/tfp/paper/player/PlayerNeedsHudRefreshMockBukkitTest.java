@@ -22,6 +22,9 @@ import java.util.logging.Logger;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -109,6 +112,71 @@ class PlayerNeedsHudRefreshMockBukkitTest extends MockServerTest {
 
         alex.getInventory().setItemInMainHand(new ItemStack(Material.COPPER_INGOT));
         needs.publish(alex);
+        assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
+    }
+
+    /**
+     * PAR-HUD-08 review: Paper fires {@link PlayerItemHeldEvent} before the selected slot changes. The republish runs on
+     * the player's next tick, after the server applied the new slot, so it shows the newly selected stack's temperature.
+     */
+    @Test
+    void hotbarChangePublishesTheNewSlotsTemperatureOnTheNextTick() {
+        PlayerDataStore store = new PlayerDataStore(new PlayerDataFiles(dir), io, Logger.getLogger("test"));
+        store.loadBlocking(ALEX);
+        PlayerMock alex = new PlayerMock(server, "Alex", ALEX);
+        server.addPlayer(alex);
+        HudSnapshotCache hud = new HudSnapshotCache(() -> true);
+        ItemHeatHooks heat = new ItemHeatHooks(() -> 100L, HeatConfig.DEFAULT, ItemHeatHooks.Capacities.UNIT);
+        PlayerNeedsHudService needs = new PlayerNeedsHudService(store, new ServerScheduler(plugin, 1), hud, () -> 0L,
+                heat::temperature);
+        ItemStack hot = new ItemStack(Material.COPPER_INGOT);
+        HeatPdc.write(hot, new HeatState(900f, 100L));
+        alex.getInventory().setItem(3, hot);
+        alex.getInventory().setItem(0, new ItemStack(Material.COPPER_INGOT));
+        alex.getInventory().setHeldItemSlot(0);
+        needs.publish(alex);
+        assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
+
+        needs.onHeld(new PlayerItemHeldEvent(alex, 0, 3)); // still slot 0 while the event runs, as on Paper
+        assertThat(alex.getInventory().getItemInMainHand().isSimilar(hot)).isFalse();
+        alex.getInventory().setHeldItemSlot(3); // what the server does after the event
+        server.getScheduler().performOneTick();
+        assertThat(hud.snapshot(ALEX).heldTemperature()).isEqualTo(900);
+
+        needs.onHeld(new PlayerItemHeldEvent(alex, 3, 0));
+        alex.getInventory().setHeldItemSlot(0);
+        server.getScheduler().performOneTick();
+        assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
+    }
+
+    /** Swapping hands and dropping the held stack republish the held temperature on the next tick, keeping the needs. */
+    @Test
+    void swapHandsAndDropRepublishTheHeldTemperature() {
+        PlayerDataStore store = new PlayerDataStore(new PlayerDataFiles(dir), io, Logger.getLogger("test"));
+        store.loadBlocking(ALEX);
+        PlayerMock alex = new PlayerMock(server, "Alex", ALEX);
+        server.addPlayer(alex);
+        HudSnapshotCache hud = new HudSnapshotCache(() -> true);
+        ItemHeatHooks heat = new ItemHeatHooks(() -> 100L, HeatConfig.DEFAULT, ItemHeatHooks.Capacities.UNIT);
+        PlayerNeedsHudService needs = new PlayerNeedsHudService(store, new ServerScheduler(plugin, 1), hud, () -> 0L,
+                heat::temperature);
+        store.update(ALEX, d -> d.withThirst(42f));
+        needs.publish(alex);
+        assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
+
+        ItemStack hot = new ItemStack(Material.COPPER_INGOT);
+        HeatPdc.write(hot, new HeatState(900f, 100L));
+        alex.getInventory().setItemInOffHand(hot);
+        needs.onSwapHands(new PlayerSwapHandItemsEvent(alex, hot, new ItemStack(Material.AIR)));
+        alex.getInventory().setItemInMainHand(hot); // the swap the server applies after the event
+        alex.getInventory().setItemInOffHand(null);
+        server.getScheduler().performOneTick();
+        assertThat(hud.snapshot(ALEX).heldTemperature()).isEqualTo(900);
+        assertThat(hud.snapshot(ALEX).thirst()).isEqualTo(42);
+
+        alex.getInventory().setItemInMainHand(null);
+        needs.onDrop(new PlayerDropItemEvent(alex, alex.getWorld().dropItem(alex.getLocation(), hot)));
+        server.getScheduler().performOneTick();
         assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
     }
 

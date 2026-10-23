@@ -31,8 +31,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -55,8 +60,11 @@ import org.bukkit.plugin.java.JavaPlugin;
  *
  * <p>PAR-HUD-08: the temperature of the main-hand stack ({@link ItemHeatHooks#temperature}, lazy from the stored heat
  * record and the calendar tick, nothing ticks) is published as {@link HudSnapshot#heldTemperature()} on the same
- * reading. The popup shows while it is above 0 °C, the range in which TFC's {@code ItemTemperatureDisplayStyle.format}
- * shows a temperature at all ({@link #heldTemperature(float)}).
+ * reading, and on the player's next tick after anything that changes the main-hand stack (hotbar slot, swap hands,
+ * inventory click or drag, pickup, drop: {@link #refreshHeld}). The popup shows while it is above 0 °C, the range in
+ * which TFC's {@code ItemTemperatureDisplayStyle.format} shows a temperature at all ({@link #heldTemperature(float)}).
+ * Evaluating the stored heat record at placeholder time (no lag at all, also after {@code /tfp debug heat}) and injecting
+ * the heat hooks at wiring time are PAR-HUD-11 (they need {@code HudSnapshot}, {@code HudValues} and the plugin wiring).
  */
 public final class PlayerNeedsHudService implements Listener {
     /** The throttle: one reading per player per second. */
@@ -187,8 +195,7 @@ public final class PlayerNeedsHudService implements Listener {
                 HealthConfig.DEFAULT);
         hud.publish(player, withNeeds(base, evaluated, player.getFoodLevel()).withHealth(health.health(), health.maxHealth())
                 .withAir(player.getRemainingAir()).withArmor(armor(player))
-                .withHeldTemperature(heldTemperature((float) stackTemperature.applyAsDouble(
-                        player.getInventory().getItemInMainHand()))));
+                .withHeldTemperature(heldTemperatureOf(player)));
     }
 
     /** The player's armour points (vanilla {@code Attribute.ARMOR}, equipment and effects included); 0 without one. */
@@ -198,14 +205,76 @@ public final class PlayerNeedsHudService implements Listener {
     }
 
     /**
-     * PAR-HUD-08: a hotbar slot change republishes at once (on the player's thread, after the slot changed), so the
-     * held temperature popup follows the selected stack without waiting for the throttle.
+     * Any thread: hops to the player's thread and republishes only the held item temperature (no thirst evaluation).
+     * Like {@link #refresh} the task runs on the player's next tick, so it reads the main hand after the change that
+     * triggered it has been applied.
+     */
+    public void refreshHeld(Player player) {
+        if (hud.isActive()) {
+            scheduler.entity(player, () -> publishHeld(player), null);
+        }
+    }
+
+    /** Player thread only: the latest snapshot with the main-hand stack's temperature now. */
+    void publishHeld(Player player) {
+        ThreadAsserts.owned(player);
+        UUID id = player.getUniqueId();
+        hud.publish(player, hud.snapshot(id).withHeldTemperature(heldTemperatureOf(player)));
+    }
+
+    /** Player thread only: the published value for the main-hand stack ({@link #heldTemperature(float)}). */
+    private double heldTemperatureOf(Player player) {
+        return heldTemperature((float) stackTemperature.applyAsDouble(player.getInventory().getItemInMainHand()));
+    }
+
+    /**
+     * PAR-HUD-08: a hotbar slot change republishes the held temperature. Paper fires the event before the selected slot
+     * changes; the republish is a task on the player's next tick ({@link #refreshHeld}), by when the slot has changed, so
+     * it reads the newly selected stack (and, after several quick changes in one tick, the last one).
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onHeld(PlayerItemHeldEvent event) {
-        if (hud.isActive()) {
-            refresh(event.getPlayer());
+        refreshHeld(event.getPlayer());
+    }
+
+    /** PAR-HUD-08: swapping the hands changes the main-hand stack. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onSwapHands(PlayerSwapHandItemsEvent event) {
+        refreshHeld(event.getPlayer());
+    }
+
+    /**
+     * PAR-HUD-08: an inventory click can put a stack into, take it out of, or change the held slot (cursor, shift-click,
+     * number key, a device's slot when the stack goes back to the hotbar). A republish is one heat read, so any click
+     * of the player republishes rather than re-deriving which slots the click touched.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (event.getWhoClicked() instanceof Player player) {
+            refreshHeld(player);
         }
+    }
+
+    /** PAR-HUD-08: a drag can spread the cursor stack into the held slot. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (event.getWhoClicked() instanceof Player player) {
+            refreshHeld(player);
+        }
+    }
+
+    /** PAR-HUD-08: a picked up item can land in the held slot (or merge into the held stack). */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPickup(EntityPickupItemEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            refreshHeld(player);
+        }
+    }
+
+    /** PAR-HUD-08: dropping from the main hand shrinks or empties the held stack. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onDrop(PlayerDropItemEvent event) {
+        refreshHeld(event.getPlayer());
     }
 
     /** Restarts the thirst clock when the player joins (see the class comment). */
