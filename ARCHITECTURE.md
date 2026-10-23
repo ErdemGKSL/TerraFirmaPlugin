@@ -289,8 +289,8 @@ VisualAllocator's full cubes and only hold appearances with a model; the selecto
 allocate. `HardcodedCarrierTest` forbids vanilla state literals outside `hitbox/` and `visuals/`; `GeneratedCarrierTest`
 checks the output: every explicit appearance `state:` in the generated CE YAML (bare stateless ids included) equals
 `HitboxAllocation.agreed(...)` of its demand, and every generator `block_state_mappings` entry is a selector hide mapping.
-Verification split (proposed 2026-10-23, pending the owner's decision; until then PAR-INFRA-13 stays blocked on PAR-INFRA-23):
-PAR-INFRA-13 would be done with the datagen selector, which is all its dependents need;
+Verification split (decided 2026-10-23, manager decision under the owner's standing instruction; general rule in
+`plans/parity/PROTOCOL.md` 6.5): PAR-INFRA-13 is done with the datagen selector, which is all its dependents need;
 the in-game outline, stand-height and prediction checks are PAR-INFRA-23, which re-runs per carrier class as each family's
 CE block loads and records failed carriers in `hitbox/unusable.json` (the selector then takes the next fallback). Placeholder
 device entries stay literal and outside `configuration/` (§ device block datagen), so the firepit family is checked only

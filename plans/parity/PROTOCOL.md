@@ -97,6 +97,14 @@ the blocking file/item. Report it in your final message.
 3. Store the evidence in `docs/verification/<ID>/`: small PNG crops (under 200 KB each) and `verdict.md` (date, HEAD commit,
    server/client versions, the steps run, pass/fail per criterion). These paths are implicitly owned by the item.
 4. Fail: fix within `files_owned` and repeat, or record a follow-up item.
+5. Deferred in-game check (manager decision 2026-10-23, from PAR-INFRA-13/PAR-INFRA-23): when an item's in-game check can
+   only run after its dependents exist (the blocks or devices it serves are added or loaded by later items that depend on
+   it), the check becomes a separate verification item, or a pending line in an existing one, that depends on those later
+   items. Move the screenshot criterion and its `in_game_steps` there, set `ui: false` on the item, and replace the criterion
+   with `Deferred check tracked in <id>`. The deferred check does not block the item: never make the item wait for the
+   verification item (that is a dep cycle). Reviewers must accept `deferred check tracked in <id>` for such a criterion when
+   `<id>` exists, holds the moved steps and criterion, and does not list the item in its `deps`; a failure found there is
+   fixed through that item (or a follow-up), not by reopening the original one unless its own criteria break.
 
 ## 7. Record it
 
