@@ -226,6 +226,23 @@ This agrees with round 1's assumption (200–600).
 
 Per-ore entities instead of per-face would save ≈ 1/3 (1 / 1.5). That is not worth the lighting error (§3.1).
 
+### 4.2a Measured (S1, PAR-WORLD-17, 2026-11-04)
+Full tables: `docs/spikes/S1-ore-overlay.md`.
+
+| Figure | Assumed above | Measured |
+|---|---|---|
+| Ore blocks per chunk (our cluster veins, 3 seeds × 1024 chunks) | ≈ 300 mean | median 60-351, **mean 620-1074**, max ≈ 8 100 |
+| Exposure of stone (vanilla 1.21.11 caves, proxy) | 5 % (3-12 %) | 3.5-5.1 % |
+| Faces per exposed block | 1.5 | 1.55-1.57 |
+| Our world today (no tunnels) | — | ≤ 42 exposed ore faces per 1024 chunks, all on sea/lake beds |
+| Combined estimate, 4-chunk radius, p95 over all positions | 1.8 k typical / 7.8 k worst | **6.8-9.4 k** (max 10.3 k) |
+| Same, 3-chunk radius (40 m cutoff) | — | 4.6-6.2 k |
+| Bytes per overlay (spawn + data, uncompressed) | 175-205 B | ≈ 120 B |
+| Client frame time at 8 k overlays | + ≤ 2 ms (gate) | +21 ms on llvmpipe (software); GPU pending (PAR-WORLD-19) |
+
+The gate fails; the owner question (40 m cutoff, cap, per-ore entities) is recorded in the spike doc and ARCHITECTURE.md
+§9.1. Defaults stay at 48 m / 8000 until it is answered.
+
 ### 4.3 Packets and CPU
 - **Per entity on send:**
   - `ADD_ENTITY` ≈ 55 B;

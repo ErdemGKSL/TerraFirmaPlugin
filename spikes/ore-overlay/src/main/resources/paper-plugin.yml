@@ -1,0 +1,8 @@
+name: TfpSpikeOreOverlay
+version: '0.0.0-spike'
+main: dev.tfp.spike.oreoverlay.OreOverlaySpike
+api-version: '1.21.11'
+folia-supported: true
+dependencies:
+  server:
+    packetevents: { load: BEFORE, required: true, join-classpath: true }

@@ -15,6 +15,7 @@ import dev.tfp.itest.cases.CraftEnginePackIssuesCase;
 import dev.tfp.itest.cases.DeviceRoundTripCase;
 import dev.tfp.itest.cases.ItemDataRoundTripCase;
 import dev.tfp.itest.cases.MetalRunCase;
+import dev.tfp.itest.cases.OreExposureCensusCase;
 import dev.tfp.itest.cases.PacketNoopCase;
 import dev.tfp.itest.cases.PlayerDataCase;
 import dev.tfp.itest.cases.ProfileRestartCase;
@@ -51,6 +52,7 @@ public final class SelfTestSuite {
                 new CraftEngineBlockRoundTripCase(),
                 new DeviceRoundTripCase(),
                 new WorldgenTerrainCase(),
+                new OreExposureCensusCase(),
                 new MetalRunCase(),
                 new ProfileRestartCase(),
                 new SuppressionCase(),

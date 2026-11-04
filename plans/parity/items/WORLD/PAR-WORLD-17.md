@@ -2,7 +2,7 @@
 id: PAR-WORLD-17
 title: "Ore overlay spike S1: measure exposed ore faces per chunk and the overlay entity budget"
 area: WORLD
-status: open
+status: done
 wave: 4
 deps: [PAR-REL-01]
 size: M
@@ -26,7 +26,6 @@ ui: true
 in_game_steps:
   - "Headless Paper 1.21.11 + client 1.21.11 (spikes/client, PAR-REL-01 recipe), TFC world seed 1; then the same seed as a plain vanilla world (exposure proxy, PAR-WORLD-06 has not ported the cave tunnels yet)"
   - "Census: run the itest case `ore.census` (or `tfp debug orecensus 32` from the spike plugin) over 32x32 chunks around spawn for seeds 1, 2, 3; it writes `itest/build/selftest-run/<platform>-<mc>/ore-census.json`"
-  - "Exposed vein reference (before the overlay exists): tfp time set noon; tp Bot to a cave wall or cliff with a visible vein from the census output (`exposed_example`), pitch 20 deg; screenshot at 4, 16, 32, 48 and 64 blocks; 8x crop of one ore face"
   - "Client cost: in a stone test area (spikes/client/testroom.sh), spawn a synthetic field of packet-only overlay quads around Bot with the spike command `tfp debug overlayfield <n>` for n = 2000, 8000, 20000 (one item_display per face, positioned in the air cell, translation -0.49 along the normal, view_range for a 48 m cutoff); for each n record the F3 frame time average over 10 s, client FPS, join packet count and bytes (PacketEvents metrics `tfp debug packets`), server MSPT (spark); screenshot the F3 screen"
   - "Repeat the client-cost step with Bot flying through the field at 10 blocks/s to record chunk-crossing bursts"
 plan:
@@ -37,12 +36,13 @@ plan:
   - "Client-cost spike plugin in spikes/ore-overlay (not shipped): a `/tfp debug overlayfield <n>` style command that sends n packet-only item_display quads with a test overlay item model (one TFC overlay texture, e.g. normal_native_gold, shade false, constant tint per face) through PacketEvents, and removes them on a second call."
   - "Write docs/spikes/S1-ore-overlay.md: method, tables, screenshots, the pass/fail verdict against the gate (p95 faces within the gated radius <= 8 k per player; client frame time +<= 2 ms at 8 k; join MSPT unchanged within noise) and the recommended defaults for `ore-overlay.cutoff-blocks` and `max-per-player`. If it fails, record the owner question (lower cutoff, lower cap, per-ore entities) instead of changing defaults silently."
   - "Note for PAR-WORLD-06: rerun `ore.census` on our world once the cave tunnels exist and update the spike doc."
+  - "Done: core census (`core/oreoverlay/census`, ExposureCensusTest 12 + CensusReportTest 5), itest `ore.census` (Paper x6 at 32x32 chunks and Folia at 8x8, no thread-ownership findings), spike plugin and scripts in `spikes/ore-overlay`, reports in `spikes/ore-overlay/out/`. Verdict FAIL with the owner question recorded (combined estimate p95 6.8-9.4 k in the 4-chunk radius; +21 ms at 8 k on the llvmpipe client); defaults unchanged. Spike doc `docs/spikes/S1-ore-overlay.md`, verification `docs/verification/PAR-WORLD-17/verdict.md`. The exposed-vein reference screenshots are a deferred check tracked in PAR-WORLD-19 (our world has no tunnels yet, the only exposed ores are on sea beds). Found and filed: PAR-WORLD-18 (refused chunk in `Weighted.get`). SelfTestSuiteTest's case count changed with the hub registration."
 tests:
   - "core: ExposureCensusTest on synthetic chunks (single ore in air: 6 faces; ore in solid: 0; ore under water: 1; ore next to glass/leaves: exposed; columnar border cases across the chunk edge)"
   - "itest: `ore.census` runs on Paper 1.21.11 and Folia 1.21.11 without thread-ownership violations (run delegated per PROTOCOL 5.3)"
 done_criteria:
   - "docs/spikes/S1-ore-overlay.md has the census tables (3 seeds, p50/p95/max, gated radius and view distance 6/8/10 totals), the vanilla exposure proxy, the client-cost table for 2 k/8 k/20 k quads and a pass/fail verdict"
-  - "Screenshots of the exposed-vein reference and of the synthetic field (F3 visible) in docs/verification/PAR-WORLD-17/"
+  - "Screenshots of the synthetic field (F3 visible) in docs/verification/PAR-WORLD-17/; exposed-vein reference: Deferred check tracked in PAR-WORLD-19"
   - "ARCHITECTURE.md 9.1 and docs/research/ore-entity-renderer-design.md 4 updated with the measured numbers (or the owner question recorded)"
 ---
 
