@@ -14,6 +14,8 @@ import java.lang.constant.ConstantDescs;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -31,6 +33,11 @@ import org.junit.jupiter.api.Test;
  * PAR-INFRA-22: the adapter's harvest check is CraftEngine's own ({@code BlockStateUtils.isCorrectTool}) over the block's
  * settings, so a block delegated to the Paper loot runtime is gated like a block with a CE {@code loot:}. TFC: a
  * {@code requiresCorrectToolForDrops} block (raw rock, Rock.java:130) drops nothing by hand and its table with a pickaxe.
+ *
+ * <p>Written against CraftEngine 26.9.2 ({@code gradle/libs.versions.toml}: {@code mwFiNxVO}). The fakes below rely
+ * on CE internals ({@code ImmutableBlockState}'s first constructor, {@code ItemSettings} fields, the {@link Item}
+ * methods {@code BlockStateUtils.isCorrectTool} calls); re-check them on every CE upgrade, or replace them with an
+ * itest line on a real CE block and item.
  */
 class CorrectToolTest {
     private static final Key BRONZE_PICKAXE = Key.of("tfp", "metal/pickaxe/bronze");
@@ -79,7 +86,46 @@ class CorrectToolTest {
         assertThat(CraftEngineIntegration.isCorrectTool(state(settings), item(BRONZE_PICKAXE, false, 2))).isFalse();
     }
 
-    /** A rock-like block: {@code require_correct_tools: true} and the pickaxe as its correct tool. */
+    /**
+     * {@code correct_tools: ['#minecraft:pickaxes']} (the rock template) is expanded at CE load through
+     * {@code AbstractItemManager.itemIdsByTag}: the vanilla members of the tag plus the CE items whose
+     * {@code settings.tags} list it. A CE item's vanilla material does not count, so a TFC metal pickaxe tagged only
+     * {@code tfp:tools/pickaxe} (today's {@code tfp:item/tool}) is refused on rock until PAR-INFRA-27 adds the tag.
+     * Regression guard for that rule.
+     */
+    @Test
+    void aCeToolCountsForATagOnlyThroughItsSettingsTags() {
+        Key pickaxes = Key.of("minecraft", "pickaxes");
+        Key tfpPickaxe = Key.of("tfp", "tools/pickaxe");
+        List<Key> vanillaPickaxes = List.of(Key.of("minecraft", "wooden_pickaxe"), Key.of("minecraft", "iron_pickaxe"));
+
+        Set<Key> today = expandTag(pickaxes, vanillaPickaxes, Map.of(BRONZE_PICKAXE, Set.of(tfpPickaxe)));
+        BlockSettings rockToday = BlockSettings.of().correctTools(LazyReference.oneTime(() -> today));
+        assertThat(CraftEngineIntegration.isCorrectTool(state(rockToday), item(BRONZE_PICKAXE, false, -1))).isFalse();
+        Item ironPickaxe = item(Key.of("minecraft", "iron_pickaxe"), false, -1);
+        assertThat(CraftEngineIntegration.isCorrectTool(state(rockToday), ironPickaxe)).isTrue();
+
+        Set<Key> tagged = expandTag(pickaxes, vanillaPickaxes, Map.of(BRONZE_PICKAXE, Set.of(tfpPickaxe, pickaxes)));
+        BlockSettings rockTagged = BlockSettings.of().correctTools(LazyReference.oneTime(() -> tagged));
+        assertThat(CraftEngineIntegration.isCorrectTool(state(rockTagged), item(BRONZE_PICKAXE, false, -1))).isTrue();
+        assertThat(CraftEngineIntegration.isCorrectTool(state(rockTagged), null)).isFalse();
+    }
+
+    /** CE's {@code correct_tools} tag expansion: vanilla members plus CE items whose {@code settings.tags} list it. */
+    private static Set<Key> expandTag(Key tag, List<Key> vanillaMembers, Map<Key, Set<Key>> ceItemTags) {
+        Set<Key> ids = new HashSet<>(vanillaMembers);
+        ceItemTags.forEach((id, tags) -> {
+            if (tags.contains(tag)) {
+                ids.add(id);
+            }
+        });
+        return Set.copyOf(ids);
+    }
+
+    /**
+     * A rock-like block: {@code require_correct_tools: true} and the bronze pickaxe already in the expanded
+     * {@code correct_tools} (true only once PAR-INFRA-27 tags the TFC pickaxes; see the test above).
+     */
     private static BlockSettings rockSettings() {
         return BlockSettings.of()
                 .requireCorrectTool(true)

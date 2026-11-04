@@ -14,8 +14,8 @@ import org.bukkit.inventory.ItemStack;
 /**
  * World operations on custom blocks. Implemented by {@code integration/craftengine}.
  *
- * <p><b>Threads:</b> {@link #stateAt}, {@link #place}, {@link #remove} and {@link #isCorrectTool} must run on the thread that
- * owns the block's region; the implementation refuses other threads with {@link IllegalStateException}.
+ * <p><b>Threads:</b> {@link #stateAt}, {@link #place}, {@link #remove} and {@link #isCorrectTool} must run on the
+ * thread that owns the block's region; the implementation refuses other threads with {@link IllegalStateException}.
  * Use {@code Scheduler.region(...)} to get there.
  */
 public interface CustomBlocks {
