@@ -7,6 +7,7 @@ package dev.tfp.paper.loot;
 
 import dev.tfp.core.tag.TagType;
 import dev.tfp.paper.data.RegistryService;
+import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.tags.Tags;
@@ -40,7 +41,10 @@ public final class LootModule implements FeatureModule {
                 () -> context.services().get(LootStackHooks.class).orElse(LootStackHooks.NONE),
                 ThreadLocalRandom::current, context.logger());
         context.services().provide(LootService.class, service);
-        context.listen(new LootBreakListener(service, context.integrations().customBlocks()));
+        // PAR-INFRA-22: TFC drops nothing from a requiresCorrectToolForDrops block without the correct tool; the
+        // adapter answers with CraftEngine's own tool check for the block.
+        CustomBlocks customBlocks = context.integrations().customBlocks();
+        context.listen(new LootBreakListener(service, customBlocks, customBlocks::isCorrectTool));
         CompletableFuture.supplyAsync(() -> LootTables.load(RegistryService.jarDataRoot(loader)),
                 context.scheduler().cpuExecutor()).whenComplete((loaded, err) -> {
                     if (err != null) {

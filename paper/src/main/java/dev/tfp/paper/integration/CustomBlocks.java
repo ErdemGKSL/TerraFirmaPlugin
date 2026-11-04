@@ -9,11 +9,12 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * World operations on custom blocks. Implemented by {@code integration/craftengine}.
  *
- * <p><b>Threads:</b> {@link #stateAt}, {@link #place} and {@link #remove} must run on the thread that
+ * <p><b>Threads:</b> {@link #stateAt}, {@link #place}, {@link #remove} and {@link #isCorrectTool} must run on the thread that
  * owns the block's region; the implementation refuses other threads with {@link IllegalStateException}.
  * Use {@code Scheduler.region(...)} to get there.
  */
@@ -35,6 +36,17 @@ public interface CustomBlocks {
 
     /** Removes the custom block at {@code block} (drops handled by the block). Region thread. */
     boolean remove(Block block);
+
+    /**
+     * Whether {@code tool} (null or air for an empty hand) may harvest the custom block at {@code block}: the
+     * implementation's own tool check (CraftEngine's {@code require_correct_tools} / {@code correct_tools} /
+     * {@code respect_tool_component} / {@code required_break_power}), as TFC's {@code hasCorrectToolForDrops} gate on
+     * {@code requiresCorrectToolForDrops} blocks. True for a vanilla block and for implementations without a check.
+     * Region thread (PAR-INFRA-22).
+     */
+    default boolean isCorrectTool(Block block, ItemStack tool) {
+        return true;
+    }
 
     /**
      * Runs {@code hook} on the region thread for every loaded chunk, <b>after</b> CraftEngine restored the

@@ -26,13 +26,17 @@ import java.util.logging.Level;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
+import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -261,6 +265,32 @@ public final class CraftEngineIntegration implements Integration, BlockVisuals, 
     public boolean remove(Block block) {
         requireOwner(block, "remove a custom block");
         return CraftEngineBlocks.remove(block);
+    }
+
+    /**
+     * PAR-INFRA-22: CraftEngine's own harvest check, the one its {@code getDrops} applies to blocks with a CE
+     * {@code loot:}, so a block whose drops are delegated to the Paper loot runtime is gated the same way. A vanilla
+     * block passes (not ours to judge).
+     */
+    @Override
+    public boolean isCorrectTool(Block block, ItemStack tool) {
+        requireOwner(block, "check the tool for a custom block");
+        ImmutableBlockState state = CraftEngineBlocks.getCustomBlockState(block);
+        if (state == null || state.isEmpty()) {
+            return true;
+        }
+        Item ceTool = tool == null || tool.getType().isAir() ? null : BukkitItemManager.instance().wrap(tool);
+        return isCorrectTool(state, ceTool);
+    }
+
+    /**
+     * {@code tool} null for an empty hand. Delegates to {@link BlockStateUtils#isCorrectTool}: no requirement
+     * ({@code require_correct_tools} false and {@code required_break_power} 0) accepts anything; otherwise an empty hand
+     * fails, the item id must be in {@code correct_tools} (or, with {@code respect_tool_component}, pass the vanilla tool
+     * component), and its break power must reach {@code required_break_power}.
+     */
+    static boolean isCorrectTool(ImmutableBlockState state, Item tool) {
+        return BlockStateUtils.isCorrectTool(state, tool);
     }
 
     /** CraftEngine world calls corrupt state off the owning region thread, so this check is always on. */
