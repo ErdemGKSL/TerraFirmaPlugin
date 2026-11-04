@@ -237,11 +237,13 @@ publish on the chunk's region thread, same-tick fast path on the block-change pa
 merged only ore grades and are removed.
 
 **S1 measured (PAR-WORLD-17, 2026-11-04, `docs/spikes/S1-ore-overlay.md`):** cluster veins give 60-351 ore blocks per
-chunk at the median but a mean of 620-1074 (large veins, up to ≈ 8 100 in a chunk), 2-3.5 × the estimate. Vanilla caves
-expose 3.5-5.1 % of stone with 1.55 faces each (0.066 cave faces per block). Our world without tunnels exposes almost no
+chunk at the median but a mean of 620-1074 (large veins, up to ≈ 8 100 in a chunk), 2-3.5 × the estimate. These counts
+exclude the disc and pipe veins, `kaolin_disc`, geodes and the montane second pass, which our world does not place yet,
+so TFC's real overlay count is higher still. Vanilla caves expose 3.5-5.1 % of stone with 1.55 faces each (0.066 cave
+faces per block; vanilla's carvers are more frequent than TFC's, so this proxy probably over-states TFC's exposure). Our world without tunnels exposes almost no
 ore (≤ 42 faces in 1024 chunks). Combined estimate within the 4-chunk radius: p95 6.8-9.4 k per player (8-17 % of positions
 above 8 k on 2 of 3 seeds); with a 40 m cutoff (radius 3) p95 4.6-6.2 k. Packets ≈ 120 B uncompressed per quad, server tick
-unchanged up to 8 k; client frame time +21 ms at 8 k on the llvmpipe test client (GPU measurement pending, PAR-WORLD-19).
+unchanged up to 8 k; client frame time +6 ms at 8 k (F3 + 2 average over 240 frames, quads on real faces) on the llvmpipe test client (GPU measurement pending, PAR-WORLD-19).
 Gate failed: **owner question open** (40 m cutoff, rely on the 8 k cap, a lower cap, or per-ore entities); the config
 defaults below are unchanged until it is answered. The census logic (`core/oreoverlay/census`, `ExposureRule`) is the
 exposure rule PAR-INFRA-16 reuses.

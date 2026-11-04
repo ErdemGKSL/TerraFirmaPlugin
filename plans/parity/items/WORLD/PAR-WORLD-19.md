@@ -4,21 +4,25 @@ title: "Ore overlay S1 rerun on a world with caves: census, exposed-vein referen
 area: WORLD
 status: open
 wave: 20
-deps: [PAR-WORLD-06]
+deps: [PAR-WORLD-06, PAR-WORLD-08]
 size: S
 aliases: ["deferred check of PAR-WORLD-17 (PROTOCOL 6.5)"]
 tfc_refs:
   - "src/main/java/net/dries007/tfc/world/ChunkNoiseFiller.java"
   - "src/main/resources/data/tfc/worldgen/configured_carver"
+  - "src/generated/resources/data/tfc/worldgen/density_function/noise_caves.json"
 files_owned:
   - "docs/verification/PAR-WORLD-19/**"
+  - "docs/spikes/S1-ore-overlay.md"
+  - "spikes/ore-overlay/**"
 ui: true
 in_game_steps:
   - "Census: `spikes/ore-overlay/run-all.sh <scratch> <port> 32` (PAR-WORLD-17 harness) on our world once PAR-WORLD-06 carves tunnels and canyons; compare the measured TFC-world faces per chunk and gated-radius totals with the S1 combined estimate"
   - "Exposed vein reference: `spikes/ore-overlay/run-vein-shots.sh` on a cave wall or cliff taken from the new census' `exposed_example`, noon, pitch 20 deg, at 4, 16, 32, 48 and 64 blocks; 8x crop of one ore face"
-  - "Client cost on a client with a real GPU (not Xvfb + llvmpipe): `spikes/ore-overlay/run-client-cost.sh` steps for 0, 2 k, 8 k and 20 k quads, F3 frame time"
+  - "Client cost on a client with a real GPU (not Xvfb + llvmpipe): `spikes/ore-overlay/run-client-cost.sh` steps for 0, 2 k, 8 k and 20 k quads, frame time read from the F3 + 2 chart (avg over the last 240 frames) or a logged frame-time average over 10 s, with the BetterHud panel off (`hud turn off Bot`) and the AFK frame cap off (`inactivityFpsLimit:minimized`), server MSPT from `mspt` / `spark tps`"
 plan:
   - "Current: PAR-WORLD-17 (S1) measured our world without tunnels (≤ 42 exposed ore faces in 1024 chunks per seed, all on lake or sea beds) and estimated the cave exposure from a vanilla world; its exposed-vein reference could only show a sea-bed ore, and its client cost ran on llvmpipe."
+  - "Run after PAR-WORLD-08 so the census counts every TFC vein type (disc and pipe veins, kaolin_disc, geodes, the montane second pass), not only the 33 cluster veins S1 saw."
   - "Rerun the three steps above and update docs/spikes/S1-ore-overlay.md (census tables, verdict) with the measured numbers."
 tests:
   - "itest: ore.census passes on Paper and Folia 1.21.11"

@@ -3,8 +3,10 @@
 # CraftEngine resources folder, so the next CraftEngine pack build serves it to the client. The texture is copied from the
 # TFC checkout at run time (never vendored): one TFC ore overlay, normal_native_gold.
 # Usage: build-pack.sh <run-dir> [tfc-checkout]
-# The model is a single 16x16 quad in the z=8 plane facing +z (south), shade off, no ambient occlusion: the closest
-# vanilla item model to the planned PAR-INFRA-15 overlay quad.
+# The model is a single 16x16 quad in the z=8 plane facing -z (north): the item_display renderer turns item models 180
+# degrees about y, so on the entity it faces +z, which OreOverlaySpike's rotations assume (a quad facing the block would
+# be back-face culled). Shade off, no ambient occlusion: the closest vanilla item model to the planned PAR-INFRA-15
+# overlay quad.
 set -eu
 DIR=$1 TFC=${2:-/opt/tfc}
 P="$DIR/plugins/CraftEngine/resources/tfpspike"
@@ -26,7 +28,7 @@ cat > "$A/models/item/overlay.json" <<'EOF'
   "textures": {"overlay": "tfpspike:item/overlay", "particle": "tfpspike:item/overlay"},
   "elements": [
     {"from": [0, 0, 8], "to": [16, 16, 8], "shade": false,
-     "faces": {"south": {"uv": [0, 0, 16, 16], "texture": "#overlay"}}}
+     "faces": {"north": {"uv": [0, 0, 16, 16], "texture": "#overlay"}}}
   ]
 }
 EOF

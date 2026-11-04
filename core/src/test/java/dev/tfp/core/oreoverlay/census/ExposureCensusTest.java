@@ -65,6 +65,17 @@ class ExposureCensusTest {
     }
 
     @Test
+    void oreNextToOreSharesNoFace() {
+        // Two ores side by side in air: the shared face is hidden (a target is an occluding full block), 5 + 5 faces.
+        final ChunkCensus c = ExposureCensus.count(open().set(8, 64, 8, ORE).set(9, 64, 8, ORE), ORE_ONLY);
+        assertThat(c.blocks()).isEqualTo(2);
+        assertThat(c.exposed()).isEqualTo(2);
+        assertThat(c.faces()).isEqualTo(10);
+        assertThat(c.facesByDirection(4)).isEqualTo(1);
+        assertThat(c.facesByDirection(5)).isEqualTo(1);
+    }
+
+    @Test
     void oreUnderWaterHasOneFace() {
         // Water is a fluid: it exposes the face below it.
         final int water = ExposureRule.cell(false, true, false);

@@ -238,7 +238,11 @@ Full tables: `docs/spikes/S1-ore-overlay.md`.
 | Combined estimate, 4-chunk radius, p95 over all positions | 1.8 k typical / 7.8 k worst | **6.8-9.4 k** (max 10.3 k) |
 | Same, 3-chunk radius (40 m cutoff) | — | 4.6-6.2 k |
 | Bytes per overlay (spawn + data, uncompressed) | 175-205 B | ≈ 120 B |
-| Client frame time at 8 k overlays | + ≤ 2 ms (gate) | +21 ms on llvmpipe (software); GPU pending (PAR-WORLD-19) |
+| Client frame time at 8 k overlays | + ≤ 2 ms (gate) | +6 ms on llvmpipe (software, F3 + 2 average); GPU pending (PAR-WORLD-19) |
+
+The ore counts cover only TFC's 33 cluster veins: the disc and pipe veins, `kaolin_disc`, geodes and the montane second
+pass are not placed by our world yet, so TFC's real overlay count is higher still. The vanilla exposure proxy pulls the
+other way (vanilla carvers are more frequent than TFC's `cave`/`deep_cave`). The verdict does not depend on either.
 
 The gate fails; the owner question (40 m cutoff, cap, per-ore entities) is recorded in the spike doc and ARCHITECTURE.md
 §9.1. Defaults stay at 48 m / 8000 until it is answered.
