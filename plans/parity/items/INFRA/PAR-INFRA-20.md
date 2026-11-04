@@ -2,7 +2,7 @@
 id: PAR-INFRA-20
 title: "Datagen exports TFC's overrides of vanilla recipes (data/minecraft/recipe, 66 files)"
 area: INFRA
-status: open
+status: done
 wave: 4
 deps: [PAR-INFRA-06]
 size: S
@@ -20,6 +20,7 @@ plan:
   - "Current: DataExport copies only data/tfc/{tfc,recipe,tags} plus foreign tags. TFC also ships 66 recipes under data/minecraft/recipe (48 minecraft:crafting_shaped, 18 minecraft:crafting_shapeless: beds, concrete powder, rails, compass, clock, bow, shield, piston, hopper, ...) that replace vanilla's recipes of the same id with TFC ingredients, and the 195 vanilla recipes TFC disables with a false neoforge:conditions."
   - "Export data/minecraft/recipe/** with the usual id rename (tfc: -> tfp: inside the JSON), so the recipe registry and the PAR-INFRA-06 index hold them under their minecraft: ids; keep the disabled ones recorded as disabled (RegistrySnapshot.disabledRecipes) so PAR-PROC-03 can block the vanilla originals."
   - "Then drop VANILLA_OVERRIDES_NOT_EXPORTED in RecipeIndexContentDataMockBukkitTest: every per-type count must equal TFC_COUNTS."
+  - "Done: DataExport exports data/minecraft/recipe/** (261 files: 66 overrides, 195 disabled, renamed tfc: -> tfp:); DataExportTest (fixture + pinned checkout: 48/18 by type, 195 disabled), RecipeIndexContentDataMockBukkitTest now asserts index counts == TFC_COUNTS for every type and 195 disabled minecraft: recipes; ledger feature + divergence rows (vanilla crafting not yet replaced/blocked: PAR-PROC-03)."
 tests:
   - "datagen: the export has the 66 minecraft: recipes and the disabled set"
   - "paper: RecipeIndexContentDataMockBukkitTest counts equal TFC's for every type"

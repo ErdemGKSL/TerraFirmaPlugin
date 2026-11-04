@@ -83,12 +83,8 @@ class RecipeIndexContentDataMockBukkitTest extends MockServerTest {
             Map.entry("tfc:sewing", 25),
             Map.entry("tfc:welding", 87)));
 
-    /**
-     * TFC's overrides of vanilla recipes ({@code data/minecraft/recipe}, 48 shaped and 18 shapeless) that datagen does
-     * not export yet (follow-up PAR-INFRA-20); every other recipe of TFC is in our data.
-     */
-    static final Map<String, Integer> VANILLA_OVERRIDES_NOT_EXPORTED = Map.of(
-            "minecraft:crafting_shaped", 48, "minecraft:crafting_shapeless", 18);
+    /** Vanilla recipes TFC disables with a false {@code neoforge:conditions} ({@code data/minecraft/recipe}). */
+    static final int TFC_DISABLED_VANILLA_RECIPES = 195;
 
     private record Loaded(Path root, Registries registries, Tags tags) {
     }
@@ -136,12 +132,13 @@ class RecipeIndexContentDataMockBukkitTest extends MockServerTest {
             indexed.put(type, idx.size(type));
         }
         assertThat(indexed).as("every recipe of the data is indexed").isEqualTo(bySchema);
-        assertThat(indexed.keySet()).isEqualTo(TFC_COUNTS.keySet());
-        for (Map.Entry<String, Integer> e : TFC_COUNTS.entrySet()) {
-            int missing = e.getValue() - indexed.get(e.getKey());
-            assertThat(missing).as("TFC recipes of %s missing from the index", e.getKey())
-                    .isIn(0, VANILLA_OVERRIDES_NOT_EXPORTED.getOrDefault(e.getKey(), 0));
-        }
+        // PAR-INFRA-20: TFC's overrides of vanilla recipes are exported too, so every type matches TFC, crafting included
+        assertThat(indexed).as("recipes per type equal TFC's").isEqualTo(TFC_COUNTS);
+        assertThat(reg.disabledRecipes()).as("vanilla recipes TFC disables")
+                .hasSize(TFC_DISABLED_VANILLA_RECIPES).allMatch(id -> id.startsWith("minecraft:"))
+                .contains("minecraft:golden_shovel");
+        assertThat(reg.get(DefinitionKinds.RECIPE).ids()).as("an override is held under its vanilla id")
+                .contains("minecraft:compass", "minecraft:bow", "minecraft:white_bed");
         assertThat(ms).as("index build time (ms)").isLessThan(20_000);
         System.out.println("[PAR-INFRA-06] recipe index: " + reg.get(DefinitionKinds.RECIPE).size() + " recipes, "
                 + idx.types().size() + " types, built in " + ms + " ms");

@@ -21,7 +21,11 @@ import java.util.TreeMap;
  *
  * <p>Sources: {@code src/generated/resources/data/tfc/{tfc,recipe,tags}/**} (TFC's Java datagen), plus every
  * other namespace's {@code tags/**} in that tree ({@code c:}, {@code minecraft:} tags are referenced by TFC
- * ingredients), plus the hand-written tags under {@code src/main/resources/data/<ns>/tags} (worldgen tags only
+ * ingredients), plus TFC's overrides of vanilla recipes under {@code data/minecraft/recipe} (PAR-INFRA-20: 66 crafting
+ * recipes that replace vanilla's of the same id with TFC ingredients, and 195 files whose false
+ * {@code neoforge:conditions} disable the vanilla recipe; both are exported as-is so the loader registers the former
+ * under their {@code minecraft:} ids and records the latter in {@code RegistrySnapshot.disabledRecipes}), plus the
+ * hand-written tags under {@code src/main/resources/data/<ns>/tags} (worldgen tags only
  * at the pinned commit). Output layout mirrors a datapack: {@code data/<ns>/<kind>/...}, where the {@code tfc}
  * namespace and TFC's {@code tfc/} registry folder both become {@code tfp}.
  *
@@ -34,6 +38,10 @@ import java.util.TreeMap;
 public final class DataExport {
     /** Kinds exported from data/tfc of the generated tree. */
     static final List<String> TFC_KINDS = List.of("tfc", "recipe", "tags");
+    /** Kinds exported from data/minecraft of the generated tree: TFC's tag additions and vanilla recipe overrides. */
+    static final List<String> MINECRAFT_KINDS = List.of("recipe", "tags");
+    /** The vanilla namespace, whose recipes TFC overrides or disables. */
+    static final String MINECRAFT_NS = "minecraft";
     /** The ore vein configured features, below {@code data/<ns>/}. */
     static final String VEIN_DIR = "worldgen/configured_feature/vein";
     /** The tree and forest entry configured features (M2-GEN-12), below {@code data/<ns>/}. */
@@ -55,7 +63,8 @@ public final class DataExport {
                 + "generation in the checkout first; datagen never invents data.");
         }
         for (String ns : tfc.childDirs(generated)) {
-            List<String> kinds = ns.equals(Json.FROM_NS) ? TFC_KINDS : List.of("tags");
+            List<String> kinds = ns.equals(Json.FROM_NS) ? TFC_KINDS
+                : ns.equals(MINECRAFT_NS) ? MINECRAFT_KINDS : List.of("tags");
             for (String kind : kinds) {
                 exportTree(tfc, out, generated + ns + "/" + kind + "/", ns, kind, counts);
             }
