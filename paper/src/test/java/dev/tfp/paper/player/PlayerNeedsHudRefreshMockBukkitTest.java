@@ -110,9 +110,8 @@ class PlayerNeedsHudRefreshMockBukkitTest extends MockServerTest {
         PlayerMock alex = new PlayerMock(server, "Alex", ALEX);
         server.addPlayer(alex);
         HudSnapshotCache hud = new HudSnapshotCache(() -> true);
-        ItemHeatHooks heat = new ItemHeatHooks(() -> 100L, HeatConfig.DEFAULT, ItemHeatHooks.Capacities.UNIT);
         PlayerNeedsHudService needs = new PlayerNeedsHudService(store, new ServerScheduler(plugin, 1), hud, () -> 0L,
-                heat::temperature);
+                ItemHeatHooks.Capacities.UNIT);
 
         needs.publish(alex);
         assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
@@ -139,9 +138,8 @@ class PlayerNeedsHudRefreshMockBukkitTest extends MockServerTest {
         PlayerMock alex = new PlayerMock(server, "Alex", ALEX);
         server.addPlayer(alex);
         HudSnapshotCache hud = new HudSnapshotCache(() -> true);
-        ItemHeatHooks heat = new ItemHeatHooks(() -> 100L, HeatConfig.DEFAULT, ItemHeatHooks.Capacities.UNIT);
         PlayerNeedsHudService needs = new PlayerNeedsHudService(store, new ServerScheduler(plugin, 1), hud, () -> 0L,
-                heat::temperature);
+                ItemHeatHooks.Capacities.UNIT);
         ItemStack hot = new ItemStack(Material.COPPER_INGOT);
         HeatPdc.write(hot, new HeatState(900f, 100L));
         alex.getInventory().setItem(3, hot);
@@ -170,9 +168,8 @@ class PlayerNeedsHudRefreshMockBukkitTest extends MockServerTest {
         PlayerMock alex = new PlayerMock(server, "Alex", ALEX);
         server.addPlayer(alex);
         HudSnapshotCache hud = new HudSnapshotCache(() -> true);
-        ItemHeatHooks heat = new ItemHeatHooks(() -> 100L, HeatConfig.DEFAULT, ItemHeatHooks.Capacities.UNIT);
         PlayerNeedsHudService needs = new PlayerNeedsHudService(store, new ServerScheduler(plugin, 1), hud, () -> 0L,
-                heat::temperature);
+                ItemHeatHooks.Capacities.UNIT);
         store.update(ALEX, d -> d.withThirst(42f));
         needs.publish(alex);
         assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
@@ -204,9 +201,8 @@ class PlayerNeedsHudRefreshMockBukkitTest extends MockServerTest {
         PlayerMock alex = new PlayerMock(server, "Alex", ALEX);
         server.addPlayer(alex);
         HudSnapshotCache hud = new HudSnapshotCache(() -> true);
-        ItemHeatHooks heat = new ItemHeatHooks(() -> 100L, HeatConfig.DEFAULT, ItemHeatHooks.Capacities.UNIT);
         PlayerNeedsHudService needs = new PlayerNeedsHudService(store, new ServerScheduler(plugin, 1), hud, () -> 0L,
-                heat::temperature);
+                ItemHeatHooks.Capacities.UNIT);
         alex.getInventory().setHeldItemSlot(0);
         needs.publish(alex);
         assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
@@ -256,9 +252,8 @@ class PlayerNeedsHudRefreshMockBukkitTest extends MockServerTest {
         PlayerMock alex = new PlayerMock(server, "Alex", ALEX);
         server.addPlayer(alex);
         HudSnapshotCache hud = new HudSnapshotCache(() -> true);
-        ItemHeatHooks heat = new ItemHeatHooks(() -> 100L, HeatConfig.DEFAULT, ItemHeatHooks.Capacities.UNIT);
         PlayerNeedsHudService needs = new PlayerNeedsHudService(store, new ServerScheduler(plugin, 1), hud, () -> 0L,
-                heat::temperature);
+                ItemHeatHooks.Capacities.UNIT);
         needs.publish(alex);
         assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
         ItemStack hot = new ItemStack(Material.COPPER_INGOT);
@@ -306,7 +301,7 @@ class PlayerNeedsHudRefreshMockBukkitTest extends MockServerTest {
                 });
     }
 
-    /** Without the plugin's heat hooks (the public constructor outside the plugin class loader) the value is 0. */
+    /** Without heat capacities (nothing heatable) the value is 0. */
     @Test
     void withoutHeatHooksTheHeldTemperatureIsZero() {
         PlayerDataStore store = new PlayerDataStore(new PlayerDataFiles(dir), io, Logger.getLogger("test"));
@@ -320,5 +315,59 @@ class PlayerNeedsHudRefreshMockBukkitTest extends MockServerTest {
         alex.getInventory().setItemInMainHand(ingot);
         needs.publish(alex);
         assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
+    }
+
+    /**
+     * PAR-HUD-11: what {@code /tfp debug heat} does (write the heat record, set the main hand, which fires no event, then
+     * {@link PlayerNeedsHudService#refreshHeld}) shows the new value on the player's next tick, and the published record
+     * cools with the calendar between reads with no further publish.
+     */
+    @Test
+    void aHeatSetShowsOnTheNextTickAndCoolsWithoutAPublish() {
+        PlayerDataStore store = new PlayerDataStore(new PlayerDataFiles(dir), io, Logger.getLogger("test"));
+        store.loadBlocking(ALEX);
+        PlayerMock alex = new PlayerMock(server, "Alex", ALEX);
+        server.addPlayer(alex);
+        HudSnapshotCache hud = new HudSnapshotCache(() -> true);
+        long[] now = {1000L};
+        PlayerNeedsHudService needs = new PlayerNeedsHudService(store, new ServerScheduler(plugin, 1), hud,
+                () -> now[0], ItemHeatHooks.Capacities.UNIT);
+
+        ItemStack ingot = new ItemStack(Material.COPPER_INGOT);
+        HeatPdc.write(ingot, new HeatState(693f, 900L));
+        alex.getInventory().setItemInMainHand(ingot);
+        needs.publish(alex);
+        assertThat(hud.snapshot(ALEX).heldTemperature()).isEqualTo((double) (693f - 80f)); // 100 ticks x 0.8 / 1
+
+        ItemStack set = alex.getInventory().getItemInMainHand();
+        HeatPdc.write(set, new HeatState(900f, now[0]));
+        alex.getInventory().setItemInMainHand(set);
+        needs.refreshHeld(alex);
+        server.getScheduler().performOneTick();
+        assertThat(hud.snapshot(ALEX).heldTemperature()).isEqualTo(900);
+
+        now[0] += 50; // no publish: the placeholder value follows the calendar
+        float expected = HeatState.adjust(900f, 1f, 50, HeatConfig.DEFAULT);
+        assertThat(hud.snapshot(ALEX).heldTemperature()).isEqualTo((double) expected).isLessThan(900);
+        assertThat(hud.snapshot(ALEX).heldTemperature())
+                .isEqualTo((double) new ItemHeatHooks(() -> now[0], HeatConfig.DEFAULT, ItemHeatHooks.Capacities.UNIT)
+                        .temperature(alex.getInventory().getItemInMainHand()));
+
+        now[0] += 10_000; // fully cooled: the popup hides
+        assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
+    }
+
+    /** PAR-HUD-11: a stack with a heat record but no heat capacity (no item_heat data) publishes no heat. */
+    @Test
+    void aStackWithoutHeatDataPublishesNone() {
+        PlayerDataStore store = new PlayerDataStore(new PlayerDataFiles(dir), io, Logger.getLogger("test"));
+        store.loadBlocking(ALEX);
+        HudSnapshotCache hud = new HudSnapshotCache(() -> true);
+        PlayerNeedsHudService needs = new PlayerNeedsHudService(store, new ServerScheduler(plugin, 1), hud, () -> 0L,
+                stack -> 0f);
+        ItemStack stone = new ItemStack(Material.STONE);
+        HeatPdc.write(stone, new HeatState(900f, 0L));
+        assertThat(needs.heldHeat(stone)).isEqualTo(dev.tfp.paper.integration.HudSnapshot.HeldHeat.NONE);
+        assertThat(needs.heldHeat(new ItemStack(Material.AIR))).isEqualTo(dev.tfp.paper.integration.HudSnapshot.HeldHeat.NONE);
     }
 }

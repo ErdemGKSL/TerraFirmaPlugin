@@ -489,8 +489,9 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         playerPrecipitation.start(() -> getServer().getOnlinePlayers());
 
         // M3-SURV-06: thirst and hunger for the HUD, read on each player's thread and throttled on the global thread.
+        // PAR-HUD-11: the held heat record is published with the heat hooks' own capacities and evaluated lazily.
         PlayerNeedsHudService needs = new PlayerNeedsHudService(store, scheduler, hudCache,
-                () -> clock.get().playerTicks());
+                () -> clock.get().playerTicks(), heatCapacities);
         getServer().getPluginManager().registerEvents(needs, this);
         needs.start(() -> getServer().getOnlinePlayers());
         needsHud = needs;
@@ -1136,6 +1137,11 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                         return;
                     }
                     target.getInventory().setItemInMainHand(stack);
+                    // PAR-HUD-11: setting the main hand fires no event; republish the held heat record.
+                    PlayerNeedsHudService needsService = needsHud;
+                    if (needsService != null) {
+                        needsService.refreshHeld(target);
+                    }
                     lines.add("set: " + temperature + " C at tick " + tick);
                 } else {
                     lines.add("stored: " + HeatPdc.read(stack).map(h -> h.temperature() + " C at tick " + h.lastTick())

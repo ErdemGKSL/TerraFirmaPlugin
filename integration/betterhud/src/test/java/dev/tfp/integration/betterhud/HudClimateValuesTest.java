@@ -82,4 +82,28 @@ class HudClimateValuesTest {
         assertThat(HudValues.NUMBERS.get("tfp_held_temp").applyAsDouble(HudSnapshot.DEFAULT.withHeldTemperature(900)))
                 .isEqualTo(900);
     }
+
+    /**
+     * PAR-HUD-11: the held heat placeholders evaluate the published record at read time, so two reads with no new
+     * publish in between follow the calendar while the item cools.
+     */
+    @Test
+    void heldHeatPlaceholdersTrackTheCalendarWithoutAPublish() {
+        long[] now = {0L};
+        HudSnapshot s = HudSnapshot.DEFAULT.withHeldHeat(HudSnapshot.HeldHeat.of(
+                new dev.tfp.core.heat.HeatState(900f, 0L), 1f, dev.tfp.core.heat.HeatConfig.DEFAULT, () -> now[0]));
+        java.util.function.ToDoubleFunction<HudSnapshot> temp = HudValues.NUMBERS.get("tfp_held_temp");
+        assertThat(temp.applyAsDouble(s)).isEqualTo(900);
+        assertThat(HudClimateValues.TEXTS.get("tfp_held_heat").apply(s)).isEqualTo("Bright Red\u066D\u066D\u066D\u066D");
+        assertThat(HudClimateValues.TEXTS.get("tfp_held_heat_color").apply(s)).isEqualTo("#ff5555");
+
+        now[0] = 250L; // 900 - 250 x 0.8 = 700 °C: Dark Red
+        assertThat(temp.applyAsDouble(s)).isEqualTo(700);
+        assertThat(HudClimateValues.TEXTS.get("tfp_held_heat").apply(s)).startsWith("Dark Red");
+        assertThat(HudClimateValues.TEXTS.get("tfp_held_heat_color").apply(s)).isEqualTo("#aa0000");
+
+        now[0] = 2000L; // cold: the popup hides
+        assertThat(temp.applyAsDouble(s)).isZero();
+        assertThat(HudClimateValues.TEXTS.get("tfp_held_heat").apply(s)).isEmpty();
+    }
 }

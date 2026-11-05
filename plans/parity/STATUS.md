@@ -40,7 +40,7 @@ Totals: 240 items; open 213, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-WORLD-17 | Ore overlay spike S1: measure exposed ore faces per chunk and the overlay entity budget | WORLD | 4 | done |
 | PAR-HUD-09 | Mount health bar: the ridden animal's health as a second health bar, as TFC's MOUNT_HEALTH | HUD | 5 | blocked |
 | PAR-HUD-06 | HUD polish: health frame asymmetry, ambient temperature bar and info plate, pulse animation | HUD | 5 | done |
-| PAR-HUD-11 | Held item heat evaluated lazily at placeholder time (no popup lag after a heat change) | HUD | 5 | open |
+| PAR-HUD-11 | Held item heat evaluated lazily at placeholder time (no popup lag after a heat change) | HUD | 5 | done |
 | PAR-HUD-12 | HUD and needs per game mode: bars hidden and needs paused in creative and spectator | HUD | 7 | open |
 | PAR-PROC-01 | Knapping GUI: 5x5 grid for stone, clay, fire clay, leather and goat horn | PROC | 5 | open |
 | PAR-PROC-19 | Misc materials as CE items: ores, gems, powders, fibres, cloth, paper, glue, straw, mortar, spawn eggs | PROC | 5 | open |

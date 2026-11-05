@@ -2,7 +2,7 @@
 id: PAR-HUD-11
 title: "Held item heat evaluated lazily at placeholder time (no popup lag after a heat change)"
 area: HUD
-status: open
+status: done
 wave: 5
 deps: [PAR-HUD-08]
 size: S
@@ -27,6 +27,7 @@ plan:
   - "Republish the record whenever the held stack's heat is written: debugSetHeat calls PlayerNeedsHudService.refreshHeld; other writers of the main hand (devices returning a stack) are covered by PAR-HUD-08's inventory listeners."
   - "Inject the ItemHeatHooks supplier at wiring time (TfpPlugin) and remove PlayerNeedsHudService.pluginHeat (the JavaPlugin.getPlugin lookup with its catch for unit tests)."
   - "Note: in TfpPlugin.java only the PlayerNeedsHudService construction and debugSetHeat change. HudValues is also owned by PAR-HUD-06; do not run both at once."
+  - "Done: HudSnapshot carries HeldHeat (stored temperature, stamp tick, capacity, cooling config, calendar clock); heldTemperature() evaluates it with HeatState.adjust at each read, so tfp_held_temp/tfp_held_heat/tfp_held_heat_color follow the cooling with no publish; PlayerNeedsHudService publishes the record (capacities injected by TfpPlugin, pluginHeat removed); debugSetHeat calls refreshHeld. Tests: HudSnapshotTest (+3), PlayerNeedsHudRefreshMockBukkitTest (+2), HudClimateValuesTest (+1)."
 tests:
   - "integration/betterhud: the placeholder value tracks the calendar tick with no new publish (cooling between two reads)"
   - "paper: a heat set followed by an immediate read (next tick) shows the new value"

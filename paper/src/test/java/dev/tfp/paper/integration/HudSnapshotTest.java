@@ -7,6 +7,8 @@ package dev.tfp.paper.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.tfp.core.heat.HeatConfig;
+import dev.tfp.core.heat.HeatState;
 import dev.tfp.core.weather.PrecipitationType;
 import org.junit.jupiter.api.Test;
 
@@ -53,5 +55,38 @@ class HudSnapshotTest {
         assertThat(HudSnapshot.DEFAULT.withArmor(-2).armor()).isZero();
         assertThat(HudSnapshot.DEFAULT.withArmor(Double.NaN).armor()).isZero();
         assertThat(HudSnapshot.DEFAULT.withArmor(99).armor()).isEqualTo(HudSnapshot.ARMOR_CAP);
+    }
+
+    /** PAR-HUD-11: the held temperature is evaluated from the record at each read, against the clock. */
+    @Test
+    void heldTemperatureIsEvaluatedAtReadTime() {
+        long[] now = {100L};
+        HudSnapshot s = HudSnapshot.DEFAULT.withHeldHeat(
+                HudSnapshot.HeldHeat.of(new HeatState(900f, 100L), 2f, HeatConfig.DEFAULT, () -> now[0]));
+        assertThat(s.heldTemperature()).isEqualTo(900);
+        now[0] = 200L;
+        assertThat(s.heldTemperature()).isEqualTo((double) HeatState.adjust(900f, 2f, 100, HeatConfig.DEFAULT));
+        now[0] = 50L; // a clock before the stamp cools nothing
+        assertThat(s.heldTemperature()).isEqualTo(900);
+        now[0] = 1_000_000L;
+        assertThat(s.heldTemperature()).isZero();
+    }
+
+    @Test
+    void heldHeatWithoutCapacityOrBelowZeroReadsZero() {
+        assertThat(HudSnapshot.DEFAULT.heldTemperature()).isZero();
+        assertThat(HudSnapshot.DEFAULT.withHeldHeat(HudSnapshot.HeldHeat.of(new HeatState(900f, 0L), 0f,
+                HeatConfig.DEFAULT, () -> 0L)).heldTemperature()).isZero();
+        assertThat(HudSnapshot.DEFAULT.withHeldTemperature(-3).heldTemperature()).isZero();
+        assertThat(HudSnapshot.DEFAULT.withHeldTemperature(Double.NaN).heldTemperature()).isZero();
+        assertThat(HudSnapshot.DEFAULT.withHeldTemperature(900).heldTemperature()).isEqualTo(900);
+    }
+
+    @Test
+    void everyWitherKeepsTheHeldHeat() {
+        HudSnapshot.HeldHeat heat = HudSnapshot.HeldHeat.of(new HeatState(500f, 0L), 1f, HeatConfig.DEFAULT, () -> 0L);
+        HudSnapshot s = HudSnapshot.DEFAULT.withHeldHeat(heat);
+        assertThat(s.withThirst(1).withHealth(5, 50).withHunger(3).withAmbientTemperature(12)
+                .withPrecipitation(PrecipitationType.NONE).withAir(10).withArmor(3).heldHeat()).isSameAs(heat);
     }
 }

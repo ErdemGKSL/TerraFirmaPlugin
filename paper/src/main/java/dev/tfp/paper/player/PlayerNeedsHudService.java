@@ -10,8 +10,10 @@ import dev.tfp.core.food.NutritionLevels;
 import dev.tfp.core.food.NutritionState;
 import dev.tfp.core.health.HealthConfig;
 import dev.tfp.core.health.HealthDisplay;
+import dev.tfp.core.heat.HeatConfig;
+import dev.tfp.core.heat.HeatState;
 import dev.tfp.core.recipe.food.FoodData;
-import dev.tfp.paper.TfpPlugin;
+import dev.tfp.paper.heat.HeatPdc;
 import dev.tfp.paper.heat.ItemHeatHooks;
 import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.integration.HudSnapshotCache;
@@ -24,7 +26,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
-import java.util.function.ToDoubleFunction;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
@@ -39,7 +40,6 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Health, max health, thirst, hunger, air and armour for the HUD (M3-SURV-04, M3-SURV-06, M3-SURV-03). The thirst is evaluated lazily here
@@ -58,13 +58,15 @@ import org.bukkit.plugin.java.JavaPlugin;
  * food level ({@link #healthModifier}). Without stored data the modifier of TFC's average nutrition is used (850 max with
  * nothing eaten at full food). A player with nothing eaten at full food has the same modifier, so a new player sees no change.
  *
- * <p>PAR-HUD-08: the temperature of the main-hand stack ({@link ItemHeatHooks#temperature}, lazy from the stored heat
- * record and the calendar tick, nothing ticks) is published as {@link HudSnapshot#heldTemperature()} on the same
- * reading, and on the player's next tick after anything that changes the main-hand stack (hotbar slot, swap hands,
- * inventory click or drag, pickup, drop: {@link #refreshHeld}). The popup shows while it is above 0 °C, the range in
- * which TFC's {@code ItemTemperatureDisplayStyle.format} shows a temperature at all ({@link #heldTemperature(float)}).
- * Evaluating the stored heat record at placeholder time (no lag at all, also after {@code /tfp debug heat}) and injecting
- * the heat hooks at wiring time are PAR-HUD-11 (they need {@code HudSnapshot}, {@code HudValues} and the plugin wiring).
+ * <p>PAR-HUD-08 / PAR-HUD-11: the main-hand stack's heat record ({@link HeatPdc}, its stored temperature and stamp tick,
+ * and the stack's heat capacity from the injected {@link ItemHeatHooks.Capacities}) is published as
+ * {@link HudSnapshot#heldHeat()} on the same reading, and on the player's next tick after anything that changes the
+ * main-hand stack (hotbar slot, swap hands, inventory click or drag, pickup, drop, {@code /tfp debug heat}:
+ * {@link #refreshHeld}). The temperature itself is not precomputed: the placeholders evaluate the record with TFC's
+ * cooling rule at the calendar tick of each read ({@link HudSnapshot#heldTemperature()}, the same rule as
+ * {@link ItemHeatHooks#temperature}), so the popup follows the cooling with no lag and never reads the ItemStack off
+ * the player's thread. The popup shows while it is above 0 °C, the range in which TFC's
+ * {@code ItemTemperatureDisplayStyle.format} shows a temperature at all ({@link #heldTemperature(float)}).
  */
 public final class PlayerNeedsHudService implements Listener {
     /** The throttle: one reading per player per second. */
@@ -74,40 +76,28 @@ public final class PlayerNeedsHudService implements Listener {
     private final Scheduler scheduler;
     private final HudSnapshotCache hud;
     private final LongSupplier playerTicks;
-    private final ToDoubleFunction<ItemStack> stackTemperature;
+    private final ItemHeatHooks.Capacities heatCapacities;
+    private final HeatConfig heatConfig;
 
     /**
-     * @param playerTicks the calendar's player tick ({@code ClockSnapshot.playerTicks}), any thread. The held item
-     *        temperature comes from the plugin's {@link ItemHeatHooks} ({@link TfpPlugin#heat()}), looked up at each
-     *        reading (it is null until the heat glue is enabled; the value is 0 until then)
+     * @param playerTicks    the calendar's player tick ({@code ClockSnapshot.playerTicks}), any thread; also the clock
+     *                       the published held heat record is evaluated against at placeholder time
+     * @param heatCapacities the heat capacity of a stack, the same one the plugin's {@link ItemHeatHooks} uses
+     *                       (injected at wiring time, PAR-HUD-11)
      */
     public PlayerNeedsHudService(PlayerDataStore data, Scheduler scheduler, HudSnapshotCache hud,
-            LongSupplier playerTicks) {
-        this(data, scheduler, hud, playerTicks, PlayerNeedsHudService::pluginHeat);
-    }
-
-    /** @param stackTemperature the temperature of a stack now in °C (owner thread of the stack) */
-    PlayerNeedsHudService(PlayerDataStore data, Scheduler scheduler, HudSnapshotCache hud, LongSupplier playerTicks,
-            ToDoubleFunction<ItemStack> stackTemperature) {
+            LongSupplier playerTicks, ItemHeatHooks.Capacities heatCapacities) {
         this.data = data;
         this.scheduler = scheduler;
         this.hud = hud;
         this.playerTicks = playerTicks;
-        this.stackTemperature = stackTemperature;
+        this.heatCapacities = heatCapacities;
+        this.heatConfig = HeatConfig.DEFAULT;
     }
 
-    /** The stack's temperature through the providing plugin's heat hooks; 0 before they exist or outside the plugin. */
-    private static double pluginHeat(ItemStack stack) {
-        if (stack == null || stack.getType().isAir()) {
-            return 0;
-        }
-        ItemHeatHooks hooks;
-        try {
-            hooks = JavaPlugin.getPlugin(TfpPlugin.class).heat();
-        } catch (IllegalArgumentException | IllegalStateException | ClassCastException e) {
-            return 0; // not loaded by the plugin class loader (unit tests)
-        }
-        return hooks == null ? 0 : hooks.temperature(stack);
+    /** Without heat data: no held stack is heatable, the held temperature stays 0 (tests). */
+    PlayerNeedsHudService(PlayerDataStore data, Scheduler scheduler, HudSnapshotCache hud, LongSupplier playerTicks) {
+        this(data, scheduler, hud, playerTicks, stack -> 0f);
     }
 
     /**
@@ -195,7 +185,7 @@ public final class PlayerNeedsHudService implements Listener {
                 HealthConfig.DEFAULT);
         hud.publish(player, withNeeds(base, evaluated, player.getFoodLevel()).withHealth(health.health(), health.maxHealth())
                 .withAir(player.getRemainingAir()).withArmor(armor(player))
-                .withHeldTemperature(heldTemperatureOf(player)));
+                .withHeldHeat(heldHeatOf(player)));
     }
 
     /** The player's armour points (vanilla {@code Attribute.ARMOR}, equipment and effects included); 0 without one. */
@@ -215,16 +205,33 @@ public final class PlayerNeedsHudService implements Listener {
         }
     }
 
-    /** Player thread only: the latest snapshot with the main-hand stack's temperature now. */
+    /** Player thread only: the latest snapshot with the main-hand stack's heat record. */
     void publishHeld(Player player) {
         ThreadAsserts.owned(player);
         UUID id = player.getUniqueId();
-        hud.publish(player, hud.snapshot(id).withHeldTemperature(heldTemperatureOf(player)));
+        hud.publish(player, hud.snapshot(id).withHeldHeat(heldHeatOf(player)));
     }
 
-    /** Player thread only: the published value for the main-hand stack ({@link #heldTemperature(float)}). */
-    private double heldTemperatureOf(Player player) {
-        return heldTemperature((float) stackTemperature.applyAsDouble(player.getInventory().getItemInMainHand()));
+    /** Player thread only: the main-hand stack's heat record ({@link #heldHeat}). */
+    private HudSnapshot.HeldHeat heldHeatOf(Player player) {
+        return heldHeat(player.getInventory().getItemInMainHand());
+    }
+
+    /**
+     * Owner thread of the stack: its stored heat record with its capacity, evaluated later against the calendar clock;
+     * {@link HudSnapshot.HeldHeat#NONE} for an empty hand, a stack never heated, or one that cannot be heated.
+     */
+    HudSnapshot.HeldHeat heldHeat(ItemStack stack) {
+        if (stack == null || stack.getType().isAir()) {
+            return HudSnapshot.HeldHeat.NONE;
+        }
+        Optional<HeatState> state = HeatPdc.read(stack);
+        if (state.isEmpty()) {
+            return HudSnapshot.HeldHeat.NONE;
+        }
+        float capacity = heatCapacities.of(stack);
+        return capacity > 0f ? HudSnapshot.HeldHeat.of(state.get(), capacity, heatConfig, playerTicks)
+                : HudSnapshot.HeldHeat.NONE;
     }
 
     /**

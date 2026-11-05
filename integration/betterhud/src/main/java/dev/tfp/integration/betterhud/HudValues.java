@@ -24,8 +24,9 @@ final class HudValues {
     /**
      * Number placeholders. Thirst and hunger are published by {@code PlayerNeedsHudService}; the placeholders read the
      * player's latest snapshot and fall back to {@link HudSnapshot#DEFAULT} before the first publish. Health and max
-     * health are published by {@code PlayerNeedsHudService} on TFC's scale. {@code tfp_held_temp} has no stored item
-     * heat yet (0 via the snapshot). {@code tfp_armor} is the vanilla armour attribute (0..30), its listener 0..1 on
+     * health are published by {@code PlayerNeedsHudService} on TFC's scale. {@code tfp_held_temp} evaluates the held
+     * stack's published heat record at the calendar tick of the read ({@link HudSnapshot#heldTemperature()},
+     * PAR-HUD-11), so it follows the cooling between publishes without touching the item. {@code tfp_armor} is the vanilla armour attribute (0..30), its listener 0..1 on
      * vanilla's 20-point scale (BetterHud's own {@code armor} listener would need its built-in placeholder; ours reads the snapshot).
      */
     static final Map<String, ToDoubleFunction<HudSnapshot>> NUMBERS;

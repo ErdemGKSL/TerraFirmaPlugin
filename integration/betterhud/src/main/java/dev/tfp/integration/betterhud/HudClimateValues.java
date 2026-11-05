@@ -27,7 +27,8 @@ import net.kyori.adventure.text.TextComponent;
  * <ul>
  *   <li>{@code tfp_ambient_temp}: the ambient temperature, a dash until the first reading.</li>
  *   <li>{@code tfp_held_heat}: the held item's heat as TFC's default {@code COLOR} display style writes it, built by the
- *       tooltip's own {@link HeatDisplayStyle#formatColored} (the {@code heat.level.*} name from our en_us lang and one
+ *       tooltip's own {@link HeatDisplayStyle#formatColored} from the held heat record evaluated at the read's calendar
+ *       tick ({@link HudSnapshot#heldTemperature()}, PAR-HUD-11: no lag while cooling or after a heat change) (the {@code heat.level.*} name from our en_us lang and one
  *       {@value HeatDisplayStyle#STAR} per fifth of the level passed), empty while the item shows no heat. en_us: a
  *       placeholder has no player locale here (see the ledger).</li>
  *   <li>{@code tfp_held_heat_color}: the colour of that text, TFC {@code Heat.getColor} as a hex code
