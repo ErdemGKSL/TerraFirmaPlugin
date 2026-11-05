@@ -18,7 +18,9 @@ import java.util.Set;
  * 160x22; date glyphs at 6,5; thermometer 64x8 at 6,13; temperature text at 73,13; all layout coordinates, the HUD adds
  * {@link #INFO_SHIFT_X}). PAR-HUD-13: the plate is wide enough for the longest date line, "September 30, 1000
  * (Summer)" = 150 GUI px in the vanilla font, plus the 5 px text inset, the 1 px shadow and a 4 px margin
- * ({@code BetterHudPackTest}). The HUD is not {@code default}, so
+ * ({@code BetterHudPackTest}). That is for the 4 season enum names {@code tfp_season} gives today, which differ from
+ * TFC: TFC shows 12 hemisphere-adjusted names ("Early Autumn"), whose longest line needs a 189 px plate (ledger
+ * Divergences, follow-up PAR-HUD-15). The HUD is not {@code default}, so
  * it is shown to nobody until a {@code default-hud} edit lists it (the M1 decision keeps the default HUD empty).
  * Every id has the {@code tfp_} prefix; the font is BetterHud's default font (no {@code file}).
  */

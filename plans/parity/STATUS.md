@@ -70,6 +70,7 @@ Totals: 243 items; open 215, done 25, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-INFRA-16 | Ore overlay runtime: packet-only face overlays, neighbour-driven refresh, Folia-safe, feel checklist | INFRA | 7 | open |
 | PAR-INFRA-31 | Catch-up settings in config.yml: catchup.* keys through TfpConfig and ConfigCodec | INFRA | 7 | open |
 | PAR-HUD-14 | Server config for TFC's HUD display styles: health text style, climate temperature unit, XP bar options | HUD | 7 | open |
+| PAR-HUD-15 | HUD season shows TFC's 12 hemisphere-adjusted season names; info plate widened for them | HUD | 7 | open |
 | PAR-FLUID-01 | Fluids as container contents: registry of TFC fluids, colours, debug fill | FLUID | 8 | open |
 | PAR-SURV-05 | Health and damage: TFC health scale, physical damage types, entity and armour resistances | SURV | 8 | open |
 | PAR-SURV-06 | Item size and weight on Paper: container limits, overburdened and exhausted, tooltip | SURV | 8 | open |
