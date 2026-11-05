@@ -50,7 +50,7 @@ Totals: 240 items; open 213, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-INFRA-28 | Raw and hardened rock loot through the Paper runtime: delegate the 42 tfc:is_isolated tables, remove tfp:loot_table/rock_to_loose | INFRA | 5 | done |
 | PAR-INFRA-30 | TFC's 41 overrides of vanilla loot tables (glass, panes, snow, chests, zombie, drowned) ship in a datapack | INFRA | 5 | done |
 | PAR-INFRA-17 | Renderer-cube feel (spike S2): destroy_stages, particles, sounds and mining for display-drawn full blocks | INFRA | 5 | done |
-| PAR-METAL-20 | Charcoal forge lit tops turned 180°: the heat_N item display must match TFC's block-model orientation | METAL | 5 | blocked |
+| PAR-METAL-20 | Charcoal forge lit tops turned 180°: the heat_N item display must match TFC's block-model orientation | METAL | 5 | open |
 | PAR-WORLD-18 | Ore vein weighted pick throws at a draw of 1.0: chunk refused ("no element above 100.0") | WORLD | 5 | open |
 | PAR-HUD-07 | HUD per MC version and TFC display styles: 26.x sprite list, XP bar style, health display style | HUD | 6 | open |
 | PAR-HUD-10 | Held temperature popup shows TFC's level text, verified in game | HUD | 6 | open |
