@@ -36,6 +36,7 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -67,6 +68,11 @@ import org.bukkit.inventory.ItemStack;
  * {@link ItemHeatHooks#temperature}), so the popup follows the cooling with no lag and never reads the ItemStack off
  * the player's thread. The popup shows while it is above 0 °C, the range in which TFC's
  * {@code ItemTemperatureDisplayStyle.format} shows a temperature at all ({@link #heldTemperature(float)}).
+ *
+ * <p>PAR-HUD-12: in creative and spectator ({@link GameModeNeeds#needsActive}) the snapshot is published with
+ * {@link HudSnapshot#needsActive()} false, which hides every bar and the held-item popup, and the thirst clock is
+ * re-stamped at each reading instead of decayed, so the needs are paused. A game-mode switch
+ * ({@link #onGameModeChange}) settles the clock at the switch on the player's thread and republishes at once.
  */
 public final class PlayerNeedsHudService implements Listener {
     /** The throttle: one reading per player per second. */
@@ -179,13 +185,14 @@ public final class PlayerNeedsHudService implements Listener {
         HudSnapshot base = hud.snapshot(id);
         long now = playerTicks.getAsLong();
         float temperature = (float) base.ambientTemperature();
-        PlayerData evaluated = data.update(id, d -> ThirstDecay.evaluate(d, now, temperature));
+        boolean active = GameModeNeeds.needsActive(player.getGameMode());
+        PlayerData evaluated = data.update(id, d -> GameModeNeeds.evaluate(d, active, now, temperature));
         float modifier = healthModifier(Optional.of(evaluated), player.getFoodLevel());
         HealthDisplay health = HealthDisplay.of((float) player.getHealth(), (float) player.getMaxHealth(), modifier,
                 HealthConfig.DEFAULT);
         hud.publish(player, withNeeds(base, evaluated, player.getFoodLevel()).withHealth(health.health(), health.maxHealth())
                 .withAir(player.getRemainingAir()).withArmor(armor(player))
-                .withHeldHeat(heldHeatOf(player)));
+                .withHeldHeat(heldHeatOf(player)).withNeedsActive(active));
     }
 
     /** The player's armour points (vanilla {@code Attribute.ARMOR}, equipment and effects included); 0 without one. */
@@ -282,6 +289,36 @@ public final class PlayerNeedsHudService implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDrop(PlayerDropItemEvent event) {
         refreshHeld(event.getPlayer());
+    }
+
+    /**
+     * PAR-HUD-12: a switch between a mode with needs (survival, adventure) and one without (creative, spectator). Paper
+     * fires the event before the mode changes; the task runs on the player's next tick, after it changed, settles the
+     * thirst clock at the switch ({@link GameModeNeeds#atSwitch}: decayed up to it when leaving survival or adventure,
+     * re-stamped when leaving creative or spectator) and republishes, so the bars hide or show at once. A switch between
+     * two modes of the same kind (survival and adventure, creative and spectator) changes nothing.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onGameModeChange(PlayerGameModeChangeEvent event) {
+        Player player = event.getPlayer();
+        boolean wasActive = GameModeNeeds.needsActive(player.getGameMode());
+        if (wasActive == GameModeNeeds.needsActive(event.getNewGameMode())) {
+            return;
+        }
+        scheduler.entity(player, () -> switched(player, wasActive), null);
+    }
+
+    /** Player thread only: the clock settled at the switch, then a publish in the new mode. */
+    void switched(Player player, boolean wasActive) {
+        ThreadAsserts.owned(player);
+        UUID id = player.getUniqueId();
+        if (!data.isLoaded(id)) {
+            return;
+        }
+        long now = playerTicks.getAsLong();
+        float temperature = (float) hud.snapshot(id).ambientTemperature();
+        data.update(id, d -> GameModeNeeds.atSwitch(d, wasActive, now, temperature));
+        publish(player);
     }
 
     /** Restarts the thirst clock when the player joins (see the class comment). */

@@ -417,7 +417,9 @@ class HudLayoutsTest {
         assertThat(map(images.get("3"))).containsEntry("name", "tfp_m3_surv_06_air_bar_fill_critical");
         assertThat(map(map(map(images.get("3")).get("conditions")).get("1"))).containsEntry("operation", "<").containsEntry("second", 60);
         for (String bar : List.of("tfp_m3_surv_06_health_bar", "tfp_m3_surv_06_hunger_bar", "tfp_m3_surv_06_thirst_bar")) {
-            assertThat(map(layouts.get(bar))).as(bar).doesNotContainKey("conditions");
+            // PAR-HUD-12: only the game-mode gate
+            assertThat(map(map(layouts.get(bar)).get("conditions"))).as(bar)
+                .containsExactly(Map.entry("1", Map.of("first", "tfp_max_health", "second", 0, "operation", ">")));
         }
         // right column: same x and size, one empty row between bars, air on top
         HudLayouts.BarSpec hunger = HudLayouts.BAR_SPECS.get("m3-surv-06-hunger-bar");
@@ -592,5 +594,49 @@ class HudLayoutsTest {
             out.merge(e.kind(), 1, Integer::sum);
         }
         return out;
+    }
+
+    /**
+     * PAR-HUD-12: every layout of the bars HUD and every popup carries the game-mode gate ({@code tfp_max_health > 0},
+     * 0 in creative and spectator), as the last condition after the element's own; the info HUD is not gated.
+     */
+    @Test
+    void everyBarAndPopupCarriesTheGameModeGate() {
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+        Map<String, Object> gate = Map.of("first", "tfp_max_health", "second", 0, "operation", ">");
+        Map<String, Object> bars = yaml(out, HudLayouts.BAR_LAYOUTS);
+        Map<String, Object> hud = map(map(yaml(out, HudLayouts.BARS_HUDS).get(HudLayouts.BARS_HUD)).get("layouts"));
+        assertThat(hud).isNotEmpty();
+        for (Object entry : hud.values()) {
+            String name = (String) map(entry).get("name");
+            Map<String, Object> conds = map(map(bars.get(name)).get("conditions"));
+            assertThat(conds.get(String.valueOf(conds.size()))).as(name).isEqualTo(gate);
+        }
+        assertThat(bars.keySet()).hasSize(hud.size());
+        Map<String, Object> armor = map(map(bars.get("tfp_m3_surv_06_armor_bar")).get("conditions"));
+        assertThat(armor).hasSize(2);
+        assertThat(map(armor.get("1"))).containsEntry("first", "tfp_armor");
+
+        Map<String, Object> popups = yaml(out, HudLayouts.POPUPS);
+        assertThat(popups).isNotEmpty();
+        for (Map.Entry<String, Object> p : popups.entrySet()) {
+            Map<String, Object> conds = map(map(p.getValue()).get("conditions"));
+            assertThat(conds.get(String.valueOf(conds.size()))).as(p.getKey()).isEqualTo(gate);
+        }
+
+        for (Map.Entry<String, Object> info : yaml(out, HudLayouts.INFO_LAYOUTS).entrySet()) {
+            Object conds = map(info.getValue()).get("conditions");
+            if (conds != null) {
+                assertThat(map(conds).values()).as(info.getKey()).doesNotContain(gate);
+            }
+        }
+    }
+
+    @Test
+    void gatedAppendsTheGateAfterTheOwnConditions() {
+        HudLayouts.Cond own = new HudLayouts.Cond("tfp_air", "<", 300);
+        assertThat(HudLayouts.gated(List.of())).containsExactly(HudLayouts.NEEDS_ACTIVE);
+        assertThat(HudLayouts.gated(List.of(own))).containsExactly(own, HudLayouts.NEEDS_ACTIVE);
     }
 }

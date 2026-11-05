@@ -28,8 +28,20 @@ final class HudValues {
      * stack's published heat record at the calendar tick of the read ({@link HudSnapshot#heldTemperature()},
      * PAR-HUD-11), so it follows the cooling between publishes without touching the item. {@code tfp_armor} is the vanilla armour attribute (0..30), its listener 0..1 on
      * vanilla's 20-point scale (BetterHud's own {@code armor} listener would need its built-in placeholder; ours reads the snapshot).
+     *
+     * <p>PAR-HUD-12: in creative and spectator ({@link HudSnapshot#needsActive()} false) {@code tfp_max_health} reads 0
+     * ({@link #NEEDS_GATE}) and {@code tfp_held_temp} reads 0. Every generated bar layout of the bars HUD carries the
+     * condition {@code tfp_max_health > 0} and the held-temperature popup already shows only while {@code tfp_held_temp
+     * > 0}, so the bars and the popup hide in those modes without a further placeholder (a max health is never 0 in
+     * survival or adventure).
      */
     static final Map<String, ToDoubleFunction<HudSnapshot>> NUMBERS;
+
+    /**
+     * The placeholder the bars' game-mode condition reads (PAR-HUD-12): the max health, 0 while the player's game mode
+     * has no needs. Must match {@code HudLayouts.NEEDS_ACTIVE} in tools/datagen.
+     */
+    static final String NEEDS_GATE = "tfp_max_health";
 
     /** Bar listeners, 0..1. */
     static final Map<String, ToDoubleFunction<HudSnapshot>> LISTENERS;
@@ -37,10 +49,10 @@ final class HudValues {
     static {
         Map<String, ToDoubleFunction<HudSnapshot>> n = new LinkedHashMap<>();
         n.put("tfp_health", HudSnapshot::health);
-        n.put("tfp_max_health", HudSnapshot::maxHealth);
+        n.put(NEEDS_GATE, s -> s.needsActive() ? s.maxHealth() : 0);
         n.put("tfp_thirst", HudSnapshot::thirst);
         n.put("tfp_hunger", HudSnapshot::hunger);
-        n.put("tfp_held_temp", HudSnapshot::heldTemperature);
+        n.put("tfp_held_temp", s -> s.needsActive() ? s.heldTemperature() : 0);
         n.put("tfp_air", HudSnapshot::air);
         n.put("tfp_armor", HudSnapshot::armor);
         NUMBERS = Collections.unmodifiableMap(n);

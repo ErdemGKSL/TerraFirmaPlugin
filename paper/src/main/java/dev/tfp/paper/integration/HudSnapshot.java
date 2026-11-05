@@ -27,11 +27,20 @@ import java.util.function.LongSupplier;
  * @param air breath left in ticks, 0..{@link #MAX_AIR}
  * @param armor the player's armour points (vanilla {@code Attribute.ARMOR}, 0..{@link #ARMOR_CAP}); TFC keeps vanilla's
  *              armour attribute and its 20-point display scale ({@link #MAX_ARMOR})
+ * @param needsActive PAR-HUD-12: the player's game mode has TFC's needs (survival and adventure); false in creative and
+ *                    spectator, where the bars and the held-item popup are hidden (TFC {@code IngameOverlays
+ *                    .setupForSurvival}: {@code gameMode.canHurtPlayer()}) and the needs are paused
  */
 public record HudSnapshot(double health, double maxHealth, double thirst, double hunger, HeldHeat heldHeat,
-        double ambientTemperature, PrecipitationType precipitation, double air, double armor) {
+        double ambientTemperature, PrecipitationType precipitation, double air, double armor, boolean needsActive) {
     public HudSnapshot {
         Objects.requireNonNull(heldHeat, "heldHeat");
+    }
+
+    /** A snapshot of a player whose game mode has needs (survival or adventure). */
+    public HudSnapshot(double health, double maxHealth, double thirst, double hunger, HeldHeat heldHeat,
+            double ambientTemperature, PrecipitationType precipitation, double air, double armor) {
+        this(health, maxHealth, thirst, hunger, heldHeat, ambientTemperature, precipitation, air, armor, true);
     }
 
     /**
@@ -142,17 +151,17 @@ public record HudSnapshot(double health, double maxHealth, double thirst, double
 
     public HudSnapshot withThirst(double value) {
         return new HudSnapshot(health, maxHealth, value, hunger, heldHeat, ambientTemperature,
-                precipitation, air, armor);
+                precipitation, air, armor, needsActive);
     }
 
     public HudSnapshot withHealth(double value, double max) {
         return new HudSnapshot(value, max, thirst, hunger, heldHeat, ambientTemperature,
-                precipitation, air, armor);
+                precipitation, air, armor, needsActive);
     }
 
     public HudSnapshot withHunger(double value) {
         return new HudSnapshot(health, maxHealth, thirst, value, heldHeat, ambientTemperature,
-                precipitation, air, armor);
+                precipitation, air, armor, needsActive);
     }
 
     /** A fixed held temperature ({@link HeldHeat#fixed}). */
@@ -162,28 +171,39 @@ public record HudSnapshot(double health, double maxHealth, double thirst, double
 
     /** The held stack's heat record, evaluated at each read ({@link #heldTemperature()}). */
     public HudSnapshot withHeldHeat(HeldHeat value) {
-        return new HudSnapshot(health, maxHealth, thirst, hunger, value, ambientTemperature, precipitation, air, armor);
+        return new HudSnapshot(health, maxHealth, thirst, hunger, value, ambientTemperature, precipitation, air, armor,
+                needsActive);
     }
 
     public HudSnapshot withAmbientTemperature(double value) {
-        return new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat, value, precipitation, air, armor);
+        return new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat, value, precipitation, air, armor,
+                needsActive);
     }
 
     public HudSnapshot withPrecipitation(PrecipitationType value) {
         return new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat, ambientTemperature,
-                value, air, armor);
+                value, air, armor, needsActive);
     }
 
     /** The breath left in ticks, clamped to 0..{@link #MAX_AIR}. */
     public HudSnapshot withAir(double value) {
         return new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat, ambientTemperature, precipitation,
-                Math.clamp(value, 0, MAX_AIR), armor);
+                Math.clamp(value, 0, MAX_AIR), armor, needsActive);
     }
 
     /** The armour points, clamped to 0..{@link #ARMOR_CAP} (NaN reads as 0). */
     public HudSnapshot withArmor(double value) {
         return new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat, ambientTemperature,
                 precipitation, air,
-                Double.isNaN(value) ? 0 : Math.clamp(value, 0, ARMOR_CAP));
+                Double.isNaN(value) ? 0 : Math.clamp(value, 0, ARMOR_CAP), needsActive);
+    }
+
+    /**
+     * PAR-HUD-12: whether the player's game mode has needs. False hides every bar and the held-item popup (the
+     * placeholders gate on it, {@code HudValues}) and the values stay as they were.
+     */
+    public HudSnapshot withNeedsActive(boolean value) {
+        return new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat, ambientTemperature, precipitation, air, armor,
+                value);
     }
 }

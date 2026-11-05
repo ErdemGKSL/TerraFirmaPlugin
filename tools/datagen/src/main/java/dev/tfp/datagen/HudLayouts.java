@@ -136,6 +136,13 @@ final class HudLayouts {
     static final List<Cond> UNDERWATER = List.of(new Cond("tfp_air", "<", FULL_AIR));
     /** The armour bar shows while the player has any armour (like air, hidden in the common no-armour state). */
     static final List<Cond> ARMORED = List.of(new Cond("tfp_armor", ">", 0));
+    /**
+     * PAR-HUD-12: the game-mode gate on every layout of the bars HUD and on every popup. {@code HudValues} reads
+     * {@code tfp_max_health} as 0 while the player's game mode has no needs (creative, spectator), so the bars and the
+     * popups hide there as TFC's overlays do ({@code IngameOverlays.setupForSurvival}); a max health is never 0 in
+     * survival or adventure. The info HUD (date, temperature) is not gated.
+     */
+    static final Cond NEEDS_ACTIVE = new Cond("tfp_max_health", ">", 0);
 
     /**
      * Text shadow ({@code outline}, ARGB hex) of the health text: neutral black, so the white digits read crisply on
@@ -329,10 +336,11 @@ final class HudLayouts {
                 }
                 layout.put("texts", texts);
             }
-            if (!spec.shownWhile().isEmpty()) {
-                layout.put("conditions", conditions(spec.shownWhile(), e, names));
-            }
             boolean info = spec.hud().equals(INFO_HUD);
+            List<Cond> shown = info ? spec.shownWhile() : gated(spec.shownWhile());
+            if (!shown.isEmpty()) {
+                layout.put("conditions", conditions(shown, e, names));
+            }
             (info ? infoLayouts : barLayouts).put(name, layout);
             if (!info) {
                 barHudLayouts.put(String.valueOf(barHudLayouts.size() + 1),
@@ -365,8 +373,9 @@ final class HudLayouts {
                     entry.put("opacity", BigDecimal.valueOf(o.opacity()));
                 }
                 Map<String, Object> layout = m("offset", "left", "images", m("1", entry));
-                if (!o.shownWhile().isEmpty()) {
-                    layout.put("conditions", conditions(o.shownWhile(), e, names));
+                List<Cond> shown = o.hud().equals(INFO_HUD) ? o.shownWhile() : gated(o.shownWhile());
+                if (!shown.isEmpty()) {
+                    layout.put("conditions", conditions(shown, e, names));
                 }
                 if (o.hud().equals(INFO_HUD)) {
                     infoLayouts.put(layoutName, layout);
@@ -438,8 +447,10 @@ final class HudLayouts {
             popupLayouts.put(name, m("texts", m("1", m("name", FONT, "pattern", "[" + value + "]" + DEGREES_C,
                 "placeholder-string-format", m("number", "#"), "align", "center",
                 "x", 0, "y", 0, "scale", scale(), "outline", true))));
+            Map<String, Object> popupConditions = conditions(
+                gated(List.of(new Cond(value, POPUP_OPERATION, POPUP_THRESHOLD))), e, names);
             popups.put(name, m("default", true,
-                "conditions", m("1", m("first", value, "second", POPUP_THRESHOLD, "operation", POPUP_OPERATION)),
+                "conditions", popupConditions,
                 "layouts", m("1", m("name", name, "gui", m("x", POPUP_GUI_X, "y", POPUP_GUI_Y),
                     "pixel", m("x", at.x(), "y", at.y())))));
             emitted.merge("popup", 1, Integer::sum);
@@ -643,6 +654,13 @@ final class HudLayouts {
             c.put(String.valueOf(c.size() + 1), m("first", w.value(), "second", w.threshold(), "operation", w.operation()));
         }
         return c;
+    }
+
+    /** {@code when} with the game-mode gate {@link #NEEDS_ACTIVE} after it (PAR-HUD-12). */
+    static List<Cond> gated(List<Cond> when) {
+        List<Cond> all = new ArrayList<>(when);
+        all.add(NEEDS_ACTIVE);
+        return List.copyOf(all);
     }
 
     private static String negate(String op) {
