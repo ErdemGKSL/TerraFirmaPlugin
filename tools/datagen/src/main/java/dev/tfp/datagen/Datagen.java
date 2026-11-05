@@ -92,6 +92,9 @@ public final class Datagen {
         if (dev.tfp.datagen.knap.KnappingArt.available(tfc)) { // PAR-PROC-01: knapping screen art; fixtures have none
             dev.tfp.datagen.knap.KnappingArt.run(tfc, out);
         }
+        if (dev.tfp.datagen.food.FoodItems.available(tfc)) { // PAR-SURV-01: every TFC food item; fixtures have no food sources
+            dev.tfp.datagen.food.FoodItems.run(tfc, out);
+        }
         LootTableExport.run(tfc, out); // PAR-INFRA-21: TFC loot tables of delegated blocks and spawned entities for the Paper runtime
         Advancements.run(tfc, out);
         FieldGuide.run(tfc, out);

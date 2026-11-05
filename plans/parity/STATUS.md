@@ -44,7 +44,7 @@ Totals: 240 items; open 213, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-HUD-12 | HUD and needs per game mode: bars hidden and needs paused in creative and spectator | HUD | 7 | open |
 | PAR-PROC-01 | Knapping GUI: 5x5 grid for stone, clay, fire clay, leather and goat horn | PROC | 5 | done |
 | PAR-PROC-19 | Misc materials as CE items: ores, gems, powders, fibres, cloth, paper, glue, straw, mortar, spawn eggs | PROC | 5 | open |
-| PAR-SURV-01 | All TFC food items generated as CE items with food_stamp and food data | SURV | 5 | open |
+| PAR-SURV-01 | All TFC food items generated as CE items with food_stamp and food data | SURV | 5 | done |
 | PAR-INFRA-25 | Catch-up service wiring: self-test catchup.lazyblock, config.yml keys, device indexing on placement | INFRA | 5 | done |
 | PAR-INFRA-26 | Neighbour runner self-test: neighbour.converge on Paper and Folia | INFRA | 5 | done |
 | PAR-INFRA-28 | Raw and hardened rock loot through the Paper runtime: delegate the 42 tfc:is_isolated tables, remove tfp:loot_table/rock_to_loose | INFRA | 5 | done |
