@@ -132,6 +132,7 @@ class FoodTooltipContributorTest {
         assertThat(lore.get(1).color()).isEqualTo(NamedTextColor.GRAY);
         assertThat(lore.get(2).color()).isEqualTo(NamedTextColor.GRAY);
         assertThat(lore.get(3).color()).isEqualTo(NamedTextColor.RED);
+        // The contributor emits no colour for a trait that slows decay; WHITE is the pipeline's base style.
         assertThat(lore.get(4).color()).as("salted slows decay: default colour").isEqualTo(NamedTextColor.WHITE);
         assertThat(lore).allSatisfy(c -> assertThat(c.decoration(TextDecoration.ITALIC))
                 .isEqualTo(TextDecoration.State.FALSE));

@@ -15,9 +15,14 @@ files_owned:
   - "paper/src/test/java/dev/tfp/paper/food/FoodTooltip*"
 ui: true
 in_game_steps:
-  - "ce item give Bot tfp:food/mutton"
-  - "tfp time add days 30"
-  - "Hover: expiry and 'Rotten'"
+  - "ce item give Bot tfp:food/mutton (hotbar slot 0; the give stamps it at the current date)"
+  - "ce item give Bot tfp:food/cooked_mutton (hotbar slot 1), then add two traits to its existing tfp:food record (set_custom_data merges, so tfp:created stays): item modify entity Bot hotbar.1 {\"function\":\"minecraft:set_custom_data\",\"tag\":\"{PublicBukkitValues:{\\\"tfp:food\\\":{\\\"tfp:traits\\\":[\\\"tfp:salted\\\",\\\"tfp:charcoal_grilled\\\"]}}}\"}"
+  - "Hover slot 0 (fresh): 'Raw Mutton', 'Expires on: ... (in ...)' dark green, 'Nutrition:' grey, ' - Protein: 1.5' red"
+  - "Hover slot 1 (traits): expiry line, 'Nutrition:', ' - Saturation: 10%' grey, ' - Protein: 2.5' red, then 'Salted' in the default white and 'Charcoal Grilled' in red (decay modifier 1.25 > 1); brined would not be red (TFC modifier 1.0)"
+  - "Only now: tfp time add days 30 (the items must already exist, otherwise they are stamped at the new date and stay fresh)"
+  - "Hover slot 0 (rotten): 'Raw Mutton' then 'Rotten!' in red, no expiry line, no Nutrition block"
+  - "Hover slot 1 (rotten with traits): 'Rotten!' in red, no Nutrition block, the 'Salted' and 'Charcoal Grilled' lines still listed (TFC lists traits on rotten food)"
+  - "Save the captures under docs/verification/PAR-SURV-02/"
 plan:
   - "Register a TooltipContributor: 'Expires on <date>' / 'Rotten' per FoodExpiryTooltipStyle, trait lines (Salted, Brined...), nutrition lines (hunger, saturation, water, the 5 nutrients) as TFC shows with shift (no shift on vanilla: always shown, divergence row)."
   - "Note: TFC's IFood.addTooltipInfo shows no hunger line (only saturation, water and the nutrients), so none is added here."
