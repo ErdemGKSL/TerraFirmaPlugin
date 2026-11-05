@@ -30,7 +30,8 @@ tests:
   - "tools/datagen material: every item with max_damage also sets damage 0"
 done_criteria:
   - "A freshly given handstone/sandpaper is damageable for vanilla (set_damage works, bar shows)"
-  - "ce item give tfp:gem_saw works with TFC texture and name"
+  - "ce item give tfp:gem_saw works with TFC texture and name (GUI scale 2 and 3, crop shows the hovered slot next to the tooltip); gem saw durability bar after use"
+  - "Real use without set_components: crafting with the sandpaper as a damaged remainder (and the gem saw on glass once glass exists) makes the durability bar appear and drop"
 ---
 
 # PAR-PROC-26: Durability material items carry minecraft:damage 0 (vanilla damageable); gem saw in-game check
