@@ -39,6 +39,19 @@ public final class KnappingSession {
         return grid;
     }
 
+    /** TFC {@code hasBeenModified}: a cell was clicked. */
+    public boolean modified() {
+        return modified;
+    }
+
+    /**
+     * TFC {@code stillValid}: the window stays open while the input stack is there, or after the first click of a type that
+     * consumed its amount on that click (the stack may then be gone).
+     */
+    public boolean stillValid(boolean inputPresent) {
+        return inputPresent || (modified && !type.consumeAfterComplete());
+    }
+
     public boolean requiresReset() {
         return requiresReset;
     }

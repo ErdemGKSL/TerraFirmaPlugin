@@ -7,3 +7,4 @@ dev.tfp.paper.recipe.RecipeModule
 dev.tfp.paper.loot.LootModule
 dev.tfp.paper.catchup.CatchUpModule
 dev.tfp.paper.neighbour.NeighbourModule
+dev.tfp.paper.knap.KnappingModule

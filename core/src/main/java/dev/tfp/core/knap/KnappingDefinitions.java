@@ -32,14 +32,21 @@ public final class KnappingDefinitions {
 
     private final Map<String, KnappingType> types;
     private final List<KnappingRecipe> recipes;
+    private final Map<String, ItemStackTemplate> results;
 
     public KnappingDefinitions(List<KnappingType> types, List<KnappingRecipe> recipes) {
+        this(types, recipes, Map.of());
+    }
+
+    /** @param results the result stacks as the data writes them, by recipe id (components kept as JSON) */
+    public KnappingDefinitions(List<KnappingType> types, List<KnappingRecipe> recipes, Map<String, ItemStackTemplate> results) {
         Map<String, KnappingType> byId = new LinkedHashMap<>();
         for (KnappingType type : types) {
             byId.put(type.id(), type);
         }
         this.types = java.util.Collections.unmodifiableMap(byId);
         this.recipes = List.copyOf(recipes);
+        this.results = Map.copyOf(results);
     }
 
     /** Builds the types from the {@code knapping_type} definitions and the recipes from the knapping entries of {@code recipe}. */
@@ -48,12 +55,14 @@ public final class KnappingDefinitions {
         List<KnappingType> types = typeData.asMap().entrySet().stream()
                 .map(e -> type(e.getKey(), e.getValue())).toList();
         List<KnappingRecipe> recipes = new java.util.ArrayList<>();
+        Map<String, ItemStackTemplate> results = new LinkedHashMap<>();
         for (Map.Entry<String, SchemaRecord> e : snapshot.get(DefinitionKinds.RECIPE).asMap().entrySet()) {
             if (e.getValue().has("knapping_type") && !snapshot.disabledRecipes().contains(e.getKey())) {
                 recipes.add(recipe(e.getKey(), e.getValue()));
+                results.put(e.getKey(), e.getValue().require("result", ItemStackTemplate.class));
             }
         }
-        return new KnappingDefinitions(types, recipes);
+        return new KnappingDefinitions(types, recipes, results);
     }
 
     private static KnappingType type(String id, SchemaRecord r) {
@@ -92,6 +101,26 @@ public final class KnappingDefinitions {
 
     public Map<String, KnappingType> types() {
         return types;
+    }
+
+    /**
+     * The result stack of a recipe as its data wrote it (TFC {@code assemble}: a copy of the result). For definitions built
+     * without the data, the template is rebuilt from the recipe's result; a component value that is a JSON object or
+     * array is parsed back, any other is a string.
+     */
+    public ItemStackTemplate resultTemplate(KnappingRecipe recipe) {
+        ItemStackTemplate t = results.get(recipe.id());
+        if (t != null) {
+            return t;
+        }
+        KnappingResult r = recipe.result();
+        if (r.components().isEmpty()) {
+            return new ItemStackTemplate(r.item(), r.count(), Optional.empty());
+        }
+        com.google.gson.JsonObject c = new com.google.gson.JsonObject();
+        r.components().forEach((k, v) -> c.add(k, v.startsWith("{") || v.startsWith("[")
+                ? com.google.gson.JsonParser.parseString(v) : new com.google.gson.JsonPrimitive(v)));
+        return new ItemStackTemplate(r.item(), r.count(), Optional.of(c));
     }
 
     /** Every recipe, in registry order. */

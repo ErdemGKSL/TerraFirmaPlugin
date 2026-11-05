@@ -42,7 +42,7 @@ Totals: 240 items; open 213, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-HUD-06 | HUD polish: health frame asymmetry, ambient temperature bar and info plate, pulse animation | HUD | 5 | done |
 | PAR-HUD-11 | Held item heat evaluated lazily at placeholder time (no popup lag after a heat change) | HUD | 5 | done |
 | PAR-HUD-12 | HUD and needs per game mode: bars hidden and needs paused in creative and spectator | HUD | 7 | open |
-| PAR-PROC-01 | Knapping GUI: 5x5 grid for stone, clay, fire clay, leather and goat horn | PROC | 5 | open |
+| PAR-PROC-01 | Knapping GUI: 5x5 grid for stone, clay, fire clay, leather and goat horn | PROC | 5 | done |
 | PAR-PROC-19 | Misc materials as CE items: ores, gems, powders, fibres, cloth, paper, glue, straw, mortar, spawn eggs | PROC | 5 | open |
 | PAR-SURV-01 | All TFC food items generated as CE items with food_stamp and food data | SURV | 5 | open |
 | PAR-INFRA-25 | Catch-up service wiring: self-test catchup.lazyblock, config.yml keys, device indexing on placement | INFRA | 5 | done |
@@ -117,6 +117,7 @@ Totals: 240 items; open 213, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-TOOL-03 | In-game verification of metal tools and armour | TOOL | 19 | open |
 | PAR-WORLD-06 | Cave tunnels and canyons (vanilla carvers with TFC carveBlock) | WORLD | 19 | open |
 | PAR-WORLD-08 | Disc, pipe and kaolin veins; montane second pass; ore distribution statistics | WORLD | 19 | open |
+| PAR-PROC-20 | Knapping in-game verification: axe head from two granite loose rocks, clay and leather screens | PROC | 20 | open |
 | PAR-TOOL-02 | Tool mechanics on Paper: TFC mining speed, durability rules, forging efficiency | TOOL | 20 | open |
 | PAR-TOOL-04 | Swords, maces, macuahuitl: attack damage per TFC tier | TOOL | 20 | open |
 | PAR-WORLD-07 | Aquifer barrier noise and the grass rule under carved surfaces | WORLD | 20 | open |
