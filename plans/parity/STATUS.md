@@ -39,7 +39,7 @@ Totals: 240 items; open 213, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-INFRA-24 | Packaging: :dist:shadowJar always ships the generated content (content/data/id_map.json) without share-build.sh | INFRA | 4 | done |
 | PAR-WORLD-17 | Ore overlay spike S1: measure exposed ore faces per chunk and the overlay entity budget | WORLD | 4 | done |
 | PAR-HUD-09 | Mount health bar: the ridden animal's health as a second health bar, as TFC's MOUNT_HEALTH | HUD | 5 | blocked |
-| PAR-HUD-06 | HUD polish: health frame asymmetry, ambient temperature bar and info plate, pulse animation | HUD | 5 | open |
+| PAR-HUD-06 | HUD polish: health frame asymmetry, ambient temperature bar and info plate, pulse animation | HUD | 5 | done |
 | PAR-HUD-11 | Held item heat evaluated lazily at placeholder time (no popup lag after a heat change) | HUD | 5 | open |
 | PAR-HUD-12 | HUD and needs per game mode: bars hidden and needs paused in creative and spectator | HUD | 7 | open |
 | PAR-PROC-01 | Knapping GUI: 5x5 grid for stone, clay, fire clay, leather and goat horn | PROC | 5 | open |
@@ -54,6 +54,7 @@ Totals: 240 items; open 213, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-WORLD-18 | Ore vein weighted pick throws at a draw of 1.0: chunk refused ("no element above 100.0") | WORLD | 5 | open |
 | PAR-HUD-07 | HUD per MC version and TFC display styles: 26.x sprite list, XP bar style, health display style | HUD | 6 | open |
 | PAR-HUD-10 | Held temperature popup shows TFC's level text, verified in game | HUD | 6 | open |
+| PAR-HUD-13 | Info plate fits the longest date line; BetterHud horizontal shift of the top-left info HUD | HUD | 6 | open |
 | PAR-PROC-02 | Workbench crafting: the plain 2,255 shaped/shapeless recipes as CE recipe YAML | PROC | 6 | open |
 | PAR-SURV-02 | Food tooltip: expiry/rotten, traits, nutrition lines | SURV | 6 | open |
 | PAR-SURV-03 | Eating completion: undefined foods, peaceful, rotten advancement hook, in-game check | SURV | 6 | open |
