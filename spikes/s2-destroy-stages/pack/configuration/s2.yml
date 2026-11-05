@@ -7,10 +7,20 @@ blocks:
       rendered_hardness: 5.0
       rendered_resistance: 6.0
       rendered_sound_break: minecraft:block.metal.break
+      rendered_sound_break_volume: 1.0
+      rendered_sound_break_pitch: 1.2
       rendered_sound_step: minecraft:block.metal.step
+      rendered_sound_step_volume: 0.15
+      rendered_sound_step_pitch: 1.5
       rendered_sound_place: minecraft:block.metal.place
+      rendered_sound_place_volume: 1.0
+      rendered_sound_place_pitch: 1.2
       rendered_sound_hit: minecraft:block.metal.hit
+      rendered_sound_hit_volume: 0.25
+      rendered_sound_hit_pitch: 0.75
       rendered_sound_fall: minecraft:block.metal.fall
+      rendered_sound_fall_volume: 0.5
+      rendered_sound_fall_pitch: 1.125
       rendered_tool_tag: minecraft:mineable/pickaxe
       rendered_item: tfps2:render/metal/block/copper
       rendered_particle_item: tfps2:render/metal/block/copper

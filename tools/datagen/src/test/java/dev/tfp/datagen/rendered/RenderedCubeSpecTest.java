@@ -48,10 +48,20 @@ class RenderedCubeSpecTest {
                   rendered_hardness: 5.0
                   rendered_resistance: 6.0
                   rendered_sound_break: minecraft:block.metal.break
+                  rendered_sound_break_volume: 1.0
+                  rendered_sound_break_pitch: 1.2
                   rendered_sound_step: minecraft:block.metal.step
+                  rendered_sound_step_volume: 0.15
+                  rendered_sound_step_pitch: 1.5
                   rendered_sound_place: minecraft:block.metal.place
+                  rendered_sound_place_volume: 1.0
+                  rendered_sound_place_pitch: 1.2
                   rendered_sound_hit: minecraft:block.metal.hit
+                  rendered_sound_hit_volume: 0.25
+                  rendered_sound_hit_pitch: 0.75
                   rendered_sound_fall: minecraft:block.metal.fall
+                  rendered_sound_fall_volume: 0.5
+                  rendered_sound_fall_pitch: 1.125
                   rendered_tool_tag: minecraft:mineable/pickaxe
                   rendered_item: tfp:render/test/copper
                   rendered_particle_item: tfp:render/test/copper
@@ -101,11 +111,26 @@ class RenderedCubeSpecTest {
                   hardness: '${rendered_hardness}'
                   resistance: '${rendered_resistance}'
                   sounds:
-                    break: '${rendered_sound_break}'
-                    step: '${rendered_sound_step}'
-                    place: '${rendered_sound_place}'
-                    hit: '${rendered_sound_hit}'
-                    fall: '${rendered_sound_fall}'
+                    break:
+                      id: '${rendered_sound_break}'
+                      volume: '${rendered_sound_break_volume}'
+                      pitch: '${rendered_sound_break_pitch}'
+                    step:
+                      id: '${rendered_sound_step}'
+                      volume: '${rendered_sound_step_volume}'
+                      pitch: '${rendered_sound_step_pitch}'
+                    place:
+                      id: '${rendered_sound_place}'
+                      volume: '${rendered_sound_place_volume}'
+                      pitch: '${rendered_sound_place_pitch}'
+                    hit:
+                      id: '${rendered_sound_hit}'
+                      volume: '${rendered_sound_hit_volume}'
+                      pitch: '${rendered_sound_hit_pitch}'
+                    fall:
+                      id: '${rendered_sound_fall}'
+                      volume: '${rendered_sound_fall_volume}'
+                      pitch: '${rendered_sound_fall_pitch}'
                   tags:
                     - '${rendered_tool_tag}'
                   destroy_stages:
@@ -183,8 +208,22 @@ class RenderedCubeSpecTest {
                 required.add(m.group(1));
             }
         }
-        assertThat(required).hasSize(10);
+        assertThat(required).hasSize(20);
         assertThat(copper().arguments().keySet()).containsExactlyInAnyOrderElementsOf(required);
+    }
+
+    /** Vanilla's client multipliers over the SoundType volume/pitch; METAL is (1.0, 1.5), TFC's own types (1.0, 1.0). */
+    @Test
+    void soundVolumeAndPitchAreTheVanillaClients() {
+        assertThat(RenderedSound.of(DeviceSound.METAL).table().toString())
+            .isEqualTo("{break=[1.0, 1.2], step=[0.15, 1.5], place=[1.0, 1.2], hit=[0.25, 0.75], fall=[0.5, 1.125]}");
+        for (DeviceSound s : List.of(DeviceSound.STONE, DeviceSound.WOOD, DeviceSound.NETHER_WART, DeviceSound.tfc("charcoal"))) {
+            assertThat(RenderedSound.of(s).table().toString())
+                .isEqualTo("{break=[1.0, 0.8], step=[0.15, 1.0], place=[1.0, 0.8], hit=[0.25, 0.5], fall=[0.5, 0.75]}");
+        }
+        assertThatThrownBy(() -> RenderedSound.of(new DeviceSound("minecraft:block.glass.break", "minecraft:block.glass.step",
+            "minecraft:block.glass.place", "minecraft:block.glass.hit", "minecraft:block.glass.fall")))
+            .isInstanceOf(DatagenException.class);
     }
 
     @Test
@@ -244,7 +283,8 @@ class RenderedCubeSpecTest {
             throw new AssertionError(S2Spike.FILE + " is not the generator's output; the expected text is in " + build
                 + " (copy it over)");
         }
-        assertThat(expected).contains("rendered_hardness: 5.0", "minecraft:block.metal.break", "'#minecraft:pickaxes'");
+        assertThat(expected).contains("rendered_hardness: 5.0", "minecraft:block.metal.break", "rendered_sound_break_pitch: 1.2",
+            "rendered_sound_hit_volume: 0.25", "'#minecraft:pickaxes'");
     }
 
     private static List<String> stageIds() {

@@ -60,6 +60,7 @@ Totals: 240 items; open 213, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-SURV-03 | Eating completion: undefined foods, peaceful, rotten advancement hook, in-game check | SURV | 6 | open |
 | PAR-INFRA-15 | Ore overlay datagen: ores take the host rock visual, overlay item models, always-on allocator rule, profiles level-0..2 only | INFRA | 6 | open |
 | PAR-INFRA-32 | Renderer-cube mining time: TFC break time independent of the client's swing rate, measured on a full-speed client | INFRA | 6 | open |
+| PAR-INFRA-33 | CE block sound volume and pitch: hit and level-event break sounds at the TFC SoundType's values, devices too | INFRA | 6 | open |
 | PAR-PROC-03 | Advanced crafting: TFC advanced recipes, food combining, casting crafting, vanilla recipe leakage | PROC | 7 | open |
 | PAR-PROC-04 | Quern: block, handstone, grinding, GUI-less interaction | PROC | 7 | open |
 | PAR-PROC-05 | Scraping hides on a log | PROC | 7 | open |

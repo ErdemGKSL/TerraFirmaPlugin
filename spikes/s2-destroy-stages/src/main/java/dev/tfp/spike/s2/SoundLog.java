@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSo
 import java.util.logging.Logger;
 
 /**
- * Spike S2: logs every block sound the server sends ({@code [S2] sound <id> to <player>}), so the replayed SoundType of a
+ * Spike S2: logs every block sound the server sends ({@code [S2] sound <id> volume=<v> pitch=<p> to <player>}), so the replayed SoundType of a
  * renderer cube can be told apart from the carrier's: the client's subtitles are the same ("Block broken") for metal and
  * stone. Client-predicted sounds never reach this log.
  */
@@ -27,13 +27,21 @@ final class SoundLog implements PacketListener {
     @Override
     public void onPacketSend(PacketSendEvent event) {
         String id = null;
+        float volume = 0;
+        float pitch = 0;
         if (event.getPacketType() == PacketType.Play.Server.SOUND_EFFECT) {
-            id = new WrapperPlayServerSoundEffect(event).getSound().getSoundId().toString();
+            WrapperPlayServerSoundEffect w = new WrapperPlayServerSoundEffect(event);
+            id = w.getSound().getSoundId().toString();
+            volume = w.getVolume();
+            pitch = w.getPitch();
         } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_SOUND_EFFECT) {
-            id = new WrapperPlayServerEntitySoundEffect(event).getSound().getSoundId().toString();
+            WrapperPlayServerEntitySoundEffect w = new WrapperPlayServerEntitySoundEffect(event);
+            id = w.getSound().getSoundId().toString();
+            volume = w.getVolume();
+            pitch = w.getPitch();
         }
         if (id != null && id.contains("block.")) {
-            log.info("[S2] sound " + id + " to " + event.getUser().getName());
+            log.info("[S2] sound " + id + " volume=" + volume + " pitch=" + pitch + " to " + event.getUser().getName());
         }
     }
 }

@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 /**
  * One renderer-drawn full block (PAR-INFRA-17): a barrier carrier ({@link RenderedTemplates#CARRIER}, full collision and
  * outline, no model) drawn by one {@code item_display} cube, with CraftEngine {@code destroy_stages} cracks, TFC's
- * {@code SoundType}, hardness, resistance and tool, and break particles of {@link #particleItem}.
+ * {@code SoundType} (ids, volume and pitch: {@link RenderedSound}), hardness, resistance and tool, and break particles of {@link #particleItem}.
  *
  * <p>The carrier is fixed: PAR-INFRA-13's selector ranks vanilla states for model-drawn blocks, and a full cube drawn by
  * an entity needs the one full-collision state that has no model, does not occlude its neighbours and passes light.
@@ -116,11 +116,14 @@ public record RenderedCubeSpec(String id, String renderItem, String renderModel,
         args.put(RenderedTemplates.ARG_HARDNESS, settings.hardness());
         args.put(RenderedTemplates.ARG_RESISTANCE, settings.resistance());
         DeviceSound s = settings.sound();
-        args.put(RenderedTemplates.soundArg("break"), s.breakSound());
-        args.put(RenderedTemplates.soundArg("step"), s.step());
-        args.put(RenderedTemplates.soundArg("place"), s.place());
-        args.put(RenderedTemplates.soundArg("hit"), s.hit());
-        args.put(RenderedTemplates.soundArg("fall"), s.fall());
+        RenderedSound vp = RenderedSound.of(s);
+        Map<String, String> ids = Map.of("break", s.breakSound(), "step", s.step(), "place", s.place(), "hit", s.hit(),
+            "fall", s.fall());
+        for (String e : RenderedTemplates.SOUND_KEYS) {
+            args.put(RenderedTemplates.soundArg(e), ids.get(e));
+            args.put(RenderedTemplates.soundArg(e) + "_volume", vp.volume(e));
+            args.put(RenderedTemplates.soundArg(e) + "_pitch", vp.pitch(e));
+        }
         args.put(RenderedTemplates.ARG_TOOL_TAG, settings.toolTag());
         args.put(RenderedTemplates.ARG_ITEM, renderItem);
         args.put(RenderedTemplates.ARG_PARTICLE_ITEM, particleItem);

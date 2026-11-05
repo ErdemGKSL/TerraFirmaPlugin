@@ -10,6 +10,11 @@ cracked overlay variant works** (route chosen; the dim fallback is not needed).
 
 Evidence: `docs/verification/PAR-INFRA-17/` (verdict per criterion in `verdict.md`).
 
+**Review fix (same day):** a second pass on both versions re-shot light (torch in frame), TNT touching the row, 10-frame
+correct-tool and overlay-ore crack captures, 8x crops of the copper seam, the ore/rock inner corner, the particle burst
+and the 32/48/64 m row, and logged the volume and pitch of every block sound packet. It found the sound volume/pitch gap
+(below, item 3) and fixed what the config can carry: `RenderedSound` now passes each event's volume/pitch.
+
 ## 1. What was built
 
 - **Templates (shipped, generated):** `tools/datagen` `dev.tfp.datagen.rendered` writes
@@ -26,7 +31,7 @@ Evidence: `docs/verification/PAR-INFRA-17/` (verdict per criterion in `verdict.m
   API), `s2 overlay x y z` (vanilla granite + one `item_display` quad per exposed face, 0.01 in front, the S1 geometry),
   `s2 mode crack|dim|none`; on `BlockBreakProgressUpdateEvent` the quads switch to `tfps2:overlay_crack_<n>` (composite
   of the overlay quad + our crack quad). Logs `[S2]` lines: dig start/abort, stage changes, break ticks with the tool,
-  every block sound packet sent (PacketEvents), overlay removal when the host block is gone.
+  every block sound packet sent with its volume and pitch (PacketEvents), overlay removal when the host block is gone.
 
 ## 2. Method
 
@@ -52,20 +57,20 @@ a flat stone row is enough and has no snow or tint to manage.
 
 | # | Item | 1.21.11 | 26.3 |
 |---|---|---|---|
-| 1 | Cracks track progress. Renderer cube: CE `destroy_stages` | pass: stages 0..9 grow on every face as the server progress grows (frames in `1.21.11-cracks-renderer-cube.png`); alpha-blended crack texture, darker than vanilla's multiplicative crumbling but readable | pass (`26.3-cracks-particles-subtitles.png`) |
-| 1 | Cracks. Overlay ore | pass with the cracked variant: the overlay quads swap to overlay + `destroy_stage_n` at each server stage (`[S2] stage n` lines one per 15 ticks by hand), cracks drawn over the specks, none hidden (`1.21.11-overlay-ore-cracked-variant.png`) | pass (same) |
+| 1 | Cracks track progress. Renderer cube: CE `destroy_stages` | pass: stages 0..9 grow on every face as the server progress grows (frames in `1.21.11-cracks-renderer-cube.png`; 100 ms frames through the break: `*-cracks-correct-tool-frames.png`); alpha-blended crack texture, darker than vanilla's multiplicative crumbling but readable | pass (`26.3-cracks-particles-subtitles.png`) |
+| 1 | Cracks. Overlay ore | pass with the cracked variant: the overlay quads swap to overlay + `destroy_stage_n` at each server stage (`[S2] stage n` lines one per 15 ticks by hand), cracks drawn over the specks, none hidden (`1.21.11-overlay-ore-cracked-variant.png`; frames 0.75 s apart: `1.21.11-overlay-ore-crack-frames.png`) | pass (same; `26.3-overlay-ore-crack-frames.png`) |
 | 2 | Break particles and sound | pass: barrier has `noTerrainParticles`, so the client spawns none; the `break` event's `minecraft:item` particles of the render item are copper-coloured (`1.21.11-break-particles-subtitles.png`); sound packets `block.metal.break` (CE replay, rewritten to `replaced.block.metal.break`), subtitles "Block breaking" / one "Block broken". Overlay ore: granite rock particles and `block.stone.break` (TFC parity: `tfc:block/ore` particle = `#all`, `SoundType.STONE`) | pass (same packets) |
-| 3 | Hit, step, place sounds | pass: `block.metal.hit` while mining, `block.metal.step` walking over the cubes, `block.metal.place` on place; never the barrier's stone set | pass |
-| 4 | Mining time | formula pass, timing partial: CE's `getDestroyProgress` is TFC's (hardness 5, bronze pickaxe speed 7.3, /30 correct, /100 hand: 21 ticks and 500 ticks). CE advances its progress only on server ticks in which the client swung its arm (`BukkitServerPlayer.tick` → `hasSwingHand()` → `tickBlockDestroy`), so a client below 20 ticks/s mines slower. Measured: tool 23-27 ticks (49-53 while the client was also taking screenshots), hand 582 ticks; vanilla iron block (same hardness, same tool) 18-19 ticks; vanilla stone by hand 151-152 (formula 150) | tool 35-38 ticks (vanilla iron block 17-20): the 26.3 client is slower under llvmpipe |
+| 3 | Hit, step, place sounds | ids pass: `block.metal.hit` while mining, `block.metal.step` walking over the cubes, `block.metal.place` on place; never the barrier's stone set. Volume/pitch: the first build passed only ids, so CraftEngine used its BlockSounds defaults (a 1.0/1.0 SoundType: every metal sound a third too low, hit twice as loud). Fixed: `RenderedSound` emits {id, volume, pitch} per event from the SoundType (metal 1.0/1.5) with the vanilla client's multipliers; measured place 1.0/1.2, step 0.15/1.5, fall 0.5/1.125, breaker's break 1.0/1.2 (TFC's). Left: CraftEngine sends hit at a fixed 0.5/0.5 (TFC 0.25/0.75) and a second break packet `replaced.block.metal.break` at a fixed 1.0/0.8 to every viewer (its level-event translation); divergence, follow-up PAR-INFRA-33 | same |
+| 4 | Mining time | formula pass, timing partial: CE's `getDestroyProgress` is TFC's (hardness 5, bronze pickaxe speed 7.3, /30 correct, /100 hand: 21 ticks and 500 ticks). CE advances its progress only on server ticks in which the client swung its arm (`BukkitServerPlayer.tick` → `hasSwingHand()` → `tickBlockDestroy`), so a client below 20 ticks/s mines slower. Measured: tool 23-27 ticks (49-53 while the client was also taking screenshots), hand 582 ticks; vanilla iron block (same hardness, same tool) 18-19 ticks; vanilla stone by hand 151-152 (formula 150). Review-fix run: 22 ticks with the tool. The spike overlay ore sits on vanilla granite (hardness 1.5, 155 ticks by hand), not TFC's ore (`Ore.java`: rock category hardness 6.5, resistance 10): not a parity figure, the real ores come with PAR-INFRA-15/16 | tool 35-38 ticks (vanilla iron block 17-20): the 26.3 client is slower under llvmpipe; review-fix run 22 ticks |
 | 5 | No flicker or pop-in (overlay) | not measured here (PAR-INFRA-16, needs the runtime) | — |
-| 6 | Light | pass: the barrier passes light, so the cube display is lit by its own cell; noon, midnight (dim, not black) and torch light correct (`1.21.11-light-noon-midnight-torch.png`). Residual: no ambient-occlusion contact shadow on the floor next to a cube (the barrier casts none) | pass |
-| 7 | No z-fighting at 1-48 m | pass (cube faces against the floor and against each other; the crack shell is scaled 1.01) | pass |
-| 8 | No seam | pass: adjacent cubes join without a gap (`1.21.11-seam-and-outline-x8.png`; the light edges are the texture's own bevel) | pass |
+| 6 | Light | pass: the barrier passes light, so the cube display is lit by its own cell; noon, midnight (dim, not black) and torch light correct (`1.21.11-light-noon-midnight-torch.png`, torch in frame): cube top / floor mean luminance noon 124/124, midnight 37/38, torch 103/116. Residual: no ambient-occlusion contact shadow on the floor next to a cube (the barrier casts none); face shading is the display's entity lighting (top : north 1 : 0.77, vanilla 1 : 0.8) | pass: 126/125, 37/38, 102/114; a vanilla item entity beside the cubes is as dark, no full-bright faces |
+| 7 | No z-fighting at 1-48 m | pass (cube faces against the floor and against each other; the crack shell is scaled 1.01); 1 m shot and 8x crops at 32, 48, 64 m (`*-zfight-1m-distance-x8.png`) | pass |
+| 8 | No seam | pass: adjacent cubes join without a gap; 8x crop with no outline on the seam (`1.21.11-seam-corner-particles-x8.png`; the light and dark edges are the texture's own bevel). Ore/rock inner corner: no gap (same file) | pass (`26.3-seam-corner-particles-x8.png`) |
 | 9 | Outline and hitbox | pass: the barrier's full-cube outline (8x crop); standing on top `Pos[1]` = floor + 1.0 (-59.0) | pass (-59.0) |
 | 10 | Falling and collapse | not applicable to the cube (metal blocks do not fall); overlays: PAR-INFRA-16 | — |
-| 11 | No leftover after `/fill`, TNT | pass: the cube displays go with the block (CE renderer), the spike overlays are removed within 2 ticks (`1.21.11-leftovers-fill-tnt.png`) | pass |
+| 11 | No leftover after `/fill`, TNT | pass: the cube displays go with the block (CE renderer), the spike overlays are removed within 2 ticks (`1.21.11-leftovers-fill-tnt.png`). TNT summoned touching the row destroys both cubes and the rock, nothing floats (`1.21.11-tnt-adjacent.png`): resistance 6.0 is TFC's, the carrier does not make the block blast-proof | pass (`26.3-tnt-adjacent.png`) |
 | 12 | Creative pick-block | pass: hotbar gets `craftengine:id` `tfps2:metal/block/copper` | pass |
-| 13 | Distance | first run (`view_range` 0.75 on the cube): at 48 m every copper cube vanished and left a hole, because the barrier draws nothing (`1.21.11-distance-before-fix-view-range-0.75.png`). Fixed in the template: cube `view_range` 4.0 (256 m), visible for as long as its chunk; second run shows the cubes at 16-96 m with no ring (`1.21.11-distance-16-96m.png`). The overlay on native gold disappears between 48 and 64 m (the rock stays): visible only when looked for, the block is about 10 px tall there; judged acceptable | pass (same) |
+| 13 | Distance | first run (`view_range` 0.75 on the cube): at 48 m every copper cube vanished and left a hole, because the barrier draws nothing (`1.21.11-distance-before-fix-view-range-0.75.png`). Fixed in the template: cube `view_range` 4.0 (256 m), visible for as long as its chunk; second run shows the cubes at 16-96 m with no ring (`1.21.11-distance-16-96m.png`). The overlay on native gold disappears at 48 m (the rock stays): at 32 m the block is 15 px tall with specks, at 48 m 7 px tall with 1 px specks, so the pop changes single pixels; judged acceptable | pass (same) |
 
 ## 4. Decisions for the families (PAR-DECO-09, PAR-DECO-12, PAR-MECH-01)
 
@@ -74,5 +79,7 @@ a flat stone row is enough and has no snow or tint to manage.
 - CE `settings` has no particle override; the break particles come from the `break` event (explicit action). There are
   no hit (dig) particles while mining a renderer cube: the barrier spawns none and CE has no per-tick hook in YAML.
 - The cube keeps `view_range` 4.0; the crack stages keep 0.75 (48 m).
+- Sounds: `RenderedSound` carries the SoundType's volume/pitch per event; the hit and the level-event break sound
+  need the packet rewrite of PAR-INFRA-33, which also moves the device blocks (`DeviceSound`) onto the same table.
 - Overlay ores (PAR-INFRA-15/16): emit the cracked variants (`CrackedOverlays.variants`, 10 per overlay, 530 for TFC's
   53 overlays) and swap them by the server's dig progress; the crack quad has the S1 overlay quad geometry.
