@@ -57,7 +57,7 @@ Totals: 243 items; open 215, done 25, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-HUD-13 | Info plate fits the longest date line; BetterHud horizontal shift of the top-left info HUD | HUD | 6 | done |
 | PAR-PROC-02 | Workbench crafting: the plain 2,255 shaped/shapeless recipes as CE recipe YAML | PROC | 6 | done |
 | PAR-PROC-21 | Ore piece items stack by TFC item_size (16): drops.yml ore items get max_stack_size | PROC | 6 | done |
-| PAR-PROC-23 | Material items in-game verification: ce item give for a sample of 20, names, textures, stack sizes | PROC | 6 | open |
+| PAR-PROC-23 | Material items in-game verification: ce item give for a sample of 20, names, textures, stack sizes | PROC | 6 | done |
 | PAR-SURV-02 | Food tooltip: expiry/rotten, traits, nutrition lines | SURV | 6 | open |
 | PAR-SURV-03 | Eating completion: undefined foods, peaceful, rotten advancement hook, in-game check | SURV | 6 | open |
 | PAR-INFRA-15 | Ore overlay datagen: ores take the host rock visual, overlay item models, always-on allocator rule, profiles level-0..2 only | INFRA | 6 | done |
@@ -80,6 +80,7 @@ Totals: 243 items; open 215, done 25, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-SURV-07 | Player tab screens: calendar, nutrition and climate pages opened from outside the inventory | SURV | 8 | open |
 | PAR-REL-12 | Visual and overlay budget guards: profile-vs-pool unit test, overlay entities-per-chunk itest budget | REL | 8 | open |
 | PAR-INFRA-34 | Verify the ore overlay datagen in game: host-rock look of buried ores, composite ore block item icons, pick-block | INFRA | 8 | open |
+| PAR-PROC-26 | Durability material items carry minecraft:damage 0 (vanilla damageable); gem saw in-game check | PROC | 8 | open |
 | PAR-FLUID-02 | Buckets: wooden bucket, red and blue steel buckets, fluid placement policy | FLUID | 9 | open |
 | PAR-FLUID-03 | Salt water, spring water and river water in the world | FLUID | 9 | open |
 | PAR-PROC-08 | Barrel block: fluids, sealing, sealed and instant recipes, preservation | PROC | 9 | open |
