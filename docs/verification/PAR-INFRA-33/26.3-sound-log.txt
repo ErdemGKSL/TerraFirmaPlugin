@@ -1,0 +1,118 @@
+[13:42:03 INFO]: [TfpSpikeS2] [S2] dig start BRICKS at 2,-60,3 by Bot tool=IRON_PICKAXE instabreak=false
+[13:42:03 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:03 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:03 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:03 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:03 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:03 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:03 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:03 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:04 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:04 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:04 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:04 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:04 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:04 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:04 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:04 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:04 INFO]: [TfpSpikeS2] [S2] break tfps2:metal/block/copper at 2,-60,3 by Bot tool=IRON_PICKAXE ticks=34 mode=SURVIVAL
+[13:42:04 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.break volume=1.0 pitch=1.2 to Bot
+[13:42:04 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:replaced.block.metal.break 1.0/0.8 -> 1.0/1.2 to Viewer
+[13:42:04 INFO]: [TfpSpikeS2] [S2] sound minecraft:replaced.block.metal.break volume=1.0 pitch=1.2 to Viewer
+[13:42:04 INFO]: [TerraFirmaPlugin] [tfp-sound] DROP minecraft:replaced.block.metal.break 1.0/0.8 -> 0.0/0.0 to Bot
+[13:42:04 INFO]: [TfpSpikeS2] [S2] sound minecraft:replaced.block.metal.break volume=1.0 pitch=0.8 to Bot
+[13:42:16 INFO]: [TfpSpikeS2] [S2] dig start BRICKS at 7,-60,3 by Bot tool=IRON_PICKAXE instabreak=false
+[13:42:16 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:16 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:17 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:17 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:17 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:17 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:17 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:17 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:17 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:17 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:18 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:18 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:18 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:18 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:18 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:18 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:18 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:18 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:18 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:18 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:19 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:19 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:19 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:19 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:19 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:19 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:19 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:19 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:20 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:20 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:20 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:20 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:20 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:20 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:20 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:20 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:20 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:20 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:21 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:21 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:21 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:21 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:21 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:21 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:21 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:21 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:21 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:21 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:22 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:22 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:22 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:22 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:22 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:22 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:22 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:22 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:23 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:23 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:23 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:23 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:23 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:23 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:23 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.wood.hit 0.5/0.5 -> 0.25/0.5 to Bot
+[13:42:23 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.hit volume=0.25 pitch=0.5 to Bot
+[13:42:23 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.wood.break volume=1.0 pitch=0.8 to Bot
+[13:42:23 INFO]: [TfpSpikeS2] [S2] break tfp:bellows[facing=north] at 7,-60,3 by Bot tool=IRON_PICKAXE ticks=136 mode=SURVIVAL
+[13:42:23 INFO]: [TfpSpikeS2] [S2] sound minecraft:replaced.block.wood.break volume=1.0 pitch=0.8 to Viewer
+[13:42:23 INFO]: [TerraFirmaPlugin] [tfp-sound] DROP minecraft:replaced.block.wood.break 1.0/0.8 -> 0.0/0.0 to Bot
+[13:42:23 INFO]: [TfpSpikeS2] [S2] sound minecraft:replaced.block.wood.break volume=1.0 pitch=0.8 to Bot
+[13:42:31 INFO]: [TfpSpikeS2] [S2] sound minecraft:replaced.block.grass.break volume=1.0 pitch=0.8 to Bot
+[13:42:31 INFO]: [TfpSpikeS2] [S2] sound minecraft:replaced.block.grass.break volume=1.0 pitch=0.8 to Viewer
+[13:42:37 INFO]: [TfpSpikeS2] [S2] dig start BRICKS at 3,-60,3 by Bot tool=IRON_PICKAXE instabreak=false
+[13:42:37 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:37 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:37 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:37 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:37 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:37 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:38 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:38 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:38 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:38 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:38 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:38 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:38 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:38 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:38 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.metal.hit 0.5/0.5 -> 0.25/0.75 to Bot
+[13:42:38 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.hit volume=0.25 pitch=0.75 to Bot
+[13:42:38 INFO]: [TfpSpikeS2] [S2] break tfps2:metal/block/copper at 3,-60,3 by Bot tool=IRON_PICKAXE ticks=34 mode=SURVIVAL
+[13:42:38 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.metal.break volume=1.0 pitch=1.2 to Bot
+[13:42:38 INFO]: [TerraFirmaPlugin] [tfp-sound] DROP minecraft:replaced.block.metal.break 1.0/0.8 -> 0.0/0.0 to Bot
+[13:42:38 INFO]: [TfpSpikeS2] [S2] sound minecraft:replaced.block.metal.break volume=1.0 pitch=0.8 to Bot
+[13:42:38 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:replaced.block.metal.break 1.0/0.8 -> 1.0/1.2 to Viewer
+[13:42:38 INFO]: [TfpSpikeS2] [S2] sound minecraft:replaced.block.metal.break volume=1.0 pitch=1.2 to Viewer

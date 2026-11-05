@@ -5,12 +5,16 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/client/TFCSounds.java @ c3b4d9536 (registerBlock: block.<name>.break/step/place/hit/fall)
+ * The volume/pitch rule (PAR-INFRA-33) follows CraftEngine 26.9.2's BlockSounds defaults, not TFC code.
  */
 package dev.tfp.datagen.device;
 
 import dev.tfp.datagen.DatagenException;
 import dev.tfp.datagen.Json;
+import dev.tfp.datagen.rendered.RenderedSound;
+import java.math.BigDecimal;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,6 +22,15 @@ import java.util.Map;
  * {@code SoundType}s map to their vanilla events (note {@code NETHER_WART}, TFC's firepit sound, mixes nether wart and
  * stone events); a TFC {@code TFCSounds.X} type maps to {@code tfp:block.x.*}, the renamed TFC events, which the pack
  * must define (ledger divergence until the sound pass ports them).
+ *
+ * <p>Volume and pitch (PAR-INFRA-33): each event plays at the TFC {@code SoundType}'s volume and pitch under the vanilla
+ * client's multipliers ({@link RenderedSound}). CraftEngine's {@code BlockSounds} defaults for a plain id (break and
+ * place 1.0/0.8, step 0.15/1.0, fall 0.5/0.75; read from the 26.9.2 jar) are exactly those values for a
+ * {@code SoundType} of (1.0, 1.0) (vanilla {@code STONE}, {@code WOOD}, {@code NETHER_WART} and every
+ * {@code TFCSounds.registerBlock} type), so such a set stays plain ids. Any other {@code SoundType} (vanilla
+ * {@code METAL}, 1.0/1.5) writes {@code {id, volume, pitch}} for all five events. The hit event is the exception that
+ * does not matter here: CraftEngine's mining loop sends it at a fixed 0.5/0.5 whatever the config says, and the paper
+ * packet rewrite ({@code dev.tfp.paper.blocksound}) sets it to {@link #values()}' hit, reading a plain id as (1.0, 1.0).
  */
 public record DeviceSound(String breakSound, String step, String place, String hit, String fall) {
     public static final DeviceSound STONE = vanillaGroup("stone");
@@ -67,14 +80,40 @@ public record DeviceSound(String breakSound, String step, String place, String h
         throw new DatagenException("unknown sound reference " + ref);
     }
 
-    /** CraftEngine {@code settings.sounds}. */
-    Map<String, Object> yaml() {
+    /** {@code event -> [volume, pitch]} the client plays each event at for this set's TFC {@code SoundType}. */
+    public Map<String, List<BigDecimal>> values() {
+        return RenderedSound.of(this).table();
+    }
+
+    /** True when CraftEngine's defaults for plain ids already play TFC's volume and pitch: a (1.0, 1.0) type. */
+    public boolean plainIds() {
+        RenderedSound type = RenderedSound.of(this);
+        return type.volume().compareTo(BigDecimal.ONE) == 0 && type.pitch().compareTo(BigDecimal.ONE) == 0;
+    }
+
+    /**
+     * CraftEngine {@code settings.sounds}: plain ids for a (1.0, 1.0) {@code SoundType}, otherwise
+     * {@code {id, volume, pitch}} per event ({@link #values()}).
+     */
+    public Map<String, Object> yaml() {
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("break", breakSound);
-        m.put("step", step);
-        m.put("place", place);
-        m.put("hit", hit);
-        m.put("fall", fall);
+        m.put("break", event("break", breakSound));
+        m.put("step", event("step", step));
+        m.put("place", event("place", place));
+        m.put("hit", event("hit", hit));
+        m.put("fall", event("fall", fall));
+        return m;
+    }
+
+    private Object event(String event, String id) {
+        if (plainIds()) {
+            return id;
+        }
+        RenderedSound type = RenderedSound.of(this);
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", id);
+        m.put("volume", type.volume(event));
+        m.put("pitch", type.pitch(event));
         return m;
     }
 }

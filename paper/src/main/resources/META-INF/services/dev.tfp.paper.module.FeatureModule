@@ -8,3 +8,4 @@ dev.tfp.paper.loot.LootModule
 dev.tfp.paper.catchup.CatchUpModule
 dev.tfp.paper.neighbour.NeighbourModule
 dev.tfp.paper.knap.KnappingModule
+dev.tfp.paper.blocksound.BlockSoundModule
