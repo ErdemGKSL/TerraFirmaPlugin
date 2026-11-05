@@ -49,7 +49,7 @@ Totals: 240 items; open 213, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-INFRA-26 | Neighbour runner self-test: neighbour.converge on Paper and Folia | INFRA | 5 | open |
 | PAR-INFRA-28 | Raw and hardened rock loot through the Paper runtime: delegate the 42 tfc:is_isolated tables, remove tfp:loot_table/rock_to_loose | INFRA | 5 | open |
 | PAR-INFRA-30 | TFC's 41 overrides of vanilla loot tables (glass, panes, snow, chests, zombie, drowned) ship in a datapack | INFRA | 5 | open |
-| PAR-INFRA-17 | Renderer-cube feel (spike S2): destroy_stages, particles, sounds and mining for display-drawn full blocks | INFRA | 5 | open |
+| PAR-INFRA-17 | Renderer-cube feel (spike S2): destroy_stages, particles, sounds and mining for display-drawn full blocks | INFRA | 5 | done |
 | PAR-METAL-20 | Charcoal forge lit tops turned 180°: the heat_N item display must match TFC's block-model orientation | METAL | 5 | open |
 | PAR-WORLD-18 | Ore vein weighted pick throws at a draw of 1.0: chunk refused ("no element above 100.0") | WORLD | 5 | open |
 | PAR-HUD-07 | HUD per MC version and TFC display styles: 26.x sprite list, XP bar style, health display style | HUD | 6 | open |
@@ -59,6 +59,7 @@ Totals: 240 items; open 213, done 24, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-SURV-02 | Food tooltip: expiry/rotten, traits, nutrition lines | SURV | 6 | open |
 | PAR-SURV-03 | Eating completion: undefined foods, peaceful, rotten advancement hook, in-game check | SURV | 6 | open |
 | PAR-INFRA-15 | Ore overlay datagen: ores take the host rock visual, overlay item models, always-on allocator rule, profiles level-0..2 only | INFRA | 6 | open |
+| PAR-INFRA-32 | Renderer-cube mining time: TFC break time independent of the client's swing rate, measured on a full-speed client | INFRA | 6 | open |
 | PAR-PROC-03 | Advanced crafting: TFC advanced recipes, food combining, casting crafting, vanilla recipe leakage | PROC | 7 | open |
 | PAR-PROC-04 | Quern: block, handstone, grinding, GUI-less interaction | PROC | 7 | open |
 | PAR-PROC-05 | Scraping hides on a log | PROC | 7 | open |

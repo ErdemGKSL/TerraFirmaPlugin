@@ -2,7 +2,7 @@
 id: PAR-INFRA-17
 title: "Renderer-cube feel (spike S2): destroy_stages, particles, sounds and mining for display-drawn full blocks"
 area: INFRA
-status: open
+status: done
 wave: 5
 deps: [PAR-INFRA-08, PAR-INFRA-13]
 size: M
@@ -40,6 +40,7 @@ plan:
   - "For overlay ores (consumed by PAR-INFRA-16): emit the cracked overlay variants as composite item models (overlay + `minecraft:block/destroy_stage_N`, 10 per overlay, 53 overlays) or record the S2 fallback (dim the overlay to tint 0x808080 while mining) if the stages cannot be kept in step."
   - "The family items that draw renderer cubes (PAR-DECO-09 metal blocks, PAR-DECO-12 crates, PAR-MECH-01 mechanical blocks) use this template (deps added there); this item ships no family itself, only the spike blocks and the templates."
   - "Feel checklist (docs/research/ore-entity-renderer-design.md 6) is the acceptance list; each item gets a verdict line in docs/verification/PAR-INFRA-17/verdict.md."
+  - "Done: datagen `dev.tfp.datagen.rendered` (RenderedTemplates: templates/rendered_block.yml with tfp:block/rendered_cube + tfp:settings/destroy_stages, configuration/rendered_block_items.yml with the 10 crack items over minecraft:block/destroy_stage_0..9 (outside templates/: files there hold only templates, DeviceSpecParityTest), 10 overlay crack quads; RenderedCubeSpec from TFC's Metal.blockProperties; CrackedOverlays for the 530 cracked overlay variants; S2Spike config), RenderedCubeSpecTest (8 tests), spike spikes/s2-destroy-stages (plugin + pack), docs/spikes/S2-destroy-stages.md, evidence and verdict in docs/verification/PAR-INFRA-17/. S2 changed the cube's view_range to 4.0 (0.75 left a hole at 48 m). Mining time is TFC's formula but counted in client swing ticks: follow-up PAR-INFRA-32."
 tests:
   - "tools/datagen rendered: RenderedCubeSpecTest golden YAML for one renderer cube (barrier carrier, destroy_stages 10 items in order 0..9, TFC sounds, particles), CeYamlCheck clean"
   - "tools/datagen rendered: every destroy_stages item model references `minecraft:block/destroy_stage_<n>` (n = 0..9, no copied PNG); cracked overlay variants exist for all 53 overlays when the variant route is chosen"

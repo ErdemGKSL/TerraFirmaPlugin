@@ -1,0 +1,8 @@
+name: TfpSpikeS2
+version: '0.0.0-spike'
+main: dev.tfp.spike.s2.S2Spike
+api-version: '1.21.11'
+dependencies:
+  server:
+    CraftEngine: { load: BEFORE, required: true, join-classpath: true }
+    packetevents: { load: BEFORE, required: true, join-classpath: true }
