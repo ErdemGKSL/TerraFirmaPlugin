@@ -100,6 +100,7 @@ public final class Datagen {
         BetterHudPack.write(out);
         HudLayouts.run(out, HudLayouts.catalogue());
         SeasonalBiomes.write(tfc, out);
+        VanillaLootOverrides.run(tfc, out); // PAR-INFRA-30: TFC's replacements of vanilla loot tables, in the bootstrap datapack
         CommonTags.run(out); // PAR-INFRA-14: NeoForge c: tags (skipped without -Dtfp.neoforgeJar, e.g. fixtures)
         out.put("third-party.json", "[]\n"); // no non-EUPL file is copied yet (checked by :checkNotice)
         out.put("reports/datagen-summary.json", Json.write(report.toJson()));

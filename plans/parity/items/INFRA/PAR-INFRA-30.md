@@ -2,7 +2,7 @@
 id: PAR-INFRA-30
 title: "TFC's 41 overrides of vanilla loot tables (glass, panes, snow, chests, zombie, drowned) ship in a datapack"
 area: INFRA
-status: open
+status: done
 wave: 5
 deps: [PAR-INFRA-21]
 size: S
@@ -22,6 +22,7 @@ plan:
   - "Chest and trapped chest name a CE item (`tfp:wood/chest/oak`), which a vanilla table cannot drop. Either ship them through the Paper loot runtime (a vanilla-block break hook over `LootService` that drops the CE item and copies the custom name), or leave the vanilla chest drop and record it. Record the choice in the ledger."
   - "Fail datagen when a shipped `minecraft:` table still names a `tfc:`/`tfp:` id that is not a vanilla item (other than through the chest decision above), and check the count against the pinned checkout (39 blocks, 2 entities)."
   - "Ledger: replace the PAR-INFRA-21 divergence row 'TFC's overrides of vanilla loot tables' with a feature row, keeping a divergence only for what stays different."
+  - "Done: datagen `VanillaLootOverrides` (one run line in Datagen) ships 37 block + 2 entity minecraft: tables (renamed) into the bootstrap datapack tfp_seasonal_biomes (content/datapack/tfp_seasonal_biomes/data/minecraft/loot_table/), the one generated pack TfpBootstrap registers, so no new registration was needed. chest and trapped_chest are skipped (they name tfp:wood/chest/oak and tfp:wood/trapped_chest/oak) and keep the vanilla drop: ledger divergence, revisit when TFC chests are CE items. Datagen fails on a shipped table naming a tfc:/tfp: id or of the wrong type, and on a full checkout whose counts are not 39/2. Tests: VanillaLootOverridesTest (4), itest case loot.vanilla_overrides (glass and pane by hand, snow and snow block with a shovel, snow with silk touch, zombie and drowned 64 rolls each), passed on Paper 1.21.11 self-test."
 tests:
   - "datagen: VanillaLootOverridesTest: fixture and pinned checkout give 39 block and 2 entity minecraft: tables, renamed, no leftover tfc:"
   - "itest: a glass block broken by hand drops glass; a snow layer broken with a shovel drops nothing; a zombie table rolls only rotten flesh"
