@@ -15,7 +15,10 @@ import java.util.Set;
  * <p>M2-CAL-02: the date and season text, top-left, updated every 20 ticks. M2-CLIM-03 adds the ambient
  * temperature line below it (same font, same tick). Both texts carry a black shadow ({@code outline: true}) and sit on
  * the info plate, the temperature right of the thermometer bar ({@code plans/hud-layered-redesign.md}; plate at 1,1,
- * 124x22; date glyphs at 6,5; thermometer 64x8 at 6,13; temperature text at 73,13). The HUD is not {@code default}, so
+ * 160x22; date glyphs at 6,5; thermometer 64x8 at 6,13; temperature text at 73,13; all layout coordinates, the HUD adds
+ * {@link #INFO_SHIFT_X}). PAR-HUD-13: the plate is wide enough for the longest date line, "September 30, 1000
+ * (Summer)" = 150 GUI px in the vanilla font, plus the 5 px text inset, the 1 px shadow and a 4 px margin
+ * ({@code BetterHudPackTest}). The HUD is not {@code default}, so
  * it is shown to nobody until a {@code default-hud} edit lists it (the M1 decision keeps the default HUD empty).
  * Every id has the {@code tfp_} prefix; the font is BetterHud's default font (no {@code file}).
  */
@@ -74,6 +77,14 @@ final class BetterHudPack {
                   tick: 20
             """;
 
+    /**
+     * GUI pixels the whole info HUD is moved right of its layout coordinates (a HUD {@code pixel} offset on every entry,
+     * so plate, thermometer and texts keep their relative places). BetterHud draws the top-left HUD 1 GUI px left of the
+     * layout x at GUI scale 2 and 5/3 px left at GUI scale 3 on 1280x720 (PAR-HUD-06), which cut the plate's left frame
+     * column at the screen edge; with this shift the plate starts at screen x 1 (GUI 2) and 1/3 (GUI 3).
+     */
+    static final int INFO_SHIFT_X = 1;
+
     /** Plate first (behind), then the thermometer, then the two text lines (HudLayouts writes the first two). */
     static final String HUDS = """
             tfp_date_hud:
@@ -83,20 +94,32 @@ final class BetterHudPack {
                   gui:
                     x: 0
                     y: 0
+                  pixel:
+                    x: %1$d
+                    y: 0
                 2:
                   name: tfp_m2_clim_03_ambient_temp_bar
                   gui:
                     x: 0
+                    y: 0
+                  pixel:
+                    x: %1$d
                     y: 0
                 3:
                   name: tfp_date
                   gui:
                     x: 0
                     y: 0
+                  pixel:
+                    x: %1$d
+                    y: 0
                 4:
                   name: tfp_ambient_temp
                   gui:
                     x: 0
                     y: 0
-            """;
+                  pixel:
+                    x: %1$d
+                    y: 0
+            """.formatted(INFO_SHIFT_X);
 }

@@ -12,3 +12,11 @@ Picked: `v2/100747-simple-clean-flat-rectangular-informatio-1.png`.
     python3 tools/images/postprocess.py art/raw/hud-info-plate/v2/100747-simple-clean-flat-rectangular-informatio-1.png docs/art/hud/m2_cal_02_info_plate.png --size 124x22 --trim --trim-alpha 128 --colors 6 --resample nearest
 
 then copied to `tools/datagen/src/main/resources/dev/tfp/datagen/hud/`. Status: generated, pending review.
+
+PAR-HUD-13 (2026-11-05): widened to 160x22 from the same raw (the date line "September 30, 1000  (Summer)" is 150 GUI px;
+plate = text inset 5 + 150 + shadow 1 + margin 4, `BetterHudPackTest`):
+
+    python3 tools/images/postprocess.py art/raw/hud-info-plate/v2/100747-simple-clean-flat-rectangular-informatio-1.png docs/art/hud/m2_cal_02_info_plate.png --size 160x22 --trim --trim-alpha 128 --colors 6 --resample nearest
+    python3 tools/images/hud_palette.py docs/art/hud/m2_cal_02_info_plate.png tools/datagen/src/main/resources/dev/tfp/datagen/hud/m2_cal_02_info_plate.png
+
+Status: in-game checked (docs/verification/PAR-HUD-13/).

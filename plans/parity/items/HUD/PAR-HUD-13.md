@@ -2,7 +2,7 @@
 id: PAR-HUD-13
 title: "Info plate fits the longest date line; BetterHud horizontal shift of the top-left info HUD"
 area: HUD
-status: open
+status: done
 wave: 6
 deps: [PAR-HUD-06]
 size: S
@@ -26,6 +26,7 @@ plan:
   - "Widening the plate alone is not enough: a 158x22 plate (postprocess.py from the same raw, --size 158x22) moved the plate about 17 GUI px right and the date text and thermometer about 17 px left in game (BetterHud re-centres the info HUD line by the image width). Fix the layout so the plate, text and thermometer keep their offsets for any plate width (check how BetterHudPack/HudLayouts place the info layouts and BetterHud's offset rules), then widen the plate (about 158 px: text start 5 + 148 + shadow 1 + margin 4) or shorten the line (e.g. season on the temperature line)."
   - "At GUI scale 3 on 1280x720 (GUI width 426.67) the whole info HUD sits 5/3 GUI px left of its layout x (the plate's left frame column is 1 screen px wide, cut by the screen edge); at GUI 2 it is 1 px left (the known SCREEN_SHIFT_X). Make the plate fully visible at both scales (e.g. layout x 2)."
   - "Update docs/hud/catalogue.md (plate size and position rows) and the BetterHudPack javadoc (124x22) with the new geometry."
+  - "Done: 160x22 plate re-postprocessed from the same raw (text inset 5 + longest line 'September 30, 1000  (Summer)' 150 + shadow 1 + margin 4; the season is 'Fall', not 'Autumn'), HUD pixel.x +1 on the four info layouts (BetterHudPack.INFO_SHIFT_X). The 17 px re-centring of PAR-HUD-06 did not reproduce in game: BetterHud zero-sums each layout's width (LayoutComponentContainer), so no layout compensation is needed. Tests: BetterHudPackTest (5). Verification pass at GUI 2 and 3: docs/verification/PAR-HUD-13/."
 tests:
   - "tools/datagen: a test that the plate is at least as wide as the longest date line in the font's advance widths (all month names, two-digit day, four-digit year, every season) plus the text inset and margin"
 done_criteria:
