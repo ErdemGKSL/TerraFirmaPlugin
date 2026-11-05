@@ -24,9 +24,10 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
-  - "Right-click with 2 loose rocks / 5 clay / leather+knife / goat horn opens the 6-row chest GUI: 25 button slots in columns 2-6 (index x+5y), output slot; KnappingSession drives clicks, output appears when a recipe matches; consumption on close/take as TFC; textures from TFC gui/knapping/*.png."
+  - "Right-click with 2 loose rocks / 5 clay / 5 fire clay / 1 leather (TFC c3b4d9536 needs no knife: knapping_type/leather.json takes 1 item of tfc:leather_knapping) / 1 goat horn opens the 6-row chest GUI: 25 button slots in columns 2-6 (index x+5y), output slot; KnappingSession drives clicks, output appears when a recipe matches; consumption on close/take as TFC; textures from TFC gui/knapping/*.png."
   - "Layout note: the grid uses chest columns 1 to 5 (not 2 to 6) and the output chest slot 26 (column 8, row 2), so TFC's arrow fits between them; the art moves by (24, 8) with the output slot."
   - "Done: core/knap/KnappingScreen (6-row chest layout, cell overlays, frames), KnappingSession.stillValid, KnappingDefinitions.resultTemplate; paper/knap KnappingModule, KnappingMenu, KnappingListener (right-click air with the main hand stack, button cells, output take incl. shift-click hotbar-first, close returns and consumes, input slot locked, creative and spectator); datagen/knap/KnappingArt (knapping.png re-laid out + 47 textures x 5 row images, checked against TFC sources). Tests: core KnappingScreenTest (7), paper KnappingMockBukkitTest (10), datagen KnappingArtTest (4); in-game check deferred to PAR-PROC-20 (the axe head output needs PAR-TOOL-01)."
+  - "Review fix: cells show no tooltip like TFC's KnappingButton (on cells hide it through ItemMeta.setHideTooltip, off cells are empty slots; asserted in KnappingMockBukkitTest); the click sound uses SoundCategory.MASTER like TFC's forUI; the hover recapture and the fire clay / goat horn screens are steps of PAR-PROC-20."
 tests:
   - "paper: MockBukkit session click -> output -> take consumes"
   - "core: KnappingGoldenTest exists"

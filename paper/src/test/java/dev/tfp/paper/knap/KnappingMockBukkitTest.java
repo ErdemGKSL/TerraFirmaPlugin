@@ -108,6 +108,20 @@ class KnappingMockBukkitTest extends MockServerTest {
         }
     }
 
+    /** Off cells hold nothing, on cells a button with a hidden tooltip (TFC's knapping buttons have no tooltip). */
+    private void assertCellSlots(KnappingMenu menu) {
+        Inventory top = session().getInventory();
+        for (int cell = 0; cell < 25; cell++) {
+            ItemStack item = top.getItem(KnappingScreen.cellSlot(cell));
+            if (menu.rules().grid().get(cell)) {
+                assertThat(item).as("on cell %d", cell).isNotNull();
+                assertThat(item.getItemMeta().isHideTooltip()).as("on cell %d hides its tooltip", cell).isTrue();
+            } else {
+                assertThat(item == null || item.isEmpty()).as("off cell %d is empty", cell).isTrue();
+            }
+        }
+    }
+
     private ItemStack output() {
         return session().getInventory().getItem(KnappingScreen.OUTPUT_SLOT);
     }
@@ -128,6 +142,7 @@ class KnappingMockBukkitTest extends MockServerTest {
         assertThat(top.getSize()).isEqualTo(54);
         KnappingMenu menu = KnappingMenu.of(session());
         assertThat(menu.texture()).isEqualTo("rock/loose/granite"); // flint has no texture: the type icon's
+        assertCellSlots(menu);
         // the first click removes one rock (TFC: not creative, not consume-after-complete)
         click(KnappingScreen.cellSlot(0), ClickType.LEFT, InventoryAction.PICKUP_ALL);
         assertThat(player.getInventory().getItem(0).getAmount()).isEqualTo(1);
@@ -139,6 +154,9 @@ class KnappingMockBukkitTest extends MockServerTest {
         knap(AXE);
         assertThat(player.getInventory().getItem(0).getAmount()).isEqualTo(1);
         assertThat(output().getType()).isEqualTo(Material.STONE_AXE);
+        assertCellSlots(menu);
+        assertThat(java.util.stream.IntStream.range(0, 25)
+            .filter(c -> top.getItem(KnappingScreen.cellSlot(c)) != null).count()).isEqualTo(15);
         // the title shows the cells that are left (background + the axe's 15 on cells)
         assertThat(session().glyphs().tokens().stream().filter(t -> t instanceof dev.tfp.core.gui.TitleGlyphs.Glyph).count())
             .isEqualTo(1 + 15);
@@ -151,6 +169,7 @@ class KnappingMockBukkitTest extends MockServerTest {
         for (int i = 0; i < 25; i++) {
             assertThat(menu.rules().grid().get(i)).isFalse();
         }
+        assertCellSlots(menu);
         assertThat(player.getInventory().getItem(0).getAmount()).isEqualTo(1);
     }
 

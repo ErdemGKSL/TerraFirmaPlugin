@@ -19,12 +19,16 @@ in_game_steps:
   - "click the axe pattern (cells off: (0,0) (2,0) (3,0) (4,0) (4,1) (4,3) (0,4) (2,4) (3,4) (4,4)); screenshot: the granite stack is 1, the clicked cells show the panel, tfp:stone/axe_head/igneous_intrusive in the output; take it"
   - "give Bot 5 minecraft:clay_ball; right-click air; click one cell: the off cell shows clay_ball_disabled; close: no clay consumed"
   - "give Bot minecraft:leather; right-click air; click one cell: the leather is gone and the window stays open"
+  - "ce item give Bot tfp:rock/loose/granite 2; right-click air; click the axe pattern; at GUI scale 2 and 3 hover an on cell and a removed cell (row 4, col 4): no tooltip box on either (the vanilla white slot highlight is a recorded divergence)"
+  - "ce item give Bot tfp:fire_clay 5; right-click air; click one cell: the off cell shows fire_clay_disabled and no fire clay is consumed; close: none consumed"
+  - "ce item give Bot tfp:goat_horn 1; right-click air: no horn sound plays; click one cell: the off cell shows goat_horn_disabled, the horn is gone and the window stays open"
 plan:
   - "Deferred screenshot check of PAR-PROC-01 (PROTOCOL §6.5): the axe head output needs the stone tool head CE items of PAR-TOOL-01; before that the output of a rock recipe is an unknown item and stays empty. Store crops and verdict.md in docs/verification/PAR-PROC-01/."
 tests: []
 done_criteria:
   - "Knapping an axe head from two granite loose rocks in-game"
-  - "Clay shows the disabled texture on off cells; leather hides them"
+  - "Clay, fire clay and goat horn show their disabled texture on off cells; leather hides them"
+  - "No knapping cell, on or off, shows a tooltip"
 ---
 
 # PAR-PROC-20: Knapping in-game verification: axe head from two granite loose rocks, clay and leather screens

@@ -39,6 +39,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 
 /**
  * PAR-PROC-01: one open knapping window ({@link KnappingScreen} layout, {@link KnappingSession} rules). The input stack
@@ -138,12 +139,20 @@ public final class KnappingMenu {
         return b.build();
     }
 
-    /** A cell's button: a blank button over the glyph art; without CraftEngine a named paper while on, nothing when off. */
+    /**
+     * A cell's button: while on, a blank button over the glyph art (without CraftEngine a paper) whose tooltip is hidden,
+     * as TFC's {@code KnappingButton} has none; nothing when off (TFC hides off buttons). The button routing works on the
+     * slot, so an empty off cell is still refused by {@code GuiListener} and ignored by {@link #press}.
+     */
     private ItemStack icon(int cell) {
-        if (!services.gui().glyphs() && !rules.grid().get(cell)) {
+        if (!rules.grid().get(cell)) {
             return null;
         }
-        return GuiButtons.icon(services.gui().glyphs(), " ");
+        ItemStack stack = GuiButtons.icon(services.gui().glyphs(), " ");
+        ItemMeta meta = stack.getItemMeta();
+        meta.setHideTooltip(true); // minecraft:hide_tooltip on 1.21.4, tooltip_display{hide_tooltip:true} on 1.21.5+/26.x
+        stack.setItemMeta(meta);
+        return stack;
     }
 
     public KnappingSession rules() {
@@ -176,7 +185,7 @@ public final class KnappingMenu {
         }
         shrink(rules.click(cell));
         // TFC plays the sound event as a UI sound for the clicker; the event ships with the pack sounds (PAR-DATA-08)
-        player.playSound(player.getLocation(), type.clickSound(), SoundCategory.PLAYERS, 1f, 1f);
+        player.playSound(player.getLocation(), type.clickSound(), SoundCategory.MASTER, 1f, 1f); // TFC: forUI (master)
         Inventory inv = session.getInventory();
         inv.setItem(KnappingScreen.OUTPUT_SLOT, result().orElse(null));
         session.refresh();
