@@ -72,7 +72,8 @@ import org.bukkit.inventory.ItemStack;
  * <p>PAR-HUD-12: in creative and spectator ({@link GameModeNeeds#needsActive}) the snapshot is published with
  * {@link HudSnapshot#needsActive()} false, which hides every bar and the held-item popup, and the thirst clock is
  * re-stamped at each reading instead of decayed, so the needs are paused. A game-mode switch
- * ({@link #onGameModeChange}) settles the clock at the switch on the player's thread and republishes at once.
+ * ({@link #onGameModeChange}) settles the clock and publishes the new mode's flag inside the event, on the player's
+ * thread, so the snapshot never lags the switch.
  */
 public final class PlayerNeedsHudService implements Listener {
     /** The throttle: one reading per player per second. */
@@ -176,6 +177,15 @@ public final class PlayerNeedsHudService implements Listener {
 
     /** Player thread only: evaluates the thirst lazily, writes its clock back, then publishes. */
     void publish(Player player) {
+        publish(player, GameModeNeeds.needsActive(player.getGameMode()));
+    }
+
+    /**
+     * Player thread only: {@link #publish(Player)} with the needs on ({@code active}) or off as given by the caller,
+     * instead of read from the player's current game mode. {@link #onGameModeChange} passes the new mode's flag, because
+     * Paper fires the event before the mode is applied.
+     */
+    void publish(Player player, boolean active) {
         ThreadAsserts.owned(player);
         UUID id = player.getUniqueId();
         Optional<PlayerData> stored = data.get(id);
@@ -185,7 +195,6 @@ public final class PlayerNeedsHudService implements Listener {
         HudSnapshot base = hud.snapshot(id);
         long now = playerTicks.getAsLong();
         float temperature = (float) base.ambientTemperature();
-        boolean active = GameModeNeeds.needsActive(player.getGameMode());
         PlayerData evaluated = data.update(id, d -> GameModeNeeds.evaluate(d, active, now, temperature));
         float modifier = healthModifier(Optional.of(evaluated), player.getFoodLevel());
         HealthDisplay health = HealthDisplay.of((float) player.getHealth(), (float) player.getMaxHealth(), modifier,
@@ -293,23 +302,28 @@ public final class PlayerNeedsHudService implements Listener {
 
     /**
      * PAR-HUD-12: a switch between a mode with needs (survival, adventure) and one without (creative, spectator). Paper
-     * fires the event before the mode changes; the task runs on the player's next tick, after it changed, settles the
-     * thirst clock at the switch ({@link GameModeNeeds#atSwitch}: decayed up to it when leaving survival or adventure,
-     * re-stamped when leaving creative or spectator) and republishes, so the bars hide or show at once. A switch between
-     * two modes of the same kind (survival and adventure, creative and spectator) changes nothing.
+     * fires the event on the player's own thread before the mode changes, so the handler does the switch right there: it
+     * settles the thirst clock at the switch ({@link GameModeNeeds#atSwitch}: decayed up to it when leaving survival or
+     * adventure, re-stamped when leaving creative or spectator) and publishes with the new mode's flag
+     * ({@code event.getNewGameMode()}), so the snapshot holds the new state when the handler returns and the bars hide or
+     * show on BetterHud's next update. A republish on the player's next tick (after the mode is applied) stays as a
+     * safety net. A switch between two modes of the same kind (survival and adventure, creative and spectator) changes
+     * nothing.
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onGameModeChange(PlayerGameModeChangeEvent event) {
         Player player = event.getPlayer();
         boolean wasActive = GameModeNeeds.needsActive(player.getGameMode());
-        if (wasActive == GameModeNeeds.needsActive(event.getNewGameMode())) {
+        boolean active = GameModeNeeds.needsActive(event.getNewGameMode());
+        if (wasActive == active) {
             return;
         }
-        scheduler.entity(player, () -> switched(player, wasActive), null);
+        switched(player, wasActive, active);
+        refresh(player);
     }
 
-    /** Player thread only: the clock settled at the switch, then a publish in the new mode. */
-    void switched(Player player, boolean wasActive) {
+    /** Player thread only: the clock settled at the switch, then a publish in the new mode ({@code active}). */
+    void switched(Player player, boolean wasActive, boolean active) {
         ThreadAsserts.owned(player);
         UUID id = player.getUniqueId();
         if (!data.isLoaded(id)) {
@@ -318,16 +332,21 @@ public final class PlayerNeedsHudService implements Listener {
         long now = playerTicks.getAsLong();
         float temperature = (float) hud.snapshot(id).ambientTemperature();
         data.update(id, d -> GameModeNeeds.atSwitch(d, wasActive, now, temperature));
-        publish(player);
+        publish(player, active);
     }
 
-    /** Restarts the thirst clock when the player joins (see the class comment). */
+    /**
+     * Restarts the thirst clock when the player joins (see the class comment) and publishes on the player's next tick, so
+     * a player who joins in creative or spectator does not see the default snapshot's bars until the throttle.
+     */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
-        UUID id = event.getPlayer().getUniqueId();
+        Player player = event.getPlayer();
+        UUID id = player.getUniqueId();
         if (data.isLoaded(id)) {
             long now = playerTicks.getAsLong();
             data.update(id, d -> ThirstDecay.restart(d, now));
+            refresh(player);
         }
     }
 }

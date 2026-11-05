@@ -18,9 +18,11 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
+import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -132,6 +134,68 @@ class GameModeNeedsMockBukkitTest extends MockServerTest {
         assertThat(hud.snapshot(ALEX).heldTemperature()).isEqualTo(900);
         switchTo(GameMode.SURVIVAL);
         assertThat(hud.snapshot(ALEX).needsActive()).isTrue();
+    }
+
+    /**
+     * The event handler alone, before the mode is applied and before any tick (Paper fires the event before the change):
+     * the snapshot already holds the new mode's flag and the clock is settled at the switch, so the HUD never shows the
+     * previous mode's state while waiting for a later tick.
+     */
+    private void eventOnly(GameMode mode) {
+        GameMode before = alex.getGameMode();
+        needs.onGameModeChange(new PlayerGameModeChangeEvent(alex, mode));
+        assertThat(alex.getGameMode()).as("the mode is not applied yet").isEqualTo(before);
+    }
+
+    @Test
+    void theSnapshotBuiltDuringTheEventHoldsTheNewMode() {
+        store.update(ALEX, d -> d.withThirst(80f));
+        needs.publish(alex);
+        assertThat(hud.snapshot(ALEX).needsActive()).isTrue();
+
+        now[0] = 5_000L;
+        eventOnly(GameMode.CREATIVE);
+        assertThat(hud.snapshot(ALEX).needsActive()).as("survival -> creative, in the event").isFalse();
+        assertThat(store.get(ALEX).orElseThrow().thirstTick()).isEqualTo(5_000L);
+        float atSwitch = store.get(ALEX).orElseThrow().thirst();
+        assertThat(atSwitch).as("the survival time before the switch counts").isLessThan(80f);
+        assertThat(hud.snapshot(ALEX).thirst()).isEqualTo(atSwitch);
+        alex.setGameMode(GameMode.CREATIVE);
+        server.getScheduler().performOneTick(); // the next-tick safety net agrees
+        assertThat(hud.snapshot(ALEX).needsActive()).isFalse();
+
+        now[0] = 9_000L;
+        eventOnly(GameMode.SURVIVAL);
+        assertThat(hud.snapshot(ALEX).needsActive()).as("creative -> survival, in the event").isTrue();
+        assertThat(store.get(ALEX).orElseThrow().thirstTick()).isEqualTo(9_000L);
+        assertThat(store.get(ALEX).orElseThrow().thirst()).as("no catch-up").isEqualTo(atSwitch);
+        alex.setGameMode(GameMode.SURVIVAL);
+        server.getScheduler().performOneTick();
+        assertThat(hud.snapshot(ALEX).needsActive()).isTrue();
+
+        now[0] = 12_000L;
+        eventOnly(GameMode.SPECTATOR);
+        assertThat(hud.snapshot(ALEX).needsActive()).as("survival -> spectator, in the event").isFalse();
+        assertThat(store.get(ALEX).orElseThrow().thirstTick()).isEqualTo(12_000L);
+        alex.setGameMode(GameMode.SPECTATOR);
+        server.getScheduler().performOneTick();
+        float paused = store.get(ALEX).orElseThrow().thirst();
+
+        now[0] = 20_000L;
+        eventOnly(GameMode.ADVENTURE);
+        assertThat(hud.snapshot(ALEX).needsActive()).as("spectator -> adventure, in the event").isTrue();
+        assertThat(store.get(ALEX).orElseThrow().thirstTick()).isEqualTo(20_000L);
+        assertThat(store.get(ALEX).orElseThrow().thirst()).as("no catch-up").isEqualTo(paused);
+    }
+
+    /** PROTOCOL section 4 rule 7: a player joining in creative gets the bars hidden on the next tick, not after the throttle. */
+    @Test
+    void aJoinInCreativePublishesTheHiddenBars() {
+        alex.setGameMode(GameMode.CREATIVE);
+        assertThat(hud.snapshot(ALEX).needsActive()).as("the default snapshot").isTrue();
+        needs.onJoin(new PlayerJoinEvent(alex, (Component) null));
+        server.getScheduler().performOneTick();
+        assertThat(hud.snapshot(ALEX).needsActive()).isFalse();
     }
 
     /** A switch before the player data is loaded (or after it is unloaded) publishes nothing and throws nothing. */
