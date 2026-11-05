@@ -7,11 +7,14 @@
  * file: src/main/java/net/dries007/tfc/common/component/TFCComponents.java @ c3b4d9536
  * (onModifyDefaultComponentsAfterResourceReload: the food component follows the food definition),
  * src/main/java/net/dries007/tfc/common/component/food/FoodData.java @ c3b4d9536 (MILK),
- * src/main/java/net/dries007/tfc/mixin/MilkBucketItemMixin.java @ c3b4d9536 (drinking milk eats FoodData.MILK)
+ * src/main/java/net/dries007/tfc/mixin/MilkBucketItemMixin.java @ c3b4d9536 (drinking milk eats FoodData.MILK),
+ * src/main/java/net/dries007/tfc/common/component/food/FoodCapability.java @ c3b4d9536 (isRotten: a zero decay date
+ * modifier, as decay_modifier "infinity" gives, is always rotten)
  */
 package dev.tfp.core.food;
 
 import dev.tfp.core.recipe.food.FoodData;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -19,8 +22,9 @@ import java.util.Optional;
  * What eating (consuming) an item does under TFC's rules (PAR-SURV-03). Pure and thread-safe.
  *
  * <p>TFC gives an item the vanilla {@code minecraft:food} component exactly when it has an edible food definition, and
- * removes it from every other item (vanilla bread, beef, apples, golden apples, stews, honey bottles...): those can no
- * longer be eaten at all. Vanilla clients keep the vanilla components, so the plugin decides at the consume instead:
+ * removes it from every other item (vanilla bread, beef, apples, golden apples, stews...): those can no longer be eaten
+ * at all. The honey bottle is the exception: vanilla 1.21.1's {@code HoneyBottleItem} starts using without the food
+ * component, so in TFC it is still drunk (Poison removed, a glass bottle given) without any eating. Vanilla clients keep the vanilla components, so the plugin decides at the consume instead:
  *
  * <ul>
  *   <li>{@link Action#EAT}: a custom item with an edible definition. Vanilla consumes it; TFC's values are applied.</li>
@@ -31,16 +35,19 @@ import java.util.Optional;
  *       instead; {@link #remainder} is what the emptied stack becomes.</li>
  *   <li>{@link Action#BLOCK}: a vanilla food without an edible TFC definition, or any item whose definition says
  *       {@code "edible": false}: not edible in TFC, so the consume is cancelled.</li>
+ *   <li>{@link Action#USE_INSTEAD}: the vanilla honey bottle without a TFC definition. Not food in TFC, but still
+ *       drunk: vanilla's consume (its food) is cancelled, Poison is removed and one bottle is used, leaving
+ *       {@link #remainder} ({@code minecraft:glass_bottle}). No nutrition, no eaten hook.</li>
  *   <li>{@link Action#IGNORE}: everything else (potions, custom items without a definition): not TFC's eating.</li>
  * </ul>
  *
  * @param itemId    the item id the decision is about ({@code tfp:food/mutton}, {@code minecraft:bread})
  * @param food      the food data eaten for {@code EAT} and {@code EAT_INSTEAD}, empty otherwise
- * @param remainder for {@code EAT_INSTEAD}: the vanilla item the stack becomes when it is used up, or empty
+ * @param remainder for {@code EAT_INSTEAD} and {@code USE_INSTEAD}: the vanilla item a use leaves, or empty
  */
 public record EatDecision(Action action, String itemId, Optional<FoodData> food, Optional<String> remainder) {
     /** The kind of consume. */
-    public enum Action { IGNORE, BLOCK, EAT, EAT_INSTEAD }
+    public enum Action { IGNORE, BLOCK, EAT, EAT_INSTEAD, USE_INSTEAD }
 
     /** The vanilla milk bucket. */
     public static final String MILK_BUCKET = "minecraft:milk_bucket";
@@ -48,6 +55,10 @@ public record EatDecision(Action action, String itemId, Optional<FoodData> food,
     public static final String BUCKET = "minecraft:bucket";
     /** TFC {@code FoodData.MILK = of(0, 0).dairy(2f)}: no hunger, saturation, water or decay, 2 dairy. */
     public static final FoodData MILK = new FoodData(0, 0f, 0f, 0, 0f, 0f, 0f, 0f, 2f, 0f);
+    /** The vanilla honey bottle (vanilla 1.21.1 {@code HoneyBottleItem}: drunk without the food component). */
+    public static final String HONEY_BOTTLE = "minecraft:honey_bottle";
+    /** What a drunk honey bottle leaves. */
+    public static final String GLASS_BOTTLE = "minecraft:glass_bottle";
 
     public EatDecision {
         Objects.requireNonNull(action, "action");
@@ -85,7 +96,20 @@ public record EatDecision(Action action, String itemId, Optional<FoodData> food,
                     ? new EatDecision(Action.EAT_INSTEAD, vanillaId, food, Optional.empty())
                     : of(Action.BLOCK, vanillaId);
         }
+        if (HONEY_BOTTLE.equals(vanillaId)) {
+            return new EatDecision(Action.USE_INSTEAD, vanillaId, Optional.empty(), Optional.of(GLASS_BOTTLE));
+        }
         return of(vanillaFood ? Action.BLOCK : Action.IGNORE, vanillaId);
+    }
+
+    /**
+     * Whether the eaten food is rotten whatever its stack says: its definition's {@code decay_modifier} is
+     * {@code "infinity"}, so TFC's decay date modifier is 0 and {@code FoodCapability.isRotten} is always true
+     * (TFC data {@code food/rotten_flesh.json}). An unstamped vanilla stack has no creation date, so this is the only
+     * way to see that vanilla rotten flesh is rotten. Positive trait modifiers only multiply it, so they cannot change that.
+     */
+    public boolean alwaysRotten() {
+        return food.filter(f -> FoodDecay.decayDateModifier(f.decayModifier(), List.of()) == 0f).isPresent();
     }
 
     private static EatDecision of(Action action, String id) {

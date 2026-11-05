@@ -47,10 +47,14 @@ import org.bukkit.potion.PotionEffectType;
  *   <li>a vanilla food without a TFC definition (bread, beef, golden apples, stews...) and an item whose definition
  *       says {@code "edible": false}: TFC removes their food component, so they cannot be eaten; the consume is
  *       cancelled;</li>
+ *   <li>the vanilla honey bottle: not food in TFC, but vanilla 1.21.1's {@code HoneyBottleItem} is still drunk without
+ *       the food component; vanilla's consume (its food) is cancelled, Poison is removed and one bottle is used for a
+ *       glass bottle, with no nutrition and no eaten hook;</li>
  *   <li>anything else (potions, custom non-food items) is left alone.</li>
  * </ul>
  *
- * <p>A rotten food records nothing and gives TFC's rotten-food effects (Hunger II, sometimes Poison I). Every eaten
+ * <p>A food is rotten when its stack is rotten or its definition always is ({@link EatDecision#alwaysRotten}: vanilla
+ * rotten flesh, {@code decay_modifier} infinity, has no stamp). A rotten food records nothing and gives TFC's rotten-food effects (Hunger II, sometimes Poison I). Every eaten
  * food fires a {@link NutritionFoodEatenEvent} (the hook of TFC's {@code EAT_ROTTEN_FOOD} and {@code FULL_NUTRITION}
  * advancements). Difficulty plays no part: TFC's {@code PlayerInfo#eat} is the same in peaceful.
  *
@@ -112,18 +116,30 @@ public final class NutritionEatListener implements Listener {
                 event.setCancelled(true); // TFC: not edible (no food component), so it is never eaten
                 return;
             }
+            case USE_INSTEAD -> {
+                // Honey bottle (vanilla 1.21.1 HoneyBottleItem#finishUsingItem without the food): only the cure.
+                event.setCancelled(true);
+                if (useOne(player, event.getHand(), stack, decision.remainder(), true)) {
+                    player.removePotionEffect(PotionEffectType.POISON);
+                }
+                return;
+            }
             case EAT, EAT_INSTEAD -> {
                 // below
             }
         }
+        boolean instead = decision.action() == EatDecision.Action.EAT_INSTEAD;
+        if (instead) {
+            // Vanilla's consume is replaced: its food, its consume effects and milk's effect clearing do not happen,
+            // even when the player's data is not loaded (then nothing is eaten at all).
+            event.setCancelled(true);
+        }
         if (!data.isLoaded(player.getUniqueId())) {
             return;
         }
-        boolean rotten = hooks.isRotten(stack);
-        if (decision.action() == EatDecision.Action.EAT_INSTEAD) {
-            // Vanilla's consume is replaced: its food, its consume effects and milk's effect clearing do not happen.
-            event.setCancelled(true);
-            if (!useOne(player, event.getHand(), stack, decision.remainder())) {
+        boolean rotten = decision.alwaysRotten() || hooks.isRotten(stack);
+        if (instead) {
+            if (!useOne(player, event.getHand(), stack, decision.remainder(), false)) {
                 return;
             }
             eat(player, decision, rotten, false);
@@ -134,9 +150,12 @@ public final class NutritionEatListener implements Listener {
 
     /**
      * TFC {@code MilkBucketItemMixin}: outside creative the stack shrinks by one, and a used-up stack becomes the
-     * remainder (an empty bucket for milk). False when the hand no longer holds the consumed item (nothing eaten).
+     * remainder (an empty bucket for milk). With {@code remainderEachUse} (vanilla's honey bottle) a stack that is not
+     * used up also gives one remainder, added to the inventory or dropped when it is full. False when the hand no
+     * longer holds the consumed item (nothing used).
      */
-    static boolean useOne(Player player, EquipmentSlot hand, ItemStack consumed, Optional<String> remainder) {
+    static boolean useOne(Player player, EquipmentSlot hand, ItemStack consumed, Optional<String> remainder,
+            boolean remainderEachUse) {
         EquipmentSlot slot = hand == null ? EquipmentSlot.HAND : hand;
         PlayerInventory inventory = player.getInventory();
         ItemStack held = inventory.getItem(slot);
@@ -146,13 +165,19 @@ public final class NutritionEatListener implements Listener {
         if (player.getGameMode() == GameMode.CREATIVE) {
             return true;
         }
+        Material left = remainder.map(Material::matchMaterial).orElse(Material.AIR);
+        boolean hasRemainder = left != null && !left.isAir();
         if (held.getAmount() > 1) {
             held.setAmount(held.getAmount() - 1);
             inventory.setItem(slot, held);
+            if (remainderEachUse && hasRemainder) {
+                for (ItemStack overflow : inventory.addItem(new ItemStack(left)).values()) {
+                    player.getWorld().dropItem(player.getLocation(), overflow);
+                }
+            }
             return true;
         }
-        Material left = remainder.map(Material::matchMaterial).orElse(Material.AIR);
-        inventory.setItem(slot, left == null || left.isAir() ? null : new ItemStack(left));
+        inventory.setItem(slot, hasRemainder ? new ItemStack(left) : null);
         return true;
     }
 

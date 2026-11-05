@@ -59,11 +59,36 @@ class EatDecisionTest {
     @Test
     void aVanillaFoodWithoutADefinitionIsRefused() {
         for (String id : List.of("minecraft:bread", "minecraft:cooked_beef", "minecraft:golden_apple",
-                "minecraft:honey_bottle", "minecraft:mushroom_stew")) {
+                "minecraft:mushroom_stew", "minecraft:suspicious_stew", "minecraft:chorus_fruit")) {
             EatDecision d = EatDecision.decide(Optional.empty(), id, true, DEFS);
             assertThat(d.action()).as(id).isEqualTo(Action.BLOCK);
             assertThat(d.food()).isEmpty();
         }
+    }
+
+    /**
+     * Vanilla 1.21.1 {@code HoneyBottleItem} overrides {@code use()}, so TFC's food strip does not stop it: it is
+     * drunk (Poison removed, glass bottle left) without any eating.
+     */
+    @Test
+    void theHoneyBottleIsDrunkWithoutEating() {
+        EatDecision honey = EatDecision.decide(Optional.empty(), "minecraft:honey_bottle", true, DEFS);
+        assertThat(honey.action()).isEqualTo(Action.USE_INSTEAD);
+        assertThat(honey.food()).isEmpty();
+        assertThat(honey.remainder()).contains("minecraft:glass_bottle");
+        assertThat(honey.alwaysRotten()).isFalse();
+    }
+
+    /** TFC data {@code food/rotten_flesh.json}: {@code decay_modifier} infinity, so it is rotten even unstamped. */
+    @Test
+    void aFoodWithAnInfiniteDecayModifierIsAlwaysRotten() {
+        assertThat(EatDecision.decide(Optional.empty(), "minecraft:rotten_flesh", true, DEFS).alwaysRotten()).isTrue();
+        assertThat(EatDecision.decide(Optional.empty(), "minecraft:pumpkin_pie", true, DEFS).alwaysRotten()).isFalse();
+        assertThat(EatDecision.decide(Optional.of("tfp:food/mutton"), "minecraft:mutton", true, DEFS).alwaysRotten())
+                .isFalse();
+        assertThat(EatDecision.decide(Optional.empty(), "minecraft:milk_bucket", false, DEFS).alwaysRotten())
+                .as("milk's decay modifier 0 never decays").isFalse();
+        assertThat(EatDecision.decide(Optional.empty(), "minecraft:bread", true, DEFS).alwaysRotten()).isFalse();
     }
 
     @Test
@@ -117,5 +142,9 @@ class EatDecisionTest {
                 .isEqualTo(Action.EAT_INSTEAD);
         assertThat(EatDecision.decide(Optional.empty(), "minecraft:bread", true, defs).action())
                 .isEqualTo(Action.BLOCK);
+        assertThat(EatDecision.decide(Optional.empty(), "minecraft:rotten_flesh", true, defs).alwaysRotten())
+                .as("TFC rotten_flesh.json: decay_modifier infinity").isTrue();
+        assertThat(EatDecision.decide(Optional.empty(), "minecraft:honey_bottle", true, defs).action())
+                .isEqualTo(Action.USE_INSTEAD);
     }
 }

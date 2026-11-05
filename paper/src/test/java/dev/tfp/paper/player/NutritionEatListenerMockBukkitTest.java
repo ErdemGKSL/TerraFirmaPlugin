@@ -56,8 +56,11 @@ class NutritionEatListenerMockBukkitTest extends MockServerTest {
     static final NamespacedKey CUSTOM_ID = new NamespacedKey("test", "custom_id");
     static final FoodData MUTTON = new FoodData(4, 0f, 0f, 0, 0f, 0f, 0f, 1.5f, 0f, 3f);
     static final FoodData PIE = new FoodData(4, 5f, 2f, 0, 1f, 0f, 2f, 1f, 0.3f, 2.5f);
+    /** TFC data {@code food/rotten_flesh.json}: hunger 0, decay_modifier infinity. */
+    static final FoodData FLESH = new FoodData(0, 0f, 0f, 0, 0f, 0f, 0f, 0f, 0f, Float.POSITIVE_INFINITY);
     static final FoodDefinitions DEFS = new FoodDefinitions(Map.of(
-            "tfp:food/mutton", MUTTON, "minecraft:pumpkin_pie", PIE, "tfp:melon", MUTTON), Set.of("tfp:melon"));
+            "tfp:food/mutton", MUTTON, "minecraft:pumpkin_pie", PIE, "minecraft:rotten_flesh", FLESH,
+            "tfp:melon", MUTTON), Set.of("tfp:melon"));
 
     /** Custom ids read from a test PDC key: Paper's consume event hands out a copy of the stack. */
     static final CustomItems ITEMS = new CustomItems() {
@@ -223,6 +226,64 @@ class NutritionEatListenerMockBukkitTest extends MockServerTest {
         assertThat(eaten.averageNutrition()).isNaN();
     }
 
+    /** Vanilla rotten flesh has no food stamp, but its definition (decay_modifier infinity) makes it always rotten. */
+    @Test
+    void vanillaRottenFleshIsEatenAsRottenFood() {
+        alex.setFoodLevel(10);
+        alex.setSaturation(1f);
+        PlayerItemConsumeEvent event = consume(new ItemStack(Material.ROTTEN_FLESH, 2));
+
+        assertThat(event.isCancelled()).as("vanilla's consume (its food, its own Hunger) is replaced").isTrue();
+        assertThat(alex.getInventory().getItemInMainHand().getAmount()).isEqualTo(1);
+        assertThat(store.get(ALEX).orElseThrow().nutrition()).as("TFC records nothing for rotten food").isEmpty();
+        PotionEffect hunger = alex.getPotionEffect(PotionEffectType.HUNGER);
+        assertThat(hunger.getAmplifier()).isEqualTo(1);
+        assertThat(hunger.getDuration()).isEqualTo(1800);
+        assertThat(alex.getPotionEffect(PotionEffectType.POISON).getDuration()).isEqualTo(1800);
+        assertThat(alex.getFoodLevel()).as("rotten: the level is left as it was").isEqualTo(10);
+        NutritionFoodEatenEvent eaten = onlyEatenEvent();
+        assertThat(eaten.itemId()).isEqualTo("minecraft:rotten_flesh");
+        assertThat(eaten.rotten()).isTrue();
+        assertThat(eaten.averageNutrition()).isNaN();
+    }
+
+    /** Vanilla 1.21.1 {@code HoneyBottleItem}: drunk without the food component; Poison cured, a glass bottle left. */
+    @Test
+    void theHoneyBottleCuresPoisonAndLeavesAGlassBottleWithoutEating() {
+        alex.setFoodLevel(10);
+        alex.setSaturation(1f);
+        alex.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 600, 0));
+        alex.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 600, 0));
+        PlayerItemConsumeEvent event = consume(new ItemStack(Material.HONEY_BOTTLE));
+
+        assertThat(event.isCancelled()).as("vanilla's honey food is not given").isTrue();
+        assertThat(alex.hasPotionEffect(PotionEffectType.POISON)).isFalse();
+        assertThat(alex.hasPotionEffect(PotionEffectType.SPEED)).isTrue();
+        assertThat(alex.getInventory().getItemInMainHand().getType()).isEqualTo(Material.GLASS_BOTTLE);
+        assertThat(alex.getFoodLevel()).isEqualTo(10);
+        assertThat(alex.getSaturation()).isEqualTo(1f);
+        assertThat(store.get(ALEX).orElseThrow().nutrition()).isEmpty();
+        assertThat(fired).as("not food: no eaten hook").isEmpty();
+    }
+
+    @Test
+    void aHoneyBottleFromAStackLeavesTheRestAndAddsAGlassBottle() {
+        consume(new ItemStack(Material.HONEY_BOTTLE, 3));
+        assertThat(alex.getInventory().getItemInMainHand().getType()).isEqualTo(Material.HONEY_BOTTLE);
+        assertThat(alex.getInventory().getItemInMainHand().getAmount()).isEqualTo(2);
+        assertThat(alex.getInventory().contains(Material.GLASS_BOTTLE, 1)).isTrue();
+    }
+
+    @Test
+    void inCreativeTheHoneyBottleIsKeptAndGivesNoGlassBottle() {
+        alex.setGameMode(GameMode.CREATIVE);
+        alex.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 600, 0));
+        consume(new ItemStack(Material.HONEY_BOTTLE));
+        assertThat(alex.getInventory().getItemInMainHand().getType()).isEqualTo(Material.HONEY_BOTTLE);
+        assertThat(alex.getInventory().contains(Material.GLASS_BOTTLE)).isFalse();
+        assertThat(alex.hasPotionEffect(PotionEffectType.POISON)).isFalse();
+    }
+
     /** TFC's {@code PlayerInfo#eat} does not look at the difficulty: peaceful eats the same way. */
     @Test
     void peacefulEatsTheSameWay() {
@@ -242,6 +303,9 @@ class NutritionEatListenerMockBukkitTest extends MockServerTest {
         assertThat(bread.isCancelled()).isTrue();
         PlayerItemConsumeEvent mutton = consume(ITEMS.create("tfp:food/mutton", 1).orElseThrow());
         assertThat(mutton.isCancelled()).isFalse();
+        PlayerItemConsumeEvent pie = consume(new ItemStack(Material.PUMPKIN_PIE));
+        assertThat(pie.isCancelled()).as("no vanilla pie consume, even unloaded").isTrue();
+        assertThat(alex.getInventory().getItemInMainHand().getType()).isEqualTo(Material.PUMPKIN_PIE);
         assertThat(fired).isEmpty();
     }
 

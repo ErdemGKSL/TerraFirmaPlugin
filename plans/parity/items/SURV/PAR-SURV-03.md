@@ -25,7 +25,7 @@ plan:
   - "Vanilla foods without a TFC definition: block eating vanilla food items that TFC replaces, or map them (divergence row)."
   - "Fire the EAT_ROTTEN_FOOD advancement criterion via PAR-DATA-03's trigger API (stub call now)."
   - "In-game check: eat a TFC food, `tfp debug player Bot` shows the nutrition record; persists across restart."
-  - "Done: core EatDecision (EAT / EAT_INSTEAD for vanilla pumpkin pie, rotten flesh, milk / BLOCK vanilla food without a TFC definition and edible=false / IGNORE), FoodDefinitions.isEdible, food water to thirst, NutritionFoodEatenEvent hook (rotten flag, average nutrition) for PAR-DATA-03; tests EatDecisionTest 8, FoodDefinitionsTest +1, NutritionEatingTest +3, NutritionEatListenerMockBukkitTest 11 (incl. peaceful, persistence); in-game pass docs/verification/PAR-SURV-03/"
+  - "Done: core EatDecision (EAT / EAT_INSTEAD for vanilla pumpkin pie, rotten flesh, milk / BLOCK vanilla food without a TFC definition and edible=false / USE_INSTEAD vanilla honey bottle: Poison cured, glass bottle, no eating / IGNORE; alwaysRotten for decay_modifier infinity so vanilla rotten flesh is rotten), FoodDefinitions.isEdible, food water to thirst, NutritionFoodEatenEvent hook (rotten flag, average nutrition) for PAR-DATA-03; tests EatDecisionTest 10, FoodDefinitionsTest +1, NutritionEatingTest +3, NutritionEatListenerMockBukkitTest 15 (incl. peaceful, persistence, vanilla rotten flesh, honey bottle); in-game pass docs/verification/PAR-SURV-03/"
 tests:
   - "paper: NutritionEatingTest additions"
 done_criteria:
