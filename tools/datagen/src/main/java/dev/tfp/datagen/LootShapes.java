@@ -54,26 +54,6 @@ final class LootShapes {
             + POOL_CLOSE);
     }
 
-    /** Raw/hardened rock: raw block if isolated, else 1-4 loose rocks. Returns {raw, loose} or null. */
-    static String[] rockToLoose(JsonElement table) {
-        try {
-            JsonObject alt = table.getAsJsonObject().getAsJsonArray("pools").get(0).getAsJsonObject()
-                .getAsJsonArray("entries").get(0).getAsJsonObject();
-            String raw = alt.getAsJsonArray("children").get(0).getAsJsonObject().get("name").getAsString();
-            String loose = alt.getAsJsonArray("children").get(1).getAsJsonObject().get("name").getAsString();
-            return table.equals(rockToLoose(raw, loose)) ? new String[] {raw, loose} : null;
-        } catch (RuntimeException e) {
-            return null;
-        }
-    }
-
-    static JsonElement rockToLoose(String raw, String loose) {
-        return parse(POOL_OPEN + "{\"type\":\"minecraft:alternatives\",\"children\":["
-            + "{\"type\":\"minecraft:item\",\"name\":\"" + raw + "\",\"conditions\":[{\"condition\":\"tfp:is_isolated\"}]},"
-            + "{\"type\":\"minecraft:item\",\"name\":\"" + loose + "\",\"functions\":[{\"function\":\"minecraft:set_count\","
-            + "\"count\":{\"min\":1,\"max\":4,\"type\":\"minecraft:uniform\"}}]}]}" + POOL_CLOSE);
-    }
-
     /** Vanilla-style gravel: silk touch → self; else flint (fortune table bonus) or self. */
     static JsonElement gravel(String self) {
         return parse(POOL_OPEN + "{\"type\":\"minecraft:alternatives\",\"children\":["

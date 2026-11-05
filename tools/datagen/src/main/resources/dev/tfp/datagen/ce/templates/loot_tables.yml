@@ -33,22 +33,6 @@ templates#loot_tables:
                   type: uniform
                   min: ${loot_count_min}
                   max: ${loot_count_max}
-  # TFC raw/hardened rock: 1-4 loose rocks. TFC's `tfc:is_isolated` branch (drop the raw block when it has no
-  # neighbours) needs our own loot condition and is not ported yet (ledger divergence).
-  tfp:loot_table/rock_to_loose:
-    pools:
-      - rolls: 1
-        conditions:
-          - type: survives_explosion
-        entries:
-          - type: item
-            item: ${loot_loose_rock}
-            functions:
-              - type: set_count
-                count:
-                  type: uniform
-                  min: 1
-                  max: 4
   # TFC gravel: silk touch drops the block; otherwise flint with fortune-scaled chance, else the block.
   tfp:loot_table/gravel:
     pools:

@@ -2,7 +2,7 @@
 id: PAR-INFRA-28
 title: "Raw and hardened rock loot through the Paper runtime: delegate the 42 tfc:is_isolated tables, remove tfp:loot_table/rock_to_loose"
 area: INFRA
-status: open
+status: done
 wave: 5
 deps: [PAR-INFRA-21]
 size: S
@@ -26,6 +26,7 @@ plan:
   - "Update `DatagenTest` (raw granite has no `loot:`, its table is `data/tfp/loot_table/blocks/rock/raw/granite.json`, `tfp:rock/loose/granite` is still a CE item), `LootTableExportTest.aBlockWithNoTemplateShapeIsDelegated` (the fixture's raw granite is delegated too), and the pinned-checkout counts (42 block tables, 83 entity tables). Rerun datagen (`generateContent`, `verifyContent`)."
   - "Self-test: `LootCase` then runs its raw granite lines (`tfp:rock/raw/granite` by hand: nothing; with `tfp:metal/pickaxe/bronze`: 1-4 loose rocks; in an explosion: 1-4 loose rocks and nothing from CraftEngine or the carrier). Run `:itest:runSelfTest -Pmc=1.21.11 -Pplatform=paper` twice (the first start installs the pack)."
   - "Ledger: the raw rock `is_isolated` divergence row (the table is delegated; only the `WorldTracker` caller is missing) and the loot delegation row."
+  - "Done: `AssetPipeline.loot` drops the rock_to_loose branch (raw/hardened rock fall through to `delegateBlock`, a `tfc:is_isolated` divergence per table that names `tfp:is_isolated`), `LootShapes.rockToLoose` and the template removed; DatagenTest and LootTableExportTest updated, new pinned test (42 block + 83 entity tables, all raw/hardened rock); datagen regenerated (42 block tables). Self-test on Paper 1.21.11 run three times: the loot case passed every time (raw granite by hand {}, bronze pickaxe 2-4 loose rocks, explosion 3-4 loose rocks); runs 2 and 3 each had one unrelated timing failure (animal.spawn_persist, neighbour.converge), different each run."
 tests:
   - "datagen: DatagenTest and LootTableExportTest as above; PinnedCheckoutTest stays green"
   - "itest: the loot case's raw granite lines on Paper 1.21.11"

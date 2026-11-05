@@ -762,16 +762,14 @@ public final class AssetPipeline {
             args.put("loot_count_max", Integer.valueOf(counted[2]));
             return CeBlockStates.call("tfp:loot_table/item_count", args);
         }
-        String[] rock = LootShapes.rockToLoose(table);
-        if (rock != null) {
-            drop(rock[1]);
-            report.divergence("tfc:is_isolated", id);
-            return CeBlockStates.call("tfp:loot_table/rock_to_loose", Map.of("loot_loose_rock", rock[1]));
-        }
         if (table.equals(LootShapes.gravel(self))) {
             return CeBlockStates.call("tfp:loot_table/gravel", Map.of());
         }
         report.count("loot_delegated");
+        if (table.toString().contains("\"tfp:is_isolated\"")) {
+            // The runtime evaluates the condition, but nothing sets `isolated` until WorldTracker is ported (PAR-PHYS-02).
+            report.divergence("tfc:is_isolated", id);
+        }
         LootTableExport.delegateBlock(out, id, table, named -> {
             if (!named.equals(self)) {
                 drop(named);

@@ -235,9 +235,12 @@ class DatagenTest {
         SortedMap<String, byte[]> files = r.tree().files();
         String rock = text(files, AssetPipeline.CONFIG + "rock/granite.yml");
         assertThat(rock).contains("tfp:rock/raw/granite:", "appearances:\n        template: tfp:visual/rock/raw/granite\n",
-            "template: tfp:loot_table/rock_to_loose", "loot_loose_rock: tfp:rock/loose/granite",
             "template: tfp:loot_table/gravel", "rock_hardness: 6.7", "item_lang_key: block.tfp.rock.raw.granite")
-            .doesNotContain("granite_slab").doesNotContain("\t");
+            .doesNotContain("granite_slab").doesNotContain("\t").doesNotContain("rock_to_loose");
+        // PAR-INFRA-28: raw rock (TFC's tfc:is_isolated table) drops through the Paper loot runtime, not CE loot
+        assertThat(LootTableExportTest.blockEntry(rock, "tfp:rock/raw/granite")).doesNotContain("loot:");
+        assertThat(text(files, LootTableExport.TARGET + "blocks/rock/raw/granite.json"))
+            .contains("\"tfp:is_isolated\"", "\"tfp:rock/loose/granite\"", "\"tfp:rock/raw/granite\"");
         assertThat(text(files, AssetPipeline.CONFIG + "ore/normal_hematite.yml"))
             .contains("loot_item: tfp:ore/normal_hematite", "state:\n      template: tfp:visual/ore/normal_hematite/granite\n");
         assertThat(text(files, AssetPipeline.CONFIG + "soil/alfisol.yml"))

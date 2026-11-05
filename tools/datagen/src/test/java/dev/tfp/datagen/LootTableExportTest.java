@@ -122,9 +122,10 @@ class LootTableExportTest {
         String table = text(files, LootTableExport.TARGET + "blocks/dirt/alfisol.json");
         assertThat(table).contains("\"tfp:rock/loose/granite\"", "\"block\": \"tfp:dirt/alfisol\"", "\"tfp:is_isolated\"",
             "\"minecraft:explosion_decay\"").doesNotContain("tfc:", "__comment__");
-        assertThat(files.keySet().stream().filter(p -> p.startsWith(LootTableExport.TARGET))).containsExactly(
-            LootTableExport.TARGET + "blocks/dirt/alfisol.json");
-        assertThat(r.report().count("loot_delegated", 0)).isEqualTo(1);
+        // the fixture's raw granite (TFC's tfc:is_isolated rock table) is delegated too (PAR-INFRA-28)
+        assertThat(files.keySet().stream().filter(p -> p.startsWith(LootTableExport.TARGET))).containsExactlyInAnyOrder(
+            LootTableExport.TARGET + "blocks/dirt/alfisol.json", LootTableExport.TARGET + "blocks/rock/raw/granite.json");
+        assertThat(r.report().count("loot_delegated", 0)).isEqualTo(2);
 
         String soil = text(files, AssetPipeline.CONFIG + "soil/alfisol.yml");
         assertThat(blockEntry(soil, "tfp:dirt/alfisol")).contains("settings:").doesNotContain("loot:");
@@ -132,11 +133,42 @@ class LootTableExportTest {
         // the loose rock the table names is a CE item; the block itself is not listed twice
         String drops = text(files, AssetPipeline.CONFIG + "drops.yml");
         assertThat(drops).contains("tfp:rock/loose/granite:").doesNotContain("tfp:dirt/alfisol:");
-        assertThat(text(files, AssetPipeline.CONFIG + "rock/granite.yml")).contains("template: tfp:loot_table/rock_to_loose");
+        String rock = text(files, AssetPipeline.CONFIG + "rock/granite.yml");
+        assertThat(blockEntry(rock, "tfp:rock/raw/granite")).doesNotContain("loot:");
+        assertThat(rock).doesNotContain("rock_to_loose").contains("template: tfp:loot_table/gravel");
+        assertThat(text(files, LootTableExport.TARGET + "blocks/rock/raw/granite.json"))
+            .contains("\"tfp:is_isolated\"", "\"tfp:rock/loose/granite\"").doesNotContain("tfc:");
+    }
+
+    /**
+     * Pinned checkout (PAR-INFRA-28): the CE block pipeline delegates exactly the 42 raw and hardened rock tables (all
+     * carrying {@code tfp:is_isolated}, reported as a divergence until WorldTracker sets it), next to the 83 entity tables;
+     * their loose rocks are CE items and no generated config calls the removed rock template.
+     */
+    @Test
+    void thePinnedCheckoutDelegatesTheRawAndHardenedRockTables() {
+        TfcCheckout tfc = pinned();
+        OutputTree out = new OutputTree();
+        Report report = new Report();
+        AssetPipeline.run(tfc, out, report);
+        int[] counts = LootTableExport.run(tfc, out);
+        assertThat(counts).containsExactly(42, 83);
+        assertThat(report.count("loot_delegated", 0)).isEqualTo(42);
+        SortedMap<String, byte[]> files = out.files();
+        List<String> blocks = files.keySet().stream().filter(p -> p.startsWith(LootTableExport.TARGET + "blocks/"))
+            .map(p -> p.substring((LootTableExport.TARGET + "blocks/").length(), p.length() - ".json".length())).toList();
+        assertThat(blocks).hasSize(42).allMatch(id -> id.startsWith("rock/raw/") || id.startsWith("rock/hardened/"));
+        assertThat(blocks.stream().filter(id -> id.startsWith("rock/raw/"))).hasSize(21);
+        for (String id : blocks) {
+            assertThat(text(files, LootTableExport.TARGET + "blocks/" + id + ".json")).contains("\"tfp:is_isolated\"");
+        }
+        assertThat(text(files, AssetPipeline.CONFIG + "drops.yml")).contains("tfp:rock/loose/granite:", "tfp:rock/loose/basalt:");
+        files.entrySet().stream().filter(e -> e.getKey().endsWith(".yml")).forEach(e ->
+            assertThat(new String(e.getValue(), StandardCharsets.UTF_8)).as(e.getKey()).doesNotContain("rock_to_loose"));
     }
 
     /** The lines of block {@code id}'s entry in a generated config (its head line and the deeper-indented lines below). */
-    private static String blockEntry(String yaml, String id) {
+    static String blockEntry(String yaml, String id) {
         String[] lines = yaml.substring(yaml.indexOf("\nblocks:\n")).split("\n");
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < lines.length; i++) {
