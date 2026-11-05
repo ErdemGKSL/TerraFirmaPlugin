@@ -107,6 +107,7 @@ public final class Datagen {
             throw new DatagenException("unresolved model/texture references: " + report.missing());
         }
         VisualOutputs.run(out, demand, model -> modelContent(out, model));
+        dev.tfp.datagen.oreoverlay.OreOverlays.run(tfc, out, demand); // PAR-INFRA-15: ore overlay items, composite icons, runtime data
         BetterHudPack.write(out);
         HudLayouts.run(out, HudLayouts.catalogue());
         SeasonalBiomes.write(tfc, out);

@@ -70,7 +70,32 @@ final class VisualContentCheck {
                 }
             }
         }
+        // PAR-INFRA-15: level-0..2 only; no allocation folder or report of the removed level-3a/3b
+        assertThat(files.keySet()).noneMatch(k -> k.matches("visuals/[^/]+/level-3[ab]/.*")
+            || k.matches("reports/visual-allocation-level-3[ab]-.*"));
+        assertThat(index.get("ore_look").getAsString()).isIn("full_cube", "host_rock");
+        assertOreOverlayData(files);
         assertDatapackParses(files);
+    }
+
+    /** Every ore of {@code ores.json} names a defined overlay item with its quad model, and an occluding host rock. */
+    static void assertOreOverlayData(SortedMap<String, byte[]> files) {
+        String ores = dev.tfp.datagen.oreoverlay.OreOverlays.ORES;
+        if (!files.containsKey(ores)) {
+            return;
+        }
+        String items = new String(files.get(dev.tfp.datagen.oreoverlay.OreOverlays.ITEMS), StandardCharsets.UTF_8);
+        JsonObject occ = json(files, dev.tfp.datagen.oreoverlay.OreOverlays.OCCLUDING);
+        Set<String> occluding = new HashSet<>();
+        occ.getAsJsonArray("occluding").forEach(e -> occluding.add(e.getAsString()));
+        occ.getAsJsonArray("non_occluding").forEach(e -> assertThat(occluding).doesNotContain(e.getAsString()));
+        for (Map.Entry<String, JsonElement> e : json(files, ores).getAsJsonObject("ores").entrySet()) {
+            String overlay = e.getValue().getAsJsonObject().get("overlay").getAsString();
+            assertThat(items).as(e.getKey()).contains("\n  " + overlay + ":\n");
+            assertThat(files).containsKey(AssetPipeline.RP + "models/item/ore_overlay/"
+                + overlay.substring("tfp:ore_overlay/".length()) + ".json");
+            assertThat(occluding).contains(e.getKey(), e.getValue().getAsJsonObject().get("host_rock").getAsString());
+        }
     }
 
     static void assertDatapackParses(SortedMap<String, byte[]> files) {

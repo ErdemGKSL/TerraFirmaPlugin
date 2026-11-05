@@ -290,8 +290,16 @@ ore-overlay:
   max-per-player: 8000        # nearest first
   surface-outcrops-full-range: true
 ```
-The config, `ProfileCheck` and the allocator change with PAR-INFRA-15; until it is done the code still carries the
-old five levels.
+Done with PAR-INFRA-15: `Profile` (datagen and `TfpConfig`) has `level-0`..`level-2` only; `ProfileCheck` stops at
+`level-2` and, if even that does not fit, logs the per-pool shortfall, "no higher profile exists" and the options (shrink
+other CE packs, `use-nether-end-blocks`, `/ce clean-cache visual_block_states`). The allocator's ore rule is driven by
+`dev.tfp.datagen.oreoverlay.OreLook`: `host_rock` (target) maps every ore appearance to `rock/raw/<rock>#axis_y` in every
+profile; `full_cube` (shipped until the overlay runtime PAR-INFRA-16 flips
+`tools/datagen/src/main/resources/dev/tfp/datagen/oreoverlay/mode.properties`) keeps each ore's flattened cube, so no
+build shows ores as plain rock. Every allocation report states both: today 1374 visuals shipped (`full_cube`) and
+**261 visuals in every profile** with `host_rock` (all explicit states, solid pool untouched). The optional "solid pool
+before `absent_minor`" tweak is **off** (decided by `VisualBudgetTest`): with `host_rock` the 261 visuals never reach the
+`absent_minor` states, so it would change nothing; revisit when more families are emitted.
 
 **Mechanics:**
 - `tools/datagen` precomputes one visual allocation per (profile × MC version family × Nether/End off/on) and ships them all in the jar (M1-DGN-04, `dev.tfp.datagen.visuals`):
@@ -381,7 +389,7 @@ Deterministic and re-runnable. Hand fixes go in `tools/datagen/overrides/`. See 
   - `id_map.json`: our blocks (TFC blockstates), items (item models), fluids, entity types and food traits (parsed from `TFCFluids`/`TFCEntities`/`FoodTraits` in the checkout; the parsers fail on unknown registration shapes), plus `external_ids`: the vanilla/NeoForge ids the data uses (`minecraft:` items, blocks, entity types, fluids incl. NeoForge's `minecraft:milk`).
   - `external_tags.json`: tags in the external namespaces `c` (NeoForge common tags) and `minecraft` that the data references but does not define. Datagen never invents their members.
   Both lists of external things are found by running core's own `DataLoader` over the exported tree with a recording id table, so they match exactly what the loader checks. The loader (`KnownIds.fromDataRoot`) accepts an id/undefined tag only if it is listed; an undefined `tfp:` tag is never listed, so it fails. `core` `ContentDataLoadTest` (part of `check`) loads the whole tree this way. The external lists are checked only for consistency (namespace, no duplicates), not against Minecraft's or NeoForge's registries, which are not in the checkout.
-- **Assets:** TFC blockstates drive the CE `state(s)` sections and are not copied (vanilla clients never load blockstates for `tfp:` blocks). Two-layer ore models (`tfc:block/ore`, `tfc:block/ore_column`) are flattened into one PNG per ore × rock (Java `javax.imageio`, so no Python in CI) and a plain `cube_all`/`cube_column` model. Planned change (PAR-INFRA-15, §9.1 decision 2026-10-22): ore blocks take the host rock's visual, the 53 overlay textures become one-quad item models for the exposed-face overlays, block items use a `composite` item model, and the flattened PNGs are dropped.
+- **Assets:** TFC blockstates drive the CE `state(s)` sections and are not copied (vanilla clients never load blockstates for `tfp:` blocks). Two-layer ore models (`tfc:block/ore`, `tfc:block/ore_column`) are flattened into one PNG per ore × rock (Java `javax.imageio`, so no Python in CI) and a plain `cube_all`/`cube_column` model. PAR-INFRA-15 (§9.1 decision 2026-10-22, `dev.tfp.datagen.oreoverlay`): the 53 overlay textures are one-quad display items `tfp:ore_overlay/<ore>` (`shade: false`, `tintindex 0`, `custom_model_data` colour 0 = face shade; 10 cracked composite variants each), the per-face `item_display` rotations are `core/visuals/OverlayFace` (golden test against vanilla's face UVs), ore block items are a `minecraft:composite` of the raw rock model and an overlay cube (TFC's per-ore item models are not copied), and the runtime data is `visuals/ore_overlay/ores.json` + `occluding.json`. With `host_rock` the flattened PNGs and per-ore block models are not written (1219 PNGs, 535 KB, and 1113 models less); the transition look `full_cube` still writes them.
 
 ## 12. Startup and reload lifecycle
 

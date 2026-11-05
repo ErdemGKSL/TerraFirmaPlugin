@@ -3,18 +3,32 @@
 # are kept. Apply changes with /tfp reload config (some keys only take effect after a restart).
 
 # Client visuals: how TFC blocks are mapped onto the block states vanilla clients know.
-# profile: per Minecraft version family. level-0 | level-1 | level-2 | level-3a | level-3b.
-#   Higher levels share more visuals (e.g. ore grades) and leave more CraftEngine states free
-#   for other packs; lower levels look closer to TFC. Changing it needs a restart.
+# profile: per Minecraft version family. level-0 | level-1 | level-2.
+#   Higher levels share more visuals (e.g. wood axes, deposits) and leave more CraftEngine states
+#   free for other packs; lower levels look closer to TFC. Ores always take their host rock's look
+#   with the ore drawn on exposed faces (ore-overlay below), so ore grades stay distinct in every
+#   level. level-3a and level-3b were removed; they are read as level-2 with a warning.
+#   Changing it needs a restart.
 # solid-reserve-warning: warn at startup if fewer free solid-pool slots remain for other CraftEngine packs.
 # use-nether-end-blocks: auto | true | false. auto = repurpose Nether/End blocks only if the server
 #   has no vanilla Nether/End (allow-nether / allow-end off).
 visuals:
   profile:
-    "1.21": level-3a
+    "1.21": level-2
     "26": level-2
   solid-reserve-warning: 500
   use-nether-end-blocks: auto
+
+# Ore face overlays: the ore texture is drawn only on faces a player can see.
+# cutoff-blocks: how far (in blocks) an overlay is drawn; overlays are sent for chunks within
+#   ceil(cutoff-blocks / 16) + 1 chunks of the player.
+# max-per-player: most overlays one player is sent at once (nearest first).
+# surface-outcrops-full-range: ore faces at the surface (cliffs, outcrops) are drawn within the
+#   full view distance, like TFC, so surface prospecting works.
+ore-overlay:
+  cutoff-blocks: 48
+  max-per-player: 8000
+  surface-outcrops-full-range: true
 
 # Automatic setup of CraftEngine, BetterModel and BetterHud.
 # craftengine / betterhud: write our content into plugins/CraftEngine/resources/tfp and

@@ -209,9 +209,16 @@ class DatagenTest {
         assertThat(files).doesNotContainKey(RP + "models/block/ore.json");
     }
 
+    /** The FULL_CUBE transition look (PAR-INFRA-15; shipped until PAR-INFRA-16 flips mode.properties). */
+    private SortedMap<String, byte[]> assets(dev.tfp.datagen.oreoverlay.OreLook look) throws IOException {
+        OutputTree out = new OutputTree();
+        AssetPipeline.run(TfcCheckout.open(Fixture.create(tmp.resolve("tfc-" + look.id()), PIN), PIN), out, new Report(), look);
+        return out.files();
+    }
+
     @Test
     void flattensOreOverlayOntoRock() throws IOException {
-        SortedMap<String, byte[]> files = run().tree().files();
+        SortedMap<String, byte[]> files = assets(dev.tfp.datagen.oreoverlay.OreLook.FULL_CUBE);
         JsonObject model = JsonParser.parseString(text(files, RP + "models/block/ore/normal_hematite/granite.json"))
             .getAsJsonObject();
         assertThat(model.get("parent").getAsString()).isEqualTo("minecraft:block/cube_all");
@@ -220,6 +227,48 @@ class DatagenTest {
         assertThat(img.getColorModel().hasAlpha()).isFalse();
         assertThat(img.getRGB(0, 0)).isEqualTo(Fixture.ORE);   // opaque overlay pixel wins
         assertThat(img.getRGB(15, 0)).isEqualTo(Fixture.ROCK); // transparent overlay pixel keeps the rock
+    }
+
+    /** PAR-INFRA-15 HOST_ROCK: no flattened PNG and no per-ore block model; the overlay texture itself is still copied. */
+    @Test
+    void hostRockLookWritesNoFlattenedOreTexturesOrModels() throws IOException {
+        SortedMap<String, byte[]> files = assets(dev.tfp.datagen.oreoverlay.OreLook.HOST_ROCK);
+        assertThat(files).doesNotContainKeys(RP + "models/block/ore/normal_hematite/granite.json",
+            RP + "textures/block/ore/normal_hematite/granite.png");
+        assertThat(files).containsKeys(RP + "textures/block/ore/normal_hematite.png", RP + "models/block/rock/raw/granite.json");
+        // Both looks: the ore block item is the composite (rock + overlay cube), not TFC's per-ore item model.
+        for (SortedMap<String, byte[]> f : java.util.List.of(files, assets(dev.tfp.datagen.oreoverlay.OreLook.FULL_CUBE))) {
+            assertThat(f).doesNotContainKey(RP + "models/item/ore/normal_hematite/granite.json");
+            assertThat(text(f, AssetPipeline.CONFIG + "ore/normal_hematite.yml")).contains("""
+                  tfp:ore/normal_hematite/granite:
+                    template: tfp:item/ore_block_item
+                    arguments:
+                      item_lang_key: block.tfp.ore.normal_hematite.granite
+                      ore_overlay_cube: tfp:block/ore_overlay/normal_hematite
+                      ore_rock_model: tfp:block/rock/raw/granite
+                """);
+        }
+    }
+
+    @Test
+    void writesOreOverlayItemsTemplatesAndRuntimeData() throws IOException {
+        SortedMap<String, byte[]> files = run().tree().files();
+        String items = text(files, dev.tfp.datagen.oreoverlay.OreOverlays.ITEMS);
+        assertThat(items).contains("tfp:ore_overlay/normal_hematite:\n    template: tfp:item/ore_overlay\n",
+            "ore_overlay_model: tfp:item/ore_overlay/normal_hematite", "tfp:ore_overlay/normal_hematite/crack_9:");
+        assertThat(text(files, dev.tfp.datagen.oreoverlay.OreOverlays.TEMPLATES))
+            .contains("tfp:item/ore_overlay:", "tfp:item/ore_block_item:", "type: minecraft:custom_model_data");
+        assertThat(files).containsKeys(RP + "models/item/ore_overlay/normal_hematite.json",
+            RP + "models/block/ore_overlay/normal_hematite.json");
+        JsonObject ores = JsonParser.parseString(text(files, dev.tfp.datagen.oreoverlay.OreOverlays.ORES)).getAsJsonObject();
+        assertThat(ores.getAsJsonObject("ores").keySet()).containsExactly("tfp:ore/normal_hematite/granite");
+        JsonObject gold = ores.getAsJsonObject("ores").getAsJsonObject("tfp:ore/normal_hematite/granite");
+        assertThat(gold.get("overlay").getAsString()).isEqualTo("tfp:ore_overlay/normal_hematite");
+        assertThat(gold.get("host_rock").getAsString()).isEqualTo("tfp:rock/raw/granite");
+        JsonObject occ = JsonParser.parseString(text(files, dev.tfp.datagen.oreoverlay.OreOverlays.OCCLUDING)).getAsJsonObject();
+        assertThat(occ.getAsJsonArray("occluding").toString()).contains("tfp:rock/raw/granite", "tfp:ore/normal_hematite/granite",
+            "tfp:sand/red");
+        assertThat(occ.getAsJsonArray("non_occluding").asList()).isEmpty(); // the fixture has no device
     }
 
     @Test
@@ -281,8 +330,9 @@ class DatagenTest {
     void writesAllocationsReportsSuppressionListsAndDatapack() throws IOException {
         SortedMap<String, byte[]> files = run().tree().files();
         VisualContentCheck.assertComplete(files);
-        assertThat(text(files, "reports/visual-allocation-level-3a-1.21.md"))
-            .contains("(default for this family)", "| solid |", "Reserve target 500");
+        assertThat(text(files, "reports/visual-allocation-level-2-1.21.md"))
+            .contains("(default for this family)", "| solid |", "Reserve target 500", "Ore look shipped:");
+        assertThat(files.keySet()).noneMatch(k -> k.contains("level-3a") || k.contains("level-3b"));
     }
 
     @Test

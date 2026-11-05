@@ -220,7 +220,7 @@ class InstallerTest {
 
     // ---- M1-INST-03: visual profile selection and the pack rebuild -----------------------------------
 
-    static final VisualSelection L3A = new VisualSelection("1.21", Profile.LEVEL_3A, false);
+    static final VisualSelection L1 = new VisualSelection("1.21", Profile.LEVEL_1, false);
     static final VisualSelection L2 = new VisualSelection("1.21", Profile.LEVEL_2, false);
 
     Path stateDir() {
@@ -249,36 +249,36 @@ class InstallerTest {
 
     @Test
     void selectedAllocationIsInstalledIntoTheCraftEnginePack() throws IOException {
-        shipAllocation(L3A);
-        Installer.Result r = run(L3A);
+        shipAllocation(L1);
+        Installer.Result r = run(L1);
         Path visuals = Installer.craftEngineTarget(plugins).resolve("configuration/visuals");
-        assertThat(Files.readString(visuals.resolve("visual_templates.yml"))).isEqualTo("templates: level-3a\n");
+        assertThat(Files.readString(visuals.resolve("visual_templates.yml"))).isEqualTo("templates: level-1\n");
         assertThat(visuals.resolve("visual_mappings.yml")).isRegularFile();
         assertThat(visuals.resolve("suppressed_blocks.json")).doesNotExist();
-        assertThat(r.packFingerprint().selection()).isEqualTo(L3A);
+        assertThat(r.packFingerprint().selection()).isEqualTo(L1);
     }
 
     @Test
     void profileChangedBetweenRestartsRequestsOneRebuildAndChangesNoWorld() throws IOException {
-        shipAllocation(L3A);
+        shipAllocation(L1);
         shipAllocation(L2);
         Path world = plugins.getParent().resolve("world/region/r.0.0.mca");
         write(world, "chunks");
         FakePackRebuilder ce = new FakePackRebuilder();
 
-        Installer.Result first = run(L3A);
+        Installer.Result first = run(L1);
         assertThat(first.status().packRebuild()).isTrue();
         assertThat(startServer(first, ce)).isEqualTo(1);
         assertThat(Installer.readPackRecord(stateDir())).contains(first.packFingerprint());
 
-        Installer.Result same = run(L3A);
+        Installer.Result same = run(L1);
         assertThat(same.packPlan().rebuild()).isFalse();
         assertThat(startServer(same, ce)).isZero();
 
         Installer.Result switched = run(L2);
         assertThat(switched.status().packRebuild()).isTrue();
         assertThat(switched.packPlan().migrateWorldData()).isFalse();
-        assertThat(switched.packPlan().reason()).contains("1.21/level-3a/nether-end-off -> 1.21/level-2/nether-end-off");
+        assertThat(switched.packPlan().reason()).contains("1.21/level-1/nether-end-off -> 1.21/level-2/nether-end-off");
         assertThat(Files.readString(Installer.craftEngineTarget(plugins).resolve("configuration/visuals/visual_templates.yml")))
                 .isEqualTo("templates: level-2\n");
         assertThat(startServer(switched, ce)).isEqualTo(1);
@@ -293,7 +293,7 @@ class InstallerTest {
     /** The self-test's CE cases wait for this: CraftEngine's registries are empty while the rebuild reload runs. */
     @Test
     void settledCompletesWhenThePlannedRebuildEndsOrAtOnceWithoutOne() throws IOException {
-        shipAllocation(L3A);
+        shipAllocation(L1);
         CompletableFuture<Boolean> pending = new CompletableFuture<>();
         PackRebuilder slow = new PackRebuilder() {
             @Override
@@ -311,7 +311,7 @@ class InstallerTest {
                 return pending;
             }
         };
-        PackRebuildTrigger t = new PackRebuildTrigger(run(L3A), stateDir(), slow, new FakeVisualPools(), null, null, 500,
+        PackRebuildTrigger t = new PackRebuildTrigger(run(L1), stateDir(), slow, new FakeVisualPools(), null, null, 500,
                 Runnable::run, LOG);
         assertThat(t.settled()).isNotDone(); // planned, CraftEngine not loaded yet
         t.onCraftEngineReload();
@@ -319,8 +319,8 @@ class InstallerTest {
         pending.complete(false); // a failed rebuild settles too
         assertThat(t.settled()).isDone();
 
-        assertThat(startServer(run(L3A), new FakePackRebuilder())).isEqualTo(1); // succeeds and is recorded
-        Installer.Result clean = run(L3A);
+        assertThat(startServer(run(L1), new FakePackRebuilder())).isEqualTo(1); // succeeds and is recorded
+        Installer.Result clean = run(L1);
         assertThat(clean.packPlan().rebuild()).isFalse();
         PackRebuildTrigger none = new PackRebuildTrigger(clean, stateDir(), new FakePackRebuilder(), new FakeVisualPools(),
                 null, null, 500, Runnable::run, LOG);
@@ -333,10 +333,10 @@ class InstallerTest {
      */
     @Test
     void rebuildWaitsUntilBetterHudIsNotReloading() throws Exception {
-        shipAllocation(L3A);
+        shipAllocation(L1);
         FakeHudReloader hud = new FakeHudReloader().reloading(true);
         FakePackRebuilder ce = new FakePackRebuilder();
-        PackRebuildTrigger t = new PackRebuildTrigger(run(L3A), stateDir(), ce, hud, new FakeVisualPools(), null, null,
+        PackRebuildTrigger t = new PackRebuildTrigger(run(L1), stateDir(), ce, hud, new FakeVisualPools(), null, null,
                 500, Runnable::run, LOG);
         t.onCraftEngineReload();
         assertThat(t.rebuildRequested()).isTrue();
@@ -352,10 +352,10 @@ class InstallerTest {
     /** BetterHud merged inside the first build (not reloading when it finished): no second build. */
     @Test
     void noSecondRebuildWhenBetterHudMergedIntoTheFirstBuild() throws Exception {
-        shipAllocation(L3A);
+        shipAllocation(L1);
         FakeHudReloader hud = new FakeHudReloader();
         FakePackRebuilder ce = new FakePackRebuilder();
-        PackRebuildTrigger t = new PackRebuildTrigger(run(L3A), stateDir(), ce, hud, new FakeVisualPools(), null, null,
+        PackRebuildTrigger t = new PackRebuildTrigger(run(L1), stateDir(), ce, hud, new FakeVisualPools(), null, null,
                 500, Runnable::run, LOG);
         t.onCraftEngineReload();
         t.onCraftEngineReload(); // the rebuild's own CraftEngine reload
@@ -370,7 +370,7 @@ class InstallerTest {
      */
     @Test
     void oneMoreRebuildAfterBetterHudMergesBehindTheFirstBuild() throws Exception {
-        shipAllocation(L3A);
+        shipAllocation(L1);
         FakeHudReloader hud = new FakeHudReloader();
         FakePackRebuilder ce = new FakePackRebuilder();
         ce.onRebuild(() -> {
@@ -378,7 +378,7 @@ class InstallerTest {
                 hud.reloading(true); // still reloading when the first build finishes
             }
         });
-        PackRebuildTrigger t = new PackRebuildTrigger(run(L3A), stateDir(), ce, hud, new FakeVisualPools(), null, null,
+        PackRebuildTrigger t = new PackRebuildTrigger(run(L1), stateDir(), ce, hud, new FakeVisualPools(), null, null,
                 500, Runnable::run, LOG);
         t.onCraftEngineReload();
         assertThat(ce.requests()).isEqualTo(1);
@@ -401,15 +401,15 @@ class InstallerTest {
 
     @Test
     void failedRebuildIsRetriedAtTheNextStart() throws IOException {
-        shipAllocation(L3A);
+        shipAllocation(L1);
         FakePackRebuilder ce = new FakePackRebuilder().succeeding(false);
-        assertThat(startServer(run(L3A), ce)).isEqualTo(1);
+        assertThat(startServer(run(L1), ce)).isEqualTo(1);
         assertThat(Installer.readPackRecord(stateDir())).isEmpty();
         ce.failing(new IllegalStateException("busy"));
-        assertThat(startServer(run(L3A), ce)).isEqualTo(1);
+        assertThat(startServer(run(L1), ce)).isEqualTo(1);
         ce.succeeding(true);
-        assertThat(startServer(run(L3A), ce)).isEqualTo(1);
-        assertThat(startServer(run(L3A), ce)).isZero();
+        assertThat(startServer(run(L1), ce)).isEqualTo(1);
+        assertThat(startServer(run(L1), ce)).isZero();
     }
 
     @Test
@@ -422,17 +422,17 @@ class InstallerTest {
 
     @Test
     void capacityCheckRunsOnEveryReload() throws IOException {
-        shipAllocation(L2);
+        shipAllocation(L1);
         dev.tfp.core.visuals.VisualIndex index = dev.tfp.core.visuals.VisualIndex.parse("""
                 {"format": 1, "families": {"1.21": {"solid_pool": 1289}}, "allocations": [
-                  {"family": "1.21", "profile": "level-2", "nether_end": false, "dir": "d", "solid_used": 591, "solid_free": 698},
-                  {"family": "1.21", "profile": "level-3a", "nether_end": false, "dir": "d", "solid_used": 339, "solid_free": 950}]}""");
+                  {"family": "1.21", "profile": "level-1", "nether_end": false, "dir": "d", "solid_used": 591, "solid_free": 698},
+                  {"family": "1.21", "profile": "level-2", "nether_end": false, "dir": "d", "solid_used": 339, "solid_free": 950}]}""");
         FakeVisualPools pools = new FakeVisualPools().solid(1289, 1289, 389);
-        PackRebuildTrigger t = new PackRebuildTrigger(run(L2), stateDir(), new FakePackRebuilder(), pools, index, L2, 500,
+        PackRebuildTrigger t = new PackRebuildTrigger(run(L1), stateDir(), new FakePackRebuilder(), pools, index, L1, 500,
                 Runnable::run, LOG);
         t.onCraftEngineReload();
         assertThat(t.lastCheck().verdict()).isEqualTo(dev.tfp.core.visuals.ProfileCheck.Verdict.FAIL);
-        assertThat(t.lastCheck().suggestion()).contains(Profile.LEVEL_3A);
+        assertThat(t.lastCheck().suggestion()).contains(Profile.LEVEL_2);
         assertThat(t.rebuildRequested()).isTrue();
         pools.solid(1289, 691, 591);
         t.onCraftEngineReload();
@@ -445,6 +445,23 @@ class InstallerTest {
         assertThat(rec.getProperty("free")).isEqualTo(Integer.toString(t.lastCheck().free()));
         assertThat(rec.getProperty("others")).isEqualTo("100");
         assertThat(rec.getProperty("line")).contains(" fits: ");
+    }
+
+    /** PAR-INFRA-15: level-2 is the highest profile; when even it does not fit, the log names the shortfall and the options. */
+    @Test
+    void level2NotFittingIsLoggedWithTheShortfallAndNoSuggestion() throws IOException {
+        shipAllocation(L2);
+        dev.tfp.core.visuals.VisualIndex index = dev.tfp.core.visuals.VisualIndex.parse("""
+                {"format": 1, "families": {"1.21": {"solid_pool": 1289}}, "allocations": [
+                  {"family": "1.21", "profile": "level-2", "nether_end": false, "dir": "d", "solid_used": 339, "solid_free": 950}]}""");
+        FakeVisualPools pools = new FakeVisualPools().solid(1289, 1289, 189);
+        PackRebuildTrigger t = new PackRebuildTrigger(run(L2), stateDir(), new FakePackRebuilder(), pools, index, L2, 500,
+                Runnable::run, LOG);
+        t.onCraftEngineReload();
+        assertThat(t.lastCheck().verdict()).isEqualTo(dev.tfp.core.visuals.ProfileCheck.Verdict.FAIL);
+        assertThat(t.lastCheck().suggestion()).isEmpty();
+        assertThat(String.join("\n", t.lastCheck().lines())).contains("Shortfall per pool: solid 150")
+                .contains("no higher profile exists").contains("/ce clean-cache visual_block_states");
     }
 
     // ---- M1-INST-02: BetterHud's edits on its first start (PendingHudEdit) -----------------------------

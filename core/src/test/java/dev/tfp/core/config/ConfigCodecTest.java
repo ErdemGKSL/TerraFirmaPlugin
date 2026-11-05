@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import dev.tfp.core.compat.Version;
 import dev.tfp.core.config.TfpConfig.AutoInstall;
 import dev.tfp.core.config.TfpConfig.NetherEndBlocks;
+import dev.tfp.core.config.TfpConfig.OreOverlay;
 import dev.tfp.core.config.TfpConfig.Profile;
 import dev.tfp.core.config.TfpConfig.Visuals;
 import java.util.LinkedHashMap;
@@ -20,13 +21,15 @@ import org.junit.jupiter.api.Test;
 /** M1-BOOT-03: map-level round trip, defaults for missing keys, warnings for unknown/bad keys. */
 class ConfigCodecTest {
     static final TfpConfig CUSTOM = new TfpConfig(
-            new Visuals(Map.of("1.21", Profile.LEVEL_3B, "26", Profile.LEVEL_0), 120, NetherEndBlocks.TRUE),
+            new Visuals(Map.of("1.21", Profile.LEVEL_1, "26", Profile.LEVEL_0), 120, NetherEndBlocks.TRUE),
+            new OreOverlay(32, 2000, false),
             new AutoInstall(false, true, false, true, true));
 
     @Test
     void roundTripsDefaultsAndCustomValues() {
         for (TfpConfig c : List.of(TfpConfig.DEFAULTS, CUSTOM,
-                new TfpConfig(new Visuals(Map.of(), 0, NetherEndBlocks.FALSE), AutoInstall.DEFAULTS))) {
+                new TfpConfig(new Visuals(Map.of(), 0, NetherEndBlocks.FALSE), new OreOverlay(0, 0, true),
+                        AutoInstall.DEFAULTS))) {
             ConfigCodec.Parsed p = ConfigCodec.parse(ConfigCodec.toMap(c));
             assertThat(p.warnings()).isEmpty();
             assertThat(p.defaulted()).isEmpty();
@@ -37,6 +40,7 @@ class ConfigCodecTest {
             assertThat(p.config().visuals().solidReserveWarning()).isEqualTo(c.visuals().solidReserveWarning());
             assertThat(p.config().visuals().useNetherEndBlocks()).isEqualTo(c.visuals().useNetherEndBlocks());
             assertThat(p.config().autoInstall()).isEqualTo(c.autoInstall());
+            assertThat(p.config().oreOverlay()).isEqualTo(c.oreOverlay());
             // Serialising again is stable.
             assertThat(ConfigCodec.parse(ConfigCodec.toMap(p.config())).config()).isEqualTo(p.config());
         }
@@ -47,7 +51,8 @@ class ConfigCodecTest {
         ConfigCodec.Parsed p = ConfigCodec.parse(Map.of());
         assertThat(p.config()).isEqualTo(TfpConfig.DEFAULTS);
         assertThat(p.warnings()).isEmpty();
-        assertThat(p.defaulted()).hasSize(8).contains("visuals.profile", "auto-install.restore-deleted");
+        assertThat(p.defaulted()).hasSize(11).contains("visuals.profile", "auto-install.restore-deleted",
+                "ore-overlay.cutoff-blocks", "ore-overlay.max-per-player", "ore-overlay.surface-outcrops-full-range");
         assertThat(ConfigCodec.parse(null).config()).isEqualTo(TfpConfig.DEFAULTS);
     }
 
@@ -103,11 +108,53 @@ class ConfigCodecTest {
     @Test
     void profileForRunningVersion() {
         Visuals v = TfpConfig.DEFAULTS.visuals();
-        assertThat(v.profileFor(Version.parse("1.21.11"))).isEqualTo(Profile.LEVEL_3A);
+        assertThat(v.profileFor(Version.parse("1.21.11"))).isEqualTo(Profile.LEVEL_2);
         assertThat(v.profileFor(Version.parse("26.3"))).isEqualTo(Profile.LEVEL_2);
         assertThat(v.profileFor(Version.parse("27.1"))).isEqualTo(Profile.LEVEL_2);
         assertThat(Visuals.family(Version.parse("1.21.4"))).isEqualTo("1.21");
         assertThat(Visuals.family(Version.parse("26.1"))).isEqualTo("26");
         assertThat(CUSTOM.visuals().profileFor(Version.parse("26.2"))).isEqualTo(Profile.LEVEL_0);
+    }
+
+    @Test
+    void defaultsAreLevel2OnBothFamiliesAndOnlyThreeProfilesExist() {
+        assertThat(Profile.values()).extracting(Profile::id).containsExactly("level-0", "level-1", "level-2");
+        assertThat(Visuals.DEFAULT_PROFILES).containsExactly(Map.entry("1.21", Profile.LEVEL_2), Map.entry("26", Profile.LEVEL_2));
+        assertThat(TfpConfig.DEFAULTS.oreOverlay()).isEqualTo(new OreOverlay(48, 8000, true));
+        assertThat(Profile.byId("level-3a")).isEmpty();
+    }
+
+    @Test
+    void removedProfilesAreReadAsLevel2WithAWarningNamingFileAndKey() {
+        for (String removed : List.of("level-3a", "level-3b", " LEVEL-3A ")) {
+            ConfigCodec.Parsed p = ConfigCodec.parse(Map.of("visuals", Map.of("profile", Map.of("1.21", removed, "26", "level-1"))));
+            assertThat(p.config().visuals().profile()).as(removed)
+                    .containsEntry("1.21", Profile.LEVEL_2).containsEntry("26", Profile.LEVEL_1);
+            assertThat(p.warnings()).as(removed).singleElement().asString()
+                    .startsWith("plugins/TerraFirmaPlugin/config.yml visuals.profile.\"1.21\": " + removed.strip())
+                    .contains("was removed: ores are drawn as overlays and grades no longer cost visual states; using level-2");
+        }
+        // Parsing never rewrites the owner's value: the same input warns again (every start until the owner edits it).
+        Map<String, Object> tree = Map.of("visuals", Map.of("profile", Map.of("26", "level-3b")));
+        assertThat(ConfigCodec.parse(tree).warnings()).hasSize(1);
+        assertThat(ConfigCodec.parse(tree).warnings()).hasSize(1);
+        assertThat(tree.get("visuals")).isEqualTo(Map.of("profile", Map.of("26", "level-3b")));
+    }
+
+    @Test
+    void unknownProfileFallsBackToTheDefaultAndListsTheThreeLevels() {
+        ConfigCodec.Parsed p = ConfigCodec.parse(Map.of("visuals", Map.of("profile", Map.of("1.21", "level-4"))));
+        assertThat(p.config().visuals().profile()).containsEntry("1.21", Profile.LEVEL_2);
+        assertThat(p.warnings()).singleElement().asString()
+                .contains("unknown profile 'level-4'").contains("expected level-0, level-1 or level-2").contains("using level-2")
+                .doesNotContain("level-3");
+    }
+
+    @Test
+    void oreOverlayBadValuesWarnAndFallBack() {
+        ConfigCodec.Parsed p = ConfigCodec.parse(Map.of("ore-overlay",
+                Map.of("cutoff-blocks", -1, "max-per-player", "many", "surface-outcrops-full-range", "no", "radius", 3)));
+        assertThat(p.config().oreOverlay()).isEqualTo(OreOverlay.DEFAULTS);
+        assertThat(p.warnings()).hasSize(4).anyMatch(w -> w.contains("'ore-overlay.radius'"));
     }
 }

@@ -10,6 +10,9 @@ import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import dev.tfp.datagen.oreoverlay.OreLook;
+import dev.tfp.datagen.oreoverlay.OreOverlays;
+import dev.tfp.datagen.visuals.Profile;
 import dev.tfp.datagen.visuals.VisualAllocator;
 import dev.tfp.datagen.visuals.VisualDemand;
 import java.math.BigDecimal;
@@ -28,8 +31,10 @@ import java.util.regex.Pattern;
 
 /**
  * M1-DGN-03 (rocks, soils, ores): copies TFC textures and models of the rock/ore/dirt/grass/clay/sand families
- * into the CraftEngine pack (refs renamed, plus every model/texture they reference), flattens ore overlays,
- * writes literal CE YAML per block id calling our {@code tfp:} templates, and filters lang files.
+ * into the CraftEngine pack (refs renamed, plus every model/texture they reference), flattens ore overlays (only in
+ * the {@link OreLook#FULL_CUBE} transition look, PAR-INFRA-15), writes literal CE YAML per block id calling our
+ * {@code tfp:} templates, and filters lang files. Ore block items use a composite item model (host rock + overlay
+ * cube, {@link OreOverlays}) in both looks, so TFC's per-ore item models are not copied.
  *
  * <p>TFC blockstates are read, not copied: a vanilla client never loads blockstates for a {@code tfp:} block
  * (CraftEngine writes the vanilla blockstates of the visual states it assigns), so the blockstates only drive
@@ -81,16 +86,23 @@ public final class AssetPipeline {
     private Map<String, String> rarityCache;
     /** Appearance demand of every emitted block, in emission order (input of the visual allocator). */
     private final List<VisualDemand> demand = new ArrayList<>();
+    private final OreLook oreLook;
 
-    private AssetPipeline(TfcCheckout tfc, OutputTree out, Report report) {
+    private AssetPipeline(TfcCheckout tfc, OutputTree out, Report report, OreLook oreLook) {
         this.tfc = tfc;
         this.out = out;
         this.report = report;
+        this.oreLook = oreLook;
     }
 
     /** Writes the pack and returns the appearance demand of the emitted blocks (see {@link VisualAllocator}). */
     public static List<VisualDemand> run(TfcCheckout tfc, OutputTree out, Report report) {
-        AssetPipeline p = new AssetPipeline(tfc, out, report);
+        return run(tfc, out, report, OreLook.shipped());
+    }
+
+    /** {@link #run(TfcCheckout, OutputTree, Report)} with an explicit ore look (tests). */
+    public static List<VisualDemand> run(TfcCheckout tfc, OutputTree out, Report report, OreLook oreLook) {
+        AssetPipeline p = new AssetPipeline(tfc, out, report, oreLook);
         p.run();
         return List.copyOf(p.demand);
     }
@@ -426,12 +438,22 @@ public final class AssetPipeline {
         }
         JsonObject textures = json.has("textures") ? json.getAsJsonObject("textures") : new JsonObject();
         String parent = json.has("parent") ? json.get("parent").getAsString() : null;
-        if ((Json.FROM_NS + ":block/ore").equals(parent) && textures.has("all") && textures.has("overlay")) {
+        if (parent != null && parent.startsWith(Json.FROM_NS + ":block/ore/") && ORE_BLOCK_ITEM_MODEL.matcher(path).matches()) {
+            report.count("ore_item_models_replaced"); // the block item draws a composite (rock + overlay cube) instead
+            return;
+        }
+        boolean oreModel = (Json.FROM_NS + ":block/ore").equals(parent) && textures.has("all") && textures.has("overlay");
+        boolean oreColumn = (Json.FROM_NS + ":block/ore_column").equals(parent) && textures.has("side")
+            && textures.has("end") && textures.has("overlay") && textures.has("overlay_end");
+        if ((oreModel || oreColumn) && oreLook == OreLook.HOST_ROCK) {
+            report.count("ore_models_host_rock"); // the visual is the host rock's; the overlay runtime draws the ore
+            return;
+        }
+        if (oreModel) {
             flattenOre(path, textures.get("all").getAsString(), textures.get("overlay").getAsString());
             return;
         }
-        if ((Json.FROM_NS + ":block/ore_column").equals(parent) && textures.has("side") && textures.has("end")
-            && textures.has("overlay") && textures.has("overlay_end")) {
+        if (oreColumn) {
             flattenOreColumn(path, textures);
             return;
         }
@@ -464,6 +486,9 @@ public final class AssetPipeline {
         model.add("textures", tex);
         return model;
     }
+
+    /** TFC's ore block item models ({@code item/ore/<ore>/<rock>}, parent the block model). */
+    private static final Pattern ORE_BLOCK_ITEM_MODEL = Pattern.compile("item/ore/[a-z_]+/[a-z_]+");
 
     /** {@code tfc:block/ore} (rock cube + overlay cube) → one cube_all model over a flattened texture. */
     private void flattenOre(String path, String baseRef, String overlayRef) {
@@ -665,9 +690,19 @@ public final class AssetPipeline {
         entry.put(state.key(), state.section());
         state.appearances().forEach((name, models) -> demand.add(new VisualDemand(id, name, models)));
         file.blocks.put(Json.TO_NS + ":" + id, entry);
-        requireItemModel(id);
-        file.items.put(Json.TO_NS + ":" + id,
-            CeBlockStates.call("tfp:item/block_item", Map.of("item_lang_key", langKey("block", id))));
+        if (Profile.ORE.matcher(id).matches()) {
+            // PAR-INFRA-15: the icon is the host rock plus the overlay cube (minecraft:composite), as TFC's ore model draws it.
+            OreOverlays.OreBlock ore = OreOverlays.oreBlock(tfc, id);
+            String rockModel = RP + "models/" + ore.rockModel().substring(Json.TO_NS.length() + 1) + ".json";
+            if (!out.contains(rockModel)) {
+                throw new DatagenException("ore block item tfp:" + id + " needs the host rock model " + ore.rockModel());
+            }
+            file.items.put(Json.TO_NS + ":" + id, OreOverlays.blockItemCall(ore, langKey("block", id)));
+        } else {
+            requireItemModel(id);
+            file.items.put(Json.TO_NS + ":" + id,
+                CeBlockStates.call("tfp:item/block_item", Map.of("item_lang_key", langKey("block", id))));
+        }
         report.emitted(id);
     }
 

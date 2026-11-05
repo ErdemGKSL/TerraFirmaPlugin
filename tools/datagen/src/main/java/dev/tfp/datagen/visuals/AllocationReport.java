@@ -5,6 +5,7 @@
  */
 package dev.tfp.datagen.visuals;
 
+import dev.tfp.datagen.oreoverlay.OreLook;
 import dev.tfp.datagen.visuals.VisualAllocator.Allocation;
 import dev.tfp.datagen.visuals.VisualAllocator.Unit;
 import java.util.List;
@@ -16,7 +17,8 @@ final class AllocationReport {
     private AllocationReport() {
     }
 
-    static String markdown(Allocation off, Allocation on, List<VisualDemand> demand) {
+    /** @param hostRock the same profile and family (Nether/End off) with {@link OreLook#HOST_ROCK} */
+    static String markdown(Allocation off, Allocation on, List<VisualDemand> demand, Allocation hostRock) {
         Profile profile = off.profile();
         VersionFamily family = off.family();
         StringBuilder sb = new StringBuilder();
@@ -34,6 +36,14 @@ final class AllocationReport {
         sb.append("- Appearances: ").append(demand.size()).append("; shared by profile rules: ")
             .append(off.sharedByProfile()).append("; distinct visuals after model dedup: ")
             .append(off.units().size()).append(".\n");
+        long ores = demand.stream().filter(d -> Profile.hostRock(d) != null).count();
+        sb.append("- Ore look shipped: `").append(off.oreLook().id()).append("` (").append(ores).append(" ore appearances). ")
+            .append("With `host_rock` (always-on rule, every profile: each ore is its host raw rock's unit, the ore is ")
+            .append("drawn by the face overlays of PAR-INFRA-16) the ore demand is 0 and this profile needs **")
+            .append(hostRock.units().size()).append(" visuals** (").append(hostRock.explicitUsed())
+            .append(" explicit states, ").append(hostRock.solidUsed()).append(" solid-pool states, Nether/End off).")
+            .append(off.oreLook() == OreLook.FULL_CUBE ? " `full_cube` keeps each ore's flattened cube until "
+                + "PAR-INFRA-16 flips `mode.properties`." : "").append('\n');
         if (!profile.pendingRules().isEmpty()) {
             sb.append("- Profile rules that need content or renderers not built yet:\n");
             profile.pendingRules().forEach(r -> sb.append("  - ").append(r).append('\n'));

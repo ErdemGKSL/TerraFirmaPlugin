@@ -16,33 +16,33 @@ import org.junit.jupiter.api.Test;
 
 /** M1-INST-03: when the CraftEngine pack is rebuilt, and that a profile switch never touches worlds. */
 class PackBuildTest {
-    static final VisualSelection L3A = new VisualSelection("1.21", Profile.LEVEL_3A, false);
+    static final VisualSelection L1 = new VisualSelection("1.21", Profile.LEVEL_1, false);
     static final VisualSelection L2 = new VisualSelection("1.21", Profile.LEVEL_2, false);
     static final Map<String, String> FILES = Map.of("pack.yml", "aa", "configuration/rock/granite.yml", "bb");
 
     @Test
     void firstInstallRebuilds() {
-        Plan p = PackBuild.decide(Optional.empty(), Fingerprint.of(FILES, L3A));
+        Plan p = PackBuild.decide(Optional.empty(), Fingerprint.of(FILES, L1));
         assertThat(p.rebuild()).isTrue();
         assertThat(p.migrateWorldData()).isFalse();
     }
 
     @Test
     void sameContentAndProfileDoesNothing() {
-        Fingerprint f = Fingerprint.of(FILES, L3A);
-        assertThat(PackBuild.decide(Optional.of(Fingerprint.of(Map.copyOf(FILES), L3A)), f)).isEqualTo(Plan.NOTHING);
+        Fingerprint f = Fingerprint.of(FILES, L1);
+        assertThat(PackBuild.decide(Optional.of(Fingerprint.of(Map.copyOf(FILES), L1)), f)).isEqualTo(Plan.NOTHING);
     }
 
     @Test
     void profileSwitchBetweenRestartsRebuildsAndLeavesWorldsAlone() {
-        // Start 1 built with level-3a; the owner switches to level-2 and restarts; then back again.
-        Fingerprint built = Fingerprint.of(FILES, L3A);
+        // Start 1 built with level-1; the owner switches to level-2 and restarts; then back again.
+        Fingerprint built = Fingerprint.of(FILES, L1);
         Map<String, String> level2Files = Map.of("pack.yml", "aa", "configuration/rock/granite.yml", "bb",
                 "configuration/visuals/visual_templates.yml", "cc");
         Plan toL2 = PackBuild.decide(Optional.of(built), Fingerprint.of(level2Files, L2));
         assertThat(toL2.rebuild()).isTrue();
         assertThat(toL2.migrateWorldData()).isFalse();
-        assertThat(toL2.reason()).contains("1.21/level-3a/nether-end-off -> 1.21/level-2/nether-end-off")
+        assertThat(toL2.reason()).contains("1.21/level-1/nether-end-off -> 1.21/level-2/nether-end-off")
                 .contains("worlds are not changed");
 
         Plan back = PackBuild.decide(Optional.of(Fingerprint.of(level2Files, L2)), built);
@@ -52,16 +52,16 @@ class PackBuildTest {
 
     @Test
     void netherEndSwitchIsAProfileChange() {
-        Plan p = PackBuild.decide(Optional.of(Fingerprint.of(FILES, L3A)),
-                Fingerprint.of(FILES, new VisualSelection("1.21", Profile.LEVEL_3A, true)));
+        Plan p = PackBuild.decide(Optional.of(Fingerprint.of(FILES, L1)),
+                Fingerprint.of(FILES, new VisualSelection("1.21", Profile.LEVEL_1, true)));
         assertThat(p.rebuild()).isTrue();
         assertThat(p.migrateWorldData()).isFalse();
     }
 
     @Test
     void contentChangeRebuilds() {
-        Plan p = PackBuild.decide(Optional.of(Fingerprint.of(FILES, L3A)),
-                Fingerprint.of(Map.of("pack.yml", "aa", "configuration/rock/granite.yml", "XX"), L3A));
+        Plan p = PackBuild.decide(Optional.of(Fingerprint.of(FILES, L1)),
+                Fingerprint.of(Map.of("pack.yml", "aa", "configuration/rock/granite.yml", "XX"), L1));
         assertThat(p.rebuild()).isTrue();
         assertThat(p.reason()).contains("content changed");
     }

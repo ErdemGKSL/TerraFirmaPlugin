@@ -12,6 +12,7 @@ import dev.tfp.datagen.Datapacks;
 import dev.tfp.datagen.Json;
 import dev.tfp.datagen.OutputTree;
 import dev.tfp.datagen.Yaml;
+import dev.tfp.datagen.oreoverlay.OreLook;
 import dev.tfp.datagen.visuals.VisualAllocator.Allocation;
 import dev.tfp.datagen.visuals.VisualAllocator.Unit;
 import java.util.ArrayList;
@@ -33,7 +34,8 @@ import java.util.function.Function;
  *       ({@code block_state_mappings} hiding real instances of the claimed states) and
  *       {@code suppressed_blocks.json} (repurposed vanilla blocks whose creation the runtime blocks, M1-INST-04).
  *       The installer (M1-INST-03) copies the two YAML files of the selected allocation into our CE pack.</li>
- *   <li>{@code visuals/index.json}: every allocation's pool use, the defaults and the reserve threshold.</li>
+ *   <li>{@code visuals/index.json}: every allocation's pool use, the defaults, the reserve threshold and the shipped
+ *       ore look ({@link OreLook}).</li>
  *   <li>{@code datapack/tfp_visuals/}: block tag edits for the client-relevant tags of every vanilla block used
  *       as a visual in any allocation (tags are global, so one datapack serves every profile).</li>
  *   <li>{@code reports/visual-allocation-<profile>-<family>.md}: human-readable allocation report.</li>
@@ -65,20 +67,31 @@ public final class VisualOutputs {
         return m;
     }
 
-    /** Allocates every profile × family × Nether/End setting and writes all outputs. Throws on any overflow. */
+    /** Allocates every profile × family × Nether/End setting with the shipped ore look and writes all outputs. */
     public static List<Allocation> run(OutputTree out, List<VisualDemand> demand, Function<String, String> modelContent) {
+        return run(out, demand, modelContent, OreLook.shipped());
+    }
+
+    /**
+     * Allocates every profile × family × Nether/End setting and writes all outputs. Throws on any overflow (in the
+     * {@code HOST_ROCK} look too, which every report also counts while the shipped look is {@code FULL_CUBE}).
+     */
+    public static List<Allocation> run(OutputTree out, List<VisualDemand> demand, Function<String, String> modelContent,
+                                       OreLook oreLook) {
         VanillaSupply supply = VanillaSupply.load();
         List<Allocation> all = new ArrayList<>();
         for (VersionFamily family : VersionFamily.values()) {
             for (Profile profile : Profile.values()) {
                 List<Allocation> pair = new ArrayList<>();
                 for (boolean ne : new boolean[] {false, true}) {
-                    Allocation a = VisualAllocator.allocate(demand, modelContent, profile, family, ne, supply);
+                    Allocation a = VisualAllocator.allocate(demand, modelContent, profile, family, ne, supply, oreLook);
                     writeAllocation(out, a);
                     pair.add(a);
                 }
+                Allocation hostRock = oreLook == OreLook.HOST_ROCK ? pair.get(0)
+                    : VisualAllocator.allocate(demand, modelContent, profile, family, false, supply, OreLook.HOST_ROCK);
                 out.put("reports/visual-allocation-" + profile.id() + "-" + family.id() + ".md",
-                    AllocationReport.markdown(pair.get(0), pair.get(1), demand));
+                    AllocationReport.markdown(pair.get(0), pair.get(1), demand, hostRock));
                 all.addAll(pair);
             }
         }
@@ -188,6 +201,7 @@ public final class VisualOutputs {
         JsonObject o = new JsonObject();
         o.addProperty("format", 1);
         o.addProperty("solid_reserve_warning", Profile.SOLID_RESERVE_WARNING);
+        o.addProperty("ore_look", all.getFirst().oreLook().id());
         JsonObject fams = new JsonObject();
         for (VersionFamily f : VersionFamily.values()) {
             JsonObject j = new JsonObject();

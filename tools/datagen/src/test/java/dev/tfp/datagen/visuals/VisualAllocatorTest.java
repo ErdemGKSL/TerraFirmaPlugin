@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import dev.tfp.datagen.CeBlockStates.ModelRef;
 import dev.tfp.datagen.DatagenException;
+import dev.tfp.datagen.oreoverlay.OreLook;
 import dev.tfp.datagen.visuals.VisualAllocator.Allocation;
 import dev.tfp.datagen.visuals.VisualAllocator.Unit;
 import java.io.IOException;
@@ -115,33 +116,82 @@ class VisualAllocatorTest {
         assertThat(a.unitByDemand().get("copy_b").models()).isEqualTo(model("tfp:block/b"));
     }
 
-    @Test
-    void profilesShareOreGradesAndGemsCumulatively() {
+    private static List<VisualDemand> rockAndOres() {
         List<VisualDemand> demand = new ArrayList<>();
-        for (String axis : List.of("axis_x", "axis_y", "axis_z")) {
-            int x = axis.equals("axis_y") ? 0 : 90;
-            int y = axis.equals("axis_x") ? 90 : 0;
-            demand.add(new VisualDemand("rock/raw/granite", axis, List.of(new ModelRef("tfp:block/rock/raw/granite", x,
-                y, false, 1))));
-        }
-        demand.addAll(cubes("ore/poor_hematite/granite", "ore/normal_hematite/granite", "ore/rich_hematite/granite",
-            "ore/ruby/granite", "ore/borax/granite"));
-        VanillaSupply supply = VanillaSupply.parse(CSV);
-        Map<Profile, Integer> units = new HashMap<>();
-        for (Profile p : Profile.values()) {
-            Allocation a = VisualAllocator.allocate(demand, CONTENT, p, VersionFamily.V1_21, false, supply);
-            units.put(p, a.units().size());
-            if (p.ordinal() >= Profile.LEVEL_2.ordinal()) {
-                assertThat(a.unitByDemand().get("ore/ruby/granite")).isSameAs(a.unitByDemand().get("rock/raw/granite#axis_y"));
+        for (String rock : List.of("granite", "shale")) {
+            for (String axis : List.of("axis_x", "axis_y", "axis_z")) {
+                int x = axis.equals("axis_y") ? 0 : 90;
+                int y = axis.equals("axis_x") ? 90 : 0;
+                List<ModelRef> models = new ArrayList<>();
+                models.add(new ModelRef("tfp:block/rock/raw/" + rock, x, y, false, 1));
+                models.add(new ModelRef("tfp:block/rock/raw/" + rock + "_mirrored", x, y, false, 1));
+                demand.add(new VisualDemand("rock/raw/" + rock, axis, models));
             }
         }
-        assertThat(units).containsEntry(Profile.LEVEL_0, 8).containsEntry(Profile.LEVEL_1, 8)
-            .containsEntry(Profile.LEVEL_2, 7).containsEntry(Profile.LEVEL_3A, 6).containsEntry(Profile.LEVEL_3B, 5);
-        Allocation a3a = VisualAllocator.allocate(demand, CONTENT, Profile.LEVEL_3A, VersionFamily.V1_21, false, supply);
-        Unit poor = a3a.unitByDemand().get("ore/poor_hematite/granite");
-        assertThat(poor).isSameAs(a3a.unitByDemand().get("ore/normal_hematite/granite"));
-        assertThat(poor.models()).isEqualTo(model("tfp:block/ore/normal_hematite/granite"));
-        assertThat(a3a.unitByDemand().get("ore/rich_hematite/granite")).isNotSameAs(poor);
+        demand.addAll(cubes("ore/poor_hematite/granite", "ore/normal_hematite/granite", "ore/rich_hematite/granite",
+            "ore/ruby/granite", "ore/borax/granite", "ore/normal_malachite/shale"));
+        return demand;
+    }
+
+    /** PAR-INFRA-15: with HOST_ROCK every ore is its host raw rock's unit in every profile; no ore unit exists. */
+    @Test
+    void hostRockOresUseTheHostRawRockUnitInEveryProfile() {
+        List<VisualDemand> demand = rockAndOres();
+        VanillaSupply supply = VanillaSupply.parse(CSV);
+        for (Profile p : Profile.values()) {
+            Allocation a = VisualAllocator.allocate(demand, CONTENT, p, VersionFamily.V1_21, false, supply, OreLook.HOST_ROCK);
+            assertThat(a.oreLook()).isEqualTo(OreLook.HOST_ROCK);
+            assertThat(a.units()).as(p.id()).hasSize(6); // 2 rocks x 3 axes, no ore unit
+            Unit granite = a.unitByDemand().get("rock/raw/granite#axis_y");
+            for (String ore : List.of("ore/poor_hematite/granite", "ore/normal_hematite/granite", "ore/rich_hematite/granite",
+                "ore/ruby/granite", "ore/borax/granite")) {
+                assertThat(a.unitByDemand().get(ore)).as(p.id() + " " + ore).isSameAs(granite);
+            }
+            // shale keeps its own (cube_column) raw look, including the random mirrored variants
+            Unit shale = a.unitByDemand().get("ore/normal_malachite/shale");
+            assertThat(shale).isSameAs(a.unitByDemand().get("rock/raw/shale#axis_y"));
+            assertThat(shale.models()).extracting(ModelRef::path)
+                .containsExactly("tfp:block/rock/raw/shale", "tfp:block/rock/raw/shale_mirrored");
+            assertThat(a.units()).allSatisfy(u -> assertThat(u.id()).doesNotStartWith("ore/"));
+        }
+        // The default overload is the target look.
+        assertThat(VisualAllocator.allocate(demand, CONTENT, Profile.LEVEL_0, VersionFamily.V1_21, false, supply).units())
+            .hasSize(6);
+    }
+
+    /** The transition look keeps one unit per ore and never merges grades (level-3a/3b are gone). */
+    @Test
+    void fullCubeOresKeepTheirOwnUnitAndGradesInEveryProfile() {
+        List<VisualDemand> demand = rockAndOres();
+        VanillaSupply supply = VanillaSupply.parse(CSV);
+        for (Profile p : Profile.values()) {
+            Allocation a = VisualAllocator.allocate(demand, CONTENT, p, VersionFamily.V1_21, false, supply, OreLook.FULL_CUBE);
+            assertThat(a.units()).as(p.id()).hasSize(12);
+            assertThat(a.sharedByProfile()).isZero();
+            assertThat(a.unitByDemand().get("ore/poor_hematite/granite"))
+                .isNotSameAs(a.unitByDemand().get("ore/normal_hematite/granite"));
+            assertThat(a.unitByDemand().get("ore/ruby/granite").models()).isEqualTo(model("tfp:block/ore/ruby/granite"));
+        }
+    }
+
+    @Test
+    void hostRockWithoutTheHostRockFailsTheBuild() {
+        assertThatThrownBy(() -> VisualAllocator.allocate(cubes("ore/ruby/granite"), CONTENT, Profile.LEVEL_2,
+            VersionFamily.V1_21, false, VanillaSupply.parse(CSV), OreLook.HOST_ROCK))
+            .isInstanceOf(DatagenException.class).hasMessageContaining("rock/raw/granite#axis_y");
+    }
+
+    @Test
+    void onlyLevel0To2ExistAndPendingRulesNameOnlyMissingContent() {
+        assertThat(Profile.values()).extracting(Profile::id).containsExactly("level-0", "level-1", "level-2");
+        assertThat(Profile.LEVEL_0.pendingRules()).isEmpty();
+        assertThat(String.join("\n", Profile.LEVEL_2.pendingRules()))
+            .contains("crate/workbench", "wood/stripped_wood axes", "deposits rock-agnostic")
+            .doesNotContain("gem").doesNotContain("ore");
+        assertThatThrownBy(() -> Profile.byId("level-3a")).isInstanceOf(IllegalArgumentException.class);
+        assertThat(OreLook.parse("host-rock")).isEqualTo(OreLook.HOST_ROCK);
+        assertThat(OreLook.parse("FULL_CUBE")).isEqualTo(OreLook.FULL_CUBE);
+        assertThatThrownBy(() -> OreLook.parse("overlay")).isInstanceOf(DatagenException.class);
     }
 
     @Test
@@ -173,8 +223,8 @@ class VisualAllocatorTest {
     }
 
     @Test
-    void defaultsAreLevel3aOn121AndLevel2On26() {
-        assertThat(Profile.defaultFor(VersionFamily.V1_21)).isEqualTo(Profile.LEVEL_3A);
+    void defaultsAreLevel2OnBothFamilies() {
+        assertThat(Profile.defaultFor(VersionFamily.V1_21)).isEqualTo(Profile.LEVEL_2);
         assertThat(Profile.defaultFor(VersionFamily.V26)).isEqualTo(Profile.LEVEL_2);
         assertThat(Profile.SOLID_RESERVE_WARNING).isEqualTo(500);
         assertThat(VersionFamily.V1_21.solidPool()).isEqualTo(1289);

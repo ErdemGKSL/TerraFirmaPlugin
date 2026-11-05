@@ -18,7 +18,7 @@ class YamlDefaultsMergeTest {
             # Second comment line.
             visuals:
               profile:
-                "1.21": level-3a   # inline comment
+                "1.21": level-1   # inline comment
                 "26": level-2
 
               solid-reserve-warning: 500
@@ -42,7 +42,7 @@ class YamlDefaultsMergeTest {
                 .contains("# Installer switches.\nauto-install:\n  craftengine: true\n")
                 .contains("\"quoted-key\": 1")
                 .doesNotContain("Header comment")
-                .doesNotContain("level-3a");
+                .doesNotContain("level-1");
         assertThat(YamlDefaultsMerge.topLevelKeys(r.text())).containsExactly("visuals", "auto-install", "quoted-key");
     }
 
@@ -67,7 +67,7 @@ class YamlDefaultsMergeTest {
         YamlDefaultsMerge.Result r = YamlDefaultsMerge.merge("", DEFAULTS);
         assertThat(r.added()).containsExactly("visuals", "auto-install", "quoted-key");
         assertThat(r.text()).contains("# Visual allocation.\n# Second comment line.\nvisuals:\n  profile:\n"
-                + "    \"1.21\": level-3a   # inline comment\n    \"26\": level-2\n\n  solid-reserve-warning: 500\n");
+                + "    \"1.21\": level-1   # inline comment\n    \"26\": level-2\n\n  solid-reserve-warning: 500\n");
     }
 
     @Test

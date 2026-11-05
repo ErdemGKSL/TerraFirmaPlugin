@@ -213,6 +213,7 @@ final class CeYamlCheck {
             });
             checked++;
         }
-        assertThat(checked).isEqualTo(20);
+        assertThat(checked).isEqualTo(dev.tfp.datagen.visuals.VersionFamily.values().length
+            * dev.tfp.datagen.visuals.Profile.values().length * 2); // every allocation (PAR-INFRA-15: level-0..2)
     }
 }

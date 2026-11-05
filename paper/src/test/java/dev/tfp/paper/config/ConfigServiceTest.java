@@ -57,8 +57,9 @@ class ConfigServiceTest {
     void yamlRoundTrip() {
         Map<String, Profile> profiles = new java.util.LinkedHashMap<>();
         profiles.put("1.21", Profile.LEVEL_1);
-        profiles.put("26", Profile.LEVEL_3B);
+        profiles.put("26", Profile.LEVEL_0);
         TfpConfig custom = new TfpConfig(new Visuals(profiles, 7, NetherEndBlocks.FALSE),
+                new TfpConfig.OreOverlay(32, 100, false),
                 new AutoInstall(false, false, true, true, false));
         for (TfpConfig c : new TfpConfig[] {TfpConfig.DEFAULTS, custom}) {
             String yaml = Yamls.dump(ConfigCodec.toMap(c));
@@ -86,23 +87,26 @@ class ConfigServiceTest {
                 # my notes stay
                 visuals:
                   profile:
-                    "26": level-3b # more room for other packs
+                    "26": level-3b # an old config: read as level-2 with a warning
                   extra: 1
                 """;
         Files.createDirectories(file.getParent());
         Files.writeString(file, owner);
         ConfigService.Outcome o = service.load();
         assertThat(o.created()).isFalse();
-        assertThat(o.added()).containsExactly("auto-install");
-        assertThat(o.warnings()).singleElement().asString().contains("visuals.extra");
+        assertThat(o.added()).containsExactly("ore-overlay", "auto-install");
+        assertThat(o.warnings()).hasSize(2).anyMatch(w -> w.contains("visuals.extra"))
+                .anyMatch(w -> w.contains("config.yml visuals.profile.\"26\": level-3b was removed") && w.contains("using level-2"));
         String text = Files.readString(file);
         assertThat(text).startsWith(owner).contains("# Automatic setup of CraftEngine").contains("download-missing: false");
-        assertThat(service.current().visuals().profile()).containsEntry("26", Profile.LEVEL_3B)
-                .containsEntry("1.21", Profile.LEVEL_3A);
+        assertThat(service.current().visuals().profile()).containsEntry("26", Profile.LEVEL_2)
+                .containsEntry("1.21", Profile.LEVEL_2);
+        assertThat(service.current().oreOverlay()).isEqualTo(TfpConfig.OreOverlay.DEFAULTS);
         assertThat(service.current().visuals().solidReserveWarning()).isEqualTo(500);
-        // Second start: nothing more to add, file untouched.
+        // Second start: nothing more to add, file untouched (the owner's level-3b stays), the warning repeats.
         ConfigService.Outcome again = service.load();
         assertThat(again.added()).isEmpty();
+        assertThat(again.warnings()).anyMatch(w -> w.contains("level-3b was removed"));
         assertThat(Files.readString(file)).isEqualTo(text);
     }
 

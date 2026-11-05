@@ -88,7 +88,8 @@ public final class ProfileCheck {
      * @param othersUsed solid slots other packs hold
      * @param free       slots left after us (negative: missing)
      * @param suggestion the profile to switch to ({@code FAIL}: the next higher profile, preferring the first
-     *                   that fits; {@code WARN}: the next higher profile), empty if there is none
+     *                   that fits; {@code WARN}: the next higher profile), empty if there is none ({@code level-2}
+     *                   is the highest since PAR-INFRA-15: a {@code level-2} FAIL lists the shortfall and the options)
      * @param lines      the log message
      */
     public record Result(Verdict verdict, int needed, int othersUsed, int free, Optional<Profile> suggestion, List<String> lines) {
@@ -134,7 +135,12 @@ public final class ProfileCheck {
                         + (fitting.isEmpty() ? "; even that does not fit: remove blocks of other CraftEngine packs" : "")
                         + ". Switching profiles does not change worlds.");
             } else {
-                lines.add(selection.profile().id() + " is the highest profile: remove blocks of other CraftEngine packs.");
+                lines.add("Shortfall per pool: solid " + (-free) + " (capacity " + pool.capacity() + ", other packs "
+                        + others + ", " + selection.profile().id() + " needs " + needed + ").");
+                lines.add(selection.profile().id() + " is the highest profile: no higher profile exists. Options: remove or "
+                        + "shrink other CraftEngine packs; set visuals.use-nether-end-blocks: true if this server has no "
+                        + "Nether/End (more explicit states, fewer solid ones needed); or clear CraftEngine's stale visual "
+                        + "cache with /ce clean-cache visual_block_states and restart.");
             }
             return new Result(Verdict.FAIL, needed, others, free, next, lines);
         }

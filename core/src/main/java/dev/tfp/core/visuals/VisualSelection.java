@@ -43,12 +43,12 @@ public record VisualSelection(String family, Profile profile, boolean netherEnd)
         };
     }
 
-    /** The allocation folder below the content root: {@code visuals/1.21/level-3a/nether-end-off}. */
+    /** The allocation folder below the content root: {@code visuals/1.21/level-2/nether-end-off}. */
     public String dir() {
         return "visuals/" + family + "/" + profile.id() + "/nether-end-" + (netherEnd ? "on" : "off");
     }
 
-    /** One line for logs and the build record: {@code 1.21/level-3a/nether-end-off}. */
+    /** One line for logs and the build record: {@code 1.21/level-2/nether-end-off}. */
     public String id() {
         return dir().substring("visuals/".length());
     }

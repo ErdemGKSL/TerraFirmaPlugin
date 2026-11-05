@@ -16,14 +16,18 @@ import java.util.Optional;
  * {@link ConfigCodec} maps it to and from the YAML tree. TFC's ServerConfig/CommonConfig keys are added
  * here as their features land.
  */
-public record TfpConfig(Visuals visuals, AutoInstall autoInstall) {
-    public static final TfpConfig DEFAULTS = new TfpConfig(Visuals.DEFAULTS, AutoInstall.DEFAULTS);
+public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall) {
+    public static final TfpConfig DEFAULTS = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS);
 
-    /** Visual allocation profile ({@code ARCHITECTURE.md} §9.1). Higher levels free more CE states at some fidelity cost. */
+    /**
+     * Visual allocation profile ({@code ARCHITECTURE.md} §9.1). Higher levels free more CE states at some fidelity cost.
+     * {@code level-2} is the highest: {@code level-3a}/{@code level-3b} only merged ore grades and were removed when ores
+     * became host-rock visuals with face overlays (PAR-INFRA-15); {@link #removedAlias} maps them for old configs.
+     */
     public enum Profile {
-        LEVEL_0, LEVEL_1, LEVEL_2, LEVEL_3A, LEVEL_3B;
+        LEVEL_0, LEVEL_1, LEVEL_2;
 
-        /** The config spelling: {@code level-3a}. */
+        /** The config spelling: {@code level-2}. */
         public String id() {
             return name().toLowerCase(Locale.ROOT).replace('_', '-');
         }
@@ -35,6 +39,25 @@ public record TfpConfig(Visuals visuals, AutoInstall autoInstall) {
                 }
             }
             return Optional.empty();
+        }
+
+        /**
+         * A removed profile name ({@code level-3a}, {@code level-3b}) and the profile it is read as ({@code level-2}), so
+         * an old config keeps starting; empty for every other text.
+         */
+        public static Optional<Profile> removedAlias(String id) {
+            String s = id.strip().toLowerCase(Locale.ROOT);
+            return s.equals("level-3a") || s.equals("level-3b") ? Optional.of(LEVEL_2) : Optional.empty();
+        }
+
+        /** The accepted spellings for messages: {@code level-0, level-1 or level-2}. */
+        public static String accepted() {
+            Profile[] all = values();
+            StringBuilder b = new StringBuilder();
+            for (int i = 0; i < all.length; i++) {
+                b.append(i == 0 ? "" : i == all.length - 1 ? " or " : ", ").append(all[i].id());
+            }
+            return b.toString();
         }
     }
 
@@ -64,7 +87,7 @@ public record TfpConfig(Visuals visuals, AutoInstall autoInstall) {
 
         private static Map<String, Profile> defaultProfiles() {
             Map<String, Profile> m = new LinkedHashMap<>();
-            m.put("1.21", Profile.LEVEL_3A);
+            m.put("1.21", Profile.LEVEL_2);
             m.put("26", Profile.LEVEL_2);
             return java.util.Collections.unmodifiableMap(m);
         }
@@ -82,7 +105,27 @@ public record TfpConfig(Visuals visuals, AutoInstall autoInstall) {
             if (p != null) {
                 return p;
             }
-            return minecraft.major() == 1 ? Profile.LEVEL_3A : Profile.LEVEL_2;
+            return Profile.LEVEL_2;
+        }
+    }
+
+    /**
+     * {@code ore-overlay.*}: the exposed-face ore overlays (ARCHITECTURE.md §9.1, design
+     * {@code docs/research/ore-entity-renderer-design.md} §3.4; read by the overlay runtime, PAR-INFRA-16). Defaults from the
+     * S1 verdict of PAR-WORLD-17 (unchanged: the owner question there is open).
+     *
+     * @param cutoffBlocks             client draw distance of a face overlay in blocks (sets {@code view_range} and the
+     *                                 server send radius {@code ceil(cutoff / 16) + 1} chunks)
+     * @param maxPerPlayer             face overlays sent to one player at most, nearest first
+     * @param surfaceOutcropsFullRange faces at the surface (cliffs, outcrops) are sent within the full view distance
+     */
+    public record OreOverlay(int cutoffBlocks, int maxPerPlayer, boolean surfaceOutcropsFullRange) {
+        public static final OreOverlay DEFAULTS = new OreOverlay(48, 8000, true);
+
+        public OreOverlay {
+            if (cutoffBlocks < 0 || maxPerPlayer < 0) {
+                throw new IllegalArgumentException("ore-overlay values must be >= 0");
+            }
         }
     }
 

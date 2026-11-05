@@ -7,6 +7,7 @@ package dev.tfp.datagen.visuals;
 
 import dev.tfp.datagen.CeBlockStates.ModelRef;
 import dev.tfp.datagen.DatagenException;
+import dev.tfp.datagen.oreoverlay.OreLook;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -22,8 +23,8 @@ import java.util.function.Function;
  * {@link Profile} × {@link VersionFamily} × Nether/End setting. Deterministic.
  *
  * <ol>
- *   <li>Demand: every appearance; the profile may make it reuse another appearance's look
- *       ({@link Profile#lookOf}). Appearances whose models are byte-identical (same model JSON, rotation,
+ *   <li>Demand: every appearance; the profile and the ore look may make it reuse another appearance's look
+ *       ({@link Profile#lookOf}; with {@link OreLook#HOST_ROCK} every ore is its host raw rock). Appearances whose models are byte-identical (same model JSON, rotation,
  *       uvlock, weight) form one <em>unit</em> and share one vanilla state (hardened rock = raw rock).</li>
  *   <li>Supply, in order: identity duplicates → Nether/End (only when enabled) → absent-in-TFC, clean before
  *       minor-caveat in each ({@link VanillaSupply}), then CE's {@code auto_state: solid} pool. Non-pool sources
@@ -55,7 +56,7 @@ public final class VisualAllocator {
         }
     }
 
-    public record Allocation(Profile profile, VersionFamily family, boolean netherEnd, List<Unit> units,
+    public record Allocation(Profile profile, VersionFamily family, boolean netherEnd, OreLook oreLook, List<Unit> units,
                              Map<String, Unit> unitByDemand, List<VisualDemand> demand,
                              SortedMap<String, String> mappings, Map<String, Integer> capacity,
                              Map<String, Integer> used, int sharedByProfile) {
@@ -84,12 +85,20 @@ public final class VisualAllocator {
     /** Pool labels in report order. */
     public static final List<String> POOLS = List.of("identity", "nether_end", "absent_clean", "absent_minor", "solid");
 
+    /** {@link #allocate(List, Function, Profile, VersionFamily, boolean, VanillaSupply, OreLook)} with the target ore look. */
+    public static Allocation allocate(List<VisualDemand> demand, Function<String, String> modelContent,
+                                      Profile profile, VersionFamily family, boolean netherEnd, VanillaSupply supply) {
+        return allocate(demand, modelContent, profile, family, netherEnd, supply, OreLook.HOST_ROCK);
+    }
+
     /**
      * @param modelContent model id (e.g. {@code tfp:block/rock/raw/granite}) → its JSON text, used to find
      *                     appearances that look the same through different model files
+     * @param oreLook      ores as host rock (target, 0 visual states) or as their own flattened cube (transition)
      */
     public static Allocation allocate(List<VisualDemand> demand, Function<String, String> modelContent,
-                                      Profile profile, VersionFamily family, boolean netherEnd, VanillaSupply supply) {
+                                      Profile profile, VersionFamily family, boolean netherEnd, VanillaSupply supply,
+                                      OreLook oreLook) {
         Map<String, VisualDemand> byKey = new LinkedHashMap<>();
         for (VisualDemand d : demand) {
             if (byKey.put(d.key(), d) != null) {
@@ -101,7 +110,7 @@ public final class VisualAllocator {
         Map<List<String>, List<ModelRef>> groupModels = new LinkedHashMap<>();
         int shared = 0;
         for (VisualDemand d : demand) {
-            VisualDemand look = profile.lookOf(d, byKey);
+            VisualDemand look = profile.lookOf(d, byKey, oreLook);
             if (look != d) {
                 shared++;
             }
@@ -154,7 +163,7 @@ public final class VisualAllocator {
                 mappings.put(u.state().state(), HideTargets.target(u.state(), allocated, supply, family));
             }
         }
-        return new Allocation(profile, family, netherEnd, List.copyOf(units), byDemand, List.copyOf(demand),
+        return new Allocation(profile, family, netherEnd, oreLook, List.copyOf(units), byDemand, List.copyOf(demand),
             mappings, capacity, used, shared);
     }
 

@@ -7,6 +7,7 @@ package dev.tfp.core.config;
 
 import dev.tfp.core.config.TfpConfig.AutoInstall;
 import dev.tfp.core.config.TfpConfig.NetherEndBlocks;
+import dev.tfp.core.config.TfpConfig.OreOverlay;
 import dev.tfp.core.config.TfpConfig.Profile;
 import dev.tfp.core.config.TfpConfig.Visuals;
 import java.util.ArrayList;
@@ -22,7 +23,15 @@ import java.util.Optional;
  * bad values take their defaults with a warning, unknown keys are reported as warnings and ignored.
  */
 public final class ConfigCodec {
+    /** The owner's file, as named in warnings. */
+    public static final String FILE = "plugins/TerraFirmaPlugin/config.yml";
+
     private ConfigCodec() {
+    }
+
+    /** {@code visuals.profile."1.21"}: the key as the owner writes it. */
+    static String quotedKey(String family) {
+        return "visuals.profile.\"" + family + "\"";
     }
 
     /**
@@ -40,7 +49,7 @@ public final class ConfigCodec {
     public static Parsed parse(Map<?, ?> root) {
         Reader r = new Reader();
         Map<?, ?> top = root == null ? Map.of() : root;
-        r.unknown(top, "", List.of("visuals", "auto-install"));
+        r.unknown(top, "", List.of("visuals", "ore-overlay", "auto-install"));
 
         Map<?, ?> v = r.section(top, "visuals");
         r.unknown(v, "visuals.", List.of("profile", "solid-reserve-warning", "use-nether-end-blocks"));
@@ -56,12 +65,19 @@ public final class ConfigCodec {
                     continue;
                 }
                 Optional<Profile> p = e.getValue() == null ? Optional.empty() : Profile.byId(e.getValue().toString());
+                Optional<Profile> removed = e.getValue() == null ? Optional.empty()
+                        : Profile.removedAlias(e.getValue().toString());
                 if (p.isPresent()) {
                     profiles.put(family, p.get());
+                } else if (removed.isPresent()) {
+                    // PAR-INFRA-15: logged at every start until the owner edits the key; the owner's file is never rewritten.
+                    profiles.put(family, removed.get());
+                    r.warn(FILE + " " + quotedKey(family) + ": " + e.getValue().toString().strip()
+                            + " was removed: ores are drawn as overlays and grades no longer cost visual states; using "
+                            + removed.get().id());
                 } else {
-                    r.warn(key + ": unknown profile '" + e.getValue() + "' (expected level-0, level-1, level-2, level-3a or "
-                            + "level-3b); using " + profiles.getOrDefault(family, family.startsWith("1.") ? Profile.LEVEL_3A
-                            : Profile.LEVEL_2).id());
+                    r.warn(key + ": unknown profile '" + e.getValue() + "' (expected " + Profile.accepted() + "); using "
+                            + profiles.getOrDefault(family, Profile.LEVEL_2).id());
                 }
             }
         } else {
@@ -69,6 +85,14 @@ public final class ConfigCodec {
         }
         int reserve = r.nonNegativeInt(v, "visuals.", "solid-reserve-warning", Visuals.DEFAULTS.solidReserveWarning());
         NetherEndBlocks netherEnd = r.netherEnd(v, Visuals.DEFAULTS.useNetherEndBlocks());
+
+        Map<?, ?> o = r.section(top, "ore-overlay");
+        r.unknown(o, "ore-overlay.", List.of("cutoff-blocks", "max-per-player", "surface-outcrops-full-range"));
+        OreOverlay od = OreOverlay.DEFAULTS;
+        OreOverlay overlay = new OreOverlay(
+                r.nonNegativeInt(o, "ore-overlay.", "cutoff-blocks", od.cutoffBlocks()),
+                r.nonNegativeInt(o, "ore-overlay.", "max-per-player", od.maxPerPlayer()),
+                r.bool(o, "ore-overlay.", "surface-outcrops-full-range", od.surfaceOutcropsFullRange()));
 
         Map<?, ?> a = r.section(top, "auto-install");
         r.unknown(a, "auto-install.", List.of("craftengine", "betterhud", "config-edits", "download-missing", "restore-deleted"));
@@ -79,7 +103,7 @@ public final class ConfigCodec {
                 r.bool(a, "auto-install.", "config-edits", d.configEdits()),
                 r.bool(a, "auto-install.", "download-missing", d.downloadMissing()),
                 r.bool(a, "auto-install.", "restore-deleted", d.restoreDeleted()));
-        return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), auto), r.warnings, r.defaulted);
+        return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto), r.warnings, r.defaulted);
     }
 
     /** The tree that {@link #parse} reads back to an equal config. Keys in config.yml order. */
@@ -91,6 +115,10 @@ public final class ConfigCodec {
         visuals.put("solid-reserve-warning", c.visuals().solidReserveWarning());
         NetherEndBlocks ne = c.visuals().useNetherEndBlocks();
         visuals.put("use-nether-end-blocks", ne == NetherEndBlocks.AUTO ? ne.id() : (Object) (ne == NetherEndBlocks.TRUE));
+        Map<String, Object> overlay = new LinkedHashMap<>();
+        overlay.put("cutoff-blocks", c.oreOverlay().cutoffBlocks());
+        overlay.put("max-per-player", c.oreOverlay().maxPerPlayer());
+        overlay.put("surface-outcrops-full-range", c.oreOverlay().surfaceOutcropsFullRange());
         AutoInstall a = c.autoInstall();
         Map<String, Object> auto = new LinkedHashMap<>();
         auto.put("craftengine", a.craftengine());
@@ -100,6 +128,7 @@ public final class ConfigCodec {
         auto.put("restore-deleted", a.restoreDeleted());
         Map<String, Object> root = new LinkedHashMap<>();
         root.put("visuals", visuals);
+        root.put("ore-overlay", overlay);
         root.put("auto-install", auto);
         return root;
     }

@@ -23,14 +23,14 @@ import org.junit.jupiter.api.Test;
 class VisualSelectionTest {
     static final String INDEX = """
             {"format": 1, "solid_reserve_warning": 500,
-             "families": {"1.21": {"default_profile": "level-3a", "solid_pool": 1289},
+             "families": {"1.21": {"default_profile": "level-2", "solid_pool": 1289},
                           "26": {"default_profile": "level-2", "solid_pool": 1489}},
              "allocations": [
                {"family": "1.21", "profile": "level-2", "nether_end": false, "dir": "visuals/1.21/level-2/nether-end-off",
                 "solid_used": 591, "solid_free": 698},
-               {"family": "1.21", "profile": "level-3a", "nether_end": false, "dir": "visuals/1.21/level-3a/nether-end-off",
-                "solid_used": 339, "solid_free": 950},
-               {"family": "1.21", "profile": "level-3a", "nether_end": true, "dir": "visuals/1.21/level-3a/nether-end-on",
+               {"family": "1.21", "profile": "level-0", "nether_end": false, "dir": "visuals/1.21/level-0/nether-end-off",
+                "solid_used": 780, "solid_free": 509},
+               {"family": "1.21", "profile": "level-2", "nether_end": true, "dir": "visuals/1.21/level-2/nether-end-on",
                 "solid_used": 272, "solid_free": 1017}
              ]}
             """;
@@ -44,8 +44,8 @@ class VisualSelectionTest {
     @Test
     void defaultsPerFamily() {
         VisualSelection s121 = VisualSelection.of(Visuals.DEFAULTS, Version.parse("1.21.11"), true, true);
-        assertThat(s121).isEqualTo(new VisualSelection("1.21", Profile.LEVEL_3A, false));
-        assertThat(s121.dir()).isEqualTo("visuals/1.21/level-3a/nether-end-off");
+        assertThat(s121).isEqualTo(new VisualSelection("1.21", Profile.LEVEL_2, false));
+        assertThat(s121.dir()).isEqualTo("visuals/1.21/level-2/nether-end-off");
         VisualSelection s26 = VisualSelection.of(Visuals.DEFAULTS, Version.parse("26.3"), true, true);
         assertThat(s26.dir()).isEqualTo("visuals/26/level-2/nether-end-off");
         assertThat(s26.id()).isEqualTo("26/level-2/nether-end-off");
@@ -53,9 +53,9 @@ class VisualSelectionTest {
 
     @Test
     void configuredProfileWins() {
-        Visuals v = new Visuals(Map.of("1.21", Profile.LEVEL_0, "26", Profile.LEVEL_3B), 500, NetherEndBlocks.AUTO);
+        Visuals v = new Visuals(Map.of("1.21", Profile.LEVEL_0, "26", Profile.LEVEL_1), 500, NetherEndBlocks.AUTO);
         assertThat(VisualSelection.of(v, Version.parse("1.21.4"), true, true).profile()).isEqualTo(Profile.LEVEL_0);
-        assertThat(VisualSelection.of(v, Version.parse("26.2"), true, true).profile()).isEqualTo(Profile.LEVEL_3B);
+        assertThat(VisualSelection.of(v, Version.parse("26.2"), true, true).profile()).isEqualTo(Profile.LEVEL_1);
     }
 
     @Test
@@ -71,10 +71,10 @@ class VisualSelectionTest {
     void indexFindsAllocationsAndDemand() {
         VisualIndex idx = VisualIndex.parse(INDEX);
         assertThat(idx.solidPool()).containsEntry("1.21", 1289).containsEntry("26", 1489);
-        assertThat(idx.find(new VisualSelection("1.21", Profile.LEVEL_3A, true))).get()
+        assertThat(idx.find(new VisualSelection("1.21", Profile.LEVEL_2, true))).get()
                 .extracting(VisualIndex.Allocation::solidUsed).isEqualTo(272);
-        assertThat(idx.find(new VisualSelection("26", Profile.LEVEL_3A, true))).isEmpty();
-        assertThat(idx.solidDemand("1.21", false)).containsExactly(Map.entry(Profile.LEVEL_2, 591), Map.entry(Profile.LEVEL_3A, 339));
+        assertThat(idx.find(new VisualSelection("26", Profile.LEVEL_2, true))).isEmpty();
+        assertThat(idx.solidDemand("1.21", false)).containsExactly(Map.entry(Profile.LEVEL_0, 780), Map.entry(Profile.LEVEL_2, 591));
         assertThat(idx.find(new VisualSelection("1.21", Profile.LEVEL_2, false)).orElseThrow().dir())
                 .isEqualTo(new VisualSelection("1.21", Profile.LEVEL_2, false).dir());
     }

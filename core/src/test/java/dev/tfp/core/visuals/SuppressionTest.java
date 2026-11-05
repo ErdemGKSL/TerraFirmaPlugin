@@ -235,7 +235,7 @@ class SuppressionTest {
                 }
             }
         }
-        assertThat(files).isEqualTo(20);
+        assertThat(files).isEqualTo(12); // level-0..2 x {1.21, 26} x Nether/End off/on (PAR-INFRA-15)
         for (String p : paths) {
             assertThat(Suppression.coverage(p)).as("creation path " + p + " has no listener").isNotEmpty();
         }

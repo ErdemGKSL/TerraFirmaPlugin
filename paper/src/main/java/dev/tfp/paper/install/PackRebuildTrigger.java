@@ -28,7 +28,8 @@ import java.util.logging.Logger;
  * {@link #onCraftEngineReload} from {@code BlockVisuals.onReload} (every CraftEngine reload):
  * <ol>
  *   <li>checks the real {@code solid} pool against the selected profile ({@link ProfileCheck}): FAIL is
- *       logged as an error naming the next higher profile, WARN below {@code visuals.solid-reserve-warning};</li>
+ *       logged as an error naming the next higher profile (or, at level-2, the highest, the shortfall and the
+ *       options), WARN below {@code visuals.solid-reserve-warning};</li>
  *   <li>if the installer asked for it ({@code status().packRebuild()}), requests <b>one</b> CraftEngine pack
  *       rebuild per server run; after it succeeded, records the pack fingerprint (io executor) so the next
  *       start with the same content and profile does not rebuild again.</li>

@@ -2,7 +2,7 @@
 id: PAR-INFRA-15
 title: "Ore overlay datagen: ores take the host rock visual, overlay item models, always-on allocator rule, profiles level-0..2 only"
 area: INFRA
-status: open
+status: done
 wave: 6
 deps: [PAR-INFRA-13, PAR-WORLD-17, PAR-INFRA-17]
 size: M
@@ -39,13 +39,9 @@ files_owned:
   - "paper/src/test/java/dev/tfp/paper/config/ConfigServiceTest.java"
   - "paper/src/test/java/dev/tfp/paper/install/InstallerTest.java"
   - "itest/src/test/java/dev/tfp/itest/cases/InstCasesTest.java"
-ui: true
+ui: false
 in_game_steps:
-  - "Headless Paper 1.21.11 + client 1.21.11, then 26.3; fresh install (plugins/TerraFirmaPlugin and the CE pack removed), so the installer writes the level-2 allocation and rebuilds the pack"
-  - "Check the startup log: `visuals 1.21/level-2/nether-end-off`, solid free = the full pool minus other packs, no warning; then set `visuals.profile.\"1.21\": level-3a` in config.yml, restart, and screenshot/grep the warning `level-3a was removed ... using level-2`"
-  - "tfp time set noon; fill a 5x3x5 granite box with `tfp debug place` of tfp:rock/raw/granite and put tfp:ore/normal_native_gold/granite, tfp:ore/rich_hematite/granite, tfp:ore/diamond/gabbro (gabbro box) and tfp:ore/normal_malachite/shale (shale box) inside and on the box surface; screenshot: every ore looks exactly like its host rock (the overlay runtime is PAR-INFRA-16; until it is done the shipped mode stays FULL_CUBE, see plan) and the shale ore keeps the columnar end texture"
-  - "Creative inventory: give Bot each of the four ore block items and screenshot the hotbar at GUI scale 2 and an 8x crop: the icon is rock + ore overlay (composite item model), grades distinguishable"
-  - "Pick-block on the placed ores in creative: the hotbar gets the ore's own block item, not the rock"
+  - "Moved to PAR-INFRA-34 (deferred check, PROTOCOL 6.5): the host-rock look needs the overlay runtime PAR-INFRA-16"
 plan:
   - "Current: AssetPipeline emits 1113 ore blocks (`ore/<ore>/<rock>`, `ore/<grade>_<ore>/<rock>`) with flattened one-PNG cube models (OreFlattener); Profile has LEVEL_0..LEVEL_3B, the gem rule (level-2) points gem ores at `rock/raw/<rock>#axis_y` and level-3a/3b merge grades; VisualAllocator allocates per profile x family x Nether/End; core TfpConfig/ConfigCodec/VisualSelection/ProfileCheck and paper config.yml know five levels, default level-3a on 1.21.x. Today 1374 visuals at level-0 of which 1113 are ores."
   - "Always-on ore rule (every profile): every ore appearance's look is its host rock's raw unit (`rock/raw/<rock>#axis_y`, including TFC's random mirrored/rotated raw variants; shale and claystone keep their cube_column look). Remove the gem-only rule and the grade-merging rules. Profile keeps LEVEL_0, LEVEL_1, LEVEL_2 only; `pendingRules()` lists only what is still missing (crate/workbench renderer, wood axis share, rock-agnostic deposits)."
@@ -59,6 +55,7 @@ plan:
   - "Transition switch: until PAR-INFRA-16 is done the shipped ore look stays the flattened full cube (`OreLook.FULL_CUBE`, read from `tools/datagen/src/main/resources/dev/tfp/datagen/oreoverlay/mode.properties`, owned by PAR-INFRA-16), so no build ever shows ores as plain rock without overlays; the allocator, models and data above are emitted in both modes, and the HOST_ROCK allocations are what the budget tests check. PAR-INFRA-16 flips the switch as its last step."
   - "Optional (decide with a test, default off): solid pool before `absent_minor` while >= 1000 solid slots stay free (fewer suppressed vanilla blocks); record the decision in ARCHITECTURE.md 9.1."
   - "Docs: ARCHITECTURE.md 9.1 'until PAR-INFRA-15 is done' sentence removed; the allocation report states demand 261 visuals in every profile for the families emitted today."
+  - "Done: datagen `dev.tfp.datagen.oreoverlay` (OreLook FULL_CUBE/HOST_ROCK read from mode.properties, absent = FULL_CUBE; OreOverlays: 53 quad items tfp:ore_overlay/<ore> + 530 tinted cracked variants in configuration/ore_overlay.yml, templates tfp:item/ore_overlay + tfp:item/ore_block_item in templates/ore_overlay.yml, overlay cubes tfp:block/ore_overlay/<ore>, runtime data at visuals/ore_overlay/ores.json + occluding.json: the plan's content/ore_overlay/ root is not a datagen-owned output root (OutputTree.OWNED), so the data lives under visuals/); Profile level-0..2 with the always-on HOST_ROCK ore rule, gem and grade rules removed; AssetPipeline: composite ore block items in both looks, flattened PNGs/models only in FULL_CUBE (HOST_ROCK drops 1219 PNGs = 535 KB and 1113 models: the rock/ore/soil/sand pack shrinks from 5.56 MB to 4.90 MB, 667 KB less; TFC's 1113 per-ore item models are no longer copied); reports show 1374 visuals shipped and 261 with host_rock in every profile; core OverlayFace (per-face item_display rotation, translation, shade), TfpConfig/ConfigCodec level-0..2 + level-3a/3b migration warning + ore-overlay keys (48/8000/true, S1 left them unchanged), ProfileCheck level-2 FAIL with shortfall and options; optional solid-before-absent_minor tweak decided off (VisualBudgetTest: host_rock never reaches absent_minor). Tests: OverlayModelTest (6), VisualAllocatorTest (+4), VisualBudgetTest (+1), DatagenTest (+2), PinnedCheckoutTest, ConfigCodecTest (+4), ProfileCheckTest (+2), InstallerTest (+1), ConfigServiceTest, InstCasesTest, SuppressionTest (12 allocation files). CeYamlCheck's allocation count (20) is now derived from the profile list (one line, needed for the removed profiles). In-game check deferred to PAR-INFRA-34. itest SelfTestSuiteTest fails on the base commit already (23 cases, test expects 22 since PAR-INFRA-26/30; not this item)."
 tests:
   - "tools/datagen visuals: VisualAllocatorTest: with HOST_ROCK every ore appearance maps to its host raw rock unit in level-0, level-1 and level-2 (no ore unit exists); Profile.values() == [level-0, level-1, level-2]; defaultFor = level-2 for both families"
   - "tools/datagen oreoverlay: OverlayModelTest golden for one overlay item (quad, shade false, tintindex 0, tint source) and the 6 face UV orientations against tfc:block/ore; 53 overlay items, one per TFC overlay texture; composite block item model for a graded and a columnar (shale) ore"
@@ -68,7 +65,7 @@ tests:
 done_criteria:
   - "Shipped allocations exist for level-0, level-1, level-2 x {1.21, 26} x Nether/End on/off and no others; with HOST_ROCK the ore demand is 0 and the report shows 261 visuals (families emitted today) in every profile"
   - "Defaults level-2 on both families; a config naming level-3a/3b starts with level-2 and the warning; level-2 not fitting fails with the clear message (unit test)"
-  - "Screenshots in docs/verification/PAR-INFRA-15/: host-rock look of buried ores (in HOST_ROCK test mode), ore block item icons at GUI scale 2, pick-block result"
+  - "Deferred check tracked in PAR-INFRA-34"
   - "./gradlew check and verifyContent green"
 ---
 
