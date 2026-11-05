@@ -53,6 +53,7 @@ public final class SelfTestSuite {
                 new DeviceRoundTripCase(),
                 new dev.tfp.itest.cases.CatchUpCase(),
                 new dev.tfp.itest.cases.LootCase(),
+                new dev.tfp.itest.cases.NeighbourConvergeCase(),
                 new WorldgenTerrainCase(),
                 new OreExposureCensusCase(),
                 new MetalRunCase(),

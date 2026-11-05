@@ -42,8 +42,8 @@ public final class NeighbourSelfCheck {
     public static final String RULE_ID = "tfp:selftest/bone_axis";
     static final String BONE = "minecraft:bone_block";
     static final int COUNT = 10;
-    /** Chunks east of spawn, away from the other self-test cases (0..3, 40, 48). */
-    static final int CHUNK_OFFSET = 56;
+    /** Chunks east of spawn, away from the other self-test cases (0..3, 24, 40, 44, 48, 56). */
+    static final int CHUNK_OFFSET = 60;
     private static final Duration STEP = Duration.ofSeconds(20);
 
     private NeighbourSelfCheck() {
@@ -105,10 +105,7 @@ public final class NeighbourSelfCheck {
         int cx = (spawn.getBlockX() >> 4) + CHUNK_OFFSET;
         int cz = spawn.getBlockZ() >> 4;
         world.getChunkAtAsync(cx, cz).get(STEP.toSeconds(), TimeUnit.SECONDS);
-        onThread(s, world, cx, cz, () -> {
-            world.setChunkForceLoaded(cx, cz, true);
-            return null;
-        });
+        forceLoad(s, world, cx, cz, true);
         NeighbourRunner<BlockStateRef> runner = service.runner(world);
         List<Block> row = new ArrayList<>();
         NeighbourService.Registration rule = service.register(boneAxisRule());
@@ -151,9 +148,9 @@ public final class NeighbourSelfCheck {
                 for (Block b : row) {
                     b.setType(Material.AIR, false);
                 }
-                world.setChunkForceLoaded(cx, cz, false);
                 return null;
             });
+            forceLoad(s, world, cx, cz, false);
         }
     }
 
@@ -176,6 +173,20 @@ public final class NeighbourSelfCheck {
         check(runner.isIdle(), "the neighbour runner did not settle: " + runner);
     }
 
+    /** Chunk force-load tickets change only on the global region thread on Folia. */
+    private static void forceLoad(Scheduler s, World world, int cx, int cz, boolean on) throws Exception {
+        CompletableFuture<Void> f = new CompletableFuture<>();
+        s.global(() -> {
+            try {
+                world.setChunkForceLoaded(cx, cz, on);
+                f.complete(null);
+            } catch (Throwable e) {
+                f.completeExceptionally(e);
+            }
+        });
+        await(f);
+    }
+
     private static <T> T onThread(Scheduler s, World world, int cx, int cz, Callable<T> body) throws Exception {
         CompletableFuture<T> f = new CompletableFuture<>();
         s.region(world, cx, cz, () -> {
@@ -185,6 +196,10 @@ public final class NeighbourSelfCheck {
                 f.completeExceptionally(e);
             }
         });
+        return await(f);
+    }
+
+    private static <T> T await(CompletableFuture<T> f) throws Exception {
         try {
             return f.get(STEP.toSeconds(), TimeUnit.SECONDS);
         } catch (java.util.concurrent.ExecutionException e) {

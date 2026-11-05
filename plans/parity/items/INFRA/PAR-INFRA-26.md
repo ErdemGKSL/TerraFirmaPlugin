@@ -2,7 +2,7 @@
 id: PAR-INFRA-26
 title: "Neighbour runner self-test: neighbour.converge on Paper and Folia"
 area: INFRA
-status: open
+status: done
 wave: 5
 deps: [PAR-INFRA-10]
 size: S
@@ -19,6 +19,7 @@ plan:
   - "Current: PAR-INFRA-10 built the neighbour-update runner (`core/neighbour`, `paper/neighbour`, module `neighbour`, service `NeighbourService`) and the self-test body `NeighbourSelfCheck.run(service, scheduler, world)` with its test rule `tfp:selftest/bone_axis` (vanilla bone blocks: axis=x next to another bone block east/west, else y; provisional y). The case itself needs `itest/.../cases/` and `SelfTestSuiteTest` (its case count), outside that item's files_owned."
   - "Add `NeighbourConvergeCase` (`neighbour.converge`): look up `NeighbourService` through `tfp.moduleServices()`, return `NeighbourSelfCheck.run(...)` for the first world; add it to `SelfTestSuite` (hub) and update `SelfTestSuiteTest` (count, name prefix). If `SelfTestSuiteTest` is held by another open item (PAR-INFRA-25 also owns it), take it after that item or coordinate the count."
   - "Run `:itest:runSelfTest` on Paper 1.21.11 and Folia 1.21.11 (delegated per PROTOCOL 5.3). If Paper does not fire `BlockPhysicsEvent` for the notified neighbours of a `setType(AIR, true)`, fix the second phase of `NeighbourSelfCheck` (e.g. break through a fake player) rather than the runner."
+  - "Done: PAR-INFRA-26 commit: NeighbourConvergeCase (neighbour.converge) in SelfTestSuite, SelfTestSuiteTest count 22; NeighbourSelfCheck moved to chunk offset 60 (56 is catchup.lazyblock's) and changes force-load tickets on the global region (Folia refused them on the region thread). Paper sends BlockPhysicsEvent for the break, no fake player needed. :itest:runSelfTest passed on Paper 1.21.11 and Folia 1.21.11: 10 placements, 10 commits; break, 1 commit; 0 thread violations."
 tests:
   - "itest: neighbour.converge passes on Paper 1.21.11 and Folia 1.21.11"
 done_criteria:
