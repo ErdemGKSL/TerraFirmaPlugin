@@ -28,9 +28,22 @@ public final class ProbeCatchUp {
         return (int) Math.max(0, Math.min(7, now / TICKS_PER_STAGE));
     }
 
+    /** The age the probe has at {@code now} when its stage 0 starts at player tick {@code origin}. */
+    public static int ageAt(long now, long origin) {
+        return ageAt(now - origin);
+    }
+
     /** The probe kind (state = the wheat age). */
     public static CatchUpKind<Integer> kind() {
-        CatchUpAdvance<Integer> advance = (age, now) -> Math.max(age, ageAt(now));
+        return kind(0);
+    }
+
+    /**
+     * The probe kind whose stage 0 starts at player tick {@code origin}: the self-test {@code catchup.lazyblock}
+     * (PAR-INFRA-25) runs on a calendar that is already far past {@code 7 * }{@value #TICKS_PER_STAGE} ticks.
+     */
+    public static CatchUpKind<Integer> kind(long origin) {
+        CatchUpAdvance<Integer> advance = (age, now) -> Math.max(age, ageAt(now, origin));
         return CatchUpKind.of(ID, (world, pos) -> {
             Block b = world.getBlockAt(pos.x(), pos.y(), pos.z());
             return b.getType() == Material.WHEAT && b.getBlockData() instanceof Ageable a ? a.getAge() : null;

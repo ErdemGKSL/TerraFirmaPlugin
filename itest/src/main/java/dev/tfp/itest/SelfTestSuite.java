@@ -51,6 +51,7 @@ public final class SelfTestSuite {
                 new CraftEnginePackIssuesCase(),
                 new CraftEngineBlockRoundTripCase(),
                 new DeviceRoundTripCase(),
+                new dev.tfp.itest.cases.CatchUpCase(),
                 new dev.tfp.itest.cases.LootCase(),
                 new WorldgenTerrainCase(),
                 new OreExposureCensusCase(),

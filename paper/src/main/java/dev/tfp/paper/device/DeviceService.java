@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -87,6 +88,8 @@ public final class DeviceService implements DeviceRouter {
     private final CustomItems items;
     private final Logger logger;
     private final Map<SaveKey, PendingSave> pendingSaves = new ConcurrentHashMap<>();
+    private volatile Consumer<Block> indexer = block -> {
+    };
     /** Monotonic nanos (tests replace it). */
     LongSupplier nanos = System::nanoTime;
 
@@ -140,6 +143,25 @@ public final class DeviceService implements DeviceRouter {
      */
     public void placed(Block block, Player player, EquipmentSlot hand, ItemStack item) {
         route(block, player, hand, StackCodec.isEmpty(item) ? ItemStack.empty() : item.clone(), Op.PLACED);
+    }
+
+    /**
+     * PAR-INFRA-25: what lists a device in its chunk's lazy block index, so it catches up on chunk load
+     * ({@code CatchUpService.track(block, "tfp:device")}, installed by {@link DeviceModule}). Called on the block's
+     * region thread for every device that is placed or used (a device placed without a player, by worldgen or
+     * {@code CustomBlocks.place}, is listed at its first interaction). Its failures are logged, never thrown.
+     */
+    public void indexWith(Consumer<Block> indexer) {
+        this.indexer = Objects.requireNonNull(indexer, "indexer");
+    }
+
+    private void index(Block block) {
+        try {
+            indexer.accept(block);
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, "Device at " + block.getWorld().getName() + " " + block.getX() + ","
+                    + block.getY() + "," + block.getZ() + ": could not list it for catch-up on chunk load", e);
+        }
     }
 
     @Override
@@ -381,6 +403,7 @@ public final class DeviceService implements DeviceRouter {
             default -> throw new IllegalStateException(op.name());
         }
         save(block, loaded, result.updated().orElse(record));
+        index(block);
         return result.consumed();
     }
 

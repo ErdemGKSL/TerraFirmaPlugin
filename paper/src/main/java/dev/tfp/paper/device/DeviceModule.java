@@ -8,6 +8,8 @@ package dev.tfp.paper.device;
 import dev.tfp.core.device.DeviceRecord;
 import dev.tfp.core.device.ItemBlob;
 import dev.tfp.paper.boot.TfpCommands.Reply;
+import dev.tfp.paper.catchup.CatchUpModule;
+import dev.tfp.paper.catchup.CatchUpService;
 import dev.tfp.paper.module.DebugTree;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
@@ -47,6 +49,10 @@ public final class DeviceModule implements FeatureModule {
                 () -> context.clock().get().playerTicks(), StackCodec.PAPER, context.integrations().customItems(),
                 context.logger());
         context.services().provide(DeviceService.class, s);
+        // PAR-INFRA-25: list devices for catch-up on chunk load. The catchup module is enabled after this one (it
+        // registers the tfp:device kind over DeviceService.catchUp), so its service is looked up per call.
+        s.indexWith(block -> context.services().get(CatchUpService.class)
+                .ifPresent(c -> c.track(block, CatchUpModule.DEVICE_KIND)));
         context.listen(new DeviceListener(s, context.scheduler()));
         scheduler = context.scheduler();
         service = s;
