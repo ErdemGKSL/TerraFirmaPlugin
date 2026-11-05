@@ -641,10 +641,19 @@ public final class AssetPipeline {
         dropItems.forEach((id, langKey) -> {
             requireItemModel(id);
             Map<String, Object> entry = CeBlockStates.call("tfp:item/simple", Map.of("item_lang_key", langKey));
-            // PAR-PROC-21: TFC's item_size weight (ore pieces: tfc:ore_pieces, medium = 16); none matching keeps CE's 64.
-            sizes.stackSize(Json.FROM_NS + ":" + id).ifPresent(stack -> {
+            // PAR-PROC-21: TFC's item_size weight (ore pieces: tfc:ore_pieces, medium = 16); with no definition TFC's
+            // default rules: a BlockItem (the loose rocks) is light = 32, any other item very light = CE's 64 (no data).
+            String tfcId = Json.FROM_NS + ":" + id;
+            boolean blockItem = tfc.exists(blockstate(id));
+            sizes.resolvedStack(tfcId, blockItem).ifPresent(stack -> {
+                if (entry.containsKey("data")) {
+                    throw new DatagenException("tfp:item/simple already sets data for " + id);
+                }
                 entry.put("data", Map.of("max_stack_size", stack));
                 report.count("drop_items_sized");
+                if (sizes.stackSize(tfcId).isEmpty()) {
+                    report.count("drop_items_block_default");
+                }
             });
             drops.items.put(Json.TO_NS + ":" + id, entry);
         });
@@ -921,6 +930,7 @@ public final class AssetPipeline {
                     sorted.put(f.substring(dir.length(), f.length() - ".json".length()), f);
                 }
             }
+            // The iteration order must match TFC's DataManager map (a HashMap keyed by ResourceLocation): the first match wins.
             Map<Location, Boolean> order = new HashMap<>();
             sorted.keySet().forEach(path -> order.put(new Location(Json.FROM_NS, path), Boolean.TRUE));
             for (Location l : order.keySet()) {
@@ -932,6 +942,19 @@ public final class AssetPipeline {
         /** The ids of the definitions in TFC's load order. */
         List<String> order() {
             return definitions.stream().map(Map.Entry::getKey).toList();
+        }
+
+        /**
+         * The stack TFC resolves for a drop item: the first matching definition, else {@code ItemSizeManager}'s default rules
+         * for the kinds a drop can be ({@code BLOCK_SIZE} light = 32 for a BlockItem); empty for any other item, whose
+         * {@code DEFAULT_SIZE} very light = 64 is CE's default already. Tool, bucket and armour rules never apply to drops.
+         */
+        Optional<Integer> resolvedStack(String item, boolean blockItem) {
+            Optional<Integer> defined = stackSize(item);
+            if (defined.isPresent()) {
+                return defined;
+            }
+            return blockItem ? Optional.of(WEIGHT_STACK.get("light")) : Optional.empty();
         }
 
         /** The stack size of the first matching definition's weight, or empty without one. */
