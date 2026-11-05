@@ -17,6 +17,11 @@ import java.util.List;
  * (its weight is ignored), and a longer list adds each positive weight to a running total and returns the first element whose
  * running total is strictly above {@code random * total} ({@code TreeMap.higherEntry}). Immutable.
  *
+ * <p>Divergence (ledger, PAR-WORLD-18): when no running total is above {@code random * total}, which happens for a draw of
+ * exactly 1.0 (the 1.21 {@code XoroshiroRandomSource.nextDouble} goes through a float and can round up to 1.0), TFC's
+ * {@code higherEntry} is null and its {@code getValue()} throws; here the last element is returned, so the chunk still
+ * generates.
+ *
  * @param <E> the element type
  */
 public final class Weighted<E> {
@@ -59,7 +64,8 @@ public final class Weighted<E> {
     }
 
     /**
-     * {@code IWeighted.get(double)}: the element for a uniform draw {@code random} in [0, 1), or null for an empty list.
+     * {@code IWeighted.get(double)}: the element for a uniform draw {@code random} in [0, 1], or null for an empty list. A draw
+     * whose {@code random * total} reaches the total (a draw of 1.0) returns the last element, where TFC would throw.
      *
      * @throws IllegalStateException when every weight of a multi-element list was zero, where TFC would throw too
      */
@@ -76,7 +82,8 @@ public final class Weighted<E> {
                 return values.get(i);
             }
         }
-        throw new IllegalStateException("no element above " + value);
+        // A draw of 1.0: TFC's higherEntry is null here (it would throw); take the last element
+        return values.getLast();
     }
 
     /** The elements that can be returned, in order. */
