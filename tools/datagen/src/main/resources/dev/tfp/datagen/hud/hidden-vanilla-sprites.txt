@@ -1,5 +1,7 @@
-# Vanilla HUD sprites (1.21.11 client jar, assets/minecraft/textures/gui/sprites/hud/) that the M3-SURV-06 hide rows replace
-# with a transparent image: hearts (heart/*), food (food_*), air (air*), armour (armor_*). Relative to that folder.
+# Vanilla HUD sprites (assets/minecraft/textures/gui/sprites/hud/) that the M3-SURV-06 hide rows replace with a transparent
+# image: hearts (heart/*), food (food_*), air (air*), armour (armor_*). Relative to that folder.
+# This is the union of the per-version-family lists hidden-vanilla-sprites-<family>.txt (one pack serves every supported
+# client, so it hides every family's sprites). HiddenVanillaSpritesTest keeps it equal to that union. docs/hud/versions.md.
 air.png
 air_bursting.png
 air_empty.png
