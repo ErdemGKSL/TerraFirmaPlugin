@@ -27,3 +27,14 @@ values are covered by `DeviceSoundVolumeTest` (NETHER_WART = 1.0/1.0: hit 0.25/0
 their files (`CeBlockSoundTableTest.theGeneratedDevicesAreInTheTable`). The bellows is the loaded device used instead.
 
 Verdict: pass on both versions.
+
+## Independent run at d97267c (2026-11-05)
+
+A second headless run (Paper 1.21.11 + client 1.21.11, Paper 26.3 + client 26.3, `Bot` breaker and `Watcher` viewer, bronze
+pickaxe) reproduced the copper half on both versions: `block.metal.hit` 0.25/0.75 to Bot, `block.metal.break` 1.0/1.2 to
+Bot, `replaced.block.metal.break` 1.0/1.2 to Watcher (the 1.0/0.8 `replaced.` line to Bot is the dropped duplicate, which
+the spike logs anyway). The run's device step named the firepit, which has no item and is not a loaded CE block
+(`tfp:firepit is not a loaded custom block.`), so it could not run. The item's step now names the bellows (checked above);
+the firepit/grill/pot NETHER_WART check is a pending step and criterion in PAR-INFRA-23 (PROTOCOL 6.5). Harness note, not
+this item: `session.sh` on 26.3 waits for `Reloading ResourceManager: vanilla, server` while 26.3 logs
+`vanilla, vanilla, server/...`, a false "pack not applied" result.
