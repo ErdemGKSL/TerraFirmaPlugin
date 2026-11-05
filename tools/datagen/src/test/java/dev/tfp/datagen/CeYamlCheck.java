@@ -93,7 +93,8 @@ final class CeYamlCheck {
                         continue;
                     }
                     assertThat(section.getKey()).as(c.getKey()).isIn("blocks", "items", "equipments",
-                        "images");
+                        "images",
+                        "recipes"); // PAR-PROC-02
                     for (var entry : ((Map<String, Object>) section.getValue()).entrySet()) {
                         assertThat(ids.add(section.getKey() + "/" + entry.getKey())).as("duplicate id " + entry.getKey()).isTrue();
                         assertThat(entry.getKey()).startsWith("tfp:");

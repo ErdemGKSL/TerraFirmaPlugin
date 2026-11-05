@@ -113,6 +113,9 @@ public final class Datagen {
         SeasonalBiomes.write(tfc, out);
         VanillaLootOverrides.run(tfc, out); // PAR-INFRA-30: TFC's replacements of vanilla loot tables, in the bootstrap datapack
         CommonTags.run(out); // PAR-INFRA-14: NeoForge c: tags (skipped without -Dtfp.neoforgeJar, e.g. fixtures)
+        if (dev.tfp.datagen.crafting.CraftingRecipes.available(tfc)) { // PAR-PROC-02: plain workbench recipes as CE YAML; after every CE item and CommonTags
+            dev.tfp.datagen.crafting.CraftingRecipes.run(tfc, out);
+        }
         out.put("third-party.json", "[]\n"); // no non-EUPL file is copied yet (checked by :checkNotice)
         out.put("reports/datagen-summary.json", Json.write(report.toJson()));
         out.put(Manifest.FILE, Manifest.build(tfc.head(), tfc.inputs(), out.files()));

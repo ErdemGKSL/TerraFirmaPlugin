@@ -55,7 +55,7 @@ Totals: 243 items; open 215, done 25, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-HUD-07 | HUD per MC version and TFC display styles: 26.x sprite list, XP bar style, health display style | HUD | 6 | done |
 | PAR-HUD-10 | Held temperature popup shows TFC's level text, verified in game | HUD | 6 | open |
 | PAR-HUD-13 | Info plate fits the longest date line; BetterHud horizontal shift of the top-left info HUD | HUD | 6 | done |
-| PAR-PROC-02 | Workbench crafting: the plain 2,255 shaped/shapeless recipes as CE recipe YAML | PROC | 6 | open |
+| PAR-PROC-02 | Workbench crafting: the plain 2,255 shaped/shapeless recipes as CE recipe YAML | PROC | 6 | done |
 | PAR-PROC-21 | Ore piece items stack by TFC item_size (16): drops.yml ore items get max_stack_size | PROC | 6 | open |
 | PAR-PROC-23 | Material items in-game verification: ce item give for a sample of 20, names, textures, stack sizes | PROC | 6 | open |
 | PAR-SURV-02 | Food tooltip: expiry/rotten, traits, nutrition lines | SURV | 6 | open |
@@ -66,6 +66,8 @@ Totals: 243 items; open 215, done 25, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-PROC-03 | Advanced crafting: TFC advanced recipes, food combining, casting crafting, vanilla recipe leakage | PROC | 7 | open |
 | PAR-PROC-04 | Quern: block, handstone, grinding, GUI-less interaction | PROC | 7 | open |
 | PAR-PROC-05 | Scraping hides on a log | PROC | 7 | open |
+| PAR-PROC-24 | Our tfp:mineable/* block tags as server tags, so CE can build tools whose tool component names them (gem saw, knife, hammer, scythe) | PROC | 7 | open |
+| PAR-PROC-25 | Workbench crafting in-game verification: 10 sampled CE crafts in a crafting table | PROC | 7 | open |
 | PAR-SURV-04 | Thirst completion: thirst effects, rain drinking, salt water, open-water drinking decision | SURV | 7 | open |
 | PAR-INFRA-16 | Ore overlay runtime: packet-only face overlays, neighbour-driven refresh, Folia-safe, feel checklist | INFRA | 7 | open |
 | PAR-INFRA-31 | Catch-up settings in config.yml: catchup.* keys through TfpConfig and ConfigCodec | INFRA | 7 | open |
