@@ -18,7 +18,7 @@
 | Copper break for the breaker: one sound at TFC 1.0/1.2 | pass: CraftEngine's own `block.metal.break` 1.0/1.2 kept, its level-event `replaced.block.metal.break` 1.0/0.8 dropped | pass |
 | Copper break for the second viewer: TFC 1.0/1.2 | pass: `replaced.block.metal.break` 1.0/0.8 rewritten to 1.0/1.2 | pass |
 | Device (bellows, TFC `SoundType.WOOD` 1.0/1.0) hit: TFC 0.25/0.5 | pass: `block.wood.hit` 0.5/0.5 rewritten to 0.25/0.5 | pass |
-| Device break: breaker one sound, viewer one sound, at 1.0/0.8 | pass (breaker's duplicate dropped; viewer's already 1.0/0.8, untouched) | pass |
+| Device break: breaker one sound, viewer one sound, at 1.0/0.8 | not captured on 1.21.11 (the log after 13:24:55 holds two digs' `block.wood.hit` lines only); same version-independent code path as 26.3, and the breaker drop is shown on 1.21.11 with copper | pass (log lines 89-93: breaker's duplicate dropped; viewer's already 1.0/0.8, untouched) |
 | Vanilla blocks untouched | pass: stone/dirt `hit`/`break` packets pass unchanged (not in the table) | pass |
 
 Firepit (`NETHER_WART`): not testable in game. Firepit, grill and pot live in the CE pack's `devices/` folder, which
@@ -26,7 +26,11 @@ CraftEngine does not load until their behaviour exists (PAR-HEAT-06/08/09); `s2 
 values are covered by `DeviceSoundVolumeTest` (NETHER_WART = 1.0/1.0: hit 0.25/0.5, break 1.0/0.8) and the table reads
 their files (`CeBlockSoundTableTest.theGeneratedDevicesAreInTheTable`). The bellows is the loaded device used instead.
 
-Verdict: pass on both versions.
+The `replaced.block.grass.break` 1.0/0.8 lines to both clients (1.21.11 13:24:05, 26.3 13:42:31) have no `[tfp-sound]`
+line next to them: the rewrite passed them untouched because no CE block is tracked at that position. They are
+CraftEngine's level-event translation of a vanilla grass break near the scene, not a misfire.
+
+Verdict: pass on both versions (the 1.21.11 bellows break was not captured; see the table).
 
 ## Independent run at d97267c (2026-11-05)
 
@@ -63,3 +67,12 @@ this item: `session.sh` on 26.3 waits for `Reloading ResourceManager: vanilla, s
    here; they do not affect a sound value. The step now asks for `difficulty peaceful`; the next capture should check
    where the glyphs come from.
 6. `session.sh` on 26.3 (`vanilla, server` vs `vanilla, vanilla, server/...`): harness follow-up outside this item.
+
+## Unblock (2026-11-05): the dropped packet is now marked in the SoundLog itself
+
+The REJECTs of the "one break sound per break" criterion all came from one root cause: `SoundLog` printed the cancelled
+duplicate like any other packet. `SoundLog` now ends every line with `cancelled=<bool>` (`event.isCancelled()` at MONITOR,
+after our NORMAL-priority `PacketEventsLayer` bridge has cancelled it), and the item's in-game step requires
+`-Dtfp.blocksound.log=true`. In the logs above, every breaker-side `replaced.block.*.break` 1.0/0.8 line directly after a
+`[tfp-sound] DROP` line would read `cancelled=true`; the next capture shows it without pairing lines by hand. No behaviour
+change in the plugin.

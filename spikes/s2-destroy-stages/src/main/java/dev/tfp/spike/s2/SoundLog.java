@@ -15,7 +15,9 @@ import java.util.logging.Logger;
 /**
  * Spike S2: logs every block sound the server sends ({@code [S2] sound <id> volume=<v> pitch=<p> to <player>}), so the replayed SoundType of a
  * renderer cube can be told apart from the carrier's: the client's subtitles are the same ("Block broken") for metal and
- * stone. Client-predicted sounds never reach this log.
+ * stone. Client-predicted sounds never reach this log. The listener runs at MONITOR, after every rewrite, and PacketEvents
+ * calls it for cancelled packets too, so each line ends with {@code cancelled=<bool>}: a {@code cancelled=true} packet
+ * never reaches the client.
  */
 final class SoundLog implements PacketListener {
     private final Logger log;
@@ -41,7 +43,8 @@ final class SoundLog implements PacketListener {
             pitch = w.getPitch();
         }
         if (id != null && id.contains("block.")) {
-            log.info("[S2] sound " + id + " volume=" + volume + " pitch=" + pitch + " to " + event.getUser().getName());
+            log.info("[S2] sound " + id + " volume=" + volume + " pitch=" + pitch + " to " + event.getUser().getName()
+                    + " cancelled=" + event.isCancelled());
         }
     }
 }
