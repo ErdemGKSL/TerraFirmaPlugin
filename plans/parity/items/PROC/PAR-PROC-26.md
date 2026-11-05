@@ -19,7 +19,10 @@ ui: true
 in_game_steps:
   - "ce item give Bot tfp:handstone, tfp:sandpaper, tfp:spindle, tfp:bone_needle, tfp:gem_saw; data get entity Bot Inventory[i].components: each has minecraft:damage 0 next to max_damage"
   - "item modify entity Bot hotbar.0 {\"function\":\"minecraft:set_damage\",\"damage\":0.5}: the durability bar appears (vanilla treats the item as damageable)"
-  - "Hover the gem saw at GUI scale 2 and 3: TFC texture and the name Gem Saw; 8x crop of its icon"
+  - "Hover the gem saw at GUI scale 2 and 3 with the cursor exactly on its slot: TFC texture and the name Gem Saw; the crop shows the hovered slot next to the tooltip; 8x crop of its icon. Recapture Mortar the same way (an earlier capture put its tooltip over the recipe-book button)"
+  - "ce item give Bot every saw and tool item (tfp:gem_saw and each metal knife, hammer, scythe, saw): each arrives with its TFC name and texture"
+  - "ce item give Bot tfp:glue 64 and tfp:ore/halite 64, then split the stacks by hand (right-click drag): glue never forms a stack above 32, halite never above 16"
+  - "Real use: craft with the sandpaper as a damaged crafting remainder (and use the gem saw on glass): the durability bar appears and drops after each use, without set_components"
 plan:
   - "Found 2026-11-05 by PAR-PROC-23 (docs/verification/PAR-PROC-19/verdict.md): MaterialItems emits max_damage for TFC's durability items (handstone 250, sandpaper 40, spindle, bone needle, ...) on a paper base, but no minecraft:damage component. Vanilla ItemStack.isDamageableItem() needs MAX_DAMAGE and DAMAGE, so set_damage, hurtAndBreak and Paper's ItemStack#damage do nothing on a fresh item. TFC's Properties.durability(n) sets both (DAMAGE 0). Emit damage 0 with max_damage (CE data key or raw component), regenerate, extend MaterialItemsTest."
   - "The gem saw could not be given in that check (PAR-PROC-24: tfp:mineable/glass_saw is not a server tag); once PAR-PROC-24 is done, check its name, texture and durability here."

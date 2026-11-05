@@ -27,7 +27,7 @@
 
 | Criterion | Result |
 |---|---|
-| `ce item give` works for the sample | **Pass for 21 of 22.** `tfp:gem_saw` fails: `An internal error occurred`, server log `Cannot parse component minecraft:tool ... Missing tag: 'tfp:mineable/glass_saw' in 'minecraft:block'`. Known and owned by PAR-PROC-24 (its done-criterion is `ce item give` of the gem saw); the gem saw's name, texture and durability bar move to PAR-PROC-26 |
+| `ce item give` works for the sample | **Pass: 21 of the 22 listed ids** (the criterion asks for a sample of 20; the list carries two ids beyond it, the gem saw among them, so 21 passing meets it). `tfp:gem_saw` fails: `An internal error occurred`, server log `Cannot parse component minecraft:tool ... Missing tag: 'tfp:mineable/glass_saw' in 'minecraft:block'`. Known and owned by PAR-PROC-24 (its done-criterion is `ce item give` of the gem saw); the gem saw's name, texture and durability bar move to PAR-PROC-26 |
 | TFC textures, no missing-texture cube | **Pass** (21/21): every icon is TFC's texture; rich hematite and cut ruby match TFC's PNGs pixel for pixel by eye at 8x; the handstone is TFC's 3D handstone model (stone disc with the stick handle) |
 | TFC English names | **Pass** (21/21) at GUI scale 2 and 3: Rich Hematite, Cut Ruby, Salt, Halite, Flux, Jute Fiber, Burlap Cloth, Silk Cloth, Wool Cloth, Papyrus, Unrefined Paper, Glue, Soot, Mortar, Sandpaper, Straw, Stick Bunch, Blubber, Wool Yarn, Cow Spawn Egg, Handstone |
 | Stack sizes follow TFC item_size (glue 32, halite 16) | **Pass**: 64 glue arrive as 2 x 32, 64 halite as 4 x 16 (`max_stack_size` 32 and 16) |
@@ -35,3 +35,19 @@
 
 Verdict: **pass** for names, textures and stack sizes of the 21 buildable items; gem saw pending PAR-PROC-24 / PAR-PROC-26;
 missing `minecraft:damage` default recorded as a divergence and fixed in PAR-PROC-26.
+
+## Re-review notes (2026-11-05)
+
+- The in-game re-check rejected the item for `tfp:gem_saw` (`Missing tag: 'tfp:mineable/glass_saw'`). That defect is
+  PAR-PROC-24's (open before this item; its done-criterion is `ce item give` of the gem saw and a metal knife) and its fix
+  lives in `tools/datagen` files this item does not own (PROTOCOL §3). A search of the generated CE content finds the same
+  pattern in every tool rule that names one of our own block tags: `tfp:mineable/glass_saw` (1 item, `material/tool.yml`)
+  and `tfp:mineable/knife`, `tfp:mineable/hammer`, `tfp:mineable/scythe` (9 items each, `metal.yml`). All four are the
+  ones PAR-PROC-24 names. The guards the review asked for (a self-test that gives every item with a `minecraft:tool`
+  component, a datagen test that no tool rule names a tag missing from the server or the bootstrap datapack) are
+  follow-up PAR-PROC-27 (deps PAR-PROC-24).
+- Still open for PAR-PROC-26 (in its `in_game_steps`): splitting the glue and halite stacks by hand (here only
+  `max_stack_size` and the arrival as 2 x 32 / 4 x 16 were checked), the durability bar after real use (here set through
+  `set_components minecraft:damage`), a gem saw / tool hover crop that shows the hovered slot next to the tooltip (the
+  `names-gui*.png` crops show tooltips only, paired by hover order; a reviewer's own capture put the Mortar tooltip over the
+  recipe-book button).

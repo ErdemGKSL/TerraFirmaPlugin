@@ -81,6 +81,7 @@ Totals: 243 items; open 215, done 25, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-REL-12 | Visual and overlay budget guards: profile-vs-pool unit test, overlay entities-per-chunk itest budget | REL | 8 | open |
 | PAR-INFRA-34 | Verify the ore overlay datagen in game: host-rock look of buried ores, composite ore block item icons, pick-block | INFRA | 8 | open |
 | PAR-PROC-26 | Durability material items carry minecraft:damage 0 (vanilla damageable); gem saw in-game check | PROC | 8 | open |
+| PAR-PROC-27 | Tool item build guards: self-test gives every item with a minecraft:tool component; datagen check that tool rules name only shipped block tags | PROC | 8 | open |
 | PAR-FLUID-02 | Buckets: wooden bucket, red and blue steel buckets, fluid placement policy | FLUID | 9 | open |
 | PAR-FLUID-03 | Salt water, spring water and river water in the world | FLUID | 9 | open |
 | PAR-PROC-08 | Barrel block: fluids, sealing, sealed and instant recipes, preservation | PROC | 9 | open |
