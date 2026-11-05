@@ -35,6 +35,7 @@ class SelfTestSuiteTest {
                 .anyMatch(n -> n.startsWith("itemdata.pdc_roundtrip"))
                 .anyMatch(n -> n.startsWith("device.roundtrip"))
                 .anyMatch(n -> n.startsWith("ore.census"));
-        assertThat(cases).hasSize(19);
+        assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("loot:")); // PAR-INFRA-21
+        assertThat(cases).hasSize(20);
     }
 }

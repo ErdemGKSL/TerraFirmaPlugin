@@ -88,6 +88,7 @@ public final class Datagen {
         if (dev.tfp.datagen.gui.GuiArt.available(tfc)) { // PAR-INFRA-03: GUI images; the small fixture checkouts have no GUI textures
             dev.tfp.datagen.gui.GuiArt.run(tfc, out);
         }
+        LootTableExport.run(tfc, out); // PAR-INFRA-21: TFC loot tables of delegated blocks and spawned entities for the Paper runtime
         Advancements.run(tfc, out);
         FieldGuide.run(tfc, out);
         Locales.run(tfc, out);

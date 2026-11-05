@@ -630,6 +630,7 @@ public final class AssetPipeline {
         sand.write("sand");
         // drop items (ore pieces, loose rocks) in one file
         ConfigFile drops = new ConfigFile();
+        dropItems.keySet().removeAll(report.emittedIds()); // a delegated table may name another emitted block (its item exists)
         dropItems.forEach((id, langKey) -> {
             requireItemModel(id);
             drops.items.put(Json.TO_NS + ":" + id,
@@ -687,7 +688,10 @@ public final class AssetPipeline {
         CeBlockStates.CeState state = CeBlockStates.toCe(CeBlockStates.parse(bs, src), id);
         Map<String, Object> entry = new LinkedHashMap<>();
         entry.put("settings", settings);
-        entry.put("loot", loot(id));
+        Map<String, Object> loot = loot(id);
+        if (loot != null) { // null: the Paper loot runtime drops this block's TFC table (LootTableExport)
+            entry.put("loot", loot);
+        }
         entry.put(state.key(), state.section());
         state.appearances().forEach((name, models) -> demand.add(new VisualDemand(id, name, models)));
         file.blocks.put(Json.TO_NS + ":" + id, entry);
@@ -729,7 +733,11 @@ public final class AssetPipeline {
         return CeBlockStates.call("tfp:settings/granular", args);
     }
 
-    /** TFC block loot table → one of our loot templates. Unknown shapes fail, so nothing is dropped silently. */
+    /**
+     * TFC block loot table → one of our loot templates; a table with no template shape (TFC conditions, functions or
+     * number providers, state-dependent counts, tool rules) ships for the Paper loot runtime instead
+     * ({@link LootTableExport#delegateBlock}) and the block gets no CE {@code loot:} (null).
+     */
     private Map<String, Object> loot(String id) {
         String src = TfcCheckout.MAIN + "data/" + Json.FROM_NS + "/loot_table/blocks/" + id + ".json";
         if (!tfc.exists(src)) {
@@ -763,8 +771,13 @@ public final class AssetPipeline {
         if (table.equals(LootShapes.gravel(self))) {
             return CeBlockStates.call("tfp:loot_table/gravel", Map.of());
         }
-        throw new DatagenException("loot table " + src + " has a shape with no tfp:loot_table template: "
-            + Json.write(table));
+        report.count("loot_delegated");
+        LootTableExport.delegateBlock(out, id, table, named -> {
+            if (!named.equals(self)) {
+                drop(named);
+            }
+        });
+        return null;
     }
 
     private void drop(String itemId) {
