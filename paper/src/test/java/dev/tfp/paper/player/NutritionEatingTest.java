@@ -151,6 +151,38 @@ class NutritionEatingTest {
                 .isEqualTo(new NutritionEating.VanillaFood(10, 1f));
     }
 
+    /** TFC {@code PlayerInfo#eat(FoodData)}: {@code addThirst(food.water())}, clamped to 100. */
+    @Test
+    void eatingAddsTheFoodsWaterToTheThirstCappedAt100() {
+        FoodData pie = new FoodData(4, 5f, 2f, 0, 1f, 0f, 2f, 1f, 0.3f, 2.5f);
+        PlayerData thirsty = PlayerData.NEW.withThirst(40f);
+        assertThat(NutritionEating.eat(thirsty, Optional.of(pie), false, 10, 0f, 0L).thirst()).isEqualTo(45f);
+        PlayerData full = PlayerData.NEW.withThirst(97f);
+        assertThat(NutritionEating.eat(full, Optional.of(pie), false, 10, 0f, 0L).thirst()).isEqualTo(100f);
+        assertThat(NutritionEating.eat(thirsty, Optional.of(pie), true, 10, 0f, 0L).thirst())
+                .as("rotten: TFC eats nothing, not even the water").isEqualTo(40f);
+    }
+
+    /** TFC {@code MilkBucketItemMixin} eats {@code FoodData.MILK}: one dairy record, no hunger, the bar unchanged. */
+    @Test
+    void milkRecordsDairyAndLeavesTheVanillaFoodAlone() {
+        PlayerData milk = NutritionEating.eat(PlayerData.NEW, Optional.of(dev.tfp.core.food.EatDecision.MILK), false,
+                12, 1f, 0L);
+        assertThat(milk.nutrition()).hasSize(1);
+        assertThat(milk.nutrition().getFirst().nutrients().dairy()).isEqualTo(2f);
+        assertThat(NutritionEating.vanillaAfterEating(12, 1f, Optional.of(dev.tfp.core.food.EatDecision.MILK), false))
+                .isEqualTo(new NutritionEating.VanillaFood(12, 1f));
+    }
+
+    /** The average TFC's {@code FULL_NUTRITION} check reads: the core levels of the stored records. */
+    @Test
+    void theAverageNutritionIsTheCoreAverageOfTheRecords() {
+        PlayerData eaten = NutritionEating.eat(PlayerData.NEW, Optional.of(ALL_GROUPS), false, 0, 0f, 0L);
+        float core = PlayerNutrition.fresh(0L).withHunger(0, 0L, CFG).eat(ALL_GROUPS, 0L, CFG).levels(CFG).average();
+        assertThat(NutritionEating.averageNutrition(eaten, 20)).isCloseTo(core, Offset.offset(1e-6f));
+        assertThat(NutritionEating.averageNutrition(PlayerData.NEW, 20)).isLessThan(0.999f);
+    }
+
     /** A NaN or negative vanilla saturation counts as 0 before TFC's rule is applied. */
     @Test
     void aBadVanillaSaturationCountsAsZero() {

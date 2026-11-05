@@ -15,9 +15,11 @@ import dev.tfp.core.registry.DefinitionKinds;
 import dev.tfp.core.registry.Registry;
 import dev.tfp.core.registry.RegistrySnapshot;
 import dev.tfp.core.tag.TagType;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Food definitions by item id (TFC data {@code tfc/food/*.json}, ours {@code tfp/food/*.json}): the
@@ -28,6 +30,10 @@ import java.util.Optional;
  * containing it (soups, salads, jams, preserves), the first in registry order. Items without a definition are
  * not food: {@link #decayModifier} gives {@link #UNKNOWN_DECAY_MODIFIER} (1) for them, the value M3-SURV-01
  * used for every food, so an unknown item never becomes "never rots" by accident.
+ *
+ * <p>A definition may say {@code "edible": false} (TFC {@code FoodDefinition.edible}, default true: egg, melon,
+ * pumpkin, preserves). Such an item has food data (it decays and stacks as a food) but cannot be eaten:
+ * {@link #isEdible} is false for it, as it is for an item without a definition.
  */
 public final class FoodDefinitions {
     /** The decay modifier used for an item without a food definition. */
@@ -36,9 +42,17 @@ public final class FoodDefinitions {
     public static final FoodDefinitions EMPTY = new FoodDefinitions(Map.of());
 
     private final Map<String, FoodData> byItem;
+    private final Set<String> inedible;
 
+    /** Every item of {@code byItem} is edible. */
     public FoodDefinitions(Map<String, FoodData> byItem) {
+        this(byItem, Set.of());
+    }
+
+    /** @param inedible the items of {@code byItem} whose definition says {@code "edible": false} */
+    public FoodDefinitions(Map<String, FoodData> byItem, Set<String> inedible) {
         this.byItem = Map.copyOf(byItem);
+        this.inedible = Set.copyOf(inedible);
     }
 
     /** Builds the table from the {@code food} definitions of {@code snapshot} (item and item-tag ingredients). */
@@ -46,17 +60,26 @@ public final class FoodDefinitions {
         Registry<SchemaRecord> foods = snapshot.get(DefinitionKinds.key("food"));
         Map<String, FoodData> items = new LinkedHashMap<>();
         Map<String, FoodData> tagged = new LinkedHashMap<>();
+        Set<String> inedibleItems = new HashSet<>();
+        Set<String> inedibleTagged = new HashSet<>();
         for (SchemaRecord r : foods.values()) {
             Optional<Ingredient> ingredient = r.get("ingredient", Ingredient.class);
             if (ingredient.isEmpty()) {
                 continue;
             }
             FoodData data = data(r);
+            boolean edible = r.get("edible", Boolean.class).orElse(true);
             switch (ingredient.get()) {
-                case Ingredient.Item item -> items.putIfAbsent(item.item(), data);
+                case Ingredient.Item item -> {
+                    if (items.putIfAbsent(item.item(), data) == null && !edible) {
+                        inedibleItems.add(item.item());
+                    }
+                }
                 case Ingredient.Tag tag -> {
                     for (String id : snapshot.tags().members(TagType.ITEM, tag.tag())) {
-                        tagged.putIfAbsent(id, data);
+                        if (tagged.putIfAbsent(id, data) == null && !edible) {
+                            inedibleTagged.add(id);
+                        }
                     }
                 }
                 default -> {
@@ -64,8 +87,13 @@ public final class FoodDefinitions {
                 }
             }
         }
-        tagged.forEach(items::putIfAbsent);
-        return new FoodDefinitions(items);
+        Set<String> inedible = new HashSet<>(inedibleItems);
+        tagged.forEach((id, data) -> {
+            if (items.putIfAbsent(id, data) == null && inedibleTagged.contains(id)) {
+                inedible.add(id);
+            }
+        });
+        return new FoodDefinitions(items, inedible);
     }
 
     /** The food data of a decoded {@code food} definition (TFC defaults: absent fields are 0). */
@@ -82,6 +110,14 @@ public final class FoodDefinitions {
 
     public Optional<FoodData> get(String itemId) {
         return Optional.ofNullable(byItem.get(itemId));
+    }
+
+    /**
+     * Whether the item can be eaten: it has a definition and the definition does not say {@code "edible": false}
+     * (TFC {@code FoodDefinition.edible()}, read where TFC gives an item its {@code minecraft:food} component).
+     */
+    public boolean isEdible(String itemId) {
+        return itemId != null && byItem.containsKey(itemId) && !inedible.contains(itemId);
     }
 
     /** The item's food-data {@code decay_modifier}, or {@link #UNKNOWN_DECAY_MODIFIER} for an item without one. */

@@ -10,6 +10,7 @@ import dev.tfp.core.food.NutritionConfig;
 import dev.tfp.core.food.NutritionState;
 import dev.tfp.core.food.PlayerNutrition;
 import dev.tfp.core.recipe.food.FoodData;
+import dev.tfp.core.thirst.ThirstConfig;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,12 +22,14 @@ import java.util.function.DoubleSupplier;
  * does not know) and the vanilla hunger and saturation read on the player's thread, and writes the result with
  * {@link PlayerDataStore#update}.
  *
- * <p>Only the nutrition records change. The hunger and saturation the core state computes are not written back:
- * vanilla's food level stays authoritative until the food sync lands, and the passive exhaustion and thirst clock
- * are left to {@link ThirstDecay} (writing them here would drop the thirst loss of the points already spent).
+ * <p>The nutrition records and the thirst (the food's {@code water}) change. The hunger and saturation the core state
+ * computes are not written back: vanilla's food level is set by {@link #vanillaAfterEating}, and the passive exhaustion
+ * and thirst clock are left to {@link ThirstDecay} (writing them here would drop the thirst loss of the points already
+ * spent).
  */
 public final class NutritionEating {
     private static final NutritionConfig CONFIG = NutritionConfig.DEFAULT;
+    private static final ThirstConfig THIRST = ThirstConfig.DEFAULT;
     /** TFC {@code PlayerInfo#eat(IFood)}: chance of Hunger from rotten food ({@code random.nextFloat() < 0.6}). */
     static final double ROTTEN_HUNGER_CHANCE = 0.6;
     /** TFC {@code PlayerInfo#eat(IFood)}: chance of Poison, only after Hunger applied ({@code < 0.15}). */
@@ -90,6 +93,12 @@ public final class NutritionEating {
      * The data after eating {@code food} at player tick {@code now}. Returns {@code stored} unchanged when the food is
      * unknown or rotten (TFC eats no nutrition from rotten food; its rotten effects come from {@link #rottenEffects}).
      *
+     * <p>TFC {@code PlayerInfo#eat(FoodData)} order: {@code addThirst(food.water())} (clamped to 0..100), then the
+     * nutrients at the hunger before eating. The water is added to the stored thirst without evaluating the thirst
+     * clock first: the stored value is at most one HUD period (20 ticks) old, and the decay since is subtracted at the
+     * next evaluation, so only a meal that would overfill the bar in that second differs (by less than the decay of a
+     * second). Intoxication from food is left to PAR-SURV-08 (no TFC food has any).
+     *
      * @param vanillaFood       the vanilla food level before eating (0..20)
      * @param vanillaSaturation the vanilla saturation before eating; a negative or NaN value counts as 0
      */
@@ -110,7 +119,21 @@ public final class NutritionEating {
         for (FoodData f : eaten.nutrition().records()) {
             records.add(toRecord(f));
         }
-        return stored.withNutrition(records);
+        PlayerData out = stored.withNutrition(records);
+        float water = food.get().water();
+        if (water != 0f) {
+            out = out.withThirst(Math.clamp(stored.thirst() + water, 0f, THIRST.maxThirst()));
+        }
+        return out;
+    }
+
+    /**
+     * TFC {@code NutritionData.getAverageNutrition} of the stored records at vanilla food level {@code foodLevel}: what
+     * TFC's {@code FULL_NUTRITION} advancement checks after a meal ({@code >= 0.999}, {@code PlayerInfo.java} 219-222).
+     */
+    public static float averageNutrition(PlayerData stored, int foodLevel) {
+        int hunger = Math.clamp(foodLevel, 0, NutritionState.MAX_HUNGER);
+        return new NutritionState(toFoods(stored.nutrition())).levels(hunger, CONFIG).average();
     }
 
     static List<FoodData> toFoods(List<PlayerData.FoodRecord> records) {

@@ -2,7 +2,7 @@
 id: PAR-SURV-03
 title: "Eating completion: undefined foods, peaceful, rotten advancement hook, in-game check"
 area: SURV
-status: open
+status: done
 wave: 6
 deps: [PAR-SURV-01]
 size: S
@@ -25,6 +25,7 @@ plan:
   - "Vanilla foods without a TFC definition: block eating vanilla food items that TFC replaces, or map them (divergence row)."
   - "Fire the EAT_ROTTEN_FOOD advancement criterion via PAR-DATA-03's trigger API (stub call now)."
   - "In-game check: eat a TFC food, `tfp debug player Bot` shows the nutrition record; persists across restart."
+  - "Done: core EatDecision (EAT / EAT_INSTEAD for vanilla pumpkin pie, rotten flesh, milk / BLOCK vanilla food without a TFC definition and edible=false / IGNORE), FoodDefinitions.isEdible, food water to thirst, NutritionFoodEatenEvent hook (rotten flag, average nutrition) for PAR-DATA-03; tests EatDecisionTest 8, FoodDefinitionsTest +1, NutritionEatingTest +3, NutritionEatListenerMockBukkitTest 11 (incl. peaceful, persistence); in-game pass docs/verification/PAR-SURV-03/"
 tests:
   - "paper: NutritionEatingTest additions"
 done_criteria:

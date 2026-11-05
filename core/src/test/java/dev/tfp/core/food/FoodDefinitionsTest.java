@@ -50,6 +50,28 @@ class FoodDefinitionsTest {
         assertThat(FoodDefinitions.EMPTY.decayModifier("tfp:food/beef")).isEqualTo(1f);
     }
 
+    /** TFC {@code FoodDefinition.edible} (default true); an item without a definition is not edible either. */
+    @Test
+    void edibleDefaultsToTrueAndFollowsTheWinningDefinition() {
+        Registry<SchemaRecord> foods = Registry.builder(DefinitionKinds.key("food"))
+                .register("tfp:egg", new SchemaRecord("food", Map.of(
+                        "ingredient", new Ingredient.Item("minecraft:egg"), "hunger", 4, "edible", false)))
+                .register("tfp:beef", new SchemaRecord("food", Map.of(
+                        "ingredient", new Ingredient.Item("tfp:food/beef"), "hunger", 4)))
+                .register("tfp:beef_inedible_dup", new SchemaRecord("food", Map.of(
+                        "ingredient", new Ingredient.Item("tfp:food/beef"), "hunger", 1, "edible", false)))
+                .build();
+        RegistrySnapshot snapshot = new RegistrySnapshot(Map.of("food", foods), TagRegistry.EMPTY, Set.of());
+        FoodDefinitions defs = FoodDefinitions.fromRegistry(snapshot);
+        assertThat(defs.isEdible("minecraft:egg")).isFalse();
+        assertThat(defs.get("minecraft:egg")).isPresent();
+        assertThat(defs.isEdible("tfp:food/beef")).as("the first definition wins, edible by default").isTrue();
+        assertThat(defs.isEdible("tfp:not_food")).isFalse();
+        assertThat(defs.isEdible(null)).isFalse();
+        assertThat(new FoodDefinitions(Map.of("a:b", new FoodData(1, 0, 0, 0, 0, 0, 0, 0, 0, 1))).isEdible("a:b"))
+                .isTrue();
+    }
+
     @Test
     void generatedContentHasTfcDecayModifiers() throws java.io.IOException {
         String configured = System.getProperty("tfp.contentData");
