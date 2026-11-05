@@ -50,7 +50,8 @@ public final class BlockSoundPacketHandler implements PacketHandler {
         if (player == null || !rewrite.active()) {
             return PacketDecision.PASS;
         }
-        WrapperPlayServerSoundEffect sound = new WrapperPlayServerSoundEffect(packet.nativeEvent(PacketSendEvent.class));
+        PacketSendEvent event = packet.nativeEvent(PacketSendEvent.class);
+        WrapperPlayServerSoundEffect sound = new WrapperPlayServerSoundEffect(event);
         if (sound.getSound() == null || sound.getSound().getSoundId() == null) {
             return PacketDecision.PASS;
         }
@@ -59,7 +60,9 @@ public final class BlockSoundPacketHandler implements PacketHandler {
                 p.getZ(), sound.getVolume(), sound.getPitch(), System.nanoTime());
         if (log != null && d.kind() != BlockSoundRewrite.Kind.PASS) {
             log.info("[tfp-sound] " + d.kind() + " " + sound.getSound().getSoundId() + " " + sound.getVolume() + "/"
-                    + sound.getPitch() + " -> " + d.volume() + "/" + d.pitch() + " to " + player);
+                    + sound.getPitch() + " -> " + d.volume() + "/" + d.pitch() + " to " + playerName(event, player)
+                    + (d.kind() == BlockSoundRewrite.Kind.DROP ? " (cancelled; a MONITOR listener may still log it)"
+                            : ""));
         }
         return switch (d.kind()) {
             case PASS -> PacketDecision.PASS;
@@ -70,5 +73,11 @@ public final class BlockSoundPacketHandler implements PacketHandler {
                 yield PacketDecision.MODIFIED;
             }
         };
+    }
+
+    /** The player's name for the debug log (the UUID when PacketEvents has no name yet). */
+    private static String playerName(PacketSendEvent event, UUID player) {
+        String name = event.getUser() == null ? null : event.getUser().getName();
+        return name == null ? player.toString() : name + " (" + player + ")";
     }
 }
