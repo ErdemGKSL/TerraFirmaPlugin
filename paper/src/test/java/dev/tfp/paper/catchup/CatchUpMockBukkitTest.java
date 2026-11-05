@@ -9,14 +9,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.tfp.core.catchup.LazyBlockIndex;
 import dev.tfp.core.clock.GlobalClockHolder;
+import dev.tfp.core.config.TfpConfig;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.blockdata.InMemoryChunkDataStore;
+import dev.tfp.paper.config.ConfigService;
 import dev.tfp.paper.module.FeatureModules;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.module.ModuleServices;
 import dev.tfp.paper.pipeline.AsyncDecisionPipeline;
 import dev.tfp.paper.scheduler.ServerScheduler;
 import dev.tfp.paper.testing.MockServerTest;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -279,5 +283,53 @@ class CatchUpMockBukkitTest extends MockServerTest {
         assertThat(s.sweepRadiusChunks()).isEqualTo(4);
         assertThat(s.feedBudgetNanos()).isEqualTo(500_000);
         assertThat(s.commitBudgetNanos()).isEqualTo(1_000_000);
+    }
+
+    @Test
+    void settingsFromConfigAndPropertiesOverrideThem() {
+        CatchUpSettings fromConfig = CatchUpSettings.from(new TfpConfig.CatchUp(40, 2, 300, 700));
+        assertThat(fromConfig).isEqualTo(new CatchUpSettings(40, 2, 300_000, 700_000));
+        assertThat(CatchUpSettings.from(TfpConfig.CatchUp.DEFAULTS)).isEqualTo(CatchUpSettings.DEFAULTS);
+        // No properties: the config values stay.
+        assertThat(CatchUpSettings.fromProperties(fromConfig, k -> null)).isEqualTo(fromConfig);
+        // Good properties win, bad ones keep the config value (not the built-in default).
+        Map<String, String> props = Map.of("tfp.catchup.sweepPeriodTicks", "80", "tfp.catchup.sweepRadiusChunks", "33",
+                "tfp.catchup.feedBudgetMicros", "0", "tfp.catchup.commitBudgetMicros", "900");
+        assertThat(CatchUpSettings.fromProperties(fromConfig, props::get))
+                .isEqualTo(new CatchUpSettings(80, 2, 300_000, 900_000));
+    }
+
+    @Test
+    void moduleReadsConfigYamlAndPropertiesOverrideIt() throws Exception {
+        Path dir = Files.createTempDirectory("tfp-catchup");
+        Path file = dir.resolve("config.yml");
+        Files.writeString(file, "catchup:\n  sweep-period-ticks: 1200\n  sweep-radius-chunks: 7\n"
+                + "  feed-budget-micros: 250\n  commit-budget-micros: 333\n");
+        ConfigService config = new ConfigService(file, () -> "");
+        config.load();
+        assertThat(config.current().catchUp()).isEqualTo(new TfpConfig.CatchUp(1200, 7, 250, 333));
+        String key = "tfp.catchup.sweepRadiusChunks";
+        String previous = System.getProperty(key);
+        ServerScheduler scheduler = new ServerScheduler(plugin, 1);
+        try {
+            assertThat(enableWith(config, scheduler)).isEqualTo(new CatchUpSettings(1200, 7, 250_000, 333_000));
+            System.setProperty(key, "3");
+            assertThat(enableWith(config, scheduler)).isEqualTo(new CatchUpSettings(1200, 3, 250_000, 333_000));
+        } finally {
+            if (previous == null) {
+                System.clearProperty(key);
+            } else {
+                System.setProperty(key, previous);
+            }
+            scheduler.shutdown();
+        }
+    }
+
+    private CatchUpSettings enableWith(ConfigService config, ServerScheduler scheduler) {
+        ModuleServices services = new ModuleServices();
+        ModuleContext ctx = new ModuleContext.Of((JavaPlugin) plugin, LOG, scheduler, null, null, null, config, null,
+                null, store, new GlobalClockHolder(), null, null, services);
+        assertThat(FeatureModules.of(List.of(new CatchUpModule())).enableAll(ctx, LOG)).containsExactly(CatchUpModule.ID);
+        return services.require(CatchUpService.class).settings();
     }
 }

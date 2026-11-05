@@ -16,8 +16,9 @@ import java.util.Optional;
  * {@link ConfigCodec} maps it to and from the YAML tree. TFC's ServerConfig/CommonConfig keys are added
  * here as their features land.
  */
-public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall) {
-    public static final TfpConfig DEFAULTS = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS);
+public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp) {
+    public static final TfpConfig DEFAULTS = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS,
+            CatchUp.DEFAULTS);
 
     /**
      * Visual allocation profile ({@code ARCHITECTURE.md} §9.1). Higher levels free more CE states at some fidelity cost.
@@ -141,5 +142,35 @@ public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall auto
     public record AutoInstall(boolean craftengine, boolean betterhud, boolean configEdits, boolean downloadMissing,
             boolean restoreDeleted) {
         public static final AutoInstall DEFAULTS = new AutoInstall(true, true, true, false, false);
+    }
+
+    /**
+     * {@code catchup.*}: the lazy catch-up service (PAR-INFRA-11/25/31; substitute for TFC's per-tick
+     * {@code ICalendarTickable.checkForCalendarUpdate}, NOT-PARITY NP-SIM-01). Read once when the catch-up module enables;
+     * the JVM properties {@code tfp.catchup.*} override these values.
+     *
+     * @param sweepPeriodTicks   server ticks between visible-area sweeps; {@code 0} turns the sweep off
+     * @param sweepRadiusChunks  chunks around each player the sweep catches up, {@value #MAX_RADIUS} at most
+     * @param feedBudgetMicros   region-thread time per tick window for capturing snapshots, 1..{@value #MAX_BUDGET_MICROS}
+     * @param commitBudgetMicros region-thread time per tick window for writing caught-up states,
+     *                           1..{@value #MAX_BUDGET_MICROS}
+     */
+    public record CatchUp(int sweepPeriodTicks, int sweepRadiusChunks, int feedBudgetMicros, int commitBudgetMicros) {
+        public static final int MAX_RADIUS = 32;
+        public static final int MAX_BUDGET_MICROS = 50_000;
+        public static final CatchUp DEFAULTS = new CatchUp(600, 4, 1000, 1000);
+
+        public CatchUp {
+            if (sweepPeriodTicks < 0) {
+                throw new IllegalArgumentException("sweepPeriodTicks must be >= 0");
+            }
+            if (sweepRadiusChunks < 0 || sweepRadiusChunks > MAX_RADIUS) {
+                throw new IllegalArgumentException("sweepRadiusChunks must be in 0.." + MAX_RADIUS);
+            }
+            if (feedBudgetMicros < 1 || feedBudgetMicros > MAX_BUDGET_MICROS
+                    || commitBudgetMicros < 1 || commitBudgetMicros > MAX_BUDGET_MICROS) {
+                throw new IllegalArgumentException("budgets must be in 1.." + MAX_BUDGET_MICROS);
+            }
+        }
     }
 }

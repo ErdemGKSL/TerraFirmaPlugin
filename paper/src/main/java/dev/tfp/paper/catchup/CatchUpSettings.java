@@ -5,6 +5,7 @@
  */
 package dev.tfp.paper.catchup;
 
+import dev.tfp.core.config.TfpConfig;
 import java.util.function.UnaryOperator;
 
 /**
@@ -36,18 +37,32 @@ public record CatchUpSettings(long sweepPeriodTicks, int sweepRadiusChunks, long
         return sweepPeriodTicks > 0;
     }
 
-    /**
-     * The defaults, overridden by the JVM properties {@code tfp.catchup.sweepPeriodTicks},
-     * {@code tfp.catchup.sweepRadiusChunks}, {@code tfp.catchup.feedBudgetMicros} and
-     * {@code tfp.catchup.commitBudgetMicros} (the {@code config.yml} keys are PAR-INFRA-25). Bad values keep the default.
-     */
+    /** The {@code catchup:} section of {@code config.yml} (PAR-INFRA-31). */
+    public static CatchUpSettings from(TfpConfig.CatchUp c) {
+        return new CatchUpSettings(c.sweepPeriodTicks(), c.sweepRadiusChunks(), c.feedBudgetMicros() * 1000L,
+                c.commitBudgetMicros() * 1000L);
+    }
+
+    /** The defaults overridden by the JVM properties; see {@link #fromProperties(CatchUpSettings, UnaryOperator)}. */
     public static CatchUpSettings fromProperties(UnaryOperator<String> properties) {
-        CatchUpSettings d = DEFAULTS;
+        return fromProperties(DEFAULTS, properties);
+    }
+
+    /**
+     * {@code base} (normally from {@code config.yml}), overridden by the JVM properties {@code tfp.catchup.sweepPeriodTicks},
+     * {@code tfp.catchup.sweepRadiusChunks}, {@code tfp.catchup.feedBudgetMicros} and {@code tfp.catchup.commitBudgetMicros}
+     * (the self-test passes {@code -Dtfp.catchup.sweepPeriodTicks=40}). An absent or bad property keeps the base value.
+     */
+    public static CatchUpSettings fromProperties(CatchUpSettings base, UnaryOperator<String> properties) {
+        CatchUpSettings d = base;
+        int maxRadius = TfpConfig.CatchUp.MAX_RADIUS;
+        int maxBudget = TfpConfig.CatchUp.MAX_BUDGET_MICROS;
         long period = parse(properties.apply("tfp.catchup.sweepPeriodTicks"), d.sweepPeriodTicks, 0, Long.MAX_VALUE);
-        long radius = parse(properties.apply("tfp.catchup.sweepRadiusChunks"), d.sweepRadiusChunks, 0, 32);
-        long feed = parse(properties.apply("tfp.catchup.feedBudgetMicros"), d.feedBudgetNanos / 1000, 1, 50_000);
-        long commit = parse(properties.apply("tfp.catchup.commitBudgetMicros"), d.commitBudgetNanos / 1000, 1, 50_000);
-        return new CatchUpSettings(period, (int) radius, feed * 1000, commit * 1000);
+        long radius = parse(properties.apply("tfp.catchup.sweepRadiusChunks"), d.sweepRadiusChunks, 0, maxRadius);
+        long feed = parse(properties.apply("tfp.catchup.feedBudgetMicros"), -1, 1, maxBudget);
+        long commit = parse(properties.apply("tfp.catchup.commitBudgetMicros"), -1, 1, maxBudget);
+        return new CatchUpSettings(period, (int) radius, feed < 0 ? d.feedBudgetNanos : feed * 1000,
+                commit < 0 ? d.commitBudgetNanos : commit * 1000);
     }
 
     private static long parse(String raw, long def, long min, long max) {

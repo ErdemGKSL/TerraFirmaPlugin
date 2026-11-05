@@ -15,7 +15,8 @@ import java.util.Optional;
  * ({@code services().require(CatchUpService.class)}, then {@code kinds().register(...)} and {@code track(block, kind)}
  * on placement), listens for chunk load/unload, interactions and breaks, and runs the visible-area sweep. When the
  * device module is enabled it registers the direct kind {@value #DEVICE_KIND} ({@code DeviceService.catchUp}), so a
- * device indexed under that kind is caught up on chunk load. Must be listed before every module that registers kinds.
+ * device indexed under that kind is caught up on chunk load. Settings come from {@code config.yml} {@code catchup:}
+ * with the {@code tfp.catchup.*} JVM properties on top ({@link CatchUpSettings}). Must be listed before every module that registers kinds.
  */
 public final class CatchUpModule implements FeatureModule {
     public static final String ID = "catchup";
@@ -31,7 +32,11 @@ public final class CatchUpModule implements FeatureModule {
 
     @Override
     public void enable(ModuleContext context) {
-        CatchUpSettings settings = CatchUpSettings.fromProperties(System::getProperty);
+        // PAR-INFRA-31: config.yml's catchup section, then the JVM properties override it. Read once: the sweep period and
+        // the budgets need a restart.
+        CatchUpSettings base = context.config() == null ? CatchUpSettings.DEFAULTS
+                : CatchUpSettings.from(context.config().current().catchUp());
+        CatchUpSettings settings = CatchUpSettings.fromProperties(base, System::getProperty);
         CatchUpService service = new CatchUpService(new CatchUpKinds(), context.chunkData(), context::regions,
                 context.scheduler().cpuExecutor(), () -> context.clock().get().playerTicks(), System::nanoTime,
                 settings, context.logger());

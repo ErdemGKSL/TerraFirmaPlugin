@@ -2,7 +2,7 @@
 id: PAR-INFRA-31
 title: "Catch-up settings in config.yml: catchup.* keys through TfpConfig and ConfigCodec"
 area: INFRA
-status: open
+status: done
 wave: 7
 deps: [PAR-INFRA-25, PAR-INFRA-15]
 size: S
@@ -25,6 +25,7 @@ plan:
   - "Add `TfpConfig.CatchUp(sweepPeriodTicks 600, sweepRadiusChunks 4, feedBudgetMicros 1000, commitBudgetMicros 1000)` with the ranges of `CatchUpSettings` (period >= 0, 0 = sweep off; radius 0..32; budgets 1..50000); `ConfigCodec` parses and writes the section `catchup:` with keys `sweep-period-ticks`, `sweep-radius-chunks`, `feed-budget-micros`, `commit-budget-micros` (bad values: default + warning, as the other keys). Keep the file's key style (kebab-case) rather than the snake_case of the old PAR-INFRA-25 plan text."
   - "config.yml: the section with a comment block (what each key does, the sweep is the substitute for TFC's per-tick `checkForCalendarUpdate`, the period and budgets need a restart)."
   - "`CatchUpModule.enable`: `CatchUpSettings.from(context.config().current().catchUp())`, then the JVM properties override it (`fromProperties(base, System::getProperty)`), so the self-test can still pass `-Dtfp.catchup.sweepPeriodTicks=40`."
+  - "Done: TfpConfig.CatchUp + ConfigCodec section `catchup:` (kebab-case keys, ranged ints with default + warning), shipped config.yml section with comments, CatchUpSettings.from / fromProperties(base, props), CatchUpModule reads config then properties. Tests: ConfigCodecTest (+2: catchUpDefaultsAndMissingKeys, catchUpOutOfRangeValuesWarnAndFallBack; round trip and defaulted count updated), ConfigServiceTest (+1 shippedCatchUpSectionAndEdits; old-file append now adds catchup), CatchUpMockBukkitTest (+2). ui: false, no in-game verification."
 tests:
   - "core: ConfigCodecTest round trip with a custom catchup section, defaults for missing keys, warnings for out-of-range values"
   - "paper: ConfigServiceTest shipped config.yml parses without warnings; CatchUpMockBukkitTest module reads config values and the properties override them"

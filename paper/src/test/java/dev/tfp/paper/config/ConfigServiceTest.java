@@ -60,7 +60,7 @@ class ConfigServiceTest {
         profiles.put("26", Profile.LEVEL_0);
         TfpConfig custom = new TfpConfig(new Visuals(profiles, 7, NetherEndBlocks.FALSE),
                 new TfpConfig.OreOverlay(32, 100, false),
-                new AutoInstall(false, false, true, true, false));
+                new AutoInstall(false, false, true, true, false), new TfpConfig.CatchUp(40, 0, 5, 50_000));
         for (TfpConfig c : new TfpConfig[] {TfpConfig.DEFAULTS, custom}) {
             String yaml = Yamls.dump(ConfigCodec.toMap(c));
             ConfigCodec.Parsed p = ConfigCodec.parse(Yamls.load(yaml));
@@ -94,7 +94,7 @@ class ConfigServiceTest {
         Files.writeString(file, owner);
         ConfigService.Outcome o = service.load();
         assertThat(o.created()).isFalse();
-        assertThat(o.added()).containsExactly("ore-overlay", "auto-install");
+        assertThat(o.added()).containsExactly("ore-overlay", "auto-install", "catchup");
         assertThat(o.warnings()).hasSize(2).anyMatch(w -> w.contains("visuals.extra"))
                 .anyMatch(w -> w.contains("config.yml visuals.profile.\"26\": level-3b was removed") && w.contains("using level-2"));
         String text = Files.readString(file);
@@ -102,6 +102,8 @@ class ConfigServiceTest {
         assertThat(service.current().visuals().profile()).containsEntry("26", Profile.LEVEL_2)
                 .containsEntry("1.21", Profile.LEVEL_2);
         assertThat(service.current().oreOverlay()).isEqualTo(TfpConfig.OreOverlay.DEFAULTS);
+        assertThat(service.current().catchUp()).isEqualTo(TfpConfig.CatchUp.DEFAULTS);
+        assertThat(text).contains("# Catch-up of time-based blocks").contains("sweep-period-ticks: 600");
         assertThat(service.current().visuals().solidReserveWarning()).isEqualTo(500);
         // Second start: nothing more to add, file untouched (the owner's level-3b stays), the warning repeats.
         ConfigService.Outcome again = service.load();
@@ -138,5 +140,17 @@ class ConfigServiceTest {
         // Bukkit's YamlConfiguration would split "1.21" into 1 -> 21; plain SnakeYAML must not.
         Map<?, ?> tree = Yamls.load("visuals:\n  profile:\n    \"1.21\": level-0\n");
         assertThat(ConfigCodec.parse(tree).config().visuals().profile()).containsEntry("1.21", Profile.LEVEL_0);
+    }
+
+    @Test
+    void shippedCatchUpSectionAndEdits() throws IOException {
+        assertThat(Yamls.load(SHIPPED).containsKey("catchup")).isTrue();
+        service.load();
+        Files.writeString(file, Files.readString(file).replace("sweep-period-ticks: 600", "sweep-period-ticks: 40")
+                .replace("sweep-radius-chunks: 4", "sweep-radius-chunks: 99"));
+        ConfigService.Outcome o = service.load();
+        assertThat(o.applied()).isTrue();
+        assertThat(o.warnings()).singleElement().asString().contains("catchup.sweep-radius-chunks");
+        assertThat(service.current().catchUp()).isEqualTo(new TfpConfig.CatchUp(40, 4, 1000, 1000));
     }
 }

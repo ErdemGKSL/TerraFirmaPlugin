@@ -6,6 +6,7 @@
 package dev.tfp.core.config;
 
 import dev.tfp.core.config.TfpConfig.AutoInstall;
+import dev.tfp.core.config.TfpConfig.CatchUp;
 import dev.tfp.core.config.TfpConfig.NetherEndBlocks;
 import dev.tfp.core.config.TfpConfig.OreOverlay;
 import dev.tfp.core.config.TfpConfig.Profile;
@@ -49,7 +50,7 @@ public final class ConfigCodec {
     public static Parsed parse(Map<?, ?> root) {
         Reader r = new Reader();
         Map<?, ?> top = root == null ? Map.of() : root;
-        r.unknown(top, "", List.of("visuals", "ore-overlay", "auto-install"));
+        r.unknown(top, "", List.of("visuals", "ore-overlay", "auto-install", "catchup"));
 
         Map<?, ?> v = r.section(top, "visuals");
         r.unknown(v, "visuals.", List.of("profile", "solid-reserve-warning", "use-nether-end-blocks"));
@@ -103,7 +104,18 @@ public final class ConfigCodec {
                 r.bool(a, "auto-install.", "config-edits", d.configEdits()),
                 r.bool(a, "auto-install.", "download-missing", d.downloadMissing()),
                 r.bool(a, "auto-install.", "restore-deleted", d.restoreDeleted()));
-        return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto), r.warnings, r.defaulted);
+
+        Map<?, ?> cu = r.section(top, "catchup");
+        r.unknown(cu, "catchup.", List.of("sweep-period-ticks", "sweep-radius-chunks", "feed-budget-micros",
+                "commit-budget-micros"));
+        CatchUp cd = CatchUp.DEFAULTS;
+        CatchUp catchUp = new CatchUp(
+                r.intIn(cu, "catchup.", "sweep-period-ticks", cd.sweepPeriodTicks(), 0, Integer.MAX_VALUE),
+                r.intIn(cu, "catchup.", "sweep-radius-chunks", cd.sweepRadiusChunks(), 0, CatchUp.MAX_RADIUS),
+                r.intIn(cu, "catchup.", "feed-budget-micros", cd.feedBudgetMicros(), 1, CatchUp.MAX_BUDGET_MICROS),
+                r.intIn(cu, "catchup.", "commit-budget-micros", cd.commitBudgetMicros(), 1, CatchUp.MAX_BUDGET_MICROS));
+        return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto, catchUp), r.warnings,
+                r.defaulted);
     }
 
     /** The tree that {@link #parse} reads back to an equal config. Keys in config.yml order. */
@@ -130,6 +142,13 @@ public final class ConfigCodec {
         root.put("visuals", visuals);
         root.put("ore-overlay", overlay);
         root.put("auto-install", auto);
+        CatchUp cu = c.catchUp();
+        Map<String, Object> catchUp = new LinkedHashMap<>();
+        catchUp.put("sweep-period-ticks", cu.sweepPeriodTicks());
+        catchUp.put("sweep-radius-chunks", cu.sweepRadiusChunks());
+        catchUp.put("feed-budget-micros", cu.feedBudgetMicros());
+        catchUp.put("commit-budget-micros", cu.commitBudgetMicros());
+        root.put("catchup", catchUp);
         return root;
     }
 
@@ -161,16 +180,21 @@ public final class ConfigCodec {
         }
 
         int nonNegativeInt(Map<?, ?> m, String prefix, String key, int def) {
+            return intIn(m, prefix, key, def, 0, Integer.MAX_VALUE);
+        }
+
+        int intIn(Map<?, ?> m, String prefix, String key, int def, int min, int max) {
             if (!m.containsKey(key)) {
                 defaulted.add(prefix + key);
                 return def;
             }
             Object o = m.get(key);
-            if (o instanceof Number n && n.doubleValue() == n.longValue() && n.longValue() >= 0
-                    && n.longValue() <= Integer.MAX_VALUE) {
+            if (o instanceof Number n && n.doubleValue() == n.longValue() && n.longValue() >= min
+                    && n.longValue() <= max) {
                 return n.intValue();
             }
-            warn(prefix + key + ": expected a whole number >= 0, got '" + o + "'; using " + def);
+            String range = max == Integer.MAX_VALUE ? ">= " + min : "in " + min + ".." + max;
+            warn(prefix + key + ": expected a whole number " + range + ", got '" + o + "'; using " + def);
             return def;
         }
 

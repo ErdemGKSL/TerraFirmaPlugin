@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.tfp.core.compat.Version;
 import dev.tfp.core.config.TfpConfig.AutoInstall;
+import dev.tfp.core.config.TfpConfig.CatchUp;
 import dev.tfp.core.config.TfpConfig.NetherEndBlocks;
 import dev.tfp.core.config.TfpConfig.OreOverlay;
 import dev.tfp.core.config.TfpConfig.Profile;
@@ -23,13 +24,14 @@ class ConfigCodecTest {
     static final TfpConfig CUSTOM = new TfpConfig(
             new Visuals(Map.of("1.21", Profile.LEVEL_1, "26", Profile.LEVEL_0), 120, NetherEndBlocks.TRUE),
             new OreOverlay(32, 2000, false),
-            new AutoInstall(false, true, false, true, true));
+            new AutoInstall(false, true, false, true, true),
+            new CatchUp(40, 8, 250, 2000));
 
     @Test
     void roundTripsDefaultsAndCustomValues() {
         for (TfpConfig c : List.of(TfpConfig.DEFAULTS, CUSTOM,
                 new TfpConfig(new Visuals(Map.of(), 0, NetherEndBlocks.FALSE), new OreOverlay(0, 0, true),
-                        AutoInstall.DEFAULTS))) {
+                        AutoInstall.DEFAULTS, new CatchUp(0, 0, 1, 50_000)))) {
             ConfigCodec.Parsed p = ConfigCodec.parse(ConfigCodec.toMap(c));
             assertThat(p.warnings()).isEmpty();
             assertThat(p.defaulted()).isEmpty();
@@ -41,6 +43,7 @@ class ConfigCodecTest {
             assertThat(p.config().visuals().useNetherEndBlocks()).isEqualTo(c.visuals().useNetherEndBlocks());
             assertThat(p.config().autoInstall()).isEqualTo(c.autoInstall());
             assertThat(p.config().oreOverlay()).isEqualTo(c.oreOverlay());
+            assertThat(p.config().catchUp()).isEqualTo(c.catchUp());
             // Serialising again is stable.
             assertThat(ConfigCodec.parse(ConfigCodec.toMap(p.config())).config()).isEqualTo(p.config());
         }
@@ -51,7 +54,8 @@ class ConfigCodecTest {
         ConfigCodec.Parsed p = ConfigCodec.parse(Map.of());
         assertThat(p.config()).isEqualTo(TfpConfig.DEFAULTS);
         assertThat(p.warnings()).isEmpty();
-        assertThat(p.defaulted()).hasSize(11).contains("visuals.profile", "auto-install.restore-deleted",
+        assertThat(p.defaulted()).hasSize(15).contains("visuals.profile", "auto-install.restore-deleted", "catchup.sweep-period-ticks",
+                "catchup.commit-budget-micros",
                 "ore-overlay.cutoff-blocks", "ore-overlay.max-per-player", "ore-overlay.surface-outcrops-full-range");
         assertThat(ConfigCodec.parse(null).config()).isEqualTo(TfpConfig.DEFAULTS);
     }
@@ -156,5 +160,40 @@ class ConfigCodecTest {
                 Map.of("cutoff-blocks", -1, "max-per-player", "many", "surface-outcrops-full-range", "no", "radius", 3)));
         assertThat(p.config().oreOverlay()).isEqualTo(OreOverlay.DEFAULTS);
         assertThat(p.warnings()).hasSize(4).anyMatch(w -> w.contains("'ore-overlay.radius'"));
+    }
+
+    @Test
+    void catchUpDefaultsAndMissingKeys() {
+        assertThat(TfpConfig.DEFAULTS.catchUp()).isEqualTo(new CatchUp(600, 4, 1000, 1000));
+        ConfigCodec.Parsed p = ConfigCodec.parse(Map.of("catchup", Map.of("sweep-radius-chunks", 6)));
+        assertThat(p.warnings()).isEmpty();
+        assertThat(p.config().catchUp()).isEqualTo(new CatchUp(600, 6, 1000, 1000));
+        assertThat(p.defaulted()).contains("catchup.sweep-period-ticks", "catchup.feed-budget-micros",
+                "catchup.commit-budget-micros").doesNotContain("catchup.sweep-radius-chunks");
+        assertThat(ConfigCodec.toMap(TfpConfig.DEFAULTS)).containsKey("catchup")
+                .extractingByKey("catchup").isEqualTo(Map.of("sweep-period-ticks", 600, "sweep-radius-chunks", 4,
+                        "feed-budget-micros", 1000, "commit-budget-micros", 1000));
+    }
+
+    @Test
+    void catchUpOutOfRangeValuesWarnAndFallBack() {
+        ConfigCodec.Parsed p = ConfigCodec.parse(Map.of("catchup", Map.of("sweep-period-ticks", -1,
+                "sweep-radius-chunks", 33, "feed-budget-micros", 0, "commit-budget-micros", 50_001, "period", 5)));
+        assertThat(p.config().catchUp()).isEqualTo(CatchUp.DEFAULTS);
+        assertThat(p.warnings()).hasSize(5)
+                .anyMatch(w -> w.contains("catchup.sweep-period-ticks: expected a whole number >= 0, got '-1'; using 600"))
+                .anyMatch(w -> w.contains("catchup.sweep-radius-chunks: expected a whole number in 0..32, got '33'; using 4"))
+                .anyMatch(w -> w.contains("catchup.feed-budget-micros: expected a whole number in 1..50000"))
+                .anyMatch(w -> w.contains("catchup.commit-budget-micros: expected a whole number in 1..50000"))
+                .anyMatch(w -> w.contains("'catchup.period'"));
+        ConfigCodec.Parsed bad = ConfigCodec.parse(Map.of("catchup", Map.of("sweep-period-ticks", "often",
+                "feed-budget-micros", 2.5)));
+        assertThat(bad.config().catchUp()).isEqualTo(CatchUp.DEFAULTS);
+        assertThat(bad.warnings()).hasSize(2);
+        assertThat(ConfigCodec.parse(Map.of("catchup", 3)).warnings()).singleElement().asString().contains("section");
+        // Edges are accepted.
+        assertThat(ConfigCodec.parse(Map.of("catchup", Map.of("sweep-period-ticks", 0, "sweep-radius-chunks", 32,
+                "feed-budget-micros", 1, "commit-budget-micros", 50_000))).config().catchUp())
+                .isEqualTo(new CatchUp(0, 32, 1, 50_000));
     }
 }

@@ -43,3 +43,19 @@ auto-install:
   config-edits: true
   download-missing: false
   restore-deleted: false
+
+# Catch-up of time-based blocks (crops, devices, ...). TFC checks every block entity each tick for a
+# calendar jump (checkForCalendarUpdate); we instead catch a block up when its chunk loads, when it is
+# used or broken, and by a periodic sweep of the chunks around players. Changes need a restart.
+# sweep-period-ticks: server ticks between sweeps (600 = 30 s); 0 turns the sweep off (load and use
+#   still catch blocks up).
+# sweep-radius-chunks: chunks around each player the sweep covers (0..32).
+# feed-budget-micros: region-thread time per tick for reading blocks to catch up, in microseconds (1..50000).
+# commit-budget-micros: region-thread time per tick for writing caught-up blocks, in microseconds (1..50000).
+# The JVM properties -Dtfp.catchup.sweepPeriodTicks, sweepRadiusChunks, feedBudgetMicros and
+# commitBudgetMicros override these keys.
+catchup:
+  sweep-period-ticks: 600
+  sweep-radius-chunks: 4
+  feed-budget-micros: 1000
+  commit-budget-micros: 1000
