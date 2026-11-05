@@ -2,7 +2,7 @@
 id: PAR-PROC-21
 title: "Ore piece items stack by TFC item_size (16): drops.yml ore items get max_stack_size"
 area: PROC
-status: open
+status: done
 wave: 6
 deps: [PAR-PROC-19]
 size: S
@@ -19,6 +19,7 @@ in_game_steps: []
 plan:
   - "Current: the 53 ore piece items (ore/<gem or mineral>, ore/<grade>_<ore>) are written by AssetPipeline into configuration/drops.yml as tfp:item/simple without data, so they stack to 64. TFC's item_size/ores.json (tag tfc:ore_pieces) makes them small/medium: 16 per stack. PAR-PROC-19 generates the three item-only ores (halite, lignite, bituminous coal) with 16 but must not redefine the drops.yml ids."
   - "Give the drops.yml ore items max_stack_size from TFC's item_size (the first matching definition in TFC's load order, as dev.tfp.datagen.material.MaterialItems does), or move them into the material generator and drop them from drops.yml."
+  - "Done: AssetPipeline.ItemSizes gives every drops.yml item the max_stack_size of its first TFC item_size definition in TFC's load order (53 ore pieces = 16, loose rocks none = 64); OrePieceStackTest (4 tests, pinned checkout); ledger divergence row closed; :core:test :paper:test :tools:datagen:test pass."
 tests:
   - "tools/datagen: every tfp:ore/* item of drops.yml has max_stack_size 16"
 done_criteria:

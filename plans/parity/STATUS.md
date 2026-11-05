@@ -56,7 +56,7 @@ Totals: 243 items; open 215, done 25, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-HUD-10 | Held temperature popup shows TFC's level text, verified in game | HUD | 6 | open |
 | PAR-HUD-13 | Info plate fits the longest date line; BetterHud horizontal shift of the top-left info HUD | HUD | 6 | done |
 | PAR-PROC-02 | Workbench crafting: the plain 2,255 shaped/shapeless recipes as CE recipe YAML | PROC | 6 | done |
-| PAR-PROC-21 | Ore piece items stack by TFC item_size (16): drops.yml ore items get max_stack_size | PROC | 6 | open |
+| PAR-PROC-21 | Ore piece items stack by TFC item_size (16): drops.yml ore items get max_stack_size | PROC | 6 | done |
 | PAR-PROC-23 | Material items in-game verification: ce item give for a sample of 20, names, textures, stack sizes | PROC | 6 | open |
 | PAR-SURV-02 | Food tooltip: expiry/rotten, traits, nutrition lines | SURV | 6 | open |
 | PAR-SURV-03 | Eating completion: undefined foods, peaceful, rotten advancement hook, in-game check | SURV | 6 | open |

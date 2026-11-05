@@ -5,6 +5,7 @@
  */
 package dev.tfp.datagen;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.IOException;
@@ -20,10 +21,13 @@ import java.util.ArrayList;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -633,10 +637,16 @@ public final class AssetPipeline {
         // drop items (ore pieces, loose rocks) in one file
         ConfigFile drops = new ConfigFile();
         dropItems.keySet().removeAll(report.emittedIds()); // a delegated table may name another emitted block (its item exists)
+        ItemSizes sizes = new ItemSizes(tfc);
         dropItems.forEach((id, langKey) -> {
             requireItemModel(id);
-            drops.items.put(Json.TO_NS + ":" + id,
-                CeBlockStates.call("tfp:item/simple", Map.of("item_lang_key", langKey)));
+            Map<String, Object> entry = CeBlockStates.call("tfp:item/simple", Map.of("item_lang_key", langKey));
+            // PAR-PROC-21: TFC's item_size weight (ore pieces: tfc:ore_pieces, medium = 16); none matching keeps CE's 64.
+            sizes.stackSize(Json.FROM_NS + ":" + id).ifPresent(stack -> {
+                entry.put("data", Map.of("max_stack_size", stack));
+                report.count("drop_items_sized");
+            });
+            drops.items.put(Json.TO_NS + ":" + id, entry);
         });
         drops.write("drops");
         // Food items (configuration/food.yml): dev.tfp.datagen.food.FoodItems (PAR-SURV-01).
@@ -877,6 +887,135 @@ public final class AssetPipeline {
             }
             out.put(CONFIG + name + ".yml", Yaml.write(HEADER, root));
             report.count("ce_config_files");
+        }
+    }
+
+    /**
+     * PAR-PROC-21: the stack size TFC's {@code item_size} data gives a drop item, found like
+     * {@code dev.tfp.datagen.material.TfcItemData} (package-private there) and TFC's {@code ItemSizeManager.getDefinition}: the
+     * definitions in TFC's load order ({@code java.util.HashMap} over {@code ResourceLocation}-style hashes, filled in sorted
+     * order), the first whose ingredient matches. Weights map to stacks as TFC's {@code Weight}. A checkout without
+     * {@code item_size} data (test fixtures) sizes nothing.
+     */
+    static final class ItemSizes {
+        static final Map<String, Integer> WEIGHT_STACK = Map.of(
+            "very_light", 64, "light", 32, "medium", 16, "heavy", 4, "very_heavy", 1);
+        private final TfcCheckout tfc;
+        private final List<Map.Entry<String, JsonObject>> definitions = new ArrayList<>();
+        private final Map<String, Set<String>> tags = new HashMap<>();
+
+        /** A key hashed like vanilla's {@code ResourceLocation}. */
+        private record Location(String namespace, String path) {
+            @Override
+            public int hashCode() {
+                return 31 * namespace.hashCode() + path.hashCode();
+            }
+        }
+
+        ItemSizes(TfcCheckout tfc) {
+            this.tfc = tfc;
+            String dir = TfcCheckout.GENERATED + "data/" + Json.FROM_NS + "/" + Json.FROM_NS + "/item_size/";
+            TreeMap<String, String> sorted = new TreeMap<>();
+            for (String f : tfc.list(dir)) {
+                if (f.endsWith(".json")) {
+                    sorted.put(f.substring(dir.length(), f.length() - ".json".length()), f);
+                }
+            }
+            Map<Location, Boolean> order = new HashMap<>();
+            sorted.keySet().forEach(path -> order.put(new Location(Json.FROM_NS, path), Boolean.TRUE));
+            for (Location l : order.keySet()) {
+                String file = sorted.get(l.path());
+                definitions.add(Map.entry(Json.FROM_NS + ":" + l.path(), Json.parse(tfc.readString(file), file).getAsJsonObject()));
+            }
+        }
+
+        /** The ids of the definitions in TFC's load order. */
+        List<String> order() {
+            return definitions.stream().map(Map.Entry::getKey).toList();
+        }
+
+        /** The stack size of the first matching definition's weight, or empty without one. */
+        Optional<Integer> stackSize(String item) {
+            for (Map.Entry<String, JsonObject> d : definitions) {
+                if (!d.getValue().has("ingredient")) {
+                    throw new DatagenException("TFC item_size " + d.getKey() + " has no ingredient");
+                }
+                if (matches(d.getValue().get("ingredient"), item, d.getKey())) {
+                    String weight = d.getValue().has("weight") ? d.getValue().get("weight").getAsString() : "very_light";
+                    Integer stack = WEIGHT_STACK.get(weight);
+                    if (stack == null) {
+                        throw new DatagenException("item size " + d.getKey() + " has unknown weight " + weight);
+                    }
+                    return Optional.of(stack);
+                }
+            }
+            return Optional.empty();
+        }
+
+        private boolean matches(JsonElement ingredient, String item, String where) {
+            if (ingredient.isJsonArray()) {
+                for (JsonElement e : ingredient.getAsJsonArray()) {
+                    if (matches(e, item, where)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            JsonObject o = ingredient.getAsJsonObject();
+            if (o.has("type")) {
+                String type = o.get("type").getAsString();
+                if (type.equals("neoforge:difference")) {
+                    return matches(o.get("base"), item, where) && !matches(o.get("subtracted"), item, where);
+                }
+                throw new DatagenException(where + ": ingredient type " + type + " is not read by the asset pipeline");
+            }
+            if (o.has("item")) {
+                return o.get("item").getAsString().equals(item);
+            }
+            if (o.has("tag")) {
+                return tag(o.get("tag").getAsString()).contains(item);
+            }
+            throw new DatagenException(where + ": unknown ingredient " + o);
+        }
+
+        /** An item tag of the checkout: generated and main resources merged, nested tags, then the removals. */
+        private Set<String> tag(String id) {
+            Set<String> cached = tags.get(id);
+            if (cached != null) {
+                return cached;
+            }
+            tags.put(id, Set.of()); // a cycle reads as empty instead of recursing forever
+            int colon = id.indexOf(':');
+            String rel = "data/" + id.substring(0, colon) + "/tags/item/" + id.substring(colon + 1) + ".json";
+            Set<String> members = new LinkedHashSet<>();
+            List<String> removed = new ArrayList<>();
+            for (String root : List.of(TfcCheckout.GENERATED, TfcCheckout.MAIN)) {
+                if (!tfc.exists(root + rel)) {
+                    continue;
+                }
+                JsonObject json = Json.parse(tfc.readString(root + rel), root + rel).getAsJsonObject();
+                for (JsonElement v : json.has("values") ? json.getAsJsonArray("values") : new JsonArray()) {
+                    String value = v.isJsonObject() ? v.getAsJsonObject().get("id").getAsString() : v.getAsString();
+                    if (value.startsWith("#")) {
+                        members.addAll(tag(value.substring(1)));
+                    } else {
+                        members.add(value);
+                    }
+                }
+                for (JsonElement v : json.has("remove") ? json.getAsJsonArray("remove") : new JsonArray()) {
+                    removed.add(v.isJsonObject() ? v.getAsJsonObject().get("id").getAsString() : v.getAsString());
+                }
+            }
+            for (String r : removed) {
+                if (r.startsWith("#")) {
+                    members.removeAll(tag(r.substring(1)));
+                } else {
+                    members.remove(r);
+                }
+            }
+            Set<String> out = Set.copyOf(members);
+            tags.put(id, out);
+            return out;
         }
     }
 }
