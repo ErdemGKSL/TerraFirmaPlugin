@@ -243,6 +243,13 @@ class MaterialItemsTest {
         assertThat(args).containsEntry("durability", 1300).containsEntry("break_power", 2)
             .containsEntry("mineable_tag", "tfp:mineable/glass_saw").containsEntry("material", "iron_pickaxe");
         assertThat(args.get("speed").toString()).isEqualTo("7.3");
+        // GemSawItem: productAttributes(BRONZE, -0.2f, -2.0f): damage -0.2 x 4.0 (0.2 in game), attack speed -2.0 (2.0 in game)
+        List<Map<String, Object>> mods = (List<Map<String, Object>>) ((Map<String, Object>) saw.get("data")).get("attribute_modifiers");
+        assertThat(mods).hasSize(2);
+        assertThat(mods.get(0)).containsEntry("type", "attack_damage").containsEntry("operation", "add_value").containsEntry("slot", "mainhand");
+        assertThat(mods.get(0).get("amount").toString()).isEqualTo("-0.8");
+        assertThat(mods.get(1)).containsEntry("type", "attack_speed").containsEntry("slot", "mainhand");
+        assertThat(mods.get(1).get("amount").toString()).isEqualTo("-2.0");
         // the handstone takes TFC's healthy Blockbench model (the damaged override needs a NeoForge item property)
         JsonObject hand = JsonParser.parseString(new String(full.tree().get(MaterialItems.RP + "models/item/handstone.json"),
             StandardCharsets.UTF_8)).getAsJsonObject();
@@ -256,7 +263,7 @@ class MaterialItemsTest {
         Map<String, String> all = CeItemIds.of(full.tree(), null);
         for (String id : List.of("ore/rich_hematite", "gem/ruby", "powder/salt", "powder/flux", "ore/halite", "jute_fiber",
             "burlap_cloth", "silk_cloth", "wool_cloth", "papyrus", "unrefined_paper", "glue", "soot", "mortar", "sandpaper",
-            "straw", "stick_bunch", "blubber", "wool_yarn", "spawn_egg/cow")) {
+            "straw", "stick_bunch", "blubber", "wool_yarn", "spawn_egg/cow", "handstone", "gem_saw")) {
             assertThat(all).as(id).containsKey("tfp:" + id);
         }
     }

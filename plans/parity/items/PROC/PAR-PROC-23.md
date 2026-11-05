@@ -4,7 +4,7 @@ title: "Material items in-game verification: ce item give for a sample of 20, na
 area: PROC
 status: open
 wave: 6
-deps: [PAR-PROC-19]
+deps: []
 size: S
 aliases: ["follow-up of PAR-PROC-19 (its in_game_steps and screenshot done-criterion)"]
 tfc_refs:

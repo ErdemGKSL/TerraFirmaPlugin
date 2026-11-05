@@ -151,6 +151,8 @@ public final class MaterialItems {
             if (group == null) {
                 continue;
             }
+            // The non-plain TFC items handled here on purpose: spawn eggs (ledger divergence "spawn eggs spawn nothing"), the
+            // gem saw (divergence "gem saw") and wool cloth (TFC's glassworking-tagged cloth; divergence "wool cloth and lumber").
             if (!r.plain() && !group.equals(SPAWN_EGG_GROUP) && !r.field().equals("GEM_SAW") && !r.field().equals("WOOL_CLOTH")) {
                 throw new DatagenException("TFCItems." + r.field() + " is no longer a plain item: " + r.factory());
             }
@@ -184,6 +186,20 @@ public final class MaterialItems {
             args.put("mineable_tag", GEM_SAW_TAG);
             args.put("tool_tag", "tfp:tools/gem_saw");
             entry.put("arguments", args);
+            // TFC's productAttributes(tier, damageFactor, attackSpeed). These attribute_modifiers deep-merge into the template's
+            // data and replace the iron pickaxe's vanilla modifiers: damage 1 + factor x tier damage, attack speed 4 + speed.
+            BigDecimal[] attack = gemSawAttributes(tfc);
+            Map<String, Object> damage = new LinkedHashMap<>();
+            damage.put("type", "attack_damage");
+            damage.put("amount", attack[0].multiply(bronze.damage()).stripTrailingZeros());
+            damage.put("operation", "add_value");
+            damage.put("slot", "mainhand");
+            Map<String, Object> speed = new LinkedHashMap<>();
+            speed.put("type", "attack_speed");
+            speed.put("amount", attack[1]);
+            speed.put("operation", "add_value");
+            speed.put("slot", "mainhand");
+            entry.put("data", Map.of("attribute_modifiers", List.of(damage, speed)));
             return entry;
         }
         entry.put("template", "tfp:item/simple");
@@ -198,7 +214,18 @@ public final class MaterialItems {
     }
 
     /** One TFC tier ({@code TFCTiers.create(name, tag, level, uses, speed, damage, enchantment)}). */
-    record Tier(int level, int uses, BigDecimal speed) {
+    record Tier(int level, int uses, BigDecimal speed, BigDecimal damage) {
+    }
+
+    static final String GEM_SAW_SOURCE = "src/main/java/net/dries007/tfc/common/items/GemSawItem.java";
+
+    /** The gem saw's {@code ToolItem.productAttributes(tier, attackDamageFactor, attackSpeed)} arguments. */
+    static BigDecimal[] gemSawAttributes(TfcCheckout tfc) {
+        Matcher m = Pattern.compile("productAttributes\\(tier, (-?[\\d.]+)f, (-?[\\d.]+)f\\)").matcher(tfc.readString(GEM_SAW_SOURCE));
+        if (!m.find()) {
+            throw new DatagenException(GEM_SAW_SOURCE + ": productAttributes(tier, damage, speed) not found (the format changed?)");
+        }
+        return new BigDecimal[] {new BigDecimal(m.group(1)), new BigDecimal(m.group(2))};
     }
 
     /** TFC's bronze tier, the gem saw's ({@code new GemSawItem(TFCTiers.BRONZE, ...)}). */
@@ -207,12 +234,14 @@ public final class MaterialItems {
         if (!items.contains("new GemSawItem(TFCTiers.BRONZE, new Properties())")) {
             throw new DatagenException(TfcItemRegistry.ITEMS_SOURCE + ": the gem saw is no longer TFCTiers.BRONZE");
         }
-        Matcher m = Pattern.compile("BRONZE = create\\(\"bronze\", BlockTags\\.INCORRECT_FOR_IRON_TOOL, (\\d+), (\\d+), ([\\d.]+)f,")
+        Matcher m = Pattern.compile(
+                "BRONZE = create\\(\"bronze\", BlockTags\\.INCORRECT_FOR_IRON_TOOL, (\\d+), (\\d+), ([\\d.]+)f, ([\\d.]+)f,")
             .matcher(tfc.readString(TIERS_SOURCE));
         if (!m.find()) {
             throw new DatagenException(TIERS_SOURCE + ": BRONZE not found (the format changed?)");
         }
-        return new Tier(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)), new BigDecimal(m.group(3)));
+        return new Tier(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)), new BigDecimal(m.group(3)),
+            new BigDecimal(m.group(4)));
     }
 
     private static int stackSize(TfcItemData.Definition size) {
