@@ -32,8 +32,11 @@ templates#settings:
       map_color: ${rock_map_color}
       tags:
         - minecraft:mineable/pickaxe
+      # CE expands a tag to its vanilla members plus the CE items whose settings.tags list it; the TFC metal pickaxes
+      # (tfp:item/tool) carry only tfp:tools/pickaxe, so both tags are needed (PAR-INFRA-27).
       correct_tools:
         - '#minecraft:pickaxes'
+        - '#tfp:tools/pickaxe'
   # Loose granular blocks (dirt, clay, sand, gravel): shovel-mineable, no tool required.
   # sound_block_type: gravel|sand|grass. granular_instrument: note block instrument name.
   tfp:settings/granular:

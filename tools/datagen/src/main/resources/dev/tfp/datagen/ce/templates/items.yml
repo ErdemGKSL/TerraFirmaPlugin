@@ -31,7 +31,7 @@ templates#items:
         saturation: 0
   # Metal mining tool (M4-TOOL-02 data slice). material: the vanilla tool whose hand rendering and enchantability it takes.
   # durability, speed, break_power: the TFC tier (TFCTiers). mineable_tag: the block tag the tool mines faster.
-  # tool_tag: the CE item tag used with the blocks' correct_tools. Attack damage and the non-mining tools are open.
+  # tool_tag: the CE item tag used with the blocks' correct_tools (tfp:settings/rock lists #tfp:tools/pickaxe). Attack damage and the non-mining tools are open.
   tfp:item/tool:
     material: ${material}
     data:
