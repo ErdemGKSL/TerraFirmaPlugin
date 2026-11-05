@@ -5,6 +5,8 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/client/TFCSounds.java @ c3b4d9536 (registerBlock: DeferredSoundType(1.0f, 1.0f, ...))
+ * The per-event multipliers are vanilla client behaviour (LevelRenderer, BlockItem, Entity, MultiPlayerGameMode,
+ * LivingEntity), not TFC code.
  */
 package dev.tfp.datagen.rendered;
 
@@ -36,6 +38,10 @@ import java.util.Map;
  * {@code METAL} is (1.0, 1.5) (read from the 26.3 client's {@code SoundType.<clinit>}); TFC's {@code TFCSounds.registerBlock}
  * types are (1.0, 1.0).
  *
+ * <p>Only these vanilla types are mapped; {@link #of} fails fast for any other. A family that draws a renderer cube with
+ * another vanilla {@code SoundType} (e.g. {@code ANVIL}, {@code CHAIN}, {@code LANTERN}, {@code COPPER}, {@code COPPER_GRATE},
+ * {@code GRAVEL}; PAR-DECO-09, PAR-DECO-12, PAR-MECH-01) adds its volume and pitch to {@code VANILLA} first.
+ *
  * @param volume the {@code SoundType} volume
  * @param pitch the {@code SoundType} pitch
  */
@@ -53,6 +59,8 @@ public record RenderedSound(BigDecimal volume, BigDecimal pitch) {
         if (s != null) {
             return s;
         }
+        // Every tfp:block.* sound is a TFC type: at the pinned commit all TFC block SoundTypes come from
+        // TFCSounds.registerBlock (TFCSounds.java:142-151), which builds DeferredSoundType(1.0f, 1.0f, ...).
         if (sound.breakSound().startsWith(Json.TO_NS + ":block.")) {
             return UNIT;
         }

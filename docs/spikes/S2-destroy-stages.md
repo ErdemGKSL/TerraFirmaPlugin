@@ -53,6 +53,14 @@ Scene over RCON: `gamerule advance_time false`, `time set noon`, a stone floor, 
 `[S2] break ... ticks=` log (server ticks from the first `BlockDamageEvent`). `spikes/client/testroom.sh` was not used:
 a flat stone row is enough and has no snow or tint to manage.
 
+Re-run pitfalls: the copper cube exists only in the spike pack as `tfps2:metal/block/copper` (the dist jar ships no
+renderer cube; there is no `tfp:metal/block/copper` yet). Run `build-pack.sh` before the server's first start: CraftEngine
+does not rebuild a pack it has cached and hosted, so a pack added later stays missing (magenta/black checker, 0 `tfps2`
+entries in the served zip) even after deleting its cache. `ce ...` and `tfp debug place` need a player sender (RCON and
+`execute as` are refused), so give items and place blocks with `s2 place` / `s2 overlay` or from the client's chat with
+op. The client needs `ALSOFT_DRIVERS=null`, otherwise OpenAL fails ("Failed to open OpenAL device") and no sound or
+subtitle is produced. After a stop, wait about 45 s before restarting on the same ports.
+
 ## 3. Findings per feel-checklist item (docs/research/ore-entity-renderer-design.md §6)
 
 | # | Item | 1.21.11 | 26.3 |
