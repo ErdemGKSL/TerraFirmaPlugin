@@ -38,7 +38,7 @@ Totals: 243 items; open 215, done 25, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-INFRA-27 | TFC metal tools count as correct tools: CE tag expansion of the blocks' correct_tools includes tfp:metal/* tools | INFRA | 4 | done |
 | PAR-INFRA-24 | Packaging: :dist:shadowJar always ships the generated content (content/data/id_map.json) without share-build.sh | INFRA | 4 | done |
 | PAR-WORLD-17 | Ore overlay spike S1: measure exposed ore faces per chunk and the overlay entity budget | WORLD | 4 | done |
-| PAR-HUD-09 | Mount health bar: the ridden animal's health as a second health bar, as TFC's MOUNT_HEALTH | HUD | 5 | blocked |
+| PAR-HUD-09 | Mount health bar: the ridden animal's health as a second health bar, as TFC's MOUNT_HEALTH | HUD | 5 | open |
 | PAR-HUD-06 | HUD polish: health frame asymmetry, ambient temperature bar and info plate, pulse animation | HUD | 5 | done |
 | PAR-HUD-11 | Held item heat evaluated lazily at placeholder time (no popup lag after a heat change) | HUD | 5 | done |
 | PAR-HUD-12 | HUD and needs per game mode: bars hidden and needs paused in creative and spectator | HUD | 7 | done |
@@ -61,7 +61,7 @@ Totals: 243 items; open 215, done 25, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-SURV-02 | Food tooltip: expiry/rotten, traits, nutrition lines | SURV | 6 | done |
 | PAR-SURV-03 | Eating completion: undefined foods, peaceful, rotten advancement hook, in-game check | SURV | 6 | done |
 | PAR-INFRA-15 | Ore overlay datagen: ores take the host rock visual, overlay item models, always-on allocator rule, profiles level-0..2 only | INFRA | 6 | done |
-| PAR-INFRA-32 | Renderer-cube mining time: TFC break time independent of the client's swing rate, measured on a full-speed client | INFRA | 6 | blocked |
+| PAR-INFRA-32 | Renderer-cube mining time: TFC break time independent of the client's swing rate, measured on a full-speed client | INFRA | 6 | open |
 | PAR-INFRA-33 | CE block sound volume and pitch: hit and level-event break sounds at the TFC SoundType's values, devices too | INFRA | 6 | done |
 | PAR-PROC-03 | Advanced crafting: TFC advanced recipes, food combining, casting crafting, vanilla recipe leakage | PROC | 7 | open |
 | PAR-PROC-04 | Quern: block, handstone, grinding, GUI-less interaction | PROC | 7 | open |

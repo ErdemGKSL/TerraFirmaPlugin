@@ -2,7 +2,7 @@
 id: PAR-HUD-09
 title: "Mount health bar: the ridden animal's health as a second health bar, as TFC's MOUNT_HEALTH"
 area: HUD
-status: blocked
+status: open
 wave: 5
 deps: [PAR-HUD-05]
 size: S
@@ -17,12 +17,15 @@ files_owned:
   - "integration/betterhud/src/test/java/dev/tfp/integration/betterhud/HudMountValues*"
   - "paper/src/main/java/dev/tfp/paper/player/MountHudService.java"
   - "paper/src/test/java/dev/tfp/paper/player/MountHudService*"
+  - "integration/betterhud/src/main/java/dev/tfp/integration/betterhud/BetterHudIntegration.java"
+  - "integration/betterhud/src/test/java/dev/tfp/integration/betterhud/BetterHudIntegration*"
 ui: true
 in_game_steps:
   - "summon minecraft:horse ~ ~ ~ {Tame:1b,SaddleItem:{id:\"minecraft:saddle\",count:1}}; ride Bot mount @e[type=horse,limit=1,sort=nearest]"
   - "damage @e[type=horse,limit=1,sort=nearest] 6"
   - "screenshot hotbar region at scale 2 and 3, with and without full steel armour"
 plan:
+  - "UNBLOCKED (manager, 2026-11-06): files_owned now includes BetterHudIntegration.java (and its tests) so onEnable can register the tfp_mount_health / tfp_mount_max placeholders. Append only your own registration lines."
   - "BLOCKED (2026-11-05): the work needs integration/betterhud/src/main/java/dev/tfp/integration/betterhud/BetterHudIntegration.java, which is not in files_owned (and is owned by no item). BetterHud resolves placeholders and listeners while parsing YAML and an unknown one makes the element/layout/hud fail to load, so the HudLayouts mount bar cannot ship until onEnable registers the tfp_mount_health / tfp_mount_max_health number placeholders and the tfp_mount_health listener from HudMountValues (a loop like the HudValues/HudClimateValues ones, about 8 lines, plus registered()). The plan's 'publish into the HUD snapshot' also needs paper/src/main/java/dev/tfp/paper/integration/HudSnapshot.java (owned by the open PAR-HUD-11 and PAR-HUD-12); that one is avoidable: MountHudService can keep its own thread-safe per-player reading (health and max on TFC's x50 text scale, 0 when not riding a LivingEntity) published from the rider's thread, provided to HudMountValues through ModuleServices. Unblock by adding BetterHudIntegration.java to files_owned (and dropping the HudSnapshot wording or adding that file once PAR-HUD-11/12 are done). Nothing else was changed."
   - "PAR-HUD-05 hides the vanilla vehicle hearts (heart/vehicle_*.png transparent, part of the hide-hearts set), so a rider sees no mount health at all. TFC's renderMountHealth draws the vehicle's health with renderHealthBar on the left column (leftHeight), above the player's health and armour."
   - "Publish the ridden living vehicle's health and max health into the HUD snapshot (tfp_mount_health, tfp_mount_max_health; 0 when not riding a living entity), add a catalogue row and a bar spec in HudLayouts above the armour bar with one empty row, shown only while tfp_mount_max_health > 0."
