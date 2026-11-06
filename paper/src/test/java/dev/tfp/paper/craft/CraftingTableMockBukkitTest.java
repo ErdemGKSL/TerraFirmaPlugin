@@ -250,6 +250,11 @@ class CraftingTableMockBukkitTest extends MockServerTest {
         HeatPdc.write(below, new HeatState(melt - 1f, NOW));
         CraftingTable.Match m = table.find(Arrays.asList(below, null, null, null), 2).orElseThrow();
         assertThat(m.recipe().id()).isEqualTo("tfp:crafting/casting");
+        roll.set(0.5);
+        CraftingTable.Craft cast = table.craft(m);
+        assertThat(items.idOf(cast.output())).as("the mold's casting output").contains("tfp:metal/axe_head/copper");
+        assertThat(items.idOf(cast.remainders().get(0))).as("the mold is kept above the break chance")
+                .contains("tfp:ceramic/axe_head_mold");
         ItemStack at = below.clone();
         HeatPdc.write(at, new HeatState(melt, NOW));
         assertThat(table.find(Arrays.asList(at, null, null, null), 2)).as("molten at the melt temperature (>=)")
@@ -308,7 +313,11 @@ class CraftingTableMockBukkitTest extends MockServerTest {
         List<ItemStack> mixed = Arrays.asList(new ItemStack(Material.OAK_PLANKS), null, item("tfp:wood/planks/oak", 1),
                 null);
         assertThat(listener.decide(stick, mixed, 2).keepServer()).isTrue();
-        assertThat(listener.decide(null, mixed, 2).match().map(x -> x.recipe().id())).contains("minecraft:stick");
+        CraftingTable.Match mixedMatch = listener.decide(null, mixed, 2).match().orElseThrow();
+        assertThat(mixedMatch.recipe().id()).isEqualTo("minecraft:stick");
+        ItemStack mixedSticks = table.craft(mixedMatch).output();
+        assertThat(mixedSticks.getType()).isEqualTo(Material.STICK);
+        assertThat(mixedSticks.getAmount()).isEqualTo(4);
         // Our item on an oak_planks base that is not in #minecraft:planks: leakage, blocked.
         List<ItemStack> leak = Arrays.asList(item("tfp:plank", 1), null, item("tfp:plank", 1), null);
         CraftListener.Decision blocked = listener.decide(stick, leak, 2);

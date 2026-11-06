@@ -3,7 +3,7 @@ id: PAR-PROC-28
 title: "Advanced crafting in-game verification and self-test: knife/sandwich crafts, vanilla recipe leakage over all recipes"
 area: PROC
 status: open
-wave: 8
+wave: 41
 deps: [PAR-PROC-24, PAR-DECO-01]
 size: S
 aliases: ["follow-up of PAR-PROC-03 (its in_game_steps, itest test and in-game done-criterion)"]
@@ -26,6 +26,7 @@ plan:
   - "Self-test CraftLeakageCase (add to SelfTestSuite): for every vanilla crafting recipe of the running server (Bukkit.recipeIterator), fill a CraftingInventory grid with our CE items whose base material satisfies the recipe's choices and fire the prepare path; assert no minecraft: result survives (CraftListener blocks it) unless a TFC recipe of that grid exists or the grid's items are members of the vanilla tag a kept recipe names (KeptVanillaRecipes: TFC planks make sticks). Also assert the 195 recipes TFC disables give no result on vanilla items."
   - "Pending (PAR-PROC-03 review): the planks/sticks and crafter steps also need the tfp:wood/planks/* CE items (`ce item give` answers \"Unknown item 'tfp:wood/planks/acacia'\" on 00a1c0d), which PAR-DECO-01 adds; PAR-PROC-03 itself is not a dep (PROTOCOL 6.5: it is done and the verification item must not list it)."
   - "Pending (PAR-PROC-03 review): CraftLeakageCase also fires a real CrafterCraftEvent on a crafter block (Container state and getContents through CraftListener.onCrafter, not only blocksCrafter), and lists the vanilla crafting recipes newer than TFC's 1.21.1 (spears, copper tools and armor, shelves, ...) that are neither removed nor overridden (ledger divergence row)."
+  - "Pending (PAR-PROC-03 unblock): the food-combining step needs two stacks of the SAME food that differ only in creation date (TFC FoodCombiningCraftingRecipe.matches uses FoodCapability.areStacksStackableExceptCreationDate); bread + bread + cabbage gives no result in TFC either, so the empty slot of the 9bec055 probe is expected. Wave 41: after PAR-DECO-01 (wave 40), which the planks steps need."
   - "Pending (PAR-PROC-03 review): a drift guard for KeptVanillaRecipes. Recompute from the running server's recipes the kept minecraft:crafting_* recipes (not TFC-overridden, not disabled) whose ingredients, with nested tags expanded, hit a vanilla tag TFC's data extends; fail when the set differs from KeptVanillaRecipes.ALL (minus minecraft:wooden_spear, left out because TFC removes all wooden tools). Run it on 1.21.11 and on 26.x."
 tests:
   - "itest: CraftLeakageCase (leakage over all recipes)"
