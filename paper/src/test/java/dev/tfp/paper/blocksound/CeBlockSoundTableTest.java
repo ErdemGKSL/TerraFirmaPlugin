@@ -96,4 +96,87 @@ class CeBlockSoundTableTest {
         assertThat(table.entry("tfp:firepit").orElseThrow().breakSound().id()).isEqualTo("minecraft:block.nether_wart.break");
         assertThat(CeBlockSoundTable.load(dir.resolve("missing"), problems).size()).isZero();
     }
+
+    @Test
+    void theGeneratedTerrainResolvesThroughTheSettingsTemplates() throws Exception {
+        // PAR-INFRA-35: rock, soil, sand and ores take their sounds from tfp:settings/sound via tfp:settings/rock|granular.
+        Path generated = repo().resolve("content/generated/content/craftengine");
+        org.junit.jupiter.api.Assumptions.assumeTrue(Files.isDirectory(generated.resolve("tfp")), "datagen output present");
+        List<String> problems = new ArrayList<>();
+        CeBlockSoundTable table = CeBlockSoundTable.load(generated, problems);
+        assertThat(problems).isEmpty();
+        // TFC Rock.BlockType.RAW: SoundType.STONE (1.0, 1.0) -> client hit 0.25/0.5, break 1.0/0.8.
+        CeBlockSoundTable.Entry granite = table.entry("tfp:rock/raw/granite").orElseThrow();
+        assertThat(granite.hit()).isEqualTo(new Sound("minecraft:block.stone.hit", 0.25f, 0.5f));
+        assertThat(granite.breakSound()).isEqualTo(new Sound("minecraft:block.stone.break", 1.0f, 0.8f));
+        // TFC SoilBlockType.DIRT: SoundType.GRAVEL; sand: SoundType.SAND; Rock.BlockType.GRAVEL: SoundType.GRAVEL.
+        assertThat(table.entry("tfp:dirt/alfisol").orElseThrow().hit()).isEqualTo(new Sound("minecraft:block.gravel.hit", 0.25f, 0.5f));
+        assertThat(table.entry("tfp:sand/black").orElseThrow().hit()).isEqualTo(new Sound("minecraft:block.sand.hit", 0.25f, 0.5f));
+        assertThat(table.entry("tfp:rock/gravel/andesite").orElseThrow().breakSound())
+            .isEqualTo(new Sound("minecraft:block.gravel.break", 1.0f, 0.8f));
+        assertThat(table.entry("tfp:ore/normal_hematite/andesite").orElseThrow().hit().id()).isEqualTo("minecraft:block.stone.hit");
+        // The devices still resolve as before.
+        assertThat(table.entry("tfp:charcoal_forge").orElseThrow().breakSound().id()).isEqualTo("tfp:block.charcoal.break");
+        // No block keeps an unexpanded placeholder.
+        assertThat(table.size()).isGreaterThan(1300);
+    }
+
+    @Test
+    void templateChainsFollowArgumentsOverridesAndCallerPrecedence() {
+        CeBlockSoundTable.Builder b = new CeBlockSoundTable.Builder();
+        // Blocks before templates: a later document may define the templates.
+        b.add("""
+            blocks:
+              tfp:stone_default:
+                settings:
+                  template: tfp:t/rock
+                  arguments:
+                    hardness_arg: 2.0
+              tfp:caller_wins:
+                settings:
+                  template: tfp:t/rock
+                  arguments:
+                    kind: sand
+              tfp:overridden:
+                settings:
+                  template: tfp:t/rock
+                  overrides:
+                    sounds:
+                      hit: minecraft:block.wood.hit
+              tfp:dflt:
+                settings:
+                  template: tfp:t/sound
+              tfp:unresolved:
+                settings:
+                  template: tfp:t/bare
+              tfp:missing_template:
+                settings:
+                  template: tfp:t/nope
+            """);
+        b.add("""
+            templates#a:
+              tfp:t/sound:
+                sounds:
+                  hit: minecraft:block.${kind:-mud}.hit
+                  break: minecraft:block.${kind:-mud}.break
+              tfp:t/bare:
+                sounds:
+                  hit: minecraft:block.${kind}.hit
+              tfp:t/rock:
+                template:
+                  - tfp:t/sound
+                arguments:
+                  kind: stone
+                overrides:
+                  hardness: ${hardness_arg}
+            """);
+        CeBlockSoundTable table = b.build();
+        assertThat(table.entry("tfp:stone_default").orElseThrow().hit()).isEqualTo(new Sound("minecraft:block.stone.hit", 0.25f, 0.5f));
+        assertThat(table.entry("tfp:caller_wins").orElseThrow().breakSound())
+            .isEqualTo(new Sound("minecraft:block.sand.break", 1.0f, 0.8f));
+        assertThat(table.entry("tfp:overridden").orElseThrow().hit().id()).isEqualTo("minecraft:block.wood.hit");
+        assertThat(table.entry("tfp:dflt").orElseThrow().hit().id()).isEqualTo("minecraft:block.mud.hit");
+        assertThat(table.contains("tfp:unresolved")).as("a placeholder left in the id is ignored").isFalse();
+        assertThat(table.contains("tfp:missing_template")).isFalse();
+    }
 }

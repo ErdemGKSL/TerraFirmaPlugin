@@ -1,0 +1,40 @@
+110:[17:38:20 INFO]: [TerraFirmaPlugin] Block sound table: 1358 CraftEngine blocks with TFC hit/break volume and pitch
+[17:53:23 INFO]: Bot issued server command: /tfp debug place tfp:rock/raw/granite[axis=y]
+[17:53:32 INFO]: System chat: [Rcon: Set Bot's game mode to Survival Mode]
+[17:53:32 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:53:33 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:53:33 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:53:33 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:53:33 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:53:33 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:53:34 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:53:34 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:53:34 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:53:34 INFO]: [TerraFirmaPlugin] [tfp-sound] DROP minecraft:replaced.block.stone.break 1.0/0.8 -> 0.0/0.0 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847) (cancelled; a MONITOR listener may still log it)
+[17:53:49 INFO]: System chat: [Rcon: Set Bot's game mode to Creative Mode]
+[17:53:53 INFO]: Bot issued server command: /tfp debug place tfp:dirt/loam
+[17:53:55 INFO]: System chat: [Rcon: Set Bot's game mode to Survival Mode]
+[17:54:00 INFO]: System chat: [Rcon: Set Bot's game mode to Creative Mode]
+[17:54:04 INFO]: Bot issued server command: /tfp debug place tfp:sand/yellow
+[17:54:06 INFO]: System chat: [Rcon: Set Bot's game mode to Survival Mode]
+[17:54:07 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.sand.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:07 INFO]: [TerraFirmaPlugin] [tfp-sound] DROP minecraft:block.sand.break 1.0/0.8 -> 0.0/0.0 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847) (cancelled; a MONITOR listener may still log it)
+[17:54:09 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:10 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:10 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:22 INFO]: System chat: [Rcon: Set Bot's game mode to Creative Mode]
+[17:54:25 INFO]: Bot issued server command: /tfp debug place tfp:dirt/alfisol
+[17:54:28 INFO]: System chat: [Rcon: Set Bot's game mode to Survival Mode]
+[17:54:29 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.gravel.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:29 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.gravel.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:29 INFO]: [TerraFirmaPlugin] [tfp-sound] DROP minecraft:replaced.block.gravel.break 1.0/0.8 -> 0.0/0.0 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847) (cancelled; a MONITOR listener may still log it)
+[17:54:30 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:30 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:30 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:30 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:30 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:31 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:31 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:31 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:31 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[17:54:31 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)

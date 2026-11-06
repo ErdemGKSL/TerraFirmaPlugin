@@ -71,7 +71,7 @@ Totals: 270 items; open 206, done 60, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-SURV-04 | Thirst completion: thirst effects, rain drinking, salt water, open-water drinking decision | SURV | 7 | open |
 | PAR-INFRA-16 | Ore overlay runtime: packet-only face overlays, neighbour-driven refresh, Folia-safe, feel checklist | INFRA | 7 | done |
 | PAR-INFRA-31 | Catch-up settings in config.yml: catchup.* keys through TfpConfig and ConfigCodec | INFRA | 7 | done |
-| PAR-INFRA-35 | CE hit sound volume for template-built blocks (rock, soil, sand): the block sound table resolves tfp:settings/sound | INFRA | 7 | open |
+| PAR-INFRA-35 | CE hit sound volume for template-built blocks (rock, soil, sand): the block sound table resolves tfp:settings/sound | INFRA | 7 | done |
 | PAR-HUD-14 | Server config for TFC's HUD display styles: health text style, climate temperature unit, XP bar options | HUD | 7 | done |
 | PAR-HUD-15 | HUD season shows TFC's 12 hemisphere-adjusted season names; info plate widened for them | HUD | 7 | done |
 | PAR-FLUID-01 | Fluids as container contents: registry of TFC fluids, colours, debug fill | FLUID | 8 | open |
