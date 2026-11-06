@@ -1,5 +1,34 @@
 # PAR-SURV-04: Thirst completion: verdict: pass (repair round)
 
+## Unblock run (after the in-game REJECT of `8068b05`)
+
+The REJECT had two causes, both in the plan and the test run, not in the code: the tester used pitch -60, which TFC's gate
+(`ForgeEventHandler.java:771-772`, `wrapDegrees(pitch) <= -80`, our `RainDrinking.MAX_PITCH`) refuses, and the old step asked
+for a slowness icon that TFC never shows (`new MobEffectInstance(SLOWDOWN, 160, 1, false, false)`). The plan's `done_criteria`
+and `in_game_steps` now follow TFC. Code unchanged (`8068b05`).
+
+- Server: Paper 1.21.11, `TFP_WORLD=1`, priming start, world deleted, second start; jar from `:dist:shadowJar`. Client:
+  vanilla 1.21.11, Xvfb 1280x720, GUI scale 2. Calendar default (June 1, 1000), TFC ambient 7.3 C.
+- Before the join: `forceload add -16 -16 16 16`, stone floor at y 99 confirmed with `execute if block`, air above,
+  `setworldspawn 0 100 0`, `difficulty normal`. The Bot joined on the floor: no fly kick.
+
+| step | observed | verdict |
+|---|---|---|
+| `tfp debug thirst Bot 5`, 10 s, `data get entity Bot active_effects` | `minecraft:slowness` and `minecraft:mining_fatigue`, `amplifier: 1b`, duration 140/141 (refreshed to 160 every 100 ticks), `show_particles: 0b`, `show_icon: 0b`; health 20.0 unchanged at thirst 5 | pass |
+| `tfp debug thirst Bot 0`, survival, normal, health read every 2.5-5 s | 20 -> 19 at the first check; then 19 held while `foodLevel` was 20 (vanilla natural regeneration at food >= 18 heals 1 per 4 s, replaced only by PAR-SURV-05); once food was 17: 17, 15, 14, 13, 12 ... 10, one point per ~5 s (100 ticks); HUD 413/826, thirst bar empty | pass |
+| control: `weather rain`, `tp Bot 0 100 0 0 -60`, thirst 5, 8 s | `tfp debug rain Bot`: `pitch -60.0 (looks up: false, needs <= -80)`, every other gate true; thirst stays 5.0 (the in-game tester's run) | pass |
+| `tp Bot 0 100 0 0 -90` in the same rain | gates all true, `drinks rain: true`; thirst 5.0 -> 17.5 (2 s) -> 25.8 (4 s) -> 34.2 (6 s), `lastDrinkTick` never (TFC's `addThirst`); the bar grows from a sliver to about a third | pass |
+
+The 7.3 C reading in rain (and the -1.7 C reading the in-game reviewer saw with rain, not snow) is the ledger divergence
+"raining at": the client draws the vanilla storm through the biome it is sent, whatever the TFC climate says.
+
+| file | content |
+|---|---|
+| `unblock-thirst5-hud.png` | HUD strip (2x) at thirst 5: thirst sliver, health full, no effect icon (as TFC) |
+| `unblock-thirst0-hud.png` | HUD strip (2x) at thirst 0: thirst empty, health 413/826 after the dehydration hits |
+| `unblock-rain-before.png`, `unblock-rain-before-hud.png` | rain on screen, pitch -60, thirst 5 (sliver) |
+| `unblock-rain-after.png`, `unblock-rain-after-hud.png` | looking straight up (-90) about 6 s later, thirst bar about a third |
+
 ## Repair round (after the independent REJECT of `4e6e960`)
 
 The independent check (plan steps, no `tfp time set`) saw rain on screen while looking up and thirst stayed 5.0. The
