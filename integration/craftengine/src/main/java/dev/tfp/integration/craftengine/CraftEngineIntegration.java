@@ -14,6 +14,8 @@ import dev.tfp.paper.integration.IntegrationContext;
 import dev.tfp.paper.integration.PackRebuilder;
 import dev.tfp.paper.integration.VisualPools;
 import dev.tfp.paper.ready.ReadyGate;
+import dev.tfp.paper.rendered.MiningDriver;
+import dev.tfp.paper.rendered.MiningDrivers;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.util.List;
 import java.util.Map;
@@ -23,10 +25,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -36,6 +40,7 @@ import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -56,11 +61,13 @@ import org.bukkit.inventory.ItemStack;
  *       {@link CraftEnginePackAdapter}, M1-INST-03);</li>
  *   <li>chunk hooks at priority LOW on load (after CraftEngine restores at LOWEST) and HIGH on unload
  *       (before CraftEngine saves at HIGHEST);</li>
- *   <li>{@link CraftEngineIssueLog} for configuration issues in our pack (appender wiring: M1-TEST-01).</li>
+ *   <li>{@link CraftEngineIssueLog} for configuration issues in our pack (appender wiring: M1-TEST-01);</li>
+ *   <li>the server-side mining loop ({@link MiningDriver}, PAR-INFRA-32), published in {@link MiningDrivers}.</li>
  * </ul>
  * Never caches CraftEngine behaviour objects across reloads: {@code /ce reload} replaces them.
  */
-public final class CraftEngineIntegration implements Integration, BlockVisuals, CustomBlocks, Listener {
+public final class CraftEngineIntegration implements Integration, BlockVisuals, CustomBlocks, MiningDriver,
+        Listener {
     /** Our CraftEngine namespace and pack folder. */
     public static final String NAMESPACE = "tfp";
 
@@ -127,11 +134,41 @@ public final class CraftEngineIntegration implements Integration, BlockVisuals, 
         // CraftEngine's first CraftEngineReloadEvent comes after our onEnable (M0-CE-01, all targets), so
         // registering here does not miss it.
         ctx.plugin().getServer().getPluginManager().registerEvents(this, ctx.plugin());
+        MiningDrivers.install(this);
     }
 
     @Override
     public void onDisable() {
+        MiningDrivers.uninstall(this);
         HandlerList.unregisterAll(this);
+    }
+
+    // ---- MiningDriver (player's thread) -------------------------------------------------------------
+
+    /**
+     * PAR-INFRA-32: CraftEngine runs the dig itself when the client cannot break the block (it set the client's break
+     * speed to zero in {@code startMiningBlock}: every custom block that does not break instantly). It is mining only
+     * between that start and the break or a stop ({@code isDestroyingBlock}); an abort keeps the flag, which is why
+     * {@code ServerTimeMining} also listens for the abort.
+     */
+    @Override
+    public boolean isServerMining(Player player) {
+        BukkitServerPlayer user = BukkitAdaptor.adapt(player);
+        return user != null && user.isMiningBlock() && !user.clientSideCanBreak();
+    }
+
+    /**
+     * {@code BukkitServerPlayer.tick} advances the dig by one tick when a swing was acknowledged within the last two
+     * ticks and then clears the acknowledgement, so acknowledging once per server tick counts exactly one tick per
+     * tick, and a real swing packet in the same tick adds nothing. Only call it while {@link #isServerMining} is
+     * true: with no dig running, CraftEngine's {@code awfulBreakFixer} would start one from a ray trace.
+     */
+    @Override
+    public void advance(Player player) {
+        BukkitServerPlayer user = BukkitAdaptor.adapt(player);
+        if (user != null) {
+            user.onSwingHand();
+        }
     }
 
     // ---- reload: rebuild the state cache ------------------------------------------------------------

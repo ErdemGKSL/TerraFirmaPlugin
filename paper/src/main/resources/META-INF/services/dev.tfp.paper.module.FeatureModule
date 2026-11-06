@@ -11,3 +11,4 @@ dev.tfp.paper.knap.KnappingModule
 dev.tfp.paper.blocksound.BlockSoundModule
 dev.tfp.paper.food.FoodTooltipModule
 dev.tfp.paper.player.MountHudService
+dev.tfp.paper.rendered.RenderedMiningModule
