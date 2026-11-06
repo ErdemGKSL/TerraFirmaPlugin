@@ -47,7 +47,8 @@ own default-pack recipes (45 in the first run's count as well: 160 there with 11
   (`spikes/client/server.sh`, priming start then restart; the default world counts as a TFC world for suppression).
   `Loaded recipes in 122.85ms (159)`, no `Found N issue(s)` line.
 - Client: vanilla 1.21.11 under Xvfb (`spikes/client/session.sh`), player `Bot`, survival, GUI scale 3, pack applied 3 s after
-  join.
+  join. Only GUI scale 3 was captured (PROTOCOL §6.1 asks for 2 and 3); the scale 2 crops are taken in the PAR-PROC-30
+  bricks re-check.
 - Run by the worker session itself: no cheap-model agent could be started from this session (PROTOCOL §6.1); the main
   session judged every screenshot.
 
@@ -79,8 +80,10 @@ crafted.
 | `tfp:crafting/rock/cobble/granite` | 4 `tfp:rock/loose/granite` (2x2) | granite cobble | `tfp:rock/cobble/granite` x1 | x1 | **Pass** |
 | `tfp:crafting/bricks` | 5 brick + 4 `tfp:mortar` (XYX/YXY/XYX) | **nothing** | nothing | bricks x4 | **Fail** |
 
-Bricks: the result slot stays empty, and vanilla's own 2x2 brick recipe gives nothing either (`crafts/vanilla_bricks_2x2.png`).
-`minecraft:bricks` is classified `absent` in `docs/research/vanilla-fullcube-supply.csv`, so every visual profile repurposes
+Bricks: the result slot stays empty. Vanilla's 2x2 brick recipe gives nothing either (`crafts/vanilla_bricks_2x2.png`), but
+that is TFC-correct on its own (TFC disables it: `data/minecraft/recipe/bricks.json` is `neoforge:false`), so it does not
+support the diagnosis; PAR-PROC-30 checks it stays empty after the fix. The Y cells hold `tfp:mortar` (grey-brown lump,
+TFC `textures/item/mortar.png`), not kaolinite powder (pink, used only in the fire clay grid). `minecraft:bricks` is classified `absent` in `docs/research/vanilla-fullcube-supply.csv`, so every visual profile repurposes
 it (`visual_mappings.yml`: `minecraft:bricks: minecraft:stone`; `suppressed_blocks.json` lists it with creation path `item`),
 and `SuppressionListener.onCraft` clears a crafting result that is a repurposed block in a TFC world. A scan of all emitted
 `configuration/crafting/*_recipes.yml` results against the 12 profiles' `suppressed_blocks.json` finds `minecraft:bricks`

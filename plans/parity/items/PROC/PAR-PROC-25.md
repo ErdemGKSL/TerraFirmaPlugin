@@ -21,7 +21,7 @@ plan:
   - "Done: in-game check on Paper 1.21.11 + CE 26.9.2, vanilla 1.21.11 client (docs/verification/PAR-PROC-02/verdict.md, crafts-gui3.png, crafts/*.png): 9 of 10 sampled recipes craft with TFC's result and count (black dye, blank disc, glue x9, fire clay, daub x2, handstone, jute net, activator rail x12, granite cobble); plain paper in place of a CE ingredient crafts nothing. tfp:crafting/bricks gives nothing: minecraft:bricks is a repurposed (suppressed) visual state; fix and re-check in follow-up PAR-PROC-30, divergence row in the ledger. Firestarter not emitted yet (PAR-HEAT-05)."
 tests: []
 done_criteria:
-  - "The 10 sampled recipes craft in a crafting table with the TFC result and count"
+  - "The 10 sampled recipes craft in a crafting table with the TFC result and count (bricks: deferred check tracked in PAR-PROC-30, PROTOCOL §6.4/§6.5)"
 ---
 
 # PAR-PROC-25: Workbench crafting in-game verification: 10 sampled CE crafts in a crafting table
