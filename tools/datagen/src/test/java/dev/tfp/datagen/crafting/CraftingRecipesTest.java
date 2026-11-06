@@ -176,12 +176,11 @@ class CraftingRecipesTest {
         // tfc:crafting/firestarter waits for its result item (PAR-HEAT-05 owns tfc:firestarter).
         assertThat(report.getAsJsonObject("pending_recipes").getAsJsonArray("tfp:crafting/firestarter").toString())
             .contains("tfc:firestarter (PAR-HEAT-05)");
-        // tfc:crafting/gem_saw: its CE result has a tool rule on tfp:mineable/glass_saw, which the server lacks; CE would
-        // fail its whole recipe load building it, so the recipe waits for PAR-PROC-24.
-        assertThat(report.getAsJsonObject("pending_recipes").getAsJsonArray("tfp:crafting/gem_saw").toString())
-            .contains("tfc:gem_saw (CE item cannot be built").contains("tfp:mineable/glass_saw").contains("PAR-PROC-24");
+        // tfc:crafting/gem_saw: its CE result has a tool rule on tfp:mineable/glass_saw, a server tag since PAR-PROC-24
+        // (bootstrap datapack), so CE can build it and the recipe is emitted.
+        assertThat(recipes).containsKey("tfp:crafting/gem_saw");
         Set<String> unbuildable = CraftingRecipes.unbuildable(tree).keySet();
-        assertThat(unbuildable).contains("tfp:gem_saw");
+        assertThat(unbuildable).isEmpty();
         recipes.forEach((id, r) -> assertThat(((Map<?, ?>) r.get("result")).get("id")).as(id).isNotIn(unbuildable));
         // tfc:crafting/detector_rail: c:stones/pressure_plate is TFC's rock plates (family blocks, not CE yet) plus an
         // optional #minecraft:stone_pressure_plates, which vanilla has only as a block tag: left out, the recipe waits.

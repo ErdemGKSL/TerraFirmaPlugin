@@ -16,6 +16,7 @@ import dev.tfp.datagen.Json;
 import dev.tfp.datagen.OutputTree;
 import dev.tfp.datagen.TfcCheckout;
 import dev.tfp.datagen.Yaml;
+import dev.tfp.datagen.toolblocktags.ToolBlockTags;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -114,11 +115,11 @@ public final class CraftingRecipes {
                 continue;
             }
             if (recipe == null) {
-                outcomes.add(new Outcome(id, Bucket.PENDING, null, Set.copyOf(c.blocking), Set.copyOf(c.dropped)));
+                outcomes.add(new Outcome(id, Bucket.PENDING, null, sorted(c.blocking), sorted(c.dropped)));
                 continue;
             }
             files.computeIfAbsent(fileOf(path), k -> new LinkedHashMap<>()).put(id, recipe);
-            outcomes.add(new Outcome(id, Bucket.EMITTED, null, Set.of(), Set.copyOf(c.dropped)));
+            outcomes.add(new Outcome(id, Bucket.EMITTED, null, Set.of(), sorted(c.dropped)));
         }
         if (outcomes.isEmpty()) {
             throw new DatagenException("TFC has no plain crafting recipes at " + SOURCE);
@@ -128,6 +129,11 @@ public final class CraftingRecipes {
         files.forEach((name, recipes) -> out.put(DIR + name + ".yml", Yaml.write(header, Map.of("recipes", recipes))));
         out.put(REPORT, Json.write(report(outcomes, owners)));
         return outcomes;
+    }
+
+    /** A sorted unmodifiable copy ({@code Set.copyOf} iterates in a per-JVM order: the report changed between runs). */
+    private static Set<String> sorted(Set<String> s) {
+        return java.util.Collections.unmodifiableSortedSet(new TreeSet<>(s));
     }
 
     /**
@@ -258,11 +264,11 @@ public final class CraftingRecipes {
 
     /**
      * CE item ids whose stack the server cannot build (id → reason): a {@code mineable_tag} argument (the item's vanilla
-     * {@code tool} component rule) naming a block tag outside {@code minecraft:}. No server datapack defines our
-     * {@code tfp:mineable/*} block tags, so CE's build of the {@code tool} component throws, and a recipe with such a
-     * result makes CE fail its whole recipe load ("Cannot parse component minecraft:tool"). Fixed by {@value #TOOL_TAGS}.
+     * {@code tool} component rule) naming a block tag that is neither vanilla nor shipped in the bootstrap datapack
+     * ({@link ToolBlockTags#isServerTag}, {@value #TOOL_TAGS}): CE's build of the {@code tool} component would throw, and a
+     * recipe with such a result makes CE fail its whole recipe load ("Cannot parse component minecraft:tool").
      */
-    static Map<String, String> unbuildable(OutputTree out) {
+    public static Map<String, String> unbuildable(OutputTree out) {
         Map<String, String> bad = new TreeMap<>();
         scan(out).forEach((id, tag) -> {
             if (!tag.isEmpty()) {
@@ -272,7 +278,7 @@ public final class CraftingRecipes {
         return bad;
     }
 
-    /** CE item id → its non-vanilla {@code mineable_tag} ({@code ""} when none). */
+    /** CE item id → its {@code mineable_tag} that is no server tag ({@code ""} when none). */
     private static Map<String, String> scan(OutputTree out) {
         Map<String, String> ids = new TreeMap<>();
         for (Map.Entry<String, byte[]> f : out.files().entrySet()) {
@@ -298,7 +304,7 @@ public final class CraftingRecipes {
                     continue;
                 }
                 Matcher t = TOOL_TAG.matcher(line);
-                if (inItems && current != null && t.matches() && !t.group(1).startsWith("minecraft:")) {
+                if (inItems && current != null && t.matches() && !ToolBlockTags.isServerTag(out, t.group(1))) {
                     ids.put(current, t.group(1));
                 }
             }
