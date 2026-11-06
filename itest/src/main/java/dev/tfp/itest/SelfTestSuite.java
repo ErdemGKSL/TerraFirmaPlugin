@@ -57,6 +57,7 @@ public final class SelfTestSuite {
                 new dev.tfp.itest.cases.NeighbourConvergeCase(),
                 new WorldgenTerrainCase(),
                 new OreExposureCensusCase(),
+                new dev.tfp.itest.cases.OreOverlayCase(),
                 new MetalRunCase(),
                 new ProfileRestartCase(),
                 new SuppressionCase(),

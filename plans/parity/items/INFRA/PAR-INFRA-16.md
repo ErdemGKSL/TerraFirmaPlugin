@@ -2,7 +2,7 @@
 id: PAR-INFRA-16
 title: "Ore overlay runtime: packet-only face overlays, neighbour-driven refresh, Folia-safe, feel checklist"
 area: INFRA
-status: open
+status: done
 wave: 7
 deps: [PAR-INFRA-02, PAR-INFRA-10, PAR-INFRA-15, PAR-INFRA-17, PAR-WORLD-17]
 size: M
@@ -35,7 +35,7 @@ in_game_steps:
   - "Light: screenshots of the exposed gold face at noon, midnight (tfp time set midnight) and with a torch 2 blocks away; the specks are lit like the rock face next to them, never black or full-bright; underwater: flood the hole with water and screenshot"
   - "Z-fighting and seams: screenshots at 1, 16, 32, 48 m; 8x crops of an outer edge (two exposed faces) and an inner corner"
   - "Outline and hitbox: crosshair on the ore, 8x crop of the outline (full cube); stand on an exposed ore top, `data get entity Bot Pos[1]` = floor + 1.0"
-  - "Falling/collapse: once PAR-PHYS-01 exists, make a rich ore fall (remove its support or `tfp debug collapse <pos>`); screenshot mid-fall: the falling block shows the overlay; it lands as normal ore (TFC collapse recipe); before PAR-PHYS-01 exists: summon a falling_block of the ore state and check the attached overlays"
+  - "Falling/collapse: moved to PAR-INFRA-36 (needs PAR-PHYS-01; a falling_block of a CraftEngine ore state cannot be summoned from vanilla commands)"
   - "Leftovers: `fill` the box interior with air, then refill with granite; TNT next to an exposed vein; a piston pushing an exposed ore (if pistons exist in the world): screenshots after each, no floating overlay, overlays only on the faces that are exposed now (`tfp debug oreoverlay stats` before/after)"
   - "Pick-block: creative pick on an exposed and on a buried ore: the ore's own block item"
   - "Distance and ring: tp Bot to 16, 32, 48, 64, 96 m from an exposed cliff vein (pitch level, flat test row against the sky) and screenshot; no square ring, the spherical cutoff pop on native gold is not noticeable at 1080p; walk Bot along a 200-block cave tunnel lined with ore (worldgen or WorldEdit-free `fill` pattern) and record frames: no overlays popping in at chunk borders"
@@ -52,13 +52,15 @@ plan:
   - "Config keys from PAR-INFRA-15 (`ore-overlay.cutoff-blocks`, `max-per-player`, `surface-outcrops-full-range`); `/tfp debug oreoverlay stats|reload|show <pos>`; metrics in `/tfp debug packets`."
   - "Last step: set `mode.properties` to HOST_ROCK (the shipped ore look switches from flattened full cubes to host rock + overlays), regenerate content, rerun the in-game steps."
   - "Ledger: close the 'until PAR-INFRA-15/16' wording in the ore rows; residuals (no AO on specks, cutoff) stay as the divergence row."
+  - "Done: core/oreoverlay (OverlayKeys, CellLookup, OreSnapshot/ArrayOreSnapshot, ExposedFaces compute/borderNeeds/patch, OreOverlayTable, FastPath, ViewerSet, TokenBucket, OverlayGate; ExposureRule stays in census/), paper/oreoverlay (OreOverlayModule `ore_overlay`, OreOverlayService, BukkitCellReader, CellMap, Outbox, OverlaySender, OreOverlayData, OreOverlayListener, OreOverlaySelfCheck), paper/packet/display (OverlayDisplayPackets, OverlayDisplaySender, OreOverlayPacketHandler), integration/craftengine/oreoverlay/CraftEngineOreSource (chunk read = CEChunk.sections() + PalettedContainer.copy(), no vein-layout fallback), itest `ore.overlay`, mode.properties = host_rock. Differences from the plan: tables are published by an atomic map put from the CPU pool (patches of one chunk are serialized, one in flight); crack stages follow Paper's BlockBreakProgressUpdateEvent (the server's own dig progress) instead of a per-tick dig-speed loop; the fast path cannot tell an ore from its host-rock visual, so a placed ore gets its faces from the patch one tick later; entity ids from UnsafeValues#nextEntityId where it exists, own range 0x70000000+ on 26.x (it was removed there); golden values instead of golden bytes (the unit tests have no Netty allocator); `/tfp debug oreoverlay place` added for console-driven in-game steps. Tests: core ExposedFacesTest 11, FastPathTest 7 (incl. the convergence property over 200 random edit sequences), ViewerSetTest 8; paper OreOverlayServiceTest 9, OreOverlayDataTest 3, OverlayDisplayPacketsTest 2x2; itest ore.overlay PASSED on Paper and Folia 1.21.11. In game 1.21.11 and 26.3: docs/verification/PAR-INFRA-16/verdict.md. Follow-up PAR-INFRA-36 (falling ore check after PAR-PHYS-01)."
 tests:
   - "core: ExposedFacesTest (6-face cases, chunk-edge borders, fluids, non-occluding neighbours, columnar host), FastPathTest (break in front of an ore, place to cover, ore mined, concurrent change corrected by the rebuild), ViewerSetTest (cap, nearest-first, token bucket), property test: fast path + rebuild converge to `ExposedFaces.compute` of the final world for random edit sequences"
   - "paper: display packet golden bytes per face for 1.21.11 and 26.3 PacketEvents wrappers; MockBukkit: chunk send -> spawns, unload -> one remove, block change -> same-bundle fast path; thread assertions (build decided on the CPU pool, published on the owner region, packet handlers touch no world state)"
   - "itest: `ore.overlay` on Paper and Folia 1.21.11: place/break around an ore converges, no thread-ownership violation, no leftover entity ids after /fill and an explosion (run delegated per PROTOCOL 5.3)"
 done_criteria:
   - "In game on 1.21.11 and 26.3 (docs/verification/PAR-INFRA-16/): buried ores look like rock; exposed faces show the ore overlay with TFC's orientation; overlays appear and vanish in the same frame as the face is exposed/covered"
-  - "Feel checklist (design doc 6) passes for ores: cracks never hidden under the overlay, rock particles and stone sounds (TFC parity), TFC mining time/tool tier, correct light at noon/midnight/torch and underwater, no z-fighting 1-48 m, no visible seam, full-cube outline and hitbox, falling ore keeps its overlay, no leftover after /fill, TNT and pistons, pick-block gives the ore item, no square ring and no chunk-border pop-in at distance"
+  - "Feel checklist (design doc 6) passes for ores: cracks never hidden under the overlay, rock particles and stone sounds (TFC parity), TFC mining time/tool tier, correct light at noon/midnight/torch and underwater, no z-fighting 1-48 m, no visible seam, full-cube outline and hitbox, no leftover after /fill, TNT and pistons, pick-block gives the ore item, no square ring and no chunk-border pop-in at distance"
+  - "Falling ore keeps its overlay: deferred check tracked in PAR-INFRA-36"
   - "Entities per player and table build time within the S1 gate (`tfp debug oreoverlay stats` near spawn recorded in the verdict); self-test `ore.overlay` green on Paper and Folia"
   - "Shipped mode is HOST_ROCK; ./gradlew check and verifyContent green"
 ---

@@ -278,6 +278,7 @@ class BootstrapTest {
         assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "snowtime", "worldgen", "player", "thirst", "hunger", "heat", "warm", "place", "packets",
                 "showcase", "animal",
                 "gui",
+                "oreoverlay",
                 "device");
         assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
         assertThat(tfp.getChild("debug").getChild("showcase").getCommand()).as("showcase needs a family").isNull();

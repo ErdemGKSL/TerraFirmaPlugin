@@ -69,7 +69,7 @@ Totals: 243 items; open 215, done 25, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-PROC-24 | Our tfp:mineable/* block tags as server tags, so CE can build tools whose tool component names them (gem saw, knife, hammer, scythe) | PROC | 7 | open |
 | PAR-PROC-25 | Workbench crafting in-game verification: 10 sampled CE crafts in a crafting table | PROC | 7 | open |
 | PAR-SURV-04 | Thirst completion: thirst effects, rain drinking, salt water, open-water drinking decision | SURV | 7 | open |
-| PAR-INFRA-16 | Ore overlay runtime: packet-only face overlays, neighbour-driven refresh, Folia-safe, feel checklist | INFRA | 7 | open |
+| PAR-INFRA-16 | Ore overlay runtime: packet-only face overlays, neighbour-driven refresh, Folia-safe, feel checklist | INFRA | 7 | done |
 | PAR-INFRA-31 | Catch-up settings in config.yml: catchup.* keys through TfpConfig and ConfigCodec | INFRA | 7 | done |
 | PAR-INFRA-35 | CE hit sound volume for template-built blocks (rock, soil, sand): the block sound table resolves tfp:settings/sound | INFRA | 7 | open |
 | PAR-HUD-14 | Server config for TFC's HUD display styles: health text style, climate temperature unit, XP bar options | HUD | 7 | done |
@@ -118,6 +118,7 @@ Totals: 243 items; open 215, done 25, blocked 3; waves 1..56 (wave 0 = already d
 | PAR-PHYS-01 | TFC falling blocks: canFallThrough, landing, damage | PHYS | 16 | open |
 | PAR-WORLD-01 | Rendered region and river maps compared with TFC | WORLD | 16 | open |
 | PAR-WORLD-02 | Bukkit biome binding and climate call sites on the real chunk data | WORLD | 16 | open |
+| PAR-INFRA-36 | Verify falling ores keep their face overlays in game (collapse and falling rich ore) | INFRA | 17 | open |
 | PAR-PHYS-02 | Collapse runner: mining triggers collapses decided async, applied as falling blocks | PHYS | 17 | open |
 | PAR-PHYS-03 | Landslides and gravity soils | PHYS | 17 | open |
 | PAR-WORLD-03 | Worldgen performance: JMH chunk budget, vanilla baseline and exposed-gem decision | WORLD | 17 | open |

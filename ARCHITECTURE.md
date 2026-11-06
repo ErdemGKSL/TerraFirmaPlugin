@@ -294,12 +294,36 @@ Done with PAR-INFRA-15: `Profile` (datagen and `TfpConfig`) has `level-0`..`leve
 `level-2` and, if even that does not fit, logs the per-pool shortfall, "no higher profile exists" and the options (shrink
 other CE packs, `use-nether-end-blocks`, `/ce clean-cache visual_block_states`). The allocator's ore rule is driven by
 `dev.tfp.datagen.oreoverlay.OreLook`: `host_rock` (target) maps every ore appearance to `rock/raw/<rock>#axis_y` in every
-profile; `full_cube` (shipped until the overlay runtime PAR-INFRA-16 flips
-`tools/datagen/src/main/resources/dev/tfp/datagen/oreoverlay/mode.properties`) keeps each ore's flattened cube, so no
-build shows ores as plain rock. Every allocation report states both: today 1374 visuals shipped (`full_cube`) and
-**261 visuals in every profile** with `host_rock` (all explicit states, solid pool untouched). The optional "solid pool
+profile (shipped since PAR-INFRA-16 set
+`tools/datagen/src/main/resources/dev/tfp/datagen/oreoverlay/mode.properties` to `host_rock`); `full_cube` keeps each
+ore's flattened cube (the transition look, still buildable). Every allocation report states both: 1374 visuals with
+`full_cube` and **261 visuals in every profile** with `host_rock` (all explicit states, solid pool untouched). The optional "solid pool
 before `absent_minor`" tweak is **off** (decided by `VisualBudgetTest`): with `host_rock` the 261 visuals never reach the
 `absent_minor` states, so it would change nothing; revisit when more families are emitted.
+
+**Ore overlay runtime (PAR-INFRA-16, `core/oreoverlay`, `paper/oreoverlay`, `paper/packet/display`,
+`integration/craftengine/oreoverlay`).** Packet-only, nothing persisted, nothing ticks per block:
+- Pure core: `ExposedFaces` (full table of a chunk from an `OreSnapshot` plus the border cells; `patch` after changed
+  cells, converges to the full build), `OreOverlayTable` (immutable: ore local indices, kind, face mask, outcrop mask),
+  `FastPath` (provisional face changes for one block change, O(7) table lookups), `ViewerSet` (what one viewer was sent:
+  reconcile nearest first under the cap and a spawn budget), `TokenBucket` (1000 burst, 25 per tick), `OverlayGate`
+  (radius `ceil(cutoff/16)+1`, `view_range` cutoff/64, outcrops full range).
+- Triggers are the viewer's own packets (`OreOverlayPacketHandler`, Netty): `LOGIN`/`RESPAWN` reset the viewer (the client
+  dropped its entities), `SET_CHUNK_CACHE_CENTER` re-gates chunks crossing the radius, `CHUNK_DATA` reconciles the chunk's
+  faces (or queues a build), `UNLOAD_CHUNK` sends one removal, `BLOCK_CHANGE`/`MULTI_BLOCK_CHANGE` run the fast path and mark
+  the cell dirty, `SPAWN_ENTITY`/`REMOVE_ENTITIES` of a falling ore attach/remove six riders. The handler reads only
+  immutable tables and the viewer's own state; its packets go out with `getTasksAfterSend`, right after the trigger.
+- Build: the chunk's region thread copies CraftEngine's section containers (`CEChunk.sections()` +
+  `PalettedContainer.copy()`) and takes a `ChunkSnapshot`; the CPU pool decodes and computes; border cells next to edge ores
+  are read on the neighbour chunks' own region threads; the table is published by an atomic map put and every viewer of the
+  chunk is reconciled. Patch: dirty cells are coalesced per chunk and read one tick later on the chunk's region (plus the six
+  neighbours of a new ore, foreign ones on their own region), `ExposedFaces.patch` runs on the CPU pool, one patch per chunk
+  in flight (ordered), viewers get the difference. A table lives while some viewer has the chunk.
+- Mining: `BlockBreakProgressUpdateEvent` (the server's dig progress) swaps the face items to the cracked variants
+  `<overlay>/crack_<n>` for every viewer; abort and break restore.
+- Cell classification: CraftEngine blocks by id from `visuals/ore_overlay/ores.json` and `occluding.json` (unknown ids of
+  other packs expose); vanilla blocks by `Material.isOccluding`; network state ids by the client's culling rule (vanilla
+  `canOcclude` of the visual state; a CE server-side state maps to its visual and tells the ore).
 
 **Mechanics:**
 - `tools/datagen` precomputes one visual allocation per (profile × MC version family × Nether/End off/on) and ships them all in the jar (M1-DGN-04, `dev.tfp.datagen.visuals`):
