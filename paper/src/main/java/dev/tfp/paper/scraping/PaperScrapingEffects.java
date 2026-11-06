@@ -96,7 +96,6 @@ public final class PaperScrapingEffects implements ScrapingEffects {
             world.spawn(at, ItemDisplay.class, d -> {
                 d.setItemStack(shown);
                 d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-                d.setRotation(SURFACE_YAW, 0f);
                 d.setPersistent(true);
                 d.getPersistentDataContainer().set(MARKER, PersistentDataType.STRING, marker(block));
             });
