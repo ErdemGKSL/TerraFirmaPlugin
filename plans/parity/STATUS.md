@@ -63,7 +63,7 @@ Totals: 270 items; open 206, done 60, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-INFRA-15 | Ore overlay datagen: ores take the host rock visual, overlay item models, always-on allocator rule, profiles level-0..2 only | INFRA | 6 | done |
 | PAR-INFRA-32 | Renderer-cube mining time: TFC break time independent of the client's swing rate, measured on a full-speed client | INFRA | 6 | done |
 | PAR-INFRA-33 | CE block sound volume and pitch: hit and level-event break sounds at the TFC SoundType's values, devices too | INFRA | 6 | done |
-| PAR-PROC-03 | Advanced crafting: TFC advanced recipes, food combining, casting crafting, vanilla recipe leakage | PROC | 7 | open |
+| PAR-PROC-03 | Advanced crafting: TFC advanced recipes, food combining, casting crafting, vanilla recipe leakage | PROC | 7 | done |
 | PAR-PROC-04 | Quern: block, handstone, grinding, GUI-less interaction | PROC | 7 | open |
 | PAR-PROC-05 | Scraping hides on a log | PROC | 7 | open |
 | PAR-PROC-24 | Our tfp:mineable/* block tags as server tags, so CE can build tools whose tool component names them (gem saw, knife, hammer, scythe) | PROC | 7 | open |
@@ -82,6 +82,7 @@ Totals: 270 items; open 206, done 60, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-INFRA-34 | Verify the ore overlay datagen in game: host-rock look of buried ores, composite ore block item icons, pick-block | INFRA | 8 | open |
 | PAR-PROC-26 | Durability material items carry minecraft:damage 0 (vanilla damageable); gem saw in-game check | PROC | 8 | open |
 | PAR-PROC-27 | Tool item build guards: self-test gives every item with a minecraft:tool component; datagen check that tool rules name only shipped block tags | PROC | 8 | open |
+| PAR-PROC-28 | Advanced crafting in-game verification and self-test: knife/sandwich crafts, vanilla recipe leakage over all recipes | PROC | 8 | open |
 | PAR-HUD-17 | Wire the HUD display styles: hud.* keys in config.yml, health text and climate temperature placeholders follow HudStyles | HUD | 8 | open |
 | PAR-INFRA-37 | Recapture the ore overlay feel shots PAR-INFRA-16 missed: down face, distance set, 26.3 night/torch, tool timing, cave walk, fresh-world budget | INFRA | 8 | open |
 | PAR-INFRA-38 | TfpCommands.reply: no blocking console wait when the reply future needs the caller's own thread | INFRA | 8 | open |

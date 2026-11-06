@@ -47,4 +47,36 @@ class AdvancedCraftRulesTest {
         List<String> out = AdvancedCraftRules.remainders(items, vanilla, null, item -> "never");
         assertThat(out).containsExactly(null, "bucket", null);
     }
+
+    @Test
+    void foodCombiningNeedsTwoOrMoreFoodsThatStackButForTheDate() {
+        java.util.function.Predicate<String> empty = java.util.Objects::isNull;
+        java.util.function.Predicate<String> food = s -> s.startsWith("food");
+        java.util.function.BiPredicate<String, String> stack = (a, b) -> a.equals(b);
+        assertThat(AdvancedCraftRules.foodCombiningMatches(Arrays.asList("food/beef", null, "food/beef"), empty, food, stack))
+            .isTrue();
+        assertThat(AdvancedCraftRules.foodCombiningMatches(Arrays.asList("food/beef", null), empty, food, stack)).isFalse();
+        assertThat(AdvancedCraftRules.foodCombiningMatches(Arrays.asList("food/beef", "food/pork"), empty, food, stack))
+            .isFalse();
+        assertThat(AdvancedCraftRules.foodCombiningMatches(Arrays.asList("food/beef", "stick"), empty, food, stack)).isFalse();
+    }
+
+    @Test
+    void combinedCreationDateIsTheSmallestWithTfcsMinusOneStart() {
+        assertThat(AdvancedCraftRules.combinedCreationDate(List.of(500L, 200L, 300L))).isEqualTo(200L);
+        // -1 (transient) is replaced by the next date, as TFC's sentinel does
+        assertThat(AdvancedCraftRules.combinedCreationDate(List.of(-1L, 700L))).isEqualTo(700L);
+        assertThat(AdvancedCraftRules.combinedCreationDate(List.of(700L, -3L))).isEqualTo(-3L);
+        assertThat(AdvancedCraftRules.combinedCreationDate(List.of())).isEqualTo(-1L);
+    }
+
+    @Test
+    void castingNeedsExactlyOneStackAndItMustBeAMold() {
+        java.util.function.Predicate<String> empty = java.util.Objects::isNull;
+        java.util.function.Predicate<String> mold = s -> s.endsWith("mold");
+        assertThat(AdvancedCraftRules.castingMoldIndex(Arrays.asList(null, "axe_mold", null), empty, mold)).isEqualTo(1);
+        assertThat(AdvancedCraftRules.castingMoldIndex(Arrays.asList("axe_mold", "axe_mold"), empty, mold)).isEqualTo(-1);
+        assertThat(AdvancedCraftRules.castingMoldIndex(Arrays.asList(null, "stick"), empty, mold)).isEqualTo(-1);
+        assertThat(AdvancedCraftRules.castingMoldIndex(Arrays.asList(null, null), empty, mold)).isEqualTo(-1);
+    }
 }

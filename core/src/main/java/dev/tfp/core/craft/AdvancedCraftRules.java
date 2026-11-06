@@ -5,12 +5,14 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/recipes/AdvancedShapelessRecipe.java @ c3b4d9536, AdvancedShapedRecipe.java and RecipeHelpers.java
- * (getRemainderItemsWithProvider)
+ * (getRemainderItemsWithProvider), FoodCombiningCraftingRecipe.java (matches, assemble) and CastingCraftingRecipe.java (getMold)
  */
 package dev.tfp.core.craft;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 /**
@@ -79,5 +81,65 @@ public final class AdvancedCraftRules {
             results.add(out);
         }
         return results;
+    }
+
+    /**
+     * TFC {@code FoodCombiningCraftingRecipe.matches}: every non-empty slot is a food, every one stacks with the first
+     * except for its creation date, and there are at least two of them.
+     *
+     * @param stackable TFC {@code FoodCapability.areStacksStackableExceptCreationDate}
+     */
+    public static <S> boolean foodCombiningMatches(List<S> grid, Predicate<S> isEmpty, Predicate<S> isFood,
+                                                   BiPredicate<S, S> stackable) {
+        int notEmpty = 0;
+        S first = null;
+        for (S stack : grid) {
+            if (isEmpty.test(stack)) {
+                continue;
+            }
+            notEmpty++;
+            if (!isFood.test(stack)) {
+                return false;
+            }
+            if (first == null) {
+                first = stack;
+            } else if (!stackable.test(stack, first)) {
+                return false;
+            }
+        }
+        return notEmpty > 1;
+    }
+
+    /**
+     * TFC {@code FoodCombiningCraftingRecipe.assemble}: the creation date of the combined stack, the smallest of the inputs'
+     * dates, with TFC's {@code -1} start value (a {@code -1} date is replaced by any later one).
+     *
+     * @param creationDates the creation date of each food slot, in slot order
+     */
+    public static long combinedCreationDate(List<Long> creationDates) {
+        long min = -1;
+        for (long date : creationDates) {
+            if (min == -1 || min > date) {
+                min = date;
+            }
+        }
+        return min;
+    }
+
+    /**
+     * TFC {@code CastingCraftingRecipe.getMold}: the slot of the only non-empty stack when it is a mold, else {@code -1}.
+     */
+    public static <S> int castingMoldIndex(List<S> grid, Predicate<S> isEmpty, Predicate<S> isMold) {
+        int found = -1;
+        for (int i = 0; i < grid.size(); i++) {
+            if (isEmpty.test(grid.get(i))) {
+                continue;
+            }
+            if (found >= 0 || !isMold.test(grid.get(i))) {
+                return -1;
+            }
+            found = i;
+        }
+        return found;
     }
 }

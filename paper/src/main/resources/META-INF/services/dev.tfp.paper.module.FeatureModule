@@ -13,3 +13,4 @@ dev.tfp.paper.food.FoodTooltipModule
 dev.tfp.paper.player.MountHudService
 dev.tfp.paper.rendered.RenderedMiningModule
 dev.tfp.paper.oreoverlay.OreOverlayModule
+dev.tfp.paper.craft.CraftModule
