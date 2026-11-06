@@ -53,7 +53,8 @@ import java.util.regex.Pattern;
  * like TFC, but vanilla snow collides one layer lower, 12 px), whose block model is TFC's cold model {@code heat_0}: one vanilla state carries one model
  * only, so the eight levels cannot each have a block model. Levels 1 to 7 add an {@code entity_renderer} item display
  * of TFC's model for that level (an item {@code tfp:render/charcoal_forge/heat_N}), scaled by {@link #OVERLAY_SCALE}
- * over the block model, lit with TFC's light level ({@code heat * 2}) as block light. Each level also emits TFC's
+ * over the block model, turned half a turn about y ({@link #OVERLAY_ROTATION}: the display renderer turns item models
+ * 180 degrees, so this restores the block model's orientation), lit with TFC's light level ({@code heat * 2}) as block light. Each level also emits TFC's
  * light ({@code luminance: heat * 2}). Real vanilla instances of the carrier are sent as the selector's hide target
  * ({@code snow[layers=8]}, {@code block_state_mappings}), so natural snow never looks like a forge. The bellows keeps a
  * placeholder appearance: the vanilla look of its selected carrier, one per facing.
@@ -94,6 +95,13 @@ final class ForgeDevices {
     static final String PILE_SOURCE = "src/main/java/net/dries007/tfc/common/blocks/CharcoalPileBlock.java";
     /** The lit overlay is drawn this much larger than the block model it covers, so the two never z-fight. */
     static final java.math.BigDecimal OVERLAY_SCALE = new java.math.BigDecimal("1.002");
+    /**
+     * The half turn about the vertical axis on every lit level's display (PAR-METAL-20). The {@code item_display}
+     * renderer draws an item model turned 180 degrees about y relative to the same model drawn as a block, so without
+     * it the lit tops (TFC's {@code N.png} on the up face) were turned 180 degrees against the cold level's block model
+     * and against TFC. The turn is about the display's origin, the block centre, so the 1.002 scale stays centred.
+     */
+    static final String OVERLAY_ROTATION = "0,180,0";
     /** The prefix of the display-only items an entity_renderer draws for the lit levels. */
     static final String RENDER_ITEM_PREFIX = Json.TO_NS + ":render/charcoal_forge/";
     private static final Pattern MODEL_REF = Pattern.compile(Json.FROM_NS + ":(block/charcoal_forge/[a-z0-9_]+)");
@@ -242,7 +250,7 @@ final class ForgeDevices {
         HitboxAllocation.Assignment carrier = forgeCarrier();
         Map<String, String> mappings = carrier.hideTarget() == null ? Map.of() : Map.of(carrier.state(), carrier.hideTarget());
         return DeviceSpecs.charcoalForge(FORGE_ID, DeviceProperty.range(heat.name(), heat.min(), heat.max(), heat.min()), ids,
-            DeviceAppearance.Carrier.state(carrier.state()), OVERLAY_SCALE, RENDER_ITEM_PREFIX, ForgeDevices::lightLevel,
+            DeviceAppearance.Carrier.state(carrier.state()), OVERLAY_SCALE, OVERLAY_ROTATION, RENDER_ITEM_PREFIX, ForgeDevices::lightLevel,
             DeviceBlockSpec.Settings.fromTfc(tfc, FORGE_BLOCK), DeviceLoot.fromTfc(tfc, FORGE_BLOCK), mappings);
     }
 

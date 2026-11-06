@@ -91,6 +91,26 @@ class ForgeDevicesTest {
         }
     }
 
+    @Test
+    void theLitDisplaysAreTurnedHalfATurnToMatchTheBlockModel() {
+        // PAR-METAL-20: the item_display renderer turns item models 180 degrees about y, so each lit level's display
+        // carries the half turn back; the cold level (block model only) has no display and no turn.
+        var files = Datagen.generate(path(), TfcCheckout.PINNED_COMMIT).tree().files();
+        String forge = new String(files.get(ForgeDevices.FORGE_OUTPUT), StandardCharsets.UTF_8);
+        Map<?, ?> appearances = (Map<?, ?>) ((Map<?, ?>) block(forge, ForgeDevices.FORGE_ID).get("states")).get("appearances");
+        assertThat(ForgeDevices.OVERLAY_ROTATION).isEqualTo("0,180,0");
+        assertThat(((Map<?, ?>) appearances.get("heat_0")).containsKey("entity_renderer")).isFalse();
+        for (int level = 1; level <= 7; level++) {
+            List<?> elements = (List<?>) ((Map<?, ?>) appearances.get("heat_" + level)).get("entity_renderer");
+            assertThat(elements).as("heat_" + level).hasSize(1);
+            Map<?, ?> display = (Map<?, ?>) elements.getFirst();
+            assertThat(display.get("item")).isEqualTo("tfp:render/charcoal_forge/heat_" + level);
+            assertThat(display.get("rotation")).as("heat_" + level).isEqualTo("0,180,0");
+            assertThat(display.get("scale")).as("the turn keeps the centred scale").isEqualTo(1.002);
+            assertThat(display.containsKey("translation")).as("no translation: the turn is about the block centre").isFalse();
+        }
+    }
+
     private static Map<?, ?> block(String yaml, String id) {
         Map<?, ?> root = (Map<?, ?>) CeYamlCheck.parse(yaml, id);
         return (Map<?, ?>) ((Map<?, ?>) root.get("blocks")).get(id);

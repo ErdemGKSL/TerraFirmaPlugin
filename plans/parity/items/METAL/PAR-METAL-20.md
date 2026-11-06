@@ -2,7 +2,7 @@
 id: PAR-METAL-20
 title: "Charcoal forge lit tops turned 180°: the heat_N item display must match TFC's block-model orientation"
 area: METAL
-status: open
+status: done
 wave: 5
 deps: [PAR-INFRA-19]
 size: S
@@ -27,6 +27,7 @@ plan:
   - "Found by PAR-METAL-10 step 10 (docs/verification/charcoal-forge/verdict.md, capture 14-lit-top-turned-180-vs-block-model.png): the level 0 top, drawn by the block model `heat_0` on `snow[layers=7]`, matches TFC's `0.png` turned 180° on screen, which is how vanilla (and TFC) draws an up face. The lit tops, drawn by the `entity_renderer` item display of `tfp:render/charcoal_forge/heat_N`, match `N.png` unturned: the display is turned 180° about the vertical axis relative to TFC's block model. The sides carry one texture on all four faces and look the same."
   - "Fix in ForgeDevices (after PAR-INFRA-19 moves it onto DeviceSpecs, in the spec's render element): turn the display element half a turn about Y (CE `rotation: \"0,180,0\"` on the element; a single number means -yaw), or give the render model a display transform with the turn, whichever keeps the 1.002 scale centred on the block. Pin it in ForgeDevicesTest."
   - "Check that no other device using `tfp:item/render` displays (firepit, grill, pot when their renderers land) has the same half turn; file items for any that do."
+  - "Done: DeviceSpecs.charcoalForge takes an overlay rotation applied as `.rotated(...)` next to `.scaled(overlayScale)`; ForgeDevices passes OVERLAY_ROTATION \"0,180,0\", DeviceSpecParityTest passes the same; ForgeDevicesTest.theLitDisplaysAreTurnedHalfATurnToMatchTheBlockModel pins it on all 7 lit levels (none on level 0). In game: level 0 and level 7 tops both match TFC's texture turned 180 degrees from above (yaw 0), as the block model draws it (60 + 120 captures, correlation >= 0.9995): docs/verification/charcoal-forge-orientation/verdict.md. Firepit, grill and pot have no renderer yet, rendered cubes are uniform and CrackedOverlays already turns its quads: no follow-up item."
 tests:
   - "tools/datagen: ForgeDevicesTest pins the rotation of the charcoal forge's render element"
   - "In game: the lit top matches TFC's N.png frames under the same orientation as the level 0 block model (correlation 1.0 in both)"

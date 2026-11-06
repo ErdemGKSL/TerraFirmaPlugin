@@ -108,7 +108,7 @@ class DeviceSpecParityTest {
         }
         var forgeCarrier = HitboxAllocation.agreed("tfp:charcoal_forge", HitboxDemands.FORGE_APPEARANCE);
         DeviceBlockSpec forge = DeviceSpecs.charcoalForge("tfp:charcoal_forge", DeviceProperty.range("heat_level", 0, 7, 0),
-            models, DeviceAppearance.Carrier.state(forgeCarrier.state()), new BigDecimal("1.002"),
+            models, DeviceAppearance.Carrier.state(forgeCarrier.state()), new BigDecimal("1.002"), "0,180,0",
             "tfp:render/charcoal_forge/", heat -> heat * 2, DeviceBlockSpec.Settings.fromTfc(tfc, "charcoal_forge"),
             DeviceLoot.fromTfc(tfc, "charcoal_forge"), Map.of(forgeCarrier.state(), forgeCarrier.hideTarget()));
         assertThat(forgeCarrier.state()).isEqualTo("minecraft:snow[layers=7]");

@@ -58,14 +58,15 @@ public final class DeviceSpecs {
     /**
      * The charcoal forge: one appearance {@code heat_N} per level of {@code heat}, every one on {@code carrier} with the
      * cold level's model (one vanilla state carries one model); each lit level adds a display of its own TFC model
-     * (item {@code renderPrefix + "heat_N"}, scaled by {@code overlayScale}, block light = the level's light, sky 15).
+     * (item {@code renderPrefix + "heat_N"}, scaled by {@code overlayScale}, turned by {@code overlayRotation} (CE
+     * {@code "x,y,z"} degrees, {@code null} for none), block light = the level's light, sky 15).
      * Each level emits {@code light.applyAsInt(level)}. {@code models}: level to model id ({@code tfp:block/...}).
      * {@code settings} and {@code loot}: TFC's (strength 0.2, charcoal sounds, shovel; 7 charcoal, the forge has no
      * item).
      */
     public static DeviceBlockSpec charcoalForge(String id, DeviceProperty heat, Map<Integer, String> models,
-            DeviceAppearance.Carrier carrier, BigDecimal overlayScale, String renderPrefix, IntUnaryOperator light,
-            DeviceBlockSpec.Settings settings, DeviceLoot loot, Map<String, String> stateMappings) {
+            DeviceAppearance.Carrier carrier, BigDecimal overlayScale, String overlayRotation, String renderPrefix,
+            IntUnaryOperator light, DeviceBlockSpec.Settings settings, DeviceLoot loot, Map<String, String> stateMappings) {
         if (heat.kind() != DeviceProperty.Kind.INT) {
             throw new DatagenException(id + ": the heat property must be an int range");
         }
@@ -80,6 +81,7 @@ public final class DeviceSpecs {
                 String item = renderPrefix + name;
                 b.renderItem(item, model(id, models, level));
                 a = a.withOverlay(List.of(DeviceAppearance.Renderer.item(item).scaled(overlayScale)
+                    .rotated(overlayRotation)
                     .lit(Math.min(15, light.applyAsInt(level)), 15)));
             }
             b.appearance(a);
