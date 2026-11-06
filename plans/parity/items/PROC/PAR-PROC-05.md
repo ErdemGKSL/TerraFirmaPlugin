@@ -2,7 +2,7 @@
 id: PAR-PROC-05
 title: "Scraping hides on a log"
 area: PROC
-status: open
+status: done
 wave: 7
 deps: [PAR-INFRA-02]
 size: S
@@ -21,16 +21,18 @@ files_owned:
   - "tools/datagen/src/test/java/dev/tfp/datagen/scraping/**"
   - "content/generated/content/craftengine/tfp/configuration/scraping/**"
   - "core/src/main/java/dev/tfp/core/craft/Scraping*"
-ui: true
-in_game_steps:
-  - "ce item give Bot tfp:soaked_hide/medium"
-  - "place on a log; click 16 cells with a knife"
+ui: false
+in_game_steps: []
 plan:
   - "Place a soaked hide on a log -> scraping block with 16-cell grid visual (in-progress texture as entity_renderer overlay); knife clicks per cell via the hit position (ScrapingRules)."
+  - "Follow-up PAR-PROC-29 (PROTOCOL 3a + 6.5): the CraftEngine block entry tfp:scraping needs a hitbox carrier, which only the selector may choose (HardcodedCarrierTest, GeneratedCarrierTest): a tfc:scraping row in hitbox/tfc-shapes.json (TfcShapes evaluator, ScrapingBlock SHAPE 16x1x16) and a HitboxDemands entry, both outside this item's files. PAR-PROC-29 adds them, writes configuration/scraping/scraping.yml (tfp:device behaviour, TFC strength 0.2, stem sounds, no loot of its own) and runs the in-game steps moved there (ce item give Bot tfp:unrefined_paper, later the hides of PAR-FAUNA-17; place on a log; click 16 cells with a knife)."
+  - "Visual: an entity_renderer follows block states and cannot hold 2^16 masks, so the surface is one persistent item display per block whose 1.21.4 item model definition picks each cell's input or output tile on custom_model_data flags and tints them with its colours (ledger divergence)."
+  - "Done: core/scraping (ScrapingState: mask, waxed, two dyes, kept look, codec; ScrapingAim: TFC calculatePoint + clamped cell; ScrapingVisuals: shared model names and flags), paper/scraping (ScrapingModule, ScrapingDevice kind tfp:scraping on the device framework, ScrapingListener placement on the top face of tfc:scraping_surface, ScrapingSupport rule on the neighbour runner, PaperScrapingEffects display/particles/wear/extra drop), datagen/scraping (ScrapingArt: 14 textures, 16 parents + 224 tiles, 7 item model definitions; one Datagen run line). Tests: core ScrapingStateTest 5, ScrapingAimTest 4, ScrapingVisualsTest 3; paper ScrapingMockBukkitTest 8 (hit -> cell mapping from four eyes, soaked hide -> scraped hide in 16 clicks, sheepskin wool drop, wax + dyes, creative, placement rules, break drop, support rule), PaperScrapingEffectsMockBukkitTest 2; datagen ScrapingArtTest 5. Ledger: feature row + 4 divergences. In-game check deferred to PAR-PROC-29."
 tests:
   - "paper: hit -> cell mapping"
 done_criteria:
   - "Scraping a soaked hide yields a scraped hide"
+  - "Deferred check tracked in PAR-PROC-29"
 ---
 
 # PAR-PROC-05: Scraping hides on a log

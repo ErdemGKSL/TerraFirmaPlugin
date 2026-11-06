@@ -99,6 +99,9 @@ public final class Datagen {
             dev.tfp.datagen.material.MaterialItems.run(tfc, out);
             dev.tfp.datagen.material.ItemCoverage.run(tfc, out);
         }
+        if (dev.tfp.datagen.scraping.ScrapingArt.available(tfc)) { // PAR-PROC-05: scraping surface tiles and item model definitions; fixtures have no scraping recipes
+            dev.tfp.datagen.scraping.ScrapingArt.run(tfc, out);
+        }
         LootTableExport.run(tfc, out); // PAR-INFRA-21: TFC loot tables of delegated blocks and spawned entities for the Paper runtime
         Advancements.run(tfc, out);
         FieldGuide.run(tfc, out);
