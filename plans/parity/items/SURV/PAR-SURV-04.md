@@ -21,12 +21,13 @@ files_owned:
   - "core/src/test/java/dev/tfp/core/thirst/**"
 ui: true
 in_game_steps:
+  - "setup before every capture: use a ground-level spot (or build the floor with fill and confirm it with execute if block before teleporting); gamemode survival Bot; effect clear Bot; restore health; data get entity Bot Health must be > 0 before each shot (a dead Bot invalidates the capture); wait out the chat-verification toast"
   - "tfp debug thirst Bot 5"
   - "wait 10 s; data get entity Bot active_effects (slowness and mining_fatigue amplifier 1, show_icon 0b: TFC has no icon)"
   - "any date, no time set: open floor with no block above; tfp debug thirst Bot 5; weather rain; tp Bot <x> <y> <z> 0 -85"
   - "tfp debug rain Bot: every gate true (pitch, storm, open to sky, client biome precipitation and temperature >= 0.15); the TFC ambient is printed but is not a gate"
   - "tfp debug player Bot every 2 s for 10 s: thirst rises about 4.17 per second; lastDrinkTick stays never (TFC's addThirst does not set it)"
-  - "salt water: find an ocean-biome water source with a block behind it within 4.5 blocks; tfp debug thirst Bot 50; right-click the water with an empty hand; thirst -4 per drink, the tfp:thirst effect sometimes (chance 1-(0.75)^4)"
+  - "salt water: find an ocean-biome water source with a block behind it within 4.5 blocks; tfp debug thirst Bot 50; right-click the water with an empty hand; thirst -4 per drink, the tfp:thirst effect sometimes (chance 1-(0.75)^4); then a river/lake source with an empty hand: thirst +40 per drink and no tfp:thirst effect (fresh water unaffected)"
 plan:
   - "Current: thirst decay lazy, lakebed drink verified in-game; open-water empty-hand clicks send no packet (vanilla)."
   - "Thirst effects in Paper: slowdown amplifier per ThirstStage, dehydration damage every 100 ticks (not in peaceful), `tfp:dehydration` damage type."

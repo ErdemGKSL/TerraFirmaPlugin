@@ -27,6 +27,10 @@ drink cooldown (only `onDrink` does). Not a failure.
 | `repair-rain-t0.png`, `repair-rain-t10.png` | looking up in the rain at spawn, thirst 5 then about 47 (blue bar, top right) |
 | `repair-cold-t0.png`, `repair-cold-t8.png` | the cold place: the HUD reads -19.8 C, the client draws rain, thirst rises |
 
+The four `repair-*` captures are crops (PROTOCOL 6.3, under 200 KB): the top 120 rows of the 640x360 frame (climate panel
+and rain-filled sky) above the bottom-centre HUD strip (health, thirst bar above the hunger bar, hotbar); the black areas
+are outside the crops.
+
 Salt water was not exercised in game (unit and MockBukkit coverage only); its steps are in the plan's `in_game_steps` for
 the next capture.
 
