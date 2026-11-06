@@ -267,6 +267,30 @@ class OreOverlayServiceTest {
     }
 
     @Test
+    void sentFacesTellsWhatEachViewerGotForOneBlock() throws Exception {
+        // a north face opened by a block change (the in-game step: Bot looks south at the ore through the hole)
+        set(5, 10, 5, 0);
+        service.chunkSent(BOT, 0, 0, new Outbox(BOT));
+        settle(0);
+        assertThat(service.sentFaces(WORLD, 5, 10, 5)).containsExactly(Map.entry(BOT, List.of()));
+        set(5, 10, 4, ExposureRule.OPEN);
+        Outbox out = new Outbox(BOT);
+        service.blockChanged(BOT, 5, 10, 4, AIR, out);
+        out.flush(sender);
+        quiesce();
+        int id = sender.spawns.getFirst().entityId();
+        assertThat(sender.spawns.getFirst().face()).isEqualTo(OverlayFace.NORTH);
+        assertThat(service.sentFaces(WORLD, 5, 10, 5)).containsExactly(Map.entry(BOT, List.of("north #" + id)));
+        assertThat(service.sentFaces(WORLD, 6, 10, 5)).as("a neighbour block").containsExactly(Map.entry(BOT, List.of()));
+        assertThat(service.sentFaces(UUID.randomUUID(), 5, 10, 5)).as("no viewer in another world").isEmpty();
+        assertThat(OreOverlayModule.sentLines(service.sentFaces(WORLD, 5, 10, 5), u -> "Bot"))
+                .containsExactly("sent to Bot: north #" + id);
+        assertThat(OreOverlayModule.sentLines(Map.of(BOT, List.of()), u -> "Bot")).singleElement()
+                .asString().startsWith("sent to Bot: nothing");
+        assertThat(OreOverlayModule.sentLines(Map.of(), u -> "Bot")).containsExactly("sent to: no viewer in this world");
+    }
+
+    @Test
     void anOrePlacedNextToAirGetsItsFacesFromThePatch() throws Exception {
         set(5, 10, 5, ExposureRule.OPEN);
         service.chunkSent(BOT, 0, 0, new Outbox(BOT));

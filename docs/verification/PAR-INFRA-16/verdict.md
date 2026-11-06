@@ -59,3 +59,36 @@ that tables need a viewer nearby; `stats`/`show` say the same. Recapture recipe 
 then `place`, record its reply and `show <pos>`, keep Bot outside the box (creative, e.g. 3+ blocks west at the ore's y,
 facing +x) and only then take the buried and exposed frames.
 
+
+Recheck 2 2026-11-06 (third in-game review, REJECT: none of the ten frames showed an overlay; exposed and covered frames
+identical; asks: Bot in front of the opened cell facing the exposed face, an F3 frame, a TFC gold outcrop side by side,
+and a check of the client send path). Reproduced the reviewer's exact step on both versions, headless Paper + client,
+jar of 7c53858 plus this change, flat world, noon:
+
+- Scene: a two-thick wall of `tfp:rock/raw/granite` (placed with `debug oreoverlay place`), `tfp:ore/normal_native_gold/granite`
+  at 3 -52 13 in its back layer, Bot on a platform at 3.5 -53 9.5 facing south (yaw 0, pitch 5). Buried: plain wall.
+  Then `setblock 3 -52 12 air` (the opened cell, the reviewer's step): `show` = "north (outcrop), south (outcrop)" and the
+  frame shows the hole with the gold specks on the north face of the ore; `place 3 -52 12 tfp:rock/raw/granite`: plain
+  wall again, `show` = "south (outcrop)"; reopened: specks again.
+  `1.21.11-recheck-north-buried-exposed-covered.png` and `26.3-recheck-north-buried-exposed-covered.png` (buried, exposed
+  with F3, covered with F3; the 26.3 frames carry the `show` replies in chat). Light: `*-recheck-north-noon-midnight-torch.png`
+  (specks follow the rock at noon, midnight and with a torch 2 blocks away, never black or full-bright). An ore flush in
+  an outer wall (no hole): `1.21.11-recheck-north-flush-outcrop.png`.
+- TFC side by side: `recheck-north-face-vs-tfc.png` (1.21.11 crop, 26.3 crop, TFC granite + `normal_native_gold.png`, the
+  TFC overlay alone): the vein pattern lies the same way on the north face as in TFC's texture on both versions. The rock
+  behind the specks is darker in game because the face sits at the back of a one-block hole (vanilla AO on the rock, none
+  on the specks: ledger row "TFC's ore faces are lit like any block face").
+- Send path: `show` now also lists, per viewer of the world, the face entities its client was sent for that block
+  ("sent to Bot: north #1879048196, south #1879048194" after the opening, "south #1879048194" when covered). Both versions
+  sent the north entity in the same tick as the block change (fast path) and removed it on covering.
+
+Cause of the rejected frames: the camera, not the client path. Every rejected frame looks at an unbroken wall or a
+single face (the 1.21.11 outline is a block flush with the wall, the 26.3 frames point nearly straight up or down); an
+opened cell in front of the camera always shows as a recess with three visible side faces, which none of them has, so the
+exposed face was outside the frame. With the camera facing the opened cell the overlay appears and vanishes exactly as
+`show` says, on both versions. Recipe for any further capture (also in PAR-INFRA-37): put Bot on a platform 2-4 blocks in
+front of the face at the ore's height, facing it (`tp Bot <x+0.5> <y-1> <z-3.5> 0 5` for a north face), open the cell with
+`setblock ... air`, check `show` lists the face under "sent to Bot", then take the frame.
+
+Harness: `spikes/client/session.sh` now accepts 26.x's `Reloading ResourceManager: vanilla, vanilla, server/...` as pack
+applied (checked against the 1.21.11 and 26.3 client logs of this run; listed exception in this item's files_owned).

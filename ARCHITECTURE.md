@@ -335,7 +335,9 @@ before `absent_minor`" tweak is **off** (decided by `VisualBudgetTest`): with `h
   (the name is a string, `ArchitectureTest` holds); moving it to an `OreBlockSource` service is PAR-INFRA-39.
 - Debug `place` runs inline when the caller already owns the target region (the console on Paper), so the command's reply
   wait never blocks the thread its own task needs; its reply reads the cell back. `stats` and `show` count only tables,
-  which exist for chunks sent to a viewer within the overlay radius (no player near: `ores 0`, `no table`).
+  which exist for chunks sent to a viewer within the overlay radius (no player near: `ores 0`, `no table`). `show` also
+  lists, per viewer of the world, the face entity ids that viewer's client was sent for the block
+  (`OreOverlayService.sentFaces`), so a capture can tell a missing table face from a missing send.
 - Cell classification: CraftEngine blocks by id from `visuals/ore_overlay/ores.json` and `occluding.json` (unknown ids of
   other packs expose); vanilla blocks by `Material.isOccluding`; network state ids by the client's culling rule (vanilla
   `canOcclude` of the visual state; a CE server-side state maps to its visual and tells the ore).

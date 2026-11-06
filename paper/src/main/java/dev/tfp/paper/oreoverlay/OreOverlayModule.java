@@ -24,11 +24,14 @@ import dev.tfp.paper.scheduler.Scheduler;
 import io.papermc.paper.command.brigadier.Commands;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.function.IntSupplier;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 /**
@@ -267,7 +270,7 @@ public final class OreOverlayModule implements FeatureModule {
         CompletableFuture<Reply> out = new CompletableFuture<>();
         Runnable task = () -> {
             try {
-                org.bukkit.block.Block block = world.getBlockAt(x, y, z);
+                Block block = world.getBlockAt(x, y, z);
                 boolean placed = b.place(block, state, false);
                 // Read the cell back, so a console-driven step sees what is there now (a later fill can still overwrite
                 // it) and that stats/show only count ores of chunks already sent to a viewer within the overlay radius.
@@ -310,7 +313,27 @@ public final class OreOverlayModule implements FeatureModule {
                         + ((t.outcrop(i) & (1 << f.ordinal())) != 0 ? " (outcrop)" : ""));
             }
         }
-        return Reply.ok("debug.oreoverlay.show", where, s.data().overlays().get(t.kind(i)))
-                .withDetails(List.of("exposed faces: " + (faces.isEmpty() ? "none (buried)" : String.join(", ", faces))));
+        List<String> details = new ArrayList<>();
+        details.add("exposed faces: " + (faces.isEmpty() ? "none (buried)" : String.join(", ", faces)));
+        details.addAll(sentLines(s.sentFaces(world, x, y, z), id -> {
+            Player p = Bukkit.getPlayer(id);
+            return p == null ? id.toString() : p.getName();
+        }));
+        return Reply.ok("debug.oreoverlay.show", where, s.data().overlays().get(t.kind(i))).withDetails(details);
+    }
+
+    /**
+     * One line per viewer of the world: the face overlay entities its client was sent for the block, so a capture can
+     * tell "the server's table has the face" from "this client got the entity" (and the entity id to look for).
+     */
+    static List<String> sentLines(Map<UUID, List<String>> sent, Function<UUID, String> names) {
+        if (sent.isEmpty()) {
+            return List.of("sent to: no viewer in this world");
+        }
+        List<String> out = new ArrayList<>();
+        sent.forEach((id, faces) -> out.add("sent to " + names.apply(id) + ": "
+                + (faces.isEmpty() ? "nothing (out of the overlay radius, over the cap or not yet sent)"
+                        : String.join(", ", faces))));
+        return out;
     }
 }

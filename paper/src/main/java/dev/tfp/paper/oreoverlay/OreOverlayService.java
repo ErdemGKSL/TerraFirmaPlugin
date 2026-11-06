@@ -893,6 +893,36 @@ public final class OreOverlayService {
                 fastPath.sum(), viewers.size(), sent, loaded, deferred, cap, gate.radiusChunks());
     }
 
+    /**
+     * What each viewer in {@code world} was sent for the block at {@code (x, y, z)}: viewer -> {@code "<face> #<entity id>"}
+     * per sent face overlay, an empty list for a viewer of that world that holds none of them ({@code debug oreoverlay
+     * show}: the server's table says a face is exposed, this says whether that viewer's client got the entity). Any
+     * thread.
+     */
+    public Map<UUID, List<String>> sentFaces(UUID world, int x, int y, int z) {
+        OreOverlayTable t = table(world, x >> 4, z >> 4);
+        Map<UUID, List<String>> out = new java.util.LinkedHashMap<>();
+        for (Viewer v : viewers.values()) {
+            if (!world.equals(v.world)) {
+                continue;
+            }
+            List<String> faces = new ArrayList<>();
+            if (t != null && y >= t.minY()) {
+                int local = OverlayKeys.local(x & 15, y, z & 15, t.minY());
+                synchronized (v) {
+                    for (OverlayFace f : OverlayFace.values()) {
+                        int id = v.set.entity(t.chunkKey(), OverlayKeys.face(local, f.ordinal()));
+                        if (id >= 0) {
+                            faces.add(f.name().toLowerCase(java.util.Locale.ROOT) + " #" + id);
+                        }
+                    }
+                }
+            }
+            out.put(v.id, faces);
+        }
+        return out;
+    }
+
     /** The overlay entity ids one viewer holds now (self-test leftovers check). */
     public int sentCount(UUID viewer) {
         Viewer v = viewers.get(viewer);

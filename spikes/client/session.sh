@@ -29,7 +29,8 @@ case "$out" in *"Bot"*) ;; *) echo "client did not join"; tail -20 "$GD/logs/lat
 WAIT=${PACK_WAIT:-120}
 [ "$WAIT" -gt 0 ] || exit 0
 for i in $(seq 1 $(( (WAIT + 2) / 3 ))); do
-  if grep -q "Reloading ResourceManager: vanilla, server" "$GD/logs/latest.log" 2>/dev/null; then
+  # 1.21.x logs "vanilla, server/...", 26.x "vanilla, vanilla, server/..." (two vanilla packs)
+  if grep -qE "Reloading ResourceManager: (vanilla, )+server" "$GD/logs/latest.log" 2>/dev/null; then
     echo "pack applied after ${i}x3s"; exit 0
   fi
   if grep -qi "failed to download" "$GD/logs/latest.log" 2>/dev/null; then
