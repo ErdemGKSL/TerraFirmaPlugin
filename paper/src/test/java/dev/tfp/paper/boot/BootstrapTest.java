@@ -279,6 +279,7 @@ class BootstrapTest {
                 "showcase", "animal",
                 "gui",
                 "oreoverlay",
+                "rain",
                 "device");
         assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
         assertThat(tfp.getChild("debug").getChild("showcase").getCommand()).as("showcase needs a family").isNull();

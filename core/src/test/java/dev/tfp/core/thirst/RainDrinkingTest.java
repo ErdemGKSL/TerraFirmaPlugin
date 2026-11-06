@@ -23,13 +23,24 @@ class RainDrinkingTest {
     }
 
     @Test
-    void rainNeedsWeatherSkyAndATemperatureAboveZero() {
-        assertThat(RainDrinking.drinks(-90f, true, true, 10f)).isTrue();
-        assertThat(RainDrinking.drinks(-90f, false, true, 10f)).as("clear weather").isFalse();
-        assertThat(RainDrinking.drinks(-90f, true, false, 10f)).as("under a roof").isFalse();
-        assertThat(RainDrinking.drinks(-90f, true, true, 0f)).as("snow").isFalse();
-        assertThat(RainDrinking.drinks(-90f, true, true, Float.NaN)).as("no reading").isFalse();
-        assertThat(RainDrinking.drinks(-45f, true, true, 10f)).as("not looking up").isFalse();
+    void rainNeedsWeatherSkyAndARainyClientBiome() {
+        assertThat(RainDrinking.drinks(-90f, true, true, true, 0.8f)).isTrue();
+        assertThat(RainDrinking.drinks(-90f, false, true, true, 0.8f)).as("clear weather").isFalse();
+        assertThat(RainDrinking.drinks(-90f, true, false, true, 0.8f)).as("under a roof").isFalse();
+        assertThat(RainDrinking.drinks(-90f, true, true, false, 2.0f)).as("desert: no precipitation").isFalse();
+        assertThat(RainDrinking.drinks(-90f, true, true, true, 0.15f)).as("vanilla threshold rains").isTrue();
+        assertThat(RainDrinking.drinks(-90f, true, true, true, Math.nextDown(0.15f))).as("snow").isFalse();
+        assertThat(RainDrinking.drinks(-90f, true, true, true, Float.NaN)).as("no reading").isFalse();
+        assertThat(RainDrinking.drinks(-45f, true, true, true, 0.8f)).as("not looking up").isFalse();
+    }
+
+    @Test
+    void heightAdjustmentIsVanillasLapseWithTheColdestNoise() {
+        assertThat(RainDrinking.heightAdjustedTemperature(0.5f, 80, 63)).as("at sea level + 17").isEqualTo(0.5f);
+        assertThat(RainDrinking.heightAdjustedTemperature(0.5f, 81, 63)).isEqualTo(0.5f - 9 * (0.05f / 40.0f));
+        // A TFC biome (0.5) rains on the client up to y 352 at sea level 63, above any default build height.
+        assertThat(RainDrinking.heightAdjustedTemperature(0.5f, 352, 63)).isGreaterThanOrEqualTo(0.15f);
+        assertThat(RainDrinking.heightAdjustedTemperature(0.5f, 353, 63)).isLessThan(0.15f);
     }
 
     @Test

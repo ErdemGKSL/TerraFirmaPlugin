@@ -1,4 +1,36 @@
-# PAR-SURV-04: Thirst completion: verdict: pass
+# PAR-SURV-04: Thirst completion: verdict: pass (repair round)
+
+## Repair round (after the independent REJECT of `4e6e960`)
+
+The independent check (plan steps, no `tfp time set`) saw rain on screen while looking up and thirst stayed 5.0. The
+first pass gated rain drinking on the TFC ambient temperature (above 0 C), but the vanilla client draws the vanilla storm
+through the biome it is sent, whatever the TFC climate says; the first pass only worked because it was set up at a warm
+spot (5.0 C). The repair gates on the rain the client draws (storm, open sky, the client's biome precipitation and
+temperature; ledger row "raining at"), and `/tfp debug rain [name]` prints every gate.
+
+- Server: Paper 1.21.11, `TFP_WORLD=1`, priming start, world deleted, second start; jar from `:dist:shadowJar` of the repair
+  tree. Client: vanilla 1.21.11, Xvfb 1280x720, GUI scale 2. Calendar at its default (June 1, 1000), no time set.
+- Steps (RCON): `difficulty normal`, `gamemode survival Bot`, `forceload add -16 -16 16 16`, stone floor at y 99 with air
+  above, `tp Bot 0 100 0 0 30`, `tfp debug thirst Bot 5`, `weather rain`, `tp Bot 0 100 0 0 -85`, `tfp debug rain Bot`, then
+  `tfp debug player Bot` every 2 s.
+
+| case | gates (`tfp debug rain Bot`) | thirst over time | verdict |
+|---|---|---|---|
+| spawn (0, 100, 0), TFC ambient 8.0 C | pitch -85.0, storm true, open to sky true, client biome seasonal variant (precipitation true, 0.464), drinks rain true | 5.0, 13.3 (2 s), 21.7, 30.0, 38.3 (8 s), 46.7 (10 s) | pass |
+| cold place (0, 200, -9000), TFC ambient -19.8 C: the case the first pass got wrong (the old gate said snow while the client drew rain) | same gates, client biome 0.339 at y 201, drinks rain true | 5.0, 13.3 (2 s), 21.7, 30.0, 34.2 (8 s; one reading fell outside the window) | pass |
+
+`lastDrinkTick` stays `never` while drinking rain, as in TFC: `onPlayerTick` calls `addThirst`, which does not touch the
+drink cooldown (only `onDrink` does). Not a failure.
+
+| file | content |
+|---|---|
+| `repair-rain-t0.png`, `repair-rain-t10.png` | looking up in the rain at spawn, thirst 5 then about 47 (blue bar, top right) |
+| `repair-cold-t0.png`, `repair-cold-t8.png` | the cold place: the HUD reads -19.8 C, the client draws rain, thirst rises |
+
+Salt water was not exercised in game (unit and MockBukkit coverage only); its steps are in the plan's `in_game_steps` for
+the next capture.
+
+## First pass (superseded for rain drinking)
 
 - Date: 2026-11-06. Tree `820c7b9` plus this item's change, jar from `:dist:shadowJar` with the shared generated content
   (`tools/worktree/share-build.sh`).

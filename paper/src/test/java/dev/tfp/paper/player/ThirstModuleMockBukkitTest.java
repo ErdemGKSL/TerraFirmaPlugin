@@ -16,6 +16,7 @@ import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.scheduler.ServerScheduler;
 import dev.tfp.paper.testing.MockServerTest;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,6 +50,8 @@ class ThirstModuleMockBukkitTest extends MockServerTest {
     PlayerMock alex;
     HudSnapshotCache hud;
     ThirstModule module;
+    /** What the client renders at the player (MockBukkit implements no biome temperature or downfall). */
+    final ThirstModule.ClientBiome[] biome = {new ThirstModule.ClientBiome(true, 0.8f, "test plains")};
 
     @BeforeEach
     void setUpPlayer() {
@@ -63,7 +66,7 @@ class ThirstModuleMockBukkitTest extends MockServerTest {
         module = new ThirstModule(store, () -> now[0], hud, new ServerScheduler(plugin, 1), (p, amount) -> {
             hits[0]++;
             p.damage(amount);
-        });
+        }, p -> biome[0]);
         server.getPluginManager().registerEvents(module, plugin);
     }
 
@@ -253,8 +256,48 @@ class ThirstModuleMockBukkitTest extends MockServerTest {
         assertThat(thirst()).as("no rain").isEqualTo(50f);
 
         alex.getWorld().setStorm(true);
-        temperature(-5);
+        biome[0] = new ThirstModule.ClientBiome(true, 0.1f, "test snowy");
         module.read(alex, false);
-        assertThat(thirst()).as("snow").isEqualTo(50f);
+        assertThat(thirst()).as("the client draws snow").isEqualTo(50f);
+
+        biome[0] = new ThirstModule.ClientBiome(false, 2.0f, "test desert");
+        module.read(alex, false);
+        assertThat(thirst()).as("the client draws no rain").isEqualTo(50f);
+    }
+
+    /**
+     * The in-game failure of the first PAR-SURV-04 pass: a storm the client draws as rain, the player looking up under
+     * open sky, and a TFC ambient temperature at or below 0 C (or no reading yet). The gate follows the client's rain.
+     */
+    @Test
+    void visibleRainDrinksWhateverTheTfcAmbientTemperatureSays() {
+        alex.getWorld().setStorm(true);
+        Location up = alex.getLocation().clone();
+        up.setY(alex.getWorld().getHighestBlockYAt(up) + 1);
+        up.setPitch(-85f);
+        alex.teleport(up);
+        biome[0] = ThirstModule.seasonalVariant(up.getBlockY() + 1, 63);
+        for (double ambient : new double[] {-12.0, 0.0, Double.NaN}) {
+            temperature(ambient);
+            thirst(5f);
+            ThirstModule.RainGates gates = module.rainGates(alex);
+            assertThat(gates.drinks()).as("gate at ambient " + ambient).isTrue();
+            module.read(alex, false);
+            assertThat(thirst()).as("ambient " + ambient).isCloseTo(5f + 20 * (float) (5d / 24d), within(1e-3f));
+        }
+        List<String> lines = ThirstModule.describe(module.rainGates(alex), Double.NaN);
+        assertThat(lines).anySatisfy(l -> assertThat(l).startsWith("pitch -85.0 (looks up: true"));
+        assertThat(lines).contains("storm: true", "open to sky: true", "drinks rain: true");
+        assertThat(lines).anySatisfy(l -> assertThat(l).contains("seasonal variant").contains("precipitation true"));
+    }
+
+    @Test
+    void theSeasonalVariantRainsAtEveryBuildHeight() {
+        for (int y = -64; y < 320; y++) {
+            ThirstModule.ClientBiome b = ThirstModule.seasonalVariant(y, 63);
+            assertThat(b.hasPrecipitation()).isTrue();
+            assertThat(b.temperature()).as("y " + y)
+                    .isGreaterThanOrEqualTo(dev.tfp.core.thirst.RainDrinking.RAIN_MIN_TEMPERATURE);
+        }
     }
 }

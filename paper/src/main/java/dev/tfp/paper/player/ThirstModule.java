@@ -18,23 +18,35 @@ import dev.tfp.core.thirst.ThirstConfig;
 import dev.tfp.core.thirst.ThirstEffect;
 import dev.tfp.core.thirst.ThirstStage;
 import dev.tfp.core.thirst.ThirstState;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import dev.tfp.paper.boot.TfpCommands.Reply;
 import dev.tfp.paper.integration.HudSnapshotCache;
+import dev.tfp.paper.module.DebugTree;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.scheduler.Scheduler;
+import dev.tfp.paper.packet.SeasonalBiomeHandler;
 import dev.tfp.paper.scheduler.ThreadAsserts;
+import dev.tfp.paper.worldgen.TfcChunkGenerator;
+import io.papermc.paper.command.brigadier.Commands;
 import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BooleanSupplier;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Difficulty;
 import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Player;
@@ -52,8 +64,9 @@ import org.bukkit.potion.PotionEffectType;
  *   <li>evaluates the lazy thirst clock ({@link GameModeNeeds#evaluate}) when anything below needs the current value;</li>
  *   <li>drains the {@code tfp:thirst} effect for the {@value #PERIOD_TICKS} ticks since the last reading
  *       ({@link ThirstEffect#advance}, TFC {@code ThirstEffect.applyEffectTick});</li>
- *   <li>adds {@value #PERIOD_TICKS} ticks of rain drinking when the player looks up in the rain
- *       ({@link RainDrinking}, TFC {@code onPlayerTick}), sampled once per reading;</li>
+ *   <li>adds {@value #PERIOD_TICKS} ticks of rain drinking when the player looks up in the rain the client draws
+ *       ({@link RainDrinking}, TFC {@code onPlayerTick}; the biome the client renders there, see {@link #clientBiome}),
+ *       sampled once per reading;</li>
  *   <li>every {@value #EFFECT_PERIOD_TICKS} ticks (TFC {@code tickCount % 100 == 0}), outside peaceful, applies the
  *       stage's Slowness and Mining Fatigue (160 ticks, no particles, no icon, as TFC) and, at 0 thirst, 1 point of
  *       dehydration damage.</li>
@@ -64,6 +77,9 @@ import org.bukkit.potion.PotionEffectType;
  * <p>Dehydration damage is vanilla {@code minecraft:starve} (no {@code tfp:dehydration} damage type is registered yet),
  * with TFC's death message ({@code death.attack.tfc.dehydration}) put back on the death it causes. The changes are
  * written through {@link PlayerDataStore#update} and the HUD shows them at its next reading (at most one second).
+ *
+ * <p>Debug: {@code /tfp debug rain [name]} prints the rain-drinking gates of a player (pitch, storm, open sky, the
+ * client's biome precipitation and temperature, the TFC ambient value, and the verdict).
  */
 public final class ThirstModule implements FeatureModule, Listener {
     /** One reading per player per second. */
@@ -91,6 +107,16 @@ public final class ThirstModule implements FeatureModule, Listener {
     static final Hurt STARVE = (player, amount) -> player.damage(amount,
             DamageSource.builder(DamageType.STARVE).build());
 
+    /** The biome a vanilla client renders at a position: what decides whether it draws rain or snow there. */
+    record ClientBiome(boolean hasPrecipitation, float temperature, String source) {
+    }
+
+    /** Player thread: the client's biome at the block above the player's feet. */
+    @FunctionalInterface
+    interface ClientSky {
+        ClientBiome at(Player player);
+    }
+
     /** Players being hurt by dehydration right now (the death event fires inside the damage call). */
     private final Set<UUID> dehydrating = ConcurrentHashMap.newKeySet();
 
@@ -100,6 +126,8 @@ public final class ThirstModule implements FeatureModule, Listener {
     private volatile Scheduler scheduler;
     private volatile Scheduler.TaskHandle throttle;
     private volatile Hurt hurt = STARVE;
+    private volatile ClientSky sky = player -> clientBiome(player, false);
+    /** Global thread only (the throttle), so no synchronization. */
     private long runs;
 
     /** For the service file. */
@@ -107,12 +135,14 @@ public final class ThirstModule implements FeatureModule, Listener {
     }
 
     /** With explicit services and no throttle (tests). */
-    ThirstModule(PlayerDataStore data, LongSupplier playerTicks, HudSnapshotCache hud, Scheduler scheduler, Hurt hurt) {
+    ThirstModule(PlayerDataStore data, LongSupplier playerTicks, HudSnapshotCache hud, Scheduler scheduler, Hurt hurt,
+            ClientSky sky) {
         this.data = data;
         this.playerTicks = playerTicks;
         this.hud = hud;
         this.scheduler = scheduler;
         this.hurt = hurt;
+        this.sky = sky;
     }
 
     /**
@@ -135,6 +165,10 @@ public final class ThirstModule implements FeatureModule, Listener {
         hud = context.hudCache();
         scheduler = context.scheduler();
         drinkables = new DrinkablesCache(() -> context.registryService().registries());
+        // The seasonal handler exists only with the packet layer; without it the client sees the server's biomes.
+        boolean seasonal = context.packets().handlers().contains(SeasonalBiomeHandler.NAME);
+        BooleanSupplier remapped = () -> seasonal && context.clock().get().isSet();
+        sky = player -> clientBiome(player, remapped.getAsBoolean());
         context.listen(this);
         Supplier<Collection<? extends Player>> online = () -> context.plugin().getServer().getOnlinePlayers();
         throttle = scheduler.globalRepeating(PERIOD_TICKS, PERIOD_TICKS, () -> {
@@ -170,8 +204,7 @@ public final class ThirstModule implements FeatureModule, Listener {
             return;
         }
         float temperature = (float) hud.snapshot(id).ambientTemperature();
-        boolean rain = RainDrinking.drinks(player.getLocation().getPitch(), player.getWorld().hasStorm(),
-                openToSky(player), temperature);
+        boolean rain = rainGates(player).drinks();
         if (effect.isEmpty() && !rain && !effectsDue) {
             return; // nothing reads or changes the thirst: the HUD reading keeps the clock
         }
@@ -221,6 +254,96 @@ public final class ThirstModule implements FeatureModule, Listener {
                 dehydrating.remove(id);
             }
         }
+    }
+
+    /** The inputs of the rain-drinking decision for one player, as read on the player's thread. */
+    record RainGates(float pitch, boolean storm, boolean openToSky, ClientBiome biome) {
+        boolean drinks() {
+            return RainDrinking.drinks(pitch, storm, openToSky, biome.hasPrecipitation(), biome.temperature());
+        }
+    }
+
+    /** Player thread: the rain-drinking gates now. */
+    RainGates rainGates(Player player) {
+        boolean open = openToSky(player);
+        return new RainGates(player.getLocation().getPitch(), player.getWorld().hasStorm(), open, sky.at(player));
+    }
+
+    /**
+     * Player thread: the biome the client renders at the block above the feet. In a TFC world whose chunks go through the
+     * seasonal biome rewrite (packet layer present, calendar running) the client gets a seasonal variant, which keeps the
+     * TFC biome's climate ({@link RainDrinking#TFC_BIOME_TEMPERATURE}, precipitation); everywhere else it gets the
+     * server's biome, whose height-adjusted temperature the world gives, with "has precipitation" read as a downfall above 0 (the
+     * vanilla overworld biomes without precipitation, desert, badlands and savanna, are exactly those with downfall 0).
+     */
+    static ClientBiome clientBiome(Player player, boolean seasonalRemap) {
+        World world = player.getWorld();
+        Location at = player.getLocation();
+        int y = at.getBlockY() + 1;
+        if (seasonalRemap && world.getEnvironment() == World.Environment.NORMAL
+                && world.getGenerator() instanceof TfcChunkGenerator) {
+            return seasonalVariant(y, world.getSeaLevel());
+        }
+        Block block = world.getBlockAt(at.getBlockX(), y, at.getBlockZ());
+        return new ClientBiome(block.getHumidity() > 0, (float) block.getTemperature(), "server biome");
+    }
+
+    /** The seasonal variant's climate at a height (TFC biome temperature, height-adjusted as vanilla does). */
+    static ClientBiome seasonalVariant(int y, int seaLevel) {
+        float t = RainDrinking.heightAdjustedTemperature(RainDrinking.TFC_BIOME_TEMPERATURE, y, seaLevel);
+        return new ClientBiome(true, t, "seasonal variant");
+    }
+
+    @Override
+    public void debugCommands(DebugTree tree) {
+        tree.add("rain", node -> node
+                .executes(tree.player((player, ctx) -> debugRain(player)))
+                .then(Commands.argument("name", StringArgumentType.word())
+                        .executes(tree.run(ctx -> {
+                            String name = StringArgumentType.getString(ctx, "name");
+                            Player target = Bukkit.getPlayerExact(name);
+                            return target == null
+                                    ? CompletableFuture.completedFuture(Reply.error("command.player_not_found", name))
+                                    : debugRain(target);
+                        }))));
+    }
+
+    /** Any thread: the rain gates of a player, read on the player's thread. */
+    CompletableFuture<Reply> debugRain(Player player) {
+        if (Bukkit.isOwnedByCurrentRegion(player)) {
+            // Paper's main thread (or the player's region): answer at once, so the console and RCON see the reply.
+            return CompletableFuture.completedFuture(rainReply(player));
+        }
+        CompletableFuture<Reply> out = new CompletableFuture<>();
+        scheduler.entity(player, () -> {
+            try {
+                out.complete(rainReply(player));
+            } catch (RuntimeException e) {
+                out.completeExceptionally(e);
+            }
+        }, () -> out.complete(Reply.error("command.player_not_found", player.getName())));
+        return out;
+    }
+
+    /** Player thread: the debug reply of the rain gates. */
+    private Reply rainReply(Player player) {
+        ThreadAsserts.owned(player);
+        return Reply.ok("debug.rain.header", player.getName()).withDetails(describe(rainGates(player),
+                hud.snapshot(player.getUniqueId()).ambientTemperature()));
+    }
+
+    /** The debug lines of a reading. */
+    static List<String> describe(RainGates g, double ambient) {
+        return List.of(
+                String.format(Locale.ROOT, "pitch %.1f (looks up: %s, needs <= %.0f)", g.pitch(),
+                        RainDrinking.looksUp(g.pitch()), RainDrinking.MAX_PITCH),
+                "storm: " + g.storm(),
+                "open to sky: " + g.openToSky(),
+                String.format(Locale.ROOT, "client biome (%s): precipitation %s, temperature %.3f (rain needs >= %.2f)",
+                        g.biome().source(), g.biome().hasPrecipitation(), g.biome().temperature(),
+                        RainDrinking.RAIN_MIN_TEMPERATURE),
+                String.format(Locale.ROOT, "TFC ambient %.1f C (not a rain gate here)", ambient),
+                "drinks rain: " + g.drinks());
     }
 
     /**
