@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 270 items; open 206, done 60, blocked 4; waves 1..56 (wave 0 = already done).
+Totals: 282 items; open 212, done 66, blocked 4; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -161,6 +161,7 @@ Totals: 270 items; open 206, done 60, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-POT-04 | Small vessel: inventory, melting contents into metal, pouring | POTTERY | 24 | open |
 | PAR-TOOL-07 | Shields per metal | TOOL | 24 | open |
 | PAR-WORLD-12 | Plant blocks: all TFC plant shapes as CE blocks in generation | WORLD | 24 | open |
+| PAR-TOOL-11 | Obsidian tools: obsidian axe, hammer, hoe, javelin, knife and shovel with their heads, knapped from obsidian shards | TOOL | 24 | open |
 | PAR-GATHER-02 | Harvest plants, leaves, twigs and fallen leaves by TFC loot tables | GATHER | 25 | open |
 | PAR-POT-05 | Molds: filling from a vessel/crucible, solidifying, breaking out the casting | POTTERY | 25 | open |
 | PAR-WORLD-13 | Remaining plant features: vines, kelp, epiphytes, creeping plants, cacti, algae, atoll corals | WORLD | 25 | open |
@@ -173,10 +174,12 @@ Totals: 270 items; open 206, done 60, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-METAL-01 | Alloy display and fluid alloy glue for vessels and crucibles | METAL | 27 | open |
 | PAR-POT-08 | Drying bricks, mud bricks and thatch blocks | POTTERY | 27 | open |
 | PAR-POT-09 | Bowls and powder bowls (wooden and ceramic bowl blocks) | POTTERY | 27 | open |
+| PAR-CLIM-11 | Climate in worlds without the TFC generator: biome-based climate model for the Nether, the End and vanilla worlds (temperature, rainfall, consumers) | CLIMATE | 27 | open |
 | PAR-FARM-02 | Fertilizers | FARM | 28 | open |
 | PAR-FARM-03 | Crop blocks: all 29 crops in every shape, seeds, dead and wild crops | FARM | 28 | open |
 | PAR-METAL-02 | Fire ingot mold and bell casting; casting crafting | METAL | 28 | open |
 | PAR-METAL-03 | Anvil blocks: rock anvils and metal anvils with items shown on top | METAL | 28 | open |
+| PAR-WORLD-22 | TFC world generator settings as server config (flat bedrock, spawn distance and centre, climate scales, continentalness, grass density); close the spawn-settings and river open gaps | WORLD | 28 | open |
 | PAR-FARM-04 | Crop growth glue: lazy calendar growth, climate checks, death, harvest yields | FARM | 29 | open |
 | PAR-FARM-06 | Stationary berry bushes: lifecycle, picking, propagation | FARM | 29 | open |
 | PAR-METAL-04 | Anvil plan selection GUI | METAL | 29 | open |
@@ -257,18 +260,22 @@ Totals: 270 items; open 206, done 60, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-DECO-12 | Misc blocks: crates, buoys, cakes, golden bamboo, palm mosaic, tree roots, light block | DECO | 48 | open |
 | PAR-METAL-17 | Metal weathering of copper-family blocks | METAL | 48 | open |
 | PAR-METAL-19 | Metal lamps: fuel, light, lit state | METAL | 48 | open |
+| PAR-WORLD-20 | Underground decoration and erosion: cave spikes and columns, calcite, cave vegetation, hanging roots, underground lakes, the erosion pass | WORLD | 48 | open |
 | PAR-DECO-13 | Potted plants and krummholz | DECO | 49 | open |
 | PAR-DECO-14 | Thatch bed: sleeping and spawn setting | DECO | 49 | open |
 | PAR-DECO-15 | Visual budget re-check after all block families | DECO | 49 | open |
 | PAR-MECH-01 | Rotation network blocks: axle, encased axle, gearbox, clutch, creative motor | MECH | 49 | open |
+| PAR-DECO-16 | Fire brick extras and smooth mud bricks: reinforced fire bricks, fire brick shelf, fireproof door, fire clay block | DECO | 49 | open |
 | PAR-MECH-02 | Rotation visuals: spinning axles and gears | MECH | 50 | open |
 | PAR-MECH-05 | Crankshaft and powered bellows | MECH | 50 | open |
 | PAR-MECH-06 | Quern automation | MECH | 50 | open |
 | PAR-MECH-07 | Trip hammer | MECH | 50 | open |
+| PAR-WORLD-21 | Untracked surface features: forest-floor patches, tide pools, guano islands, bamboo, sea stack patches and five volcanic ids | WORLD | 50 | open |
 | PAR-MECH-03 | Water wheel | MECH | 51 | open |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | open |
 | PAR-MECH-08 | Power loom | MECH | 51 | open |
 | PAR-MECH-09 | Pump and pipes | MECH | 51 | open |
+| PAR-DATA-14 | Vanilla rule hooks no item owns: lava + water hardened rocks, one-layer snow and snow on leaves, vines on TFC leaves, tadpoles, intoxicated chat, predators in boats, TFC mob armour, piglin gold, aqueduct and sluice sources, bamboo growth | DATA | 51 | open |
 | PAR-MECH-10 | Bladed axle | MECH | 52 | open |
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | open |
 | PAR-REL-03 | Dependency and version updates (MC, Paper, Folia, CE, BetterModel, BetterHud) | REL | 52 | open |
@@ -277,6 +284,7 @@ Totals: 270 items; open 206, done 60, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-REL-06 | Husbandry run self-test and 200-animal load test | REL | 53 | open |
 | PAR-REL-10 | Art backlog: replace every placeholder texture | REL | 53 | open |
 | PAR-REL-11 | Design docs and skills kept current | REL | 53 | open |
+| PAR-DATA-15 | TFC's ten creative tabs as CraftEngine item browser categories, in TFC's order with TFC's icons and names | DATA | 53 | open |
 | PAR-REL-07 | Performance audit with 50 bots | REL | 54 | open |
 | PAR-REL-08 | Full playthrough and visual QA | REL | 55 | open |
 | PAR-REL-09 | Release packaging | REL | 56 | blocked |

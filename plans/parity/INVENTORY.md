@@ -232,6 +232,14 @@ Status legend: **done** (rules, glue and visuals in game), **partial** (some lay
 | REL | 2D art not in TFC (176 assets in docs/art/image-list.md) | partial | PAR-REL-10 |
 | REL | Docs | partial | PAR-REL-11 |
 | REL | Visual profile pool guard and overlay entity budget (no TFC counterpart) | not started | PAR-REL-12 |
+| WORLD | Underground decoration and erosion (CaveSpikesFeature, LargeCaveSpikesFeature, CaveColumnFeature, ThinSpikeFeature calcite, CaveVegetationFeature, hanging roots, underground flood-fill lakes, ErosionFeature) | not started | PAR-WORLD-20 |
+| WORLD | Surface features in no open-gaps list (forest_plants patches, guano_islands, tide_pool_decorations, sea_stacks_patch, TFCBambooFeature, five volcanic rivulet/spring ids) | not started | PAR-WORLD-21 |
+| WORLD | World generator settings (world/settings/Settings: flat bedrock, spawn distance/centre, climate scales, continentalness, finite continents, grass density) as server config; spawn-settings and river open gaps | partial | PAR-WORLD-22 |
+| TOOL | Obsidian tools (TFCTiers.OBSIDIAN: axe, hammer, hoe, javelin, knife, shovel and heads) | not started | PAR-TOOL-11 |
+| DECO | REINFORCED_FIRE_BRICKS, FIRE_BRICK_SHELF, FIREPROOF_DOOR, FIRE_CLAY_BLOCK, SMOOTH_MUD_BRICKS | not started | PAR-DECO-16 |
+| CLIMATE | BiomeBasedClimateModel, ClimateModels, SelectClimateModelEvent (climate outside the TFC overworld) | not started | PAR-CLIM-11 |
+| DATA | Vanilla rule hooks (onFluidPlaceBlock, SnowLayerBlockMixin, HeightmapMixin, VineBlockMixin, TadpoleMixin, onServerChat, onMount, MobMixin, BarteringItem, onFluidCreateSource, onCropsGrow) | not started | PAR-DATA-14 |
+| DATA | TFCCreativeTabs (10 creative tabs) | impossible-on-vanilla | PAR-DATA-15 |
 
 ## Features already at parity (no open item)
 
@@ -272,6 +280,7 @@ Auditor: `NOT-PARITY.md` is the full list of what stays outside parity (design d
 | Per-frame item heat colour and tooltip refresh | client-side tooltip/item rendering | level resolved when the item packet is sent (glow + tooltip) | PAR-HEAT-01, PAR-HEAT-02 |
 | Custom mob effect icons (thirst, exhausted, overburdened) | client effect registry | vanilla effect carriers + HUD indicators | PAR-DATA-07 |
 | Client config styles (health display, temperature display, food expiry tooltip style, XP bar style) | per-player client config | server-wide config equivalents | PAR-HUD-07, PAR-INFRA-05 |
-| Create TFC world screen (CreateTFCWorldScreen) | client screen | bukkit.yml generator + config | PAR-WORLD-16 |
+| Create TFC world screen (CreateTFCWorldScreen) | client screen | bukkit.yml generator + config | PAR-WORLD-16, PAR-WORLD-22 |
+| Creative mode tabs (TFCCreativeTabs) | client creative inventory | CraftEngine item browser categories in TFC's order | PAR-DATA-15 |
 
-Counts over the item rows: done 4, impossible-on-vanilla 2, not started 64, partial 138, placeholder 11.
+Counts over the item rows: done 4, impossible-on-vanilla 3, not started 70, partial 139, placeholder 11.
