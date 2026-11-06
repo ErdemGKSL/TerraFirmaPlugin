@@ -74,6 +74,19 @@ public record ThirstState(float thirst, long lastTick) {
         return withThirst(thirst + water, config);
     }
 
+    /**
+     * TFC {@code ForgeEventHandler.onPlayerTick}: {@code ticks} ticks of drinking in the rain, each adding
+     * {@code rainGainPerTick}, capped at {@code maxThirst}. The adds are all positive, so one capped add of the sum
+     * equals TFC's per-tick capped adds up to float rounding. A count that is not positive changes nothing.
+     */
+    public ThirstState drinkRain(long ticks, ThirstConfig config) {
+        if (ticks <= 0) {
+            return this;
+        }
+        double gained = (double) ticks * config.rainGainPerTick();
+        return withThirst((float) Math.min(config.maxThirst(), thirst + gained), config);
+    }
+
     /** TFC {@code setThirst}: sets the level, clamped to {@code [0, maxThirst]}. */
     public ThirstState withThirst(float value, ThirstConfig config) {
         return new ThirstState(clamp(value, 0f, config.maxThirst()), lastTick);

@@ -4,7 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/player/PlayerInfo.java @ c3b4d9536 (thirst, temperature)
+ * file: src/main/java/net/dries007/tfc/common/player/PlayerInfo.java @ c3b4d9536 (thirst, temperature),
+ * and src/main/java/net/dries007/tfc/config/ServerConfig.java @ c3b4d9536 (thirstGainedFromDrinkingInTheRain)
  */
 package dev.tfp.core.thirst;
 
@@ -20,10 +21,14 @@ package dev.tfp.core.thirst;
  * @param temperatureOverheating {@code enableThirstOverheating} (true)
  * @param slowedBelow            thirst below this slows the player (20)
  * @param severeBelow            thirst below this slows the player more (10); at 0 or less the player is dehydrated
+ * @param rainGainPerTick        {@code thirstGainedFromDrinkingInTheRain} (5/24, read as a float): thirst gained per tick
+ *                               while looking up in the rain
  */
 public record ThirstConfig(float maxThirst, float thirstModifier, float maxTemperatureDecay, float lowTemperature,
-        float highTemperature, boolean temperatureOverheating, float slowedBelow, float severeBelow) {
-    public static final ThirstConfig DEFAULT = new ThirstConfig(100f, 5f, 0.4f, 22f, 34f, true, 20f, 10f);
+        float highTemperature, boolean temperatureOverheating, float slowedBelow, float severeBelow,
+        float rainGainPerTick) {
+    public static final ThirstConfig DEFAULT = new ThirstConfig(100f, 5f, 0.4f, 22f, 34f, true, 20f, 10f,
+            (float) (5d / 24d));
 
     public ThirstConfig {
         if (!(maxThirst > 0) || Float.isInfinite(maxThirst)) {
@@ -40,6 +45,9 @@ public record ThirstConfig(float maxThirst, float thirstModifier, float maxTempe
         }
         if (!(severeBelow >= 0) || !(slowedBelow >= severeBelow) || slowedBelow > maxThirst) {
             throw new IllegalArgumentException("thresholds must satisfy 0 <= severeBelow <= slowedBelow <= maxThirst");
+        }
+        if (!(rainGainPerTick >= 0) || rainGainPerTick > 100) {
+            throw new IllegalArgumentException("rainGainPerTick must be in [0, 100]: " + rainGainPerTick);
         }
     }
 }

@@ -23,6 +23,11 @@ import org.junit.jupiter.api.Test;
  *   <li>{@code D|start|points|temperature|end}: TFC subtracts per point in float, clamping at 0; compared within 1e-3.</li>
  *   <li>{@code K|thirst|water|mayDrinkWhenFull|new thirst|canDrink}: exact.</li>
  *   <li>{@code S|thirst|stage}: the stage under TFC's thresholds 20 / 10 / 0, exact.</li>
+ *   <li>{@code R|start|ticks|end} (PAR-SURV-04): {@code ticks} ticks of drinking in the rain, TFC adding
+ *       {@code thirstGainedFromDrinkingInTheRain} (5/24 as a float) per tick with {@code setThirst}'s clamp; within
+ *       1e-3.</li>
+ *   <li>{@code E|amplifier|duration|start|end} (PAR-SURV-04): a whole {@code tfc:thirst} effect, vanilla's effect tick
+ *       order with {@code ThirstEffect.shouldApplyEffectTickThisTick} and {@code applyEffectTick}; exact.</li>
  * </ul>
  */
 class ThirstGoldenTest {
@@ -251,6 +256,96 @@ class ThirstGoldenTest {
             S|0.5|SEVERE
             S|0.0|DEHYDRATED
             S|-1.0|DEHYDRATED
+            R|0.0|1|0.20833333
+            R|0.0|20|4.166666
+            R|0.0|24|5.0
+            R|0.0|100|20.833338
+            R|0.0|480|100.0
+            R|0.0|1000|100.0
+            R|10.0|1|10.208333
+            R|10.0|20|14.16666
+            R|10.0|24|14.999992
+            R|10.0|100|30.83337
+            R|10.0|480|100.0
+            R|10.0|1000|100.0
+            R|50.0|1|50.208332
+            R|50.0|20|54.16664
+            R|50.0|24|54.99997
+            R|50.0|100|70.83333
+            R|50.0|480|100.0
+            R|50.0|1000|100.0
+            R|99.0|1|99.208336
+            R|99.0|20|100.0
+            R|99.0|24|100.0
+            R|99.0|100|100.0
+            R|99.0|480|100.0
+            R|99.0|1000|100.0
+            R|99.9|1|100.0
+            R|99.9|20|100.0
+            R|99.9|24|100.0
+            R|99.9|100|100.0
+            R|99.9|480|100.0
+            R|99.9|1000|100.0
+            R|100.0|1|100.0
+            R|100.0|20|100.0
+            R|100.0|24|100.0
+            R|100.0|100|100.0
+            R|100.0|480|100.0
+            R|100.0|1000|100.0
+            E|0|600|100.0|99.76004
+            E|0|600|50.0|49.759995
+            E|0|600|1.0|0.7600002
+            E|0|600|0.06|0.04
+            E|0|600|0.05|0.05
+            E|0|600|0.0|0.0
+            E|1|600|100.0|99.03998
+            E|1|600|50.0|49.039978
+            E|1|600|1.0|0.03999982
+            E|1|600|0.06|0.02
+            E|1|600|0.05|0.05
+            E|1|600|0.0|0.0
+            E|1|80|100.0|99.88
+            E|1|80|50.0|49.879997
+            E|1|80|1.0|0.87999994
+            E|1|80|0.06|0.02
+            E|1|80|0.05|0.05
+            E|1|80|0.0|0.0
+            E|2|100|100.0|99.52002
+            E|2|100|50.0|49.51999
+            E|2|100|1.0|0.52
+            E|2|100|0.06|0.0
+            E|2|100|0.05|0.05
+            E|2|100|0.0|0.0
+            E|5|40|100.0|95.19989
+            E|5|40|50.0|45.200043
+            E|5|40|1.0|0.03999997
+            E|5|40|0.06|0.0
+            E|5|40|0.05|0.05
+            E|5|40|0.0|0.0
+            E|6|30|100.0|95.80002
+            E|6|30|50.0|45.80002
+            E|6|30|1.0|0.02000007
+            E|6|30|0.06|0.0
+            E|6|30|0.05|0.05
+            E|6|30|0.0|0.0
+            E|1|1|100.0|100.0
+            E|1|1|50.0|50.0
+            E|1|1|1.0|1.0
+            E|1|1|0.06|0.06
+            E|1|1|0.05|0.05
+            E|1|1|0.0|0.0
+            E|0|49|100.0|100.0
+            E|0|49|50.0|50.0
+            E|0|49|1.0|1.0
+            E|0|49|0.06|0.06
+            E|0|49|0.05|0.05
+            E|0|49|0.0|0.0
+            E|0|50|100.0|99.98
+            E|0|50|50.0|49.98
+            E|0|50|1.0|0.98
+            E|0|50|0.06|0.04
+            E|0|50|0.05|0.05
+            E|0|50|0.0|0.0
             """;
 
     private static String[] rows(String kind) {
@@ -295,6 +390,48 @@ class ThirstGoldenTest {
             boolean may = Boolean.parseBoolean(f[3]);
             assertThat(s.drink(water, CFG).thirst()).as(row).isEqualTo(Float.parseFloat(f[4]));
             assertThat(s.canDrink(water, may, CFG)).as(row).isEqualTo(Boolean.parseBoolean(f[5]));
+        }
+    }
+
+    @Test
+    void rainDrinkingMatchesTfcPerTickGain() {
+        String[] rows = rows("R");
+        assertThat(rows).hasSize(36);
+        for (String row : rows) {
+            String[] f = row.split("\\|");
+            ThirstState s = new ThirstState(Float.parseFloat(f[1]), 0);
+            assertThat(s.drinkRain(Long.parseLong(f[2]), CFG).thirst()).as(row)
+                    .isCloseTo(Float.parseFloat(f[3]), within(1e-3f));
+        }
+    }
+
+    @Test
+    void thirstEffectDrainMatchesTfcEffectTicks() {
+        String[] rows = rows("E");
+        assertThat(rows).hasSize(54);
+        for (String row : rows) {
+            String[] f = row.split("\\|");
+            int duration = Integer.parseInt(f[2]);
+            ThirstEffect.Drain drain = new ThirstEffect(Integer.parseInt(f[1]), duration)
+                    .advance(Float.parseFloat(f[3]), duration);
+            assertThat(drain.thirst()).as(row).isEqualTo(Float.parseFloat(f[4]));
+            assertThat(drain.left()).as(row).isNull();
+        }
+    }
+
+    @Test
+    void thirstEffectInPiecesEqualsTheWholeEffect() {
+        for (String row : rows("E")) {
+            String[] f = row.split("\\|");
+            int duration = Integer.parseInt(f[2]);
+            ThirstEffect effect = new ThirstEffect(Integer.parseInt(f[1]), duration);
+            float thirst = Float.parseFloat(f[3]);
+            while (effect != null) {
+                ThirstEffect.Drain d = effect.advance(thirst, 20);
+                thirst = d.thirst();
+                effect = d.left();
+            }
+            assertThat(thirst).as(row).isEqualTo(Float.parseFloat(f[4]));
         }
     }
 
