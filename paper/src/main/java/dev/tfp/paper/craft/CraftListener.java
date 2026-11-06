@@ -15,10 +15,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.CrafterCraftEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
@@ -33,15 +35,20 @@ import org.bukkit.inventory.Recipe;
  * recipes that would consume our items or that TFC replaces or removes.
  *
  * <p>The server's own match is kept when it is a CraftEngine (or other plugin) recipe, or a vanilla recipe that TFC keeps
- * and that holds none of our items. Otherwise our runtime decides: the result slot shows our output (or nothing), and a
+ * and that holds none of our items, or whose items of ours are members of the vanilla tag it names (TFC planks in
+ * {@code #minecraft:planks}). Otherwise our runtime decides: the result slot shows our output (or nothing), and a
  * click on it is cancelled and performed here (the server has no recipe for it, so its own take would not consume the
  * grid correctly). Everything runs on the player's thread in the event; nothing touches the world but dropping items.
+ * A crafter block gets the same guard on its own region thread ({@link #onCrafter}).
  */
 public final class CraftListener implements Listener {
     /** The server's namespace: its recipes are the ones TFC replaces or removes. */
     static final String MINECRAFT = NamespacedKey.MINECRAFT;
 
-    /** At most this many crafts per shift-click or control-drop (a full stack of single outputs). */
+    /**
+     * At most this many crafts per shift-click or control-drop (a full stack of single outputs). Vanilla repeats until the
+     * grid runs out or the inventory is full; a grid with more than 64 crafts needs a second shift-click here.
+     */
     static final int MAX_REPEAT = 64;
 
     /**
@@ -82,7 +89,13 @@ public final class CraftListener implements Listener {
         return Arrays.asList(inv.getMatrix());
     }
 
-    /** Who handles {@code grid}, given the server's own match ({@code null} for none). */
+    /**
+     * Who handles {@code grid}, given the server's own match ({@code null} for none).
+     *
+     * <p>A vanilla recipe TFC keeps stands with our items in the grid only when our runtime matches the same recipe by
+     * tag membership ({@link KeptVanillaRecipes}: TFC planks are in {@code #minecraft:planks}); an item accepted only for
+     * its vanilla base material is leakage and is blocked.
+     */
     Decision decide(Recipe server, List<ItemStack> grid, int width) {
         if (server instanceof Keyed keyed) {
             NamespacedKey key = keyed.getKey();
@@ -90,11 +103,16 @@ public final class CraftListener implements Listener {
                 return Decision.SERVER;
             }
             String id = key.toString();
-            boolean replaced = table.disabled(id) || table.hasRecipe(id) || holdsCustomItem(grid);
-            if (!replaced) {
+            boolean overridden = table.disabled(id) || table.hasRecipe(id);
+            if (!overridden && !holdsCustomItem(grid)) {
+                return Decision.SERVER;
+            }
+            Optional<CraftingTable.Match> ours = table.find(grid, width);
+            if (!overridden && ours.isPresent() && ours.get().recipe().id().equals(id)) {
                 return Decision.SERVER;
             }
             blocked.incrementAndGet();
+            return new Decision(false, ours);
         } else if (server != null) {
             return Decision.SERVER;
         }
@@ -121,6 +139,24 @@ public final class CraftListener implements Listener {
         if (!d.keepServer()) {
             inv.setResult(d.match().map(table::preview).filter(s -> !CraftingTable.empty(s)).orElse(null));
         }
+    }
+
+    /**
+     * The vanilla crafter block crafts through the server's recipes, so the same guard applies: leakage and the vanilla
+     * recipes TFC overrides or removes are cancelled. Recipes of our runtime are not crafted by a crafter (the server
+     * fires no event without a match of its own); recorded divergence.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onCrafter(CrafterCraftEvent event) {
+        if (event.getBlock().getState(false) instanceof Container crafter
+                && blocksCrafter(event.getRecipe(), Arrays.asList(crafter.getInventory().getContents()))) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** Whether a crafter holding {@code grid} (its 3x3 slots) must not craft the server's match {@code server}. */
+    boolean blocksCrafter(Recipe server, List<ItemStack> grid) {
+        return !decide(server, grid, 3).keepServer();
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

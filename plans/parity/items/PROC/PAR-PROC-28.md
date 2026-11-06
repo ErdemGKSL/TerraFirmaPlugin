@@ -17,16 +17,21 @@ files_owned:
 ui: true
 in_game_steps:
   - "Survival Bot with a crafting table: craft a sandwich (tfp:crafting/food/*_sandwich_*: knife + bread + fillings) or another recipe needing a knife (e.g. a tfp:crafting/... recipe with c:tools/knife); screenshot the grid with the result, then the knife's durability bar after the craft (GUI scale 2 and 3)"
-  - "Combine two stacks of the same raw food with different creation dates in the 2x2 grid: one stack of the summed count, the older date (tooltip)"
+  - "Combine two stacks of the same raw food with different creation dates in the 2x2 grid (TFC FoodCombiningCraftingRecipe): the result count is the number of non-empty slots (2), one item is taken from each slot, and the result has the older date (tooltip)"
   - "Put one of our items on a vanilla base (e.g. a tfp: item made of paper or stick) into a vanilla recipe's shape (book, ladder): no result"
+  - "Two TFC planks (tfp:wood/planks/*, in #minecraft:planks) stacked vertically: 4 minecraft:stick, as in TFC"
+  - "A crafter block (powered) holding the book/ladder leakage grid of step 3 does not craft; holding the two-planks grid of step 4 it crafts sticks"
 plan:
-  - "Deferred from PAR-PROC-03 (PROTOCOL 6.5): that worker could not start the cheap-model agent for the headless client, the knife needs PAR-PROC-24 (tool items with tfp:mineable rules), and the itest case lives outside its files. The runtime itself is done and tested on MockBukkit and on the shipped data (paper/src/test/java/dev/tfp/paper/craft)."
-  - "Self-test CraftLeakageCase (add to SelfTestSuite): for every vanilla crafting recipe of the running server (Bukkit.recipeIterator), fill a CraftingInventory grid with our CE items whose base material satisfies the recipe's choices and fire the prepare path; assert no minecraft: result survives (CraftListener blocks it) unless a TFC recipe of that grid exists. Also assert the 195 recipes TFC disables give no result on vanilla items."
+  - "Deferred from PAR-PROC-03 (PROTOCOL 6.5): the knife needs PAR-PROC-24 (tool items with tfp:mineable rules; `ce item give` of a metal knife fails with \"Missing tag: 'tfp:mineable/knife' in 'minecraft:block'\"), and the itest case lives outside its files. Once PAR-PROC-24 lands, run every in_game_step at GUI scale 2 and 3. The runtime itself is done and tested on MockBukkit and on the shipped data (paper/src/test/java/dev/tfp/paper/craft)."
+  - "Self-test CraftLeakageCase (add to SelfTestSuite): for every vanilla crafting recipe of the running server (Bukkit.recipeIterator), fill a CraftingInventory grid with our CE items whose base material satisfies the recipe's choices and fire the prepare path; assert no minecraft: result survives (CraftListener blocks it) unless a TFC recipe of that grid exists or the grid's items are members of the vanilla tag a kept recipe names (KeptVanillaRecipes: TFC planks make sticks). Also assert the 195 recipes TFC disables give no result on vanilla items."
 tests:
   - "itest: CraftLeakageCase (leakage over all recipes)"
 done_criteria:
   - "A knife recipe crafts in-game and the knife loses one durability (screenshot, docs/verification/PAR-PROC-03/verdict.md)"
   - "Self-test CraftLeakageCase passes on Paper 1.21.11 with CraftEngine"
+  - "Food combining in-game: two slots give a stack of 2 with the older date (screenshot)"
+  - "In-game leakage: our item in a book/ladder shape gives no result, in the crafting table and in a crafter (screenshot)"
+  - "TFC planks make 4 sticks in the crafting grid (screenshot)"
 ---
 
 # PAR-PROC-28: Advanced crafting in-game verification and self-test: knife/sandwich crafts, vanilla recipe leakage over all recipes

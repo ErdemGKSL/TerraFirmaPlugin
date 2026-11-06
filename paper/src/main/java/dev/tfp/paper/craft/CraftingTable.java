@@ -55,7 +55,8 @@ import org.bukkit.inventory.meta.ItemMeta;
  * {@link CraftListener} applies the {@link Craft}. Runs on the thread that owns the grid (the player's).
  *
  * <p>Lookup: the candidates of every crafting type for the first non-empty slot's item (PAR-INFRA-06 index), in recipe-id
- * order; the first that matches wins (the recorded id-order divergence of the index).
+ * order; the first that matches wins (the recorded id-order divergence of the index). The vanilla recipes TFC keeps that
+ * take TFC items through an extended vanilla tag ({@link KeptVanillaRecipes}) are candidates for every grid.
  */
 public final class CraftingTable {
     /** What a grid matched. */
@@ -156,10 +157,16 @@ public final class CraftingTable {
                 ids.add(e.id());
             }
         }
+        Set<String> disabled = index.registry().disabledRecipes();
+        for (String id : KeptVanillaRecipes.ALL.keySet()) {
+            if (!byId.containsKey(id) && !disabled.contains(id)) {
+                ids.add(id);
+            }
+        }
         List<String> ordered = new ArrayList<>(ids);
         ordered.sort(Comparator.naturalOrder());
         for (String id : ordered) {
-            CraftRecipe recipe = byId.get(id);
+            CraftRecipe recipe = byId.getOrDefault(id, KeptVanillaRecipes.ALL.get(id));
             if (recipe != null) {
                 Optional<Match> m = match(recipe, input, grid, ctx, index);
                 if (m.isPresent()) {
@@ -254,11 +261,15 @@ public final class CraftingTable {
         return false;
     }
 
-    /** TFC {@code Mold.isMolten}: the content is at or above its melt temperature. */
+    /**
+     * TFC {@code Mold.isMolten}: the content is at or above its melt temperature; a fluid with no fluid heat entry uses the
+     * unknown metal's ({@code FluidHeat.getOrUnknown}).
+     */
     private boolean isMolten(ItemStack mold, FluidAmount content) {
-        Optional<Float> melt = CrucibleRules.meltTemperature(content.fluid())
-                .or(() -> CrucibleRules.meltTemperature(content.fluid().replaceFirst("^tfp:", "tfc:")));
-        return melt.isPresent() && heat.temperature(mold) >= melt.get();
+        float melt = CrucibleRules.meltTemperature(content.fluid())
+                .or(() -> CrucibleRules.meltTemperature(content.fluid().replaceFirst("^tfp:", "tfc:")))
+                .orElse(CrucibleRules.UNKNOWN_MELT_TEMPERATURE);
+        return heat.temperature(mold) >= melt;
     }
 
     /** TFC {@code CastingRecipe.get(mold)}: the first casting recipe of the mold item and its fluid. */
@@ -374,6 +385,8 @@ public final class CraftingTable {
         List<ItemStack> grid = m.grid();
         for (int i = 0; i < grid.size(); i++) {
             ItemStack s = grid.get(i);
+            // TFC also runs the provider on empty slots when the primary input is empty (isSameItem(EMPTY, EMPTY));
+            // no shipped recipe has a remainder provider without a primary input, so empty slots are skipped here.
             if (empty(s)) {
                 continue;
             }

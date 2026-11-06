@@ -31,6 +31,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.Damageable;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,13 +88,16 @@ class CraftingTableMockBukkitTest extends MockServerTest {
                         {"type": "minecraft:crafting_shapeless",
                          "ingredients": [{"item": "tfp:dough"}],
                          "result": {"count": 1, "id": "minecraft:bread"}}""")
+                // TFC extends #minecraft:planks with its planks (tfp:plank above is not a member).
+                .file("minecraft/tags/item/planks.json", "{\"values\": [\"tfp:wood/planks/oak\"]}")
                 .load();
         items = new CraftTestData.PdcItems(Map.ofEntries(
                 Map.entry("tfp:log", Material.OAK_LOG), Map.entry("tfp:knife", Material.IRON_SWORD),
                 Map.entry("tfp:plank", Material.OAK_PLANKS), Map.entry("tfp:hardened_clay", Material.TERRACOTTA),
                 Map.entry("tfp:wooden_bucket", Material.BUCKET), Map.entry("tfp:food/beef", Material.BEEF),
                 Map.entry("tfp:ceramic/axe_head_mold", Material.BRICK),
-                Map.entry("tfp:metal/axe_head/copper", Material.IRON_NUGGET), Map.entry("tfp:dough", Material.PAPER)));
+                Map.entry("tfp:metal/axe_head/copper", Material.IRON_NUGGET), Map.entry("tfp:dough", Material.PAPER),
+                Map.entry("tfp:wood/planks/oak", Material.OAK_PLANKS)));
         table = data.table(items, () -> new FoodDefinitions(Map.of("tfp:food/beef", BEEF)), () -> NOW, roll::get);
         table.recipes().extend(ModifierExtensions.Kind.CRAFTING_REMAINDER, CraftModule.fluidContainerRemainder(items));
     }
@@ -260,6 +264,50 @@ class CraftingTableMockBukkitTest extends MockServerTest {
         // No server match: our runtime decides.
         assertThat(listener.decide(null, Arrays.asList(item("tfp:log", 1), item("tfp:knife", 1), null, null), 2)
                 .match().map(m -> m.recipe().id())).contains("tfp:crafting/planks_by_knife");
+    }
+
+    @Test
+    void tfcPlanksStillMakeTheVanillaRecipesTfcKeepsThroughTheTag() {
+        CraftListener listener = new CraftListener(table, items);
+        Recipe stick = new ShapedRecipe(NamespacedKey.minecraft("stick"), new ItemStack(Material.STICK, 4))
+                .shape("#", "#").setIngredient('#', Material.OAK_PLANKS);
+        List<ItemStack> tfc = Arrays.asList(item("tfp:wood/planks/oak", 1), null, item("tfp:wood/planks/oak", 1), null);
+        assertThat(listener.decide(stick, tfc, 2).keepServer()).as("members of #minecraft:planks: the server's stick")
+                .isTrue();
+        // No server match (a base material outside vanilla #planks): our runtime makes the same vanilla recipe.
+        CraftingTable.Match m = listener.decide(null, tfc, 2).match().orElseThrow();
+        assertThat(m.recipe().id()).isEqualTo("minecraft:stick");
+        ItemStack sticks = table.craft(m).output();
+        assertThat(sticks.getType()).isEqualTo(Material.STICK);
+        assertThat(sticks.getAmount()).isEqualTo(4);
+        // Our item on an oak_planks base that is not in #minecraft:planks: leakage, blocked.
+        List<ItemStack> leak = Arrays.asList(item("tfp:plank", 1), null, item("tfp:plank", 1), null);
+        CraftListener.Decision blocked = listener.decide(stick, leak, 2);
+        assertThat(blocked.keepServer()).isFalse();
+        assertThat(blocked.match()).isEmpty();
+        assertThat(listener.decide(null, leak, 2).match()).isEmpty();
+        assertThat(listener.blocked()).isEqualTo(1);
+    }
+
+    @Test
+    void theCrafterBlockGetsTheSameGuard() {
+        CraftListener listener = new CraftListener(table, items);
+        Recipe stick = new ShapedRecipe(NamespacedKey.minecraft("stick"), new ItemStack(Material.STICK, 4))
+                .shape("#", "#").setIngredient('#', Material.OAK_PLANKS);
+        assertThat(listener.blocksCrafter(stick, Arrays.asList(item("tfp:wood/planks/oak", 1), null, null,
+                item("tfp:wood/planks/oak", 1), null, null, null, null, null))).isFalse();
+        assertThat(listener.blocksCrafter(stick, Arrays.asList(new ItemStack(Material.OAK_PLANKS), null, null,
+                new ItemStack(Material.OAK_PLANKS), null, null, null, null, null))).isFalse();
+        assertThat(listener.blocksCrafter(stick, Arrays.asList(item("tfp:plank", 1), null, null, item("tfp:plank", 1),
+                null, null, null, null, null))).as("leakage").isTrue();
+        Recipe bread = new ShapelessRecipe(NamespacedKey.minecraft("bread"), new ItemStack(Material.BREAD))
+                .addIngredient(Material.WHEAT);
+        assertThat(listener.blocksCrafter(bread, Arrays.asList(new ItemStack(Material.WHEAT), null, null, null, null,
+                null, null, null, null))).as("a vanilla recipe TFC overrides").isTrue();
+        Recipe ce = new ShapelessRecipe(new NamespacedKey("tfp", "crafting/thing"), new ItemStack(Material.STICK))
+                .addIngredient(Material.OAK_LOG);
+        assertThat(listener.blocksCrafter(ce, Arrays.asList(item("tfp:log", 1), null, null, null, null, null, null, null,
+                null))).isFalse();
     }
 
     @Test
