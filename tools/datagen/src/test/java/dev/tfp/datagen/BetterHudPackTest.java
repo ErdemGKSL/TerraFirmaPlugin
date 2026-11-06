@@ -10,14 +10,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import dev.tfp.core.calendar.CalendarFormat;
 import dev.tfp.core.calendar.CalendarTicks;
 import dev.tfp.core.calendar.Month;
-import dev.tfp.core.calendar.Season;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** The info plate of {@link BetterHudPack} holds the longest date line (PAR-HUD-13). */
+/** The info plate of {@link BetterHudPack} holds the longest date line (PAR-HUD-13, TFC's season names PAR-HUD-15). */
 class BetterHudPackTest {
     /**
      * Advance widths in GUI pixels of the vanilla bitmap font ({@code assets/minecraft/textures/font/ascii.png} of the
@@ -68,12 +66,10 @@ class BetterHudPackTest {
     }
 
     /**
-     * Every date line the HUD can show with a two-digit day and a four-digit year, with every season name the
-     * {@code tfp_season} placeholder gives today: the 4 {@link Season} enum names ("Fall"). This is our placeholder
-     * text, not TFC's: TFC shows 12 hemisphere-adjusted names (ledger Divergences, follow-up PAR-HUD-15, see
-     * {@link #tfcSeasonNamesNeedTheWiderPlateOfParHud15}). The day is capped at 30, TFC's default month length; TFC
-     * allows any month length of 1 or more, so a configured month of 100 days or more would give a three-digit day
-     * that this check does not cover.
+     * Every date line the HUD can show with a two-digit day and a four-digit year, with TFC's 12 season names
+     * ({@link CalendarFormat#seasonName}) in both hemispheres (PAR-HUD-15: the south shows the opposite month's name).
+     * The day is capped at 30, TFC's default month length; TFC allows any month length of 1 or more, so a configured
+     * month of 100 days or more would give a three-digit day that this check does not cover.
      */
     static List<String> dateLines() {
         int daysInMonth = 30;
@@ -83,9 +79,8 @@ class BetterHudPackTest {
                 for (int day = 1; day <= daysInMonth; day++) {
                     long ticks = CalendarTicks.of(year, m, day, 12, 0, daysInMonth);
                     String date = CalendarFormat.date(ticks, daysInMonth);
-                    for (Season s : Season.values()) {
-                        String season = s.name().charAt(0) + s.name().substring(1).toLowerCase(Locale.ROOT);
-                        lines.add(date + "  (" + season + ")");
+                    for (boolean north : new boolean[] {true, false}) {
+                        lines.add(date + "  (" + CalendarFormat.seasonName(ticks, daysInMonth, north) + ")");
                     }
                 }
             }
@@ -98,8 +93,8 @@ class BetterHudPackTest {
         assertThat(BetterHudPack.LAYOUTS).contains("pattern: \"[tfp_date]  ([tfp_season])\"");
         long ticks = CalendarTicks.of(1000, Month.SEPTEMBER, 30, 12, 0, 30);
         assertThat(CalendarFormat.date(ticks, 30)).isEqualTo("September 30, 1000");
-        // Our placeholder text, not TFC's: TFC shows "Early Autumn" here (ledger Divergences, PAR-HUD-15).
-        assertThat(CalendarFormat.season(ticks, 30)).isEqualTo("Fall");
+        assertThat(CalendarFormat.seasonName(ticks, 30, true)).isEqualTo("Early Autumn");
+        assertThat(CalendarFormat.seasonName(ticks, 30, false)).isEqualTo("Early Spring");
     }
 
     @Test
@@ -111,7 +106,7 @@ class BetterHudPackTest {
     @Test
     void plateIsAtLeastAsWideAsTheLongestDateLinePlusInsetShadowAndMargin() {
         int longest = dateLines().stream().mapToInt(BetterHudPackTest::width).max().orElseThrow();
-        assertThat(longest).isEqualTo(width("September 30, 1000  (Summer)")).isEqualTo(150);
+        assertThat(longest).isEqualTo(width("September 30, 1000  (Early Autumn)")).isEqualTo(179);
 
         Map<String, Object> layouts = new org.yaml.snakeyaml.Yaml().load(BetterHudPack.LAYOUTS);
         int textX = (Integer) at(layouts, "tfp_date", "texts", "1", "x");
@@ -120,7 +115,7 @@ class BetterHudPackTest {
         BufferedImage img = HudArt.image(PLATE);
 
         assertThat(inset).isEqualTo(5);
-        assertThat(img.getWidth()).isGreaterThanOrEqualTo(inset + longest + SHADOW + MARGIN);
+        assertThat(img.getWidth()).isGreaterThanOrEqualTo(inset + longest + SHADOW + MARGIN).isGreaterThanOrEqualTo(189);
         assertThat(img.getHeight()).isEqualTo(22);
     }
 
@@ -132,30 +127,17 @@ class BetterHudPackTest {
     static final List<String> TFC_SEASON = List.of("Winter", "Late Winter", "Early Spring", "Spring", "Late Spring",
         "Early Summer", "Summer", "Late Summer", "Early Autumn", "Autumn", "Late Autumn", "Early Winter");
 
-    /**
-     * Soft expectation for follow-up PAR-HUD-15, not a check of the current plate. With TFC's 12 names in either
-     * hemisphere the longest line is "September 30, 1000  (Early Autumn)" at 179 px, so the plate must grow to at least
-     * 5 + 179 + 1 + 4 = 189 px once the season is faithful; any name with any date ("September 30, 1000  (Early
-     * Summer)", a pair that never occurs) is 181 px, or 191 px of plate.
-     */
+    /** PAR-HUD-15: the measured lines use TFC's names, and the 189 px plate covers the longest of them in either hemisphere. */
     @Test
-    void tfcSeasonNamesNeedTheWiderPlateOfParHud15() {
-        int daysInMonth = 30;
-        int longest = 0;
-        for (long year : List.of((long) CalendarTicks.FIRST_YEAR, 9999L)) {
-            for (Month m : Month.values()) {
-                for (int day = 1; day <= daysInMonth; day++) {
-                    String date = CalendarFormat.date(CalendarTicks.of(year, m, day, 12, 0, daysInMonth), daysInMonth);
-                    for (int hemisphereShift : new int[] {0, 6}) {
-                        String season = TFC_SEASON.get((m.ordinal() + hemisphereShift) % 12);
-                        longest = Math.max(longest, width(date + "  (" + season + ")"));
-                    }
-                }
-            }
-        }
-        assertThat(longest).isEqualTo(width("September 30, 1000  (Early Autumn)")).isEqualTo(179);
+    void dateLinesUseTfcSeasonNamesInBothHemispheres() {
+        assertThat(CalendarFormat.SEASON_NAMES).isEqualTo(TFC_SEASON);
+        List<String> lines = dateLines();
+        assertThat(lines).contains("September 30, 1000  (Early Autumn)", "September 30, 1000  (Early Spring)",
+            "March 30, 1000  (Early Autumn)");
+        assertThat(lines).noneMatch(l -> l.endsWith("(Fall)"));
+        // Any name with any date ("September 30, 1000  (Early Summer)", a pair that never occurs) would be 181 px.
         assertThat(width("September 30, 1000  (Early Summer)")).isEqualTo(181);
-        assertThat(5 + longest + SHADOW + MARGIN).isEqualTo(189);
+        assertThat(5 + 179 + SHADOW + MARGIN).isEqualTo(189);
     }
 
     /** BetterHud trims fully transparent columns; the plate keeps its width only while both edge columns are opaque. */

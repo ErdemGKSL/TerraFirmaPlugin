@@ -20,3 +20,12 @@ plate = text inset 5 + 150 + shadow 1 + margin 4, `BetterHudPackTest`):
     python3 tools/images/hud_palette.py docs/art/hud/m2_cal_02_info_plate.png tools/datagen/src/main/resources/dev/tfp/datagen/hud/m2_cal_02_info_plate.png
 
 Status: in-game checked (docs/verification/PAR-HUD-13/).
+
+PAR-HUD-15 (2026-11-06): widened to 189x22 from the same raw, for TFC's 12 season names in either hemisphere (longest
+line "September 30, 1000  (Early Autumn)" = 179 GUI px; plate = inset 5 + 179 + shadow 1 + margin 4, `BetterHudPackTest`):
+
+    python3 tools/images/postprocess.py art/raw/hud-info-plate/v2/100747-simple-clean-flat-rectangular-informatio-1.png docs/art/hud/m2_cal_02_info_plate.png --size 189x22 --trim --trim-alpha 128 --colors 6 --resample nearest
+    python3 tools/images/hud_palette.py docs/art/hud/m2_cal_02_info_plate.png tools/datagen/src/main/resources/dev/tfp/datagen/hud/m2_cal_02_info_plate.png
+
+Checked by eye at 6x (1 px black outline, 1 px grey border, plain inside, both edge columns opaque). In-game check:
+PAR-HUD-16.

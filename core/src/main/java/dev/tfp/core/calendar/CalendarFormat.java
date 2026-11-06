@@ -5,8 +5,12 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/commands/TimeCommand.java @ c3b4d9536
+ * (season names: src/main/resources/assets/tfc/lang/en_us.json, src/main/java/net/dries007/tfc/util/calendar/Month.java
+ * and ICalendar.java @ c3b4d9536)
  */
 package dev.tfp.core.calendar;
+
+import java.util.List;
 
 /**
  * Plain English text for the calendar, for the HUD placeholders and the {@code /tfp time} replies. Presentation only:
@@ -31,7 +35,32 @@ public final class CalendarFormat {
             CalendarTicks.hourOfDay(calendarTicks), CalendarTicks.minuteOfHour(calendarTicks));
     }
 
-    /** {@code "Summer"}. */
+    /**
+     * TFC's 12 season names, {@code Month.Style.SEASON} ({@code tfc.enum.season.<month>} in TFC's en_us.json), indexed by
+     * {@link Month#ordinal()} of the hemisphere-adjusted month.
+     */
+    public static final List<String> SEASON_NAMES = List.of("Winter", "Late Winter", "Early Spring", "Spring",
+        "Late Spring", "Early Summer", "Summer", "Late Summer", "Early Autumn", "Autumn", "Late Autumn", "Early Winter");
+
+    /**
+     * The season TFC shows ({@code CalendarScreen}: {@code getHemispheralCalendarMonthOfYear(north)} in
+     * {@code Month.Style.SEASON}): the month's season name, of the opposite month in the southern hemisphere.
+     * {@code "Early Autumn"} for September in the north, {@code "Early Spring"} in the south.
+     */
+    public static String seasonName(long calendarTicks, int daysInMonth, boolean northernHemisphere) {
+        return seasonName(CalendarTicks.month(calendarTicks, daysInMonth), northernHemisphere);
+    }
+
+    /** {@link #seasonName(long, int, boolean)} of a calendar month. */
+    public static String seasonName(Month month, boolean northernHemisphere) {
+        Month m = northernHemisphere ? month : month.opposite();
+        return SEASON_NAMES.get(m.ordinal());
+    }
+
+    /**
+     * The 4-value {@link Season} of the (northern) month in title case, {@code "Summer"}. TFC has no lang entry for its
+     * {@code Season} enum and never shows it; the HUD uses {@link #seasonName(long, int, boolean)}.
+     */
     public static String season(long calendarTicks, int daysInMonth) {
         return title(CalendarTicks.month(calendarTicks, daysInMonth).season().name());
     }
