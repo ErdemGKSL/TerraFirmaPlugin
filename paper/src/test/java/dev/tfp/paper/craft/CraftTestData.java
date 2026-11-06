@@ -72,7 +72,7 @@ final class CraftTestData {
     /** The table over this data: custom items {@code items}, food definitions {@code foods}, tick {@code now}. */
     CraftingTable table(CustomItems items, Supplier<FoodDefinitions> foods, LongSupplier now, DoubleSupplier random) {
         TagRules rules = TagRules.load(root);
-        Tags tags = new Tags(registries, items, new FakeCustomBlocks(), ServerTags.NONE, rules, () -> rules, Runnable::run,
+        Tags tags = new Tags(registries, items, new FakeCustomBlocks(), SERVER_TAGS, rules, () -> rules, Runnable::run,
                 err -> {
                     throw new AssertionError(err);
                 });
@@ -87,9 +87,13 @@ final class CraftTestData {
         return new CraftingTable(recipes, food, foods, heat, random);
     }
 
+    /** The server's own tags the tests rely on: vanilla oak planks are in {@code #minecraft:planks}. */
+    static final ServerTags SERVER_TAGS = (type, tag, id) -> type == TagType.ITEM && tag.equals("minecraft:planks")
+            && id.equals("minecraft:oak_planks");
+
     static Map<TagType, Collection<String>> vanilla() {
         return Map.of(TagType.ITEM, List.of("minecraft:stick", "minecraft:bread", "minecraft:iron_ingot",
-                "minecraft:paper", "minecraft:bucket", "minecraft:water_bucket"),
+                "minecraft:paper", "minecraft:bucket", "minecraft:water_bucket", "minecraft:oak_planks"),
                 TagType.FLUID, List.of("minecraft:water", "minecraft:lava"));
     }
 

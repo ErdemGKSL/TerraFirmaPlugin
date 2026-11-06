@@ -7,6 +7,7 @@ package dev.tfp.paper.craft;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.tfp.core.crucible.CrucibleRules;
 import dev.tfp.core.food.FoodConfig;
 import dev.tfp.core.food.FoodDefinitions;
 import dev.tfp.core.food.FoodState;
@@ -82,6 +83,11 @@ class CraftingTableMockBukkitTest extends MockServerTest {
                 .recipe("casting/copper_axe_head", """
                         {"type": "tfp:casting", "mold": {"item": "tfp:ceramic/axe_head_mold"},
                          "fluid": {"amount": 100, "fluid": "tfp:metal/copper"},
+                         "result": {"count": 1, "id": "tfp:metal/axe_head/copper"}, "break_chance": 0.3}""")
+                // A fluid with no fluid heat entry: TFC's FluidHeat.getOrUnknown gives the unknown metal's melt point.
+                .recipe("casting/mystery_axe_head", """
+                        {"type": "tfp:casting", "mold": {"item": "tfp:ceramic/axe_head_mold"},
+                         "fluid": {"amount": 100, "fluid": "tfp:mystery_fluid"},
                          "result": {"count": 1, "id": "tfp:metal/axe_head/copper"}, "break_chance": 0.3}""")
                 // A TFC override of a vanilla recipe, kept under its minecraft: id.
                 .file("minecraft/recipe/bread.json", """
@@ -236,6 +242,24 @@ class CraftingTableMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void aFluidWithoutHeatDataIsMoltenAtTheUnknownMetalsMeltTemperature() {
+        assertThat(CrucibleRules.meltTemperature("tfp:mystery_fluid")).isEmpty();
+        float melt = CrucibleRules.UNKNOWN_MELT_TEMPERATURE;
+        ItemStack below = item("tfp:ceramic/axe_head_mold", 1);
+        FluidPdc.write(below, new FluidAmount("tfp:mystery_fluid", 100));
+        HeatPdc.write(below, new HeatState(melt - 1f, NOW));
+        CraftingTable.Match m = table.find(Arrays.asList(below, null, null, null), 2).orElseThrow();
+        assertThat(m.recipe().id()).isEqualTo("tfp:crafting/casting");
+        ItemStack at = below.clone();
+        HeatPdc.write(at, new HeatState(melt, NOW));
+        assertThat(table.find(Arrays.asList(at, null, null, null), 2)).as("molten at the melt temperature (>=)")
+                .isEmpty();
+        ItemStack above = below.clone();
+        HeatPdc.write(above, new HeatState(melt + 50f, NOW));
+        assertThat(table.find(Arrays.asList(above, null, null, null), 2)).as("molten above it").isEmpty();
+    }
+
+    @Test
     void theGuardReplacesVanillaRecipesThatTfcOverridesRemovesOrThatHoldOurItems() {
         CraftListener listener = new CraftListener(table, items);
         Recipe bread = new ShapelessRecipe(NamespacedKey.minecraft("bread"), new ItemStack(Material.BREAD))
@@ -280,6 +304,11 @@ class CraftingTableMockBukkitTest extends MockServerTest {
         ItemStack sticks = table.craft(m).output();
         assertThat(sticks.getType()).isEqualTo(Material.STICK);
         assertThat(sticks.getAmount()).isEqualTo(4);
+        // A vanilla oak plank (a server member of #minecraft:planks) mixed with a TFC plank: still sticks, as in TFC.
+        List<ItemStack> mixed = Arrays.asList(new ItemStack(Material.OAK_PLANKS), null, item("tfp:wood/planks/oak", 1),
+                null);
+        assertThat(listener.decide(stick, mixed, 2).keepServer()).isTrue();
+        assertThat(listener.decide(null, mixed, 2).match().map(x -> x.recipe().id())).contains("minecraft:stick");
         // Our item on an oak_planks base that is not in #minecraft:planks: leakage, blocked.
         List<ItemStack> leak = Arrays.asList(item("tfp:plank", 1), null, item("tfp:plank", 1), null);
         CraftListener.Decision blocked = listener.decide(stick, leak, 2);

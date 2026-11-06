@@ -20,9 +20,11 @@ import java.util.stream.Collectors;
  * {@code #minecraft:planks}, so two TFC planks make four sticks. The server matches them only by the vanilla base material
  * of our items, so our runtime matches them by tag membership instead ({@link CraftingTable#find}).
  *
- * <p>The list is every {@code minecraft:crafting_*} recipe of the vanilla 1.21.11 data that names {@code #minecraft:planks}
- * (the only extended vanilla tag a kept crafting recipe uses) and that TFC's data does not replace under its
- * {@code minecraft:} id. Each entry restates the vanilla recipe (pattern, key, result) as written in the vanilla data.
+ * <p>The list is every {@code minecraft:crafting_*} recipe of the vanilla 1.21.11 data that TFC's data does not replace
+ * under its {@code minecraft:} id and that names a TFC-extended vanilla tag directly or through a nested tag. All of them
+ * name {@code #minecraft:planks} directly. {@code minecraft:wooden_spear} reaches it through
+ * {@code #minecraft:wooden_tool_materials} and is left out, because TFC removes every wooden tool. Each entry restates the
+ * vanilla recipe (pattern, key, result) as written in the vanilla data.
  */
 final class KeptVanillaRecipes {
     private static final Ingredient PLANKS = new Ingredient.Tag("minecraft:planks");
