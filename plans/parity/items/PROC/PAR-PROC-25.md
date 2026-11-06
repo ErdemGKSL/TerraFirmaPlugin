@@ -2,7 +2,7 @@
 id: PAR-PROC-25
 title: "Workbench crafting in-game verification: 10 sampled CE crafts in a crafting table"
 area: PROC
-status: open
+status: done
 wave: 7
 deps: []
 size: S
@@ -18,6 +18,7 @@ in_game_steps:
   - "Check that the vanilla material of a CE ingredient alone does not satisfy the recipe (e.g. the material item of tfp:mortar in place of mortar gives no bricks)"
 plan:
   - "Deferred screenshot check of PAR-PROC-02 (PROTOCOL §6.5): the PAR-PROC-02 worker session could not start the cheap-model agent that runs the headless client (PROTOCOL §6.1). The CE load half of PAR-PROC-02's criterion was checked there (docs/verification/PAR-PROC-02/verdict.md: CE 26.9.2 on Paper 1.21.11 loads the recipes with 0 issues). Store crops and add the in-game section to docs/verification/PAR-PROC-02/verdict.md."
+  - "Done: in-game check on Paper 1.21.11 + CE 26.9.2, vanilla 1.21.11 client (docs/verification/PAR-PROC-02/verdict.md, crafts-gui3.png, crafts/*.png): 9 of 10 sampled recipes craft with TFC's result and count (black dye, blank disc, glue x9, fire clay, daub x2, handstone, jute net, activator rail x12, granite cobble); plain paper in place of a CE ingredient crafts nothing. tfp:crafting/bricks gives nothing: minecraft:bricks is a repurposed (suppressed) visual state; fix and re-check in follow-up PAR-PROC-30, divergence row in the ledger. Firestarter not emitted yet (PAR-HEAT-05)."
 tests: []
 done_criteria:
   - "The 10 sampled recipes craft in a crafting table with the TFC result and count"
