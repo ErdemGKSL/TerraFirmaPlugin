@@ -25,6 +25,7 @@ in_game_steps:
   - "ce item give Bot tfp:unrefined_paper; ce item give Bot a knife (tfp:metal/knife/copper or tfp:stone/knife/igneous_extrusive; needs PAR-PROC-24); give Bot a log"
   - "place the log; right-click its top face with the unrefined paper: one item goes onto the log and the 1 px surface shows the unrefined paper texture (screenshot, GUI scale 2, look from above and at 35 deg)"
   - "click 16 cells with the knife (aim at each cell centre): each click turns that 4 x 4 px tile into the paper texture (screenshot after 1, 8 and 16 cells; 8x crop of the half-scraped surface); the knife loses 16 durability; break the block: minecraft:paper drops"
+  - "orientation: on a fresh unrefined paper surface scrape only the north-west cell (min x, min z; F3 facing north, the cell at the far left): the tile in that corner of the surface changes, not the opposite one (screenshot from above, north at the top)"
   - "wax: right-click a fresh surface with minecraft:honeycomb, then red dye and blue dye: unscraped tiles red, scraped tiles blue (screenshot); the knife no longer scrapes it"
   - "break the log under a surface: the surface and its display go, the item drops"
   - "relog and restart the server with a half-scraped surface: the display comes back with the same cells"

@@ -44,6 +44,13 @@ import org.bukkit.util.BoundingBox;
 public final class PaperScrapingEffects implements ScrapingEffects {
     /** PDC key on the display entity: {@code "x,y,z"} of the scraping block it draws. */
     public static final NamespacedKey MARKER = new NamespacedKey("tfp", "scraping_surface");
+    /**
+     * Yaw of the display. The vanilla item display renderer turns the item model by pi around Y before drawing it
+     * ({@code ItemDisplayRenderer}); the FIXED billboard turns it by {@code -yaw}, so a yaw of 180 cancels that turn and the
+     * model's x/z (ScrapingArt: cell i at x = column * 4, z = row * 4) lands on world x/z, as TFC's ScrapingBlockModel draws it.
+     * Written as -180, the value an entity's yaw of 180 is wrapped to.
+     */
+    public static final float SURFACE_YAW = -180f;
 
     @Override
     public void damageTool(Player player, EquipmentSlot hand) {
@@ -85,16 +92,21 @@ public final class PaperScrapingEffects implements ScrapingEffects {
         List<ItemDisplay> found = displays(block);
         if (found.isEmpty()) {
             World world = block.getWorld();
-            Location at = new Location(world, block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5);
+            Location at = new Location(world, block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5, SURFACE_YAW, 0f);
             world.spawn(at, ItemDisplay.class, d -> {
                 d.setItemStack(shown);
                 d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                d.setRotation(SURFACE_YAW, 0f);
                 d.setPersistent(true);
                 d.getPersistentDataContainer().set(MARKER, PersistentDataType.STRING, marker(block));
             });
             return;
         }
-        found.getFirst().setItemStack(shown);
+        ItemDisplay kept = found.getFirst();
+        kept.setItemStack(shown);
+        if (kept.getYaw() != SURFACE_YAW || kept.getPitch() != 0f) {
+            kept.setRotation(SURFACE_YAW, 0f);
+        }
         for (int i = 1; i < found.size(); i++) {
             found.get(i).remove();
         }
