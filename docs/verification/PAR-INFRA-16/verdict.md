@@ -37,3 +37,25 @@ thread stall and no Watchdog report in the run (the general `TfpCommands.reply` 
 
 Verdict: **pass** for this item; the falling-ore step is PAR-INFRA-36; the missing shots (rows 7, 8 on 26.3, 13, 14) are
 PAR-INFRA-37.
+
+Recheck 2026-11-06 (second in-game review, REJECT: two death-screen frames, `stats` = `ores 0` after `place`,
+`execute if block -2249 67 3043 minecraft:granite` passed). Reproduced on Paper 1.21.11 with the 1.21.11 client at the
+same cell, console over RCON, jar of 51356d0 plus this change:
+
+- `place -2249 67 3043 tfp:ore/normal_native_gold/granite` into a fresh granite fill replies "Placed ...", and right after
+  it `execute if block ... minecraft:granite` **fails** (the cell is a CraftEngine state). A second `place` on the same cell
+  replies "refused" (CraftEngine does not replace a block with the same state). So the place path works inline from RCON.
+- With no player near, `stats` = `tables 0, ores 0` and `show` = `no table`: tables exist only for chunks sent to a viewer
+  within the overlay radius, so `ores 0` there does not mean the ore is missing. With Bot standing 9 blocks west (creative,
+  outside the box on a stone platform, facing +x): `tables 85, ores 1, exposed faces 0`, `show` = "none (buried)".
+- After opening a tunnel to the ore's west face: `show` = "west (outcrop)", `stats` exposed faces 1, entities 1, and the
+  frame shows the gold specks (`1.21.11-recheck-place-exposed.png`); covering the face with granite: "none (buried)",
+  entities 0, plain granite cube in front (`1.21.11-recheck-place-covered.png`); uncovering brings the specks back.
+
+The reviewer's frames cannot tell which step failed (the place reply was not recorded); `granite` passing after a
+successful place means the cell was granite again, i.e. a `fill`/box build ran after the place, or the place went to
+another cell/world. To make this visible next time the place reply now reads the cell back ("now: <state>") and says
+that tables need a viewer nearby; `stats`/`show` say the same. Recapture recipe for PAR-INFRA-37: build the box first,
+then `place`, record its reply and `show <pos>`, keep Bot outside the box (creative, e.g. 3+ blocks west at the ore's y,
+facing +x) and only then take the buried and exposed frames.
+

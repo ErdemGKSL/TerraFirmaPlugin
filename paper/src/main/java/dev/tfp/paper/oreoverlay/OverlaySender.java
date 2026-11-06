@@ -31,7 +31,10 @@ public interface OverlaySender {
     /** One {@code REMOVE_ENTITIES} with all ids. */
     void remove(UUID viewer, int[] ids);
 
-    /** Swaps the item of a sent overlay (crack stages), keeping its face shade. */
+    /**
+     * Swaps the item of a sent overlay (crack stages), keeping its face shade. Called from any thread (region, Netty,
+     * global tick).
+     */
     void morph(UUID viewer, int entityId, OverlayFace face, String itemModel);
 
     /** Spawns overlays at {@code (x, y, z)} and sets them as the passengers of {@code vehicleId}. */

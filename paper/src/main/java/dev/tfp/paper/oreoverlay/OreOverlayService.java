@@ -678,7 +678,11 @@ public final class OreOverlayService {
         morphBlock(v, world, x, y, z, stage);
     }
 
-    /** Morphs the viewer's overlays of one block to the stage's variant. Caller holds the viewer's lock. */
+    /**
+     * Morphs the viewer's overlays of one block to the stage's variant. Caller holds the viewer's lock. Runs on the
+     * block's region thread (server event), a Netty thread (destruction packet) or the global tick thread (expiry), so
+     * {@link OverlaySender#morph} must not depend on the calling thread.
+     */
     private void morphBlock(Viewer v, UUID world, int x, int y, int z, int stage) {
         OreOverlayTable t = tables.get(new Key(world, OverlayKeys.chunk(x >> 4, z >> 4)));
         int i = t == null ? -1 : t.find(x, y, z);
@@ -695,7 +699,10 @@ public final class OreOverlayService {
         }
     }
 
-    /** Drops the stages no update refreshed for {@link #CRACK_EXPIRY_TICKS}, as the client does. Caller holds the lock. */
+    /**
+     * Drops the stages no update refreshed for {@link #CRACK_EXPIRY_TICKS}, as the client does. Caller holds the lock.
+     * Runs on the global tick thread ({@link #tick}): the morphs it sends go through the thread-agnostic sender.
+     */
     private void expireCracks(Viewer v, UUID world, long now) {
         for (Iterator<Map.Entry<Long, Long>> it = v.cracks.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<Long, Long> e = it.next();

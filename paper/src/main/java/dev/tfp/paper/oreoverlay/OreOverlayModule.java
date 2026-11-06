@@ -218,7 +218,8 @@ public final class OreOverlayModule implements FeatureModule {
         }
         OreOverlayService.Stats st = s.stats(viewer);
         List<String> lines = new ArrayList<>();
-        lines.add("tables " + st.tables() + ", ores " + st.tableOres() + ", exposed faces " + st.tableFaces());
+        lines.add("tables " + st.tables() + " (chunks sent to viewers), ores " + st.tableOres() + ", exposed faces "
+                + st.tableFaces() + " (in those tables)");
         lines.add("builds " + st.builds() + ", avg " + String.format("%.3f", st.builds() == 0 ? 0.0
                 : st.buildNanos() / 1e6 / st.builds()) + " ms, max " + String.format("%.3f", st.maxBuildNanos() / 1e6)
                 + " ms (CPU time per chunk); region-thread copy avg " + String.format("%.3f", st.builds() == 0 ? 0.0
@@ -266,9 +267,16 @@ public final class OreOverlayModule implements FeatureModule {
         CompletableFuture<Reply> out = new CompletableFuture<>();
         Runnable task = () -> {
             try {
-                boolean placed = b.place(world.getBlockAt(x, y, z), state, false);
-                out.complete(placed ? Reply.ok("debug.place.done", stateText.trim(), where)
-                        : Reply.error("debug.place.refused", stateText.trim(), where));
+                org.bukkit.block.Block block = world.getBlockAt(x, y, z);
+                boolean placed = b.place(block, state, false);
+                // Read the cell back, so a console-driven step sees what is there now (a later fill can still overwrite
+                // it) and that stats/show only count ores of chunks already sent to a viewer within the overlay radius.
+                List<String> now = List.of("now: " + b.stateAt(block).map(BlockStateRef::toString)
+                                .orElse("vanilla " + block.getType().getKey()),
+                        "overlay tables exist only for chunks sent to a viewer within the overlay radius: check with "
+                                + "`tfp debug oreoverlay show " + x + " " + y + " " + z + "` while a player is near");
+                out.complete((placed ? Reply.ok("debug.place.done", stateText.trim(), where)
+                        : Reply.error("debug.place.refused", stateText.trim(), where)).withDetails(now));
             } catch (RuntimeException e) {
                 out.completeExceptionally(e);
             }
@@ -292,7 +300,8 @@ public final class OreOverlayModule implements FeatureModule {
         int i = t == null ? -1 : t.find(x, y, z);
         String where = x + " " + y + " " + z;
         if (i < 0) {
-            return Reply.ok("debug.oreoverlay.show", where, t == null ? "no table" : "no ore");
+            return Reply.ok("debug.oreoverlay.show", where, t == null
+                    ? "no table (chunk not sent to a viewer within the overlay radius)" : "no ore");
         }
         List<String> faces = new ArrayList<>();
         for (OverlayFace f : OverlayFace.values()) {

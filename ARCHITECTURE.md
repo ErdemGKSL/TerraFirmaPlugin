@@ -321,16 +321,21 @@ before `absent_minor`" tweak is **off** (decided by `VisualBudgetTest`): with `h
   in flight (ordered), viewers get the difference. A table lives while some viewer has the chunk.
 - Mining: the crack stage is kept per viewer (the stage that viewer's client draws) and swaps the face items to the
   cracked variants `<overlay>/crack_<n>` from stage 0. Two sources: `BlockBreakProgressUpdateEvent` (vanilla progress,
-  `progress = stage / 10f`; covers the breaker, whose client draws its own cracks without a packet) for every viewer, and
+  `progress = Mth.clamp(stage, 0, 10) / 10f`, so an abort's -1 arrives as 0.0f like stage 0 and the abort/break events
+  that follow clear it; covers the breaker, whose client draws its own cracks without a packet) for every viewer, and
   the `BLOCK_DESTRUCTION` packet the viewer receives (CraftEngine runs its own dig progress for custom blocks and sends that
   packet itself, so no event fires: the hand-mining case). Abort, break, a stage outside 0..9, 400 ticks without an update
-  (the vanilla client's expiry) or a patch that finds the cell is no ore any more restore.
+  (the vanilla client's expiry) or a patch that finds the cell is no ore any more restore. One stage per block and viewer
+  (last writer wins; the client keeps one per breaker and draws the highest), see the ledger's crack-overlay divergence.
+  The morphs come from the region thread (event), Netty (packet) and the global tick (expiry): the sender is
+  thread-agnostic.
 - Wiring: `OreOverlayModule` loads `CraftEngineOreSource`, the display sender and the packet handler by class name
   (`Class.forName`), not through the `IntegrationProvider`/ServiceLoader SPI of §Adapter wiring: the SPI's resource files
   and provider interfaces were outside PAR-INFRA-16's files. `paper` still has no compile-time dependency on the adapter
-  (the name is a string, `ArchitectureTest` holds); moving it to an `OreBlockSource` service is a follow-up refactor.
+  (the name is a string, `ArchitectureTest` holds); moving it to an `OreBlockSource` service is PAR-INFRA-39.
 - Debug `place` runs inline when the caller already owns the target region (the console on Paper), so the command's reply
-  wait never blocks the thread its own task needs.
+  wait never blocks the thread its own task needs; its reply reads the cell back. `stats` and `show` count only tables,
+  which exist for chunks sent to a viewer within the overlay radius (no player near: `ores 0`, `no table`).
 - Cell classification: CraftEngine blocks by id from `visuals/ore_overlay/ores.json` and `occluding.json` (unknown ids of
   other packs expose); vanilla blocks by `Material.isOccluding`; network state ids by the client's culling rule (vanilla
   `canOcclude` of the visual state; a CE server-side state maps to its visual and tells the ore).

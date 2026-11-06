@@ -322,6 +322,23 @@ class OreOverlayServiceTest {
     }
 
     @Test
+    void paperAbortSequenceEndsWithThePlainOverlay() {
+        set(5, 10, 5, 0);
+        set(5, 11, 5, ExposureRule.OPEN);
+        service.chunkSent(BOT, 0, 0, new Outbox(BOT));
+        settle(0);
+        // ServerPlayerGameMode ABORT_DESTROY_BLOCK: destroyBlockProgress(-1) fires the progress event, which Paper's
+        // clamp turns into 0.0f (= stage 0), then BlockDamageAbortEvent (OreOverlayListener#onAbort: stage -1)
+        service.crack(WORLD, 5, 10, 5, OreOverlayListener.stage(OreOverlayListenerTest.paperProgress(3)));
+        service.crack(WORLD, 5, 10, 5, OreOverlayListener.stage(OreOverlayListenerTest.paperProgress(-1)));
+        assertThat(service.crackStage(BOT, 5, 10, 5)).as("the clamped abort alone reads as stage 0").isEqualTo(0);
+        service.crack(WORLD, 5, 10, 5, -1);
+        assertThat(service.crackStage(BOT, 5, 10, 5)).isEqualTo(-1);
+        assertThat(sender.morphs).hasSize(3);
+        assertThat(sender.morphs.getLast()).endsWith("tfp:ore_overlay/normal_native_gold");
+    }
+
+    @Test
     void craftEngineDestructionPacketsMorphTheViewerAndExpireLikeTheClient() {
         set(5, 10, 5, 0);
         set(5, 11, 5, ExposureRule.OPEN);

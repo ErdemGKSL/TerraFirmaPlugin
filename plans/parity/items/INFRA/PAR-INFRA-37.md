@@ -15,6 +15,7 @@ files_owned:
 ui: true
 in_game_steps:
   - "Headless Paper 1.21.11 + client 1.21.11, then Paper 26.3 + client 26.3 (docs/testing/headless.md); survival unless noted; ores placed with `tfp debug oreoverlay place <x> <y> <z> <state>` into granite boxes high above spawn"
+  - "Before any frame: build the box first, then `place`; record the place reply (it reads the cell back: `now: tfp:ore/...`) and `tfp debug oreoverlay show <pos>` with Bot near (tables exist only for chunks sent to a viewer, so `stats` reads `ores 0` with nobody near); keep Bot outside the box (creative or on a platform, e.g. 3+ blocks west at the ore's y facing +x) so it cannot suffocate (PAR-INFRA-16 verdict, recheck section)"
   - "Down face: an ore in a ceiling with air below; Bot looks up from below; 8x crop: specks in TFC's orientation on the down face (compare with TFC's normal_native_gold.png)"
   - "Distance set: tp Bot to 16, 32, 48, 64, 96 m from an exposed cliff vein (pitch level, against the sky); no square ring, the spherical cutoff pop is not noticeable at 1080p"
   - "26.3 light: the exposed gold face at midnight (`tfp time set midnight`) and with a torch 2 blocks away; specks lit like the rock next to them"

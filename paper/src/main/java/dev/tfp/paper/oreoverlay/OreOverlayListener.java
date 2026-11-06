@@ -46,8 +46,12 @@ public final class OreOverlayListener implements Listener {
 
     /**
      * The crack stage of a progress value. Paper fires the event from {@code ServerLevel.destroyBlockProgress} with
-     * {@code progress = stage / 10f}, so stage 0 arrives as {@code 0.0f} and must stay stage 0 (the crumbling layer is on
-     * from the first tenth of the dig); an abort sends stage -1 ({@code -0.1f}) and a finished dig 10 ({@code 1.0f}): none.
+     * {@code progress = Mth.clamp(stage, 0, 10) / 10f}, so stage 0 arrives as {@code 0.0f} and must stay stage 0 (the
+     * crumbling layer is on from the first tenth of the dig) and a finished dig (10) as {@code 1.0f}: none. The clamp makes
+     * an abort or finish (-1) arrive as {@code 0.0f} too, the same value as stage 0; other events clear it right after:
+     * ABORT_DESTROY_BLOCK fires {@link BlockDamageAbortEvent} after that progress ({@link #onAbort}), a finished dig fires
+     * {@link BlockBreakEvent} ({@link #onBreak}), and a block that changes on its own is dropped by the patch or the
+     * 400-tick expiry.
      */
     static int stage(float progress) {
         return progress < 0 || progress >= 1 ? -1 : Math.min(9, (int) (progress * 10 + 1e-4f));
