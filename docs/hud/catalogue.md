@@ -24,6 +24,8 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m1-int-04-ph-hunger` | value behind the hunger bar | M1-INT-04 | placeholder | `tfp_hunger` (snapshot) | M1 | needed | Also a listener `tfp_hunger`. Source is the TFC hunger model (M3-SURV-02). |
 | `m3-surv-06-ph-air` | breath left behind the air bar | M3-SURV-06 | placeholder | `tfp_air` (snapshot, vanilla breath 0..300) | M3 | needed | Also a listener `tfp_air` (0..1). Source is `Player.getRemainingAir`. |
 | `m3-surv-06-ph-armor` | armour points behind the armour bar | M3-SURV-06 | placeholder | `tfp_armor` (snapshot, vanilla armour attribute 0..30) | M3 | needed | Also a listener `tfp_armor` (0..1 on vanilla's 20-point scale; TFC's best full set, blue or red steel, is 3+6+8+3 = 20, `TFCArmorMaterials`). Source is `Attribute.ARMOR`. |
+| `par-hud-09-ph-mount-health` | the ridden animal's health behind the mount health bar | PAR-HUD-09 | placeholder | `tfp_mount_health` (mount reading, TFC's x50 scale, 0 when not riding a living entity) | M3 | needed | Also a listener `tfp_mount_health` (0..1). Published from the rider's thread by `MountHudService` (`(health + absorption) x 50`, TFC `renderHealthBar` with modifier 1). |
+| `par-hud-09-ph-mount-max-health` | the ridden animal's max health behind the mount text | PAR-HUD-09 | placeholder | `tfp_mount_max_health` (mount reading, x50, 0 when not riding a living entity) | M3 | needed | The mount bar shows only while it is above 0. |
 | `m1-int-04-ph-held-temp` | held item temperature for the popup | M1-INT-04 | placeholder | `tfp_held_temp` (snapshot, item heat from M3-HEAT-01) | M1 | needed | Popup condition `tfp_held_temp > 0` (betterhud skill). |
 | `m2-cal-02-ph-date` | calendar date text | M2-CAL-02 | placeholder | `tfp_date` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
 | `m2-cal-02-ph-season` | season name | M2-CAL-02 | placeholder | `tfp_season` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
@@ -33,6 +35,7 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m3-surv-06-hunger-bar` | hunger bar | M3-SURV-06 | bar | `tfp_hunger` (listener) | M3 | needed | The BetterHud built-in `food` class only works if the vanilla food level is synced (M3-SURV-02 open item). TFC reference: `IngameOverlays.FOOD`. TFC's 81x5 food sprite recoloured orange (divergence, section 5). |
 | `m3-surv-06-air-bar` | air bar (breath left), plain light-blue fill | M3-SURV-06 | bar | `tfp_air` (listener, 0..1) | M3 | needed | Replaces the vanilla air bubbles (hidden by `m3-surv-06-hide-air`). Compact 81x7 bar directly above thirst, only while `tfp_air < 300`; red fill below 60 (section 5). |
 | `m3-surv-06-armor-bar` | armour bar (armour points), plain steel-grey fill | M3-SURV-06 | bar | `tfp_armor` (listener, 0..1) | M3 | needed | Replaces the vanilla armour row (hidden by `m3-surv-06-hide-armor`). Thin 81x7 bar directly above health with one empty row between, only while `tfp_armor > 0` (section 5). |
+| `par-hud-09-mount-health-bar` | the ridden animal's health bar with its "1100/1100" text | PAR-HUD-09 | bar | `tfp_mount_health`, `tfp_mount_max_health` | M3 | needed | TFC reference: `IngameOverlays.MOUNT_HEALTH` (`renderHealthBar` on the left column, `leftHeight`). The health bar's art and text style. Only while `tfp_mount_max_health > 0`; one empty row above armour (H-59..H-50) or, without armour, above health (H-51..H-42, layout `_low`) (section 5). |
 | `m3-surv-06-held-temp-popup` | held item temperature, shown while above 0 | M3-SURV-06 (via M3-HEAT-01) | popup | `tfp_held_temp` | M3 | needed | Item tooltip line is separate and not HUD. Text `[tfp_held_temp]°C`, whole degrees, black shadow. |
 | `m2-clim-03-ambient-temp-bar` | thermometer bar beside the temperature line, top-left | M2-CLIM-03 | bar | `tfp_ambient_temp` (listener, -20..40 °C) | M2 | needed | Icy blue to hot red; on the info plate (section 5). |
 | `m2-cal-02-info-plate` | stone plate behind the date and temperature lines | M2-CAL-02 | overlay | `tfp_date` (backs the date readout) | M2 | needed | 160x22 at 1,1 (+1 HUD shift, PAR-HUD-13). |
@@ -42,7 +45,7 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m6-mech-01-rotation-readout` | rotation speed readout | M6-MECH-01 | readout | unspecified in plan (rotation network speed, `core/rotation`) | M6 | needed | unspecified in plan. M6-MECH-01 and M6-MECH-02 say "GUI and readout" (`RotationDisplayStyle`, `BlockEntityTooltips`). This may be a tooltip, not a HUD element. Decide. |
 | `m4-pros-01-result-message` | propick scan result | M4-PROS-01 | popup | unspecified in plan (`ProspectResult`, `core/prospect`) | M4 | needed | unspecified in plan. M4-PROS-01 says "result message and the actionbar/chat choice". Action bar, chat or BetterHud popup is not chosen. |
 | `m6-glass-01-step-indicator` | blowpipe step text or progress | M6-GLASS-01 | indicator | unspecified in plan (glassworking state, `GlassState`) | M6 | needed | unspecified in plan. M6-GLASS-01 says "textured GUI or action bar steps". TFC reference: `GlassblowingOverlays` (crosshair text while holding a blowpipe). |
-| `m3-surv-06-hide-hearts` | vanilla hearts row | M3-SURV-06 | hidden-vanilla | transparent `gui/sprites/hud/heart/*.png` (47 files) | M3 | needed | Spike M0-BH-01 `[x]`. The set also hides the vanilla mount-health row (`heart/vehicle_*`). See section 2. |
+| `m3-surv-06-hide-hearts` | vanilla hearts row | M3-SURV-06 | hidden-vanilla | transparent `gui/sprites/hud/heart/*.png` (47 files) | M3 | needed | Spike M0-BH-01 `[x]`. The set also hides the vanilla mount-health row (`heart/vehicle_*`), replaced by `par-hud-09-mount-health-bar`. See section 2. |
 | `m3-surv-06-hide-food` | vanilla food row | M3-SURV-06 | hidden-vanilla | transparent `gui/sprites/hud/food_*.png` (6 files) | M3 | needed | Spike M0-BH-01 `[x]`. |
 | `m3-surv-06-hide-air` | vanilla air bubbles | M3-SURV-06 | hidden-vanilla | transparent `air.png`, `air_bursting.png`, `air_empty.png` | M3 | needed | Spike M0-BH-01 `[x]`. |
 | `m3-surv-06-hide-armor` | vanilla armour row | M3-SURV-06 | hidden-vanilla | transparent `armor_empty.png`, `armor_full.png`, `armor_half.png` | M3 | needed | Replaced by `m3-surv-06-armor-bar`, so nothing duplicates. |
@@ -53,40 +56,40 @@ The plans name four bars to hide (the armour row since the armour bar, 2026-10-2
 
 | vanilla bar | plan item that hides it | sprites to ship as transparent | notes |
 |---|---|---|---|
-| hearts (health row) | M3-SURV-06 "Hide vanilla hearts/food/air"; spike M0-BH-01 | `gui/sprites/hud/heart/*.png`, all 47 in 1.21.11 (incl. `container*`, `vehicle_*`, `*_blinking`, `hardcore_*`) | Also hides the mount-health row (`vehicle_*`). See "not named" below. |
+| hearts (health row) | M3-SURV-06 "Hide vanilla hearts/food/air"; spike M0-BH-01 | `gui/sprites/hud/heart/*.png`, all 47 in 1.21.11 (incl. `container*`, `vehicle_*`, `*_blinking`, `hardcore_*`) | Also hides the mount-health row (`vehicle_*`); the mount health bar (PAR-HUD-09) replaces it. |
 | food (hunger row) | M3-SURV-06; spike M0-BH-01 | `gui/sprites/hud/food_*.png` (6) | |
 | air (bubbles) | M3-SURV-06; spike M0-BH-01 | `gui/sprites/hud/air.png`, `air_bursting.png`, `air_empty.png` | |
 | armour row | M3-SURV-06 armour bar (owner request 2026-10-22) | `gui/sprites/hud/armor_empty.png`, `armor_full.png`, `armor_half.png` | Replaced by the armour bar above health. |
 
 Not named by any plan item (decide in X-HUD-01 or add to M3-SURV-06):
 - **Experience bar and XP level.** No plan item names it. TFC hides the vanilla XP bar under a config switch (`IngameOverlays.EXPERIENCE`). The research report keeps XP.
-- **Mount health and jump meter.** No plan item names them. The heart set hides the mount-health row unless `vehicle_*` is excluded (the report flags this as "decide"). TFC draws its own mount-health row (`IngameOverlays.MOUNT_HEALTH`) and jump bar (`IngameOverlays.JUMP_BAR`).
+- **Jump meter.** No plan item names it. TFC draws its own jump bar (`IngameOverlays.JUMP_BAR`); ours keeps vanilla's on the XP row. (The mount-health row is replaced by `par-hud-09-mount-health-bar`, PAR-HUD-09.)
 
 ## 3. Counts
 
 Method: a Python script (`/tmp/claude-0/-home-user-TerraFirmaPlugin/7076116e-0f7a-5b74-a249-6fd913ce4602/scratchpad/hud_counts.py`, not checked in) reads section 1. It takes each row whose first cell is a backticked id, reads the kind (column 4), the milestone (column 6) and the `unspecified in plan` text in the source and data columns, and counts them. Section 2 rows are not counted.
 
-Total elements: **28**. Of these, 4 are unspecified in plan (rows marked above).
+Total elements: **31**. Of these, 4 are unspecified in plan (rows marked above).
 
 | kind | count | of which unspecified in plan |
 |---|---|---|
-| bar | 6 | 0 |
+| bar | 7 | 0 |
 | overlay | 1 | 0 |
 | readout | 4 | 2 |
 | popup | 2 | 1 |
 | indicator | 1 | 1 |
-| placeholder | 10 | 0 |
+| placeholder | 12 | 0 |
 | hidden-vanilla | 4 | 0 |
-| **total** | **28** | **4** |
+| **total** | **31** | **4** |
 
 | milestone | elements | of which placeholder | of which unspecified in plan |
 |---|---|---|---|
 | M1 | 5 | 5 | 0 |
 | M2 | 7 | 3 | 0 |
-| M3 | 13 | 2 | 1 |
+| M3 | 16 | 4 | 1 |
 | M4 | 1 | 0 | 1 |
 | M6 | 2 | 0 | 2 |
-| **total** | **28** | **10** | **4** |
+| **total** | **31** | **12** | **4** |
 
 ## 4. TFC overlay reference (not counted)
 
@@ -95,7 +98,7 @@ From `src/main/java/net/dries007/tfc/client/` at `c3b4d9536`. `IngameOverlays` i
 | TFC class or enum | what it draws (from the code) | plan coverage |
 |---|---|---|
 | `IngameOverlays.HEALTH` (`renderHealth`) | TFC health row | `m3-surv-06-health-bar` |
-| `IngameOverlays.MOUNT_HEALTH` (`renderMountHealth`) | mount health row while riding | none (section 2) |
+| `IngameOverlays.MOUNT_HEALTH` (`renderMountHealth`) | mount health row while riding | `par-hud-09-mount-health-bar` |
 | `IngameOverlays.FOOD` (`renderFood`) | hunger row | `m3-surv-06-hunger-bar` |
 | `IngameOverlays.THIRST` (`renderThirst`) | thirst row | `m3-surv-06-thirst-bar` |
 | `IngameOverlays.EXPERIENCE` (`renderExperience`) | XP bar replacement, with fishing state | none (section 2) |
@@ -116,6 +119,7 @@ GUI pixels from the bottom-centre (`H` = GUI height) unless noted. Columns are g
 
 | element | canvas | interior (fill mask) | layout x | screen columns | rows | z (layer) | shown |
 |---|---|---|---|---|---|---|---|
+| mount health + "1100/1100" (PAR-HUD-09) | 81x10 (the health art) | x 1..79, y 1..8 | -90 | centre-91 .. centre-11 | H-59 .. H-50 with armour (one empty row, H-49, above armour); H-51 .. H-42 without (layout `tfp_par_hud_09_mount_health_bar_low`, one empty row, H-41, above health) | bg 1, fill 2, text 3 (shadow `FF000000`) | `tfp_mount_max_health > 0` (riding a living entity), plus `tfp_armor > 0` / `<= 0` for the two placements |
 | armour | 81x7 | x 1..79, y 1..5 | -90 | centre-91 .. centre-11 | H-48 .. H-42 (one empty row, H-41, above health) | bg 1, fill 2 | `tfp_armor > 0` (plain steel-grey fill, 0..20 points) |
 | health + "850/850" | 81x10 | x 1..79, y 1..8 | -90 | centre-91 .. centre-11 | H-40 .. H-31 | bg 1, fill 2, text 3 (shadow `FF000000`, black) | always |
 | hunger | 81x7 | x 1..79, y 1..5 | +11 | centre+10 .. centre+90 | H-37 .. H-31 | bg 1, fill 2 | always |

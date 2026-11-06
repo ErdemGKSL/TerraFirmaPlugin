@@ -169,10 +169,35 @@ final class HudLayouts {
      */
     static final int SCREEN_SHIFT_X = -1;
 
+    /** PAR-HUD-09: the ridden animal's health bar (TFC {@code IngameOverlays.MOUNT_HEALTH}). */
+    static final String MOUNT_BAR = "par-hud-09-mount-health-bar";
+    /** The mount bar shows while the player rides a living entity ({@code tfp_mount_max_health} is 0 otherwise). */
+    static final List<Cond> MOUNTED = List.of(new Cond("tfp_mount_max_health", ">", 0));
+
+    /**
+     * A second placement of a bar of the bars HUD: the layout {@code <name>}{@link #LOWERED_SUFFIX} at canvas row
+     * {@code y}, shown while {@code when} holds, while the bar's own layout gets the negation of {@code when}.
+     */
+    record Lowered(int y, Cond when) {
+    }
+
+    static final String LOWERED_SUFFIX = "_low";
+
+    /**
+     * TFC stacks the left column ({@code Gui.leftHeight}): the mount health sits on the next free row above health and
+     * armour. With armour worn the mount bar (81x10, the health art and text) is H-59..H-50, one empty row (H-49) above
+     * the armour bar; without armour it drops to H-51..H-42, one empty row (H-41) above health.
+     */
+    static final Map<String, Lowered> LOWERED = Map.of(
+        MOUNT_BAR, new Lowered(-51, new Cond("tfp_armor", "<=", 0)));
+
     static final Map<String, BarSpec> BAR_SPECS = Map.of(
         "m3-surv-06-health-bar", new BarSpec("m3_surv_06_health_bar", -90, -40, BARS,
             List.of(new Text("[tfp_health]//[tfp_max_health]", 40, 1, "center", HEALTH_TEXT_SHADOW)), List.of(), List.of(), 0),
         "m3-surv-06-armor-bar", new BarSpec("m3_surv_06_armor_bar", -90, -48, BARS, List.of(), ARMORED, List.of(), 0),
+        MOUNT_BAR, new BarSpec("m3_surv_06_health_bar", -90, -59, BARS,
+            List.of(new Text("[tfp_mount_health]//[tfp_mount_max_health]", 40, 1, "center", HEALTH_TEXT_SHADOW)), MOUNTED,
+            List.of(), 0),
         "m3-surv-06-hunger-bar", new BarSpec("m3_surv_06_hunger_bar", 11, -37, BARS, List.of(), List.of(), List.of(), 0),
         "m3-surv-06-thirst-bar", new BarSpec("m3_surv_06_thirst_bar", 11, -45, BARS, List.of(), List.of(), List.of(), 0),
         "m3-surv-06-air-bar", new BarSpec("m3_surv_06_air_bar", 11, -53, BARS, List.of(), UNDERWATER,
@@ -297,54 +322,40 @@ final class HudLayouts {
             }
             String name = name(e.id());
             int split = spec.split() > 0 ? spec.split() : art.interiorWidth();
-            barImages.put(name + "_bg", m("type", "single", "file", artPath(art.bgFile())));
-            putArt(out, art.bgFile());
+            barImages.put(name + "_bg", m("type", "single", "file", artPath(packFile(name, spec, art.bgFile()))));
+            putArt(out, art.bgFile(), packFile(name, spec, art.bgFile()));
             List<String> fills = new ArrayList<>();
             fills.add(art.fillFile());
             spec.variants().forEach(v -> fills.add(art.variantFile(v.name())));
             for (String f : fills) {
-                barImages.put(imageName(f), m("type", "listener", "file", artPath(f), "split", split,
+                String packed = packFile(name, spec, f);
+                barImages.put(imageName(packed), m("type", "listener", "file", artPath(packed), "split", split,
                     "split-type", "left", "setting", m("listener", listener)));
-                putArt(out, f);
+                putArt(out, f, packed);
             }
 
-            Map<String, Object> images = new LinkedHashMap<>();
-            images.put("1", layer(name + "_bg", spec.x(), spec.y() + HudArt.firstOpaqueRow(art.bgFile()), LAYER_BG, List.of(), e, names));
-            List<Cond> plain = new ArrayList<>();
-            for (Variant v : spec.variants()) {
-                plain.add(new Cond(v.when().get(0).value(), negate(v.when().get(0).operation()), v.when().get(0).threshold()));
-            }
-            images.put("2", layer(imageName(art.fillFile()), spec.x(), spec.y() + HudArt.firstOpaqueRow(art.fillFile()),
-                LAYER_FILL, plain.isEmpty() ? List.of() : List.of(plain.get(0)), e, names));
-            Map<String, Object> layout = m("offset", "left", "images", images);
-            for (Variant v : spec.variants()) {
-                String vf = art.variantFile(v.name());
-                Map<String, Object> img = layer(imageName(vf), spec.x(), spec.y() + HudArt.firstOpaqueRow(vf), LAYER_FILL,
-                    v.when(), e, names);
-                images.put(String.valueOf(images.size() + 1), img);
-            }
-            if (!spec.texts().isEmpty()) {
-                Map<String, Object> texts = new LinkedHashMap<>();
-                for (Text t : spec.texts()) {
-                    for (Matcher ph = PLACEHOLDER.matcher(t.pattern()); ph.find(); ) {
-                        requireKnown(e, ph.group(1), names);
-                    }
-                    texts.put(String.valueOf(texts.size() + 1), m("name", FONT, "pattern", t.pattern(),
-                        "placeholder-string-format", m("number", "#"), "align", t.align(),
-                        "x", spec.x() + t.x(), "y", spec.y() + t.y(), "scale", scale(), "outline", t.outline(),
-                        "layer", LAYER_TEXT));
-                }
-                layout.put("texts", texts);
-            }
             boolean info = spec.hud().equals(INFO_HUD);
-            List<Cond> shown = info ? spec.shownWhile() : gated(spec.shownWhile());
-            if (!shown.isEmpty()) {
-                layout.put("conditions", conditions(shown, e, names));
+            Lowered low = LOWERED.get(e.id());
+            List<Cond> own = new ArrayList<>(spec.shownWhile());
+            if (low != null) {
+                own.add(new Cond(low.when().value(), negate(low.when().operation()), low.when().threshold()));
             }
+            Map<String, Object> layout = barLayout(spec, art, name, spec.y(), info ? own : gated(own), e, names);
             (info ? infoLayouts : barLayouts).put(name, layout);
             if (!info) {
                 barHudLayouts.put(String.valueOf(barHudLayouts.size() + 1),
                     m("name", name, "gui", m("x", BARS_GUI_X, "y", BARS_GUI_Y)));
+            }
+            if (low != null) {
+                if (info) {
+                    throw new DatagenException(row(e) + ": only a bar of the bars HUD can have a lowered placement");
+                }
+                List<Cond> lowOwn = new ArrayList<>(spec.shownWhile());
+                lowOwn.add(low.when());
+                String lowName = name + LOWERED_SUFFIX;
+                barLayouts.put(lowName, barLayout(spec, art, name, low.y(), gated(lowOwn), e, names));
+                barHudLayouts.put(String.valueOf(barHudLayouts.size() + 1),
+                    m("name", lowName, "gui", m("x", BARS_GUI_X, "y", BARS_GUI_Y)));
             }
             emitted.merge("bar", 1, Integer::sum);
         }
@@ -493,6 +504,64 @@ final class HudLayouts {
         return new Summary(cat.total(), emitted, leftOut);
     }
 
+    /**
+     * One bar layout at canvas row {@code y}: the bg and fill layers (each y plus its first opaque row), the fill
+     * variants, the texts and the layout's {@code shown} conditions (already gated when the bar is on the bars HUD).
+     */
+    private static Map<String, Object> barLayout(BarSpec spec, HudArt.Bar art, String name, int y, List<Cond> shown,
+                                                 Element e, Set<String> names) {
+        Map<String, Object> images = new LinkedHashMap<>();
+        images.put("1", layer(name + "_bg", spec.x(), y + HudArt.firstOpaqueRow(art.bgFile()), LAYER_BG, List.of(), e, names));
+        List<Cond> plain = new ArrayList<>();
+        for (Variant v : spec.variants()) {
+            plain.add(new Cond(v.when().get(0).value(), negate(v.when().get(0).operation()), v.when().get(0).threshold()));
+        }
+        images.put("2", layer(imageName(packFile(name, spec, art.fillFile())), spec.x(),
+            y + HudArt.firstOpaqueRow(art.fillFile()), LAYER_FILL, plain.isEmpty() ? List.of() : List.of(plain.get(0)), e,
+            names));
+        Map<String, Object> layout = m("offset", "left", "images", images);
+        for (Variant v : spec.variants()) {
+            String vf = art.variantFile(v.name());
+            Map<String, Object> img = layer(imageName(packFile(name, spec, vf)), spec.x(), y + HudArt.firstOpaqueRow(vf),
+                LAYER_FILL, v.when(), e, names);
+            images.put(String.valueOf(images.size() + 1), img);
+        }
+        if (!spec.texts().isEmpty()) {
+            Map<String, Object> texts = new LinkedHashMap<>();
+            for (Text t : spec.texts()) {
+                for (Matcher ph = PLACEHOLDER.matcher(t.pattern()); ph.find(); ) {
+                    requireKnown(e, ph.group(1), names);
+                }
+                texts.put(String.valueOf(texts.size() + 1), m("name", FONT, "pattern", t.pattern(),
+                    "placeholder-string-format", m("number", "#"), "align", t.align(),
+                    "x", spec.x() + t.x(), "y", y + t.y(), "scale", scale(), "outline", t.outline(),
+                    "layer", LAYER_TEXT));
+            }
+            layout.put("texts", texts);
+        }
+        if (!shown.isEmpty()) {
+            layout.put("conditions", conditions(shown, e, names));
+        }
+        return layout;
+    }
+
+    /**
+     * The pack file name of an art file of {@code spec} for the bar {@code name}: the art's own name when the bar owns
+     * the art (its BetterHud name is {@code tfp_} + the art name), else a copy named after the bar (the mount bar reuses
+     * the health art). BetterHud keys textures by file name (first wins, silently) and a listener belongs to its image,
+     * so a bar that borrows art gets its own files and image ids.
+     */
+    static String packFile(String name, BarSpec spec, String file) {
+        String base = name.substring(PREFIX.length());
+        if (base.equals(spec.art())) {
+            return file;
+        }
+        if (!file.startsWith(spec.art())) {
+            throw new DatagenException(file + " is not an art file of " + spec.art());
+        }
+        return base + file.substring(spec.art().length());
+    }
+
     /** Parses the catalogue. Fails on any row or count that does not match the format. */
     static Catalogue parse(Path file) {
         if (!Files.isRegularFile(file)) {
@@ -625,7 +694,12 @@ final class HudLayouts {
 
     /** Copies a HUD art resource ({@link HudArt}) into the pack's assets folder, where its image path points. */
     private static void putArt(OutputTree out, String file) {
-        out.put(BetterHudPack.DIR + "assets/" + artPath(file), HudArt.bytes(file));
+        putArt(out, file, file);
+    }
+
+    /** Copies the art resource {@code file} into the pack's assets folder under the name {@code as}. */
+    private static void putArt(OutputTree out, String file, String as) {
+        out.put(BetterHudPack.DIR + "assets/" + artPath(as), HudArt.bytes(file));
     }
 
     /** The image's path relative to the pack's {@code assets/} folder. */

@@ -29,9 +29,9 @@ class HudLayoutsTest {
     void realCatalogueRowCountsMatchTheCountsSection() {
         HudLayouts.Catalogue cat = HudLayouts.parse(HudLayouts.catalogue());
 
-        assertThat(cat.elements()).hasSize(28);
+        assertThat(cat.elements()).hasSize(31);
         Map<String, Integer> expected = Map.of(
-            "placeholder", 10, "bar", 6, "overlay", 1, "readout", 4, "popup", 2, "indicator", 1, "hidden-vanilla", 4);
+            "placeholder", 12, "bar", 7, "overlay", 1, "readout", 4, "popup", 2, "indicator", 1, "hidden-vanilla", 4);
         assertThat(countsByKind(cat.elements())).isEqualTo(expected);
         assertThat(cat.total()).isEqualTo(expected);
     }
@@ -41,7 +41,7 @@ class HudLayoutsTest {
         HudLayouts.Summary s = HudLayouts.run(new OutputTree(), HudLayouts.catalogue());
 
         assertThat(s.emitted()).isEqualTo(Map.of(
-            "placeholder", 10, "bar", 6, "overlay", 1, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 4));
+            "placeholder", 12, "bar", 7, "overlay", 1, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 4));
         assertThat(s.leftOut()).hasSize(4);
         assertThat(String.join("\n", s.leftOut())).contains(
             "m3-surv-02-nutrition-readout", "m6-mech-01-rotation-readout", "m4-pros-01-result-message",
@@ -80,7 +80,7 @@ class HudLayoutsTest {
 
         assertThat(yaml(out, HudLayouts.BAR_LAYOUTS).keySet()).containsExactlyInAnyOrder(
             "tfp_m3_surv_06_health_bar", "tfp_m3_surv_06_thirst_bar", "tfp_m3_surv_06_hunger_bar", "tfp_m3_surv_06_air_bar",
-            "tfp_m3_surv_06_armor_bar");
+            "tfp_m3_surv_06_armor_bar", "tfp_par_hud_09_mount_health_bar", "tfp_par_hud_09_mount_health_bar_low");
         assertThat(yaml(out, HudLayouts.INFO_LAYOUTS).keySet()).isEqualTo(BetterHudPack.INFO_LAYOUTS);
         assertThat(out.contains(HudLayouts.READOUT_LAYOUTS)).as("both readouts duplicate BetterHudPack").isFalse();
         assertThat(yaml(out, HudLayouts.POPUP_LAYOUTS).keySet()).containsExactly("tfp_m3_surv_06_held_temp_popup");
@@ -183,7 +183,8 @@ class HudLayoutsTest {
         Set<Object> names = new java.util.HashSet<>();
         placeholders.forEach(p -> names.add(map(p).get("name")));
         assertThat(names).containsExactlyInAnyOrder("tfp_health", "tfp_max_health", "tfp_thirst", "tfp_hunger",
-            "tfp_held_temp", "tfp_date", "tfp_season", "tfp_ambient_temp", "tfp_air", "tfp_armor");
+            "tfp_held_temp", "tfp_date", "tfp_season", "tfp_ambient_temp", "tfp_air", "tfp_armor", "tfp_mount_health",
+            "tfp_mount_max_health");
     }
 
     @Test
@@ -369,7 +370,10 @@ class HudLayoutsTest {
             assertThat(entries).hasSize(2 + art.variants().size());
             for (Map<String, Object> img : entries) {
                 String image = (String) img.get("name");
-                String file = image.substring("tfp_".length()) + ".png";
+                String own = image.substring("tfp_".length()) + ".png";
+                // A bar that borrows art (the mount bar) names its copies after itself: map back to the art file.
+                String file = own.startsWith(name.substring("tfp_".length()))
+                    ? spec.art() + own.substring(name.length() - "tfp_".length()) : own;
                 assertThat(img.get("x")).as(image).isEqualTo(spec.x());
                 assertThat(img.get("y")).as(image).isEqualTo(spec.y() + HudArt.firstOpaqueRow(file));
                 assertThat(img.get("layer")).as(image).isEqualTo(file.endsWith("_bg.png") ? HudLayouts.LAYER_BG : HudLayouts.LAYER_FILL);
@@ -490,6 +494,8 @@ class HudLayoutsTest {
         for (Object def : images.values()) {
             String path = (String) map(def).get("file");
             String file = path.substring(path.lastIndexOf('/') + 1);
+            // The mount bar's copies of the health art (HudLayouts.packFile).
+            file = file.replace("par_hud_09_mount_health_bar_", "m3_surv_06_health_bar_");
             byte[] expected = file.endsWith("_mirrored.png")
                 ? HudArt.mirrored(file.replace("_mirrored.png", ".png")) : HudArt.bytes(file);
             assertThat(out.get(BetterHudPack.DIR + "assets/" + path)).as(path).isEqualTo(expected);
@@ -527,9 +533,9 @@ class HudLayoutsTest {
 
     @Test
     void countsThatDisagreeWithTheRowsAreRefused() throws IOException {
-        Path file = write(replaceOnce(real(), "| bar | 6 | 0 |", "| bar | 7 | 0 |"));
+        Path file = write(replaceOnce(real(), "| bar | 7 | 0 |", "| bar | 8 | 0 |"));
         assertThatThrownBy(() -> HudLayouts.run(new OutputTree(), file))
-            .isInstanceOf(DatagenException.class).hasMessageContaining("kind bar has 6 rows");
+            .isInstanceOf(DatagenException.class).hasMessageContaining("kind bar has 7 rows");
     }
 
     @Test
@@ -594,6 +600,96 @@ class HudLayoutsTest {
             out.merge(e.kind(), 1, Integer::sum);
         }
         return out;
+    }
+
+    /**
+     * PAR-HUD-09, TFC {@code renderMountHealth}: the ridden animal's health is a second health bar on the left column
+     * (the health art, 81x10, and the same text and shadow), on TFC's next free left row: one empty row above the armour
+     * bar while armour is worn, else one empty row above health. Both placements share no row with armour, health or
+     * its text, stay inside the hotbar width and off the XP number, and never meet the right column (thirst, air).
+     */
+    @Test
+    void mountHealthSitsOnTheNextFreeLeftRowWithOneEmptyRow() {
+        HudLayouts.BarSpec health = HudLayouts.BAR_SPECS.get("m3-surv-06-health-bar");
+        HudLayouts.BarSpec armor = HudLayouts.BAR_SPECS.get("m3-surv-06-armor-bar");
+        HudLayouts.BarSpec mount = HudLayouts.BAR_SPECS.get(HudLayouts.MOUNT_BAR);
+        HudLayouts.Lowered low = HudLayouts.LOWERED.get(HudLayouts.MOUNT_BAR);
+        HudArt.Bar art = HudArt.bar(mount.art());
+        assertThat(mount.art()).isEqualTo(health.art());
+        assertThat(mount.x()).isEqualTo(health.x());
+        int armorTop = armor.y();
+        assertThat(armorTop - (mount.y() + art.height())).as("empty rows between mount and armour").isEqualTo(1);
+        assertThat(health.y() - (low.y() + art.height())).as("empty rows between mount and health, no armour").isEqualTo(1);
+        assertThat(mount.y()).as("TFC leftHeight 49 + 10: H-59").isEqualTo(-59);
+        assertThat(low.y()).isEqualTo(-51);
+        assertThat(low.when()).isEqualTo(new HudLayouts.Cond("tfp_armor", "<=", 0));
+
+        for (int y : List.of(mount.y(), low.y())) {
+            int top = y;
+            int bottom = y + art.height(); // exclusive
+            assertThat(top).isGreaterThanOrEqualTo(-60);
+            for (String other : List.of("m3-surv-06-health-bar", "m3-surv-06-armor-bar", "m3-surv-06-thirst-bar",
+                "m3-surv-06-air-bar", "m3-surv-06-hunger-bar")) {
+                HudLayouts.BarSpec o = HudLayouts.BAR_SPECS.get(other);
+                HudArt.Bar oa = HudArt.bar(o.art());
+                boolean apartX = mount.x() + art.width() <= o.x() || o.x() + oa.width() <= mount.x();
+                boolean apartY = bottom <= o.y() || o.y() + oa.height() <= top;
+                if (y == mount.y() || !other.equals("m3-surv-06-armor-bar")) {
+                    // the lowered placement shows only without armour, where the armour bar is hidden
+                    assertThat(apartX || apartY).as(y + " overlaps " + other).isTrue();
+                }
+            }
+        }
+        // The lowered placement overlaps the armour bar's rows, so the two must never show together.
+        assertThat(armor.shownWhile()).containsExactly(new HudLayouts.Cond("tfp_armor", ">", 0));
+    }
+
+    @Test
+    void mountBarReadsTheMountPlaceholdersInTwoExclusivePlacements() {
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+        Map<String, Object> images = yaml(out, HudLayouts.IMAGES);
+        assertThat(text(images, "tfp_par_hud_09_mount_health_bar_fill"))
+            .contains("class=placeholder", "value=tfp_mount_health", "max=tfp_mount_max_health");
+        assertThat(text(images, "tfp_m3_surv_06_health_bar_fill")).contains("value=tfp_health");
+        assertThat(map(images.get("tfp_par_hud_09_mount_health_bar_bg")).get("file"))
+            .isEqualTo("tfp/hud/par_hud_09_mount_health_bar_bg.png");
+        assertThat(out.get(BetterHudPack.DIR + "assets/tfp/hud/par_hud_09_mount_health_bar_fill.png"))
+            .isEqualTo(HudArt.bytes("m3_surv_06_health_bar_fill.png"));
+
+        Map<String, Object> bars = yaml(out, HudLayouts.BAR_LAYOUTS);
+        Map<String, Object> gate = Map.of("first", "tfp_max_health", "second", 0, "operation", ">");
+        Map<String, Object> mounted = Map.of("first", "tfp_mount_max_health", "second", 0, "operation", ">");
+        Map<String, Object> high = map(bars.get("tfp_par_hud_09_mount_health_bar"));
+        Map<String, Object> low = map(bars.get("tfp_par_hud_09_mount_health_bar_low"));
+        assertThat(map(high.get("conditions")).values()).containsExactly(mounted,
+            Map.of("first", "tfp_armor", "second", 0, "operation", ">"), gate);
+        assertThat(map(low.get("conditions")).values()).containsExactly(mounted,
+            Map.of("first", "tfp_armor", "second", 0, "operation", "<="), gate);
+        for (var layout : List.of(Map.entry(-59, high), Map.entry(-51, low))) {
+            Map<String, Object> text = map(map(layout.getValue().get("texts")).get("1"));
+            assertThat(text.get("pattern")).isEqualTo("[tfp_mount_health]//[tfp_mount_max_health]");
+            assertThat(text.get("y")).isEqualTo(layout.getKey() + 1);
+            assertThat(text.get("outline")).isEqualTo(HudLayouts.HEALTH_TEXT_SHADOW);
+            Map<String, Object> bg = map(map(layout.getValue().get("images")).get("1"));
+            assertThat(bg.get("name")).isEqualTo("tfp_par_hud_09_mount_health_bar_bg");
+            assertThat(bg.get("y")).isEqualTo(layout.getKey() + HudArt.firstOpaqueRow("m3_surv_06_health_bar_bg.png"));
+        }
+        Map<String, Object> hud = map(map(yaml(out, HudLayouts.BARS_HUDS).get(HudLayouts.BARS_HUD)).get("layouts"));
+        assertThat(hud.values().stream().map(v -> map(v).get("name")).toList())
+            .contains("tfp_par_hud_09_mount_health_bar", "tfp_par_hud_09_mount_health_bar_low");
+    }
+
+    @Test
+    void packFileKeepsOwnArtAndRenamesBorrowedArt() {
+        HudLayouts.BarSpec health = HudLayouts.BAR_SPECS.get("m3-surv-06-health-bar");
+        HudLayouts.BarSpec mount = HudLayouts.BAR_SPECS.get(HudLayouts.MOUNT_BAR);
+        assertThat(HudLayouts.packFile("tfp_m3_surv_06_health_bar", health, "m3_surv_06_health_bar_fill.png"))
+            .isEqualTo("m3_surv_06_health_bar_fill.png");
+        assertThat(HudLayouts.packFile("tfp_par_hud_09_mount_health_bar", mount, "m3_surv_06_health_bar_fill.png"))
+            .isEqualTo("par_hud_09_mount_health_bar_fill.png");
+        assertThatThrownBy(() -> HudLayouts.packFile("tfp_par_hud_09_mount_health_bar", mount, "other_fill.png"))
+            .isInstanceOf(DatagenException.class);
     }
 
     /**

@@ -11,6 +11,7 @@ import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.integration.Integration;
 import dev.tfp.paper.integration.IntegrationContext;
+import dev.tfp.paper.player.MountHudService.MountReading;
 import java.nio.file.Path;
 import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.clock.GlobalClockHolder;
@@ -66,6 +67,16 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
             HudListener listener = player -> read.applyAsDouble(cache.snapshot(player.uuid()));
             api.getListenerManager().addListener(e.getKey(), yaml -> event -> listener);
         }
+        // PAR-HUD-09: the ridden animal's health, read from the rider's published mount reading only.
+        for (Map.Entry<String, ToDoubleFunction<MountReading>> e : HudMountValues.NUMBERS.entrySet()) {
+            ToDoubleFunction<MountReading> read = e.getValue();
+            numbers.addPlaceholder(e.getKey(), HudPlaceholder.<Number>of((args, reason) -> player -> read.applyAsDouble(HudMountValues.READINGS.apply(player.uuid()))));
+        }
+        for (Map.Entry<String, ToDoubleFunction<MountReading>> e : HudMountValues.LISTENERS.entrySet()) {
+            ToDoubleFunction<MountReading> read = e.getValue();
+            HudListener listener = player -> read.applyAsDouble(HudMountValues.READINGS.apply(player.uuid()));
+            api.getListenerManager().addListener(e.getKey(), yaml -> event -> listener);
+        }
         PlaceholderContainer<String> texts = api.getPlaceholderManager().getStringContainer();
         GlobalClockHolder clock = ctx.clock();
         for (Map.Entry<String, Function<ClockSnapshot, String>> e : HudClockValues.TEXTS.entrySet()) {
@@ -80,8 +91,8 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
         }
         registered = true;
         Path pack = BetterHudPackTarget.packFolder(ctx.pluginsDirectory());
-        ctx.logger().info("BetterHud: registered " + HudValues.NUMBERS.size() + " number placeholder(s), "
-                + (HudClockValues.TEXTS.size() + HudClimateValues.TEXTS.size()) + " text placeholder(s) and " + HudValues.LISTENERS.size()
+        ctx.logger().info("BetterHud: registered " + (HudValues.NUMBERS.size() + HudMountValues.NUMBERS.size()) + " number placeholder(s), "
+                + (HudClockValues.TEXTS.size() + HudClimateValues.TEXTS.size()) + " text placeholder(s) and " + (HudValues.LISTENERS.size() + HudMountValues.LISTENERS.size())
                 + " listener(s); pack folder " + pack
                 + (BetterHudPackTarget.optedOut(ctx.pluginsDirectory()) ? " (disabled by the owner: packs/-tfp exists)" : ""));
     }
@@ -106,7 +117,7 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
         }
         Set<String> out = new TreeSet<>();
         for (String name : BetterHudAPI.inst().getPlaceholderManager().getNumberContainer().getAllPlaceholders().keySet()) {
-            if (HudValues.NUMBERS.containsKey(name)) {
+            if (HudValues.NUMBERS.containsKey(name) || HudMountValues.NUMBERS.containsKey(name)) {
                 out.add(name);
             }
         }

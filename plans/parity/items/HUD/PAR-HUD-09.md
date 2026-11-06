@@ -2,7 +2,7 @@
 id: PAR-HUD-09
 title: "Mount health bar: the ridden animal's health as a second health bar, as TFC's MOUNT_HEALTH"
 area: HUD
-status: open
+status: done
 wave: 5
 deps: [PAR-HUD-05]
 size: S
@@ -29,6 +29,7 @@ plan:
   - "BLOCKED (2026-11-05): the work needs integration/betterhud/src/main/java/dev/tfp/integration/betterhud/BetterHudIntegration.java, which is not in files_owned (and is owned by no item). BetterHud resolves placeholders and listeners while parsing YAML and an unknown one makes the element/layout/hud fail to load, so the HudLayouts mount bar cannot ship until onEnable registers the tfp_mount_health / tfp_mount_max_health number placeholders and the tfp_mount_health listener from HudMountValues (a loop like the HudValues/HudClimateValues ones, about 8 lines, plus registered()). The plan's 'publish into the HUD snapshot' also needs paper/src/main/java/dev/tfp/paper/integration/HudSnapshot.java (owned by the open PAR-HUD-11 and PAR-HUD-12); that one is avoidable: MountHudService can keep its own thread-safe per-player reading (health and max on TFC's x50 text scale, 0 when not riding a LivingEntity) published from the rider's thread, provided to HudMountValues through ModuleServices. Unblock by adding BetterHudIntegration.java to files_owned (and dropping the HudSnapshot wording or adding that file once PAR-HUD-11/12 are done). Nothing else was changed."
   - "PAR-HUD-05 hides the vanilla vehicle hearts (heart/vehicle_*.png transparent, part of the hide-hearts set), so a rider sees no mount health at all. TFC's renderMountHealth draws the vehicle's health with renderHealthBar on the left column (leftHeight), above the player's health and armour."
   - "Publish the ridden living vehicle's health and max health into the HUD snapshot (tfp_mount_health, tfp_mount_max_health; 0 when not riding a living entity), add a catalogue row and a bar spec in HudLayouts above the armour bar with one empty row, shown only while tfp_mount_max_health > 0."
+  - "Done: MountHudService (feature module) publishes the ridden living entity's (health + absorption) x 50 and max x 50 from the rider's thread (mount/dismount in the event, damage/heal next tick, riders every 20 ticks, cleared on quit); HudMountValues placeholders tfp_mount_health / tfp_mount_max_health and listener tfp_mount_health registered in BetterHudIntegration; HudLayouts mount bar with the health art and text, H-59..H-50 above armour or, without armour, layout _low at H-51..H-42 above health, gated by tfp_mount_max_health > 0 and the game-mode gate; catalogue rows; tests MountHudServiceTest (5), HudMountValuesTest (3), HudLayoutsTest (+3, 37); in-game pass at GUI 2 and 3, docs/verification/PAR-HUD-09/; ledger divergence updated (one empty row, no hurt glow or absorption bar)."
 tests:
   - "integration/betterhud: placeholder values riding and not riding"
   - "tools/datagen: HudLayoutsTest placement (no overlap with armour, health, thirst, air)"
