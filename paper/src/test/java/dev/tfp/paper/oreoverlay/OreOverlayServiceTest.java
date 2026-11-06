@@ -322,6 +322,54 @@ class OreOverlayServiceTest {
     }
 
     @Test
+    void craftEngineDestructionPacketsMorphTheViewerAndExpireLikeTheClient() {
+        set(5, 10, 5, 0);
+        set(5, 11, 5, ExposureRule.OPEN);
+        service.chunkSent(BOT, 0, 0, new Outbox(BOT));
+        settle(0);
+        // CraftEngine's own dig progress fires no server event: only the BLOCK_DESTRUCTION packet the viewer gets
+        service.crackSeen(BOT, 5, 10, 5, 0);
+        assertThat(sender.morphs).singleElement().satisfies(m -> assertThat(m).endsWith("/crack_0"));
+        service.crack(WORLD, 5, 10, 5, 0);
+        assertThat(sender.morphs).as("the server event agrees: no second morph").hasSize(1);
+        service.crackSeen(BOT, 5, 10, 5, 10);
+        assertThat(sender.morphs).as("stages outside 0..9 clear the crumbling").hasSize(2);
+        assertThat(sender.morphs.get(1)).endsWith("tfp:ore_overlay/normal_native_gold");
+        // a stage nobody refreshes for 400 ticks goes, as on the vanilla client
+        service.crackSeen(BOT, 5, 10, 5, 4);
+        for (int i = 0; i < OreOverlayService.CRACK_EXPIRY_TICKS; i++) {
+            service.tick();
+        }
+        assertThat(service.crackStage(BOT, 5, 10, 5)).isEqualTo(4);
+        service.tick();
+        assertThat(service.crackStage(BOT, 5, 10, 5)).isEqualTo(-1);
+        assertThat(sender.morphs.getLast()).endsWith("tfp:ore_overlay/normal_native_gold");
+    }
+
+    @Test
+    void cracksAreKeptPerWorldAndDroppedWhenThePatchSeesNoOre() throws Exception {
+        set(5, 10, 5, 0);
+        set(5, 11, 5, ExposureRule.OPEN);
+        service.chunkSent(BOT, 0, 0, new Outbox(BOT));
+        settle(0);
+        service.crack(UUID.randomUUID(), 5, 10, 5, 6);
+        assertThat(service.crackStage(BOT, 5, 10, 5)).as("a dig in another world").isEqualTo(-1);
+        assertThat(sender.morphs).isEmpty();
+        service.crack(WORLD, 5, 10, 5, 6);
+        assertThat(service.crackStage(BOT, 5, 10, 5)).isEqualTo(6);
+        // the ore goes without abort or break event (an explosion, /fill): the patch drops the stale stage
+        set(5, 10, 5, ExposureRule.OPEN);
+        service.blockChanged(BOT, 5, 10, 5, AIR, new Outbox(BOT));
+        quiesce();
+        assertThat(service.crackStage(BOT, 5, 10, 5)).isEqualTo(-1);
+        // a new ore there spawns plain
+        set(5, 10, 5, 0);
+        service.blockChanged(BOT, 5, 10, 5, STONE, new Outbox(BOT));
+        quiesce();
+        assertThat(sender.spawns.getLast().itemModel()).isEqualTo("tfp:ore_overlay/normal_native_gold");
+    }
+
+    @Test
     void rateLimitDefersBeyondTheBurstAndTickSendsTheRest() {
         // 1200 exposed faces in one chunk: a 30 x 1 x 16 sheet? Use 2 layers of 16 x 16 ores with air above and below.
         for (int x = 0; x < 16; x++) {

@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.netty.buffer.ByteBufHelper;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockBreakAnimation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChunkData;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
@@ -54,7 +55,7 @@ public final class OreOverlayPacketHandler implements PacketHandler {
     @Override
     public Set<String> sendTypes() {
         return Set.of("JOIN_GAME", "RESPAWN", "UPDATE_VIEW_POSITION", "CHUNK_DATA", "UNLOAD_CHUNK", "BLOCK_CHANGE",
-                "MULTI_BLOCK_CHANGE", "SPAWN_ENTITY", "DESTROY_ENTITIES");
+                "MULTI_BLOCK_CHANGE", "SPAWN_ENTITY", "DESTROY_ENTITIES", "BLOCK_BREAK_ANIMATION");
     }
 
     @Override
@@ -108,6 +109,13 @@ public final class OreOverlayPacketHandler implements PacketHandler {
                                 pos.getZ()));
                     }
                 }
+            }
+            case "BLOCK_BREAK_ANIMATION" -> {
+                // BLOCK_DESTRUCTION: the crumbling stage this client draws; the overlays follow right after it.
+                WrapperPlayServerBlockBreakAnimation w = new WrapperPlayServerBlockBreakAnimation(event);
+                Vector3i p = w.getBlockPosition();
+                int stage = w.getDestroyStage();
+                event.getTasksAfterSend().add(() -> service.crackSeen(player, p.getX(), p.getY(), p.getZ(), stage));
             }
             case "DESTROY_ENTITIES" -> {
                 if (service.hasRiders(player)) {

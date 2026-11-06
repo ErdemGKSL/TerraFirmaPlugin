@@ -26,7 +26,8 @@ import org.bukkit.event.world.WorldLoadEvent;
  *
  * <ul>
  *   <li>dig progress ({@link BlockBreakProgressUpdateEvent}, the server's own progress, the value vanilla sends as
- *       {@code BLOCK_DESTRUCTION}): the block's overlays swap to the cracked variant of the stage, so cracks are never
+ *       {@code BLOCK_DESTRUCTION}; CraftEngine's own progress reaches the overlays through that packet instead,
+ *       {@link OreOverlayService#crackSeen}): the block's overlays swap to the cracked variant of the stage, so cracks are never
  *       hidden under the specks (S2 verdict); an abort or the break restores them;</li>
  *   <li>a falling block carrying an ore: its overlays ride it ({@link OreOverlayService#fallingSpawned});</li>
  *   <li>chunk unload drops the table, quit drops the viewer, world load registers the world's key.</li>
@@ -43,9 +44,13 @@ public final class OreOverlayListener implements Listener {
         this.quit = quit;
     }
 
-    /** The crack stage of a progress value, as the S2 spike measured it ({@code <= 0}: none). */
+    /**
+     * The crack stage of a progress value. Paper fires the event from {@code ServerLevel.destroyBlockProgress} with
+     * {@code progress = stage / 10f}, so stage 0 arrives as {@code 0.0f} and must stay stage 0 (the crumbling layer is on
+     * from the first tenth of the dig); an abort sends stage -1 ({@code -0.1f}) and a finished dig 10 ({@code 1.0f}): none.
+     */
     static int stage(float progress) {
-        return progress <= 0 || progress >= 1 ? -1 : Math.min(9, (int) (progress * 10));
+        return progress < 0 || progress >= 1 ? -1 : Math.min(9, (int) (progress * 10 + 1e-4f));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

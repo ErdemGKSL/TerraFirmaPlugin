@@ -58,7 +58,7 @@ class OreOverlayDataTest {
 
     @Test
     void crackStagesFollowTheServerProgress() {
-        assertThat(OreOverlayListener.stage(0f)).isEqualTo(-1);
+        assertThat(OreOverlayListener.stage(0f)).as("Paper sends stage 0 as 0 / 10f").isZero();
         assertThat(OreOverlayListener.stage(0.05f)).isZero();
         assertThat(OreOverlayListener.stage(0.55f)).isEqualTo(5);
         assertThat(OreOverlayListener.stage(0.99f)).isEqualTo(9);

@@ -16,7 +16,9 @@ import dev.tfp.core.oreoverlay.TokenBucket;
 import dev.tfp.core.oreoverlay.ViewerSet;
 import dev.tfp.core.visuals.OverlayFace;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -79,6 +81,8 @@ public final class OreOverlayService {
         final Set<Long> loaded = new HashSet<>();
         final Set<Long> deferred = new HashSet<>();
         final Map<Integer, int[]> riders = new HashMap<>();
+        /** Crack stage this viewer's client draws per block of its world: {@code block -> stage << 32 | tick}. */
+        final Map<Long, Long> cracks = new HashMap<>();
         final ViewerSet set;
         final TokenBucket bucket = TokenBucket.defaults();
 
@@ -122,7 +126,6 @@ public final class OreOverlayService {
     private final Map<UUID, Viewer> viewers = new ConcurrentHashMap<>();
     private final Map<String, UUID> worldIds = new ConcurrentHashMap<>();
     private final Map<Integer, Integer> falling = new ConcurrentHashMap<>();
-    private final Map<Long, Integer> cracks = new ConcurrentHashMap<>();
     private final AtomicLong tick = new AtomicLong();
     private final LongAdder builds = new LongAdder();
     private final LongAdder buildNanos = new LongAdder();
@@ -184,6 +187,7 @@ public final class OreOverlayService {
             v.loaded.clear();
             v.deferred.clear();
             v.riders.clear();
+            v.cracks.clear();
             v.world = world;
         }
     }
@@ -327,7 +331,7 @@ public final class OreOverlayService {
                                 sender::nextEntityId);
                         out.remove(p.removes());
                         for (ViewerSet.Spawn s : p.spawns()) {
-                            out.spawn(spawn(s, minY));
+                            out.spawn(spawn(v, s, minY));
                             spawned++;
                         }
                     }
@@ -349,7 +353,7 @@ public final class OreOverlayService {
         ViewerSet.Plan p = v.set.reconcile(t.chunkKey(), wanted, sender::nextEntityId, budget);
         out.remove(p.removes());
         for (ViewerSet.Spawn s : p.spawns()) {
-            out.spawn(spawn(s, t.minY()));
+            out.spawn(spawn(v, s, t.minY()));
         }
         v.bucket.charge(p.spawns().size(), now);
         if (p.deferred()) {
@@ -359,13 +363,15 @@ public final class OreOverlayService {
         }
     }
 
-    private OverlaySender.Spawn spawn(ViewerSet.Spawn s, int minY) {
+    /** Caller holds the viewer's lock. */
+    private OverlaySender.Spawn spawn(Viewer v, ViewerSet.Spawn s, int minY) {
         int local = OverlayKeys.faceLocal(s.faceKey());
         int x = (OverlayKeys.chunkX(s.chunk()) << 4) | OverlayKeys.localX(local);
         int y = OverlayKeys.localY(local, minY);
         int z = (OverlayKeys.chunkZ(s.chunk()) << 4) | OverlayKeys.localZ(local);
         OverlayFace face = OverlayFace.values()[OverlayKeys.faceOrdinal(s.faceKey())];
-        int stage = cracks.getOrDefault(OverlayKeys.block(x, y, z), -1);
+        Long crack = v.cracks.get(OverlayKeys.block(x, y, z));
+        int stage = crack == null ? -1 : (int) (crack >> 32);
         return new OverlaySender.Spawn(s.entityId(), x, y, z, face, data.itemModel(s.kind(), stage),
                 s.outcrop() ? fullRange : gate.viewRange());
     }
@@ -397,6 +403,9 @@ public final class OreOverlayService {
             }
             Outbox out = new Outbox(v.id);
             synchronized (v) {
+                if (!v.cracks.isEmpty()) {
+                    expireCracks(v, w, now);
+                }
                 if (v.deferred.isEmpty() || v.bucket.available(now) == 0) {
                     continue;
                 }
@@ -595,6 +604,7 @@ public final class OreOverlayService {
         try {
             UUID w = key.world();
             int maxY = reader.maxY(w);
+            clearCracks(w, changed, cells);
             Set<Long> touched = new HashSet<>();
             for (long p : changed) {
                 int x = OverlayKeys.blockX(p);
@@ -624,35 +634,109 @@ public final class OreOverlayService {
 
     // ---------------------------------------------------------------- mining cracks
 
+    /** Ticks after which a vanilla client drops a crumbling overlay nobody updated ({@code LevelRenderer}: 400). */
+    static final int CRACK_EXPIRY_TICKS = 400;
+
     /**
-     * The server's dig progress of a block changed (region thread): every viewer's overlays of that block swap to the
-     * cracked variant of {@code stage} (0..9), or back to the plain overlay ({@code stage < 0}).
+     * The server's dig progress of a block changed ({@code BlockBreakProgressUpdateEvent}, region thread): every viewer's
+     * overlays of that block swap to the cracked variant of {@code stage} (0..9), or back to the plain overlay
+     * ({@code stage < 0}). This covers the breaker, whose own client draws its cracks without a packet.
      */
     public void crack(UUID world, int x, int y, int z, int stage) {
-        long block = OverlayKeys.block(x, y, z);
-        Integer old = stage < 0 ? cracks.remove(block) : cracks.put(block, stage);
-        if (old != null && old == stage || old == null && stage < 0) {
+        for (Viewer v : viewers.values()) {
+            if (world.equals(v.world)) {
+                synchronized (v) {
+                    applyCrack(v, world, x, y, z, stage);
+                }
+            }
+        }
+    }
+
+    /**
+     * The viewer's client was sent a crumbling stage ({@code BLOCK_DESTRUCTION}, Netty, after the packet): its overlays of
+     * that block follow. CraftEngine runs its own dig progress for custom blocks and sends this packet itself, so no
+     * server event fires for it (the hand-mining case of the in-game run). Stages outside 0..9 clear it, as on the client.
+     */
+    public void crackSeen(UUID viewer, int x, int y, int z, int stage) {
+        Viewer v = viewers.get(viewer);
+        UUID w = v == null ? null : v.world;
+        if (w == null) {
             return;
         }
+        synchronized (v) {
+            applyCrack(v, w, x, y, z, stage >= 0 && stage <= 9 ? stage : -1);
+        }
+    }
+
+    /** Caller holds the viewer's lock. */
+    private void applyCrack(Viewer v, UUID world, int x, int y, int z, int stage) {
+        long block = OverlayKeys.block(x, y, z);
+        Long old = stage < 0 ? v.cracks.remove(block) : v.cracks.put(block, ((long) stage << 32) | (tick.get() & 0xFFFFFFFFL));
+        if (old == null ? stage < 0 : (int) (old >> 32) == stage) {
+            return;
+        }
+        morphBlock(v, world, x, y, z, stage);
+    }
+
+    /** Morphs the viewer's overlays of one block to the stage's variant. Caller holds the viewer's lock. */
+    private void morphBlock(Viewer v, UUID world, int x, int y, int z, int stage) {
         OreOverlayTable t = tables.get(new Key(world, OverlayKeys.chunk(x >> 4, z >> 4)));
         int i = t == null ? -1 : t.find(x, y, z);
         if (i < 0 || t.mask(i) == 0) {
             return;
         }
         int local = t.local(i);
+        for (OverlayFace f : OverlayFace.values()) {
+            int key = OverlayKeys.face(local, f.ordinal());
+            int id = v.set.entity(t.chunkKey(), key);
+            if (id >= 0) {
+                sender.morph(v.id, id, f, data.itemModel(v.set.kind(t.chunkKey(), key), stage));
+            }
+        }
+    }
+
+    /** Drops the stages no update refreshed for {@link #CRACK_EXPIRY_TICKS}, as the client does. Caller holds the lock. */
+    private void expireCracks(Viewer v, UUID world, long now) {
+        for (Iterator<Map.Entry<Long, Long>> it = v.cracks.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Long, Long> e = it.next();
+            long at = e.getValue() & 0xFFFFFFFFL;
+            if (((now - at) & 0xFFFFFFFFL) > CRACK_EXPIRY_TICKS) {
+                it.remove();
+                long b = e.getKey();
+                morphBlock(v, world, OverlayKeys.blockX(b), OverlayKeys.blockY(b), OverlayKeys.blockZ(b), -1);
+            }
+        }
+    }
+
+    /** A patch saw cells that are no ore any more (broken, exploded, filled): their stale stages go. Any thread. */
+    private void clearCracks(UUID world, long[] changed, CellMap cells) {
         for (Viewer v : viewers.values()) {
             if (!world.equals(v.world)) {
                 continue;
             }
             synchronized (v) {
-                for (OverlayFace f : OverlayFace.values()) {
-                    int key = OverlayKeys.face(local, f.ordinal());
-                    int id = v.set.entity(t.chunkKey(), key);
-                    if (id >= 0) {
-                        sender.morph(v.id, id, f, data.itemModel(v.set.kind(t.chunkKey(), key), stage));
+                if (v.cracks.isEmpty()) {
+                    continue;
+                }
+                for (long p : changed) {
+                    int code = cells.code(OverlayKeys.blockX(p), OverlayKeys.blockY(p), OverlayKeys.blockZ(p));
+                    if (code < 0 && code != CellLookup.UNKNOWN) {
+                        v.cracks.remove(p);
                     }
                 }
             }
+        }
+    }
+
+    /** The crack stage the viewer's overlays of a block show, or -1 (tests). */
+    int crackStage(UUID viewer, int x, int y, int z) {
+        Viewer v = viewers.get(viewer);
+        if (v == null) {
+            return -1;
+        }
+        synchronized (v) {
+            Long c = v.cracks.get(OverlayKeys.block(x, y, z));
+            return c == null ? -1 : (int) (c >> 32);
         }
     }
 
@@ -787,7 +871,7 @@ public final class OreOverlayService {
         int sent = 0;
         int loaded = 0;
         int deferred = 0;
-        for (Viewer v : viewer == null ? viewers.values() : java.util.Collections.singleton(viewers.get(viewer))) {
+        for (Viewer v : viewer == null ? viewers.values() : Collections.singleton(viewers.get(viewer))) {
             if (v == null) {
                 continue;
             }

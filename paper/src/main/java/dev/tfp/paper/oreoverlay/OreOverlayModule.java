@@ -264,7 +264,7 @@ public final class OreOverlayModule implements FeatureModule {
         }
         String where = world.getName() + " " + x + " " + y + " " + z;
         CompletableFuture<Reply> out = new CompletableFuture<>();
-        sch.region(world, x >> 4, z >> 4, () -> {
+        Runnable task = () -> {
             try {
                 boolean placed = b.place(world.getBlockAt(x, y, z), state, false);
                 out.complete(placed ? Reply.ok("debug.place.done", stateText.trim(), where)
@@ -272,7 +272,14 @@ public final class OreOverlayModule implements FeatureModule {
             } catch (RuntimeException e) {
                 out.completeExceptionally(e);
             }
-        });
+        };
+        // The console on Paper already runs on the thread that owns every region: a deferred task could only run after the
+        // command's reply wait gives up, stalling that thread (the Watchdog report of the in-game run). Place inline then.
+        if (Bukkit.isOwnedByCurrentRegion(world, x >> 4, z >> 4)) {
+            task.run();
+        } else {
+            sch.region(world, x >> 4, z >> 4, task);
+        }
         return out;
     }
 
