@@ -1,4 +1,12 @@
-# PAR-HUD-10: held temperature popup shows TFC's level text: verdict: pass (recapture)
+# PAR-HUD-10: held temperature popup shows TFC's level text: verdict: FAIL (criterion 2)
+
+> Corrected 2026-11-07 after review. Criterion 1 passes in the settled frames below. Criterion 2 ("changes right after
+> `tfp debug heat Bot <t>` with no visible lag") FAILS: the first changed frame comes 0.27-0.46 s after the reply,
+> which is visible lag, and an independent in-game check saw the previous level in 4 of 5 captures taken 0.1-0.4 s
+> after the reply (600 still `Bright Red****`, 0 still `Dark Red`, at GUI 2 and 3) and one blank frame between
+> values. The placeholders return the new level on the very next read (HudClimateValuesTest); the delay is the
+> next-tick republish plus BetterHud's own update. The fix needs files outside the item (see its BLOCKED plan line).
+> The "pass" rows and the "not a delay in the popup" wording below are superseded by this note.
 
 - Date: 2026-11-07. Tree `8dce508` (the item's change; this review fix touches only evidence, the item file and STATUS),
   content regenerated with `:tools:datagen:generateContent`, then `:dist:shadowJar` in a separate Gradle run.
@@ -57,7 +65,7 @@ for the HUD only; tooltips keep U+066D.
 | Legible at GUI scale 2 (black shadow on grey stone) | pass | pass | `g2-900-bright-red-text-3x.png` |
 | 600 C reads `Dark Red` in DARK_RED (`#aa0000`) with no star and no stale `Bright Red` | pass | pass | 600 crops; from the first changed frame on only `#aa0000` (408 px / 918 px) |
 | A cold ingot (0 C) shows no popup | pass | pass | 0 crops; from the first changed frame to the end of the step no popup colour in the band |
-| The popup changes right after `tfp debug heat Bot <t>` with no visible lag | pass | pass | first changed frame after the reply: GUI 2 +0.456 / +0.318 / +0.350 / +0.280 s (900, 600, 0, 900 again), GUI 3 +0.295 / +0.358 / +0.266 / +0.428 s; no frame shows a stale level after the change |
+| The popup changes right after `tfp debug heat Bot <t>` with no visible lag | FAIL | FAIL | 0.27-0.46 s is visible lag (and an independent check saw stale and blank frames); first changed frame after the reply: GUI 2 +0.456 / +0.318 / +0.350 / +0.280 s (900, 600, 0, 900 again), GUI 3 +0.295 / +0.358 / +0.266 / +0.428 s; in this recording no frame shows a stale level after the first change |
 | Clear of the bars and centred | pass | pass | all crops and the full-screen frames |
 
 ## Cooling, so star loss is not mistaken for lag

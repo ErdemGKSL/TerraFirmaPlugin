@@ -123,4 +123,35 @@ class HudClimateValuesTest {
         assertThat(temp.applyAsDouble(s)).isZero();
         assertThat(HudClimateValues.TEXTS.get("tfp_held_heat").apply(s)).isEmpty();
     }
+
+    /**
+     * PAR-HUD-10 review: a heat write that has been published (as {@code /tfp debug heat} does through the needs
+     * service) is what the very next placeholder read returns, through the per-player cache exactly as
+     * {@link BetterHudIntegration} reads it, with no calendar tick in between: 900 to 600 to 0 C gives Bright Red, then
+     * Dark Red, then nothing, and the condition, text and colour always agree. Any lag left in game is upstream of the
+     * placeholders (the republish hop and BetterHud's update), not in them.
+     */
+    @Test
+    void aPublishedHeatChangeIsTheNextPlaceholderRead() {
+        java.util.UUID id = java.util.UUID.randomUUID();
+        dev.tfp.paper.integration.HudSnapshotCache cache = new dev.tfp.paper.integration.HudSnapshotCache(() -> true);
+        java.util.function.LongSupplier clock = () -> 480L; // the calendar does not move between the writes
+        java.util.function.Function<HudSnapshot, String> text = HudClimateValues.TEXTS.get("tfp_held_heat");
+        java.util.function.Function<HudSnapshot, String> colour = HudClimateValues.TEXTS.get("tfp_held_heat_color");
+        java.util.function.ToDoubleFunction<HudSnapshot> temp = HudValues.NUMBERS.get("tfp_held_temp");
+        float[] written = {900f, 600f, 0f};
+        String[] texts = {"Bright Red****", "Dark Red", ""};
+        String[] colours = {"#ff5555", "#aa0000", ""};
+        for (int i = 0; i < written.length; i++) {
+            HudSnapshot.HeldHeat heat = written[i] > 0f
+                    ? HudSnapshot.HeldHeat.of(new dev.tfp.core.heat.HeatState(written[i], 480L), 2.857143f,
+                            dev.tfp.core.heat.HeatConfig.DEFAULT, clock)
+                    : HudSnapshot.HeldHeat.NONE;
+            cache.put(id, cache.snapshot(id).withHeldHeat(heat));
+            HudSnapshot read = cache.snapshot(id);
+            assertThat(text.apply(read)).as("text after %s C", written[i]).isEqualTo(texts[i]);
+            assertThat(colour.apply(read)).as("colour after %s C", written[i]).isEqualTo(colours[i]);
+            assertThat(temp.applyAsDouble(read) > 0).as("popup shown after %s C", written[i]).isEqualTo(written[i] > 0f);
+        }
+    }
 }

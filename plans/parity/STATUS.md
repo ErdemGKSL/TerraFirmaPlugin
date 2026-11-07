@@ -53,7 +53,7 @@ Totals: 282 items; open 212, done 66, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-METAL-20 | Charcoal forge lit tops turned 180°: the heat_N item display must match TFC's block-model orientation | METAL | 5 | done |
 | PAR-WORLD-18 | Ore vein weighted pick throws at a draw of 1.0: chunk refused ("no element above 100.0") | WORLD | 5 | done |
 | PAR-HUD-07 | HUD per MC version and TFC display styles: 26.x sprite list, XP bar style, health display style | HUD | 6 | done |
-| PAR-HUD-10 | Held temperature popup shows TFC's level text, verified in game | HUD | 6 | done |
+| PAR-HUD-10 | Held temperature popup shows TFC's level text, verified in game | HUD | 6 | blocked |
 | PAR-HUD-13 | Info plate fits the longest date line; BetterHud horizontal shift of the top-left info HUD | HUD | 6 | done |
 | PAR-PROC-02 | Workbench crafting: the plain 2,255 shaped/shapeless recipes as CE recipe YAML | PROC | 6 | done |
 | PAR-PROC-21 | Ore piece items stack by TFC item_size (16): drops.yml ore items get max_stack_size | PROC | 6 | done |
