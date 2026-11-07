@@ -2,7 +2,7 @@
 id: PAR-SURV-06
 title: "Item size and weight on Paper: container limits, overburdened and exhausted, tooltip"
 area: SURV
-status: open
+status: done
 wave: 8
 deps: [PAR-INFRA-05]
 size: M
@@ -18,22 +18,22 @@ files_owned:
   - "paper/src/test/java/dev/tfp/paper/itemsize/**"
   - "core/src/main/java/dev/tfp/core/item/**"
   - "core/src/test/java/dev/tfp/core/item/**"
-ui: true
-in_game_steps:
-  - "ce item give Bot tfp:metal/anvil/copper 2"
-  - "screenshot effect icon"
-  - "try to put one in a chest"
+ui: false
+in_game_steps: []
 plan:
   - "Resolve size/weight per ItemStack (explicit item_size definitions first, then the class default)."
   - "Enforce on InventoryClickEvent/InventoryMoveItemEvent for chests (chestMaximumItemSize), bundles and our device inventories via a shared predicate."
   - "Every 20 ticks per player (entity scheduler): count huge/very heavy items -> exhausted / overburdened effects (enableOverburdening)."
   - "Tooltip contributor: '⚖ Weight: Heavy / ⇲ Size: Large'."
   - "Stack sizes follow Weight (vanilla max_stack_size component set in datagen? record decision)."
+  - "Decision: stack sizes stay baked into the CE items by datagen (PAR-SURV-01 foods, PAR-PROC-21 drops; ledger rows); the runtime does not rewrite max_stack_size."
+  - "In-game check deferred (PROTOCOL §6.5) to PAR-SURV-11 (deps PAR-METAL-03, which adds the anvil items the steps give); the steps and the screenshot criterion moved there."
+  - "Done: core item/ItemSizeDefinitions (TFC lookup order), VanillaItemClasses, BurdenEffects; paper itemsize/ItemSizeModule (ItemSizes service, ContainerSizeListener chest/bundle/hopper limits, BurdenApplier exhausted/overburdened every 20 ticks on the player thread, ItemSizeTooltipContributor); tests core ItemSizeDefinitionsTest (4), paper ItemSizeMockBukkitTest (9); 7 divergence rows in the ledger; in-game check tracked in PAR-SURV-11."
 tests:
   - "paper: MockBukkit chest refuses a huge item"
   - "paper: overburdened applied with two anvils in inventory"
 done_criteria:
-  - "In-game: anvil in a chest refused; carrying 2 anvils shows overburdened"
+  - "Deferred check tracked in PAR-SURV-11"
 ---
 
 # PAR-SURV-06: Item size and weight on Paper: container limits, overburdened and exhausted, tooltip
