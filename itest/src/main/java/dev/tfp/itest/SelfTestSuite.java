@@ -50,6 +50,7 @@ public final class SelfTestSuite {
                 new ItemDataRoundTripCase(),
                 new CraftEnginePackIssuesCase(),
                 new CraftEngineBlockRoundTripCase(),
+                new dev.tfp.itest.cases.ToolItemsBuildCase(),
                 new DeviceRoundTripCase(),
                 new dev.tfp.itest.cases.CatchUpCase(),
                 new dev.tfp.itest.cases.LootCase(),
