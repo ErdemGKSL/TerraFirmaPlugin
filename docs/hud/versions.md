@@ -44,13 +44,14 @@ bar (`locator_bar_*`, the 1.21.6+ waypoint bar on the XP row). See section 2 for
 ## 2. TFC display styles
 
 TFC keeps these as per-player client options (`TFCConfig.CLIENT`, `config/ClientConfig.java`). A vanilla client has no
-client config, so our HUD uses TFC's defaults server-wide (NP-CLIENT-04). Server config keys for the non-default choices
-are follow-up PAR-HUD-14.
+client config, so the server owner picks one value for every player in `config.yml` section `hud` (NP-CLIENT-04;
+PAR-HUD-14 built the styles, PAR-HUD-17 wired them). `ConfigService` parses the section on every load (startup and
+`/tfp reload config`) and publishes it (`HudStylesHolder`); the placeholders read that value, never the file.
 
 | TFC option (default) | TFC choices | ours now |
 |---|---|---|
-| `healthDisplayStyle` (`TFC`) | `TFC` `%.0f/%.0f` of health x 50; `VANILLA` `%.1f/%.1f`; `TFC_CURRENT` `%.0f` x 50; `VANILLA_CURRENT` `%.1f` | `TFC`: the health text is `HealthDisplay` (`HealthScale`, health x modifier x 50) |
-| `climateTooltipStyle` (`CELSIUS`) | `CELSIUS`, `FAHRENHEIT` (x 9/5 + 32), `RANKINE` (x 9/5 + 491.67), `KELVIN` (+ 273.15), one decimal place | `CELSIUS`: `ClimateFormat.temperature`, `12.3°C` (HUD plate, `/tfp debug chunk`) |
+| `healthDisplayStyle` (`TFC`) | `TFC` `%.0f/%.0f` of health x 50; `VANILLA` `%.1f/%.1f`; `TFC_CURRENT` `%.0f` x 50; `VANILLA_CURRENT` `%.1f` | `hud.health-display-style`, all four: the health bar text is `[tfp_health_text]` = `HudStyles.healthText` of the published `HealthDisplay` (`850/850`, `17.0/17.0`, `850`, `17.0`); the bar fill still reads `tfp_health`/`tfp_max_health` |
+| `climateTooltipStyle` (`CELSIUS`) | `CELSIUS`, `FAHRENHEIT` (x 9/5 + 32), `RANKINE` (x 9/5 + 491.67), `KELVIN` (+ 273.15), one decimal place | `hud.climate-temperature-style`, all four: the HUD plate's `tfp_ambient_temp` is `HudStyles.temperatureText` (TFC's float arithmetic, `68.0°F` at 20 C). `/tfp debug chunk` still prints Celsius through `ClimateFormat` (follow-up PAR-HUD-18) |
 | `enableExperienceBar` (`true`) | `true` keeps vanilla's XP bar; `false` hides it | `true`: the vanilla XP bar and level stay (their sprites are not overridden) |
 | `disabledExperienceBarStyle` (`HOVER`) | used only while `enableExperienceBar` is `false`: `HOVER` elements stay in place; `BUMP` moves them down to the hotbar; `LEFT_HOTBAR` also draws the fishing-pull and jump bars as vertical bars left of the hotbar | no effect, as in TFC with the XP bar on |
 

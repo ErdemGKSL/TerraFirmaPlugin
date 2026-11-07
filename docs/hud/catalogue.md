@@ -24,6 +24,7 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m1-int-04-ph-hunger` | value behind the hunger bar | M1-INT-04 | placeholder | `tfp_hunger` (snapshot) | M1 | needed | Also a listener `tfp_hunger`. Source is the TFC hunger model (M3-SURV-02). |
 | `m3-surv-06-ph-air` | breath left behind the air bar | M3-SURV-06 | placeholder | `tfp_air` (snapshot, vanilla breath 0..300) | M3 | needed | Also a listener `tfp_air` (0..1). Source is `Player.getRemainingAir`. |
 | `m3-surv-06-ph-armor` | armour points behind the armour bar | M3-SURV-06 | placeholder | `tfp_armor` (snapshot, vanilla armour attribute 0..30) | M3 | needed | Also a listener `tfp_armor` (0..1 on vanilla's 20-point scale; TFC's best full set, blue or red steel, is 3+6+8+3 = 20, `TFCArmorMaterials`). Source is `Attribute.ARMOR`. |
+| `par-hud-17-ph-health-text` | the text on the health bar | PAR-HUD-17 | placeholder | `tfp_health_text` (snapshot, in the hud.health-display-style of config.yml) | M3 | needed | TFC `HealthDisplayStyle` of the shown health and max (`850/850` at TFC's default; `17.0/17.0`, `850`, `17.0` for VANILLA, TFC_CURRENT, VANILLA_CURRENT). Reads the styles published on each config load (`HudStylesHolder`), never the file. |
 | `par-hud-09-ph-mount-health` | the ridden animal's health behind the mount health bar | PAR-HUD-09 | placeholder | `tfp_mount_health` (mount reading, TFC's x50 scale, 0 when not riding a living entity) | M3 | needed | Also a listener `tfp_mount_health` (0..1). Published from the rider's thread by `MountHudService` (`(health + absorption) x 50`, TFC `renderHealthBar` with modifier 1). |
 | `par-hud-09-ph-mount-max-health` | the ridden animal's max health behind the mount text | PAR-HUD-09 | placeholder | `tfp_mount_max_health` (mount reading, x50, 0 when not riding a living entity) | M3 | needed | The mount bar shows only while it is above 0. |
 | `m1-int-04-ph-held-temp` | held item temperature for the popup | M1-INT-04 | placeholder | `tfp_held_temp` (snapshot, item heat from M3-HEAT-01) | M1 | needed | Popup condition `tfp_held_temp > 0` (betterhud skill). |
@@ -32,7 +33,7 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m2-cal-02-ph-date` | calendar date text | M2-CAL-02 | placeholder | `tfp_date` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
 | `m2-cal-02-ph-season` | season name: TFC's 12 `Month.Style.SEASON` names ("Early Autumn"; PAR-HUD-15, northern month until PAR-HUD-16 makes it per player) | M2-CAL-02 | placeholder | `tfp_season` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
 | `m2-clim-03-ph-ambient-temp` | ambient temperature at the player | M2-CLIM-03 | placeholder | `tfp_ambient_temp` (snapshot, movement throttle) | M2 | needed | Also a listener `tfp_ambient_temp` (-20..40 °C as 0..1, `HudValues.thermometer`) for the thermometer bar. Chunk climate input is neutral until the M2-GEN-05 wiring (ledger divergence). |
-| `m3-surv-06-health-bar` | health bar with "45/50" text | M3-SURV-06 | bar | `tfp_health`, `tfp_max_health` | M3 | needed | Spike M0-BH-01 is `[x]` for health and thirst on 1.21.11 and 26.3. TFC reference: `IngameOverlays.HEALTH`. TFC's 81x9 sprite; the text sits inside the bar with a black shadow (TFC's dark-red one looked muddy over the empty channel; section 5, ledger). |
+| `m3-surv-06-health-bar` | health bar with "45/50" text | M3-SURV-06 | bar | `tfp_health`, `tfp_max_health` | M3 | needed | Spike M0-BH-01 is `[x]` for health and thirst on 1.21.11 and 26.3. TFC reference: `IngameOverlays.HEALTH`. TFC's 81x9 sprite; the text (`[tfp_health_text]`, PAR-HUD-17: TFC's `healthDisplayStyle` from config.yml) sits inside the bar with a black shadow (TFC's dark-red one looked muddy over the empty channel; section 5, ledger). |
 | `m3-surv-06-thirst-bar` | thirst bar | M3-SURV-06 | bar | `tfp_thirst` (listener, 0..1) | M3 | needed | Spike M0-BH-01 `[x]`. TFC reference: `IngameOverlays.THIRST`. TFC's 81x5 sprite, one 6 px step above hunger (section 5). |
 | `m3-surv-06-hunger-bar` | hunger bar | M3-SURV-06 | bar | `tfp_hunger` (listener) | M3 | needed | The BetterHud built-in `food` class only works if the vanilla food level is synced (M3-SURV-02 open item). TFC reference: `IngameOverlays.FOOD`. TFC's 81x5 food sprite recoloured orange (divergence, section 5). |
 | `m3-surv-06-air-bar` | air bar (breath left), plain light-blue fill | M3-SURV-06 | bar | `tfp_air` (listener, 0..1) | M3 | needed | Replaces the vanilla air bubbles (hidden by `m3-surv-06-hide-air`). Compact 81x7 bar directly above thirst, only while `tfp_air < 300`; red fill below 60 (section 5). |
@@ -80,18 +81,18 @@ Total elements: **33**. Of these, 4 are unspecified in plan (rows marked above).
 | readout | 4 | 2 |
 | popup | 2 | 1 |
 | indicator | 1 | 1 |
-| placeholder | 14 | 0 |
+| placeholder | 15 | 0 |
 | hidden-vanilla | 4 | 0 |
-| **total** | **33** | **4** |
+| **total** | **34** | **4** |
 
 | milestone | elements | of which placeholder | of which unspecified in plan |
 |---|---|---|---|
 | M1 | 5 | 5 | 0 |
 | M2 | 7 | 3 | 0 |
-| M3 | 18 | 6 | 1 |
+| M3 | 19 | 7 | 1 |
 | M4 | 1 | 0 | 1 |
 | M6 | 2 | 0 | 2 |
-| **total** | **33** | **14** | **4** |
+| **total** | **34** | **15** | **4** |
 
 ## 4. TFC overlay reference (not counted)
 

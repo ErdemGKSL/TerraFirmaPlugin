@@ -54,7 +54,8 @@ class ConfigCodecTest {
         ConfigCodec.Parsed p = ConfigCodec.parse(Map.of());
         assertThat(p.config()).isEqualTo(TfpConfig.DEFAULTS);
         assertThat(p.warnings()).isEmpty();
-        assertThat(p.defaulted()).hasSize(15).contains("visuals.profile", "auto-install.restore-deleted", "catchup.sweep-period-ticks",
+        assertThat(p.defaulted()).hasSize(19).contains("hud.health-display-style", "hud.disabled-experience-bar-style",
+"visuals.profile", "auto-install.restore-deleted", "catchup.sweep-period-ticks",
                 "catchup.commit-budget-micros",
                 "ore-overlay.cutoff-blocks", "ore-overlay.max-per-player", "ore-overlay.surface-outcrops-full-range");
         assertThat(ConfigCodec.parse(null).config()).isEqualTo(TfpConfig.DEFAULTS);
@@ -195,5 +196,35 @@ class ConfigCodecTest {
         assertThat(ConfigCodec.parse(Map.of("catchup", Map.of("sweep-period-ticks", 0, "sweep-radius-chunks", 32,
                 "feed-budget-micros", 1, "commit-budget-micros", 50_000))).config().catchUp())
                 .isEqualTo(new CatchUp(0, 32, 1, 50_000));
+    }
+
+    /** PAR-HUD-17: the hud section is kept as written; missing keys take TFC's defaults and are listed. */
+    @Test
+    void hudSectionIsKeptAsWrittenWithDefaultsFilledIn() {
+        Map<String, Object> written = new LinkedHashMap<>();
+        written.put("health-display-style", "VANILLA");
+        written.put("climate-temperature-style", "fahrenheit");
+        ConfigCodec.Parsed p = ConfigCodec.parse(Map.of("hud", written));
+        assertThat(p.warnings()).isEmpty();
+        assertThat(p.config().hud().section()).containsExactly(Map.entry("health-display-style", "VANILLA"),
+                Map.entry("climate-temperature-style", "fahrenheit"), Map.entry("enable-experience-bar", true),
+                Map.entry("disabled-experience-bar-style", "HOVER"));
+        assertThat(p.defaulted()).contains("hud.enable-experience-bar", "hud.disabled-experience-bar-style")
+                .doesNotContain("hud.health-display-style", "hud.climate-temperature-style");
+        // Round trip.
+        assertThat(ConfigCodec.parse(ConfigCodec.toMap(p.config())).config()).isEqualTo(p.config());
+        assertThat(ConfigCodec.toMap(TfpConfig.DEFAULTS).get("hud")).isEqualTo(TfpConfig.Hud.DEFAULTS.section());
+    }
+
+    /** Values and unknown keys are checked by the paper layer's HudStyles; core keeps them for it and only checks the shape. */
+    @Test
+    void hudValuesAreLeftToThePaperLayerButTheShapeIsChecked() {
+        ConfigCodec.Parsed odd = ConfigCodec.parse(Map.of("hud", Map.of("health-display-style", "BIG", "colour", 3)));
+        assertThat(odd.warnings()).isEmpty();
+        assertThat(odd.config().hud().section()).containsEntry("health-display-style", "BIG").containsEntry("colour", 3);
+        ConfigCodec.Parsed notASection = ConfigCodec.parse(Map.of("hud", "TFC"));
+        assertThat(notASection.warnings()).singleElement().asString().contains("hud: expected a section");
+        assertThat(notASection.config().hud()).isEqualTo(TfpConfig.Hud.DEFAULTS);
+        assertThat(ConfigCodec.parse(Map.of("hud", Map.of())).config()).isEqualTo(TfpConfig.DEFAULTS);
     }
 }

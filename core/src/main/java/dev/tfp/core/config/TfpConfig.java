@@ -6,9 +6,12 @@
 package dev.tfp.core.config;
 
 import dev.tfp.core.compat.Version;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -16,9 +19,18 @@ import java.util.Optional;
  * {@link ConfigCodec} maps it to and from the YAML tree. TFC's ServerConfig/CommonConfig keys are added
  * here as their features land.
  */
-public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp) {
+public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp, Hud hud) {
     public static final TfpConfig DEFAULTS = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS,
-            CatchUp.DEFAULTS);
+            CatchUp.DEFAULTS, Hud.DEFAULTS);
+
+    public TfpConfig {
+        Objects.requireNonNull(hud, "hud");
+    }
+
+    /** A config with TFC's HUD display defaults ({@link Hud#DEFAULTS}). */
+    public TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp) {
+        this(visuals, oreOverlay, autoInstall, catchUp, Hud.DEFAULTS);
+    }
 
     /**
      * Visual allocation profile ({@code ARCHITECTURE.md} §9.1). Higher levels free more CE states at some fidelity cost.
@@ -171,6 +183,39 @@ public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall auto
                     || commitBudgetMicros < 1 || commitBudgetMicros > MAX_BUDGET_MICROS) {
                 throw new IllegalArgumentException("budgets must be in 1.." + MAX_BUDGET_MICROS);
             }
+        }
+    }
+
+    /**
+     * {@code hud.*}: TFC's HUD display options (PAR-HUD-14/17). TFC keeps them per player in {@code ClientConfig}; a
+     * vanilla client has none, so here they are one server-wide value (NOT-PARITY NP-CLIENT-04). Core holds the section
+     * as the plain tree the YAML reader produced (key to scalar, as written); the paper layer types it
+     * ({@code dev.tfp.paper.hud.HudStyles.parse}), which owns the lenient enum parsing, the unknown-key check and their
+     * warnings, so the values are parsed in exactly one place. Read again on every {@code /tfp reload}.
+     *
+     * @param section the {@code hud} keys and values as written, in config.yml order
+     */
+    public record Hud(Map<String, Object> section) {
+        public static final String HEALTH_KEY = "health-display-style";
+        public static final String CLIMATE_KEY = "climate-temperature-style";
+        public static final String XP_BAR_KEY = "enable-experience-bar";
+        public static final String XP_STYLE_KEY = "disabled-experience-bar-style";
+        /** The keys of the section, in config.yml order. */
+        public static final List<String> KEYS = List.of(HEALTH_KEY, CLIMATE_KEY, XP_BAR_KEY, XP_STYLE_KEY);
+        /** TFC's {@code ClientConfig} defaults: {@code TFC}, {@code CELSIUS}, XP bar on, {@code HOVER}. */
+        public static final Hud DEFAULTS = new Hud(defaults());
+
+        public Hud {
+            section = Collections.unmodifiableMap(new LinkedHashMap<>(section));
+        }
+
+        private static Map<String, Object> defaults() {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put(HEALTH_KEY, "TFC");
+            m.put(CLIMATE_KEY, "CELSIUS");
+            m.put(XP_BAR_KEY, true);
+            m.put(XP_STYLE_KEY, "HOVER");
+            return m;
         }
     }
 }

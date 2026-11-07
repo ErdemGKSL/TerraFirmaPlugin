@@ -59,3 +59,26 @@ catchup:
   sweep-radius-chunks: 4
   feed-budget-micros: 1000
   commit-budget-micros: 1000
+
+# HUD display styles. TFC sets these per player in its client config; vanilla clients have none, so one
+# value here applies to every player. Apply changes with /tfp reload config.
+# health-display-style: health display format. This affects what number is displayed on top of the
+#   tfc-style health bar.
+#   TFC - e.g. 750/1000
+#   VANILLA - e.g. 15.0/20.0
+#   TFC_CURRENT - e.g. 750
+#   VANILLA_CURRENT - e.g. 15.0
+# climate-temperature-style: the style to display all external (i.e. climate) temperature in.
+#   CELSIUS = Exact degrees Celsius
+#   FAHRENHEIT = Exact degrees Fahrenheit
+#   KELVIN = Exact Kelvin
+#   RANKINE = Exact degrees Rankine
+# enable-experience-bar: allows the vanilla XP bar to render. false is not supported yet: the vanilla
+#   XP bar stays and a warning is logged.
+# disabled-experience-bar-style: the style to display HUD elements when the XP bar is disabled.
+#   HOVER | BUMP | LEFT_HOTBAR. Has no effect until enable-experience-bar false is supported.
+hud:
+  health-display-style: TFC
+  climate-temperature-style: CELSIUS
+  enable-experience-bar: true
+  disabled-experience-bar-style: HOVER

@@ -4,11 +4,13 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/config/ItemTemperatureDisplayStyle.java @ c3b4d9536 (COLOR, the held heat text)
+ * file: src/main/java/net/dries007/tfc/config/ItemTemperatureDisplayStyle.java @ c3b4d9536 (COLOR, the held heat text),
+ * src/main/java/net/dries007/tfc/config/ClientConfig.java @ c3b4d9536 (climateTooltipStyle)
  */
 package dev.tfp.integration.betterhud;
 
-import dev.tfp.core.climate.ClimateFormat;
+import dev.tfp.paper.hud.HudStyles;
+import dev.tfp.paper.hud.HudStylesHolder;
 import dev.tfp.paper.i18n.Messages;
 import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.tooltip.HeatDisplayStyle;
@@ -25,7 +27,8 @@ import net.kyori.adventure.text.TextComponent;
  * (the values the climate and needs services publish from the player's thread), never the world or an item, so they are
  * safe on BetterHud's async timer on Folia.
  * <ul>
- *   <li>{@code tfp_ambient_temp}: the ambient temperature, a dash until the first reading.</li>
+ *   <li>{@code tfp_ambient_temp}: the ambient temperature in the configured {@code hud.climate-temperature-style}
+ *       ({@link #ambientText}, PAR-HUD-17), a dash until the first reading.</li>
  *   <li>{@code tfp_held_heat}: the held item's heat as TFC's default {@code COLOR} display style writes it, built by the
  *       tooltip's own {@link HeatDisplayStyle#formatColored} from the held heat record evaluated at the read's calendar
  *       tick ({@link HudSnapshot#heldTemperature()}, PAR-HUD-11: no lag while cooling or after a heat change) (the {@code heat.level.*} name from our en_us lang and one
@@ -45,10 +48,19 @@ final class HudClimateValues {
 
     static {
         Map<String, Function<HudSnapshot, String>> t = new LinkedHashMap<>();
-        t.put("tfp_ambient_temp", s -> ClimateFormat.temperature(s.ambientTemperature()));
+        t.put("tfp_ambient_temp", s -> ambientText(s, HudStylesHolder.current()));
         t.put("tfp_held_heat", s -> heatText((float) s.heldTemperature()));
         t.put("tfp_held_heat_color", s -> heatColor((float) s.heldTemperature()));
         TEXTS = Collections.unmodifiableMap(t);
+    }
+
+    /**
+     * PAR-HUD-17: the ambient temperature in the server's {@code hud.climate-temperature-style} (TFC
+     * {@code ClientConfig.climateTooltipStyle}, {@code ClimateTemperatureDisplayStyle}: float arithmetic, one decimal
+     * place), a dash until the first reading. {@code styles} is the published {@link HudStylesHolder#current()} value.
+     */
+    static String ambientText(HudSnapshot snapshot, HudStyles styles) {
+        return styles.temperatureText(snapshot.ambientTemperature());
     }
 
     /** The plugin's message bundles, loaded on first use. */

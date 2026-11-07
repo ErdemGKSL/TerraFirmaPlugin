@@ -29,9 +29,9 @@ class HudLayoutsTest {
     void realCatalogueRowCountsMatchTheCountsSection() {
         HudLayouts.Catalogue cat = HudLayouts.parse(HudLayouts.catalogue());
 
-        assertThat(cat.elements()).hasSize(33);
+        assertThat(cat.elements()).hasSize(34);
         Map<String, Integer> expected = Map.of(
-            "placeholder", 14, "bar", 7, "overlay", 1, "readout", 4, "popup", 2, "indicator", 1, "hidden-vanilla", 4);
+            "placeholder", 15, "bar", 7, "overlay", 1, "readout", 4, "popup", 2, "indicator", 1, "hidden-vanilla", 4);
         assertThat(countsByKind(cat.elements())).isEqualTo(expected);
         assertThat(cat.total()).isEqualTo(expected);
     }
@@ -41,7 +41,7 @@ class HudLayoutsTest {
         HudLayouts.Summary s = HudLayouts.run(new OutputTree(), HudLayouts.catalogue());
 
         assertThat(s.emitted()).isEqualTo(Map.of(
-            "placeholder", 14, "bar", 7, "overlay", 1, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 4));
+            "placeholder", 15, "bar", 7, "overlay", 1, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 4));
         assertThat(s.leftOut()).hasSize(4);
         assertThat(String.join("\n", s.leftOut())).contains(
             "m3-surv-02-nutrition-readout", "m6-mech-01-rotation-readout", "m4-pros-01-result-message",
@@ -88,7 +88,7 @@ class HudLayoutsTest {
     }
 
     @Test
-    void healthBarReadsTheValueAndTheMaxAndShowsTheSlashText() {
+    void healthBarReadsTheValueAndTheMaxAndShowsTheStyledText() {
         OutputTree out = new OutputTree();
         HudLayouts.run(out, HudLayouts.catalogue());
 
@@ -98,7 +98,8 @@ class HudLayoutsTest {
 
         Map<String, Object> bar = map(yaml(out, HudLayouts.BAR_LAYOUTS).get("tfp_m3_surv_06_health_bar"));
         Map<String, Object> text = map(map(bar.get("texts")).get("1"));
-        assertThat(text.get("pattern")).isEqualTo("[tfp_health]//[tfp_max_health]");
+        // PAR-HUD-17: the whole text comes from the styled text placeholder (hud.health-display-style).
+        assertThat(text.get("pattern")).isEqualTo("[tfp_health_text]").isEqualTo("[" + HudLayouts.HEALTH_TEXT + "]");
         assertThat(text.get("name")).isEqualTo("tfp_font");
     }
 
@@ -184,7 +185,7 @@ class HudLayoutsTest {
         placeholders.forEach(p -> names.add(map(p).get("name")));
         assertThat(names).containsExactlyInAnyOrder("tfp_health", "tfp_max_health", "tfp_thirst", "tfp_hunger",
             "tfp_held_temp", "tfp_date", "tfp_season", "tfp_ambient_temp", "tfp_air", "tfp_armor", "tfp_mount_health",
-            "tfp_mount_max_health", "tfp_held_heat", "tfp_held_heat_color");
+            "tfp_mount_max_health", "tfp_held_heat", "tfp_held_heat_color", "tfp_health_text");
     }
 
     @Test

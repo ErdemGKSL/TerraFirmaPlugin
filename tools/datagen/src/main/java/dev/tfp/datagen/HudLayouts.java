@@ -150,6 +150,14 @@ final class HudLayouts {
     static final String HEALTH_TEXT_SHADOW = "FF000000";
 
     /**
+     * PAR-HUD-17: the text placeholder of the health bar text, the whole text in the server's
+     * {@code hud.health-display-style} ({@code 850/850} at TFC's default; TFC {@code HealthDisplayStyle}). Must match
+     * {@code HudValues.TEXTS} in integration/betterhud. The bar fill keeps reading the numbers {@code tfp_health} and
+     * {@code tfp_max_health}.
+     */
+    static final String HEALTH_TEXT = "tfp_health_text";
+
+    /**
      * Layout placement (GUI pixels from the bottom-centre anchor; {@code H} = GUI height). Vanilla: XP bar H-29..H-25,
      * hotbar H-22..H-1, armour row H-49..H-41 on the left (hidden: the armour bar replaces it), XP number centred around
      * H-35..H-28.
@@ -191,7 +199,7 @@ final class HudLayouts {
 
     static final Map<String, BarSpec> BAR_SPECS = Map.of(
         "m3-surv-06-health-bar", new BarSpec("m3_surv_06_health_bar", -90, -40, BARS,
-            List.of(new Text("[tfp_health]//[tfp_max_health]", 40, 1, "center", HEALTH_TEXT_SHADOW)), List.of(), List.of(), 0),
+            List.of(new Text("[" + HEALTH_TEXT + "]", 40, 1, "center", HEALTH_TEXT_SHADOW)), List.of(), List.of(), 0),
         "m3-surv-06-armor-bar", new BarSpec("m3_surv_06_armor_bar", -90, -48, BARS, List.of(), ARMORED, List.of(), 0),
         MOUNT_BAR, new BarSpec("m3_surv_06_health_bar", -90, -59, BARS,
             List.of(new Text("[tfp_mount_health]//[tfp_mount_max_health]", 40, 1, "center", HEALTH_TEXT_SHADOW)), MOUNTED,

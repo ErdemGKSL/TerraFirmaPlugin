@@ -7,7 +7,11 @@ package dev.tfp.paper.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.tfp.core.climate.ClimateTemperatureStyle;
 import dev.tfp.core.config.ConfigCodec;
+import dev.tfp.core.health.HealthDisplayStyle;
+import dev.tfp.paper.hud.HudStyles;
+import dev.tfp.paper.hud.HudStylesHolder;
 import dev.tfp.core.config.TfpConfig;
 import dev.tfp.core.config.TfpConfig.AutoInstall;
 import dev.tfp.core.config.TfpConfig.NetherEndBlocks;
@@ -94,7 +98,7 @@ class ConfigServiceTest {
         Files.writeString(file, owner);
         ConfigService.Outcome o = service.load();
         assertThat(o.created()).isFalse();
-        assertThat(o.added()).containsExactly("ore-overlay", "auto-install", "catchup");
+        assertThat(o.added()).containsExactly("ore-overlay", "auto-install", "catchup", "hud");
         assertThat(o.warnings()).hasSize(2).anyMatch(w -> w.contains("visuals.extra"))
                 .anyMatch(w -> w.contains("config.yml visuals.profile.\"26\": level-3b was removed") && w.contains("using level-2"));
         String text = Files.readString(file);
@@ -152,5 +156,52 @@ class ConfigServiceTest {
         assertThat(o.applied()).isTrue();
         assertThat(o.warnings()).singleElement().asString().contains("catchup.sweep-radius-chunks");
         assertThat(service.current().catchUp()).isEqualTo(new TfpConfig.CatchUp(40, 4, 1000, 1000));
+    }
+
+    /** PAR-HUD-17: the shipped hud section is TFC's defaults, with no warning and nothing missing. */
+    @Test
+    void shippedHudSectionIsTfcDefaults() {
+        assertThat(Yamls.load(SHIPPED).get("hud")).isEqualTo(TfpConfig.Hud.DEFAULTS.section());
+        HudStyles.Parsed p = HudStyles.parse(ConfigCodec.parse(Yamls.load(SHIPPED)).config().hud().section());
+        assertThat(p.warnings()).isEmpty();
+        assertThat(p.styles()).isEqualTo(HudStyles.DEFAULTS);
+        assertThat(SHIPPED).contains("TFC - e.g. 750/1000", "FAHRENHEIT = Exact degrees Fahrenheit");
+    }
+
+    /** PAR-HUD-17: /tfp reload (another load) swaps the published styles; bad values warn and keep TFC's defaults. */
+    @Test
+    void reloadSwapsTheHudStyles() throws IOException {
+        try {
+            ConfigService.Outcome first = service.load();
+            assertThat(first.warnings()).isEmpty();
+            assertThat(service.hudStyles()).isEqualTo(HudStyles.DEFAULTS);
+            assertThat(HudStylesHolder.current()).isEqualTo(HudStyles.DEFAULTS);
+
+            Files.writeString(file, Files.readString(file).replace("health-display-style: TFC", "health-display-style: VANILLA")
+                    .replace("climate-temperature-style: CELSIUS", "climate-temperature-style: FAHRENHEIT"));
+            ConfigService.Outcome edited = service.load();
+            assertThat(edited.warnings()).isEmpty();
+            HudStyles styles = new HudStyles(HealthDisplayStyle.VANILLA, ClimateTemperatureStyle.FAHRENHEIT, true,
+                    HudStyles.DisabledExperienceBarStyle.HOVER);
+            assertThat(service.hudStyles()).isEqualTo(styles);
+            assertThat(HudStylesHolder.current()).isEqualTo(styles);
+            assertThat(HudStylesHolder.current().temperatureText(20)).isEqualTo("68.0°F");
+
+            Files.writeString(file, Files.readString(file).replace("health-display-style: VANILLA", "health-display-style: HUGE")
+                    .replace("climate-temperature-style: FAHRENHEIT", "climate-temperature-style: CELSIUS"));
+            ConfigService.Outcome bad = service.load();
+            assertThat(bad.applied()).isTrue();
+            assertThat(bad.warnings()).singleElement().asString().contains("hud.health-display-style", "HUGE", "using TFC");
+            assertThat(HudStylesHolder.current()).isEqualTo(HudStyles.DEFAULTS);
+
+            // A broken file keeps the previous styles.
+            Files.writeString(file, Files.readString(file).replace("health-display-style: HUGE", "health-display-style: VANILLA"));
+            service.load();
+            Files.writeString(file, "hud: [unclosed\n");
+            assertThat(service.load().applied()).isFalse();
+            assertThat(HudStylesHolder.current().health()).isEqualTo(HealthDisplayStyle.VANILLA);
+        } finally {
+            HudStylesHolder.publish(HudStyles.DEFAULTS);
+        }
     }
 }

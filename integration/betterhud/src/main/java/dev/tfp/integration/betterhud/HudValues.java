@@ -5,11 +5,16 @@
  */
 package dev.tfp.integration.betterhud;
 
+import dev.tfp.core.health.HealthConfig;
+import dev.tfp.core.health.HealthDisplay;
 import dev.tfp.core.hud.HudGauge;
+import dev.tfp.paper.hud.HudStyles;
+import dev.tfp.paper.hud.HudStylesHolder;
 import dev.tfp.paper.integration.HudSnapshot;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 
 /**
@@ -65,6 +70,28 @@ final class HudValues {
         l.put("tfp_armor", s -> ratio(s.armor(), HudSnapshot.MAX_ARMOR));
         l.put("tfp_ambient_temp", s -> thermometer(s.ambientTemperature()));
         LISTENERS = Collections.unmodifiableMap(l);
+    }
+
+    /**
+     * Text placeholders of the bars (PAR-HUD-17). {@code tfp_health_text} is the text on the health bar in the server's
+     * {@code hud.health-display-style} (TFC {@code ClientConfig.healthDisplayStyle}, {@code IngameOverlays.renderHealthBar}),
+     * read from the published {@link HudStylesHolder#current() styles}: a volatile read, never the config file.
+     */
+    static final Map<String, Function<HudSnapshot, String>> TEXTS = Map.of(
+            "tfp_health_text", s -> healthText(s, HudStylesHolder.current()));
+
+    /**
+     * The health bar text of {@code snapshot} in {@code styles} ({@code 850/850} at TFC's default): the snapshot holds the
+     * shown values on TFC's x 50 scale ({@link HealthDisplay}, {@link HealthConfig#DEFAULT}, as {@code
+     * PlayerNeedsHudService} publishes them). Empty for a max that cannot be shown (not positive or not finite).
+     */
+    static String healthText(HudSnapshot snapshot, HudStyles styles) {
+        float health = (float) snapshot.health();
+        float max = (float) snapshot.maxHealth();
+        if (!(max > 0) || Float.isInfinite(max) || Float.isNaN(health) || Float.isInfinite(health)) {
+            return "";
+        }
+        return styles.healthText(new HealthDisplay(Math.max(0f, health), max), HealthConfig.DEFAULT);
     }
 
     /** The thermometer bar's range: {@link #THERMOMETER_MIN} °C (empty) to {@link #THERMOMETER_MIN} + {@link #THERMOMETER_SPAN} °C (full). */

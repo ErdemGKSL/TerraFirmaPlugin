@@ -7,6 +7,7 @@ package dev.tfp.core.config;
 
 import dev.tfp.core.config.TfpConfig.AutoInstall;
 import dev.tfp.core.config.TfpConfig.CatchUp;
+import dev.tfp.core.config.TfpConfig.Hud;
 import dev.tfp.core.config.TfpConfig.NetherEndBlocks;
 import dev.tfp.core.config.TfpConfig.OreOverlay;
 import dev.tfp.core.config.TfpConfig.Profile;
@@ -50,7 +51,7 @@ public final class ConfigCodec {
     public static Parsed parse(Map<?, ?> root) {
         Reader r = new Reader();
         Map<?, ?> top = root == null ? Map.of() : root;
-        r.unknown(top, "", List.of("visuals", "ore-overlay", "auto-install", "catchup"));
+        r.unknown(top, "", List.of("visuals", "ore-overlay", "auto-install", "catchup", "hud"));
 
         Map<?, ?> v = r.section(top, "visuals");
         r.unknown(v, "visuals.", List.of("profile", "solid-reserve-warning", "use-nether-end-blocks"));
@@ -114,8 +115,9 @@ public final class ConfigCodec {
                 r.intIn(cu, "catchup.", "sweep-radius-chunks", cd.sweepRadiusChunks(), 0, CatchUp.MAX_RADIUS),
                 r.intIn(cu, "catchup.", "feed-budget-micros", cd.feedBudgetMicros(), 1, CatchUp.MAX_BUDGET_MICROS),
                 r.intIn(cu, "catchup.", "commit-budget-micros", cd.commitBudgetMicros(), 1, CatchUp.MAX_BUDGET_MICROS));
-        return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto, catchUp), r.warnings,
-                r.defaulted);
+        Hud hud = r.hud(top);
+        return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto, catchUp, hud),
+                r.warnings, r.defaulted);
     }
 
     /** The tree that {@link #parse} reads back to an equal config. Keys in config.yml order. */
@@ -149,6 +151,7 @@ public final class ConfigCodec {
         catchUp.put("feed-budget-micros", cu.feedBudgetMicros());
         catchUp.put("commit-budget-micros", cu.commitBudgetMicros());
         root.put("catchup", catchUp);
+        root.put("hud", new LinkedHashMap<>(c.hud().section()));
         return root;
     }
 
@@ -209,6 +212,28 @@ public final class ConfigCodec {
             }
             warn(prefix + key + ": expected true or false, got '" + o + "'; using " + def);
             return def;
+        }
+
+        /**
+         * The {@code hud} section as written (PAR-HUD-17). Only its shape is checked here: a non-section warns and takes
+         * TFC's defaults, an absent key is reported as defaulted (and takes its default), every present key is kept as
+         * written. The values, unknown keys and their warnings are the paper layer's {@code HudStyles.parse}.
+         */
+        Hud hud(Map<?, ?> top) {
+            Map<?, ?> h = section(top, "hud");
+            Map<String, Object> out = new LinkedHashMap<>();
+            for (String key : Hud.KEYS) {
+                if (h.containsKey(key)) {
+                    out.put(key, h.get(key));
+                } else {
+                    defaulted.add("hud." + key);
+                    out.put(key, Hud.DEFAULTS.section().get(key));
+                }
+            }
+            for (Map.Entry<?, ?> e : h.entrySet()) {
+                out.putIfAbsent(String.valueOf(e.getKey()), e.getValue());
+            }
+            return new Hud(out);
         }
 
         NetherEndBlocks netherEnd(Map<?, ?> m, NetherEndBlocks def) {

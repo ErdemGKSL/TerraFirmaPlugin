@@ -9,6 +9,7 @@
 package dev.tfp.paper.hud;
 
 import dev.tfp.core.climate.ClimateTemperatureStyle;
+import dev.tfp.core.config.TfpConfig;
 import dev.tfp.core.health.HealthConfig;
 import dev.tfp.core.health.HealthDisplay;
 import dev.tfp.core.health.HealthDisplayStyle;
@@ -48,12 +49,12 @@ public record HudStyles(HealthDisplayStyle health, ClimateTemperatureStyle clima
                         DisabledExperienceBarStyle disabledExperienceBar) {
     /** The config.yml section. */
     public static final String SECTION = "hud";
-    public static final String HEALTH_KEY = "health-display-style";
-    public static final String CLIMATE_KEY = "climate-temperature-style";
-    public static final String XP_BAR_KEY = "enable-experience-bar";
-    public static final String XP_STYLE_KEY = "disabled-experience-bar-style";
-    /** The keys of the section, in config.yml order. */
-    public static final List<String> KEYS = List.of(HEALTH_KEY, CLIMATE_KEY, XP_BAR_KEY, XP_STYLE_KEY);
+    public static final String HEALTH_KEY = TfpConfig.Hud.HEALTH_KEY;
+    public static final String CLIMATE_KEY = TfpConfig.Hud.CLIMATE_KEY;
+    public static final String XP_BAR_KEY = TfpConfig.Hud.XP_BAR_KEY;
+    public static final String XP_STYLE_KEY = TfpConfig.Hud.XP_STYLE_KEY;
+    /** The keys of the section, in config.yml order (the raw section core's {@code ConfigCodec} keeps). */
+    public static final List<String> KEYS = TfpConfig.Hud.KEYS;
 
     /** TFC's {@code ClientConfig} defaults. */
     public static final HudStyles DEFAULTS = new HudStyles(HealthDisplayStyle.DEFAULT, ClimateTemperatureStyle.DEFAULT,

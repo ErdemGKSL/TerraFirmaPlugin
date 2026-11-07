@@ -8,12 +8,15 @@ package dev.tfp.paper.config;
 import dev.tfp.core.config.ConfigCodec;
 import dev.tfp.core.config.TfpConfig;
 import dev.tfp.core.config.YamlDefaultsMerge;
+import dev.tfp.paper.hud.HudStyles;
+import dev.tfp.paper.hud.HudStylesHolder;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -29,6 +32,7 @@ public final class ConfigService {
     private final Path file;
     private final Supplier<String> defaults;
     private volatile TfpConfig current = TfpConfig.DEFAULTS;
+    private volatile HudStyles hudStyles = HudStyles.DEFAULTS;
 
     /**
      * @param created  the file did not exist and was written from the defaults
@@ -50,6 +54,14 @@ public final class ConfigService {
 
     public TfpConfig current() {
         return current;
+    }
+
+    /**
+     * The typed {@code hud} section of the current config (PAR-HUD-17); also published to {@link HudStylesHolder} on every
+     * successful load, where the HUD placeholders read it.
+     */
+    public HudStyles hudStyles() {
+        return hudStyles;
     }
 
     public Path file() {
@@ -89,8 +101,14 @@ public final class ConfigService {
             return new Outcome(current, created, added,
                     List.of(file.getFileName() + ": " + e.getMessage() + "; keeping the previous settings"), false);
         }
+        // PAR-HUD-17: the hud section is typed here (HudStyles owns its parsing) and published for the HUD placeholders.
+        HudStyles.Parsed hud = HudStyles.parse(parsed.config().hud().section());
+        List<String> warnings = new ArrayList<>(parsed.warnings());
+        warnings.addAll(hud.warnings());
         current = parsed.config();
-        return new Outcome(parsed.config(), created, added, parsed.warnings(), true);
+        hudStyles = hud.styles();
+        HudStylesHolder.publish(hud.styles());
+        return new Outcome(parsed.config(), created, added, warnings, true);
     }
 
     private void writeAtomically(String text) throws IOException {
