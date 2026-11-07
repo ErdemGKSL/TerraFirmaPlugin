@@ -96,13 +96,15 @@ Totals: 289 items; open 207, done 78, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-INFRA-41 | Ore overlay specks as bright as TFC's: down-face specks read dark brown (0.38 of TFC relative to the rock), side faces 26% dark | INFRA | 9 | open |
 | PAR-INFRA-42 | Carrier policy matches our worldgen: lily pad, sea pickle and other placed placeholders are not presence absent; guard test | INFRA | 9 | open |
 | PAR-FLUID-02 | Buckets: wooden bucket, red and blue steel buckets, fluid placement policy | FLUID | 9 | open |
-| PAR-FLUID-03 | Salt water, spring water and river water in the world | FLUID | 9 | open |
+| PAR-FLUID-03 | Salt water, spring water and river water in the world | FLUID | 9 | done |
 | PAR-HUD-16 | HUD season per player: tfp_season follows the viewer's hemisphere (southern players see the opposite month's name) | HUD | 9 | open |
 | PAR-PROC-08 | Barrel block: fluids, sealing, sealed and instant recipes, preservation | PROC | 9 | open |
 | PAR-PROC-22 | Basket: TFC's bundle item (TFCBundleItem) with its size limits | PROC | 9 | open |
 | PAR-SURV-08 | Alcohol and intoxication | SURV | 9 | open |
 | PAR-SURV-12 | Dehydration self-test: a tfp:dehydration hit through the registry, armour reduces it | SURV | 9 | open |
 | PAR-FLUID-04 | Hot spring healing and bubble columns | FLUID | 10 | open |
+| PAR-FLUID-06 | River current in-game verification: a boat and a dropped item drift downstream | FLUID | 10 | open |
+| PAR-FLUID-07 | Open-water drinking reads WorldWaterService: salt water in every salty TFC biome, river water fresh | FLUID | 10 | open |
 | PAR-HEAT-01 | Item heat glow: hot items glow by heat level on vanilla clients | HEAT | 10 | open |
 | PAR-HEAT-02 | Heat tooltip in TFC colours and metal info lines (melting point, workable, weldable) | HEAT | 10 | open |
 | PAR-SURV-09 | Death, respawn and regeneration rules | SURV | 10 | open |
