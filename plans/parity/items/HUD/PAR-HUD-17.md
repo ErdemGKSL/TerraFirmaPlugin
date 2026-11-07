@@ -2,7 +2,7 @@
 id: PAR-HUD-17
 title: "Wire the HUD display styles: hud.* keys in config.yml, health text and climate temperature placeholders follow HudStyles"
 area: HUD
-status: blocked
+status: open
 wave: 8
 deps: [PAR-HUD-14, PAR-HUD-10, PAR-HUD-12, PAR-HUD-15, PAR-INFRA-31]
 size: S
@@ -35,6 +35,7 @@ in_game_steps:
   - "set hud.health-display-style VANILLA and hud.climate-temperature-style FAHRENHEIT in config.yml; tfp reload; screenshot the health text and the top-left plate at GUI scale 2"
   - "set both back to the defaults (TFC, CELSIUS); tfp reload; screenshot again: 850/850-style health text and the Celsius plate unchanged from before"
 plan:
+  - "UNBLOCKED (manager, 2026-11-07): the block was only a full disk. Code is complete; run the two in_game_steps, judge the screenshots, store docs/verification/PAR-HUD-17/ and set done."
   - "Blocked (2026-11-07) only on the in-game screenshot check (PROTOCOL section 6): the machine's root volume had about 55 MB free, so no headless Paper server and client could run (the first start failed with a full disk), and no test-running subagent was available. The code, tests, config.yml, catalogue, ledger and docs/hud/versions.md are complete in the PAR-HUD-17 commit; what remains is to run the two in_game_steps, judge the screenshots, store docs/verification/PAR-HUD-17/ and set done."
   - "Built (PAR-HUD-17 commit): core TfpConfig.Hud keeps the raw hud section (ConfigCodec: known top-level key, shape check, absent keys defaulted and listed); ConfigService types it with HudStyles.parse on every load (startup and /tfp reload config), adds its warnings to the outcome and publishes it to paper/hud/HudStylesHolder (one volatile immutable record); BetterHud text placeholder tfp_health_text (HudValues.TEXTS, HudStyles.healthText of the published HealthDisplay) and tfp_ambient_temp via HudStyles.temperatureText; HudLayouts health text pattern [tfp_health_text]; catalogue row par-hud-17-ph-health-text. Tests: ConfigCodecTest (+2), ConfigServiceTest (+2, reload swaps styles, bad value warns), HudValuesHealthTextTest (4), HudClimateValuesStyleTest (3), HudLayoutsTest (pattern, counts). /tfp debug chunk still prints ClimateFormat Celsius: follow-up PAR-HUD-18 (TfpPlugin is outside files_owned)."
   - "Current (PAR-HUD-14): core `HealthDisplayStyle` (TFC's four formatters, `format(HealthDisplay, HealthConfig)`) and `ClimateTemperatureStyle` (TFC's four units, float arithmetic, %.1f, Locale.ROOT, no -0.0) are golden-tested; `paper/hud/HudStyles` parses the `hud:` section (keys health-display-style, climate-temperature-style, enable-experience-bar, disabled-experience-bar-style; TFC defaults; lenient warnings; `toMap` round trip) and formats `healthText`/`temperatureText`. Nothing reads it yet."
