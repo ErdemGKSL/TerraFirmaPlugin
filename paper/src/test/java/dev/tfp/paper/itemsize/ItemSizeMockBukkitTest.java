@@ -39,6 +39,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -311,5 +312,41 @@ class ItemSizeMockBukkitTest extends MockServerTest {
                 .isEqualTo(new ItemSizing(ItemSize.HUGE, ItemWeight.VERY_HEAVY));
         handle.close();
         assertThat(sizes.sizing(two)).as("removed").isEqualTo(ItemSizing.DEFAULT);
+    }
+
+    @Test
+    void hopperDoesNotMoveAHugeItemIntoAChest() {
+        Inventory hopper = server.createInventory(null, InventoryType.HOPPER);
+        Inventory chest = chestAt(6);
+        InventoryMoveItemEvent anvil = new InventoryMoveItemEvent(hopper, custom(ANVIL), chest, true);
+        listener.onMove(anvil);
+        assertThat(anvil.isCancelled()).as("huge anvil into a chest").isTrue();
+
+        InventoryMoveItemEvent log = new InventoryMoveItemEvent(hopper, new ItemStack(Material.OAK_LOG), chest, true);
+        listener.onMove(log);
+        assertThat(log.isCancelled()).as("very large log does not either").isTrue();
+
+        InventoryMoveItemEvent pick = new InventoryMoveItemEvent(hopper, new ItemStack(Material.IRON_PICKAXE), chest,
+                true);
+        listener.onMove(pick);
+        assertThat(pick.isCancelled()).as("large fits").isFalse();
+
+        InventoryMoveItemEvent out = new InventoryMoveItemEvent(chest, custom(ANVIL), hopper, true);
+        listener.onMove(out);
+        assertThat(out.isCancelled()).as("out of a chest into a hopper").isFalse();
+    }
+
+    @Test
+    void disableClearsTheModifiersOnTheOwningThread() {
+        PlayerMock player = server.addPlayer();
+        player.setGameMode(GameMode.SURVIVAL);
+        BurdenApplier applier = new BurdenApplier(sizes, BurdenEffects.DEFAULT_PASSIVE_EXHAUSTION_MODIFIER,
+                (p, b) -> { });
+        player.getInventory().setItem(0, custom(ANVIL));
+        player.getInventory().setItem(1, custom(ANVIL));
+        applier.apply(player);
+        assertThat(BurdenApplier.isImmobilised(player)).isTrue();
+        ItemSizeModule.clearOnDisable(server, null, java.util.logging.Logger.getAnonymousLogger(), applier, player);
+        assertThat(BurdenApplier.isImmobilised(player)).as("cleared without a scheduled task").isFalse();
     }
 }

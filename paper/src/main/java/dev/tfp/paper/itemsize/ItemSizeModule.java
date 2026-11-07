@@ -86,7 +86,7 @@ public final class ItemSizeModule implements FeatureModule, Listener {
         ModuleContext ctx = context;
         if (b != null && ctx != null) {
             for (Player player : ctx.plugin().getServer().getOnlinePlayers()) {
-                ctx.scheduler().entity(player, () -> b.clear(player), null);
+                clearOnDisable(ctx.plugin().getServer(), ctx.scheduler(), ctx.logger(), b, player);
             }
         }
     }
@@ -96,6 +96,26 @@ public final class ItemSizeModule implements FeatureModule, Listener {
         BurdenApplier b = burden;
         if (b != null) {
             b.clear(event.getPlayer());
+        }
+    }
+
+    /**
+     * Removes the transient modifiers of one player while the module is disabled. During the plugin's
+     * {@code onDisable} the plugin is already disabled and Paper/Folia refuse new tasks, so a thread that owns the
+     * player (Paper's main thread) clears directly; otherwise the entity task is tried and a refusal is logged (the
+     * modifiers are transient, so they are gone at the next relog or restart at the latest).
+     */
+    static void clearOnDisable(org.bukkit.Server server, Scheduler scheduler, java.util.logging.Logger log,
+            BurdenApplier b, Player player) {
+        if (server.isOwnedByCurrentRegion(player)) {
+            b.clear(player);
+            return;
+        }
+        try {
+            scheduler.entity(player, () -> b.clear(player), null);
+        } catch (RuntimeException e) {
+            log.fine(() -> "item size: overburdened modifiers of " + player.getName()
+                    + " not cleared on disable: " + e);
         }
     }
 }
