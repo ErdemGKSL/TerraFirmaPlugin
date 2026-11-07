@@ -2,7 +2,7 @@
 id: PAR-INFRA-37
 title: "Recapture the ore overlay feel shots PAR-INFRA-16 missed: down face, distance set, 26.3 night/torch, tool timing, cave walk, fresh-world budget"
 area: INFRA
-status: open
+status: done
 wave: 8
 deps: [PAR-INFRA-16]
 size: S
@@ -26,6 +26,7 @@ in_game_steps:
 plan:
   - "Current: PAR-INFRA-16 is done with verdict rows 7 (tool timing not measured), 13 (distance set), 14 (fresh world) and the down face, 26.3 night/torch and cave walk shots missing or unusable in its in-game run. The down-face orientation is unit-tested (PAR-INFRA-15 OverlayModelTest)."
   - "Run the in_game_steps with a cheap-model agent where available; the main session judges every frame. A failure is fixed through a follow-up of PAR-INFRA-16's files."
+  - "Done: all steps run on fresh TFC worlds on Paper 1.21.11 + client and Paper 26.3 + client (jar of 485d53e, no code change). Pass: distance set 16-96 m (no ring, no pop), 26.3 noon/midnight/torch (speck/rock ratio 1.03 in all three), tool timing (bronze pickaxe ore 28-31 / raw granite 28-30 ticks, expected 28; bronze shovel and hand 670-673 for both, expected 670), hand-dig cracks over the specks from the first stage, 200-block cave walk (100 frames each, no pop-in), fresh-world budget (1.21.11: 85 tables, avg 3.5 ms, max 32 ms, copy 0.67 ms; 26.3: 121 tables, avg 2.5 ms, max 33 ms, copy 0.41 ms). Down face: orientation equals TFC (241/256 texels) but the specks are 0.38 of TFC's brightness relative to the rock (dark brown); side faces 26% dark: follow-up PAR-INFRA-41, ledger divergence row. Evidence and verdict: docs/verification/PAR-INFRA-37/"
 tests:
   - "None beyond the in-game steps"
 done_criteria:
