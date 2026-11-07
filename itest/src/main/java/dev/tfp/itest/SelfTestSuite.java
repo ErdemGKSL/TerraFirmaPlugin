@@ -59,6 +59,7 @@ public final class SelfTestSuite {
                 new WorldgenTerrainCase(),
                 new OreExposureCensusCase(),
                 new dev.tfp.itest.cases.OreOverlayCase(),
+                new dev.tfp.itest.cases.OreOverlayBudgetCase(),
                 new MetalRunCase(),
                 new ProfileRestartCase(),
                 new SuppressionCase(),
