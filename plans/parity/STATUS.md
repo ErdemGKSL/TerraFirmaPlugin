@@ -77,7 +77,7 @@ Totals: 289 items; open 207, done 78, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-FLUID-01 | Fluids as container contents: registry of TFC fluids, colours, debug fill | FLUID | 8 | done |
 | PAR-SURV-05 | Health and damage: TFC health scale, physical damage types, entity and armour resistances | SURV | 8 | open |
 | PAR-SURV-06 | Item size and weight on Paper: container limits, overburdened and exhausted, tooltip | SURV | 8 | done |
-| PAR-SURV-07 | Player tab screens: calendar, nutrition and climate pages opened from outside the inventory | SURV | 8 | open |
+| PAR-SURV-07 | Player tab screens: calendar, nutrition and climate pages opened from outside the inventory | SURV | 8 | done |
 | PAR-SURV-10 | TFC damage types in the server registry (tfp:dehydration and the others), dehydration hits through it | SURV | 8 | done |
 | PAR-REL-12 | Visual and overlay budget guards: profile-vs-pool unit test, overlay entities-per-chunk itest budget | REL | 8 | done |
 | PAR-INFRA-34 | Verify the ore overlay datagen in game: host-rock look of buried ores, composite ore block item icons, pick-block | INFRA | 8 | done |

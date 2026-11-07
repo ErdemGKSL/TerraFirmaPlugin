@@ -2,7 +2,7 @@
 id: PAR-SURV-07
 title: "Player tab screens: calendar, nutrition and climate pages opened from outside the inventory"
 area: SURV
-status: open
+status: done
 wave: 8
 deps: [PAR-INFRA-03]
 size: M
@@ -21,12 +21,13 @@ files_owned:
 ui: true
 in_game_steps:
   - "Open the inventory (E)"
-  - "Click the tab button drawn left of the window"
+  - "Click the tab column drawn right of the window (any click outside the window opens the calendar page)"
   - "Switch to Nutrition and Climate; screenshot each"
 plan:
   - "Outside-click (slot -999) in the player inventory opens our tab GUI (locked decision); the pack draws the tab button next to the inventory."
   - "Pages: calendar (date, season, day, time, as TFC CalendarScreen text), nutrition (5 bars as title glyph overlays from PlayerNutrition), climate (avg/actual temperature, rainfall, Koppen as TFC ClimateScreen)."
   - "Tab buttons switch pages; Escape returns to the inventory."
+  - "Done: paper/tabs (PlayerTabsModule, TabListener outside-click trigger + page clicks + crafting table title, TabService capture/worker/apply, TabPage TFC text positions, TabTitles per-line fonts, TabLayout 4-row chest with tab buttons in slots 27-30, TabFont, Koppen); datagen tabs/PlayerTabArt (page art re-laid out, tab buttons from icons.png, 94-frame nutrient bars, night sprite, inventory tab column via lang container.crafting, 13 line fonts, frame advance markers). Tests: paper TabPageTest 9, PlayerTabsMockBukkitTest 7, PlayerTabLayoutConsistencyTest 2; datagen PlayerTabArtTest 7. Escape and the INVENTORY button close the page (the server cannot open the client inventory); 7 divergence rows in the ledger. In-game check passed at GUI scale 2 and 3: docs/verification/PAR-SURV-07/."
 tests:
   - "paper: MockBukkit outside click opens the tab"
   - "tools/datagen: tab art present"

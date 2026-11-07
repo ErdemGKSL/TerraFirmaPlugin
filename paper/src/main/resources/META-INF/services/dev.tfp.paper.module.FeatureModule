@@ -19,3 +19,4 @@ dev.tfp.paper.player.ThirstModule
 dev.tfp.paper.quern.QuernModule
 dev.tfp.paper.fluid.FluidModule
 dev.tfp.paper.itemsize.ItemSizeModule
+dev.tfp.paper.tabs.PlayerTabsModule

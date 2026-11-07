@@ -92,6 +92,9 @@ final class CeYamlCheck {
                         }
                         continue;
                     }
+                    if (section.getKey().equals("lang")) { // PAR-SURV-07: client lang overrides, keyed by locale
+                        continue;
+                    }
                     assertThat(section.getKey()).as(c.getKey()).isIn("blocks", "items", "equipments",
                         "images",
                         "recipes"); // PAR-PROC-02
