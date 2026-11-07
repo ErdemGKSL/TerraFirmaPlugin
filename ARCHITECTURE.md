@@ -331,10 +331,13 @@ before `absent_minor`" tweak is **off** (decided by `VisualBudgetTest`): with `h
   (last writer wins; the client keeps one per breaker and draws the highest), see the ledger's crack-overlay divergence.
   The morphs come from the region thread (event), Netty (packet) and the global tick (expiry): the sender is
   thread-agnostic.
-- Wiring: `OreOverlayModule` loads `CraftEngineOreSource`, the display sender and the packet handler by class name
-  (`Class.forName`), not through the `IntegrationProvider`/ServiceLoader SPI of §Adapter wiring: the SPI's resource files
-  and provider interfaces were outside PAR-INFRA-16's files. `paper` still has no compile-time dependency on the adapter
-  (the name is a string, `ArchitectureTest` holds); moving it to an `OreBlockSource` service is PAR-INFRA-39.
+- Wiring (PAR-INFRA-39): `CraftEngineProvider` publishes `OreBlockSource` (`CraftEngineOreSource`, created on first ask)
+  through the `IntegrationProvider` SPI with `Integrations.withService`, a wrapper that adds one service to an adapter and
+  delegates its lifecycle, name, ready signal and other services. `OreOverlayModule` asks `Integrations.service(OreBlockSource.class)`
+  and stays off with a log line when it is absent (CraftEngine missing or its adapter disabled); no class name of the
+  adapter remains in `paper`. The PacketEvents-side display sender and packet handler (`paper/packet/display`) keep one
+  documented class-name lookup (`OreOverlayModule.packetSide`), the same rule as `PacketLayers` and `BlockSoundModule`:
+  they link PacketEvents classes, which exist only when PacketEvents is installed.
 - Debug `place` runs inline when the caller already owns the target region (the console on Paper), so the command's reply
   wait never blocks the thread its own task needs; its reply reads the cell back. `stats` and `show` count only tables,
   which exist for chunks sent to a viewer within the overlay radius (no player near: `ores 0`, `no table`). `show` also

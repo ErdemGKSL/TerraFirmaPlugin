@@ -2,7 +2,7 @@
 id: PAR-INFRA-39
 title: "Ore overlay adapter wiring through the IntegrationProvider SPI instead of Class.forName"
 area: INFRA
-status: open
+status: done
 wave: 8
 deps: [PAR-INFRA-16]
 size: S
@@ -19,6 +19,7 @@ in_game_steps: []
 plan:
   - "Current: `OreOverlayModule` creates `dev.tfp.integration.craftengine.oreoverlay.CraftEngineOreSource`, `dev.tfp.paper.packet.display.OverlayDisplaySender` and `OreOverlayPacketHandler` with `Class.forName` (ARCHITECTURE, ore overlay section, 'Wiring'). It links, `ArchitectureTest` holds, but a renamed class only fails at runtime."
   - "Fix: the CraftEngine provider publishes an `OreBlockSource` service (as the other adapter services are published through `Integrations`); the module asks for it and stays off when it is absent. The PacketEvents-side classes keep one documented lookup or move behind the packet layer's own factory. Update the ARCHITECTURE 'Wiring' bullet."
+  - "Done: `CraftEngineProvider` publishes `OreBlockSource` (`CraftEngineOreSource`, created on first ask) through the SPI with the new `Integrations.withService` wrapper; `Integrations.service(Class)` returns it; `OreOverlayModule.oreSource` turns the module off with a log line when it is absent; the PacketEvents-side sender and handler keep one documented lookup (`OreOverlayModule.packetSide`). Tests: IntegrationsTest +3 (absent without CraftEngine and module off, present with a fake provider keeping the adapter's services and lifecycle, wrapped adapter failure still waives its signal). ARCHITECTURE ore overlay Wiring bullet updated; ledger runtime row notes it (no divergence)."
 tests:
   - "paper: IntegrationsTest: the ore block source is absent without CraftEngine and present with a fake provider; OreOverlayModule stays off with a log line when it is absent"
 done_criteria:

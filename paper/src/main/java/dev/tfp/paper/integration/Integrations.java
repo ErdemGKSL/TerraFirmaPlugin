@@ -5,6 +5,7 @@
  */
 package dev.tfp.paper.integration;
 
+import dev.tfp.paper.ready.ReadyGate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -114,6 +115,87 @@ public final class Integrations {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * PAR-INFRA-39: any other service an active adapter publishes (e.g. the ore overlay's
+     * {@code dev.tfp.paper.oreoverlay.OreBlockSource} from the CraftEngine adapter), or empty when no adapter
+     * provides it. Feature code with its own service interface asks here instead of loading an adapter class by name.
+     */
+    public <T> Optional<T> service(Class<T> type) {
+        return find(type);
+    }
+
+    /**
+     * PAR-INFRA-39: {@code integration} with one extra service, created on first ask and reused. Lets a provider
+     * publish a service that its adapter class does not implement; lifecycle and the other services delegate.
+     */
+    public static <S> Integration withService(Integration integration, Class<S> type,
+            java.util.function.Supplier<? extends S> service) {
+        java.util.Objects.requireNonNull(integration, "integration");
+        java.util.Objects.requireNonNull(type, "type");
+        java.util.Objects.requireNonNull(service, "service");
+        return new WithService<>(integration, type, service);
+    }
+
+    private static final class WithService<S> implements Integration {
+        private final Integration inner;
+        private final Class<S> type;
+        private final java.util.function.Supplier<? extends S> factory;
+        private volatile S made;
+
+        WithService(Integration inner, Class<S> type, java.util.function.Supplier<? extends S> factory) {
+            this.inner = inner;
+            this.type = type;
+            this.factory = factory;
+        }
+
+        @Override
+        public String pluginName() {
+            return inner.pluginName();
+        }
+
+        @Override
+        public Optional<ReadyGate.Signal> readySignal() {
+            return inner.readySignal();
+        }
+
+        @Override
+        public void onLoad() {
+            inner.onLoad();
+        }
+
+        @Override
+        public void onEnable() {
+            inner.onEnable();
+        }
+
+        @Override
+        public void onDisable() {
+            inner.onDisable();
+        }
+
+        @Override
+        public <T> Optional<T> service(Class<T> wanted) {
+            if (wanted == type) {
+                return Optional.ofNullable(wanted.cast(get()));
+            }
+            return inner.service(wanted);
+        }
+
+        private S get() {
+            S s = made;
+            if (s == null) {
+                synchronized (this) {
+                    s = made;
+                    if (s == null) {
+                        s = factory.get();
+                        made = s;
+                    }
+                }
+            }
+            return s;
+        }
     }
 
     public BlockVisuals blockVisuals() {

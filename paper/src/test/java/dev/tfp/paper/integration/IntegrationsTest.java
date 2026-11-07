@@ -7,6 +7,8 @@ package dev.tfp.paper.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.tfp.paper.oreoverlay.OreBlockSource;
+import dev.tfp.paper.oreoverlay.OreOverlayModule;
 import dev.tfp.paper.ready.ReadyGate;
 import dev.tfp.paper.ready.ReadyGate.Signal;
 import java.nio.file.Path;
@@ -152,6 +154,76 @@ class IntegrationsTest {
         })));
         assertThat(in.activePlugins()).isEmpty();
         assertThat(in.failures()).containsKey("BetterHud");
+    }
+
+    /** PAR-INFRA-39: a fake ore block source, as the CraftEngine provider publishes the real one. */
+    static final class FakeOreSource implements OreBlockSource {
+        @Override
+        public ChunkCells copy(org.bukkit.World world, int chunkX, int chunkZ,
+                java.util.function.ToIntFunction<String> classify) {
+            return NO_CELLS;
+        }
+
+        @Override
+        public int code(org.bukkit.World world, int x, int y, int z, java.util.function.ToIntFunction<String> classify) {
+            return dev.tfp.core.oreoverlay.CellLookup.UNKNOWN;
+        }
+
+        @Override
+        public String blockId(org.bukkit.block.data.BlockData data) {
+            return null;
+        }
+
+        @Override
+        public int networkState(int stateId, java.util.function.ToIntFunction<String> kindOf) {
+            return -1;
+        }
+    }
+
+    @Test
+    void oreBlockSourceAbsentWithoutCraftEngineAndModuleStaysOff() {
+        Integrations in = Integrations.create(ctx, n -> false, List.of(provider("CraftEngine",
+                () -> Integrations.withService(new FakeCe(), OreBlockSource.class, FakeOreSource::new))));
+        assertThat(in.service(OreBlockSource.class)).isEmpty();
+        assertThat(OreOverlayModule.oreSource(in, ctx.logger())).isEmpty();
+        assertThat(logged).anyMatch(r -> r.getMessage().startsWith("Ore overlays: no ore block source"));
+    }
+
+    @Test
+    void oreBlockSourcePublishedByFakeProviderKeepsAdapterServicesAndLifecycle() {
+        FakeCe ce = new FakeCe();
+        int[] made = {0};
+        Integrations in = Integrations.create(ctx, Set.of("CraftEngine")::contains, List.of(provider("CraftEngine",
+                () -> Integrations.withService(ce, OreBlockSource.class, () -> {
+                    made[0]++;
+                    return new FakeOreSource();
+                }))));
+        assertThat(made[0]).isZero(); // created on first ask, not with the adapter
+        in.onLoad();
+        in.onEnable();
+        OreBlockSource first = in.service(OreBlockSource.class).orElseThrow();
+        assertThat(first).isInstanceOf(FakeOreSource.class);
+        assertThat(OreOverlayModule.oreSource(in, ctx.logger())).containsSame(first);
+        assertThat(made[0]).isEqualTo(1);
+        // The wrapped adapter keeps its own services, name, ready signal and lifecycle.
+        assertThat(in.blockVisuals()).isSameAs(ce.visuals);
+        assertThat(in.customBlocks()).isSameAs(ce.blocks);
+        assertThat(in.activePlugins()).containsExactly("CraftEngine");
+        in.onDisable();
+        assertThat(ce.calls).containsExactly("load", "enable", "disable");
+        assertThat(logged).noneMatch(r -> r.getMessage().startsWith("Ore overlays: no ore block source"));
+    }
+
+    @Test
+    void wrappedAdapterFailureStillWaivesItsSignal() {
+        FakeCe ce = new FakeCe();
+        ce.failOnEnable = true;
+        Integrations in = Integrations.create(ctx, n -> true, List.of(provider("CraftEngine",
+                () -> Integrations.withService(ce, OreBlockSource.class, FakeOreSource::new))));
+        in.onLoad();
+        in.onEnable();
+        assertThat(in.service(OreBlockSource.class)).isEmpty();
+        assertThat(gate.waived()).containsKey(Signal.CRAFTENGINE_RELOADED);
     }
 
     @Test

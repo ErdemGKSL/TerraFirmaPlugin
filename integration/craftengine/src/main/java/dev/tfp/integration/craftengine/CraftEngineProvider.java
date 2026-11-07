@@ -6,9 +6,12 @@
 package dev.tfp.integration.craftengine;
 
 import dev.tfp.integration.craftengine.device.DeviceBlockBehaviour;
+import dev.tfp.integration.craftengine.oreoverlay.CraftEngineOreSource;
 import dev.tfp.paper.integration.Integration;
 import dev.tfp.paper.integration.IntegrationContext;
 import dev.tfp.paper.integration.IntegrationProvider;
+import dev.tfp.paper.integration.Integrations;
+import dev.tfp.paper.oreoverlay.OreBlockSource;
 
 /** Service entry; references no CraftEngine class until {@link #create} (CraftEngine may be absent). */
 public final class CraftEngineProvider implements IntegrationProvider {
@@ -26,6 +29,8 @@ public final class CraftEngineProvider implements IntegrationProvider {
                 .itemProcessor(FoodStampProcessor.PATH, FoodStampProcessor.factory(context.clock(), context.foods()));
         // PAR-INFRA-02/18: the tfp:device block behaviour and the CraftEngine device store.
         DeviceBlockBehaviour.register(behaviours);
-        return new CraftEngineIntegration(context, behaviours);
+        // PAR-INFRA-39: the ore overlay's chunk-storage reader, published as a service (created on first ask).
+        return Integrations.withService(new CraftEngineIntegration(context, behaviours), OreBlockSource.class,
+                CraftEngineOreSource::new);
     }
 }

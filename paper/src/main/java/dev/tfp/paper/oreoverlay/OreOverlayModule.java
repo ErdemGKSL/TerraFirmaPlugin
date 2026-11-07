@@ -15,6 +15,7 @@ import dev.tfp.paper.boot.TfpCommands.Reply;
 import dev.tfp.paper.install.Installer;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
+import dev.tfp.paper.integration.Integrations;
 import dev.tfp.paper.module.DebugTree;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
@@ -25,6 +26,7 @@ import io.papermc.paper.command.brigadier.Commands;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -37,13 +39,12 @@ import org.bukkit.entity.Player;
 /**
  * PAR-INFRA-16: the ore overlay runtime. Ores look like their host rock (PAR-INFRA-15); this module draws the ore texture
  * on the exposed faces as packet-only {@code item_display} overlays ({@link OreOverlayService}). Needs CraftEngine (the
- * chunk storage, through {@code dev.tfp.integration.craftengine.oreoverlay.CraftEngineOreSource}) and PacketEvents (the
- * display packets, {@code dev.tfp.paper.packet.display}); both are loaded reflectively, so the module stays off with a log
- * line when either is missing. Debug: {@code /tfp debug oreoverlay stats|reload|show <x> <y> <z>|place <x> <y> <z> <state>}.
+ * chunk storage: the {@link OreBlockSource} service its adapter publishes through {@link Integrations}, PAR-INFRA-39) and
+ * PacketEvents (the display packets, {@code dev.tfp.paper.packet.display}, the one class-name lookup left:
+ * {@link #packetSide}); the module stays off with a log line when either is missing. Debug: {@code /tfp debug oreoverlay stats|reload|show <x> <y> <z>|place <x> <y> <z> <state>}.
  */
 public final class OreOverlayModule implements FeatureModule {
     public static final String ID = "ore_overlay";
-    static final String SOURCE_CLASS = "dev.tfp.integration.craftengine.oreoverlay.CraftEngineOreSource";
     static final String SENDER_CLASS = "dev.tfp.paper.packet.display.OverlayDisplaySender";
     static final String HANDLER_CLASS = "dev.tfp.paper.packet.display.OreOverlayPacketHandler";
 
@@ -80,9 +81,12 @@ public final class OreOverlayModule implements FeatureModule {
             context.logger().warning("Ore overlays: PacketEvents is not installed; ores look like plain rock");
             return;
         }
-        OreBlockSource source = (OreBlockSource) Class.forName(SOURCE_CLASS).getConstructor().newInstance();
-        IntSupplier ids = entityIds(context.logger());
-        OverlaySender sender = (OverlaySender) Class.forName(SENDER_CLASS).getConstructor(IntSupplier.class).newInstance(ids);
+        Optional<OreBlockSource> found = oreSource(context.integrations(), context.logger());
+        if (found.isEmpty()) {
+            return;
+        }
+        OreBlockSource source = found.get();
+        OverlaySender sender = sender(entityIds(context.logger()));
         TfpConfig.OreOverlay cfg = context.config().current().oreOverlay();
         OverlayGate gate = new OverlayGate(cfg.cutoffBlocks(), cfg.surfaceOutcropsFullRange());
         float full = OverlayGate.fullViewRange(context.plugin().getServer().getViewDistance());
@@ -109,9 +113,7 @@ public final class OreOverlayModule implements FeatureModule {
         for (World w : Bukkit.getWorlds()) {
             s.world(w.getKey().toString(), w.getUID());
         }
-        Class<?> handlerType = Class.forName(HANDLER_CLASS);
-        context.packets().register((PacketHandler) handlerType.getConstructor(OreOverlayService.class, sender.getClass())
-                .newInstance(s, sender));
+        context.packets().register(handler(s, sender));
         context.listen(new OreOverlayListener(s, source, player -> {
             s.quit(player);
             forget(sender, player);
@@ -122,6 +124,39 @@ public final class OreOverlayModule implements FeatureModule {
         context.logger().info("Ore overlays: " + data.ores() + " ore blocks, " + data.overlays().size()
                 + " overlays; cutoff " + cfg.cutoffBlocks() + " m (radius " + gate.radiusChunks() + " chunks), cap "
                 + cfg.maxPerPlayer() + " per player");
+    }
+
+    /**
+     * The ore block source the custom-block adapter publishes ({@code CraftEngineProvider}), or empty with a log line when
+     * no adapter provides it (CraftEngine missing or its adapter disabled): the module then stays off.
+     */
+    public static Optional<OreBlockSource> oreSource(Integrations integrations, java.util.logging.Logger log) {
+        Optional<OreBlockSource> source = integrations.service(OreBlockSource.class);
+        if (source.isEmpty()) {
+            log.info("Ore overlays: no ore block source (the CraftEngine adapter is not running); off");
+        }
+        return source;
+    }
+
+    /**
+     * The PacketEvents side ({@code dev.tfp.paper.packet.display}), looked up by name on purpose: it is the one place the
+     * module links PacketEvents classes, which exist only when PacketEvents is installed (checked just before), the same
+     * rule as {@code PacketLayers} and {@code BlockSoundModule}. The names are constants of this class; a rename fails
+     * {@code OreOverlayModule} start-up loudly, and the self-test {@code ore.overlay} covers it.
+     */
+    static OverlaySender sender(IntSupplier ids) throws ReflectiveOperationException {
+        return (OverlaySender) packetSide(SENDER_CLASS).getConstructor(IntSupplier.class).newInstance(ids);
+    }
+
+    /** The packet handler of {@link #sender}'s type, see {@link #packetSide}. */
+    static PacketHandler handler(OreOverlayService s, OverlaySender sender) throws ReflectiveOperationException {
+        return (PacketHandler) packetSide(HANDLER_CLASS).getConstructor(OreOverlayService.class, sender.getClass())
+                .newInstance(s, sender);
+    }
+
+    /** The documented class-name lookup of the PacketEvents-side classes ({@link #sender}, {@link #handler}). */
+    private static Class<?> packetSide(String name) throws ClassNotFoundException {
+        return Class.forName(name, true, OreOverlayModule.class.getClassLoader());
     }
 
     /** First id of our own range when the server has no shared counter: far above any real entity id. */
