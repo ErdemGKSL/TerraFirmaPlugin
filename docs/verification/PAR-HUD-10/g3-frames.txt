@@ -1,0 +1,27 @@
+1794029810.550 frame 0: no popup
+1794029812.505 RCON reply: tfp debug heat Bot 900 | Heat of the item held by Bot:   set: 900.0 C at tick 1480   temperature now: 900.0 C   level: BRIGHT_RED
+1794029812.800 frame 44: RED 1296px
+1794029813.546 RCON reply: tfp debug heat Bot | Heat of the item held by Bot:   stored: 900.0 C at tick 1480, now tick 1500   temperature now: 894.4 C   level: BRIGHT_RED
+1794029814.350 frame 75: RED 1251px
+1794029815.599 RCON reply: tfp debug heat Bot | Heat of the item held by Bot:   stored: 900.0 C at tick 1480, now tick 1540   temperature now: 883.2 C   level: BRIGHT_RED
+1794029815.642 RCON reply: tfp debug heat Bot 600 | Heat of the item held by Bot:   set: 600.0 C at tick 1540   temperature now: 600.0 C   level: DARK_RED
+1794029816.000 frame 108: DARK_RED 918px
+1794029816.704 RCON reply: tfp debug heat Bot | Heat of the item held by Bot:   stored: 600.0 C at tick 1540, now tick 1560   temperature now: 594.4 C   level: DARK_RED
+1794029818.746 RCON reply: tfp debug heat Bot | Heat of the item held by Bot:   stored: 600.0 C at tick 1540, now tick 1600   temperature now: 583.2 C   level: DARK_RED
+1794029818.784 RCON reply: tfp debug heat Bot 0 | Heat of the item held by Bot:   set: 0.0 C at tick 1600   temperature now: 0.0 C   level: none
+1794029819.050 frame 169: no popup
+1794029819.823 RCON reply: tfp debug heat Bot | Heat of the item held by Bot:   stored: 0.0 C at tick 1600, now tick 1620   temperature now: 0.0 C   level: none
+1794029821.875 RCON reply: tfp debug heat Bot | Heat of the item held by Bot:   stored: 0.0 C at tick 1600, now tick 1660   temperature now: 0.0 C   level: none
+1794029821.922 RCON reply: tfp debug heat Bot 900 | Heat of the item held by Bot:   set: 900.0 C at tick 1660   temperature now: 900.0 C   level: BRIGHT_RED
+1794029822.350 frame 235: RED 1296px
+1794029823.250 frame 253: RED 1251px
+1794029823.972 RCON reply: tfp debug heat Bot | Heat of the item held by Bot:   stored: 900.0 C at tick 1660, now tick 1700   temperature now: 888.8 C   level: BRIGHT_RED
+1794029826.015 RCON reply: tfp debug heat Bot | Heat of the item held by Bot:   stored: 900.0 C at tick 1660, now tick 1740   temperature now: 877.6 C   level: BRIGHT_RED
+1794029828.069 RCON reply: tfp debug heat Bot | Heat of the item held by Bot:   stored: 900.0 C at tick 1660, now tick 1800   temperature now: 860.8 C   level: BRIGHT_RED
+1794029830.110 RCON reply: tfp debug heat Bot | Heat of the item held by Bot:   stored: 900.0 C at tick 1660, now tick 1840   temperature now: 849.6 C   level: BRIGHT_RED
+1794029830.400 frame 396: RED 1206px
+1794029832.173 RCON reply: tfp debug heat Bot | Heat of the item held by Bot:   stored: 900.0 C at tick 1660, now tick 1880   temperature now: 838.4 C   level: BRIGHT_RED
+1794029834.218 RCON reply: tfp debug heat Bot | Heat of the item held by Bot:   stored: 900.0 C at tick 1660, now tick 1920   temperature now: 827.2 C   level: BRIGHT_RED
+1794029834.266 RCON reply: tfp debug heat Bot 0 | Heat of the item held by Bot:   set: 0.0 C at tick 1920   temperature now: 0.0 C   level: none
+1794029834.600 frame 480: no popup
+frames 517 from 1794029810.55 to 1794029836.35
