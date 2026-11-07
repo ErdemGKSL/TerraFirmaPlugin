@@ -203,11 +203,14 @@ public final class FluidModule implements FeatureModule {
         if (stack.getAmount() != 1 || FluidPdc.isNewer(stack)) {
             return Reply.error("debug.fluid.not_single", player);
         }
-        ItemFluids.drain(stack, capacity);
-        int filled = ItemFluids.fill(stack, new FluidAmount(id, amount), capacity, true);
+        // Empty and fill a copy, so a fill that fails leaves the (live) held stack and its old content untouched.
+        ItemStack work = stack.clone();
+        ItemFluids.drain(work, capacity);
+        int filled = ItemFluids.fill(work, new FluidAmount(id, amount), capacity, true);
         if (filled == 0) {
             return Reply.error("debug.fluid.not_single", player);
         }
+        stack.setItemMeta(work.getItemMeta());
         return Reply.ok("debug.fluid.done", player, filled, capacity, id, container);
     }
 
