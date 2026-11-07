@@ -51,6 +51,14 @@ public final class ItemSizes {
     /**
      * An item that sizes itself from its stack (TFC {@code IItemSize} on the item or its block). Called on any thread
      * with a stack the caller owns or a copy of it; must read only that stack and immutable data.
+     *
+     * <p>A device sizer must implement both overloads: containers and the burden check ask {@link #sizing(ItemStack)},
+     * the tooltip asks {@link #sizing(TooltipItem)}, whose default answers {@code null}, so a sizer that implements
+     * only the first would show the definition or class value in the tooltip.
+     *
+     * <p>TFC's {@code IItemSize} always answers; a {@code null} answer here falls back to the {@code item_size}
+     * definitions and class defaults instead. That fallback is a convenience for ids a sizer does not handle, not a
+     * substitute for TFC's own values: a device that TFC sizes itself should answer for every stack.
      */
     public interface StackSizer {
         /** The sizing of the stack, or {@code null} to fall through to the {@code item_size} definitions. */
@@ -118,34 +126,34 @@ public final class ItemSizes {
         }
         Optional<String> custom = customIds.apply(stack);
         String customId = custom.orElse(null);
-        if (!sizers.isEmpty()) {
-            String id = customId != null ? customId : stack.getType().getKey().toString();
-            for (Registered r : sizers) {
-                if (r.ids().test(id)) {
-                    ItemSizing own = r.sizer().sizing(stack);
-                    if (own != null) {
-                        return own;
-                    }
-                }
-            }
+        ItemSizing own = own(customId != null ? customId : stack.getType().getKey().toString(), r -> r.sizing(stack));
+        if (own != null) {
+            return own;
         }
         return sizing(customId, stack.getType());
     }
 
     /** The sizing of a stack seen through the tooltip view: the stack sizers first, then as {@link #sizing(String, Material)}. */
     public ItemSizing sizing(TooltipItem item, Material material) {
-        if (!sizers.isEmpty()) {
-            String id = item.customId() != null ? item.customId() : material.getKey().toString();
-            for (Registered r : sizers) {
-                if (r.ids().test(id)) {
-                    ItemSizing own = r.sizer().sizing(item);
-                    if (own != null) {
-                        return own;
-                    }
+        ItemSizing own = own(item.customId() != null ? item.customId() : material.getKey().toString(),
+                r -> r.sizing(item));
+        if (own != null) {
+            return own;
+        }
+        return sizing(item.customId(), material);
+    }
+
+    /** The first non-null answer of the sizers registered for {@code id}, else {@code null}. */
+    private ItemSizing own(String id, Function<StackSizer, ItemSizing> ask) {
+        for (Registered r : sizers) {
+            if (r.ids().test(id)) {
+                ItemSizing own = ask.apply(r.sizer());
+                if (own != null) {
+                    return own;
                 }
             }
         }
-        return sizing(item.customId(), material);
+        return null;
     }
 
     /**

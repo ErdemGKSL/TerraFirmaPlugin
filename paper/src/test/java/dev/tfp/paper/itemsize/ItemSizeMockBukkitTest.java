@@ -280,6 +280,7 @@ class ItemSizeMockBukkitTest extends MockServerTest {
         assertThat(listener.isChest(server.createInventory(null, 27))).isFalse();
         assertThat(listener.isChest(null)).isFalse();
     }
+
     @Test
     void stackSizerRunsBeforeTheDefinitionsAndIsNotCachedPerId() throws Exception {
         String vessel = "tfp:ceramic/large_vessel";
