@@ -47,9 +47,12 @@ import org.bukkit.util.Vector;
 public final class RiverCurrentTracker {
     /** How often a player's surroundings are searched for entities in water. */
     public static final long SCAN_PERIOD = 20;
-    /** The horizontal search radius around a player (one chunk, inside the player's region on Folia). */
+    /**
+     * The horizontal search radius around a player (one chunk, inside the player's region on Folia). Vertically the search
+     * covers the whole height of the world ({@link #scanHalfHeight}), so an item dropped from a high bridge still drifts.
+     * Entities in a river farther than this from every player are not pushed (ledger).
+     */
     static final double SCAN_RADIUS = 16;
-    static final double SCAN_HEIGHT = 8;
     /** A tracked entity out of water this many ticks is dropped. */
     static final int IDLE_LIMIT = 40;
     /** At most this many entities are pushed at once (each costs one task per tick). */
@@ -92,7 +95,8 @@ public final class RiverCurrentTracker {
                 water.chunk(world, cx + dx, cz + dz); // warm the cache
             }
         }
-        for (Entity e : player.getNearbyEntities(SCAN_RADIUS, SCAN_HEIGHT, SCAN_RADIUS)) {
+        double halfHeight = scanHalfHeight(player.getLocation().getY(), world.getMinHeight(), world.getMaxHeight());
+        for (Entity e : player.getNearbyEntities(SCAN_RADIUS, halfHeight, SCAN_RADIUS)) {
             if (tracked.size() >= MAX_TRACKED) {
                 return;
             }
@@ -100,6 +104,14 @@ public final class RiverCurrentTracker {
                 track(e);
             }
         }
+    }
+
+    /**
+     * The vertical half-extent of the search box around a player at {@code y} that reaches from the bottom to the top of a
+     * world with build limits {@code minHeight} (inclusive) and {@code maxHeight} (exclusive), with one block of margin.
+     */
+    static double scanHalfHeight(double y, int minHeight, int maxHeight) {
+        return Math.max(y - minHeight, maxHeight - y) + 1;
     }
 
     /** Starts the per-tick push of one entity unless it is already pushed. Any thread. */

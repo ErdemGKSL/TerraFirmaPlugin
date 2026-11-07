@@ -94,4 +94,14 @@ class RiverCurrentTrackerTest extends MockServerTest {
         item.setGravity(false);
         assertThat(RiverCurrentTracker.pushable(item)).as("no gravity: not moved by fluids").isFalse();
     }
+
+    @Test
+    void theScanReachesTheWholeHeightOfTheWorld() {
+        // A player on a bridge at y 120 over a river at y 60, in a -64..320 world.
+        double half = RiverCurrentTracker.scanHalfHeight(120, -64, 320);
+        assertThat(120 - half).isLessThanOrEqualTo(-64);
+        assertThat(120 + half).isGreaterThanOrEqualTo(320);
+        double low = RiverCurrentTracker.scanHalfHeight(-60, -64, 320);
+        assertThat(-60 + low).isGreaterThanOrEqualTo(320);
+    }
 }
