@@ -2,7 +2,7 @@
 id: PAR-INFRA-38
 title: "TfpCommands.reply: no blocking console wait when the reply future needs the caller's own thread"
 area: INFRA
-status: open
+status: done
 wave: 8
 deps: [PAR-INFRA-01]
 size: S
@@ -16,6 +16,7 @@ in_game_steps: []
 plan:
   - "Current: `TfpCommands.reply` waits up to CONSOLE_WAIT_MILLIS (2 s) with `future.get` when the sender is the console. On Paper the console runs on the main thread, which owns every region; a debug action that completes its future from a region task can then only complete after the wait times out, so each such call stalls the server for 2 s and parallel calls add up to a Watchdog report. PAR-INFRA-16 made its own `oreoverlay place` run inline in that case; other `tfp debug` actions may still hit it."
   - "Fix: never block the thread a pending future may need: when the future is not done, reply asynchronously (`whenComplete` -> send the reply on the sender's scheduler) instead of `get(timeout)`, or wait only when the caller does not own any region (Folia console thread)."
+  - "Done: `TfpCommands.reply` answers a finished future at once, waits up to CONSOLE_WAIT_MILLIS only for a console caller off a server tick thread (`callerMayWait`: no server or `!Bukkit.isPrimaryThread()`), and otherwise replies from `whenComplete`; tests `paper/src/test/java/dev/tfp/paper/boot/TfpCommandsReplyTest.java` (5: same-thread fake queue does not block and replies once, late failure replied once, finished futures replied before return, off-tick-thread wait still captures the reply, MockBukkit primary vs other thread). RCON trade-off recorded in the ledger divergences."
 tests:
   - "paper: a console reply whose future is completed by a task queued on the same thread replies once and does not block (MockBukkit or a fake executor)"
 done_criteria:

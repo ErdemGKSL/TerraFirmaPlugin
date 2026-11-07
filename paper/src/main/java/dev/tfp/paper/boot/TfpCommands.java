@@ -407,22 +407,36 @@ public final class TfpCommands {
 
     /**
      * How long a console (RCON) command waits for its reply. RCON only captures what is sent while the command
-     * runs, so the reply must be ready before the command returns. Players are not waited for.
+     * runs, so the reply must be ready before the command returns. Players are not waited for, and neither is a
+     * console command that runs on a server tick thread (PAR-INFRA-38, see {@link #reply}).
      */
     static final long CONSOLE_WAIT_MILLIS = 2_000;
 
     /**
-     * Sends {@code future}'s reply to {@code sender}. A console sender gets the reply synchronously when it is
-     * ready within {@link #CONSOLE_WAIT_MILLIS}, so RCON returns it; otherwise (and always for players) the reply
-     * is sent from whichever thread completes the future.
+     * Sends {@code future}'s reply to {@code sender}. A finished future is answered at once (RCON returns it).
+     * A console sender whose thread may block ({@link #callerMayWait()}) gets the reply synchronously when it is
+     * ready within {@link #CONSOLE_WAIT_MILLIS}; otherwise (always for players, and for a console command on a
+     * tick thread) the reply is sent from whichever thread completes the future.
+     *
+     * <p>A tick thread never waits (PAR-INFRA-38): on Paper the console runs on the main thread, which owns every
+     * region, so a future completed by a region or global task could only complete after the wait timed out,
+     * stalling the server for the whole wait; on Folia the console's global region thread may be the one a
+     * global task needs.
      */
     static void reply(CommandSender sender, Messages messages, CompletableFuture<Reply> future) {
-        if (!(sender instanceof Player)) {
+        reply(sender, messages, future, TfpCommands::callerMayWait);
+    }
+
+    /** {@link #reply(CommandSender, Messages, CompletableFuture)} with the "this thread may block" test injected. */
+    static void reply(CommandSender sender, Messages messages, CompletableFuture<Reply> future, BooleanSupplier mayWait) {
+        if (future.isDone() || (!(sender instanceof Player) && mayWait.getAsBoolean())) {
             try {
-                send(sender, messages, outcome(future.get(CONSOLE_WAIT_MILLIS, TimeUnit.MILLISECONDS), null));
+                Reply r = future.isDone() ? future.join() : future.get(CONSOLE_WAIT_MILLIS, TimeUnit.MILLISECONDS);
+                send(sender, messages, outcome(r, null));
                 return;
-            } catch (ExecutionException e) {
-                send(sender, messages, outcome(null, e.getCause()));
+            } catch (ExecutionException | java.util.concurrent.CompletionException
+                    | java.util.concurrent.CancellationException e) {
+                send(sender, messages, outcome(null, e.getCause() != null ? e.getCause() : e));
                 return;
             } catch (TimeoutException e) {
                 // Too slow for the command: the reply is still sent below, to the server log for the console.
@@ -431,6 +445,15 @@ public final class TfpCommands {
             }
         }
         future.whenComplete((r, err) -> send(sender, messages, outcome(r, err)));
+    }
+
+    /**
+     * True when the current thread may block on a reply: it is not a server tick thread (Paper's main thread, or a
+     * Folia region/global thread), so no region or global task can be waiting for it. Without a server (unit
+     * tests) any thread may wait.
+     */
+    static boolean callerMayWait() {
+        return org.bukkit.Bukkit.getServer() == null || !org.bukkit.Bukkit.isPrimaryThread();
     }
 
     private static Reply outcome(Reply r, Throwable err) {
