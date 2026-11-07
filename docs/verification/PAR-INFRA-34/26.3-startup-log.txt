@@ -1,0 +1,13 @@
+# Paper 26.3, fresh install (first start): plugins/TerraFirmaPlugin and the CraftEngine pack absent
+[02:01:35 INFO]: [TerraFirmaPlugin] Visual allocation: 26/level-2/nether-end-off
+[02:01:41 WARN]: [TerraFirmaPlugin] ==================== TerraFirmaPlugin: RESTART REQUIRED ====================
+[02:01:52 INFO]: [TerraFirmaPlugin] Visual profile level-2 (26/level-2/nether-end-off) fits: 1454 solid state(s) free for other packs. CraftEngine solid pool: 1489 states, 35 used by other packs, 0 needed by level-2 (0 allocated).
+[02:01:52 INFO]: [TerraFirmaPlugin] Rebuilding the CraftEngine resource pack (first install of our CraftEngine pack).
+[02:02:00 INFO]: [TerraFirmaPlugin] Visual profile level-2 (26/level-2/nether-end-off) fits: 1454 solid state(s) free for other packs. CraftEngine solid pool: 1489 states, 35 used by other packs, 0 needed by level-2 (0 allocated).
+[02:02:04 INFO]: [CraftEngine] Generated resource pack in 4046ms
+
+# second start (after priming), default config
+[02:02:48 INFO]: [TerraFirmaPlugin] Visual allocation: 26/level-2/nether-end-off
+[02:02:52 INFO]: [TerraFirmaPlugin] Vanilla-block suppression: 96 repurposed block(s) of 26/level-2/nether-end-off
+[02:02:57 INFO]: [TerraFirmaPlugin] Visual profile level-2 (26/level-2/nether-end-off) fits: 1454 solid state(s) free for other packs. CraftEngine solid pool: 1489 states, 35 used by other packs, 0 needed by level-2 (0 allocated).
+# WARN lines of TerraFirmaPlugin in the second start: 0

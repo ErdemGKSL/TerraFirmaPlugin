@@ -2,7 +2,7 @@
 id: PAR-INFRA-34
 title: "Verify the ore overlay datagen in game: host-rock look of buried ores, composite ore block item icons, pick-block"
 area: INFRA
-status: open
+status: done
 wave: 8
 deps: [PAR-INFRA-15, PAR-INFRA-16]
 size: S
@@ -23,6 +23,7 @@ in_game_steps:
 plan:
   - "Current: PAR-INFRA-15 generates the host_rock allocations, the overlay quad items, the composite ore block items (template tfp:item/ore_block_item) and visuals/ore_overlay/*.json; the shipped look is full_cube until PAR-INFRA-16 flips mode.properties, so the host-rock look can only be checked after it. Moved here from PAR-INFRA-15 (PROTOCOL 6.5)."
   - "Run the in_game_steps with a cheap-model agent; the main session judges every screenshot."
+  - "Done: in-game check on Paper 1.21.11 + client 1.21.11 and Paper 26.3 + client 26.3 (fresh installs, jar of 93248fc): buried ores look like their host rock, exposed faces carry the overlay, shale keeps its end texture, composite ore item icons with distinct grades, pick-block gives the ore item, level-3a read as level-2 with the warning; all pass, no code change; docs/verification/PAR-INFRA-34/verdict.md"
 tests:
   - "None beyond the in-game steps (the datagen and config tests live in PAR-INFRA-15)"
 done_criteria:

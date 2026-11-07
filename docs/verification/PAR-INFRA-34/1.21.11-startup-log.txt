@@ -1,0 +1,19 @@
+# Paper 1.21.11, fresh install (first start): plugins/TerraFirmaPlugin and the CraftEngine pack absent
+[01:48:20 INFO]: [TerraFirmaPlugin] Visual allocation: 1.21/level-2/nether-end-off
+[01:48:23 WARN]: [TerraFirmaPlugin] ==================== TerraFirmaPlugin: RESTART REQUIRED ====================
+[01:48:33 INFO]: [TerraFirmaPlugin] Visual profile level-2 (1.21/level-2/nether-end-off) fits: 1254 solid state(s) free for other packs. CraftEngine solid pool: 1289 states, 35 used by other packs, 0 needed by level-2 (0 allocated).
+[01:48:33 INFO]: [TerraFirmaPlugin] Rebuilding the CraftEngine resource pack (first install of our CraftEngine pack).
+[01:48:38 INFO]: [TerraFirmaPlugin] Visual profile level-2 (1.21/level-2/nether-end-off) fits: 1254 solid state(s) free for other packs. CraftEngine solid pool: 1289 states, 35 used by other packs, 0 needed by level-2 (0 allocated).
+[01:48:41 INFO]: [CraftEngine] Generated resource pack in 3242ms
+
+# second start (after priming), default config
+[01:49:38 INFO]: [TerraFirmaPlugin] Visual allocation: 1.21/level-2/nether-end-off
+[01:49:40 INFO]: [TerraFirmaPlugin] Vanilla-block suppression: 96 repurposed block(s) of 1.21/level-2/nether-end-off
+[01:49:44 INFO]: [TerraFirmaPlugin] Visual profile level-2 (1.21/level-2/nether-end-off) fits: 1254 solid state(s) free for other packs. CraftEngine solid pool: 1289 states, 35 used by other packs, 0 needed by level-2 (0 allocated).
+# WARN lines of TerraFirmaPlugin in the second start: 0
+
+# third start, config.yml visuals.profile set to level-3a
+[02:00:27 WARN]: [TerraFirmaPlugin] config.yml: plugins/TerraFirmaPlugin/config.yml visuals.profile."1.21": level-3a was removed: ores are drawn as overlays and grades no longer cost visual states; using level-2
+[02:00:27 INFO]: [TerraFirmaPlugin] Visual allocation: 1.21/level-2/nether-end-off
+[02:00:31 INFO]: [TerraFirmaPlugin] Vanilla-block suppression: 96 repurposed block(s) of 1.21/level-2/nether-end-off
+[02:00:38 INFO]: [TerraFirmaPlugin] Visual profile level-2 (1.21/level-2/nether-end-off) fits: 1254 solid state(s) free for other packs. CraftEngine solid pool: 1289 states, 35 used by other packs, 0 needed by level-2 (0 allocated).
