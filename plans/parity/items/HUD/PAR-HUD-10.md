@@ -2,7 +2,7 @@
 id: PAR-HUD-10
 title: "Held temperature popup shows TFC's level text, verified in game"
 area: HUD
-status: blocked
+status: open
 wave: 6
 deps: [PAR-HUD-08, PAR-HUD-09, PAR-HUD-11]
 size: S
@@ -13,6 +13,9 @@ tfc_refs:
 files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/HudLayouts.java"
   - "tools/datagen/src/test/java/dev/tfp/datagen/HudLayoutsTest.java"
+  - "integration/betterhud/src/main/java/dev/tfp/integration/betterhud/HudClimateValues.java"
+  - "integration/betterhud/src/test/java/dev/tfp/integration/betterhud/HudClimateValuesTest.java"
+  - "docs/porting/ledger.md"
 ui: true
 in_game_steps:
   - "ce item give Bot tfp:metal/ingot/copper"
@@ -21,6 +24,7 @@ in_game_steps:
   - "tfp debug heat Bot 600, screenshot at once: popup reads Dark Red in DARK_RED, no stale Bright Red"
   - "tfp debug heat Bot 0, screenshot: popup hidden"
 plan:
+  - "UNBLOCKED (manager, 2026-11-07): HudClimateValues.java, its test and the ledger are now in files_owned. Map U+066D to ASCII asterisk for the HUD popup only (a glyph BetterHud carries), keep TFC star in item tooltips, add a ledger Divergences row, then re-verify in game that the popup stays centred."
   - "BLOCKED (2026-11-06): the heat stars cannot render in the BetterHud popup without a change outside files_owned. tfp_held_heat (integration/betterhud/src/main/java/dev/tfp/integration/betterhud/HudClimateValues.java, via paper/.../tooltip/HeatDisplayStyle) writes TFC's star U+066D, but no BetterHud text font can carry it: BetterHud 2.2.0-SNAPSHOT-449 builds a ttf/unifont font from Latin plus the `include` subsets only, and none covers U+066D (TextManagerImpl: arab = U+0620-064A and U+0660-0669, hindi adds U+0671-06D3). In game (Paper 1.21.11, GUI 2) the stars drew as missing-glyph boxes at the boss-bar position (top centre) in the level colour and pushed the whole BetterHud line sideways (HUD shifted about 9 GUI px left while stars showed). Needed: widen files_owned to HudClimateValues.java and its test (map U+066D to a glyph BetterHud carries, e.g. ASCII `*`, for the HUD only; ledger divergence), or to a bitmap star glyph made through the image-generation skill (the imagegen MCP was unreachable this session)."
   - "Found while working (keep for the retry): the colour approach works in game. Six text layers in the popup layout (one per TFC Heat colour group: #aaaaaa, #aa0000, #ff5555, #ffaa00, #ffff55, #ffffff), each `color: <hex>` with the element condition `tfp_held_heat_color == '<hex>'` (BetterHud string literal in single quotes), pattern `[tfp_held_heat]`, outline FF000000; `tfp debug heat Bot 600` switched at once to `Dark Red` in DARK_RED, 1200 to `Yellow` in YELLOW, 0 hid the popup. The catalogue needs placeholder rows for tfp_held_heat and tfp_held_heat_color (requireKnown), the popup row names all three placeholders, counts 33 / 14 placeholders. The popup at pixel y -60 covers vanilla's selected-item name (H-59..H-51 in survival, 2 s after a slot change): move it to -70. The BetterHud `arab` include does not help (see above). Note: run :tools:datagen:generateContent and :dist:shadowJar as separate Gradle invocations, or the jar packs the old content; an installed BetterHud change needs `ce reload all` (pack rebuild) before the client sees it."
   - "PAR-HUD-08 publishes tfp_held_temp (number, condition of the popup) and the text placeholders tfp_held_heat (TFC COLOR style: en_us level name + U+066D stars, empty when cold) and tfp_held_heat_color (TFC Heat.getColor as #rrggbb: #aaaaaa GRAY, #aa0000 DARK_RED, #ff5555 RED, #ffaa00 GOLD, #ffff55 YELLOW, #ffffff WHITE; empty when cold). PAR-HUD-11 makes the values lazy at placeholder time. The generated popup layout still draws `[tfp_held_temp]°C` in near-black with a faint outline (unreadable at GUI scale 2)."
