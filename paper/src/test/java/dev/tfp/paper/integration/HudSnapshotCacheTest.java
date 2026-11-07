@@ -35,6 +35,26 @@ class HudSnapshotCacheTest {
         assertThat(cache.isActive()).isTrue();
     }
 
+    /** PAR-HUD-10: push reaches the integration's pusher while a HUD plugin is active, and nothing otherwise. */
+    @Test
+    void pushCallsThePusherOnlyWhileActive() {
+        AtomicBoolean on = new AtomicBoolean(true);
+        HudSnapshotCache cache = new HudSnapshotCache(on::get);
+        UUID p = UUID.randomUUID();
+        cache.push(p); // no pusher yet: no-op
+        List<UUID> pushed = new ArrayList<>();
+        cache.pusher(pushed::add);
+        cache.push(p);
+        assertThat(pushed).containsExactly(p);
+        on.set(false);
+        cache.push(p);
+        assertThat(pushed).containsExactly(p);
+        on.set(true);
+        cache.pusher(null); // the integration was disabled
+        cache.push(p);
+        assertThat(pushed).containsExactly(p);
+    }
+
     /** Readers on other threads only ever see complete snapshots (each one internally consistent). */
     @Test
     void concurrentReadersSeeWholeSnapshots() throws Exception {

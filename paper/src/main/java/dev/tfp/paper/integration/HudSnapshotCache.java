@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import org.bukkit.entity.Player;
 
 /**
@@ -21,6 +22,9 @@ import org.bukkit.entity.Player;
 public final class HudSnapshotCache implements HudBridge {
     private final Map<UUID, HudSnapshot> snapshots = new ConcurrentHashMap<>();
     private final BooleanSupplier active;
+    /** PAR-HUD-10: the HUD plugin's per-player redraw ({@link #push}); none until an integration sets one. */
+    private volatile Consumer<UUID> pusher = id -> {
+    };
 
     /** @param active whether a HUD plugin currently renders snapshots */
     public HudSnapshotCache(BooleanSupplier active) {
@@ -46,6 +50,22 @@ public final class HudSnapshotCache implements HudBridge {
     @Override
     public HudSnapshot snapshot(UUID player) {
         return snapshots.getOrDefault(player, HudSnapshot.DEFAULT);
+    }
+
+    /**
+     * PAR-HUD-10: the HUD integration's per-player redraw, called by {@link #push}; {@code null} removes it (the
+     * integration was disabled). Any thread.
+     */
+    public void pusher(Consumer<UUID> pusher) {
+        this.pusher = pusher == null ? id -> {
+        } : pusher;
+    }
+
+    @Override
+    public void push(UUID player) {
+        if (isActive()) {
+            pusher.accept(Objects.requireNonNull(player));
+        }
     }
 
     @Override

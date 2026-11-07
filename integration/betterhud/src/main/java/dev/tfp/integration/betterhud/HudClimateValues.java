@@ -64,9 +64,12 @@ final class HudClimateValues {
     /**
      * The star the HUD draws in place of TFC's {@value HeatDisplayStyle#STAR} (PAR-HUD-10): BetterHud builds its text font
      * from Latin plus a few Unicode subsets, none of which holds U+066D, so TFC's star drew as a missing-glyph box and
-     * shifted the line. Item tooltips keep TFC's star (ledger divergence).
+     * shifted the line. U+2605 BLACK STAR is in vanilla's {@code nonlatin_european.png} bitmap, which the popup font merges
+     * ({@code merge-default-bitmap}): a 7x7 five-pointed star on the text baseline with the normal shadow. ASCII {@code *}
+     * (the first stand-in) is vanilla's 3x3 raised x and read as a faint checkered strip in game. Item tooltips keep TFC's
+     * star (ledger divergence).
      */
-    static final char HUD_STAR = '*';
+    static final char HUD_STAR = '\u2605';
 
     /**
      * TFC {@code ItemTemperatureDisplayStyle.COLOR}: level name and stars ({@link #HUD_STAR}), empty when there is no heat

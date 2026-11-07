@@ -28,6 +28,7 @@ import kr.toxicity.hud.api.BetterHud;
 import kr.toxicity.hud.api.BetterHudAPI;
 import kr.toxicity.hud.api.listener.HudListener;
 import kr.toxicity.hud.api.placeholder.HudPlaceholder;
+import kr.toxicity.hud.api.player.HudPlayer;
 import kr.toxicity.hud.api.placeholder.PlaceholderContainer;
 import kr.toxicity.hud.api.plugin.ReloadState;
 
@@ -89,6 +90,8 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
             // The player's published snapshot only (M2-CLIM-03): the climate service writes it from the player's thread.
             texts.addPlaceholder(e.getKey(), HudPlaceholder.<String>of((args, reason) -> player -> read.apply(cache.snapshot(player.uuid()))));
         }
+        // PAR-HUD-10: a held-heat write redraws the player's HUD at once instead of at BetterHud's next update.
+        cache.pusher(BetterHudIntegration::push);
         registered = true;
         Path pack = BetterHudPackTarget.packFolder(ctx.pluginsDirectory());
         ctx.logger().info("BetterHud: registered " + (HudValues.NUMBERS.size() + HudMountValues.NUMBERS.size()) + " number placeholder(s), "
@@ -102,9 +105,23 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
         return HudPlaceholder.<Number>of((args, reason) -> player -> read.applyAsDouble(cache.snapshot(player.uuid())));
     }
 
+    /**
+     * PAR-HUD-10: redraws {@code player}'s HUD now ({@link HudPlayer#update()}: the placeholders read the published
+     * snapshot, the boss-bar line is sent). BetterHud runs the same method from its own async timer every tick, and it is
+     * synchronized, so calling it from the player's thread is safe. Nothing happens for a player BetterHud does not know
+     * (not joined yet, or already quit).
+     */
+    static void push(UUID player) {
+        HudPlayer hud = BetterHudAPI.inst().getPlayerManager().getHudPlayer(player);
+        if (hud != null) {
+            hud.update();
+        }
+    }
+
     @Override
     public void onDisable() {
         // BetterHud has no API to remove placeholders; they read the cache, which simply stops changing.
+        ctx.hudCache().pusher(null);
         registered = false;
     }
 

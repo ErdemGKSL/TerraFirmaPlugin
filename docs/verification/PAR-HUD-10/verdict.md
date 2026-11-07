@@ -1,91 +1,93 @@
-# PAR-HUD-10: held temperature popup shows TFC's level text: verdict: FAIL (criterion 2)
+# PAR-HUD-10: held temperature popup shows TFC's level text: verdict: PASS (criteria 1 and 2)
 
-> Corrected 2026-11-07 after review. Criterion 1 passes in the settled frames below. Criterion 2 ("changes right after
-> `tfp debug heat Bot <t>` with no visible lag") FAILS: the first changed frame comes 0.27-0.46 s after the reply,
-> which is visible lag, and an independent in-game check saw the previous level in 4 of 5 captures taken 0.1-0.4 s
-> after the reply (600 still `Bright Red****`, 0 still `Dark Red`, at GUI 2 and 3) and one blank frame between
-> values. The placeholders return the new level on the very next read (HudClimateValuesTest); the delay is the
-> next-tick republish plus BetterHud's own update. The fix needs files outside the item (see its BLOCKED plan line).
-> The "pass" rows and the "not a delay in the popup" wording below are superseded by this note.
+- Date: 2026-11-07. Tree: this commit (the heat-write fix and the U+2605 star), `:dist:shadowJar` from the shared
+  generated content (no datagen change in this commit).
+- Server: Paper 1.21.11, CraftEngine 26.9.2, BetterHud 2.2.0-SNAPSHOT-449, BetterModel 3.5.1, started with
+  `spikes/client/server.sh` (vanilla terrain). Client: vanilla 1.21.11 under Xvfb 1280x720 (`spikes/client/session.sh`),
+  one client per GUI scale (`MC_OPTIONS=guiScale:2`, then a new client with `guiScale:3`); the pack applied 3 s after
+  each join. Server log: no error from our plugin.
 
-- Date: 2026-11-07. Tree `8dce508` (the item's change; this review fix touches only evidence, the item file and STATUS),
-  content regenerated with `:tools:datagen:generateContent`, then `:dist:shadowJar` in a separate Gradle run.
-- Server: Paper 1.21.11 build 132, CraftEngine 26.9.2, BetterHud 2.2.0-SNAPSHOT-449. A new run folder: priming start,
-  world deleted, second start (`spikes/client/server.sh`, vanilla terrain, which a HUD check does not need). Client:
-  vanilla 1.21.11 under Xvfb 1280x720 (`spikes/client/session.sh`), one client per GUI scale (`MC_OPTIONS=guiScale:2`,
-  then a new client with `guiScale:3`), never both at once; the pack applied 3 s after each join.
-- Server log: no error from our plugin (only the EULA flag notice and PacketEvents' update check, HTTP 403 from GitHub).
-- This replaces the first capture of `8dce508`. Its `g2-900-bright-red.png` and `g2-900-text-6x.png` show `Dark Red****`
-  in `#aa0000`, not what the old verdict said. That GUI 2 frame was taken late (700-730 C is reached about 30 s after
-  900 C). The reviewers' webp set was taken with commands run in parallel, a death and respawn in the middle, and no
-  command output per shot, so no file can be tied to a server state. All old crops are replaced or removed.
+## What was wrong (root cause)
 
-## How the recapture was run
+1. `/tfp debug heat` wrote the main hand on the player's thread but then called `PlayerNeedsHudService.refreshHeld`,
+   which republishes the held heat on the player's **next** tick (`scheduler.entity`). BetterHud then picked the value
+   up on its own async update, one more tick later at best. Measured before the fix with the same recording as below
+   (`g3-before-fix-timeline.txt`): the popup changed 0.06-0.22 s after the reply (900 C after 0.12 s and 0.22 s, 0 C
+   after 0.06 s and 0.21 s).
+2. The earlier evidence overstated the lag. The `import -window root` screenshots (reviewers' webp set, `shot.sh`) log
+   the time when `import` returns, after it has grabbed the X screen and encoded a 1280x720 PNG; the grab itself happens
+   near the start of that call. A shot "taken +0.42 s after the reply" was grabbed well before that, inside the window in
+   which the old build had not yet shown the new level; that is why every such frame showed the previous level. The
+   20 fps recording of the previous round used the same server-side path and found 0.27-0.46 s with a slower capture.
 
-Strictly sequential, one command at a time, from one script per scale. Every RCON command and its reply are logged with
-wall-clock times (`g2-rcon.log`, `g3-rcon.log`). The screen was recorded continuously at 20 fps for the whole sequence
-(`ffmpeg -f x11grab -copyts`, so each frame carries its wall-clock time), instead of single `import` shots. Those take
-0.8-1.1 s each and could not meet the 0.5 s bound.
+Fixed (decide on the player's thread, apply there, no hop):
 
-1. Scene, the same at both scales: `difficulty peaceful`, `gamerule advance_time false`, `weather clear`,
-   `time set noon`, a 17x17 stone floor at y 99 with air above, then `gamemode survival Bot`, saturation,
-   `tp Bot 0 100 0 0 30`, `clear Bot`, `ce item give Bot tfp:metal/ingot/copper` (slot 1, selected).
-2. 20 s wait, so the chat and the offline-mode chat verification toast are gone before the first frame. The full-screen
-   frames (`g*-900-full-screen.png`) show no toast and no chat.
-3. For t = 900, 600, 0: `tfp debug heat Bot <t>` (reply `set: <t> C at tick N`), then after 1 s and 3 s
-   `tfp debug heat Bot` (reply `stored: ... now tick M`, the temperature now and the level).
-4. Cooling run: `tfp debug heat Bot 900`, then a query every 2 s for 12 s, then `tfp debug heat Bot 0`.
+- `PlayerNeedsHudService.heldHeatWritten(player)`: player thread only; publishes the main-hand heat record inline.
+  `TfpPlugin.debugSetHeat` and `debugWarm` call it right after `setItemInMainHand`.
+- `publishHeld` publishes only a changed record, and on a change calls `HudBridge.push(uuid)`:
+  `HudSnapshotCache.push` -> `BetterHudIntegration.push` -> BetterHud `HudPlayer.update()`, which renders the player's
+  HUD from the snapshot and sends the boss-bar line at once, instead of on BetterHud's next timer run. The next-tick
+  republish after a hotbar/swap/click/drag/pickup/drop event pushes too when the held record changed.
+- The popup settings (`default: true`, no `unique`, `duration` -1, so `always-check-condition` is off because BetterHud
+  only enables it with `queue`) are right for this popup. Read from BetterHud's bytecode (`PopupImpl.show0`,
+  `PopupIteratorGroupImpl.next`): a default popup is shown again on every update; each update adds a fresh iterator only
+  while `tfp_held_temp > 0` holds, drops the older one (index past the last layout), and drops an iterator at once when
+  its condition (re-read every frame through `available()`) is false. No setting delays a value change, and the
+  recordings show no blank or intermediate frame.
 
-`g2-frames.txt` and `g3-frames.txt` hold the timeline: each RCON reply and every frame where the popup changes, with the
-exact colour and pixel count in the band above the hotbar. Each evidence frame is the first one at least 0.45 s after its
-command's reply.
+## How it was measured
 
-## Evidence (1x crops of the popup, bars and hotbar; text crops at 3x)
+`room.sh` (snow floor, light blocks, `gamemode survival Bot`, saturation, `clear Bot`, `ce item give Bot
+tfp:metal/ingot/copper`, `tfp debug heat Bot 0`), 20 s wait, then `measure.sh`: the screen is recorded at 30 fps with
+wall-clock frame times (`ffmpeg -f x11grab -use_wallclock_as_timestamps 1 -copyts`) while, strictly one at a time,
 
-| file | step (reply, tick) | frame | content |
+1. a vanilla control: `title Bot times 0 40 0`, then three times `title Bot title {"text":"XXXX","color":"red"}`
+   2.5 s apart (shows the pipeline latency: server packet, client frame, capture);
+2. `tfp debug heat Bot <t>` for t = 900, 600, 0, 900, 0, 2.5 s apart.
+
+Every RCON send and reply is logged with its wall-clock time (`g*-rcon.log`). `analyze.py` classifies every frame by
+the exact colours in the band above the hotbar (`#ff5555` RED, `#aa0000` DARK_RED, else none) and the title's red;
+`*-timeline.txt` lists each reply, every frame where the state changes, and the first changed frame after each reply.
+`frames.py` saves the first frame at least 0.15 s after each heat reply (full screen and a 3x crop of the popup band).
+(The `title ... times` row of the latency list is not a measurement: that command shows nothing.)
+
+## Results
+
+| | vanilla `/title` (control) | `tfp debug heat` 900 / 600 / 0 / 900 / 0 |
+|---|---|---|
+| GUI 2 (`g2-timeline.txt`) | 0.06-0.12 s | 0.11 / 0.09 / 0.10 / 0.09 / 0.06 s |
+| GUI 3 (`g3-timeline.txt`) | 0.08-0.09 s | 0.09 / 0.09 / 0.07 / 0.07 / 0.06 s |
+| GUI 3, before the fix (`g3-before-fix-timeline.txt`) | 0.06-0.10 s | 0.12 / 0.14 / 0.06 / 0.22 / 0.21 s |
+
+After the fix the popup follows a heat write as fast as a vanilla title follows `/title`: the change lands in the first
+client frames after the reply, with no stale-level frame, no blank frame and no intermediate level (900 to 600 goes
+straight from RED to DARK_RED).
+
+## Evidence (each frame is the first one at least 0.15 s after its reply; all within 0.25 s)
+
+| file | reply | frame | content |
 |---|---|---|---|
-| `g2-900-bright-red.png`, `g2-900-bright-red-text-3x.png` | `set: 900.0 C at tick 480` | +0.456 s | `Bright Red****` in `#ff5555` |
-| `g2-600-dark-red.png`, `g2-600-dark-red-text-3x.png` | `set: 600.0 C at tick 540` | +0.468 s | `Dark Red` in `#aa0000`, no star |
-| `g2-0-hidden.png` | `set: 0.0 C at tick 620` | +0.450 s | no popup |
-| `g2-900-after-3s.png` | `set: 900.0 C at tick 680` | +3.030 s | `Bright Red***` (below 890 C) |
-| `g3-900-bright-red.png`, `g3-900-bright-red-text-3x.png` | `set: 900.0 C at tick 1480` | +0.495 s | `Bright Red****` in `#ff5555` |
-| `g3-600-dark-red.png`, `g3-600-dark-red-text-3x.png` | `set: 600.0 C at tick 1540` | +0.458 s | `Dark Red` in `#aa0000`, no star |
-| `g3-0-hidden.png` | `set: 0.0 C at tick 1600` | +0.466 s | no popup |
-| `g3-900-after-3s.png` | `set: 900.0 C at tick 1660` | +3.028 s | `Bright Red***` |
-| `g2-900-full-screen.png`, `g3-900-full-screen.png` | the 900 frames above, whole screen (128-colour PNG) | | no toast, no chat, popup centred |
-
-TFC's star is drawn as ASCII `*`, which the vanilla font draws as a small x-shaped glyph. This is the ledger divergence
-for the HUD only; tooltips keep U+066D.
+| `g2-900-crop-3x.png`, `g2-900-full.png` | `set: 900.0 C` | +0.180 s | `Bright Red★★★★` in `#ff5555`, black shadow |
+| `g2-600-crop-3x.png`, `g2-600-full.png` | `set: 600.0 C` | +0.152 s | `Dark Red` in `#aa0000`, no star |
+| `g2-0-crop-3x.png`, `g2-0-full.png` | `set: 0.0 C` | +0.165 s | no popup (cold ingot) |
+| `g3-900-crop-3x.png`, `g3-900-full.png` | `set: 900.0 C` | +0.158 s | `Bright Red★★★★` in `#ff5555`, black shadow |
+| `g3-600-crop-3x.png`, `g3-600-full.png` | `set: 600.0 C` | +0.153 s | `Dark Red` in `#aa0000`, no star |
+| `g3-0-crop-3x.png`, `g3-0-full.png` | `set: 0.0 C` | +0.174 s | no popup (cold ingot) |
 
 ## Checks
 
-| criterion | GUI 2 | GUI 3 | evidence |
-|---|---|---|---|
-| 900 C copper ingot shows `Bright Red` with four stars in RED (`#ff5555`) | pass | pass | 900 crops; only `#ff5555` in the band (576 px at GUI 2, 1296 px at GUI 3) |
-| Legible at GUI scale 2 (black shadow on grey stone) | pass | pass | `g2-900-bright-red-text-3x.png` |
-| 600 C reads `Dark Red` in DARK_RED (`#aa0000`) with no star and no stale `Bright Red` | pass | pass | 600 crops; from the first changed frame on only `#aa0000` (408 px / 918 px) |
-| A cold ingot (0 C) shows no popup | pass | pass | 0 crops; from the first changed frame to the end of the step no popup colour in the band |
-| The popup changes right after `tfp debug heat Bot <t>` with no visible lag | FAIL | FAIL | 0.27-0.46 s is visible lag (and an independent check saw stale and blank frames); first changed frame after the reply: GUI 2 +0.456 / +0.318 / +0.350 / +0.280 s (900, 600, 0, 900 again), GUI 3 +0.295 / +0.358 / +0.266 / +0.428 s; in this recording no frame shows a stale level after the first change |
-| Clear of the bars and centred | pass | pass | all crops and the full-screen frames |
+- Criterion 1: 900 C shows `Bright Red` and four stars in RED `#ff5555` at GUI 2 and 3, legible at GUI 2; the cold
+  ingot (0 C) shows no popup. The stars are U+2605 (vanilla's 7x7 bitmap star, on the baseline, with the shadow), the
+  HUD stand-in for TFC's U+066D (ledger divergence); the ASCII `*` used before read as a faint checkered strip.
+- Criterion 2: the level text and colour change 0.06-0.11 s after each `tfp debug heat Bot <t>` reply at both scales,
+  the same as the vanilla `/title` control, with no stale or blank frame.
+- TFC fidelity: Heat.java levels (DARK_RED 580-730 -> ChatFormatting.DARK_RED `#aa0000`, BRIGHT_RED 730-930 -> RED
+  `#ff5555`); 900 C has 4 stars, 600 C none (HudClimateValuesTest).
+- Layout: the popup is centred 70 GUI px above the bottom centre, above the HUD bars and clear of vanilla's item-name
+  line; no missing-texture purple/black; the top-left date/climate panel and the bars are intact.
 
-## Cooling, so star loss is not mistaken for lag
+## Note for re-checks
 
-TFC's `HeatCapability.adjustTemp` cools by `ticks * 0.8 / capacity`. The copper ingot's `item_heat` capacity is 2.857143,
-which gives 0.28 C per tick, about 5.6 C/s. Bright Red is 730-930 C, so the stars sit at 770, 810, 850 and 890 C. From
-900 C the fourth star goes at 890 C (36 ticks, about 1.8 s) and the third at 850 C (about 8.9 s). Dark Red with four
-stars (above 700 C) is reached only after about 30 s.
-
-Measured in the recording:
-- The fourth star went 1.76 / 1.78 s (GUI 2) and 1.85 / 1.33 s (GUI 3) after a set.
-- The third star went 8.73 s (GUI 2) and 8.48 s (GUI 3) into the cooling run.
-- The server's own readings agree, for example `stored: 900.0 C at tick 680, now tick 720, temperature now: 888.8 C`.
-
-The steps come in whole seconds because the calendar's player ticks advance once per second (`CalendarService`, ledger
-Calendar row). That causes the spread of up to about 0.5 s around the 1.8 s mark. It is not a delay in the popup.
-
-## Earlier reports explained
-
-- Heat 0 showing `Dark Red`, or 600 showing nothing: not reproduced. Here 0 hides the popup within 0.27-0.35 s and 600
-  shows `Dark Red` within 0.32-0.36 s, at both scales.
-- `Faint Red***` after a 900 retry: about 320 C below 900, so about a minute of TFC cooling. That matches a frame taken
-  late, not lag.
+Take the frame at least about 0.1 s after the RCON reply (or record and pick by frame time, as here): a frame grabbed
+right at the reply shows the previous level for a vanilla title too, because the client has not drawn the packet yet.
+`import` logs its return time, not its grab time.

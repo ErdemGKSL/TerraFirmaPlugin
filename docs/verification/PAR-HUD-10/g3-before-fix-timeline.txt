@@ -1,0 +1,33 @@
+1794034217.433 frame: none (title 0, red 0, dark 0)
+1794034220.413 REPLY reply: title Bot times 0 40 0
+1794034220.507 REPLY reply: title Bot title {"text":"XXXX","color":"red"}
+1794034220.567 frame: TITLE none (title 6084, red 0, dark 0)
+1794034222.567 frame: none (title 0, red 0, dark 0)
+1794034224.417 REPLY reply: title Bot title {"text":"XXXX","color":"red"}
+1794034224.500 frame: TITLE none (title 6084, red 0, dark 0)
+1794034226.467 frame: none (title 0, red 0, dark 0)
+1794034226.971 REPLY reply: title Bot title {"text":"XXXX","color":"red"}
+1794034227.067 frame: TITLE none (title 6084, red 0, dark 0)
+1794034228.967 frame: none (title 0, red 0, dark 0)
+1794034230.275 REPLY reply: title Bot clear
+1794034232.413 REPLY reply: tfp debug heat Bot 900
+1794034232.533 frame: RED (title 0, red 1296, dark 0)
+1794034235.862 REPLY reply: tfp debug heat Bot 600
+1794034236.000 frame: DARK_RED (title 0, red 0, dark 918)
+1794034238.405 REPLY reply: tfp debug heat Bot 0
+1794034238.467 frame: none (title 0, red 0, dark 0)
+1794034240.952 REPLY reply: tfp debug heat Bot 900
+1794034241.167 frame: RED (title 0, red 1296, dark 0)
+1794034243.491 REPLY reply: tfp debug heat Bot 0
+1794034243.700 frame: none (title 0, red 0, dark 0)
+--- latency per reply (first changed frame)
+reply: title Bot times 0 40 0                      state none       -> TITLE none after 0.154 s (frame gap ~0.033 s)
+reply: title Bot title {"text":"XXXX","color":"red state none       -> TITLE none after 0.060 s (frame gap ~0.033 s)
+reply: title Bot title {"text":"XXXX","color":"red state none       -> TITLE none after 0.083 s (frame gap ~0.033 s)
+reply: title Bot title {"text":"XXXX","color":"red state none       -> TITLE none after 0.096 s (frame gap ~0.033 s)
+reply: title Bot clear                             state none       -> RED after 2.258 s (frame gap ~0.033 s)
+reply: tfp debug heat Bot 900                      state none       -> RED after 0.120 s (frame gap ~0.033 s)
+reply: tfp debug heat Bot 600                      state RED        -> DARK_RED after 0.138 s (frame gap ~0.033 s)
+reply: tfp debug heat Bot 0                        state DARK_RED   -> none after 0.062 s (frame gap ~0.033 s)
+reply: tfp debug heat Bot 900                      state none       -> RED after 0.215 s (frame gap ~0.033 s)
+reply: tfp debug heat Bot 0                        state RED        -> none after 0.209 s (frame gap ~0.033 s)

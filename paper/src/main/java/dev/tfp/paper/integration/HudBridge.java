@@ -25,4 +25,12 @@ public interface HudBridge {
 
     /** Forgets a player (quit). Any thread. */
     void remove(UUID player);
+
+    /**
+     * PAR-HUD-10: asks the HUD plugin to redraw {@code player}'s HUD from the published snapshot now, instead of at its own
+     * next update. For a change the player caused and expects to see at once (a held-heat write). Any thread; a no-op
+     * without a HUD plugin or for a player it does not know.
+     */
+    default void push(UUID player) {
+    }
 }

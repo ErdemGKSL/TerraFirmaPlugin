@@ -1095,6 +1095,11 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                     }
                 }
                 player.getInventory().setItemInMainHand(stack);
+                // PAR-HUD-10: a main-hand heat write; publish the held heat inline and redraw the HUD now.
+                PlayerNeedsHudService needsService = needsHud;
+                if (needsService != null) {
+                    needsService.heldHeatWritten(player);
+                }
                 out.complete(Reply.ok("debug.heat.header", player.getName()).withDetails(List.of(
                         "warm: " + steps + " steps toward " + target + " C: "
                                 + last.map(t -> "now " + t + " C").orElse("not heatable (no item_heat data or a newer record)"),
@@ -1137,10 +1142,11 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                         return;
                     }
                     target.getInventory().setItemInMainHand(stack);
-                    // PAR-HUD-11: setting the main hand fires no event; republish the held heat record.
+                    // PAR-HUD-11: setting the main hand fires no event; republish the held heat record. PAR-HUD-10: we
+                    // are on the player's thread, so publish inline and redraw the HUD now (no next-tick hop).
                     PlayerNeedsHudService needsService = needsHud;
                     if (needsService != null) {
-                        needsService.refreshHeld(target);
+                        needsService.heldHeatWritten(target);
                     }
                     lines.add("set: " + temperature + " C at tick " + tick);
                 } else {

@@ -17,6 +17,8 @@ import dev.tfp.paper.testing.MockServerTest;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -355,6 +357,82 @@ class PlayerNeedsHudRefreshMockBukkitTest extends MockServerTest {
 
         now[0] += 10_000; // fully cooled: the popup hides
         assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
+    }
+
+    /**
+     * PAR-HUD-10 criterion 2: what {@code /tfp debug heat} does on the player's thread (write the heat record, set the
+     * main hand, then {@link PlayerNeedsHudService#heldHeatWritten}) publishes the new record in the same tick, with no
+     * scheduler task, and asks the HUD to redraw that player once per write. 900, 600, 0: each read right after the write
+     * is the new value, never the previous one.
+     */
+    @Test
+    void aHeatWriteOnThePlayersThreadPublishesInlineAndPushesTheHudOnce() {
+        PlayerDataStore store = new PlayerDataStore(new PlayerDataFiles(dir), io, Logger.getLogger("test"));
+        store.loadBlocking(ALEX);
+        PlayerMock alex = new PlayerMock(server, "Alex", ALEX);
+        server.addPlayer(alex);
+        HudSnapshotCache hud = new HudSnapshotCache(() -> true);
+        List<UUID> pushes = new ArrayList<>();
+        hud.pusher(pushes::add);
+        long now = 1000L;
+        PlayerNeedsHudService needs = new PlayerNeedsHudService(store, new ServerScheduler(plugin, 1), hud,
+                () -> now, ItemHeatHooks.Capacities.UNIT);
+        alex.getInventory().setItemInMainHand(new ItemStack(Material.COPPER_INGOT));
+        int pending = server.getScheduler().getPendingTasks().size();
+
+        for (float t : new float[] {900f, 600f, 0f}) {
+            ItemStack stack = alex.getInventory().getItemInMainHand();
+            HeatPdc.write(stack, new HeatState(t, now));
+            alex.getInventory().setItemInMainHand(stack);
+            pushes.clear();
+            needs.heldHeatWritten(alex);
+            // No tick advanced and no task queued: the very next placeholder read is the new value.
+            assertThat(hud.snapshot(ALEX).heldTemperature()).isEqualTo((double) t);
+            assertThat(server.getScheduler().getPendingTasks()).hasSize(pending);
+            assertThat(pushes).containsExactly(ALEX);
+        }
+    }
+
+    /** PAR-HUD-10: republishing an unchanged held record (most inventory clicks) does not redraw the HUD. */
+    @Test
+    void anUnchangedHeldRecordDoesNotPushTheHud() {
+        PlayerDataStore store = new PlayerDataStore(new PlayerDataFiles(dir), io, Logger.getLogger("test"));
+        store.loadBlocking(ALEX);
+        PlayerMock alex = new PlayerMock(server, "Alex", ALEX);
+        server.addPlayer(alex);
+        HudSnapshotCache hud = new HudSnapshotCache(() -> true);
+        List<UUID> pushes = new ArrayList<>();
+        hud.pusher(pushes::add);
+        PlayerNeedsHudService needs = new PlayerNeedsHudService(store, new ServerScheduler(plugin, 1), hud,
+                () -> 1000L, ItemHeatHooks.Capacities.UNIT);
+        ItemStack ingot = new ItemStack(Material.COPPER_INGOT);
+        HeatPdc.write(ingot, new HeatState(900f, 1000L));
+        alex.getInventory().setItemInMainHand(ingot);
+        assertThat(needs.publishHeld(alex)).isTrue();
+        assertThat(needs.publishHeld(alex)).isFalse();
+        needs.refreshHeld(alex);
+        server.getScheduler().performOneTick();
+        assertThat(pushes).containsExactly(ALEX);
+    }
+
+    /** PAR-HUD-10: without a HUD plugin a heat write publishes nothing and redraws nothing. */
+    @Test
+    void aHeatWriteWithoutAHudPluginDoesNothing() {
+        PlayerDataStore store = new PlayerDataStore(new PlayerDataFiles(dir), io, Logger.getLogger("test"));
+        store.loadBlocking(ALEX);
+        PlayerMock alex = new PlayerMock(server, "Alex", ALEX);
+        server.addPlayer(alex);
+        HudSnapshotCache hud = new HudSnapshotCache(() -> false);
+        List<UUID> pushes = new ArrayList<>();
+        hud.pusher(pushes::add);
+        PlayerNeedsHudService needs = new PlayerNeedsHudService(store, new ServerScheduler(plugin, 1), hud,
+                () -> 1000L, ItemHeatHooks.Capacities.UNIT);
+        ItemStack ingot = new ItemStack(Material.COPPER_INGOT);
+        HeatPdc.write(ingot, new HeatState(900f, 1000L));
+        alex.getInventory().setItemInMainHand(ingot);
+        needs.heldHeatWritten(alex);
+        assertThat(hud.snapshot(ALEX).heldTemperature()).isZero();
+        assertThat(pushes).isEmpty();
     }
 
     /** PAR-HUD-11: a stack with a heat record but no heat capacity (no item_heat data) publishes no heat. */

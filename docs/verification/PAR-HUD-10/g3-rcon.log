@@ -1,33 +1,20 @@
-[1794029763.072 -> 1794029763.116] > difficulty peaceful :: The difficulty did not change; it is already set to peaceful 
-[1794029763.119 -> 1794029763.159] > gamerule advance_time false :: Gamerule advance_time is now set to: false 
-[1794029763.163 -> 1794029763.200] > gamerule advance_weather false :: Gamerule advance_weather is now set to: false 
-[1794029763.203 -> 1794029763.235] > weather clear :: Set the weather to clear 
-[1794029763.238 -> 1794029763.273] > time set noon :: Set the time to 6000 
-[1794029763.276 -> 1794029763.318] > forceload add -16 -16 16 16 :: No chunks were marked for force loading 
-[1794029766.324 -> 1794029766.369] > fill -8 99 -8 8 99 8 stone :: No blocks were filled 
-[1794029766.371 -> 1794029766.406] > fill -8 100 -8 8 110 8 air :: No blocks were filled 
-session exit 0 : joined after 8x3s pack applied after 1x3s 
-[1794029790.032 -> 1794029790.075] > gamemode survival Bot ::  
-[1794029790.077 -> 1794029790.119] > effect give Bot minecraft:saturation infinite 0 true :: Unable to apply this effect (target is either immune to effects, or has something stronger) 
-[1794029790.122 -> 1794029790.161] > tp Bot 0 100 0 0 30 :: Teleported Bot to 0.500000, 100.000000, 0.500000 
-[1794029790.163 -> 1794029790.215] > clear Bot :: Removed 1 item(s) from player Bot 
-[1794029790.219 -> 1794029790.261] > ce item give Bot tfp:metal/ingot/copper :: Gave 1 tfp:metal/ingot/copper to Bot 
-[1794029810.450] shot pre
-[1794029812.459 -> 1794029812.505] > tfp debug heat Bot 900 :: Heat of the item held by Bot:   set: 900.0 C at tick 1480   temperature now: 900.0 C   level: BRIGHT_RED 
-[1794029813.515 -> 1794029813.546] > tfp debug heat Bot :: Heat of the item held by Bot:   stored: 900.0 C at tick 1480, now tick 1500   temperature now: 894.4 C   level: BRIGHT_RED 
-[1794029815.562 -> 1794029815.599] > tfp debug heat Bot :: Heat of the item held by Bot:   stored: 900.0 C at tick 1480, now tick 1540   temperature now: 883.2 C   level: BRIGHT_RED 
-[1794029815.611 -> 1794029815.642] > tfp debug heat Bot 600 :: Heat of the item held by Bot:   set: 600.0 C at tick 1540   temperature now: 600.0 C   level: DARK_RED 
-[1794029816.658 -> 1794029816.704] > tfp debug heat Bot :: Heat of the item held by Bot:   stored: 600.0 C at tick 1540, now tick 1560   temperature now: 594.4 C   level: DARK_RED 
-[1794029818.714 -> 1794029818.746] > tfp debug heat Bot :: Heat of the item held by Bot:   stored: 600.0 C at tick 1540, now tick 1600   temperature now: 583.2 C   level: DARK_RED 
-[1794029818.749 -> 1794029818.784] > tfp debug heat Bot 0 :: Heat of the item held by Bot:   set: 0.0 C at tick 1600   temperature now: 0.0 C   level: none 
-[1794029819.791 -> 1794029819.823] > tfp debug heat Bot :: Heat of the item held by Bot:   stored: 0.0 C at tick 1600, now tick 1620   temperature now: 0.0 C   level: none 
-[1794029821.827 -> 1794029821.875] > tfp debug heat Bot :: Heat of the item held by Bot:   stored: 0.0 C at tick 1600, now tick 1660   temperature now: 0.0 C   level: none 
-[1794029821.880 -> 1794029821.922] > tfp debug heat Bot 900 :: Heat of the item held by Bot:   set: 900.0 C at tick 1660   temperature now: 900.0 C   level: BRIGHT_RED 
-[1794029823.933 -> 1794029823.972] > tfp debug heat Bot :: Heat of the item held by Bot:   stored: 900.0 C at tick 1660, now tick 1700   temperature now: 888.8 C   level: BRIGHT_RED 
-[1794029825.976 -> 1794029826.015] > tfp debug heat Bot :: Heat of the item held by Bot:   stored: 900.0 C at tick 1660, now tick 1740   temperature now: 877.6 C   level: BRIGHT_RED 
-[1794029828.024 -> 1794029828.069] > tfp debug heat Bot :: Heat of the item held by Bot:   stored: 900.0 C at tick 1660, now tick 1800   temperature now: 860.8 C   level: BRIGHT_RED 
-[1794029830.075 -> 1794029830.110] > tfp debug heat Bot :: Heat of the item held by Bot:   stored: 900.0 C at tick 1660, now tick 1840   temperature now: 849.6 C   level: BRIGHT_RED 
-[1794029832.129 -> 1794029832.173] > tfp debug heat Bot :: Heat of the item held by Bot:   stored: 900.0 C at tick 1660, now tick 1880   temperature now: 838.4 C   level: BRIGHT_RED 
-[1794029834.180 -> 1794029834.218] > tfp debug heat Bot :: Heat of the item held by Bot:   stored: 900.0 C at tick 1660, now tick 1920   temperature now: 827.2 C   level: BRIGHT_RED 
-[1794029834.224 -> 1794029834.266] > tfp debug heat Bot 0 :: Heat of the item held by Bot:   set: 0.0 C at tick 1920   temperature now: 0.0 C   level: none 
-done
+1794034022.207695033 send: title Bot times 0 40 0
+1794034022.243112325 reply: title Bot times 0 40 0 | Changed title display times for Bot 
+1794034022.246406524 send: title Bot title {"text":"XXXX","color":"red"}
+1794034022.281728154 reply: title Bot title {"text":"XXXX","color":"red"} | Showing new title for Bot 
+1794034024.786924490 send: title Bot title {"text":"XXXX","color":"red"}
+1794034024.824099655 reply: title Bot title {"text":"XXXX","color":"red"} | Showing new title for Bot 
+1794034027.327091618 send: title Bot title {"text":"XXXX","color":"red"}
+1794034027.387431862 reply: title Bot title {"text":"XXXX","color":"red"} | Showing new title for Bot 
+1794034029.890465282 send: title Bot clear
+1794034029.933367189 reply: title Bot clear | Cleared titles for Bot 
+1794034031.937053614 send: tfp debug heat Bot 900
+1794034031.974502364 reply: tfp debug heat Bot 900 | §aHeat of the item held by Bot: §7  set: 900.0 C at tick 8200 §7  temperature now: 900.0 C (0 when the item has no item_heat data) §7  level: BRIGHT_RED  
+1794034034.478491257 send: tfp debug heat Bot 600
+1794034034.514294787 reply: tfp debug heat Bot 600 | §aHeat of the item held by Bot: §7  set: 600.0 C at tick 8260 §7  temperature now: 600.0 C (0 when the item has no item_heat data) §7  level: DARK_RED  
+1794034037.019523310 send: tfp debug heat Bot 0
+1794034037.058985983 reply: tfp debug heat Bot 0 | §aHeat of the item held by Bot: §7  set: 0.0 C at tick 8300 §7  temperature now: 0.0 C (0 when the item has no item_heat data) §7  level: none  
+1794034039.563918085 send: tfp debug heat Bot 900
+1794034039.597453501 reply: tfp debug heat Bot 900 | §aHeat of the item held by Bot: §7  set: 900.0 C at tick 8360 §7  temperature now: 900.0 C (0 when the item has no item_heat data) §7  level: BRIGHT_RED  
+1794034042.102941467 send: tfp debug heat Bot 0
+1794034042.137193048 reply: tfp debug heat Bot 0 | §aHeat of the item held by Bot: §7  set: 0.0 C at tick 8400 §7  temperature now: 0.0 C (0 when the item has no item_heat data) §7  level: none  

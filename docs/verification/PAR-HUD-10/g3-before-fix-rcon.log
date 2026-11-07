@@ -1,0 +1,20 @@
+1794034220.338956433 send: title Bot times 0 40 0
+1794034220.412500718 reply: title Bot times 0 40 0 | Changed title display times for Bot 
+1794034220.414127353 send: title Bot title {"text":"XXXX","color":"red"}
+1794034220.506711000 reply: title Bot title {"text":"XXXX","color":"red"} | Showing new title for Bot 
+1794034223.018708500 send: title Bot title {"text":"XXXX","color":"red"}
+1794034224.416779166 reply: title Bot title {"text":"XXXX","color":"red"} | Showing new title for Bot 
+1794034226.920145780 send: title Bot title {"text":"XXXX","color":"red"}
+1794034226.970968863 reply: title Bot title {"text":"XXXX","color":"red"} | Showing new title for Bot 
+1794034229.478848578 send: title Bot clear
+1794034230.274714403 reply: title Bot clear | Cleared titles for Bot 
+1794034232.282852530 send: tfp debug heat Bot 900
+1794034232.412767642 reply: tfp debug heat Bot 900 | §aHeat of the item held by Bot: §7  set: 900.0 C at tick 9520 §7  temperature now: 900.0 C (0 when the item has no item_heat data) §7  level: BRIGHT_RED  
+1794034234.923275216 send: tfp debug heat Bot 600
+1794034235.862363203 reply: tfp debug heat Bot 600 | §aHeat of the item held by Bot: §7  set: 600.0 C at tick 9560 §7  temperature now: 600.0 C (0 when the item has no item_heat data) §7  level: DARK_RED  
+1794034238.366179782 send: tfp debug heat Bot 0
+1794034238.404761314 reply: tfp debug heat Bot 0 | §aHeat of the item held by Bot: §7  set: 0.0 C at tick 9620 §7  temperature now: 0.0 C (0 when the item has no item_heat data) §7  level: none  
+1794034240.908343131 send: tfp debug heat Bot 900
+1794034240.951775138 reply: tfp debug heat Bot 900 | §aHeat of the item held by Bot: §7  set: 900.0 C at tick 9660 §7  temperature now: 900.0 C (0 when the item has no item_heat data) §7  level: BRIGHT_RED  
+1794034243.455894232 send: tfp debug heat Bot 0
+1794034243.490598524 reply: tfp debug heat Bot 0 | §aHeat of the item held by Bot: §7  set: 0.0 C at tick 9720 §7  temperature now: 0.0 C (0 when the item has no item_heat data) §7  level: none  

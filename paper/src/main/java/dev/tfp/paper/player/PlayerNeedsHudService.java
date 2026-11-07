@@ -62,8 +62,10 @@ import org.bukkit.inventory.ItemStack;
  * <p>PAR-HUD-08 / PAR-HUD-11: the main-hand stack's heat record ({@link HeatPdc}, its stored temperature and stamp tick,
  * and the stack's heat capacity from the injected {@link ItemHeatHooks.Capacities}) is published as
  * {@link HudSnapshot#heldHeat()} on the same reading, and on the player's next tick after anything that changes the
- * main-hand stack (hotbar slot, swap hands, inventory click or drag, pickup, drop, {@code /tfp debug heat}:
- * {@link #refreshHeld}). The temperature itself is not precomputed: the placeholders evaluate the record with TFC's
+ * main-hand stack (hotbar slot, swap hands, inventory click or drag, pickup, drop: {@link #refreshHeld}). Code that
+ * writes the main-hand heat itself on the player's thread ({@code /tfp debug heat}) publishes inline instead
+ * ({@link #heldHeatWritten}, PAR-HUD-10). A changed record also redraws the HUD at once ({@link HudSnapshotCache#push}),
+ * so the popup does not wait for BetterHud's next update. The temperature itself is not precomputed: the placeholders evaluate the record with TFC's
  * cooling rule at the calendar tick of each read ({@link HudSnapshot#heldTemperature()}, the same rule as
  * {@link ItemHeatHooks#temperature}), so the popup follows the cooling with no lag and never reads the ItemStack off
  * the player's thread. The popup shows while it is above 0 °C, the range in which TFC's
@@ -213,7 +215,8 @@ public final class PlayerNeedsHudService implements Listener {
     /**
      * Any thread: hops to the player's thread and republishes only the held item temperature (no thirst evaluation).
      * Like {@link #refresh} the task runs on the player's next tick, so it reads the main hand after the change that
-     * triggered it has been applied.
+     * triggered it has been applied (the hotbar, swap, click, drag, pickup and drop events fire before the change). When
+     * the held record changed, the HUD is redrawn at once ({@link #publishHeld}).
      */
     public void refreshHeld(Player player) {
         if (hud.isActive()) {
@@ -221,11 +224,36 @@ public final class PlayerNeedsHudService implements Listener {
         }
     }
 
-    /** Player thread only: the latest snapshot with the main-hand stack's heat record. */
-    void publishHeld(Player player) {
+    /**
+     * PAR-HUD-10: player thread only, for code that has just written the main-hand stack's heat itself
+     * ({@code /tfp debug heat}, {@code /tfp debug warm}, any main-hand heat write): publishes the new record inline, with
+     * no next-tick hop, and redraws the HUD at once, so the popup shows the new level on the frame after the write.
+     * A no-op while no HUD plugin renders the values.
+     */
+    public void heldHeatWritten(Player player) {
+        if (hud.isActive()) {
+            publishHeld(player);
+        }
+    }
+
+    /**
+     * Player thread only: the latest snapshot with the main-hand stack's heat record. When the record differs from the
+     * published one, the HUD plugin redraws the player's HUD now ({@link HudSnapshotCache#push}) instead of at its next
+     * update; an unchanged record (most inventory clicks) costs no redraw.
+     *
+     * @return true if the published record changed
+     */
+    boolean publishHeld(Player player) {
         ThreadAsserts.owned(player);
         UUID id = player.getUniqueId();
-        hud.publish(player, hud.snapshot(id).withHeldHeat(heldHeatOf(player)));
+        HudSnapshot before = hud.snapshot(id);
+        HudSnapshot.HeldHeat held = heldHeatOf(player);
+        if (held.equals(before.heldHeat())) {
+            return false;
+        }
+        hud.publish(player, before.withHeldHeat(held));
+        hud.push(id);
+        return true;
     }
 
     /** Player thread only: the main-hand stack's heat record ({@link #heldHeat}). */
