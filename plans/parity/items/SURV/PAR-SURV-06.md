@@ -26,9 +26,9 @@ plan:
   - "Every 20 ticks per player (entity scheduler): count huge/very heavy items -> exhausted / overburdened effects (enableOverburdening)."
   - "Tooltip contributor: '⚖ Weight: Heavy / ⇲ Size: Large'."
   - "Stack sizes follow Weight (vanilla max_stack_size component set in datagen? record decision)."
-  - "Decision: stack sizes stay baked into the CE items by datagen (PAR-SURV-01 foods, PAR-PROC-21 drops; ledger rows); the runtime does not rewrite max_stack_size."
+  - "Decision: stack sizes stay baked into the CE items by datagen (PAR-SURV-01 foods, PAR-PROC-21 drops; ledger rows); the runtime does not rewrite max_stack_size. Vanilla items keep vanilla stack sizes (ledger divergence row; TFC rewrites every registry item)."
   - "In-game check deferred (PROTOCOL §6.5) to PAR-SURV-11 (deps PAR-METAL-03, which adds the anvil items the steps give); the steps and the screenshot criterion moved there."
-  - "Done: core item/ItemSizeDefinitions (TFC lookup order), VanillaItemClasses, BurdenEffects; paper itemsize/ItemSizeModule (ItemSizes service, ContainerSizeListener chest/bundle/hopper limits, BurdenApplier exhausted/overburdened every 20 ticks on the player thread, ItemSizeTooltipContributor); tests core ItemSizeDefinitionsTest (4), paper ItemSizeMockBukkitTest (9); 7 divergence rows in the ledger; in-game check tracked in PAR-SURV-11."
+  - "Done: core item/ItemSizeDefinitions (TFC lookup order), VanillaItemClasses, BurdenEffects; paper itemsize/ItemSizeModule (ItemSizes service, ContainerSizeListener chest/bundle/hopper limits, BurdenApplier exhausted/overburdened every 20 ticks on the player thread, ItemSizeTooltipContributor); ItemSizes.register stack sizers (TFC IItemSize step) for barrel/powderkeg/large vessel/crucible; tests core ItemSizeDefinitionsTest (4), paper ItemSizeMockBukkitTest (10); 9 divergence rows in the ledger; in-game check tracked in PAR-SURV-11."
 tests:
   - "paper: MockBukkit chest refuses a huge item"
   - "paper: overburdened applied with two anvils in inventory"

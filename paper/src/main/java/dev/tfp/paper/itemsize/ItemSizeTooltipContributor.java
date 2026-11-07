@@ -51,7 +51,7 @@ public final class ItemSizeTooltipContributor implements TooltipContributor {
         if (material == null || material.isAir()) {
             return;
         }
-        ItemSizing sizing = sizes.sizing(item.customId(), material);
+        ItemSizing sizing = sizes.sizing(item, material);
         lines.accept(Component.text(line(sizing, context.locale()), NamedTextColor.GRAY));
     }
 

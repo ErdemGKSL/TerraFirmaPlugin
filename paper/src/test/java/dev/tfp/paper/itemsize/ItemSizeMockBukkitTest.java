@@ -280,4 +280,35 @@ class ItemSizeMockBukkitTest extends MockServerTest {
         assertThat(listener.isChest(server.createInventory(null, 27))).isFalse();
         assertThat(listener.isChest(null)).isFalse();
     }
+    @Test
+    void stackSizerRunsBeforeTheDefinitionsAndIsNotCachedPerId() throws Exception {
+        String vessel = "tfp:ceramic/large_vessel";
+        ItemSizing open = new ItemSizing(ItemSize.HUGE, ItemWeight.HEAVY);
+        ItemSizing sealed = new ItemSizing(ItemSize.HUGE, ItemWeight.VERY_HEAVY);
+        AutoCloseable handle = sizes.register(vessel::equals, new ItemSizes.StackSizer() {
+            @Override
+            public ItemSizing sizing(ItemStack stack) {
+                return stack.getAmount() > 1 ? sealed : open; // the amount stands in for the sealed state
+            }
+
+            @Override
+            public ItemSizing sizing(TooltipItem item) {
+                return item.count() > 1 ? sealed : null;
+            }
+        });
+        ItemStack one = custom(vessel);
+        ItemStack two = custom(vessel);
+        two.setAmount(2);
+        assertThat(sizes.sizing(one)).isEqualTo(open);
+        assertThat(sizes.sizing(two)).as("per stack, not per id").isEqualTo(sealed);
+        assertThat(sizes.fitsChest(one)).as("TFC: a huge device does not fit a chest").isFalse();
+        assertThat(sizes.sizing(new TooltipItem(vessel, "minecraft:paper", 2, TooltipData.EMPTY), Material.PAPER))
+                .isEqualTo(sealed);
+        assertThat(sizes.sizing(new TooltipItem(vessel, "minecraft:paper", 1, TooltipData.EMPTY), Material.PAPER))
+                .as("a null answer falls through to the class default").isEqualTo(ItemSizing.DEFAULT);
+        assertThat(sizes.sizing(custom(ANVIL))).as("other ids untouched")
+                .isEqualTo(new ItemSizing(ItemSize.HUGE, ItemWeight.VERY_HEAVY));
+        handle.close();
+        assertThat(sizes.sizing(two)).as("removed").isEqualTo(ItemSizing.DEFAULT);
+    }
 }

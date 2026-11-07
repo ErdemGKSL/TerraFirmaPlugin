@@ -16,9 +16,11 @@ import dev.tfp.core.item.VanillaItemClasses;
 import dev.tfp.core.tag.TagLookup;
 import dev.tfp.paper.recipe.ItemIngredientContext;
 import dev.tfp.paper.tags.TagSnapshot;
+import dev.tfp.paper.tooltip.TooltipItem;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -36,12 +38,37 @@ import org.bukkit.inventory.ItemStack;
  *       tools and armour), block when a custom block of the same id exists (TFC's block items share the block id),
  *       else the default class.</li>
  * </ul>
- * Results are cached per id until the definitions or the tag snapshot change. Thread-safe: reads only immutable data,
- * so it serves the Netty thread (tooltips) and every region thread.
+ * Before the definitions, a registered {@link StackSizer} may size the stack itself, the step where TFC asks the
+ * item (or its block item's block) for its own {@code IItemSize} ({@code SealableDeviceBlock}: barrels, the powderkeg,
+ * large vessels; {@code CrucibleBlock}). Those answers depend on the stack (sealed, has contents) and are never cached.
+ * Definition and class results are cached per id until the definitions or the tag snapshot change. Thread-safe: reads
+ * only immutable data, so it serves the Netty thread (tooltips) and every region thread.
  */
 public final class ItemSizes {
     private record Cache(ItemSizeDefinitions definitions, TagLookup tags, ConcurrentHashMap<String, ItemSizing> byKey) {
     }
+
+    /**
+     * An item that sizes itself from its stack (TFC {@code IItemSize} on the item or its block). Called on any thread
+     * with a stack the caller owns or a copy of it; must read only that stack and immutable data.
+     */
+    public interface StackSizer {
+        /** The sizing of the stack, or {@code null} to fall through to the {@code item_size} definitions. */
+        ItemSizing sizing(ItemStack stack);
+
+        /**
+         * The sizing of a stack seen through the tooltip view (Netty thread; the device's state is in
+         * {@link TooltipItem#values()}), or {@code null} to fall through to the definitions.
+         */
+        default ItemSizing sizing(TooltipItem item) {
+            return null;
+        }
+    }
+
+    private record Registered(Predicate<String> ids, StackSizer sizer) {
+    }
+
+    private final CopyOnWriteArrayList<Registered> sizers = new CopyOnWriteArrayList<>();
 
     private final Supplier<ItemSizeDefinitions> definitions;
     private final Supplier<TagLookup> tags;
@@ -71,18 +98,59 @@ public final class ItemSizes {
         return limits;
     }
 
+    /**
+     * Registers a stack sizer for the items whose id (CraftEngine id, else the vanilla key) {@code ids} accepts; it
+     * runs before the definitions, in registration order. Device items (barrel PAR-PROC-08, powderkeg PAR-PROC-18,
+     * large vessel PAR-POT-06, crucible PAR-METAL-12) register here.
+     *
+     * @return a handle that removes the registration
+     */
+    public AutoCloseable register(Predicate<String> ids, StackSizer sizer) {
+        Registered r = new Registered(Objects.requireNonNull(ids, "ids"), Objects.requireNonNull(sizer, "sizer"));
+        sizers.add(r);
+        return () -> sizers.remove(r);
+    }
+
     /** The sizing of a stack; null or air reads as TFC's default (very small, very light). */
     public ItemSizing sizing(ItemStack stack) {
         if (stack == null || stack.getType().isAir()) {
             return ItemSizing.DEFAULT;
         }
         Optional<String> custom = customIds.apply(stack);
-        return sizing(custom.orElse(null), stack.getType());
+        String customId = custom.orElse(null);
+        if (!sizers.isEmpty()) {
+            String id = customId != null ? customId : stack.getType().getKey().toString();
+            for (Registered r : sizers) {
+                if (r.ids().test(id)) {
+                    ItemSizing own = r.sizer().sizing(stack);
+                    if (own != null) {
+                        return own;
+                    }
+                }
+            }
+        }
+        return sizing(customId, stack.getType());
+    }
+
+    /** The sizing of a stack seen through the tooltip view: the stack sizers first, then as {@link #sizing(String, Material)}. */
+    public ItemSizing sizing(TooltipItem item, Material material) {
+        if (!sizers.isEmpty()) {
+            String id = item.customId() != null ? item.customId() : material.getKey().toString();
+            for (Registered r : sizers) {
+                if (r.ids().test(id)) {
+                    ItemSizing own = r.sizer().sizing(item);
+                    if (own != null) {
+                        return own;
+                    }
+                }
+            }
+        }
+        return sizing(item.customId(), material);
     }
 
     /**
      * The sizing of an item by its CraftEngine id ({@code null} for a vanilla item) and the vanilla material it is (or
-     * is built on).
+     * is built on), from the definitions and class defaults only (no {@link StackSizer}: they need the stack).
      */
     public ItemSizing sizing(String customId, Material material) {
         String id = customId != null ? customId : material.getKey().toString();
