@@ -76,6 +76,26 @@ class QuernAimTest {
         assertThat(down(4.8, 4.8, NO_HANDSTONE)).as("no handle to hit").isEqualTo(Place.BASE);
     }
 
+    /**
+     * The 2026-11-07 in-game REJECT: a held handstone aimed from about two blocks south at the base's side mounts
+     * nothing (TFC: a side hit is outside HANDSTONE_AABB, so BASE, which only takes the output), while the same pose
+     * aimed down at the base top inside 3..13 px mounts it.
+     */
+    @Test
+    void aHeldHandstoneMountsOnlyFromTheBaseTop() {
+        // eye 1.62 above the floor, 2 blocks south of the quern's south face, looking north and slightly down
+        double ex = 0.5;
+        double ey = 1.62;
+        double ez = 3;
+        // ray towards the south face at y 6 px: the side of the base
+        assertThat(QuernAim.aim(ex, ey, ez, 0, 6 / 16.0 - ey, 1 - ez, HOLDING_HANDSTONE)).isEqualTo(Place.BASE);
+        // ray towards the base top at (8, 10, 8) px: inside the inflated handstone box
+        assertThat(QuernAim.aim(ex, ey, ez, 0, 10 / 16.0 - ey, 0.5 - ez, HOLDING_HANDSTONE)).isEqualTo(Place.HANDSTONE);
+        // ray towards the top rim at (8, 10, 14) px: outside 3..13, so the base
+        assertThat(QuernAim.aim(ex, ey, ez, 0, 10 / 16.0 - ey, 14 / 16.0 - ez + 1e-3, HOLDING_HANDSTONE))
+            .isEqualTo(Place.BASE);
+    }
+
     @Test
     void grindingSkipsTheHandleAndInput() {
         Situation grinding = new Situation(true, true, false, false, false);
