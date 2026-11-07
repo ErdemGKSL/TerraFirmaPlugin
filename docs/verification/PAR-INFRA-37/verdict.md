@@ -44,8 +44,9 @@ Scenes (for a rerun; the frames in this folder come from these, on the worlds de
   z 1100-1102, Bot on barrier platforms at z 1096-1099 facing south (yaw 0).
 - Cave walk (row 6): tunnel x 1601-1799, y 229-231, z 1199-1201 in a granite block x 1600-1800, y 228-233, z 1197-1203.
 - Budget (row 7): Bot at the world spawn on the surface at first join, no teleport.
-A later in-game recheck used another scene (x -2400, z -1950, Bot at z -1930.5 and further south); its frames are not
-part of this folder, and its distance and budget frames did not have the vein or the surface in view.
+A later recheck at another scene (x -2400, z -1950) is not evidence for this verdict: its frames were not kept, and
+the frames in this folder are the only evidence. A rerun attempt made after the review notes took no frames (the
+capture stopped before the client joined); it changed nothing here.
 
 Commands (both versions): scene builders and step scripts were kept outside the repo; the replies above come from
 RCON. Mining times were measured as the time from `xdotool mousedown 1` to the first RCON
@@ -58,6 +59,8 @@ Observation (not this item's criterion): `tfp time set noon|midnight` moves the 
 -> `updateDayTime`); the ledger's Calendar row lists the missing `ServerCalendar` sync, and PAR-CLIM-01 (ServerCalendar,
 doDaylightCycle sync) is the open item for it.
 
-Verdict: **done**. Every step has frames on 1.21.11 and 26.3 and the mining ticks are recorded per tool. Rows 2-7 pass;
+Verdict: **done**. Every step has frames on 1.21.11 and 26.3 and the mining ticks are recorded per tool. Row 4's
+evidence is its tick table (no frames); row 1's single frame `down-face-vs-tfc.png` stands for both versions, which
+matched texel for texel. Rows 2-7 pass;
 row 1 passes for orientation. The down-face brightness failure found here (and the smaller side-face shortfall) is a
 defect of PAR-INFRA-16's overlay lighting and goes to follow-up PAR-INFRA-41.
