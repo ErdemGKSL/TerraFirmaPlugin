@@ -29,6 +29,8 @@ import dev.tfp.paper.packet.SeasonalBiomeHandler;
 import dev.tfp.paper.scheduler.ThreadAsserts;
 import dev.tfp.paper.worldgen.TfcChunkGenerator;
 import io.papermc.paper.command.brigadier.Commands;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -38,9 +40,12 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Difficulty;
 import org.bukkit.HeightMap;
@@ -74,8 +79,11 @@ import org.bukkit.potion.PotionEffectType;
  * Creative and spectator do nothing here (TFC: {@code abilities.invulnerable}; the needs are off, PAR-HUD-12); a dead or
  * not loaded player is skipped.
  *
- * <p>Dehydration damage is vanilla {@code minecraft:starve} (no {@code tfp:dehydration} damage type is registered yet),
- * with TFC's death message ({@code death.attack.tfc.dehydration}) put back on the death it causes. The changes are
+ * <p>Dehydration damage is TFC's own damage type {@code tfp:dehydration} (PAR-SURV-10: datagen ships TFC's damage types
+ * in the bootstrap datapack): scaled, no exhaustion, no knockback, and armour reduces it, as in TFC. Only when the type is
+ * missing from the server's registry (the datapack failed to load) is the hit vanilla {@code minecraft:starve}. The death
+ * it causes carries TFC's message ({@code death.attack.tfc.dehydration}, or {@code .player} with a killer) with TFC's
+ * English text as the fallback, because the vanilla client has no translation for TFC's keys. The changes are
  * written through {@link PlayerDataStore#update} and the HUD shows them at its next reading (at most one second).
  *
  * <p>Debug: {@code /tfp debug rain [name]} prints the rain-drinking gates of a player (pitch, storm, open sky, the
@@ -92,20 +100,56 @@ public final class ThirstModule implements FeatureModule, Listener {
     public static final double DEHYDRATION_DAMAGE = 1.0;
     /** TFC's death message key ({@code message_id} {@code tfc.dehydration}). */
     public static final String DEATH_KEY = "death.attack.tfc.dehydration";
+    /** TFC's en_us text of {@link #DEATH_KEY}, the fallback a vanilla client shows. */
+    static final String DEATH_FALLBACK = "%1$s dehydrated to death";
+    /** TFC's en_us text of {@link #DEATH_KEY}{@code .player}. */
+    static final String DEATH_PLAYER_FALLBACK = "%1$s dehydrated to death while trying to escape %2$s";
+    /** TFC's {@code TFCDamageTypes.DEHYDRATION}, renamed. */
+    public static final Key DEHYDRATION_TYPE = Key.key("tfp", "dehydration");
 
     private static final ThirstConfig THIRST = ThirstConfig.DEFAULT;
     private static final DrinkablesCache NO_DRINKABLES = new DrinkablesCache(() -> null);
     private static volatile DrinkablesCache drinkables = NO_DRINKABLES;
 
-    /** How a dehydration hit is dealt (the real server: {@link #STARVE}; MockBukkit has no damage with a source). */
+    /** How a dehydration hit is dealt (the real server: {@link #DEHYDRATION}; MockBukkit has no damage with a source). */
     @FunctionalInterface
     interface Hurt {
         void hurt(Player player, double amount);
     }
 
-    /** Vanilla {@code minecraft:starve} damage with no attacker. */
+    /** Vanilla {@code minecraft:starve} damage with no attacker (the fallback when {@code tfp:dehydration} is missing). */
     static final Hurt STARVE = (player, amount) -> player.damage(amount,
             DamageSource.builder(DamageType.STARVE).build());
+
+    /** The resolved dehydration type; the registry is frozen once the server runs, so it is looked up once. */
+    private static volatile DamageType dehydrationType;
+
+    /** TFC {@code TFCDamageTypes.dehydration}: {@code tfp:dehydration} damage with no attacker (starve when it is missing). */
+    static final Hurt DEHYDRATION = (player, amount) -> player.damage(amount,
+            DamageSource.builder(dehydrationType()).build());
+
+    /** The server's {@code tfp:dehydration}, or {@code minecraft:starve} when the registry lacks it. */
+    static DamageType dehydrationType() {
+        DamageType t = dehydrationType;
+        if (t == null) {
+            t = resolveDehydration(key -> RegistryAccess.registryAccess().getRegistry(RegistryKey.DAMAGE_TYPE).get(key));
+            dehydrationType = t;
+        }
+        return t;
+    }
+
+    /** {@code tfp:dehydration} through {@code lookup}, or {@code minecraft:starve} when it is absent or the lookup fails. */
+    static DamageType resolveDehydration(Function<Key, DamageType> lookup) {
+        try {
+            DamageType t = lookup.apply(DEHYDRATION_TYPE);
+            if (t != null) {
+                return t;
+            }
+        } catch (RuntimeException e) {
+            // no registry access (tests) or no such entry: the fallback below
+        }
+        return DamageType.STARVE;
+    }
 
     /** The biome a vanilla client renders at a position: what decides whether it draws rain or snow there. */
     record ClientBiome(boolean hasPrecipitation, float temperature, String source) {
@@ -125,7 +169,7 @@ public final class ThirstModule implements FeatureModule, Listener {
     private volatile HudSnapshotCache hud;
     private volatile Scheduler scheduler;
     private volatile Scheduler.TaskHandle throttle;
-    private volatile Hurt hurt = STARVE;
+    private volatile Hurt hurt = DEHYDRATION;
     private volatile ClientSky sky = player -> clientBiome(player, false);
     /** Global thread only (the throttle), so no synchronization. */
     private long runs;
@@ -169,6 +213,11 @@ public final class ThirstModule implements FeatureModule, Listener {
         boolean seasonal = context.packets().handlers().contains(SeasonalBiomeHandler.NAME);
         BooleanSupplier remapped = () -> seasonal && context.clock().get().isSet();
         sky = player -> clientBiome(player, remapped.getAsBoolean());
+        DamageType type = dehydrationType();
+        if (type == DamageType.STARVE) {
+            context.plugin().getLogger().warning("Damage type " + DEHYDRATION_TYPE.asString() + " is not registered (the "
+                    + "bootstrap datapack did not load): dehydration hurts as minecraft:starve");
+        }
         context.listen(this);
         Supplier<Collection<? extends Player>> online = () -> context.plugin().getServer().getOnlinePlayers();
         throttle = scheduler.globalRepeating(PERIOD_TICKS, PERIOD_TICKS, () -> {
@@ -360,13 +409,28 @@ public final class ThirstModule implements FeatureModule, Listener {
                 && y > world.getHighestBlockYAt(x, z, HeightMap.MOTION_BLOCKING);
     }
 
-    /** TFC's death message for a death by dehydration ({@code tfc.dehydration}, with the vanilla-style fallback). */
+    /** TFC's death message for a death by dehydration, with TFC's English text as the fallback. */
     @EventHandler(priority = EventPriority.HIGH)
     public void onDeath(PlayerDeathEvent event) {
         Player player = event.getPlayer();
         if (dehydrating.contains(player.getUniqueId())) {
-            event.deathMessage(Component.translatable(DEATH_KEY, "%1$s dehydrated to death", player.displayName()));
+            event.deathMessage(deathMessage(event.deathMessage(), player.displayName()));
         }
+    }
+
+    /**
+     * The message of a death by dehydration. The server's own one ({@code death.attack.tfc.dehydration[.player]} from the
+     * type's {@code message_id}, or {@code death.attack.starve[.player]} on the fallback) keeps its arguments (the killer
+     * of the {@code .player} form) and gets TFC's key and English fallback; anything else becomes the plain form.
+     */
+    static Component deathMessage(Component current, Component name) {
+        if (current instanceof TranslatableComponent t
+                && (t.key().startsWith(DEATH_KEY) || t.key().startsWith("death.attack.starve"))) {
+            boolean killer = t.key().endsWith(".player");
+            return t.toBuilder().key(killer ? DEATH_KEY + ".player" : DEATH_KEY)
+                    .fallback(killer ? DEATH_PLAYER_FALLBACK : DEATH_FALLBACK).build();
+        }
+        return Component.translatable(DEATH_KEY, DEATH_FALLBACK, name);
     }
 
     /** The drinkable definitions of the current registry version. */

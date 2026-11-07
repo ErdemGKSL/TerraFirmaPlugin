@@ -78,7 +78,7 @@ Totals: 289 items; open 207, done 78, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-SURV-05 | Health and damage: TFC health scale, physical damage types, entity and armour resistances | SURV | 8 | open |
 | PAR-SURV-06 | Item size and weight on Paper: container limits, overburdened and exhausted, tooltip | SURV | 8 | done |
 | PAR-SURV-07 | Player tab screens: calendar, nutrition and climate pages opened from outside the inventory | SURV | 8 | open |
-| PAR-SURV-10 | TFC damage types in the server registry (tfp:dehydration and the others), dehydration hits through it | SURV | 8 | open |
+| PAR-SURV-10 | TFC damage types in the server registry (tfp:dehydration and the others), dehydration hits through it | SURV | 8 | done |
 | PAR-REL-12 | Visual and overlay budget guards: profile-vs-pool unit test, overlay entities-per-chunk itest budget | REL | 8 | done |
 | PAR-INFRA-34 | Verify the ore overlay datagen in game: host-rock look of buried ores, composite ore block item icons, pick-block | INFRA | 8 | done |
 | PAR-PROC-26 | Durability material items carry minecraft:damage 0 (vanilla damageable); gem saw in-game check | PROC | 8 | open |
@@ -101,6 +101,7 @@ Totals: 289 items; open 207, done 78, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-PROC-08 | Barrel block: fluids, sealing, sealed and instant recipes, preservation | PROC | 9 | open |
 | PAR-PROC-22 | Basket: TFC's bundle item (TFCBundleItem) with its size limits | PROC | 9 | open |
 | PAR-SURV-08 | Alcohol and intoxication | SURV | 9 | open |
+| PAR-SURV-12 | Dehydration self-test: a tfp:dehydration hit through the registry, armour reduces it | SURV | 9 | open |
 | PAR-FLUID-04 | Hot spring healing and bubble columns | FLUID | 10 | open |
 | PAR-HEAT-01 | Item heat glow: hot items glow by heat level on vanilla clients | HEAT | 10 | open |
 | PAR-HEAT-02 | Heat tooltip in TFC colours and metal info lines (melting point, workable, weldable) | HEAT | 10 | open |

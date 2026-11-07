@@ -118,6 +118,7 @@ public final class Datagen {
         HudLayouts.run(out, HudLayouts.catalogue());
         SeasonalBiomes.write(tfc, out);
         VanillaLootOverrides.run(tfc, out); // PAR-INFRA-30: TFC's replacements of vanilla loot tables, in the bootstrap datapack
+        dev.tfp.datagen.damagetypes.DamageTypes.run(tfc, out); // PAR-SURV-10: TFC's damage types and no_knockback tag, in the bootstrap datapack
         CommonTags.run(out); // PAR-INFRA-14: NeoForge c: tags (skipped without -Dtfp.neoforgeJar, e.g. fixtures)
         dev.tfp.datagen.toolblocktags.ToolBlockTags.run(out); // PAR-PROC-24: tfp:mineable/* as server tags; after CommonTags, before CraftingRecipes
         if (dev.tfp.datagen.crafting.CraftingRecipes.available(tfc)) { // PAR-PROC-02: plain workbench recipes as CE YAML; after every CE item and CommonTags

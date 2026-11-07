@@ -21,6 +21,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.bukkit.Difficulty;
 import org.bukkit.GameMode;
@@ -154,7 +156,7 @@ class ThirstModuleMockBukkitTest extends MockServerTest {
     }
 
     @Test
-    void dehydrationDamageIsStarvationWithTfcsDeathMessage() {
+    void dehydrationDeathHasTfcsDeathMessage() {
         PlayerDeathEvent[] death = {null};
         server.getPluginManager().registerEvents(new org.bukkit.event.Listener() {
             @org.bukkit.event.EventHandler(priority = org.bukkit.event.EventPriority.MONITOR)
@@ -189,9 +191,51 @@ class ThirstModuleMockBukkitTest extends MockServerTest {
     }
 
     @Test
-    void theRealHitIsOnePointOfStarvation() {
+    void theRealHitIsOnePointOfDehydration() {
         assertThat(ThirstModule.DEHYDRATION_DAMAGE).isEqualTo(1.0);
-        assertThat(ThirstModule.STARVE).isNotNull();
+        assertThat(ThirstModule.DEHYDRATION).isNotNull();
+        assertThat(ThirstModule.DEHYDRATION_TYPE.asString()).isEqualTo("tfp:dehydration");
+    }
+
+    /** PAR-SURV-10: tfp:dehydration from the registry; starve only when it is absent or the registry is unreachable. */
+    @Test
+    void dehydrationTypeComesFromTheRegistryWithStarveAsFallback() {
+        org.bukkit.damage.DamageType registered = org.bukkit.damage.DamageType.DROWN; // any non-starve stand-in
+        Key[] asked = {null};
+        assertThat(ThirstModule.resolveDehydration(key -> {
+            asked[0] = key;
+            return registered;
+        })).isSameAs(registered);
+        assertThat(asked[0]).isEqualTo(Key.key("tfp", "dehydration"));
+        assertThat(ThirstModule.resolveDehydration(key -> null)).isSameAs(org.bukkit.damage.DamageType.STARVE);
+        assertThat(ThirstModule.resolveDehydration(key -> {
+            throw new IllegalStateException("no registry");
+        })).isSameAs(org.bukkit.damage.DamageType.STARVE);
+    }
+
+    /** The server's own death message keeps its arguments and gets TFC's key and English fallback. */
+    @Test
+    void deathMessageKeepsTheKillerAndAddsTfcsFallback() {
+        Component name = Component.text("Alex");
+        Component zombie = Component.text("Zombie");
+        TranslatableComponent own = (TranslatableComponent) ThirstModule.deathMessage(
+                Component.translatable("death.attack.tfc.dehydration", name), name);
+        assertThat(own.key()).isEqualTo(ThirstModule.DEATH_KEY);
+        assertThat(own.fallback()).isEqualTo("%1$s dehydrated to death");
+        assertThat(own.arguments()).hasSize(1);
+        TranslatableComponent killer = (TranslatableComponent) ThirstModule.deathMessage(
+                Component.translatable("death.attack.tfc.dehydration.player", name, zombie), name);
+        assertThat(killer.key()).isEqualTo(ThirstModule.DEATH_KEY + ".player");
+        assertThat(killer.fallback()).isEqualTo("%1$s dehydrated to death while trying to escape %2$s");
+        assertThat(killer.arguments()).hasSize(2);
+        TranslatableComponent starve = (TranslatableComponent) ThirstModule.deathMessage(
+                Component.translatable("death.attack.starve.player", name, zombie), name);
+        assertThat(starve.key()).isEqualTo(ThirstModule.DEATH_KEY + ".player");
+        assertThat(starve.arguments()).hasSize(2);
+        TranslatableComponent other = (TranslatableComponent) ThirstModule.deathMessage(Component.text("x"), name);
+        assertThat(other.key()).isEqualTo(ThirstModule.DEATH_KEY);
+        assertThat(other.fallback()).isEqualTo("%1$s dehydrated to death");
+        assertThat(ThirstModule.deathMessage(null, name)).isInstanceOf(TranslatableComponent.class);
     }
 
     @Test
