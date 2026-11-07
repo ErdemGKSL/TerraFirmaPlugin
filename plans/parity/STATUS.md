@@ -91,6 +91,7 @@ Totals: 282 items; open 212, done 66, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-INFRA-37 | Recapture the ore overlay feel shots PAR-INFRA-16 missed: down face, distance set, 26.3 night/torch, tool timing, cave walk, fresh-world budget | INFRA | 8 | done |
 | PAR-INFRA-38 | TfpCommands.reply: no blocking console wait when the reply future needs the caller's own thread | INFRA | 8 | done |
 | PAR-INFRA-39 | Ore overlay adapter wiring through the IntegrationProvider SPI instead of Class.forName | INFRA | 8 | done |
+| PAR-INFRA-40 | DeviceService.route: one diagnostic line when a device click is dropped (no kind, no block entity record) | INFRA | 8 | done |
 | PAR-INFRA-41 | Ore overlay specks as bright as TFC's: down-face specks read dark brown (0.38 of TFC relative to the rock), side faces 26% dark | INFRA | 9 | open |
 | PAR-FLUID-02 | Buckets: wooden bucket, red and blue steel buckets, fluid placement policy | FLUID | 9 | open |
 | PAR-FLUID-03 | Salt water, spring water and river water in the world | FLUID | 9 | open |

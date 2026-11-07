@@ -17,6 +17,7 @@ import dev.tfp.core.persist.PersistException;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.integration.CustomItems;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -80,6 +81,24 @@ public final class DeviceService implements DeviceRouter {
     private record PendingSave(String blockId, byte[] bytes, long expiresNanos) {
     }
 
+    /** Why a device click was dropped before any handler ran (PAR-INFRA-40). */
+    enum DropReason {
+        NO_KIND("no device kind registered"),
+        NO_RECORD("no device block entity or unreadable record");
+
+        final String text;
+
+        DropReason(String text) {
+            this.text = text;
+        }
+    }
+
+    private record DropKey(UUID world, int x, int y, int z, DropReason reason) {
+    }
+
+    /** How many (position, reason) pairs {@link #dropped} remembers; older ones may log again. */
+    static final int DROP_LOG_POSITIONS = 256;
+
     private final DeviceKinds kinds;
     private final CustomBlocks blocks;
     private final Supplier<DeviceStore> store;
@@ -88,6 +107,13 @@ public final class DeviceService implements DeviceRouter {
     private final CustomItems items;
     private final Logger logger;
     private final Map<SaveKey, PendingSave> pendingSaves = new ConcurrentHashMap<>();
+    /** The last {@link #DROP_LOG_POSITIONS} dropped-click lines already logged (guarded by itself). */
+    private final Map<DropKey, Boolean> droppedLogged = new LinkedHashMap<>(64, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<DropKey, Boolean> eldest) {
+            return size() > DROP_LOG_POSITIONS;
+        }
+    };
     private volatile Consumer<Block> indexer = block -> {
     };
     /** Monotonic nanos (tests replace it). */
@@ -357,6 +383,10 @@ public final class DeviceService implements DeviceRouter {
     private boolean route(Block block, Player player, EquipmentSlot hand, ItemStack item, Op op) {
         Optional<KindAt> at = kindAt(block);
         if (at.isEmpty()) {
+            // only USE comes from the tfp:device behaviour itself; ATTACK reaches here for any left-clicked block
+            if (op == Op.USE) {
+                blocks.stateAt(block).ifPresent(state -> dropped(block, state.id(), DropReason.NO_KIND));
+            }
             return false;
         }
         try {
@@ -372,6 +402,9 @@ public final class DeviceService implements DeviceRouter {
             ItemStack item, Op op) {
         Loaded<S> loaded = load(block, kind);
         if (loaded == null) {
+            if (op == Op.USE || op == Op.ATTACK) {
+                dropped(block, state.id(), DropReason.NO_RECORD);
+            }
             return false;
         }
         long now = playerTicks.getAsLong();
@@ -405,6 +438,22 @@ public final class DeviceService implements DeviceRouter {
         save(block, loaded, result.updated().orElse(record));
         index(block);
         return result.consumed();
+    }
+
+    /**
+     * PAR-INFRA-40: a click on a device that no handler saw. Logged once per block position and reason (the last
+     * {@link #DROP_LOG_POSITIONS}), so an in-game "nothing happens" can be told apart from a handler that passed on
+     * purpose (which stays silent, as in TFC).
+     */
+    private void dropped(Block block, String blockId, DropReason reason) {
+        DropKey key = new DropKey(block.getWorld().getUID(), block.getX(), block.getY(), block.getZ(), reason);
+        synchronized (droppedLogged) {
+            if (droppedLogged.put(key, Boolean.TRUE) != null) {
+                return;
+            }
+        }
+        logger.warning("Device " + blockId + " at " + block.getWorld().getName() + " " + block.getX() + ","
+                + block.getY() + "," + block.getZ() + ": click dropped: " + reason.text);
     }
 
     /** The stored record, a fresh one when never written, or null when there is no readable device here. */
