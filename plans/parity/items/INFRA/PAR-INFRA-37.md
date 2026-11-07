@@ -39,3 +39,10 @@ All fields live in the front matter above; the loop parses them. Paths in `tfc_r
 
 Follow-up of the PAR-INFRA-16 review: these feel-checklist shots were not shown or not usable in its in-game run. It does
 not block PAR-INFRA-16 (no dep cycle).
+
+## Review notes (non-blocking, for the PAR-INFRA-41 rerun)
+
+- Row 1 has one shared frame (`down-face-vs-tfc.png`) for both versions; the rerun should keep a separate 26.3 down-face crop.
+- Row 4's evidence is the RCON tick table, as the step allows ("server log or a stopwatch over frames"); the rerun should keep the raw poll log or a CSV of the timings in the evidence folder.
+- Time hand-mining only after chunk generation has settled (the 689-tick outlier came from terrain-generation load).
+- The final review round's in-game capture did not start because another agent's server held the harness; no frames were needed, the commit changed only notes.

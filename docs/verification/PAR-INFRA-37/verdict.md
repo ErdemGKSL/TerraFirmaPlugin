@@ -61,6 +61,5 @@ doDaylightCycle sync) is the open item for it.
 
 Verdict: **done**. Every step has frames on 1.21.11 and 26.3 and the mining ticks are recorded per tool. Row 4's
 evidence is its tick table (no frames); row 1's single frame `down-face-vs-tfc.png` stands for both versions, which
-matched texel for texel. Rows 2-7 pass;
-row 1 passes for orientation. The down-face brightness failure found here (and the smaller side-face shortfall) is a
+matched texel for texel. Rows 2-7 pass; row 1 passes for orientation. The down-face brightness failure found here (and the smaller side-face shortfall) is a
 defect of PAR-INFRA-16's overlay lighting and goes to follow-up PAR-INFRA-41.
