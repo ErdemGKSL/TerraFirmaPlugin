@@ -66,7 +66,8 @@ public record TabPage(Page page, String label, List<Text> lines, Map<String, Int
     public record CalendarInput(boolean known, long calendarTicks, int daysInMonth, boolean northernHemisphere) {
     }
 
-    /** The climate at the player (TFC {@code ClimateRenderCache}); {@code known} false outside the overworld model. */
+    /** The climate at the player (TFC {@code ClimateRenderCache}); {@code known} false before the clock is set and outside the
+     * overworld (TFC uses {@code BiomeBasedClimateModel} there; ledger Divergences, PAR-CLIM-11 follow-up). */
     public record ClimateInput(boolean known, float averageTemperature, float averageRainfall, float rainVariance,
             float temperature, float rainfall, boolean northernHemisphere, ClimateTemperatureStyle style) {
     }
