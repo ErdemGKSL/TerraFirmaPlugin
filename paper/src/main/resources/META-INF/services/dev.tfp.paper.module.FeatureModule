@@ -17,3 +17,4 @@ dev.tfp.paper.craft.CraftModule
 dev.tfp.paper.scraping.ScrapingModule
 dev.tfp.paper.player.ThirstModule
 dev.tfp.paper.quern.QuernModule
+dev.tfp.paper.fluid.FluidModule
