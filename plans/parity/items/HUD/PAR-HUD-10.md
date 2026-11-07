@@ -2,7 +2,7 @@
 id: PAR-HUD-10
 title: "Held temperature popup shows TFC's level text, verified in game"
 area: HUD
-status: blocked
+status: open
 wave: 6
 deps: [PAR-HUD-08, PAR-HUD-09, PAR-HUD-11]
 size: S
@@ -16,6 +16,13 @@ files_owned:
   - "integration/betterhud/src/main/java/dev/tfp/integration/betterhud/HudClimateValues.java"
   - "integration/betterhud/src/test/java/dev/tfp/integration/betterhud/HudClimateValuesTest.java"
   - "docs/porting/ledger.md"
+  - "integration/betterhud/src/main/java/dev/tfp/integration/betterhud/BetterHudIntegration.java"
+  - "paper/src/main/java/dev/tfp/paper/TfpPlugin.java"
+  - "paper/src/main/java/dev/tfp/paper/integration/HudBridge.java"
+  - "paper/src/main/java/dev/tfp/paper/integration/HudSnapshotCache.java"
+  - "paper/src/main/java/dev/tfp/paper/player/PlayerNeedsHudService.java"
+  - "paper/src/test/java/dev/tfp/paper/player/**"
+  - "paper/src/test/java/dev/tfp/paper/integration/**"
 ui: true
 in_game_steps:
   - "ce item give Bot tfp:metal/ingot/copper"
@@ -24,6 +31,7 @@ in_game_steps:
   - "tfp debug heat Bot 600, screenshot at once: popup reads Dark Red in DARK_RED, no stale Bright Red"
   - "tfp debug heat Bot 0, screenshot: popup hidden"
 plan:
+  - "UNBLOCKED (manager, 2026-11-07): the heat-write lag fix files (1)-(3) from the BLOCKED line are now in files_owned (plus paper tests). Publish inline on the player thread, add the per-player HUD push hook, find the blank frame, then redo the screenshot-at-once captures at GUI 2 and 3."
   - "BLOCKED (2026-11-07, review and in-game REJECT): done criterion 2 (no visible lag after `tfp debug heat`) fails in game, and the fix needs files outside files_owned. An independent check found the previous level in 4 of 5 captures 0.1-0.4 s after the RCON reply at GUI 2 and 3 (600 still `Bright Red****`, 0 still `Dark Red`) and one blank frame between values; our own recording put the first changed frame 0.27-0.46 s after the reply. The placeholders are not the cause: HudClimateValuesTest.aPublishedHeatChangeIsTheNextPlaceholderRead shows a published heat write is the very next read (text, colour and condition agree, no tick advance). The delay is upstream: `/tfp debug heat` (TfpPlugin.debugSetHeat) calls PlayerNeedsHudService.refreshHeld, which republishes on the player's NEXT tick, then BetterHud picks it up on its own async update. Needed, outside files_owned: (1) paper/src/main/java/dev/tfp/paper/player/PlayerNeedsHudService.java: publish the held heat inline when already on the player's thread (publishHeld instead of the next-tick hop) for the debug command and every real main-hand heat write, then call a new HUD push hook; (2) paper/src/main/java/dev/tfp/paper/integration/HudBridge.java (or HudSnapshotCache.java) plus integration/betterhud/src/main/java/dev/tfp/integration/betterhud/BetterHudIntegration.java: a per-player `push(uuid)` that calls BetterHud `HudPlayer.update()` at once; (3) paper/src/main/java/dev/tfp/paper/TfpPlugin.java (debugSetHeat) to use it; (4) find the blank frame: BetterHud re-runs the default popup's show every update (HudObjectType.POPUP supplier -> PopupImpl.show), so check whether the popup group is dropped and re-added on a value change (popup `always-check-condition`, `unique`, `key-mapping` in popups/tfp-popups.yml, HudLayouts). Then redo the screenshot-at-once captures at GUI 2 and 3 (first frame after the reply, within about 0.25 s, no blank frame). Widen files_owned to (1)-(3) or split them into a follow-up item."
   - "UNBLOCKED (manager, 2026-11-07): HudClimateValues.java, its test and the ledger are now in files_owned. Map U+066D to ASCII asterisk for the HUD popup only (a glyph BetterHud carries), keep TFC star in item tooltips, add a ledger Divergences row, then re-verify in game that the popup stays centred."
   - "BLOCKED (2026-11-06): the heat stars cannot render in the BetterHud popup without a change outside files_owned. tfp_held_heat (integration/betterhud/src/main/java/dev/tfp/integration/betterhud/HudClimateValues.java, via paper/.../tooltip/HeatDisplayStyle) writes TFC's star U+066D, but no BetterHud text font can carry it: BetterHud 2.2.0-SNAPSHOT-449 builds a ttf/unifont font from Latin plus the `include` subsets only, and none covers U+066D (TextManagerImpl: arab = U+0620-064A and U+0660-0669, hindi adds U+0671-06D3). In game (Paper 1.21.11, GUI 2) the stars drew as missing-glyph boxes at the boss-bar position (top centre) in the level colour and pushed the whole BetterHud line sideways (HUD shifted about 9 GUI px left while stars showed). Needed: widen files_owned to HudClimateValues.java and its test (map U+066D to a glyph BetterHud carries, e.g. ASCII `*`, for the HUD only; ledger divergence), or to a bitmap star glyph made through the image-generation skill (the imagegen MCP was unreachable this session)."
