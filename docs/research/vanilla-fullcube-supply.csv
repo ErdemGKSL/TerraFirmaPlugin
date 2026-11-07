@@ -49,7 +49,7 @@ bone_block,absent,clean,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,
 bookshelf,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 brain_coral_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 brick_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,bricks,waterlogged: client fluid (drip particles below unless #impermeable)
-bricks,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+bricks,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 brown_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
 brown_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 brown_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,brown_concrete,waterlogged: client fluid (drip particles below unless #impermeable)

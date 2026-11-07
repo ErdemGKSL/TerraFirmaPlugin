@@ -167,7 +167,7 @@ family,state,source,behaviour,twin
 1.21,minecraft:brain_coral_block,absent,clean,
 1.21,"minecraft:brick_slab[type=double,waterlogged=false]",identity_dup_cross,clean,minecraft:bricks
 1.21,"minecraft:brick_slab[type=double,waterlogged=true]",identity_dup,caveat_major,"minecraft:brick_slab[type=double,waterlogged=false]"
-1.21,minecraft:bricks,absent,clean,
+1.21,minecraft:bricks,tfc_present,clean,
 1.21,minecraft:brown_concrete,absent,clean,
 1.21,minecraft:brown_concrete_powder,absent,caveat_major,
 1.21,minecraft:brown_glazed_terracotta[facing=east],absent,clean,
@@ -1215,7 +1215,7 @@ family,state,source,behaviour,twin
 26,minecraft:brain_coral_block,absent,clean,
 26,"minecraft:brick_slab[type=double,waterlogged=false]",identity_dup_cross,clean,minecraft:bricks
 26,"minecraft:brick_slab[type=double,waterlogged=true]",identity_dup,caveat_major,"minecraft:brick_slab[type=double,waterlogged=false]"
-26,minecraft:bricks,absent,clean,
+26,minecraft:bricks,tfc_present,clean,
 26,minecraft:brown_concrete,absent,clean,
 26,minecraft:brown_concrete_powder,absent,caveat_major,
 26,minecraft:brown_glazed_terracotta[facing=east],absent,clean,

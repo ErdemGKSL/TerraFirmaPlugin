@@ -17,7 +17,7 @@
 | Criterion | Result |
 |---|---|
 | CE loads the recipes with 0 issues | **Pass** on the second run (see below) |
-| A sample of 10 crafts in-game | PAR-PROC-25, section below: 9/10 pass, bricks fail (PAR-PROC-30) |
+| A sample of 10 crafts in-game | PAR-PROC-25, section below: 9/10 pass, bricks failed; 10/10 after the PAR-PROC-30 re-check (`docs/verification/PAR-PROC-30/`) |
 
 First run (before the fixes it led to): CraftEngine printed
 `Found 1 issue(s) in file '.../configuration/crafting/general_recipes.yml'`:
@@ -78,7 +78,7 @@ crafted.
 | `tfp:crafting/jute_net` | 5 `tfp:jute_fiber` in an X | jute net | `tfp:jute_net` x1 | x1 | **Pass** |
 | `tfp:crafting/activator_rail` | 6 `tfp:metal/rod/steel`, 2 sticks, redstone torch | Activator Rail x12 | `minecraft:activator_rail` x12 | x12 | **Pass** |
 | `tfp:crafting/rock/cobble/granite` | 4 `tfp:rock/loose/granite` (2x2) | granite cobble | `tfp:rock/cobble/granite` x1 | x1 | **Pass** |
-| `tfp:crafting/bricks` | 5 brick + 4 `tfp:mortar` (XYX/YXY/XYX) | **nothing** | nothing | bricks x4 | **Fail** |
+| `tfp:crafting/bricks` | 5 brick + 4 `tfp:mortar` (XYX/YXY/XYX) | **nothing** | nothing | bricks x4 | **Fail** at 5eb498c; **Pass** after PAR-PROC-30 (4 Bricks, GUI scale 2 and 3: `docs/verification/PAR-PROC-30/`) |
 
 Bricks: the result slot stays empty. Vanilla's 2x2 brick recipe gives nothing either (`crafts/vanilla_bricks_2x2.png`), but
 that is TFC-correct on its own (TFC disables it: `data/minecraft/recipe/bricks.json` is `neoforge:false`), so it does not

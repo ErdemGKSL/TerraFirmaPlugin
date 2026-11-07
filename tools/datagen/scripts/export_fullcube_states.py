@@ -97,6 +97,8 @@ def behaviour(b, st):
     return 'clean', ''
 
 TFC_PRESENT = {'bedrock', 'snow_block', 'ice', 'packed_ice', 'blue_ice', 'powder_snow', 'snow'}  # referenced by TFC worldgen (src/tfc .../world)
+# made by TFC workbench recipes, so player-made in a TFC world (PAR-PROC-30: tfc/recipe/crafting/bricks.json gives minecraft:bricks)
+TFC_PRESENT |= {'bricks'}
 FORMED = {'obsidian': 'formed by lava+water', 'cobblestone': 'formed by lava+water', 'stone': 'formed by lava+water',
           'basalt': 'formed by lava over soul soil next to blue ice', 'snow_block': '', }
 def source_family(b):

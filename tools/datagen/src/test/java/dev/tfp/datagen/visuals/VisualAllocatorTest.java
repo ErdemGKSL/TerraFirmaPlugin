@@ -283,7 +283,7 @@ class VisualAllocatorTest {
                 total += min;
             }
             assertThat(perBlock.values().stream().mapToInt(Integer::intValue).sum()).isEqualTo(total);
-            assertThat(total).isEqualTo(f == VersionFamily.V1_21 ? 664 : 668);
+            assertThat(total).isEqualTo(f == VersionFamily.V1_21 ? 663 : 667);
         }
     }
 
