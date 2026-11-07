@@ -29,9 +29,9 @@ class HudLayoutsTest {
     void realCatalogueRowCountsMatchTheCountsSection() {
         HudLayouts.Catalogue cat = HudLayouts.parse(HudLayouts.catalogue());
 
-        assertThat(cat.elements()).hasSize(31);
+        assertThat(cat.elements()).hasSize(33);
         Map<String, Integer> expected = Map.of(
-            "placeholder", 12, "bar", 7, "overlay", 1, "readout", 4, "popup", 2, "indicator", 1, "hidden-vanilla", 4);
+            "placeholder", 14, "bar", 7, "overlay", 1, "readout", 4, "popup", 2, "indicator", 1, "hidden-vanilla", 4);
         assertThat(countsByKind(cat.elements())).isEqualTo(expected);
         assertThat(cat.total()).isEqualTo(expected);
     }
@@ -41,7 +41,7 @@ class HudLayoutsTest {
         HudLayouts.Summary s = HudLayouts.run(new OutputTree(), HudLayouts.catalogue());
 
         assertThat(s.emitted()).isEqualTo(Map.of(
-            "placeholder", 12, "bar", 7, "overlay", 1, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 4));
+            "placeholder", 14, "bar", 7, "overlay", 1, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 4));
         assertThat(s.leftOut()).hasSize(4);
         assertThat(String.join("\n", s.leftOut())).contains(
             "m3-surv-02-nutrition-readout", "m6-mech-01-rotation-readout", "m4-pros-01-result-message",
@@ -184,7 +184,7 @@ class HudLayoutsTest {
         placeholders.forEach(p -> names.add(map(p).get("name")));
         assertThat(names).containsExactlyInAnyOrder("tfp_health", "tfp_max_health", "tfp_thirst", "tfp_hunger",
             "tfp_held_temp", "tfp_date", "tfp_season", "tfp_ambient_temp", "tfp_air", "tfp_armor", "tfp_mount_health",
-            "tfp_mount_max_health");
+            "tfp_mount_max_health", "tfp_held_heat", "tfp_held_heat_color");
     }
 
     @Test
@@ -474,16 +474,66 @@ class HudLayoutsTest {
         }
     }
 
+    /**
+     * PAR-HUD-10: the popup draws TFC's COLOR heat text ({@code tfp_held_heat}) with one text layer per TFC
+     * {@code Heat.getColor} colour group, each gated on {@code tfp_held_heat_color} equal to its colour, with a black
+     * shadow; the popup condition is unchanged.
+     */
     @Test
-    void popupShowsTheHeldTemperatureInWholeDegreesCelsius() {
+    void popupShowsTheTfcLevelTextInTheLevelColour() {
         OutputTree out = new OutputTree();
         HudLayouts.run(out, HudLayouts.catalogue());
 
-        Map<String, Object> text = map(map(map(yaml(out, HudLayouts.POPUP_LAYOUTS).get("tfp_m3_surv_06_held_temp_popup"))
-            .get("texts")).get("1"));
-        assertThat(text).containsEntry("pattern", "[tfp_held_temp]\u00B0C").containsEntry("outline", true);
-        assertThat(map(text.get("placeholder-string-format"))).containsEntry("number", "#");
+        Map<String, Object> texts = map(map(yaml(out, HudLayouts.POPUP_LAYOUTS).get("tfp_m3_surv_06_held_temp_popup"))
+            .get("texts"));
+        // TFC Heat: GRAY, DARK_RED, RED, GOLD, YELLOW, WHITE as chat-colour hex codes
+        List<String> colours = List.of("#aaaaaa", "#aa0000", "#ff5555", "#ffaa00", "#ffff55", "#ffffff");
+        assertThat(texts).hasSize(colours.size());
+        List<Object> seen = new java.util.ArrayList<>();
+        for (Object entry : texts.values()) {
+            Map<String, Object> text = map(entry);
+            assertThat(text).containsEntry("pattern", "[tfp_held_heat]").containsEntry("outline", "FF000000")
+                .containsEntry("align", "center").containsEntry("x", 0).containsEntry("y", 0);
+            Map<String, Object> cond = map(map(text.get("conditions")).get("1"));
+            assertThat(cond).containsEntry("first", "tfp_held_heat_color").containsEntry("operation", "==")
+                .containsEntry("second", "'" + text.get("color") + "'");
+            assertThat(map(text.get("conditions"))).hasSize(1);
+            seen.add(text.get("color"));
+        }
+        assertThat(seen).containsExactlyElementsOf(colours);
+
+        Map<String, Object> popup = map(yaml(out, HudLayouts.POPUPS).get("tfp_m3_surv_06_held_temp_popup"));
+        Map<String, Object> conditions = map(popup.get("conditions"));
+        assertThat(conditions).hasSize(2);
+        assertThat(map(conditions.get("1"))).containsEntry("first", "tfp_held_temp").containsEntry("second", 0)
+            .containsEntry("operation", ">");
     }
+
+    /** PAR-HUD-10: the popup sits at pixel y -70, above vanilla's selected-item name (H-59..H-51 in survival). */
+    @Test
+    void popupSitsAboveTheSelectedItemName() {
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+
+        Map<String, Object> layout = map(map(map(yaml(out, HudLayouts.POPUPS).get("tfp_m3_surv_06_held_temp_popup"))
+            .get("layouts")).get("1"));
+        assertThat(map(layout.get("gui"))).containsEntry("x", 50).containsEntry("y", 100);
+        assertThat(map(layout.get("pixel"))).containsEntry("x", 0).containsEntry("y", -70);
+    }
+
+    /** The popup row must name its condition, text and colour placeholders in that order. */
+    @Test
+    void popupRowWithoutTheColourPlaceholderFails() throws IOException {
+        String real = Files.readString(HudLayouts.catalogue());
+        String broken = real.replace(
+            "`tfp_held_temp` (condition), `tfp_held_heat` (text), `tfp_held_heat_color` (colour)", "`tfp_held_temp`");
+        assertThat(broken).isNotEqualTo(real);
+        Path file = tmp.resolve("catalogue.md");
+        Files.writeString(file, broken);
+        assertThatThrownBy(() -> HudLayouts.run(new OutputTree(), file))
+            .isInstanceOf(DatagenException.class).hasMessageContaining("condition, text, colour");
+    }
+
 
     @Test
     void artInThePackIsTheResourceBytes() {

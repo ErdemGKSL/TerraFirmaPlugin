@@ -29,20 +29,37 @@ class HudClimateValuesTest {
     void heldHeatIsTheTfcLevelTextOfTheSnapshotValue() {
         var text = HudClimateValues.TEXTS.get("tfp_held_heat");
         // TFC: stars for i in 1..4 while t > 730 + i * 0.2 * 200 -> 770, 810, 850, 890 all passed at 900
-        assertThat(text.apply(HudSnapshot.DEFAULT.withHeldTemperature(900))).isEqualTo("Bright Red\u066D\u066D\u066D\u066D");
-        assertThat(text.apply(HudSnapshot.DEFAULT.withHeldTemperature(800))).isEqualTo("Bright Red\u066D");
-        assertThat(text.apply(HudSnapshot.DEFAULT.withHeldTemperature(40))).isEqualTo("Warming\u066D\u066D");
+        assertThat(text.apply(HudSnapshot.DEFAULT.withHeldTemperature(900))).isEqualTo("Bright Red****");
+        assertThat(text.apply(HudSnapshot.DEFAULT.withHeldTemperature(800))).isEqualTo("Bright Red*");
+        assertThat(text.apply(HudSnapshot.DEFAULT.withHeldTemperature(40))).isEqualTo("Warming**");
         assertThat(text.apply(HudSnapshot.DEFAULT.withHeldTemperature(1550))).isEqualTo("Brilliant White");
         assertThat(text.apply(HudSnapshot.DEFAULT.withHeldTemperature(0))).isEmpty();
         assertThat(text.apply(HudSnapshot.DEFAULT)).isEmpty();
+    }
+
+    /**
+     * PAR-HUD-10: the HUD text is ASCII only (BetterHud's font has no U+066D), while the tooltip style keeps TFC's star
+     * and the same number of stars.
+     */
+    @Test
+    void hudTextUsesAnAsciiStarAndTheTooltipKeepsTfcStar() {
+        for (float t = 1f; t < 1700f; t += 7f) {
+            String hud = HudClimateValues.heatText(t);
+            assertThat(hud.chars().allMatch(c -> c >= 0x20 && c < 0x7f)).as("ASCII at %s: %s", t, hud).isTrue();
+            String tooltip = dev.tfp.paper.tooltip.HeatDisplayStyle.COLOR
+                    .formatColored(t, dev.tfp.paper.i18n.Messages.FALLBACK, (locale, key, args) -> key)
+                    .map(net.kyori.adventure.text.TextComponent::content).orElse("");
+            assertThat(hud.chars().filter(c -> c == '*').count()).as("stars at %s", t)
+                    .isEqualTo(tooltip.chars().filter(c -> c == '٭').count());
+        }
     }
 
     /** The level names come from our en_us lang ({@code heat.level.*}, TFC's {@code tfc.enum.heat.*} en_us names). */
     @Test
     void levelNamesAreTheEnUsLangEntries() {
         // VERY_HOT 210..480: one star past 264; YELLOW_WHITE 1300..1400: two past 1340; ORANGE 930..1100: none at 931
-        assertThat(HudClimateValues.heatText(300)).isEqualTo("Very Hot٭");
-        assertThat(HudClimateValues.heatText(1350)).isEqualTo("Yellow White٭٭");
+        assertThat(HudClimateValues.heatText(300)).isEqualTo("Very Hot*");
+        assertThat(HudClimateValues.heatText(1350)).isEqualTo("Yellow White**");
         assertThat(HudClimateValues.heatText(931)).isEqualTo("Orange");
     }
 
@@ -94,7 +111,7 @@ class HudClimateValuesTest {
                 new dev.tfp.core.heat.HeatState(900f, 0L), 1f, dev.tfp.core.heat.HeatConfig.DEFAULT, () -> now[0]));
         java.util.function.ToDoubleFunction<HudSnapshot> temp = HudValues.NUMBERS.get("tfp_held_temp");
         assertThat(temp.applyAsDouble(s)).isEqualTo(900);
-        assertThat(HudClimateValues.TEXTS.get("tfp_held_heat").apply(s)).isEqualTo("Bright Red\u066D\u066D\u066D\u066D");
+        assertThat(HudClimateValues.TEXTS.get("tfp_held_heat").apply(s)).isEqualTo("Bright Red****");
         assertThat(HudClimateValues.TEXTS.get("tfp_held_heat_color").apply(s)).isEqualTo("#ff5555");
 
         now[0] = 250L; // 900 - 250 x 0.8 = 700 °C: Dark Red

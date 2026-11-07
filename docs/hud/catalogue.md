@@ -27,6 +27,8 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `par-hud-09-ph-mount-health` | the ridden animal's health behind the mount health bar | PAR-HUD-09 | placeholder | `tfp_mount_health` (mount reading, TFC's x50 scale, 0 when not riding a living entity) | M3 | needed | Also a listener `tfp_mount_health` (0..1). Published from the rider's thread by `MountHudService` (`(health + absorption) x 50`, TFC `renderHealthBar` with modifier 1). |
 | `par-hud-09-ph-mount-max-health` | the ridden animal's max health behind the mount text | PAR-HUD-09 | placeholder | `tfp_mount_max_health` (mount reading, x50, 0 when not riding a living entity) | M3 | needed | The mount bar shows only while it is above 0. |
 | `m1-int-04-ph-held-temp` | held item temperature for the popup | M1-INT-04 | placeholder | `tfp_held_temp` (snapshot, item heat from M3-HEAT-01) | M1 | needed | Popup condition `tfp_held_temp > 0` (betterhud skill). |
+| `par-hud-08-ph-held-heat` | held item heat level text for the popup | PAR-HUD-08 | placeholder | `tfp_held_heat` (snapshot heat record, evaluated at read time) | M3 | needed | TFC COLOR style: en_us level name and one `*` per fifth of the level passed (TFC's U+066D star in tooltips; BetterHud's font has no glyph for it, ledger). Empty when cold. |
+| `par-hud-08-ph-held-heat-color` | colour of the held heat text | PAR-HUD-08 | placeholder | `tfp_held_heat_color` (snapshot heat record, evaluated at read time) | M3 | needed | TFC `Heat.getColor` as `#rrggbb`; empty when cold. The popup's text layers are gated on it (PAR-HUD-10). |
 | `m2-cal-02-ph-date` | calendar date text | M2-CAL-02 | placeholder | `tfp_date` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
 | `m2-cal-02-ph-season` | season name: TFC's 12 `Month.Style.SEASON` names ("Early Autumn"; PAR-HUD-15, northern month until PAR-HUD-16 makes it per player) | M2-CAL-02 | placeholder | `tfp_season` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
 | `m2-clim-03-ph-ambient-temp` | ambient temperature at the player | M2-CLIM-03 | placeholder | `tfp_ambient_temp` (snapshot, movement throttle) | M2 | needed | Also a listener `tfp_ambient_temp` (-20..40 °C as 0..1, `HudValues.thermometer`) for the thermometer bar. Chunk climate input is neutral until the M2-GEN-05 wiring (ledger divergence). |
@@ -36,7 +38,7 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m3-surv-06-air-bar` | air bar (breath left), plain light-blue fill | M3-SURV-06 | bar | `tfp_air` (listener, 0..1) | M3 | needed | Replaces the vanilla air bubbles (hidden by `m3-surv-06-hide-air`). Compact 81x7 bar directly above thirst, only while `tfp_air < 300`; red fill below 60 (section 5). |
 | `m3-surv-06-armor-bar` | armour bar (armour points), plain steel-grey fill | M3-SURV-06 | bar | `tfp_armor` (listener, 0..1) | M3 | needed | Replaces the vanilla armour row (hidden by `m3-surv-06-hide-armor`). Thin 81x7 bar directly above health with one empty row between, only while `tfp_armor > 0` (section 5). |
 | `par-hud-09-mount-health-bar` | the ridden animal's health bar with its "1100/1100" text | PAR-HUD-09 | bar | `tfp_mount_health`, `tfp_mount_max_health` | M3 | needed | TFC reference: `IngameOverlays.MOUNT_HEALTH` (`renderHealthBar` on the left column, `leftHeight`). The health bar's art and text style. Only while `tfp_mount_max_health > 0`; one empty row above armour (H-59..H-50) or, without armour, above health (H-51..H-42, layout `_low`) (section 5). |
-| `m3-surv-06-held-temp-popup` | held item temperature, shown while above 0 | M3-SURV-06 (via M3-HEAT-01) | popup | `tfp_held_temp` | M3 | needed | Item tooltip line is separate and not HUD. Text `[tfp_held_temp]°C`, whole degrees, black shadow. |
+| `m3-surv-06-held-temp-popup` | held item temperature, shown while above 0 | M3-SURV-06 (via M3-HEAT-01) | popup | `tfp_held_temp` (condition), `tfp_held_heat` (text), `tfp_held_heat_color` (colour) | M3 | needed | Item tooltip line is separate and not HUD. PAR-HUD-10: text `[tfp_held_heat]`, TFC's COLOR style (`Bright Red****`, stars as ASCII `*`, ledger), one text layer per TFC `Heat.getColor` colour (`#aaaaaa`, `#aa0000`, `#ff5555`, `#ffaa00`, `#ffff55`, `#ffffff`) gated on `tfp_held_heat_color == '<hex>'`, black shadow `FF000000`, at bottom-centre pixel y -70 (clear of vanilla's selected-item name). |
 | `m2-clim-03-ambient-temp-bar` | thermometer bar beside the temperature line, top-left | M2-CLIM-03 | bar | `tfp_ambient_temp` (listener, -20..40 °C) | M2 | needed | Icy blue to hot red; on the info plate (section 5). |
 | `m2-cal-02-info-plate` | stone plate behind the date and temperature lines | M2-CAL-02 | overlay | `tfp_date` (backs the date readout) | M2 | needed | 189x22 at 1,1 (+1 HUD shift, PAR-HUD-13; widened for TFC's season names, PAR-HUD-15). |
 | `m2-cal-02-date-readout` | on-screen date and season, top-left | M2-CAL-02 | readout | `tfp_date`, `tfp_season`; text `tick: 20` | M2 | needed | M2-CAL-02 is `[x]` for commands only. Generated by `BetterHudPack` (`tfp_date`), black text shadow (`outline: true`). |
@@ -69,7 +71,7 @@ Not named by any plan item (decide in X-HUD-01 or add to M3-SURV-06):
 
 Method: a Python script (`/tmp/claude-0/-home-user-TerraFirmaPlugin/7076116e-0f7a-5b74-a249-6fd913ce4602/scratchpad/hud_counts.py`, not checked in) reads section 1. It takes each row whose first cell is a backticked id, reads the kind (column 4), the milestone (column 6) and the `unspecified in plan` text in the source and data columns, and counts them. Section 2 rows are not counted.
 
-Total elements: **31**. Of these, 4 are unspecified in plan (rows marked above).
+Total elements: **33**. Of these, 4 are unspecified in plan (rows marked above).
 
 | kind | count | of which unspecified in plan |
 |---|---|---|
@@ -78,18 +80,18 @@ Total elements: **31**. Of these, 4 are unspecified in plan (rows marked above).
 | readout | 4 | 2 |
 | popup | 2 | 1 |
 | indicator | 1 | 1 |
-| placeholder | 12 | 0 |
+| placeholder | 14 | 0 |
 | hidden-vanilla | 4 | 0 |
-| **total** | **31** | **4** |
+| **total** | **33** | **4** |
 
 | milestone | elements | of which placeholder | of which unspecified in plan |
 |---|---|---|---|
 | M1 | 5 | 5 | 0 |
 | M2 | 7 | 3 | 0 |
-| M3 | 16 | 4 | 1 |
+| M3 | 18 | 6 | 1 |
 | M4 | 1 | 0 | 1 |
 | M6 | 2 | 0 | 2 |
-| **total** | **31** | **12** | **4** |
+| **total** | **33** | **14** | **4** |
 
 ## 4. TFC overlay reference (not counted)
 

@@ -2,7 +2,7 @@
 id: PAR-HUD-10
 title: "Held temperature popup shows TFC's level text, verified in game"
 area: HUD
-status: open
+status: done
 wave: 6
 deps: [PAR-HUD-08, PAR-HUD-09, PAR-HUD-11]
 size: S
@@ -30,6 +30,7 @@ plan:
   - "PAR-HUD-08 publishes tfp_held_temp (number, condition of the popup) and the text placeholders tfp_held_heat (TFC COLOR style: en_us level name + U+066D stars, empty when cold) and tfp_held_heat_color (TFC Heat.getColor as #rrggbb: #aaaaaa GRAY, #aa0000 DARK_RED, #ff5555 RED, #ffaa00 GOLD, #ffff55 YELLOW, #ffffff WHITE; empty when cold). PAR-HUD-11 makes the values lazy at placeholder time. The generated popup layout still draws `[tfp_held_temp]°C` in near-black with a faint outline (unreadable at GUI scale 2)."
   - "Switch the popup layout text in HudLayouts to `[tfp_held_heat]` (keep the `tfp_held_temp > 0` condition) in the level's Heat colour: one text layer per colour group gated on tfp_held_heat_color (or on a level-index number placeholder), or a BetterHud colour override if it can read a placeholder. Use the normal MC text shadow (or a small backing plate) so the text is legible at GUI scale 2. Update the m3-surv-06-held-temp-popup catalogue row."
   - "Rerun datagen, then the in-game screenshot check (PROTOCOL §6) with the steps above; evidence in docs/verification/PAR-HUD-10/."
+  - "Done: HudLayouts popup draws [tfp_held_heat] in six text layers (TFC Heat.getColor groups) gated on tfp_held_heat_color, shadow FF000000, pixel y -70; catalogue rows for tfp_held_heat and tfp_held_heat_color (33 elements, 14 placeholders); HudClimateValues draws the star as ASCII * in the HUD only (ledger divergence). Tests: HudLayoutsTest (3 new: colour layers, placement, popup row must name condition/text/colour), HudClimateValuesTest (1 new: ASCII star, same count as the tooltip). In game pass at GUI 2 and 3: docs/verification/PAR-HUD-10/verdict.md."
 tests:
   - "HudLayoutsTest: popup text pattern names tfp_held_heat, one colour per TFC Heat colour group, condition unchanged, shadow on"
 done_criteria:

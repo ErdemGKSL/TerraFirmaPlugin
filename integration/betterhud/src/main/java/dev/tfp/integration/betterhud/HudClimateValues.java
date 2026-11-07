@@ -29,7 +29,7 @@ import net.kyori.adventure.text.TextComponent;
  *   <li>{@code tfp_held_heat}: the held item's heat as TFC's default {@code COLOR} display style writes it, built by the
  *       tooltip's own {@link HeatDisplayStyle#formatColored} from the held heat record evaluated at the read's calendar
  *       tick ({@link HudSnapshot#heldTemperature()}, PAR-HUD-11: no lag while cooling or after a heat change) (the {@code heat.level.*} name from our en_us lang and one
- *       {@value HeatDisplayStyle#STAR} per fifth of the level passed), empty while the item shows no heat. en_us: a
+ *       star per fifth of the level passed, drawn as {@link #HUD_STAR} instead of TFC's U+066D, PAR-HUD-10), empty while the item shows no heat. en_us: a
  *       placeholder has no player locale here (see the ledger).</li>
  *   <li>{@code tfp_held_heat_color}: the colour of that text, TFC {@code Heat.getColor} as a hex code
  *       ({@code #ff5555} for {@code RED}), empty while the item shows no heat. The popup layout colours the text with
@@ -61,9 +61,20 @@ final class HudClimateValues {
         return HeatDisplayStyle.COLOR.formatColored(temperature, Messages.FALLBACK, Lang.MESSAGES::get);
     }
 
-    /** TFC {@code ItemTemperatureDisplayStyle.COLOR}: level name and stars, empty when there is no heat level. */
+    /**
+     * The star the HUD draws in place of TFC's {@value HeatDisplayStyle#STAR} (PAR-HUD-10): BetterHud builds its text font
+     * from Latin plus a few Unicode subsets, none of which holds U+066D, so TFC's star drew as a missing-glyph box and
+     * shifted the line. Item tooltips keep TFC's star (ledger divergence).
+     */
+    static final char HUD_STAR = '*';
+
+    /**
+     * TFC {@code ItemTemperatureDisplayStyle.COLOR}: level name and stars ({@link #HUD_STAR}), empty when there is no heat
+     * level.
+     */
     static String heatText(float temperature) {
-        return colored(temperature).map(TextComponent::content).orElse("");
+        return colored(temperature).map(TextComponent::content)
+                .map(s -> s.replace(HeatDisplayStyle.STAR.charAt(0), HUD_STAR)).orElse("");
     }
 
     /** TFC {@code Heat.getColor} of the temperature's level as {@code #rrggbb}, empty when there is no heat level. */

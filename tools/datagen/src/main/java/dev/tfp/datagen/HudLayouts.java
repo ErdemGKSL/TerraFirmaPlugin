@@ -79,8 +79,6 @@ final class HudLayouts {
     static final String POPUP_SHOWN_WHILE = "shown while above 0";
     static final String POPUP_OPERATION = ">";
     static final int POPUP_THRESHOLD = 0;
-    /** The unit after the held temperature, as TFC writes it ({@code tfc.tooltip.temperature_celsius} = {@code "%s°C"}). */
-    static final String DEGREES_C = "\u00B0C";
 
     /** The bars' HUD anchor: bottom-centre of the screen (the GUI anchors are 0/50/100 only). */
     static final int BARS_GUI_X = 50;
@@ -223,8 +221,34 @@ final class HudLayouts {
         "m2-cal-02-date-readout", "tfp_date",
         "m2-clim-03-ambient-temp-readout", "tfp_ambient_temp");
 
-    static final Map<String, Place> POPUPS_AT = Map.of(
-        "m3-surv-06-held-temp-popup", new Place(0, -60));
+    /**
+     * A popup: its placement, the number placeholder its condition reads ({@code > 0}), the text placeholder it draws and
+     * the placeholder that names the text's colour. The catalogue row's data cell names the three in this order.
+     */
+    record PopupSpec(Place at, String condition, String text, String colour) {
+        List<String> tokens() {
+            return List.of(condition, text, colour);
+        }
+    }
+
+    /**
+     * PAR-HUD-10: the held-temperature popup sits 70 GUI px above the bottom-centre anchor, clear of vanilla's selected
+     * item name (H-59..H-51 in survival, shown 2 s after a slot change), and draws TFC's COLOR heat text
+     * ({@code tfp_held_heat}) in the level's {@code Heat.getColor} ({@code tfp_held_heat_color}).
+     */
+    static final Map<String, PopupSpec> POPUPS_AT = Map.of(
+        "m3-surv-06-held-temp-popup", new PopupSpec(new Place(0, -70), "tfp_held_temp", "tfp_held_heat",
+            "tfp_held_heat_color"));
+
+    /**
+     * TFC {@code Heat.getColor}: the six chat colours its levels use (GRAY, DARK_RED, RED, GOLD, YELLOW, WHITE), as the
+     * {@code #rrggbb} codes {@code tfp_held_heat_color} returns. BetterHud cannot colour a text from a placeholder, so the
+     * popup has one text layer per colour, each shown only while the colour placeholder equals it.
+     */
+    static final List<String> HEAT_COLORS = List.of("#aaaaaa", "#aa0000", "#ff5555", "#ffaa00", "#ffff55", "#ffffff");
+
+    /** Text shadow of the popup text: the same neutral black as the health text, legible at GUI scale 2. */
+    static final String POPUP_TEXT_SHADOW = HEALTH_TEXT_SHADOW;
 
     private static final Pattern COUNT_ROW = Pattern.compile(
         "^\\| (" + String.join("|", KINDS) + ") \\| (\\d+) \\| (\\d+) \\|$");
@@ -445,25 +469,32 @@ final class HudLayouts {
                 leftOut.add(leftOut(e, UNSPECIFIED));
                 continue;
             }
-            Place at = POPUPS_AT.get(e.id());
-            if (at == null) {
-                throw new DatagenException(row(e) + ": no popup placement in HudLayouts.POPUPS_AT");
+            PopupSpec spec = POPUPS_AT.get(e.id());
+            if (spec == null) {
+                throw new DatagenException(row(e) + ": no popup spec in HudLayouts.POPUPS_AT");
             }
-            if (e.tokens().size() != 1 || !e.shows().contains(POPUP_SHOWN_WHILE)) {
-                throw new DatagenException(row(e) + ": a popup names one placeholder and is \"" + POPUP_SHOWN_WHILE + "\"");
+            if (!e.tokens().equals(spec.tokens()) || !e.shows().contains(POPUP_SHOWN_WHILE)) {
+                throw new DatagenException(row(e) + ": a popup names " + spec.tokens()
+                    + " (condition, text, colour) and is \"" + POPUP_SHOWN_WHILE + "\"");
             }
-            String value = e.tokens().get(0);
-            requireKnown(e, value, names);
+            for (String t : e.tokens()) {
+                requireKnown(e, t, names);
+            }
             String name = name(e.id());
-            popupLayouts.put(name, m("texts", m("1", m("name", FONT, "pattern", "[" + value + "]" + DEGREES_C,
-                "placeholder-string-format", m("number", "#"), "align", "center",
-                "x", 0, "y", 0, "scale", scale(), "outline", true))));
+            Map<String, Object> texts = new LinkedHashMap<>();
+            for (String colour : HEAT_COLORS) {
+                // BetterHud string conditions compare with a quoted literal ('#ff5555'); only == and != apply.
+                texts.put(String.valueOf(texts.size() + 1), m("name", FONT, "pattern", "[" + spec.text() + "]",
+                    "align", "center", "x", 0, "y", 0, "scale", scale(), "outline", POPUP_TEXT_SHADOW, "color", colour,
+                    "conditions", m("1", m("first", spec.colour(), "second", "'" + colour + "'", "operation", "=="))));
+            }
+            popupLayouts.put(name, m("texts", texts));
             Map<String, Object> popupConditions = conditions(
-                gated(List.of(new Cond(value, POPUP_OPERATION, POPUP_THRESHOLD))), e, names);
+                gated(List.of(new Cond(spec.condition(), POPUP_OPERATION, POPUP_THRESHOLD))), e, names);
             popups.put(name, m("default", true,
                 "conditions", popupConditions,
                 "layouts", m("1", m("name", name, "gui", m("x", POPUP_GUI_X, "y", POPUP_GUI_Y),
-                    "pixel", m("x", at.x(), "y", at.y())))));
+                    "pixel", m("x", spec.at().x(), "y", spec.at().y())))));
             emitted.merge("popup", 1, Integer::sum);
         }
 
