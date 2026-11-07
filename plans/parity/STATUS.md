@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 282 items; open 212, done 66, blocked 4; waves 1..56 (wave 0 = already done).
+Totals: 283 items; open 213, done 66, blocked 4; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -88,6 +88,7 @@ Totals: 282 items; open 212, done 66, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-PROC-28 | Advanced crafting in-game verification and self-test: knife/sandwich crafts, vanilla recipe leakage over all recipes | PROC | 41 | open |
 | PAR-HUD-17 | Wire the HUD display styles: hud.* keys in config.yml, health text and climate temperature placeholders follow HudStyles | HUD | 8 | open |
 | PAR-HUD-18 | /tfp debug chunk climate lines follow hud.climate-temperature-style | HUD | 9 | open |
+| PAR-PROC-31 | Vanilla full-cube blocks made by TFC barrel, loom, heating and glassworking recipes: stop repurposing them; guard over every recipe type | PROC | 9 | open |
 | PAR-INFRA-37 | Recapture the ore overlay feel shots PAR-INFRA-16 missed: down face, distance set, 26.3 night/torch, tool timing, cave walk, fresh-world budget | INFRA | 8 | done |
 | PAR-INFRA-38 | TfpCommands.reply: no blocking console wait when the reply future needs the caller's own thread | INFRA | 8 | done |
 | PAR-INFRA-39 | Ore overlay adapter wiring through the IntegrationProvider SPI instead of Class.forName | INFRA | 8 | done |
