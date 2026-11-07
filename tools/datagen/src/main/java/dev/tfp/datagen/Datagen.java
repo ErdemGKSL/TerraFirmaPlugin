@@ -98,6 +98,9 @@ public final class Datagen {
         if (dev.tfp.datagen.food.FoodItems.available(tfc)) { // PAR-SURV-01: every TFC food item; fixtures have no food sources
             dev.tfp.datagen.food.FoodItems.run(tfc, out);
         }
+        if (dev.tfp.datagen.bucket.BucketItems.available(tfc)) { // PAR-FLUID-02: wooden, red and blue steel buckets, TFC fluid buckets; before the coverage gate
+            dev.tfp.datagen.bucket.BucketItems.run(tfc, out);
+        }
         if (dev.tfp.datagen.material.MaterialItems.available(tfc)) { // PAR-PROC-19: plain TFC material items + TFCItems coverage gate; fixtures have no TFCItems
             dev.tfp.datagen.material.MaterialItems.run(tfc, out);
             dev.tfp.datagen.material.ItemCoverage.run(tfc, out);
