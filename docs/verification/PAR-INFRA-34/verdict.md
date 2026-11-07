@@ -6,6 +6,12 @@ CraftEngine 26.9.2, BetterModel, BetterHud, PacketEvents as cached by run-paper.
 (`tools/datagen/.../oreoverlay/mode.properties`). Every judgement below was made by looking at the screenshots in this
 folder; the 8x crops were compared with TFC's textures from `/opt/tfc` (commit pinned in the ledger).
 
+Evidence chain: the jar is from 93248fc; the item's commit sits on bc2cec7. The two commits in between (ae2f598
+PAR-PROC-04 plan note, bc2cec7 PAR-FLUID-01 core fluid registry) touch no ore, rock, overlay, visual or datagen file, so
+the evidence applies unchanged to this commit. An independent re-capture for review could not start (another run held
+the single Paper server slot); it can be repeated when the slot is free, together with a 26.3 run of the level-3a
+warning under the `visuals.profile."26"` key, which this run checked on 1.21.11 only.
+
 ## Steps run (both versions)
 
 1. Fresh run directory (no `plugins/TerraFirmaPlugin`, no CraftEngine pack, flat world, `gamemode=creative`), first start
