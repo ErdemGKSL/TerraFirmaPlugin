@@ -64,7 +64,7 @@ Totals: 282 items; open 212, done 66, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-INFRA-32 | Renderer-cube mining time: TFC break time independent of the client's swing rate, measured on a full-speed client | INFRA | 6 | done |
 | PAR-INFRA-33 | CE block sound volume and pitch: hit and level-event break sounds at the TFC SoundType's values, devices too | INFRA | 6 | done |
 | PAR-PROC-03 | Advanced crafting: TFC advanced recipes, food combining, casting crafting, vanilla recipe leakage | PROC | 7 | done |
-| PAR-PROC-04 | Quern: block, handstone, grinding, GUI-less interaction | PROC | 7 | open |
+| PAR-PROC-04 | Quern: block, handstone, grinding, GUI-less interaction | PROC | 7 | done |
 | PAR-PROC-05 | Scraping hides on a log | PROC | 7 | done |
 | PAR-PROC-24 | Our tfp:mineable/* block tags as server tags, so CE can build tools whose tool component names them (gem saw, knife, hammer, scythe) | PROC | 7 | done |
 | PAR-PROC-25 | Workbench crafting in-game verification: 10 sampled CE crafts in a crafting table | PROC | 7 | done |

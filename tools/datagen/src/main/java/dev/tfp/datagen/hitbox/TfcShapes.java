@@ -252,6 +252,15 @@ public final class TfcShapes {
             "same", List.of("class LobsterTrapBlock extends DeviceBlock"), List.of("getShape(", "getCollisionShape")));
         s.add(Spec.of("tfc:drying_bricks[count=2]", "drying_bricks", Kind.OBJECT, List.of(D + "DryingBricksBlock.java"),
             "SHAPE_2", "same", List.of("case 2 -> SHAPE_2;"), List.of("getCollisionShape")));
+        // PAR-PROC-04: the quern. Without a handstone the base (16x10x16) for both; with one, the selection is the base,
+        // handstone and handle minus the input slot, the collision the base and handstone.
+        String quern = D + "QuernBlock.java";
+        List<String> quernNeedles = List.of("return state.getValue(HAS_HANDSTONE) ? FULL_SHAPE : BASE_SHAPE;",
+            "return state.getValue(HAS_HANDSTONE) ? COLLISION_FULL_SHAPE : BASE_SHAPE;");
+        s.add(Spec.of("tfc:quern[has_handstone=false]", "quern", Kind.OBJECT, List.of(quern), "BASE_SHAPE", "BASE_SHAPE",
+            quernNeedles, List.of()));
+        s.add(Spec.of("tfc:quern[has_handstone=true]", "quern", Kind.OBJECT, List.of(quern), "FULL_SHAPE",
+            "COLLISION_FULL_SHAPE", quernNeedles, List.of()));
         return s;
     }
 

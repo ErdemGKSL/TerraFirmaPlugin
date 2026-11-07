@@ -701,6 +701,22 @@
       "selection": [[2, 0, 1, 6, 3, 7], [10, 0, 1, 14, 3, 7]],
       "collision": [[2, 0, 1, 6, 3, 7], [10, 0, 1, 14, 3, 7]],
       "from": "DryingBricksBlock.java SHAPE_2 / same"
+    },
+    {
+      "key": "tfc:quern[has_handstone=false]",
+      "class": "quern",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 10, 16]],
+      "collision": [[0, 0, 0, 16, 10, 16]],
+      "from": "QuernBlock.java BASE_SHAPE / BASE_SHAPE"
+    },
+    {
+      "key": "tfc:quern[has_handstone=true]",
+      "class": "quern",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 10, 16], [3, 10, 3, 13, 13.76, 13], [4.34, 13.76, 4.34, 5.36, 16.24, 5.36]],
+      "collision": [[0, 0, 0, 16, 10, 16], [3, 10, 3, 13, 13.76, 13]],
+      "from": "QuernBlock.java FULL_SHAPE / COLLISION_FULL_SHAPE"
     }
   ]
 }

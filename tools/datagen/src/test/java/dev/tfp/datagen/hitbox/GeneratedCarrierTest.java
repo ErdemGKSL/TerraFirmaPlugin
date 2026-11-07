@@ -82,14 +82,16 @@ class GeneratedCarrierTest {
                 }
             }
         }
-        // Today: the forge (8 heat levels), the bellows (4 facings), the firepit, grill and pot (lit, unlit); forge hide.
+        // Today: the forge (8 heat levels), the bellows (4 facings), the firepit, grill and pot (lit, unlit), the quern
+        // (base, handstone; PAR-PROC-04); the forge's and the quern's hide mappings.
         // The exact sets are pinned so that a generator silently dropping out of craftengine/ fails here; a family item
         // that adds an explicit-state block adds its id to this list.
-        assertThat(states).isGreaterThanOrEqualTo(18);
+        assertThat(states).isGreaterThanOrEqualTo(20);
         assertThat(checkedIds).as("block ids whose explicit appearance states were checked")
-            .containsExactly("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot");
+            .containsExactly("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern");
         assertThat(mappings).as("generator block_state_mappings")
-            .containsExactly("minecraft:snow[layers=7] -> minecraft:snow[layers=8]");
+            .containsExactly("minecraft:snow[layers=6] -> minecraft:snow[layers=4]",
+                "minecraft:snow[layers=7] -> minecraft:snow[layers=8]");
         assertThat(problems).as("take carriers from dev.tfp.datagen.hitbox.HitboxAllocation").isEmpty();
     }
 

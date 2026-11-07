@@ -26,6 +26,11 @@ public final class HitboxDemands {
     public static final List<String> FACINGS = List.of("north", "east", "south", "west");
     /** TFC: {@code lightLevel(litBlockEmission(15))} for the firepit, grill and pot. */
     public static final int FIREPIT_LIT_LIGHT = 15;
+    /** PAR-PROC-04: the quern's base model; both handstone states carry it (the handstone is a display entity). */
+    public static final String QUERN_MODEL = "tfp:block/quern";
+    /** PAR-PROC-04: the quern appearance of TFC {@code has_handstone=false} and {@code true}. */
+    public static final String QUERN_BASE = "base";
+    public static final String QUERN_HANDSTONE = "handstone";
 
     private HitboxDemands() {
     }
@@ -42,6 +47,9 @@ public final class HitboxDemands {
             d.add(new Demand("tfp:" + device, "lit", "tfc:" + device, FIREPIT_LIT_LIGHT, HitboxAllocation.VANILLA_LOOK, true, 1));
             d.add(new Demand("tfp:" + device, "unlit", "tfc:" + device, 0, HitboxAllocation.VANILLA_LOOK, true, 1));
         }
+        // PAR-PROC-04: the quern, TFC's two outlines (base only; base + handstone + handle), each with the base model.
+        d.add(new Demand("tfp:quern", QUERN_BASE, "tfc:quern[has_handstone=false]", 0, QUERN_MODEL, true, 1));
+        d.add(new Demand("tfp:quern", QUERN_HANDSTONE, "tfc:quern[has_handstone=true]", 0, QUERN_MODEL, true, 1));
         return d;
     }
 }
