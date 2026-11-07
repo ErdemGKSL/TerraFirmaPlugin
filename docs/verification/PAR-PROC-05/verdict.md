@@ -18,6 +18,13 @@
 16 x 1 x 16 plate, score 0.55: every carpet is kept for players, `reports/hitbox-carriers-*.md`). The outline the client
 draws is the lily pad's 14 x 1.5 x 14 box (visible in `01`), the surface itself is the item display.
 
+Withdrawn after review (PAR-PROC-29 repair): `minecraft:lily_pad` is also the vanilla placeholder our worldgen places for
+TFC's floating plants (`PlantBlocks` FLOATING/FLOATING_FRESH), and a transparent appearance draws every real lily pad
+empty; this run (a log on a stone floor, no water) could not see that. The scraping entry is not generated until
+PAR-INFRA-42 corrects the carrier policy; then this section, the outline shot `01` and the ledger's outline divergence row
+are redone on the new carrier, together with one look at a pond (floating plants still drawn). The scraping behaviour
+checked below does not depend on the carrier.
+
 ## Steps (RCON + `xdotool`, Bot in survival, not op)
 
 1. Stone floor at y 119, `minecraft:oak_log` at (1536, 120, -2541) (in `#minecraft:logs`, so in `tfc:scraping_surface`;

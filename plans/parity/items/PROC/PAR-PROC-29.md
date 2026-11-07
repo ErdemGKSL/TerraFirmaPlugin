@@ -2,9 +2,9 @@
 id: PAR-PROC-29
 title: "Scraping block CE entry: tfc:scraping hitbox row and demand, configuration/scraping, in-game check"
 area: PROC
-status: done
+status: blocked
 wave: 8
-deps: [PAR-PROC-24]
+deps: [PAR-PROC-24, PAR-INFRA-42]
 size: S
 aliases: ["follow-up of PAR-PROC-05 (its CraftEngine block entry and its in_game_steps)"]
 tfc_refs:
@@ -31,6 +31,7 @@ in_game_steps:
   - "relog and restart the server with a half-scraped surface: the display comes back with the same cells"
   - "Pending (PAR-PROC-05): once PAR-FAUNA-17 ships the hides, repeat with tfp:medium_soaked_hide (result tfp:medium_scraped_hide) and tfp:medium_sheepskin_hide (result raw hide + tfp:wool drop); until then the hide steps are not run"
 plan:
+  - "Blocked on PAR-INFRA-42 (tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/carrier-policy.json, outside files_owned): review found the selector's carrier minecraft:lily_pad is policy `absent` but our worldgen places real lily pads (PlantBlocks FLOATING/FLOATING_FRESH); the transparent appearance would draw every worldgen floating plant empty (an invisible 14 x 1.5 x 14 hitbox). The ScrapingBlock run line is withdrawn from Datagen (no scraping.yml is generated; GeneratedCarrierTest no longer pins tfp:scraping); the demand, shape row, ScrapingBlock and ScrapingBlockTest stay. When PAR-INFRA-42 is done: re-add the run line, re-pin tfp:scraping in GeneratedCarrierTest, reword the outline divergence row and the verdict Carrier section to the new carrier's real box, and redo the outline screenshot (plus one look at a pond: lily pads still drawn)."
   - "Deferred from PAR-PROC-05 (PROTOCOL 3a + 6.5): the runtime is done and tested (core/scraping, paper/scraping, datagen/scraping ScrapingArt); the CraftEngine block tfp:scraping is missing because its carrier must come from the selector (HardcodedCarrierTest)."
   - "Hitbox: add a TfcShapes Spec for tfc:scraping (ScrapingBlock SHAPE = box(0, 0, 0, 16, 1, 16), selection = collision) and regenerate tfc-shapes.json (TfcShapesTest compares it with /opt/tfc); add the demand Demand(\"tfp:scraping\", \"base\", \"tfc:scraping\", 0, HitboxAllocation.TRANSPARENT, true, 1) to HitboxDemands (the look is the item display drawn by PaperScrapingEffects); add tfp:scraping to the pinned block ids of GeneratedCarrierTest."
   - "Block entry: ScrapingArt (or a sibling in datagen/scraping) writes configuration/scraping/scraping.yml through DeviceBlockSpec + DeviceYaml.templated: one appearance on HitboxAllocation.agreed(\"tfp:scraping\", \"base\"), TFC settings read from TFCBlocks (strength 0.2, SoundType.STEM, noOcclusion), no block item (registerNoItem) and no loot of its own (TFC expectedNoLootTableBlocks: the device framework drops the slot). Add the section to CeYamlCheck if it is new."

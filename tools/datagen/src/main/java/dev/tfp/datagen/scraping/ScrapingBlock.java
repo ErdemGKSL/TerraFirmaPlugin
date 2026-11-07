@@ -47,6 +47,11 @@ import java.util.regex.Pattern;
  * template always names one {@code minecraft:mineable/<tool>} tag, which TFC's scraping block does not have, and
  * {@link DeviceAppearance} refuses a transparent appearance without {@code entity_renderer} elements, so the
  * {@code transparent} flag and the settings are added to the literal entry here.
+ * <p>
+ * Not run by {@code Datagen} yet: the selector's carrier today is {@code minecraft:lily_pad} (carrier-policy says
+ * {@code absent}), but our worldgen places real lily pads as the floating-plant placeholder ({@code PlantBlocks}), and a
+ * transparent appearance draws every one of them empty. PAR-INFRA-42 corrects the policy; then PAR-PROC-29 adds the run
+ * line back on the new carrier.
  */
 public final class ScrapingBlock {
     public static final String ID = HitboxDemands.SCRAPING_ID;

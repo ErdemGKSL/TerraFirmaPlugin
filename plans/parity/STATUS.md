@@ -83,7 +83,7 @@ Totals: 282 items; open 212, done 66, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-INFRA-34 | Verify the ore overlay datagen in game: host-rock look of buried ores, composite ore block item icons, pick-block | INFRA | 8 | done |
 | PAR-PROC-26 | Durability material items carry minecraft:damage 0 (vanilla damageable); gem saw in-game check | PROC | 8 | open |
 | PAR-PROC-27 | Tool item build guards: self-test gives every item with a minecraft:tool component; datagen check that tool rules name only shipped block tags | PROC | 8 | done |
-| PAR-PROC-29 | Scraping block CE entry: tfc:scraping hitbox row and demand, configuration/scraping, in-game check | PROC | 8 | done |
+| PAR-PROC-29 | Scraping block CE entry: tfc:scraping hitbox row and demand, configuration/scraping, in-game check | PROC | 8 | blocked |
 | PAR-PROC-30 | minecraft:bricks is craftable in TFC: stop repurposing it as a visual state; bricks craft in-game re-check | PROC | 8 | open |
 | PAR-PROC-28 | Advanced crafting in-game verification and self-test: knife/sandwich crafts, vanilla recipe leakage over all recipes | PROC | 41 | open |
 | PAR-HUD-17 | Wire the HUD display styles: hud.* keys in config.yml, health text and climate temperature placeholders follow HudStyles | HUD | 8 | open |
@@ -93,6 +93,7 @@ Totals: 282 items; open 212, done 66, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-INFRA-39 | Ore overlay adapter wiring through the IntegrationProvider SPI instead of Class.forName | INFRA | 8 | done |
 | PAR-INFRA-40 | DeviceService.route: one diagnostic line when a device click is dropped (no kind, no block entity record) | INFRA | 8 | done |
 | PAR-INFRA-41 | Ore overlay specks as bright as TFC's: down-face specks read dark brown (0.38 of TFC relative to the rock), side faces 26% dark | INFRA | 9 | open |
+| PAR-INFRA-42 | Carrier policy matches our worldgen: lily pad, sea pickle and other placed placeholders are not presence absent; guard test | INFRA | 9 | open |
 | PAR-FLUID-02 | Buckets: wooden bucket, red and blue steel buckets, fluid placement policy | FLUID | 9 | open |
 | PAR-FLUID-03 | Salt water, spring water and river water in the world | FLUID | 9 | open |
 | PAR-HUD-16 | HUD season per player: tfp_season follows the viewer's hemisphere (southern players see the opposite month's name) | HUD | 9 | open |
