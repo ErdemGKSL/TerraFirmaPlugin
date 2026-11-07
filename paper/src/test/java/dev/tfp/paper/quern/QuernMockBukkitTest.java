@@ -299,9 +299,13 @@ class QuernMockBukkitTest extends MockServerTest {
         assertThat(slot(QuernDevice.SLOT_INPUT).getType()).isEqualTo(Material.STICK);
         hold(Material.AIR, 0);
         lookDownAt(4.8, 4.8);
-        assertThat(click()).as("TFC FAIL: handled, nothing starts").isTrue();
+        assertThat(click()).as("TFC FAIL: not consumed, nothing starts").isFalse();
         assertThat(record().state().started()).isFalse();
         assertThat(effects.started).isZero();
+        hold(Material.STONE, 1);
+        assertThat(click()).as("TFC FAIL: a held block goes on to its own use (placing it)").isFalse();
+        assertThat(player.getInventory().getItem(EquipmentSlot.HAND).getAmount()).isEqualTo(1);
+        assertThat(record().state().started()).isFalse();
     }
 
     @Test

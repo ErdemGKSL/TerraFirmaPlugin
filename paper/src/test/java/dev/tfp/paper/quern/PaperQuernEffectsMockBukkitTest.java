@@ -230,6 +230,17 @@ class PaperQuernEffectsMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void oneFinishCallbackAtATime() {
+        effects.finishAt(quern, 30);
+        effects.finishAt(quern, 20); // a neighbour update during the grind
+        assertThat(scheduler.delayed).as("no duplicate while one is queued").hasSize(1);
+        scheduler.runDelayed();
+        assertThat(finished).containsExactly(quern);
+        effects.finishAt(quern, 10);
+        assertThat(scheduler.delayed).as("queued again once the callback ran").hasSize(1);
+    }
+
+    @Test
     void damageBreaksAtMaxDamage() {
         // a vanilla damageable item stands in for the handstone's max_damage 250
         ItemStack stone = new ItemStack(Material.WOODEN_SWORD);

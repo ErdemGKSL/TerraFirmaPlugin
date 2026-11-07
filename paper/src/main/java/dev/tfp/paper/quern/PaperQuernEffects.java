@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -69,6 +72,14 @@ public final class PaperQuernEffects implements QuernEffects {
     private final CustomBlocks blocks;
     private final Supplier<BlockVisuals> visuals;
     private final Consumer<Block> finisher;
+    /** Querns with a finish callback queued: one at a time, so neighbour updates during a grind add no duplicates. */
+    private final Set<Pending> pending = ConcurrentHashMap.newKeySet();
+
+    private record Pending(UUID world, int x, int y, int z) {
+        static Pending of(Block block) {
+            return new Pending(block.getWorld().getUID(), block.getX(), block.getY(), block.getZ());
+        }
+    }
 
     /**
      * @param finisher calls the device back (the device router's neighbour update), at the finish tick
@@ -219,8 +230,14 @@ public final class PaperQuernEffects implements QuernEffects {
 
     @Override
     public void finishAt(Block block, long ticks) {
-        scheduler.regionDelayed(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, Math.max(1, ticks),
-            () -> finisher.accept(block));
+        Pending key = Pending.of(block);
+        if (!pending.add(key)) {
+            return; // the queued callback re-checks and comes back again if the grind is not due then
+        }
+        scheduler.regionDelayed(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, Math.max(1, ticks), () -> {
+            pending.remove(key);
+            finisher.accept(block);
+        });
     }
 
     @Override

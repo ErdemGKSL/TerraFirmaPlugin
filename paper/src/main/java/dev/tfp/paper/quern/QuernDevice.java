@@ -247,12 +247,16 @@ public final class QuernDevice {
             services.effects().hide(ctx.block());
         }
 
-        /** TFC {@code attemptGrind}: {@code startGrinding} (input with a recipe, a handstone) or FAIL (handled, nothing). */
+        /**
+         * TFC {@code attemptGrind}: {@code startGrinding} (input with a recipe, a handstone) or FAIL. FAIL does not consume
+         * the click, so vanilla goes on to the held item's own use ({@code stack.useOn}, e.g. placing a held block); that is
+         * a pass here.
+         */
         private DeviceResult<QuernState> attemptGrind(DeviceContext<QuernState> ctx, DeviceInventory<QuernState> inv) {
             ItemStack input = inv.get(SLOT_INPUT);
             if (StackCodec.isEmpty(input) || StackCodec.isEmpty(inv.get(SLOT_HANDSTONE))
                 || services.recipe().apply(input).isEmpty()) {
-                return DeviceResult.consume();
+                return DeviceResult.pass();
             }
             DeviceRecord<QuernState> next = inv.record().withState(inv.record().state().start(ctx.now()));
             services.effects().started(ctx.block(), input);
