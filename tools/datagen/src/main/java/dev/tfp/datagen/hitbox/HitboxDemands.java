@@ -31,6 +31,9 @@ public final class HitboxDemands {
     /** PAR-PROC-04: the quern appearance of TFC {@code has_handstone=false} and {@code true}. */
     public static final String QUERN_BASE = "base";
     public static final String QUERN_HANDSTONE = "handstone";
+    /** PAR-PROC-29: the scraping surface block and its one appearance (WAXED is the plugin's record state, no CE state). */
+    public static final String SCRAPING_ID = "tfp:scraping";
+    public static final String SCRAPING_APPEARANCE = "base";
 
     private HitboxDemands() {
     }
@@ -50,6 +53,8 @@ public final class HitboxDemands {
         // PAR-PROC-04: the quern, TFC's two outlines (base only; base + handstone + handle), each with the base model.
         d.add(new Demand("tfp:quern", QUERN_BASE, "tfc:quern[has_handstone=false]", 0, QUERN_MODEL, true, 1));
         d.add(new Demand("tfp:quern", QUERN_HANDSTONE, "tfc:quern[has_handstone=true]", 0, QUERN_MODEL, true, 1));
+        // PAR-PROC-29: the scraping surface; drawn empty, the look is the item display of PaperScrapingEffects.
+        d.add(new Demand(SCRAPING_ID, SCRAPING_APPEARANCE, "tfc:scraping", 0, HitboxAllocation.TRANSPARENT, true, 1));
         return d;
     }
 }

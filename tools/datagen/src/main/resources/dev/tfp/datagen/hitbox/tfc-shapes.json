@@ -717,6 +717,14 @@
       "selection": [[0, 0, 0, 16, 10, 16], [3, 10, 3, 13, 13.76, 13], [4.34, 13.76, 4.34, 5.36, 16.24, 5.36]],
       "collision": [[0, 0, 0, 16, 10, 16], [3, 10, 3, 13, 13.76, 13]],
       "from": "QuernBlock.java FULL_SHAPE / COLLISION_FULL_SHAPE"
+    },
+    {
+      "key": "tfc:scraping",
+      "class": "scraping",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 1, 16]],
+      "collision": [[0, 0, 0, 16, 1, 16]],
+      "from": "ScrapingBlock.java SHAPE / same"
     }
   ]
 }

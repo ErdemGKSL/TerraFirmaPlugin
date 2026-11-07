@@ -2,7 +2,7 @@
 id: PAR-PROC-29
 title: "Scraping block CE entry: tfc:scraping hitbox row and demand, configuration/scraping, in-game check"
 area: PROC
-status: open
+status: done
 wave: 8
 deps: [PAR-PROC-24]
 size: S
@@ -35,6 +35,8 @@ plan:
   - "Hitbox: add a TfcShapes Spec for tfc:scraping (ScrapingBlock SHAPE = box(0, 0, 0, 16, 1, 16), selection = collision) and regenerate tfc-shapes.json (TfcShapesTest compares it with /opt/tfc); add the demand Demand(\"tfp:scraping\", \"base\", \"tfc:scraping\", 0, HitboxAllocation.TRANSPARENT, true, 1) to HitboxDemands (the look is the item display drawn by PaperScrapingEffects); add tfp:scraping to the pinned block ids of GeneratedCarrierTest."
   - "Block entry: ScrapingArt (or a sibling in datagen/scraping) writes configuration/scraping/scraping.yml through DeviceBlockSpec + DeviceYaml.templated: one appearance on HitboxAllocation.agreed(\"tfp:scraping\", \"base\"), TFC settings read from TFCBlocks (strength 0.2, SoundType.STEM, noOcclusion), no block item (registerNoItem) and no loot of its own (TFC expectedNoLootTableBlocks: the device framework drops the slot). Add the section to CeYamlCheck if it is new."
   - "Run every in_game_step at GUI scale 2 and 3, store crops and verdict.md in docs/verification/PAR-PROC-05/."
+  - "Note: written through DeviceBlockSpec + DeviceYaml.literal (not templated): the device template always names one minecraft:mineable tag, which tfc:scraping is in none of, and DeviceAppearance refuses a transparent appearance without entity_renderer elements, so ScrapingBlock adds the settings (strength 0.2, stem sounds as plain ids, not occluding/suffocating/view-blocking) and transparent: true to the literal entry; single-state, so states holds only the one appearance."
+  - "Done: tfc:scraping shape row + HitboxDemands demand (carrier minecraft:lily_pad, hitbox-only), datagen/scraping/ScrapingBlock writes configuration/scraping/scraping.yml, GeneratedCarrierTest pins tfp:scraping; tests ScrapingBlockTest (3); in-game unrefined paper on a log at GUI 2 and 3 passed (docs/verification/PAR-PROC-05/verdict.md); hide steps stay pending on PAR-FAUNA-17; lily pad outline recorded as a divergence."
 tests:
   - "datagen: tfc:scraping shape row, the carrier from the selector, the generated scraping.yml loads in CeYamlCheck"
 done_criteria:

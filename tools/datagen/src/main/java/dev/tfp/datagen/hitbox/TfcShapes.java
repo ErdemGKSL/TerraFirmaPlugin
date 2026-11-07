@@ -261,6 +261,11 @@ public final class TfcShapes {
             quernNeedles, List.of()));
         s.add(Spec.of("tfc:quern[has_handstone=true]", "quern", Kind.OBJECT, List.of(quern), "FULL_SHAPE",
             "COLLISION_FULL_SHAPE", quernNeedles, List.of()));
+        // PAR-PROC-29: the scraping surface, a 1 px plate on the log; getShape only, so the collision is the same. WAXED
+        // changes no shape, so one row serves both states.
+        s.add(Spec.of("tfc:scraping", "scraping", Kind.OBJECT, List.of(D + "ScrapingBlock.java"), "SHAPE", "same",
+            List.of("protected VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)\n    {\n        return SHAPE;"),
+            List.of("getCollisionShape")));
         return s;
     }
 
