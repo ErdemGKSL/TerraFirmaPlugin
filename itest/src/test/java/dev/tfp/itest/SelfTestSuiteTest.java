@@ -38,6 +38,7 @@ class SelfTestSuiteTest {
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("loot:")); // PAR-INFRA-21
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("catchup.lazyblock")); // PAR-INFRA-25
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("neighbour.converge")); // PAR-INFRA-26
-        assertThat(cases).hasSize(22);
+        assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("dehydration")); // PAR-SURV-12
+        assertThat(cases).hasSize(27);
     }
 }
