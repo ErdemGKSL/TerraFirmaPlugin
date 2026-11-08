@@ -1,8 +1,9 @@
 # PAR-FLUID-06 in-game check: river current on a boat and a dropped item
 
 - Date: 2026-11-08
-- Code: branch HEAD `efa7e56` (PAR-FLUID-03's `core/worldwater` and `paper/worldwater` unchanged since), jar built from this
-  worktree (`:dist:shadowJar`, shared generated content).
+- Code: branch HEAD `efa7e56`, jar built from this worktree (`:dist:shadowJar`, shared generated content). The
+  river-current code (`RiverCurrent`, `RiverCurrentTracker`) is unchanged up to `32d95a8`, the parent of the publishing
+  commit (PAR-FLUID-04 added `paper/worldwater/hot` only), so the result holds there.
 - Server: Paper 1.21.11 build 132, CraftEngine 26.9.2, BetterModel, BetterHud, PacketEvents 2.14.0, TFP world generator
   (`spikes/client/server.sh`, `TFP_WORLD=1`, primed and restarted). Log: `Feature modules: ... worldwater, bucket, ...`; no
   errors from our plugin. The server was killed twice by the machine's OOM killer (other agents' servers); it was
