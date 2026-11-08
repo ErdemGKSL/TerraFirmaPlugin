@@ -133,6 +133,19 @@ class BasketMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void vanillaAndDyedBundlesFollowTheBasketRule() {
+        // Ledger divergence: the size rule matches any bundle-material item, not only tfp:basket.
+        view.getTopInventory().setItem(0, new ItemStack(Material.RED_BUNDLE));
+        assertThat(refused(new ItemStack(Material.OAK_LOG), InventoryAction.PLACE_ALL_INTO_BUNDLE))
+                .as("log into a red bundle").isTrue();
+        assertThat(refused(new ItemStack(Material.STICK), InventoryAction.PLACE_ALL_INTO_BUNDLE))
+                .as("stick into a red bundle").isFalse();
+        view.getTopInventory().setItem(0, new ItemStack(Material.BUNDLE));
+        assertThat(refused(new ItemStack(Material.OAK_LOG), InventoryAction.PLACE_ALL_INTO_BUNDLE))
+                .as("log into a plain vanilla bundle").isTrue();
+    }
+
+    @Test
     void basketOnTheCursorPicksUpAnythingAsInTfc() {
         // TFC overrides only "other stacked on me"; the vanilla "stacked on other" path (basket on the cursor) is
         // unchecked there too.
