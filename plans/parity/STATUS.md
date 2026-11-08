@@ -106,7 +106,7 @@ Totals: 314 items; open 219, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-FLUID-04 | Hot spring healing and bubble columns | FLUID | 10 | done |
 | PAR-FLUID-06 | River current in-game verification: a boat and a dropped item drift downstream | FLUID | 10 | done |
 | PAR-FLUID-07 | Open-water drinking reads WorldWaterService: salt water in every salty TFC biome, river water fresh | FLUID | 10 | done |
-| PAR-FLUID-08 | Bucket config keys in config.yml and the bucket look after every fill | FLUID | 10 | open |
+| PAR-FLUID-08 | Bucket config keys in config.yml and the bucket look after every fill | FLUID | 10 | done |
 | PAR-FLUID-09 | Bucket in-game verification: fill a wooden bucket from a river and place it | FLUID | 10 | open |
 | PAR-HEAT-01 | Item heat glow: hot items glow by heat level on vanilla clients | HEAT | 10 | open |
 | PAR-HEAT-02 | Heat tooltip in TFC colours and metal info lines (melting point, workable, weldable) | HEAT | 10 | open |
@@ -119,6 +119,7 @@ Totals: 314 items; open 219, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-CLIM-02 | Precipitation per position on Paper and the in-game snow-vs-rain check | CLIMATE | 11 | open |
 | PAR-FLUID-10 | Vanilla bucket from a spring pool gives tfp:bucket/spring_water; waterlogged blocks in oceans give fresh water | FLUID | 11 | open |
 | PAR-FLUID-11 | Hot spring in-game verification: health rises standing in a hot spring | FLUID | 11 | open |
+| PAR-FLUID-12 | Bucket config keys: buckets: section in config.yml, typed config and BucketModule reads the current value | FLUID | 11 | open |
 | PAR-HEAT-03 | Hot items: burn damage while held, item entities cool in water and snow | HEAT | 11 | open |
 | PAR-HEAT-14 | Item bars: the heat bar on hot items (TFC BarSystem HEAT) as a packet-time durability-style bar, with the shared item-bar layer | HEAT | 11 | open |
 | PAR-PROC-11 | Composter | PROC | 11 | open |

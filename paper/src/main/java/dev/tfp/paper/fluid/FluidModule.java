@@ -9,12 +9,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import dev.tfp.core.bucket.BucketKind;
 import dev.tfp.core.fluid.FluidContainerKind;
 import dev.tfp.core.fluid.TfcFluid;
 import dev.tfp.core.fluid.TfcFluids;
 import dev.tfp.core.tag.TagType;
 import dev.tfp.core.vessel.FluidAmount;
 import dev.tfp.paper.boot.TfpCommands.Reply;
+import dev.tfp.paper.bucket.BucketVisuals;
 import dev.tfp.paper.itemdata.FluidPdc;
 import dev.tfp.paper.itemdata.ItemFluids;
 import dev.tfp.paper.module.DebugTree;
@@ -33,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -45,7 +48,8 @@ import org.bukkit.inventory.ItemStack;
  * PAR-FLUID-01: fluids as container contents. Adds the fluid line to the tooltip of filled buckets, jugs and glass
  * bottles ({@link FluidTooltipContributor}) and the debug fill
  * {@code /tfp debug fluid <name> <container> <fluid> [mB]}, which puts {@code mB} (default: full) of a registered fluid
- * ({@link TfcFluids}) into the container the player holds, after the container's {@code tfc:usable_in_*} check. Listed
+ * ({@link TfcFluids}) into the container the player holds, after the container's {@code tfc:usable_in_*} check; a filled
+ * tank bucket then gets its fluid look ({@link BucketVisuals#sync}, PAR-FLUID-08), as a bucket filled in the world does. Listed
  * after the {@code tags} and {@code tooltip} modules in the service file, whose services it requires.
  *
  * <p>Threads: the tooltip line runs on Netty threads over immutable data; the fill runs on the player's thread.
@@ -152,7 +156,7 @@ public final class FluidModule implements FeatureModule {
 
     /** Whether a container kind may hold a fluid (the {@code tfc:usable_in_*} tag test). */
     @FunctionalInterface
-    interface Usable {
+    public interface Usable {
         boolean test(FluidContainerKind kind, String fluidId);
     }
 
@@ -165,6 +169,17 @@ public final class FluidModule implements FeatureModule {
      */
     static Reply fill(String player, ItemStack stack, String itemId, String container, String fluidAndAmount,
             Usable usable) {
+        return fill(player, stack, itemId, container, fluidAndAmount, usable, BucketVisuals::sync);
+    }
+
+    /**
+     * As {@link #fill(String, ItemStack, String, String, String, Usable)}, with the step that brings a filled tank bucket's
+     * look in line with its new fluid ({@link BucketVisuals#sync} on a server). It runs on {@code stack} after the fill, for
+     * the wooden, red steel and blue steel buckets only ({@link BucketKind#byItem}); jugs and bottles have no fluid layer.
+     * Public so tests outside this package can observe the step (MockBukkit item meta copies drop custom_model_data).
+     */
+    public static Reply fill(String player, ItemStack stack, String itemId, String container, String fluidAndAmount,
+            Usable usable, Consumer<ItemStack> bucketLook) {
         if (itemId == null) {
             return Reply.error("debug.fluid.empty_hand", player);
         }
@@ -211,11 +226,14 @@ public final class FluidModule implements FeatureModule {
             return Reply.error("debug.fluid.not_single", player);
         }
         stack.setItemMeta(work.getItemMeta());
+        if (BucketKind.byItem(itemId).isPresent()) {
+            bucketLook.accept(stack);
+        }
         return Reply.ok("debug.fluid.done", player, filled, capacity, id, container);
     }
 
     /** For tests: a usable predicate from a plain fluid-id test. */
-    static Usable usable(Predicate<String> fluids) {
+    public static Usable usable(Predicate<String> fluids) {
         return (kind, fluid) -> fluids.test(fluid);
     }
 }
