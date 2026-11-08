@@ -24,3 +24,4 @@ dev.tfp.paper.worldwater.WorldWaterModule
 dev.tfp.paper.bucket.BucketModule
 dev.tfp.paper.isolated.IsolatedModule
 dev.tfp.paper.barrel.BarrelModule
+dev.tfp.paper.intox.IntoxicationModule

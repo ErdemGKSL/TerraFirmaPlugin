@@ -283,6 +283,7 @@ class BootstrapTest {
                 "device",
                 "fluid",
                 "tabs",
+                "intox",
                 "water");
         assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
         assertThat(tfp.getChild("debug").getChild("showcase").getCommand()).as("showcase needs a family").isNull();
