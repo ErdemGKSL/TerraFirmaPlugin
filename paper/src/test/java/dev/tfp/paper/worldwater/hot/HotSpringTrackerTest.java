@@ -6,6 +6,7 @@
 package dev.tfp.paper.worldwater.hot;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import dev.tfp.core.worldgen.biome.TfcBiomes;
 import dev.tfp.core.worldgen.river.Flow;
@@ -19,6 +20,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.data.type.BubbleColumn;
 import org.bukkit.event.entity.EntityAirChangeEvent;
 import org.bukkit.potion.PotionEffect;
@@ -33,6 +35,8 @@ class HotSpringTrackerTest extends MockServerTest {
     private PlayerMock player;
     private final List<Double> drowned = new ArrayList<>();
     private final SplittableRandom random = new SplittableRandom(7);
+    /** Every heal the tracker asked for (MockBukkit's {@code heal} is unimplemented, so the test heals by setHealth). */
+    private final List<Double> healed = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
@@ -43,8 +47,13 @@ class HotSpringTrackerTest extends MockServerTest {
 
     private HotSpringTracker tracker(int biome, boolean providesAir) {
         SpringWater.Chunks chunks = (w, cx, cz) -> Optional.of(ChunkWater.uniform(cx, cz, biome, Flow.NONE, 70));
-        return new HotSpringTracker(new SpringWater(chunks), (p, amount) -> drowned.add(amount), HotSpringRules.HOT_WATER_HEAL_AMOUNT,
-                providesAir, () -> random);
+        HotSpringTracker.Heal heal = (p, amount) -> {
+            healed.add(amount);
+            double max = p.getAttribute(Attribute.MAX_HEALTH).getValue();
+            p.setHealth(Math.min(max, p.getHealth() + amount));
+        };
+        return new HotSpringTracker(new SpringWater(chunks), (p, amount) -> drowned.add(amount), heal,
+                HotSpringRules.HOT_WATER_HEAL_AMOUNT, providesAir, () -> random);
     }
 
     /** A 5x5 spring pool, one block deep at y 70 on gravel, with the player standing in its middle. */
@@ -66,10 +75,14 @@ class HotSpringTrackerTest extends MockServerTest {
         player.setHealth(10);
         HotSpringTracker t = tracker(TfcBiomes.OLD_MOUNTAINS, false);
         assertThat(t.springBlocksTouched(player)).isEqualTo(1);
-        for (int i = 0; i < 20; i++) { // 10 s
-            t.tick(player);
-        }
+        // any exception (also MockBukkit's UnimplementedOperationException, which JUnit would report as a skip) fails here
+        assertThatNoException().isThrownBy(() -> {
+            for (int i = 0; i < 20; i++) { // 10 s
+                t.tick(player);
+            }
+        });
         // 200 ticks at 1 in 10 of 0.08: about 1.6
+        assertThat(healed).isNotEmpty();
         assertThat(player.getHealth()).isGreaterThan(10.5).isLessThan(13);
     }
 
@@ -94,6 +107,7 @@ class HotSpringTrackerTest extends MockServerTest {
         player.setHealth(20);
         t.tick(player);
         assertThat(player.getHealth()).isEqualTo(20);
+        assertThat(healed).as("heal never called").isEmpty();
     }
 
     @Test

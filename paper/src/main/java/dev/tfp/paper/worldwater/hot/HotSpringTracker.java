@@ -32,7 +32,7 @@ import org.bukkit.potion.PotionEffectType;
  * <p>Healing ({@link HotSpringRules#heal}): the spring water blocks the box touches, each with TFC's per-tick 1 in 10 roll,
  * {@link #PERIOD} ticks at a time. Spectators are not healed (vanilla calls no {@code entityInside} for them), dead players
  * neither. Air: with {@code bubbleColumnProvidesAir} off, a player whose eyes are in a drag-down bubble column loses air as
- * under water and drowns, unless invulnerable (creative, spectator) or with water breathing or conduit power; vanilla's own
+ * under water and drowns, unless in creative or spectator or with water breathing or conduit power; vanilla's own
  * air gain there is cancelled by {@link HotSpringModule}.
  */
 public final class HotSpringTracker {
@@ -45,17 +45,28 @@ public final class HotSpringTracker {
         void hurt(Player player, double amount);
     }
 
+    /**
+     * How health is regained (the server: {@code player.heal(amount, RegainReason.CUSTOM)}, firing
+     * {@code EntityRegainHealthEvent} as TFC's {@code living.heal} fires the heal event; MockBukkit has no heal).
+     */
+    @FunctionalInterface
+    public interface Heal {
+        void heal(Player player, double amount);
+    }
+
     private final SpringWater springs;
     private final Hurt drown;
+    private final Heal regain;
     private final double healAmount;
     private final boolean bubbleColumnProvidesAir;
     /** The random source of the calling thread (TFC's {@code level.random}). */
     private final Supplier<RandomGenerator> random;
 
-    public HotSpringTracker(SpringWater springs, Hurt drown, double healAmount, boolean bubbleColumnProvidesAir,
-            Supplier<RandomGenerator> random) {
+    public HotSpringTracker(SpringWater springs, Hurt drown, Heal regain, double healAmount,
+            boolean bubbleColumnProvidesAir, Supplier<RandomGenerator> random) {
         this.springs = springs;
         this.drown = drown;
+        this.regain = regain;
         this.healAmount = healAmount;
         this.bubbleColumnProvidesAir = bubbleColumnProvidesAir;
         this.random = random;
@@ -85,7 +96,7 @@ public final class HotSpringTracker {
         }
         double healed = HotSpringRules.heal(health, max, blocks, (int) PERIOD, healAmount, random.get());
         if (healed > health) {
-            player.heal(healed - health);
+            regain.heal(player, healed - health);
         }
     }
 
@@ -136,7 +147,8 @@ public final class HotSpringTracker {
     /** Vanilla: invulnerable players (creative, spectator) and water breathers keep their air. */
     static boolean breathes(Player player) {
         GameMode mode = player.getGameMode();
-        if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR || player.isInvulnerable()) {
+        // vanilla exempts abilities.invulnerable (creative, spectator), not the entity's invulnerable flag
+        if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) {
             return false;
         }
         return !player.hasPotionEffect(PotionEffectType.WATER_BREATHING)

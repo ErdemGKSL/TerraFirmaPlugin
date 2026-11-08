@@ -101,7 +101,9 @@ public final class SpringWater {
         if (type == Material.WATER) {
             return HotSpringRules.Kind.WATER;
         }
-        return type == Material.GRAVEL ? HotSpringRules.Kind.GRAVEL : HotSpringRules.Kind.OTHER;
+        // Vanilla gravel only: VolcanoBlocks and TfcTerrain write vanilla gravel today. When rock gravel becomes
+        // tfp:rock/gravel/<rock> CraftEngine blocks this check must go through the same palette lookup, or springs stop healing.
+        return type == Material.GRAVEL ?HotSpringRules.Kind.GRAVEL : HotSpringRules.Kind.OTHER;
     }
 
     private static int floor(double v) {

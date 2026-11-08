@@ -19,6 +19,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityAirChangeEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 
 /**
  * PAR-FLUID-04: hot spring healing and TFC's bubble columns (NP-FLUID-01). Needs {@link WorldWaterService} (module
@@ -33,6 +34,13 @@ public final class HotSpringModule implements FeatureModule, Listener {
     /** Vanilla {@code minecraft:drown} damage with no attacker. */
     static final HotSpringTracker.Hurt DROWN = (player, amount) -> player.damage(amount,
             DamageSource.builder(DamageType.DROWN).build());
+
+    /**
+     * Health regained through {@code EntityRegainHealthEvent} with reason {@code CUSTOM}: TFC's {@code living.heal} fires the
+     * heal event with no cause, and none of Bukkit's named reasons (food, regeneration, potions) fits a hot spring.
+     */
+    static final HotSpringTracker.Heal HEAL = (player, amount) -> player.heal(amount,
+            EntityRegainHealthEvent.RegainReason.CUSTOM);
 
     private volatile Scheduler scheduler;
     private volatile WorldWaterService water;
@@ -54,7 +62,7 @@ public final class HotSpringModule implements FeatureModule, Listener {
         water = service.get();
         SpringWater springs = new SpringWater(water::chunk);
         context.services().provide(SpringWater.class, springs);
-        tracker = new HotSpringTracker(springs, DROWN, HotSpringRules.HOT_WATER_HEAL_AMOUNT,
+        tracker = new HotSpringTracker(springs, DROWN, HEAL,HotSpringRules.HOT_WATER_HEAL_AMOUNT,
                 HotSpringRules.BUBBLE_COLUMN_PROVIDES_AIR, ThreadLocalRandom::current);
         context.listen(this);
         task = scheduler.globalRepeating(HotSpringTracker.PERIOD, HotSpringTracker.PERIOD, this::tickAll);
