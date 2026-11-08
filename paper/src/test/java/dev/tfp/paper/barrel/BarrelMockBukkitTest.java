@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -272,12 +273,13 @@ class BarrelMockBukkitTest extends MockServerTest {
     @Test
     void creativeKeepsASingleHeldContainerAndStillShrinksAStack() {
         // TFC FluidHelpers.with: creative skips setItemInHand; a stack > 1 is shrunk in place before that check
-        player.setGameMode(org.bukkit.GameMode.CREATIVE);
+        player.setGameMode(GameMode.CREATIVE);
         hold(new ItemStack(Material.WATER_BUCKET));
         assertThat(click()).isTrue();
         assertThat(record().state().fluid()).isEqualTo(new FluidAmount("minecraft:water", 1000));
         assertThat(held().getType()).as("creative: the held water bucket is unchanged").isEqualTo(Material.WATER_BUCKET);
         assertThat(held().getAmount()).isEqualTo(1);
+        assertThat(given()).as("creative with a single container: TFC gives nothing").isEmpty();
 
         ItemStack two = woodenBucket("tfp:brine", 0);
         two.setAmount(2);
@@ -285,6 +287,25 @@ class BarrelMockBukkitTest extends MockServerTest {
         // the barrel holds water; two empty wooden buckets: one is filled and given, the held stack loses one
         assertThat(click()).isTrue();
         assertThat(held().getAmount()).as("creative still shrinks a larger stack, as TFC").isEqualTo(1);
+        List<ItemStack> given = given();
+        assertThat(given).as("the filled container is given to the player").hasSize(1);
+        assertThat(given.get(0).getAmount()).isEqualTo(1);
+        assertThat(data.items.idOf(given.get(0))).contains("tfp:wooden_bucket");
+        assertThat(ItemFluids.content(given.get(0))).isEqualTo(new FluidAmount("minecraft:water", 1000));
+        assertThat(record().state().fluid().isEmpty()).as("the barrel tank is drained").isTrue();
+    }
+
+    /** Every non-empty inventory stack apart from the main hand. */
+    private List<ItemStack> given() {
+        List<ItemStack> out = new ArrayList<>();
+        ItemStack[] all = player.getInventory().getContents();
+        int heldSlot = player.getInventory().getHeldItemSlot();
+        for (int i = 0; i < all.length; i++) {
+            if (i != heldSlot && all[i] != null && !all[i].getType().isAir()) {
+                out.add(all[i]);
+            }
+        }
+        return out;
     }
 
     @Test
