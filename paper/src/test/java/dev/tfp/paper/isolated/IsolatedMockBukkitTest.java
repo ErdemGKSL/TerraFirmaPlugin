@@ -230,6 +230,17 @@ class IsolatedMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void aRawRockSetWithoutAPlacementPopsThroughItsOwnPhysicsEvent() {
+        // The wider trigger the ledger records: /setblock, a dispenser, another plugin or the CE API sets the block
+        // with neighbour updates, CraftBukkit fires BlockPhysicsEvent for the block itself, and no BlockPlaceEvent.
+        Block raw = rawAt(0, 120, 0);
+        server.getPluginManager().callEvent(new BlockPhysicsEvent(raw, raw.getBlockData()));
+        runAll();
+        assertThat(isRaw(raw)).isFalse();
+        assertThat(drops()).singleElement().satisfies(s -> assertThat(s.getType()).isEqualTo(Material.GRANITE));
+    }
+
+    @Test
     void neighbourUpdatesOfBlocksOutsideTheTagCostNothing() {
         Block stone = world.getBlockAt(0, 120, 0);
         stone.setType(Material.STONE);
