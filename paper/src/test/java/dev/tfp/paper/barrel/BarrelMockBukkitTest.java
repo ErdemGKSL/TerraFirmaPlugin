@@ -144,6 +144,10 @@ class BarrelMockBukkitTest extends MockServerTest {
         return s;
     }
 
+    private ItemStack emptyWoodenBucket() {
+        return data.items.create("tfp:wooden_bucket", 1).orElseThrow();
+    }
+
     private ItemStack jug(String fluid, int mb) {
         ItemStack s = data.items.create("tfp:ceramic/jug", 1).orElseThrow();
         ItemFluids.fill(s, new FluidAmount(fluid, mb), 100, true);
@@ -281,7 +285,7 @@ class BarrelMockBukkitTest extends MockServerTest {
         assertThat(held().getAmount()).isEqualTo(1);
         assertThat(given()).as("creative with a single container: TFC gives nothing").isEmpty();
 
-        ItemStack two = woodenBucket("tfp:brine", 0);
+        ItemStack two = emptyWoodenBucket();
         two.setAmount(2);
         hold(two);
         // the barrel holds water; two empty wooden buckets: one is filled and given, the held stack loses one
@@ -295,10 +299,10 @@ class BarrelMockBukkitTest extends MockServerTest {
         assertThat(record().state().fluid().isEmpty()).as("the barrel tank is drained").isTrue();
     }
 
-    /** Every non-empty inventory stack apart from the main hand. */
+    /** Every non-empty storage stack (hotbar + main inventory, no armour or offhand) apart from the main hand. */
     private List<ItemStack> given() {
         List<ItemStack> out = new ArrayList<>();
-        ItemStack[] all = player.getInventory().getContents();
+        ItemStack[] all = player.getInventory().getStorageContents();
         int heldSlot = player.getInventory().getHeldItemSlot();
         for (int i = 0; i < all.length; i++) {
             if (i != heldSlot && all[i] != null && !all[i].getType().isAir()) {
