@@ -2,7 +2,7 @@
 id: PAR-FLUID-07
 title: "Open-water drinking reads WorldWaterService: salt water in every salty TFC biome, river water fresh"
 area: FLUID
-status: open
+status: done
 wave: 10
 deps: [PAR-FLUID-03]
 size: S
@@ -17,6 +17,7 @@ ui: false
 in_game_steps: []
 plan:
   - "Follow-up of PAR-FLUID-03: `WaterDrinkListener.fluidOf` still decides salt by the vanilla ocean placeholder biome, so TFC's shores, tidal flats, salt marshes and other `salty()` land biomes drink as fresh water. Use `WorldWaterService.kindOf(block).containerFluid()` (from `ModuleServices`, falling back to the current rule when the worldwater module is absent); drop the shore divergence row of PAR-SURV-04 once it holds."
+  - "Done: WaterDrinkListener takes the drink fluid from WorldWaterService.kindOf(block).containerFluid(), looked up in the plugin's ModuleServices at each drink (the module enables after the listener is built), falling back to the ocean-biome rule without it; WaterDrinkListenerMockBukkitTest 4 (salty TFC land biome of seed 1234 under a plains placeholder drinks salt, river water under an ocean placeholder drinks fresh, vanilla rule outside TFC worlds, fallback); the PAR-SURV-04 shore divergence is replaced by the world-water rule in the ledger."
 tests:
   - "paper: WaterDrinkListener salt in a salty TFC land biome via a WorldWaterService with a seeded terrain"
 done_criteria:
