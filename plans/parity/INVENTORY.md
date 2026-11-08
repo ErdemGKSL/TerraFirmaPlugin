@@ -247,6 +247,13 @@ Status legend: **done** (rules, glue and visuals in game), **partial** (some lay
 | HUD | Ink splatter overlay (IngameOverlays.INK, ink_splatter.png, glow_ink_splatter.png) | not started | PAR-HUD-20 |
 | FAUNA | Familiarity readout while sneak-looking at an animal (IngameOverlays.FAMILIARITY, displayFamiliarityAsPercent) | not started | PAR-FAUNA-22 |
 | GATHER | Groundcover placement from vanilla items and snow-pile placement from the snow item (InteractionManager, BlockItemPlacement, SnowPileBlock.placeSnowPile) | not started | PAR-GATHER-07 |
+| CLIMATE | Climate-driven weather cycle (ServerLevelMixin advanceWeatherCycle/tickPrecipitation, LevelMixin.isRainingAt, OverworldClimateModel.getRain/getThunder, WorldTracker weather flag); local rain per player | not started | PAR-CLIM-12 |
+| CLIMATE | TimeCommand `set dayLength/monthLength/rain/clear`, ServerCalendar.setCalendarTickRate | not started | PAR-CLIM-13 |
+| CLIMATE | Climate fog (OverworldClimateModel.getFog, ClientForgeEventHandler.onFogRender foggy mornings, low-light water fog) | not started | PAR-CLIM-14 |
+| HEAT | Item heat bar (client/BarSystem HEAT, ItemStackMixin bar hooks, displayItemHeatBars) | not started | PAR-HEAT-14 |
+| FAUNA | Fertilized egg incubation bar (client/BarSystem EGG) | not started | PAR-FAUNA-23 |
+| WORLD | Coral plants, fans and wall fans (Coral x Coral.BlockType, 30 blocks) and TFCSeaPickleBlock as TFC blocks; generation writes vanilla placeholders today | placeholder | PAR-WORLD-25 |
+| DATA | Piston water-source dupe fix for waterlogged blocks (PistonBlockEntityMixin, MC-130183) | not started | PAR-DATA-16 |
 
 ## Features already at parity (no open item)
 
@@ -290,4 +297,4 @@ Auditor: `NOT-PARITY.md` is the full list of what stays outside parity (design d
 | Create TFC world screen (CreateTFCWorldScreen) | client screen | bukkit.yml generator + config | PAR-WORLD-16, PAR-WORLD-22 |
 | Creative mode tabs (TFCCreativeTabs) | client creative inventory | CraftEngine item browser categories in TFC's order | PAR-DATA-15 |
 
-Counts over the item rows: done 4, impossible-on-vanilla 3, not started 75, partial 140, placeholder 12.
+Counts over the item rows: done 4, impossible-on-vanilla 3, not started 81, partial 140, placeholder 13.

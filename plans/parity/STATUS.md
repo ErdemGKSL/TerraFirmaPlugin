@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 303 items; open 216, done 83, blocked 4; waves 1..56 (wave 0 = already done).
+Totals: 310 items; open 223, done 83, blocked 4; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -120,16 +120,20 @@ Totals: 303 items; open 216, done 83, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-FLUID-10 | Vanilla bucket from a spring pool gives tfp:bucket/spring_water; waterlogged blocks in oceans give fresh water | FLUID | 11 | open |
 | PAR-FLUID-11 | Hot spring in-game verification: health rises standing in a hot spring | FLUID | 11 | open |
 | PAR-HEAT-03 | Hot items: burn damage while held, item entities cool in water and snow | HEAT | 11 | open |
+| PAR-HEAT-14 | Item bars: the heat bar on hot items (TFC BarSystem HEAT) as a packet-time durability-style bar, with the shared item-bar layer | HEAT | 11 | open |
 | PAR-PROC-11 | Composter | PROC | 11 | open |
 | PAR-CLIM-03 | Snow and ice accumulation: lazy-vs-stepped equivalence and server check | CLIMATE | 12 | open |
+| PAR-DATA-16 | Pistons cannot move water sources: 1-tick piston pulses drop the water of waterlogged blocks (TFC's MC-130183 fix) | DATA | 12 | open |
 | PAR-HEAT-04 | Heating recipes on devices: the 884 heating recipes as a shared service | HEAT | 12 | open |
 | PAR-HEAT-05 | Fire starting: firestarter use-duration, flint and pyrite, StartFireEvent world rules | HEAT | 12 | open |
 | PAR-PROC-09 | Barrel GUI, fluid level visual, rain fill, barrel rack | PROC | 12 | open |
 | PAR-CLIM-04 | Snow piles, ice piles, icicles and sea ice as CraftEngine blocks | CLIMATE | 13 | open |
+| PAR-CLIM-12 | Climate-driven weather cycle: rain and thunder from the climate model replace vanilla's weather cycle; vanilla precipitation ticking off; local rain per player | CLIMATE | 13 | open |
 | PAR-HEAT-06 | Firepit block: placement, fuel, lazy temperature, ash, extinguish by rain and water | HEAT | 13 | open |
 | PAR-PROC-10 | Log pile and charcoal pit | PROC | 13 | open |
 | PAR-PROC-14 | Salads | PROC | 13 | open |
 | PAR-CLIM-05 | Seasonal grass tint: decide band resolution and make the colour change visible | CLIMATE | 14 | blocked |
+| PAR-CLIM-13 | TFC time command completion: `/tfp time set` dayLength, monthLength, rain and clear, and the calendar tick rate | CLIMATE | 14 | open |
 | PAR-HEAT-07 | Firepit GUI: fuel slots, input, outputs, temperature bar | HEAT | 14 | open |
 | PAR-HEAT-10 | Torches: burnout to dead torch, relight, wall torches | HEAT | 14 | open |
 | PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | open |
@@ -138,6 +142,7 @@ Totals: 303 items; open 216, done 83, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-HEAT-08 | Grill on firepit: placement, five slots, cooking, GUI | HEAT | 15 | open |
 | PAR-HEAT-09 | Cooking pot on firepit: boiling, soups and jams, pot fluid, GUI | HEAT | 15 | open |
 | PAR-HEAT-11 | Candles, candle cakes and jack-o'-lanterns: burnout, lighting, carving | HEAT | 15 | open |
+| PAR-CLIM-14 | Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute | CLIMATE | 16 | open |
 | PAR-HEAT-12 | Firebox, stove and stove pot | HEAT | 16 | open |
 | PAR-PHYS-01 | TFC falling blocks: canFallThrough, landing, damage | PHYS | 16 | open |
 | PAR-WORLD-01 | Rendered region and river maps compared with TFC | WORLD | 16 | open |
@@ -185,6 +190,7 @@ Totals: 303 items; open 216, done 83, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-POT-05 | Molds: filling from a vessel/crucible, solidifying, breaking out the casting | POTTERY | 25 | open |
 | PAR-WORLD-13 | Remaining plant features: vines, kelp, epiphytes, creeping plants, cacti, algae, atoll corals | WORLD | 25 | open |
 | PAR-WORLD-14 | Volcanic features: springs, rivulets, flood-fill lakes, calderas of other cones | WORLD | 25 | open |
+| PAR-WORLD-25 | TFC corals and sea pickle as CE blocks: 5 colours x (coral, coral fan, wall fan) live and dead, the salt-water sea pickle, dying out of water, drops; replace the vanilla coral placeholders in generation | WORLD | 25 | open |
 | PAR-POT-06 | Large vessel (and glazed): nine slots, sealing, preservation, automation | POTTERY | 26 | open |
 | PAR-POT-07 | Jugs and glass bottles: fill, drink, pour, break | POTTERY | 26 | open |
 | PAR-WORLD-15 | Volcanic and spring CE blocks: hardened rock, magma blocks, spring water look | WORLD | 26 | open |
@@ -269,6 +275,7 @@ Totals: 303 items; open 216, done 83, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-FAUNA-15 | Horses, donkeys and mules: riding, breeding, chests | FAUNA | 44 | open |
 | PAR-FAUNA-17 | Hunting drops, butchering, hides | FAUNA | 44 | open |
 | PAR-FAUNA-18 | Fishing: rod, hook, bait | FAUNA | 44 | open |
+| PAR-FAUNA-23 | Fertilized egg incubation bar (TFC BarSystem EGG) on the shared item-bar layer | FAUNA | 44 | open |
 | PAR-DECO-02 | Wood logic: doors, trapdoors, fence gates, buttons, pressure plates | DECO | 45 | open |
 | PAR-FAUNA-16 | Camels (dromedary, bactrian) | FAUNA | 45 | open |
 | PAR-FAUNA-19 | Lobster traps | FAUNA | 45 | open |
