@@ -94,7 +94,7 @@ Totals: 290 items; open 208, done 78, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-INFRA-39 | Ore overlay adapter wiring through the IntegrationProvider SPI instead of Class.forName | INFRA | 8 | done |
 | PAR-INFRA-40 | DeviceService.route: one diagnostic line when a device click is dropped (no kind, no block entity record) | INFRA | 8 | done |
 | PAR-INFRA-41 | Ore overlay specks as bright as TFC's: down-face specks read dark brown (0.38 of TFC relative to the rock), side faces 26% dark | INFRA | 9 | blocked |
-| PAR-INFRA-42 | Carrier policy matches our worldgen: lily pad, sea pickle and other placed placeholders are not presence absent; guard test | INFRA | 9 | open |
+| PAR-INFRA-42 | Carrier policy matches our worldgen: lily pad, sea pickle and other placed placeholders are not presence absent; guard test | INFRA | 9 | done |
 | PAR-FLUID-02 | Buckets: wooden bucket, red and blue steel buckets, fluid placement policy | FLUID | 9 | done |
 | PAR-FLUID-03 | Salt water, spring water and river water in the world | FLUID | 9 | done |
 | PAR-HUD-16 | HUD season per player: tfp_season follows the viewer's hemisphere (southern players see the opposite month's name) | HUD | 9 | open |
@@ -110,6 +110,7 @@ Totals: 290 items; open 208, done 78, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-HEAT-01 | Item heat glow: hot items glow by heat level on vanilla clients | HEAT | 10 | open |
 | PAR-HEAT-02 | Heat tooltip in TFC colours and metal info lines (melting point, workable, weldable) | HEAT | 10 | open |
 | PAR-SURV-09 | Death, respawn and regeneration rules | SURV | 10 | open |
+| PAR-INFRA-43 | Button and mud carriers vs our worldgen placeholders: no small-ground-piece or charcoal-pile carrier draws over placed loose-rock, stick or mud placeholders | INFRA | 10 | open |
 | PAR-CLIM-01 | Calendar config, sleep skipping and doDaylightCycle sync | CLIMATE | 11 | open |
 | PAR-CLIM-02 | Precipitation per position on Paper and the in-game snow-vs-rain check | CLIMATE | 11 | open |
 | PAR-FLUID-10 | Vanilla bucket from a spring pool gives tfp:bucket/spring_water; waterlogged blocks in oceans give fresh water | FLUID | 11 | open |

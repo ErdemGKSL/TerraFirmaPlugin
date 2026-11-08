@@ -2,7 +2,7 @@
 id: PAR-INFRA-42
 title: "Carrier policy matches our worldgen: lily pad, sea pickle and other placed placeholders are not presence absent; guard test"
 area: INFRA
-status: open
+status: done
 wave: 9
 deps: [PAR-INFRA-13]
 size: S
@@ -19,6 +19,7 @@ plan:
   - "Fix the policy, regenerate (`./gradlew :tools:datagen:generateContent -Ptfc.checkout=/opt/tfc`), diff reports/hitbox-carriers-*.md: only the intended rows may move (tfp:scraping#base should move to the next free carrier, today minecraft:heavy_weighted_pressure_plate[power=0] at 0.459, owned by the transparent placed-item carrier, which a TRANSPARENT look may share)."
   - "Guard test CarrierPolicyWorldgenTest: no block that the selector may use without a hide (`presence: absent`) is a material that paper worldgen places (read the Material.X names from paper/src/main/java/dev/tfp/paper/worldgen/{PlantBlocks,GroundcoverBlocks,TreeBlocks,VolcanoBlocks,TfcTerrain}.java as text, the datagen module cannot import paper), except an explicit allow-list with the reason."
   - "Then PAR-PROC-29 (blocked on this item) re-adds its ScrapingBlock run line in Datagen, updates its divergence row and redoes the outline check."
+  - "Done: carrier-policy.json: lily_pad `reserved` (one state, no hide target), sea_pickle `natural` hide nearest_free_value:pickles, pink_petals `natural` hide nearest_free_value:flower_amount; stone_button, oak_button and mud stay `absent` with notes on the guard's allow-list (HitboxCarrierTest pins the button and mud, the research CSV marks mud absent) until follow-up PAR-INFRA-43. CarrierPolicyWorldgenTest (5 tests): absent vs the Material names of the five worldgen sources (stale allow-list entries fail too), the pre-fix policy is caught (lily_pad, pink_petals, sea_pickle), no allocation draws a non-vanilla look on a placed or natural block without a hide, tfp:scraping#base now takes heavy_weighted_pressure_plate[power=0] (0.459, transparent). Regenerated reports: only the scraping rows, the lily_pad rejection reasons (now `reserved`) and the order of the two snow hide-mapping lines (Map.copyOf iteration, unchanged content) moved. Ledger divergence row added."
 tests:
   - "CarrierPolicyWorldgenTest fails on today's policy (lily_pad, sea_pickle) and passes after the fix"
   - "Full datagen run: hitbox reports change only in the intended rows; GeneratedCarrierTest, HardcodedCarrierTest green"
