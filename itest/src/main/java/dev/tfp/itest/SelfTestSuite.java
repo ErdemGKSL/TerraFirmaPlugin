@@ -45,6 +45,7 @@ public final class SelfTestSuite {
                 new ConfigCase(),
                 new VersionCommandCase(),
                 new PlayerDataCase(),
+                new dev.tfp.itest.cases.DehydrationDamageCase(),
                 new RegionSchedulerCase(),
                 new CalendarPersistCase(),
                 new ItemDataRoundTripCase(),
