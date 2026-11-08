@@ -45,7 +45,7 @@ blue_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1
 blue_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
 blue_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 blue_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,blue_wool,waterlogged: client fluid (drip particles below unless #impermeable)
-bone_block,absent,clean,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,3,3,,
+bone_block,tfc_present,clean,solid,solid,3,3,0,0,0,0,0,3,3,3,0,0,0,0,0,3,3,3,0,0,0,0,0,3,3,3,0,0,0,0,0,3,0,0,0,0,,
 bookshelf,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 brain_coral_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 brick_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,bricks,waterlogged: client fluid (drip particles below unless #impermeable)
@@ -62,7 +62,7 @@ brown_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0
 bubble_coral_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 budding_amethyst,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,crystal step chime (tag-controlled)
 calcite,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
-cartography_table,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,client-interactable (no placement prediction; CE resends sounds)
+cartography_table,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,client-interactable (no placement prediction; CE resends sounds)
 carved_pumpkin,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
 chain_command_block,absent,caveat_minor,solid,solid,12,12,0,0,0,12,0,0,12,12,0,0,0,12,0,0,12,12,0,0,0,12,0,0,12,12,0,0,0,12,0,0,12,12,12,12,,op/creative-only GUI on right-click
 cherry_leaves,ce_used,-,cutout_mipped,cutout,28,28,28,0,0,0,0,0,28,28,28,0,0,0,0,0,28,28,28,0,0,0,0,0,28,28,28,0,0,0,0,0,0,0,0,0,,
@@ -87,7 +87,7 @@ cinnabar,absent,clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 cinnabar_brick_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,cinnabar_bricks,waterlogged: client fluid (drip particles below unless #impermeable)
 cinnabar_bricks,absent,clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,0,0,0,0,1,,
 cinnabar_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,cinnabar,waterlogged: client fluid (drip particles below unless #impermeable)
-clay,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+clay,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 coal_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 coal_ore,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 coarse_dirt,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
@@ -394,7 +394,7 @@ red_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,
 red_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
 red_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 red_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,red_wool,waterlogged: client fluid (drip particles below unless #impermeable)
-redstone_block,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,vanilla redstone dust connects to it client-side
+redstone_block,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,vanilla redstone dust connects to it client-side
 redstone_lamp,absent,avoid+clean,solid,solid,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,1,1,1,1,,client light emission (lit=true)
 redstone_ore,absent+identity_dup,avoid,solid,solid,2,2,0,1,0,1,0,0,2,2,0,1,0,1,0,0,2,2,0,1,0,1,0,0,2,2,0,1,0,1,0,0,0,0,0,0,,client predicts lit=true on touch (stepOn/attack/use) | client light emission (lit=true)
 reinforced_deepslate,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
@@ -471,7 +471,7 @@ sulfur_bricks,absent,clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 sulfur_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,sulfur,waterlogged: client fluid (drip particles below unless #impermeable)
 suspicious_gravel,absent,caveat_major,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,0,0,0,0,,falling-dust particles when unsupported
 suspicious_sand,absent,caveat_major,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,0,0,0,0,,falling-dust particles when unsupported
-target,absent+identity_dup,caveat_minor,solid,solid,16,16,0,15,0,1,0,0,16,16,0,15,0,1,0,0,16,16,0,15,0,1,0,0,16,16,0,15,0,1,0,0,16,16,16,16,,vanilla redstone dust connects to it client-side
+target,tfc_present+identity_dup,caveat_minor,solid,solid,16,16,0,15,0,0,0,1,16,16,0,15,0,0,0,1,16,16,0,15,0,0,0,1,16,16,0,15,0,0,0,1,15,15,15,15,,vanilla redstone dust connects to it client-side
 terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
 test_block,absent,caveat_minor,solid,solid,0,0,0,0,0,0,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,0,4,4,4,,op/creative-only GUI on right-click
 test_instance_block,absent,avoid,solid,solid,0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,BE renderer (ops)

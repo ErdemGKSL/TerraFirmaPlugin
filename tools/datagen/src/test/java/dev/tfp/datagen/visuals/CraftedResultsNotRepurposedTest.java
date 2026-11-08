@@ -42,7 +42,10 @@ import org.yaml.snakeyaml.Yaml;
  *       heating, glassworking, crafting, ...; and TFC's overrides of vanilla recipes in {@code data/minecraft});</li>
  *   <li>every recipe JSON that datagen emits under {@code data/<ns>/recipe/} and every emitted CE workbench recipe
  *       ({@code configuration/crafting/*_recipes.yml}), so a device port cannot bring back a repurposed result;</li>
- *   <li>blocks that vanilla physics makes from a result: placed concrete powder hardens to concrete next to water.</li>
+ *   <li>blocks that vanilla physics makes from a result: placed concrete powder hardens to concrete next to water;</li>
+ *   <li>the full cubes of the vanilla recipes TFC keeps ({@link #KEPT_VANILLA}): TFC replaces only the vanilla recipes
+ *       its {@code data/minecraft/recipe} names (66 overrides, 195 removals) and filters no other, so a kept vanilla
+ *       recipe whose inputs a TFC world has makes its block there (4 clay balls make {@code minecraft:clay}, ...).</li>
  * </ul>
  * Recipes disabled by a {@code neoforge:false} condition make nothing; a result that is one of the recipe's own
  * ingredients or inputs is not made by it (tfc:landslide and tfc:collapse move a block that is already there). The
@@ -51,6 +54,25 @@ import org.yaml.snakeyaml.Yaml;
 class CraftedResultsNotRepurposedTest {
     private static final List<String> COLORS = List.of("white", "orange", "magenta", "light_blue", "yellow", "lime",
         "pink", "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");
+    /**
+     * Full-cube result → inputs of the vanilla recipe of the same name ({@code data/minecraft/recipe/<name>.json},
+     * vanilla 1.21.1 and 1.21.11) that TFC keeps and whose inputs are all obtainable in a TFC world. Found by
+     * {@code kept_vanilla_results} in {@code tools/datagen/scripts/export_fullcube_states.py} from a vanilla data dump
+     * (the dump is not in the repository; set the environment variable
+     * {@code TFP_VANILLA_RECIPES=<dump>/data/minecraft/recipe} for the test run to re-derive the set here). Vanilla 1.21.1 recipe inputs: clay 4 clay_ball; bone_block 9 bone_meal; redstone_block 9
+     * redstone; target 1 hay_block + 4 redstone; cartography_table 2 paper + 4 planks.
+     */
+    static final Map<String, List<String>> KEPT_VANILLA = Map.of(
+        "minecraft:clay", List.of("minecraft:clay_ball"),
+        "minecraft:bone_block", List.of("minecraft:bone_meal"),
+        "minecraft:redstone_block", List.of("minecraft:redstone"),
+        "minecraft:target", List.of("minecraft:hay_block", "minecraft:redstone"),
+        "minecraft:cartography_table", List.of("minecraft:paper", "#minecraft:planks"));
+    /**
+     * Every vanilla full-cube block a TFC world makes through a recipe: 106 from TFC's own recipes (bricks from
+     * PAR-PROC-30, the 105 of PAR-PROC-31 with the 16 concretes) and the 5 of {@link #KEPT_VANILLA}.
+     */
+    private static final int RECIPE_MADE_FULL_CUBES = 111;
     private static SortedMap<String, byte[]> files;
     private static Path checkout;
 
@@ -109,7 +131,112 @@ class CraftedResultsNotRepurposedTest {
                 "minecraft:black_glazed_terracotta", "minecraft:white_glazed_terracotta", "minecraft:lime_concrete_powder",
                 "minecraft:lime_concrete", "minecraft:glass", "minecraft:tinted_glass", "minecraft:cyan_stained_glass",
                 "minecraft:hay_block", "minecraft:piston", "minecraft:sticky_piston", "minecraft:observer",
-                "minecraft:smithing_table", "minecraft:slime_block");
+                "minecraft:smithing_table", "minecraft:slime_block", "minecraft:clay", "minecraft:bone_block",
+                "minecraft:redstone_block", "minecraft:target", "minecraft:cartography_table");
+            // the exact count catches a silent shrinkage of the recipe reading (both this test and the exporter use it)
+            assertThat(listed).as("number of recipe-made full cubes on %s", f.id()).hasSize(RECIPE_MADE_FULL_CUBES);
+        }
+    }
+
+    /**
+     * The kept vanilla recipes of {@link #KEPT_VANILLA} are active in a TFC world (TFC's {@code data/minecraft/recipe}
+     * neither removes nor overrides them) and every input is obtainable there: made by an active TFC recipe (clay
+     * balls, bone meal from the quern, redstone from the quern, paper, hay_block) or a vanilla tag TFC extends.
+     */
+    @Test
+    void keptVanillaRecipesAreActiveAndTheirInputsObtainable() throws IOException {
+        Map<String, TreeSet<String>> results = recipeResults();
+        Path data = checkout.resolve("src/generated/resources/data/minecraft");
+        for (var e : KEPT_VANILLA.entrySet()) {
+            String name = e.getKey().substring("minecraft:".length());
+            assertThat(data.resolve("recipe/" + name + ".json")).as("TFC replaces vanilla's %s recipe", name).doesNotExist();
+            for (String input : e.getValue()) {
+                if (input.startsWith("#")) {
+                    assertThat(data.resolve("tags/item/" + input.substring("#minecraft:".length()) + ".json"))
+                        .as("TFC extends %s", input).exists();
+                } else {
+                    assertThat(results.getOrDefault(input, new TreeSet<>()))
+                        .as("%s (input of %s) is made by an active TFC recipe", input, e.getKey())
+                        .anyMatch(s -> s.startsWith("tfc:"));
+                }
+            }
+        }
+        String dump = System.getProperty("vanilla.recipes", System.getenv("TFP_VANILLA_RECIPES"));
+        if (dump != null && Files.isDirectory(Path.of(dump))) {
+            assertThat(keptVanillaFullCubes(Path.of(dump), results)).as("kept vanilla full cubes re-derived from " + dump)
+                .isEqualTo(new TreeSet<>(KEPT_VANILLA.keySet()));
+        }
+    }
+
+    /** Same rule as {@code kept_vanilla_results} in the exporter, restricted to blocks of the full-cube supply. */
+    private static Set<String> keptVanillaFullCubes(Path vanilla, Map<String, TreeSet<String>> tfcResults) throws IOException {
+        Path data = checkout.resolve("src/generated/resources/data/minecraft");
+        Set<String> have = new HashSet<>();
+        tfcResults.forEach((id, src) -> {
+            if (src.stream().anyMatch(s -> s.startsWith("tfc:"))) {
+                have.add(id);
+            }
+        });
+        try (Stream<Path> loot = Files.walk(checkout.resolve("src/generated/resources/data"))) {
+            for (Path p : loot.filter(p -> p.toString().contains("/loot_table/") && p.toString().endsWith(".json")).toList()) {
+                var m = java.util.regex.Pattern.compile("\"name\"\\s*:\\s*\"(minecraft:[a-z0-9_/]+)\"").matcher(Files.readString(p));
+                while (m.find()) {
+                    have.add(m.group(1));
+                }
+            }
+        }
+        Set<String> inputKeys = Set.of("key", "ingredient", "ingredients", "base", "addition", "template");
+        Map<Set<String>, Set<String>> recipes = new java.util.LinkedHashMap<>();
+        try (Stream<Path> files = Files.list(vanilla)) {
+            for (Path p : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
+                if (Files.exists(data.resolve("recipe/" + p.getFileName()))) {
+                    continue;
+                }
+                JsonObject o = JsonParser.parseString(Files.readString(p)).getAsJsonObject();
+                Set<String> made = ids(o, k -> k.contains("result"));
+                Set<String> inputs = new TreeSet<>();
+                o.entrySet().stream().filter(en -> inputKeys.contains(en.getKey()))
+                    .forEach(en -> collectTags(en.getValue(), inputs));
+                if (!made.isEmpty() && !inputs.isEmpty()) {
+                    recipes.merge(inputs, made, (a, b) -> {
+                        Set<String> s = new TreeSet<>(a);
+                        s.addAll(b);
+                        return s;
+                    });
+                }
+            }
+        }
+        Set<String> out = new TreeSet<>();
+        for (boolean changed = true; changed; ) {
+            changed = false;
+            for (var r : recipes.entrySet()) {
+                boolean ok = r.getKey().stream().allMatch(x -> x.startsWith("#")
+                    ? Files.exists(data.resolve("tags/item/" + x.substring("#minecraft:".length()) + ".json"))
+                    : have.contains(x));
+                if (ok && !have.containsAll(r.getValue())) {
+                    r.getValue().stream().filter(id -> !have.contains(id)).forEach(out::add);
+                    have.addAll(r.getValue());
+                    changed = true;
+                }
+            }
+        }
+        VanillaSupply supply = VanillaSupply.load();
+        Set<String> blocks = new HashSet<>();
+        for (VersionFamily f : VersionFamily.values()) {
+            supply.all(f).values().stream().filter(s -> !s.source().identity()).forEach(s -> blocks.add(s.block()));
+        }
+        out.retainAll(blocks);
+        return out;
+    }
+
+    /** Every {@code minecraft:} id or {@code #minecraft:} tag string below {@code e}. */
+    private static void collectTags(JsonElement e, Set<String> out) {
+        if (e.isJsonObject()) {
+            e.getAsJsonObject().entrySet().forEach(en -> collectTags(en.getValue(), out));
+        } else if (e.isJsonArray()) {
+            e.getAsJsonArray().forEach(v -> collectTags(v, out));
+        } else if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString() && e.getAsString().matches("#?minecraft:[a-z0-9_/]+")) {
+            out.add(e.getAsString());
         }
     }
 
@@ -163,12 +290,16 @@ class CraftedResultsNotRepurposedTest {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        // Only concrete is derived by vanilla physics today; a later port that makes e.g. copper blocks (oxidation) or
+        // mud (packed mud) must extend this loop and TFC_DERIVED in tools/datagen/scripts/export_fullcube_states.py.
         for (String c : COLORS) {
             if (out.containsKey("minecraft:" + c + "_concrete_powder")) {
                 out.computeIfAbsent("minecraft:" + c + "_concrete", k -> new TreeSet<>())
                     .add("vanilla:minecraft:" + c + "_concrete_powder hardens next to water");
             }
         }
+        KEPT_VANILLA.forEach((block, inputs) -> out.computeIfAbsent(block, k -> new TreeSet<>())
+            .add("vanilla:minecraft/recipe/" + block.substring("minecraft:".length()) + ".json (kept by TFC)"));
         out.keySet().removeIf(id -> !id.startsWith("minecraft:"));
         assertThat(out).as("recipe results").isNotEmpty();
         return out;
@@ -181,7 +312,8 @@ class CraftedResultsNotRepurposedTest {
         JsonObject o = json.getAsJsonObject();
         if (o.has("neoforge:conditions")) {
             for (JsonElement c : o.getAsJsonArray("neoforge:conditions")) {
-                if (c.isJsonObject() && "neoforge:false".equals(c.getAsJsonObject().get("type").getAsString())) {
+                if (c.isJsonObject() && c.getAsJsonObject().has("type")
+                    && "neoforge:false".equals(c.getAsJsonObject().get("type").getAsString())) {
                     return;
                 }
             }

@@ -1,12 +1,14 @@
-# Usage: python3 -I export_fullcube_states.py <research/fc dir> <mcmeta dir> <out.csv> <TFC checkout>
+# Usage: python3 -I export_fullcube_states.py <research/fc dir> <mcmeta dir> <out.csv> <TFC checkout> <vanilla recipe dir>
 # Per-state export of the vanilla full-cube supply for the datagen visual allocator (M1-DGN-04).
 # Inputs: fc_<ver>.json (fullcube.py), blockprops_26.3.json (blockprops.py), rendertypes_<ver>.txt (rendertypes.py)
 # and misode/mcmeta blocks_<ver>.json (summary branch, blocks/data.min.json), as described in
-# docs/research/block-budget-workarounds.md section 7, and the TFC checkout at the pinned commit (recipe results).
+# docs/research/block-budget-workarounds.md section 7, the TFC checkout at the pinned commit (recipe results), and the
+# data/minecraft/recipe directory of a vanilla server data dump (java -DbundlerMainClass=net.minecraft.data.Main
+# -jar server.jar --server; PAR-PROC-31 used 1.21.11) for the vanilla recipes TFC keeps.
 # The classification below is the same as the one that produced docs/research/vanilla-fullcube-supply.csv
 # (classify.py); a datagen unit test checks that the per-block counts of both files agree.
 import json, sys, csv, re, collections, os
-fcdir, metadir, outcsv, tfccheckout = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+fcdir, metadir, outcsv, tfccheckout, vanillarecipes = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
 VERS = ['1.21.4', '1.21.11', '26.1.2', '26.3']
 fc = {v: json.load(open(f'{fcdir}/fc_{v}.json')) for v in VERS}
 meta = {v: json.load(open(f'{metadir}/blocks_{v}.json')) for v in VERS}
@@ -108,34 +110,90 @@ def tfc_recipe_results(tfc):
     tools/datagen/src/test/java/dev/tfp/datagen/visuals/CraftedResultsNotRepurposedTest.java."""
     out = set()
     data = os.path.join(tfc, 'src/generated/resources/data')
-    def ids(o, keyfilter):
-        found = set()
-        def walk(o):
-            if isinstance(o, dict):
-                for k, v in o.items():
-                    if keyfilter(k):
-                        found.update(re.findall(r'"(minecraft:[a-z0-9_/]+)"', json.dumps(v)))
-                    walk(v)
-            elif isinstance(o, list):
-                for v in o: walk(v)
-        walk(o)
-        return found
     for ns in sorted(os.listdir(data)):
         d = os.path.join(data, ns, 'recipe')
         for dp, _, fs in os.walk(d):
             for f in fs:
                 if not f.endswith('.json'): continue
                 j = json.load(open(os.path.join(dp, f)))
-                if any(c.get('type') == 'neoforge:false' for c in j.get('neoforge:conditions', [])): continue
+                if is_disabled(j): continue
                 made = ids(j, lambda k: 'result' in k or 'output' in k)
                 used = ids(j, lambda k: 'ingredient' in k or 'input' in k or k == 'key')
                 out |= {m.split(':', 1)[1] for m in made - used}
     return out
 
+def is_disabled(j):
+    return any(isinstance(c, dict) and c.get('type') == 'neoforge:false' for c in j.get('neoforge:conditions', []))
+
+def ids(o, keyfilter):
+    """Every minecraft: id string below a key that keyfilter accepts."""
+    found = set()
+    def walk(o):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if keyfilter(k):
+                    found.update(re.findall(r'"(minecraft:[a-z0-9_/]+)"', json.dumps(v)))
+                walk(v)
+        elif isinstance(o, list):
+            for v in o: walk(v)
+    walk(o)
+    return found
+
+def tfc_loot_items(tfc):
+    """Every minecraft: item that a loot table of the TFC tree can drop."""
+    out = set()
+    data = os.path.join(tfc, 'src/generated/resources/data')
+    for ns in sorted(os.listdir(data)):
+        for dp, _, fs in os.walk(os.path.join(data, ns, 'loot_table')):
+            for f in fs:
+                if f.endswith('.json'):
+                    text = open(os.path.join(dp, f)).read()
+                    out |= {m.split(':', 1)[1] for m in re.findall(r'"name"\s*:\s*"(minecraft:[a-z0-9_/]+)"', text)}
+    return out
+
+VANILLA_INPUT_KEYS = ('key', 'ingredient', 'ingredients', 'base', 'addition', 'template')
+
+def kept_vanilla_results(tfc, vdir, obtainable):
+    """PAR-PROC-31 (review): the vanilla recipes TFC keeps make blocks in a TFC world too. TFC replaces vanilla's
+    recipe of the same id for every file in its data/minecraft/recipe (66 overrides, 195 removed by neoforge:false)
+    and filters no other recipe, so every other vanilla recipe stays active. Such a recipe makes its result in a TFC
+    world when every input is obtainable there: a minecraft: item an active TFC recipe makes or a TFC loot table drops
+    (or the result of another such kept recipe, iterated to a fixpoint), or a vanilla item tag TFC extends
+    (data/minecraft/tags/item). At c3b4d953 with the 1.21.11 dump this gives clay (4 clay_ball: tfc crafting
+    clay_ball_*) and bone_block (9 bone_meal: tfc quern/bone_meal). Mirrored by
+    CraftedResultsNotRepurposedTest.KEPT_VANILLA, which pins the result."""
+    data = os.path.join(tfc, 'src/generated/resources/data')
+    replaced = set(os.listdir(os.path.join(data, 'minecraft', 'recipe')))
+    tags = {os.path.relpath(os.path.join(dp, f), os.path.join(data, 'minecraft', 'tags', 'item'))[:-5]
+            for dp, _, fs in os.walk(os.path.join(data, 'minecraft', 'tags', 'item')) for f in fs if f.endswith('.json')}
+    recipes = []
+    for f in sorted(os.listdir(vdir)):
+        if not f.endswith('.json') or f in replaced: continue
+        j = json.load(open(os.path.join(vdir, f)))
+        made = {m.split(':', 1)[1] for m in ids(j, lambda k: 'result' in k)}
+        inputs = set(re.findall(r'"(#?minecraft:[a-z0-9_/]+)"', json.dumps({k: v for k, v in j.items() if k in VANILLA_INPUT_KEYS})))
+        if made and inputs: recipes.append((made, inputs))
+    def ok(x):
+        return x[1:].split(':', 1)[1] in tags if x.startswith('#') else x.split(':', 1)[1] in have
+    have, out = set(obtainable), set()
+    changed = True
+    while changed:
+        changed = False
+        for made, inputs in recipes:
+            if not made <= have and all(ok(x) for x in inputs):
+                out |= made - have; have |= made; changed = True
+    return out
+
 # made by an active TFC recipe of any type, so player-made in a TFC world (PAR-PROC-30: crafting/bricks.json;
 # PAR-PROC-31: barrel, loom, heating, glassworking and TFC's vanilla recipe overrides, read from the checkout)
 TFC_CRAFTED = tfc_recipe_results(tfccheckout)
-# turned into another full cube by vanilla block physics: placed concrete powder hardens next to water
+# made by a vanilla recipe TFC neither removes nor overrides, from inputs a TFC world has (PAR-PROC-31 review)
+TFC_KEPT_VANILLA = kept_vanilla_results(tfccheckout, vanillarecipes, TFC_CRAFTED | tfc_loot_items(tfccheckout))
+print('kept vanilla recipe results:', ' '.join(sorted(TFC_KEPT_VANILLA)), file=sys.stderr)
+TFC_CRAFTED = TFC_CRAFTED | TFC_KEPT_VANILLA
+# turned into another full cube by vanilla block physics: placed concrete powder hardens next to water. Only this one
+# is derived today; a later port that makes e.g. copper blocks (oxidation) or mud (packed mud) must extend this set
+# and the derivation loop in CraftedResultsNotRepurposedTest.recipeResults.
 TFC_DERIVED = {f'{c}_concrete' for c in COLORS if f'{c}_concrete_powder' in TFC_CRAFTED}
 # a vanilla block TFC's world generates or a TFC recipe makes; never a repurposed visual state
 # (guarded by tools/datagen/src/test/java/dev/tfp/datagen/visuals/CraftedResultsNotRepurposedTest.java)
