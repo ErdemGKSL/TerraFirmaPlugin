@@ -240,6 +240,13 @@ Status legend: **done** (rules, glue and visuals in game), **partial** (some lay
 | CLIMATE | BiomeBasedClimateModel, ClimateModels, SelectClimateModelEvent (climate outside the TFC overworld) | not started | PAR-CLIM-11 |
 | DATA | Vanilla rule hooks (onFluidPlaceBlock, SnowLayerBlockMixin, HeightmapMixin, VineBlockMixin, TadpoleMixin, onServerChat, onMount, MobMixin, BarteringItem, onFluidCreateSource, onCropsGrow) | not started | PAR-DATA-14 |
 | DATA | TFCCreativeTabs (10 creative tabs) | impossible-on-vanilla | PAR-DATA-15 |
+| WORLD | Rock layer settings and rock settings (RockLayerSettings layer walk, rock_settings per rock: sand, sandstone, gravel, karst, mafic; KarstSurfaceRocks) | placeholder | PAR-WORLD-23 |
+| WORLD | Noise and noodle caves (ChunkNoiseFiller noiseCaves/noodle*, density_function noise_caves, noodle_*; surface over carved blocks) | not started | PAR-WORLD-24 |
+| PHYS | Isolated raw rock breaking (WorldTracker isolated positions, breaks_when_isolated, onBlockPlace) | partial | PAR-PHYS-06 |
+| HUD | Health bar highlight, absorption surplus bar, thirst overheat tint (IngameOverlays.renderHealthBar, renderThirst) | not started | PAR-HUD-19 |
+| HUD | Ink splatter overlay (IngameOverlays.INK, ink_splatter.png, glow_ink_splatter.png) | not started | PAR-HUD-20 |
+| FAUNA | Familiarity readout while sneak-looking at an animal (IngameOverlays.FAMILIARITY, displayFamiliarityAsPercent) | not started | PAR-FAUNA-22 |
+| GATHER | Groundcover placement from vanilla items and snow-pile placement from the snow item (InteractionManager, BlockItemPlacement, SnowPileBlock.placeSnowPile) | not started | PAR-GATHER-07 |
 
 ## Features already at parity (no open item)
 
@@ -283,4 +290,4 @@ Auditor: `NOT-PARITY.md` is the full list of what stays outside parity (design d
 | Create TFC world screen (CreateTFCWorldScreen) | client screen | bukkit.yml generator + config | PAR-WORLD-16, PAR-WORLD-22 |
 | Creative mode tabs (TFCCreativeTabs) | client creative inventory | CraftEngine item browser categories in TFC's order | PAR-DATA-15 |
 
-Counts over the item rows: done 4, impossible-on-vanilla 3, not started 70, partial 139, placeholder 11.
+Counts over the item rows: done 4, impossible-on-vanilla 3, not started 75, partial 140, placeholder 12.

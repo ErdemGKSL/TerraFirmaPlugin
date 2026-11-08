@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 290 items; open 208, done 78, blocked 4; waves 1..56 (wave 0 = already done).
+Totals: 303 items; open 216, done 83, blocked 4; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -63,6 +63,7 @@ Totals: 290 items; open 208, done 78, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-INFRA-15 | Ore overlay datagen: ores take the host rock visual, overlay item models, always-on allocator rule, profiles level-0..2 only | INFRA | 6 | done |
 | PAR-INFRA-32 | Renderer-cube mining time: TFC break time independent of the client's swing rate, measured on a full-speed client | INFRA | 6 | done |
 | PAR-INFRA-33 | CE block sound volume and pitch: hit and level-event break sounds at the TFC SoundType's values, devices too | INFRA | 6 | done |
+| PAR-PHYS-06 | Isolated raw rock pops: a placed #breaks_when_isolated block with no supporting neighbour breaks and drops itself (WorldTracker isolated check) | PHYS | 6 | open |
 | PAR-PROC-03 | Advanced crafting: TFC advanced recipes, food combining, casting crafting, vanilla recipe leakage | PROC | 7 | done |
 | PAR-PROC-04 | Quern: block, handstone, grinding, GUI-less interaction | PROC | 7 | done |
 | PAR-PROC-05 | Scraping hides on a log | PROC | 7 | done |
@@ -109,6 +110,7 @@ Totals: 290 items; open 208, done 78, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-FLUID-09 | Bucket in-game verification: fill a wooden bucket from a river and place it | FLUID | 10 | open |
 | PAR-HEAT-01 | Item heat glow: hot items glow by heat level on vanilla clients | HEAT | 10 | open |
 | PAR-HEAT-02 | Heat tooltip in TFC colours and metal info lines (melting point, workable, weldable) | HEAT | 10 | open |
+| PAR-HUD-19 | Health and thirst bar states: hurt/regeneration glow, absorption in the fill and the yellow surplus bar, thirst overheat tint | HUD | 10 | open |
 | PAR-SURV-09 | Death, respawn and regeneration rules | SURV | 10 | open |
 | PAR-INFRA-43 | Button and mud carriers vs our worldgen placeholders: no small-ground-piece or charcoal-pile carrier draws over placed loose-rock, stick or mud placeholders | INFRA | 10 | open |
 | PAR-CLIM-01 | Calendar config, sleep skipping and doDaylightCycle sync | CLIMATE | 11 | open |
@@ -160,8 +162,10 @@ Totals: 290 items; open 208, done 78, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-POT-01 | Placed items: put up to four items on the ground (and the straw/log stages of a pit kiln) | POTTERY | 21 | open |
 | PAR-PROC-12 | Panning | PROC | 21 | open |
 | PAR-WORLD-10 | Wood blocks: logs, wood, stripped, leaves, saplings as CE blocks | WORLD | 21 | open |
+| PAR-WORLD-24 | Noise and noodle caves: TFC's density caves (cave cheese, cave layer, spaghetti, pillars, noodles) in the terrain fill, and the surface over carved blocks | WORLD | 21 | open |
 | PAR-GATHER-03 | Tree felling: the whole tree falls when the trunk is cut with an axe | GATHER | 22 | open |
 | PAR-GATHER-04 | Leaves: slow decay, movement slowdown, fallen leaves; plant movement slowdown | GATHER | 22 | open |
+| PAR-GATHER-07 | Item placement interactions: vanilla stick, bone, feather, flint, rotten flesh and salt place as TFC groundcover; a snow item over plants places a snow pile | GATHER | 22 | open |
 | PAR-PHYS-04 | Support beams: blocks, connections, collapse prevention | PHYS | 22 | open |
 | PAR-PROC-13 | Sluice | PROC | 22 | open |
 | PAR-INFRA-29 | Loot delegation check: loose rocks and leaves drop by their TFC tables in the self-test | INFRA | 22 | open |
@@ -198,6 +202,7 @@ Totals: 290 items; open 208, done 78, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-METAL-04 | Anvil plan selection GUI | METAL | 29 | open |
 | PAR-METAL-08 | Charcoal forge block entity: creation from a charcoal pile, lighting, continuous heating of held items | METAL | 29 | open |
 | PAR-SURV-11 | Item size in-game check: anvil refused by a chest, two anvils overburden, size tooltip | SURV | 29 | open |
+| PAR-WORLD-23 | TFC rock layers: the rock layer settings walk and per-rock rock settings replace PlaceholderRocks (rock stacking, sand colour, karst surface rocks) | WORLD | 29 | open |
 | PAR-FARM-05 | Wild crops and spreading crops (pumpkin, melon), rotten pumpkins | FARM | 30 | open |
 | PAR-FARM-07 | Spreading bushes, canes and cranberries | FARM | 30 | open |
 | PAR-METAL-05 | Anvil forging GUI: step buttons, target and progress markers, hammering, forging bonus | METAL | 30 | open |
@@ -250,10 +255,12 @@ Totals: 290 items; open 208, done 78, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-FAUNA-08 | Livestock AI and roster: graze, follow food, herd; all 18 domestic species | FAUNA | 42 | open |
 | PAR-FAUNA-09 | Prey AI and wild animals | FAUNA | 42 | open |
 | PAR-FAUNA-11 | Aquatic animals: fish, squid, jellyfish, dolphins, orcas, manatees; mob buckets | FAUNA | 42 | open |
+| PAR-FAUNA-22 | Familiarity readout: sneak-looking at a TFC animal within 5 blocks shows its familiarity and pregnancy on the action bar (NP-UI-01 substitute for IngameOverlays.FAMILIARITY) | FAUNA | 42 | open |
 | PAR-FAUNA-07 | Nest box: laying, hatching, GUI | FAUNA | 43 | open |
 | PAR-FAUNA-10 | Predator AI: hunting, home range, sleep schedule, packs | FAUNA | 43 | open |
 | PAR-FAUNA-12 | Amphibians: turtles, penguins, seals, crocodiles, frogs (play dead, land/water) | FAUNA | 43 | open |
 | PAR-FAUNA-13 | Pests and critters: rats raiding containers, lobsters, crayfish, isopods | FAUNA | 43 | open |
+| PAR-HUD-20 | Ink splatter: the full-screen ink and glow-ink overlay while the player has tfc:ink / tfc:glow_ink (squid and octopoteuthis hits) | HUD | 43 | open |
 | PAR-FAUNA-14 | Pets: dogs and cats with commands | FAUNA | 44 | open |
 | PAR-FAUNA-15 | Horses, donkeys and mules: riding, breeding, chests | FAUNA | 44 | open |
 | PAR-FAUNA-17 | Hunting drops, butchering, hides | FAUNA | 44 | open |
