@@ -107,7 +107,7 @@ Totals: 314 items; open 219, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-FLUID-06 | River current in-game verification: a boat and a dropped item drift downstream | FLUID | 10 | done |
 | PAR-FLUID-07 | Open-water drinking reads WorldWaterService: salt water in every salty TFC biome, river water fresh | FLUID | 10 | done |
 | PAR-FLUID-08 | Bucket config keys in config.yml and the bucket look after every fill | FLUID | 10 | done |
-| PAR-FLUID-09 | Bucket in-game verification: fill a wooden bucket from a river and place it | FLUID | 10 | open |
+| PAR-FLUID-09 | Bucket in-game verification: fill a wooden bucket from a river and place it | FLUID | 10 | done |
 | PAR-HEAT-01 | Item heat glow: hot items glow by heat level on vanilla clients | HEAT | 10 | done |
 | PAR-HEAT-02 | Heat tooltip in TFC colours and metal info lines (melting point, workable, weldable) | HEAT | 10 | open |
 | PAR-HUD-19 | Health and thirst bar states: hurt/regeneration glow, absorption in the fill and the yellow surplus bar, thirst overheat tint | HUD | 10 | open |
@@ -124,6 +124,7 @@ Totals: 314 items; open 219, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-HEAT-14 | Item bars: the heat bar on hot items (TFC BarSystem HEAT) as a packet-time durability-style bar, with the shared item-bar layer | HEAT | 11 | open |
 | PAR-PROC-11 | Composter | PROC | 11 | open |
 | PAR-CLIM-03 | Snow and ice accumulation: lazy-vs-stepped equivalence and server check | CLIMATE | 12 | open |
+| PAR-FLUID-13 | Bucket double-use guard keyed on day time: buckets stop working when the daylight cycle is off | FLUID | 12 | open |
 | PAR-DATA-16 | Pistons cannot move water sources: 1-tick piston pulses drop the water of waterlogged blocks (TFC's MC-130183 fix) | DATA | 12 | open |
 | PAR-HEAT-04 | Heating recipes on devices: the 884 heating recipes as a shared service | HEAT | 12 | open |
 | PAR-HEAT-05 | Fire starting: firestarter use-duration, flint and pyrite, StartFireEvent world rules | HEAT | 12 | open |
