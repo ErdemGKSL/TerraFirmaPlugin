@@ -2,7 +2,7 @@
 id: PAR-PROC-22
 title: "Basket: TFC's bundle item (TFCBundleItem) with its size limits"
 area: PROC
-status: open
+status: done
 wave: 9
 deps: [PAR-PROC-19, PAR-SURV-06]
 size: S
@@ -23,6 +23,7 @@ in_game_steps:
   - "Put small items in the basket by clicking them onto it; screenshot the bundle tooltip; try a large item (refused)"
 plan:
   - "TFCItems.BASKET is new TFCBundleItem(...BUNDLE_CONTENTS EMPTY): a vanilla bundle that only takes items TFC's size rules allow. Generate tfp:basket on a bundle material with bundle_contents and TFC's model; enforce TFC's size limit in a Paper listener (ItemSizes from PAR-SURV-06). Once the CE item exists the coverage gate (dev.tfp.datagen.material.ItemCoverage) reads it from basket.yml; its PAR-PROC-22 owner rule stays harmless."
+  - "Done: datagen dev.tfp.datagen.basket.BasketItem writes tfp:basket (configuration/basket.yml: material bundle, components minecraft:bundle_contents [], TFC model/texture, stack 1 from item_size/basket, names in assets/tfp_basket/lang); the coverage report maps tfc:basket to ce:basket.yml. The size limit is PAR-SURV-06's ContainerSizeListener bundle rule (matches any bundle-material item, so no new listener). Tests: BasketItemTest (3), BasketMockBukkitTest (3). Ledger: feature row + 2 divergences (creative inventory unchecked, 1.21.4+ bundle UI). In-game screenshot check: the item's in_game_steps, docs/verification/PAR-PROC-22/ (screenshot stage)."
 tests:
   - "tools/datagen: tfp:basket exists with bundle_contents; the coverage report names basket.yml"
   - "paper: a too-large item is refused (MockBukkit)"

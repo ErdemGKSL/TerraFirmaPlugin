@@ -100,7 +100,7 @@ Totals: 303 items; open 216, done 83, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-FLUID-03 | Salt water, spring water and river water in the world | FLUID | 9 | done |
 | PAR-HUD-16 | HUD season per player: tfp_season follows the viewer's hemisphere (southern players see the opposite month's name) | HUD | 9 | open |
 | PAR-PROC-08 | Barrel block: fluids, sealing, sealed and instant recipes, preservation | PROC | 9 | open |
-| PAR-PROC-22 | Basket: TFC's bundle item (TFCBundleItem) with its size limits | PROC | 9 | open |
+| PAR-PROC-22 | Basket: TFC's bundle item (TFCBundleItem) with its size limits | PROC | 9 | done |
 | PAR-SURV-08 | Alcohol and intoxication | SURV | 9 | open |
 | PAR-SURV-12 | Dehydration self-test: a tfp:dehydration hit through the registry, armour reduces it | SURV | 9 | open |
 | PAR-FLUID-04 | Hot spring healing and bubble columns | FLUID | 10 | open |
