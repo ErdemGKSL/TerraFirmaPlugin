@@ -54,7 +54,7 @@ import org.mockbukkit.mockbukkit.world.WorldMock;
 class IsolatedMockBukkitTest extends MockServerTest {
     private static final String RAW = "tfp:rock/raw/granite";
     private static final String LOOSE = "tfp:rock/loose/granite";
-    /** TFC's generated {@code data/tfc/loot_table/blocks/rock/raw/granite.json} (datagen renames tfc: to tfp:). */
+    /** TFC's {@code src/main/resources/data/tfc/loot_table/blocks/rock/raw/granite.json} (datagen renames tfc: to tfp:). */
     private static final String RAW_GRANITE_TABLE = "{\"type\":\"minecraft:block\",\"pools\":[{\"name\":\"loot_pool\","
             + "\"rolls\":1,\"entries\":[{\"type\":\"minecraft:alternatives\",\"children\":[{\"type\":\"minecraft:item\","
             + "\"name\":\"tfc:rock/raw/granite\",\"conditions\":[{\"condition\":\"tfc:is_isolated\"}]},"
