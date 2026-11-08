@@ -26,3 +26,4 @@ dev.tfp.paper.isolated.IsolatedModule
 dev.tfp.paper.barrel.BarrelModule
 dev.tfp.paper.intox.IntoxicationModule
 dev.tfp.paper.worldwater.hot.HotSpringModule
+dev.tfp.paper.heat.HeatGlowModule

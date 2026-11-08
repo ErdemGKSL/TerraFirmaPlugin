@@ -2,7 +2,7 @@
 id: PAR-HEAT-01
 title: "Item heat glow: hot items glow by heat level on vanilla clients"
 area: HEAT
-status: open
+status: done
 wave: 10
 deps: []
 size: M
@@ -24,6 +24,8 @@ plan:
   - "Datagen wraps every heatable item's 1.21.4 item model definition in a `range_dispatch` on `custom_model_data` floats[0] with one tinted/emissive variant per heat level (craftengine-visuals-pack skill)."
   - "Outgoing item packets (the PAR-INFRA-05 pipeline or a sibling decoration) set custom_model_data floats[0] = level index from the lazy temperature; stripped on creative return."
   - "Level at send time only (TFC recolours every frame): divergence row."
+  - "Implementation note: the CE item entries stay unchanged (CE generates the plain `items/<path>.json`); datagen writes a separate definition `items/heat_glow/<path>.json` (the range_dispatch, one constant-tinted white mask of the item texture per glowing level) and the packet copy of a hot stack gets `item_model` = that definition plus floats[0] = level ordinal + 1; the original `item_model` is kept in the `tfp:heat_glow` custom_data marker and restored on creative return."
+  - "Done: datagen `heat/HeatGlowModels` (550 heatable CE items: masks, mask models, range_dispatch definitions, `visuals/heat_glow.json`, `reports/heat_glow.json`); paper `heat/HeatGlow`, `HeatGlowData`, `HeatGlowHandler` (packet handler `heat-glow`), `HeatGlowModule` (feature module `heat_glow`). Tests: datagen HeatGlowModelsTest 4, paper HeatGlowTest 9; :core:test :paper:test :tools:datagen:test green. Ledger: feature row + 4 divergences. Verification: pass, docs/verification/PAR-HEAT-01/."
 tests:
   - "tools/datagen: every heatable item model has the dispatch"
   - "paper: NBT-level float written and stripped"

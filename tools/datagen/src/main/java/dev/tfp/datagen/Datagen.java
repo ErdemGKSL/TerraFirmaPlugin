@@ -133,6 +133,7 @@ public final class Datagen {
         if (dev.tfp.datagen.crafting.CraftingRecipes.available(tfc)) { // PAR-PROC-02: plain workbench recipes as CE YAML; after every CE item and CommonTags
             dev.tfp.datagen.crafting.CraftingRecipes.run(tfc, out);
         }
+        dev.tfp.datagen.heat.HeatGlowModels.run(out); // PAR-HEAT-01: heat glow item model definitions; after every CE item and CommonTags
         out.put("third-party.json", "[]\n"); // no non-EUPL file is copied yet (checked by :checkNotice)
         out.put("reports/datagen-summary.json", Json.write(report.toJson()));
         out.put(Manifest.FILE, Manifest.build(tfc.head(), tfc.inputs(), out.files()));
