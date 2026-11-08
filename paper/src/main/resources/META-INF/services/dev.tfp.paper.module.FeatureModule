@@ -22,3 +22,4 @@ dev.tfp.paper.itemsize.ItemSizeModule
 dev.tfp.paper.tabs.PlayerTabsModule
 dev.tfp.paper.worldwater.WorldWaterModule
 dev.tfp.paper.bucket.BucketModule
+dev.tfp.paper.isolated.IsolatedModule

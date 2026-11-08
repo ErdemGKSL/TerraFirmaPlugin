@@ -63,7 +63,7 @@ Totals: 303 items; open 216, done 83, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-INFRA-15 | Ore overlay datagen: ores take the host rock visual, overlay item models, always-on allocator rule, profiles level-0..2 only | INFRA | 6 | done |
 | PAR-INFRA-32 | Renderer-cube mining time: TFC break time independent of the client's swing rate, measured on a full-speed client | INFRA | 6 | done |
 | PAR-INFRA-33 | CE block sound volume and pitch: hit and level-event break sounds at the TFC SoundType's values, devices too | INFRA | 6 | done |
-| PAR-PHYS-06 | Isolated raw rock pops: a placed #breaks_when_isolated block with no supporting neighbour breaks and drops itself (WorldTracker isolated check) | PHYS | 6 | open |
+| PAR-PHYS-06 | Isolated raw rock pops: a placed #breaks_when_isolated block with no supporting neighbour breaks and drops itself (WorldTracker isolated check) | PHYS | 6 | done |
 | PAR-PROC-03 | Advanced crafting: TFC advanced recipes, food combining, casting crafting, vanilla recipe leakage | PROC | 7 | done |
 | PAR-PROC-04 | Quern: block, handstone, grinding, GUI-less interaction | PROC | 7 | done |
 | PAR-PROC-05 | Scraping hides on a log | PROC | 7 | done |
