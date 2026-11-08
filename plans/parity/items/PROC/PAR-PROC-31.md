@@ -2,7 +2,7 @@
 id: PAR-PROC-31
 title: "Vanilla full-cube blocks made by TFC barrel, loom, heating and glassworking recipes: stop repurposing them; guard over every recipe type"
 area: PROC
-status: open
+status: done
 wave: 9
 deps: [PAR-PROC-30]
 size: S
@@ -24,6 +24,7 @@ plan:
   - "Fix: list every vanilla full-cube result of TFC's barrel/loom/heating/glassworking/other block-making recipes (read the TFC JSON, not by hand), reclassify them tfc_present in the research CSV, the exporter's crafted set (TFC_CRAFTED) and fullcube-states.csv, regenerate content (./gradlew :tools:datagen:generateContent -Ptfc.checkout=/opt/tfc), check every profile still fits its pool (PAR-REL-12 guard), and record any profile that no longer fits as a divergence."
   - "Widen CraftedResultsNotRepurposedTest beyond configuration/crafting/*_recipes.yml so it reads the result ids of every recipe type the TFC tree defines (or that datagen emits), so a new device port cannot bring back a repurposed result."
   - "Update docs/research/block-budget-workarounds.md: it still quotes the terrain-grade supply 664/668 (663/667 after PAR-PROC-30, lower again after this item)."
+  - "Done: the exporter reads every active recipe of every type in the TFC checkout (data/*/recipe, neoforge:false and self-result landslide/collapse recipes skipped) plus concrete from concrete powder; 105 blocks reclassified tfc_present (wool, terracotta, glazed terracotta, concrete powder, concrete, glass, tinted and stained glass, and from TFC's vanilla overrides hay_block, piston, sticky_piston, observer, smithing_table, slime_block). Terrain-grade supply 523 (1.21) / 527 (26); all 12 profiles fit (261 explicit states, solid pool unused). CraftedResultsNotRepurposedTest widened to 3 tests over TFC and emitted recipes of every type and the supply itself; research doc numbers updated; ledger divergence row resolved. No in-game check (ui: false)."
 tests:
   - "tools/datagen visuals: no vanilla block produced by any TFC recipe type is a suppressed (repurposed) block in any profile"
 done_criteria:

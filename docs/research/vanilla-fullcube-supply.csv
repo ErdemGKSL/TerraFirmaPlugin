@@ -25,39 +25,39 @@ birch_log,absent,caveat_minor,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,
 birch_planks,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 birch_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,birch_planks,waterlogged: client fluid (drip particles below unless #impermeable)
 birch_wood,absent,caveat_minor,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,3,3,,axe strip predicted client-side (AxeItem)
-black_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-black_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+black_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+black_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 black_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,black_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-black_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
-black_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-black_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-black_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+black_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
+black_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+black_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+black_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 black_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,black_wool,waterlogged: client fluid (drip particles below unless #impermeable)
 blackstone,nether_end,clean,solid,solid,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,1,1,,
 blackstone_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,blackstone,waterlogged: client fluid (drip particles below unless #impermeable)
 blast_furnace,absent,avoid+caveat_major,solid,solid,8,8,0,0,0,8,0,0,8,8,0,0,0,8,0,0,8,8,0,0,0,8,0,0,8,8,0,0,0,8,0,0,0,0,0,0,,client-interactable (no placement prediction; CE resends sounds) | client light emission (lit=true)
-blue_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-blue_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+blue_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+blue_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 blue_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,blue_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-blue_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
+blue_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
 blue_ice,tfc_present,avoid,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,client movement: friction 0.989
-blue_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-blue_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-blue_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+blue_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+blue_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+blue_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 blue_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,blue_wool,waterlogged: client fluid (drip particles below unless #impermeable)
 bone_block,absent,clean,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,3,3,,
 bookshelf,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 brain_coral_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 brick_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,bricks,waterlogged: client fluid (drip particles below unless #impermeable)
 bricks,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
-brown_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-brown_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+brown_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+brown_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 brown_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,brown_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-brown_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
+brown_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
 brown_mushroom_block,ce_used,-,solid,solid,64,64,64,0,0,0,0,0,64,64,64,0,0,0,0,0,64,64,64,0,0,0,0,0,64,64,64,0,0,0,0,0,0,0,0,0,,
-brown_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-brown_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-brown_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+brown_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+brown_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+brown_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 brown_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,brown_wool,waterlogged: client fluid (drip particles below unless #impermeable)
 bubble_coral_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 budding_amethyst,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,crystal step chime (tag-controlled)
@@ -120,13 +120,13 @@ cut_red_sandstone,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0
 cut_red_sandstone_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,cut_red_sandstone,waterlogged: client fluid (drip particles below unless #impermeable)
 cut_sandstone,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 cut_sandstone_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,cut_sandstone,waterlogged: client fluid (drip particles below unless #impermeable)
-cyan_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-cyan_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+cyan_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+cyan_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 cyan_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,cyan_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-cyan_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
-cyan_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-cyan_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-cyan_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+cyan_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
+cyan_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+cyan_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+cyan_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 cyan_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,cyan_wool,waterlogged: client fluid (drip particles below unless #impermeable)
 dark_oak_leaves,ce_used,-,cutout_mipped,cutout,28,28,28,0,0,0,0,0,28,28,28,0,0,0,0,0,28,28,28,0,0,0,0,0,28,28,28,0,0,0,0,0,0,0,0,0,,
 dark_oak_log,absent,caveat_minor,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,3,3,,axe strip predicted client-side (AxeItem)
@@ -179,7 +179,7 @@ flowering_azalea_leaves,ce_used,-,cutout_mipped,cutout,28,28,28,0,0,0,0,0,28,28,
 frosted_ice,absent,avoid,translucent,translucent,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,0,0,0,0,,"client movement: friction 0.98, melts"
 furnace,absent,avoid+caveat_major,solid,solid,8,8,0,0,0,8,0,0,8,8,0,0,0,8,0,0,8,8,0,0,0,8,0,0,8,8,0,0,0,8,0,0,0,0,0,0,,client-interactable (no placement prediction; CE resends sounds) | client light emission (lit=true)
 gilded_blackstone,nether_end,clean,solid,solid,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,1,1,,
-glass,absent,avoid,cutout,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+glass,tfc_present,avoid,cutout,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
 glowstone,nether_end,avoid,solid,solid,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,0,0,0,0,,client light emission
 gold_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 gold_ore,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
@@ -187,23 +187,23 @@ granite,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0
 granite_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,granite,waterlogged: client fluid (drip particles below unless #impermeable)
 grass_block,absent,caveat_minor,cutout_mipped,cutout,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,2,2,2,2,,snowy=true predicted by client neighbour update
 gravel,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported
-gray_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-gray_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+gray_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+gray_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 gray_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,gray_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-gray_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
-gray_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-gray_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-gray_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+gray_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
+gray_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+gray_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+gray_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 gray_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,gray_wool,waterlogged: client fluid (drip particles below unless #impermeable)
-green_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-green_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+green_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+green_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 green_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,green_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-green_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
-green_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-green_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-green_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+green_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
+green_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+green_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+green_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 green_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,green_wool,waterlogged: client fluid (drip particles below unless #impermeable)
-hay_block,absent,clean,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,3,3,,
+hay_block,tfc_present,clean,solid,solid,3,3,0,0,0,0,0,3,3,3,0,0,0,0,0,3,3,3,0,0,0,0,0,3,3,3,0,0,0,0,0,3,0,0,0,0,,
 honey_block,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,"client movement: speed/jump 0.4/0.5, slide"
 honeycomb_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 horn_coral_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
@@ -227,39 +227,39 @@ jungle_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0
 jungle_wood,absent,caveat_minor,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,3,3,,axe strip predicted client-side (AxeItem)
 lapis_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 lapis_ore,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
-light_blue_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-light_blue_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+light_blue_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+light_blue_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 light_blue_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,light_blue_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-light_blue_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
-light_blue_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-light_blue_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-light_blue_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+light_blue_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
+light_blue_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+light_blue_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+light_blue_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 light_blue_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,light_blue_wool,waterlogged: client fluid (drip particles below unless #impermeable)
-light_gray_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-light_gray_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+light_gray_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+light_gray_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 light_gray_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,light_gray_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-light_gray_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
-light_gray_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-light_gray_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-light_gray_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+light_gray_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
+light_gray_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+light_gray_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+light_gray_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 light_gray_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,light_gray_wool,waterlogged: client fluid (drip particles below unless #impermeable)
-lime_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-lime_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+lime_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+lime_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 lime_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,lime_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-lime_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
-lime_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-lime_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-lime_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+lime_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
+lime_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+lime_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+lime_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 lime_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,lime_wool,waterlogged: client fluid (drip particles below unless #impermeable)
 lodestone,nether_end,clean,solid,solid,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,1,1,,
 loom,absent,caveat_major,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,0,0,0,0,,client-interactable (no placement prediction; CE resends sounds)
-magenta_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-magenta_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+magenta_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+magenta_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 magenta_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,magenta_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-magenta_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
-magenta_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-magenta_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-magenta_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+magenta_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
+magenta_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+magenta_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+magenta_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 magenta_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,magenta_wool,waterlogged: client fluid (drip particles below unless #impermeable)
 magma_block,nether_end,avoid,solid,solid,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,0,0,0,0,,client light emission
 mangrove_leaves,ce_used,-,cutout_mipped,cutout,28,28,28,0,0,0,0,0,28,28,28,0,0,0,0,0,28,28,28,0,0,0,0,0,28,28,28,0,0,0,0,0,0,0,0,0,,
@@ -293,17 +293,17 @@ oak_log,absent,caveat_minor,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,
 oak_planks,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 oak_slab,ce_used,-,solid,solid,6,2,2,0,0,0,0,0,6,2,2,0,0,0,0,0,6,2,2,0,0,0,0,0,6,2,2,0,0,0,0,0,0,0,0,0,oak_planks,
 oak_wood,absent,caveat_minor,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,3,3,,axe strip predicted client-side (AxeItem)
-observer,absent,caveat_minor,solid,solid,12,12,0,0,0,12,0,0,12,12,0,0,0,12,0,0,12,12,0,0,0,12,0,0,12,12,0,0,0,12,0,0,12,12,12,12,,vanilla redstone dust connects to it client-side
+observer,tfc_present,caveat_minor,solid,solid,12,12,0,0,0,0,0,12,12,12,0,0,0,0,0,12,12,12,0,0,0,0,0,12,12,12,0,0,0,0,0,12,0,0,0,0,,vanilla redstone dust connects to it client-side
 obsidian,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,vanilla mechanic can create it: formed by lava+water (intercept BlockFormEvent)
 ochre_froglight,absent,avoid,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,0,0,0,0,,client light emission
-orange_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-orange_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+orange_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+orange_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 orange_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,orange_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-orange_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
+orange_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
 orange_poplar_leaves,ce_used,-,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,28,28,0,0,0,0,0,0,0,0,0,,
-orange_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-orange_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-orange_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+orange_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+orange_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+orange_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 orange_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,orange_wool,waterlogged: client fluid (drip particles below unless #impermeable)
 oxidized_chiseled_copper,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,axe scrape / honeycomb wax predicted client-side | created by vanilla oxidation of a lower stage
 oxidized_copper,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,axe scrape / honeycomb wax predicted client-side | created by vanilla oxidation of a lower stage
@@ -321,15 +321,15 @@ pale_oak_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2
 pale_oak_wood,absent,caveat_minor,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,3,3,,axe strip predicted client-side (AxeItem)
 pearlescent_froglight,absent,avoid,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,0,0,0,0,,client light emission
 petrified_oak_slab,ce_used,-,solid,solid,6,2,2,0,0,0,0,0,6,2,2,0,0,0,0,0,6,2,2,0,0,0,0,0,6,2,2,0,0,0,0,0,0,0,0,0,oak_planks,
-pink_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-pink_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+pink_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+pink_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 pink_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,pink_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-pink_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
-pink_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-pink_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-pink_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+pink_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
+pink_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+pink_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+pink_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 pink_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,pink_wool,waterlogged: client fluid (drip particles below unless #impermeable)
-piston,absent,clean,solid,solid,12,6,0,0,0,6,0,0,12,6,0,0,0,6,0,0,12,6,0,0,0,6,0,0,12,6,0,0,0,6,0,0,6,6,6,6,,
+piston,tfc_present,clean,solid,solid,12,6,0,0,0,0,0,6,12,6,0,0,0,0,0,6,12,6,0,0,0,0,0,6,12,6,0,0,0,0,0,6,0,0,0,0,,
 podzol,absent,caveat_minor,solid,solid,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,2,2,2,2,,snowy=true predicted by client neighbour update
 polished_andesite,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 polished_andesite_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,polished_andesite,waterlogged: client fluid (drip particles below unless #impermeable)
@@ -361,13 +361,13 @@ prismarine_brick_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,s
 prismarine_bricks,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 prismarine_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,prismarine,waterlogged: client fluid (drip particles below unless #impermeable)
 pumpkin,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,shears interaction
-purple_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-purple_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+purple_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+purple_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 purple_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,purple_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-purple_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
-purple_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-purple_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-purple_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+purple_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
+purple_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+purple_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+purple_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 purple_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,purple_wool,waterlogged: client fluid (drip particles below unless #impermeable)
 purpur_block,nether_end,clean,solid,solid,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,1,1,,
 purpur_pillar,nether_end,clean,solid,solid,3,3,0,0,0,0,3,0,3,3,0,0,0,0,3,0,3,3,0,0,0,0,3,0,3,3,0,0,0,0,3,0,3,3,3,3,,
@@ -379,10 +379,10 @@ quartz_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0
 raw_copper_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 raw_gold_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 raw_iron_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
-red_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-red_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+red_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+red_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 red_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,red_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-red_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
+red_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
 red_mushroom_block,ce_used,-,solid,solid,64,64,64,0,0,0,0,0,64,64,64,0,0,0,0,0,64,64,64,0,0,0,0,0,64,64,64,0,0,0,0,0,0,0,0,0,,
 red_nether_brick_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,red_nether_bricks,waterlogged: client fluid (drip particles below unless #impermeable)
 red_nether_bricks,nether_end,clean,solid,solid,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,1,1,,
@@ -390,9 +390,9 @@ red_poplar_leaves,ce_used,-,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 red_sand,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; ambient desert sounds 1.21.5+ (tag-controlled)
 red_sandstone,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 red_sandstone_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,red_sandstone,waterlogged: client fluid (drip particles below unless #impermeable)
-red_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-red_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-red_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+red_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+red_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+red_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 red_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,red_wool,waterlogged: client fluid (drip particles below unless #impermeable)
 redstone_block,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,vanilla redstone dust connects to it client-side
 redstone_lamp,absent,avoid+clean,solid,solid,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,1,1,1,1,,client light emission (lit=true)
@@ -411,8 +411,8 @@ sculk,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1
 sculk_catalyst,absent,avoid,solid,solid,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,2,2,0,0,0,2,0,0,0,0,0,0,,client light emission
 sea_lantern,absent,avoid,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,client light emission
 shroomlight,nether_end,avoid,solid,solid,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,0,0,0,0,,client light emission
-slime_block,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,client movement: bounce + friction 0.8
-smithing_table,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,client-interactable (no placement prediction; CE resends sounds)
+slime_block,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,client movement: bounce + friction 0.8
+smithing_table,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,client-interactable (no placement prediction; CE resends sounds)
 smoker,absent,avoid+caveat_major,solid,solid,8,8,0,0,0,8,0,0,8,8,0,0,0,8,0,0,8,8,0,0,0,8,0,0,8,8,0,0,0,8,0,0,0,0,0,0,,client-interactable (no placement prediction; CE resends sounds) | client light emission (lit=true)
 smooth_basalt,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 smooth_quartz,nether_end,clean,solid,solid,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,1,1,1,1,,
@@ -434,7 +434,7 @@ spruce_log,absent,caveat_minor,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0
 spruce_planks,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
 spruce_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,spruce_planks,waterlogged: client fluid (drip particles below unless #impermeable)
 spruce_wood,absent,caveat_minor,solid,solid,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,0,0,0,3,0,0,3,3,3,3,,axe strip predicted client-side (AxeItem)
-sticky_piston,absent,clean,solid,solid,12,6,0,0,0,6,0,0,12,6,0,0,0,6,0,0,12,6,0,0,0,6,0,0,12,6,0,0,0,6,0,0,6,6,6,6,,
+sticky_piston,tfc_present,clean,solid,solid,12,6,0,0,0,0,0,6,12,6,0,0,0,0,0,6,12,6,0,0,0,0,0,6,12,6,0,0,0,0,0,6,0,0,0,0,,
 stone,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,vanilla mechanic can create it: formed by lava+water (intercept BlockFormEvent)
 stone_brick_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,6,2,0,1,1,0,0,0,1,1,1,1,stone_bricks,waterlogged: client fluid (drip particles below unless #impermeable)
 stone_bricks,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
@@ -472,10 +472,10 @@ sulfur_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0
 suspicious_gravel,absent,caveat_major,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,0,0,0,0,,falling-dust particles when unsupported
 suspicious_sand,absent,caveat_major,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,0,0,0,0,,falling-dust particles when unsupported
 target,absent+identity_dup,caveat_minor,solid,solid,16,16,0,15,0,1,0,0,16,16,0,15,0,1,0,0,16,16,0,15,0,1,0,0,16,16,0,15,0,1,0,0,16,16,16,16,,vanilla redstone dust connects to it client-side
-terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
+terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
 test_block,absent,caveat_minor,solid,solid,0,0,0,0,0,0,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,0,4,4,4,,op/creative-only GUI on right-click
 test_instance_block,absent,avoid,solid,solid,0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,BE renderer (ops)
-tinted_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+tinted_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
 tnt,absent+identity_dup,caveat_minor,solid,solid,2,2,0,1,0,1,0,0,2,2,0,1,0,1,0,0,2,2,0,1,0,1,0,0,2,2,0,1,0,1,0,0,2,2,2,2,,flint&steel interaction
 trial_spawner,absent+identity_dup,avoid,cutout,cutout,12,12,0,6,0,6,0,0,12,12,0,6,0,6,0,0,12,12,0,6,0,6,0,0,12,12,0,6,0,6,0,0,0,0,0,0,,client light emission
 tube_coral_block,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
@@ -522,20 +522,20 @@ weathered_copper_grate,ce_used,-,cutout,cutout,2,2,2,0,0,0,0,0,2,2,2,0,0,0,0,0,2
 weathered_cut_copper,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,axe scrape / honeycomb wax predicted client-side | created by vanilla oxidation of a lower stage
 weathered_cut_copper_slab,ce_used,-,solid,solid,6,2,2,0,0,0,0,0,6,2,2,0,0,0,0,0,6,2,2,0,0,0,0,0,6,2,2,0,0,0,0,0,0,0,0,0,weathered_cut_copper,created by vanilla oxidation of a lower stage
 wet_sponge,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,drip particles (animateTick)
-white_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-white_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+white_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+white_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 white_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,white_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-white_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
-white_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-white_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-white_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+white_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
+white_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+white_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+white_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 white_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,white_wool,waterlogged: client fluid (drip particles below unless #impermeable)
-yellow_concrete,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,created by concrete powder + water
-yellow_concrete_powder,absent,caveat_major,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
+yellow_concrete,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,created by concrete powder + water
+yellow_concrete_powder,tfc_present,caveat_major,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,falling-dust particles when unsupported; turns to concrete client-side next to water
 yellow_concrete_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,yellow_concrete,waterlogged: client fluid (drip particles below unless #impermeable)
-yellow_glazed_terracotta,absent,clean,solid,solid,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,0,0,0,4,0,0,4,4,4,4,,
+yellow_glazed_terracotta,tfc_present,clean,solid,solid,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,4,4,0,0,0,0,0,4,0,0,0,0,,
 yellow_poplar_leaves,ce_used,-,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,28,28,0,0,0,0,0,0,0,0,0,,
-yellow_stained_glass,absent,avoid,translucent,translucent,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
-yellow_terracotta,absent,caveat_minor,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,ambient desert sounds 1.21.5+ (tag-controlled)
-yellow_wool,absent,clean,solid,solid,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,1,1,1,1,,
+yellow_stained_glass,tfc_present,avoid,translucent,translucent,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,noOcclusion + translucent layer; light passes (client light mismatch)
+yellow_terracotta,tfc_present,caveat_minor,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,ambient desert sounds 1.21.5+ (tag-controlled)
+yellow_wool,tfc_present,clean,solid,solid,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,0,0,0,,
 yellow_wool_slab,identity_dup+identity_dup_cross,caveat_major+clean,solid,solid,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,2,0,1,1,0,0,0,0,0,0,1,yellow_wool,waterlogged: client fluid (drip particles below unless #impermeable)

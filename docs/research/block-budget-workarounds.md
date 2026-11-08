@@ -36,20 +36,22 @@ The tables below count **extra** opaque full-cube states. States that CE's defau
 | Category | 1.21.4 | 1.21.11 | 26.1.2 | 26.3 |
 |---|---|---|---|---|
 | 1. Identity duplicates (safe even if real vanilla blocks exist) | **126** | **126** | **126** | **165** |
-| 2. Absent-in-TFC-world (vanilla instances must be mapped away) | **471** | **475** | **475** | **496** |
+| 2. Absent-in-TFC-world (vanilla instances must be mapped away) | **330** | **334** | **334** | **355** |
 | 3. Nether/End (needs no vanilla Nether/End) | **67** | **67** | **67** | **67** |
-| **Total terrain-grade extra supply** | **664** | **668** | **668** | **728** |
+| **Total terrain-grade extra supply** | **523** | **527** | **527** | **587** |
 | + CE `solid` pool | 1289 | 1289 | 1489 | 1489 |
-| **= opaque full-cube budget** | **1953** | **1957** | **2157** | **2217** |
+| **= opaque full-cube budget** | **1812** | **1816** | **2016** | **2076** |
 
 Not terrain-grade, listed but not counted above:
 
 | | 1.21.4 | 1.21.11 | 26.1.2 | 26.3 |
 |---|---|---|---|---|
 | Identity dups with a major caveat (waterlogged double slabs 52 (26.3: 91), spruce/birch leaf variants 52, dispenser/dropper/crafter `triggered` 24, jukebox 1) | 129 | 129 | 129 | 168 |
-| Absent blocks with a major caveat (interactable workstations, falling blocks, leaves canonical states, mycelium, wet sponge) | 115 | 115 | 115 | 115 |
-| Avoid (light, movement, BE renderers, glass, redstone ore): identity / absent / nether | 22 / 114 / 9 | 25 / 118 / 9 | 25 / 118 / 9 | 29 / 119 / 9 |
-| Present in a TFC world (bedrock, snow_block, ice family, powder snow, snow) | 7 | 7 | 7 | 7 |
+| Absent blocks with a major caveat (interactable workstations, falling blocks, leaves canonical states, mycelium, wet sponge) | 98 | 98 | 98 | 98 |
+| Avoid (light, movement, BE renderers, redstone ore): identity / absent / nether | 22 / 95 / 9 | 25 / 99 / 9 | 25 / 99 / 9 | 29 / 100 / 9 |
+| Present in a TFC world (worldgen: bedrock, snow_block, ice family, powder snow, snow; made by a TFC recipe, see the note below) | 184 | 184 | 184 | 184 |
+
+**Recipe-made vanilla blocks (PAR-PROC-30, PAR-PROC-31, 2026-11).** A vanilla block that an active TFC recipe makes is player-made in a TFC world, so it is `tfc_present` and never repurposed: bricks (workbench); wool ×16 (barrel dye/bleach, `loom/white_wool.json`); terracotta ×17 (heating, barrel); glazed terracotta ×16 × 4 facings (heating, barrel); concrete powder ×16 (barrel, TFC's `data/minecraft` override) and, through vanilla physics, concrete ×16; glass, tinted glass, stained glass ×16 (glassworking); and from TFC's vanilla recipe overrides hay_block, piston, sticky_piston, observer, smithing_table, slime_block. That moved 141 terrain-grade states per version out of the absent category (663/667 → 523/527 on 1.21.x/26.x families, in the datagen exporter's family intersection). The list is read from the checkout by `tools/datagen/scripts/export_fullcube_states.py` (all `data/*/recipe` types, disabled and self-result recipes skipped) and guarded by `CraftedResultsNotRepurposedTest`. The family tables below (§2.3) still list these blocks as they were found.
 
 Checksum: CE-used + all categories = every full-cube state: 2690 (1.21.4), 2701 (1.21.11), 2901 (26.1.2), 3089 (26.3). [CALC, `research/fc/totals.json`]
 
@@ -90,12 +92,12 @@ Per-block data: `research/vanilla-fullcube-supply.csv` (540 rows, every block wi
 
 Full breakdown (states). c = clean, m = minor caveat, M = major caveat, a = avoid.
 
-| Version | CE-used | Identity c/m/M/a | Absent c/m/M/a | Nether-End c/m/M/a | TFC-present c/a |
+| Version | CE-used | Identity c/m/M/a | Absent c/m/M/a | Nether-End c/m/M/a | TFC-present c/m/M/a |
 |---|---|---|---|---|---|
-| 1.21.4 | 1630 | 90 / 36 / 129 / 22 | 299 / 172 / 115 / 114 | 54 / 13 / 0 / 9 | 2 / 5 |
-| 1.21.11 | 1630 | 90 / 36 / 129 / 25 | 299 / 176 / 115 / 118 | 54 / 13 / 0 / 9 | 2 / 5 |
-| 26.1.2 | 1830 | 90 / 36 / 129 / 25 | 299 / 176 / 115 / 118 | 54 / 13 / 0 / 9 | 2 / 5 |
-| 26.3 | 1914 | 129 / 36 / 168 / 29 | 314 / 182 / 115 / 119 | 54 / 13 / 0 / 9 | 2 / 5 |
+| 1.21.4 | 1630 | 90 / 36 / 129 / 22 | 187 / 143 / 98 / 95 | 54 / 13 / 0 / 9 | 114 / 29 / 17 / 24 |
+| 1.21.11 | 1630 | 90 / 36 / 129 / 25 | 187 / 147 / 98 / 99 | 54 / 13 / 0 / 9 | 114 / 29 / 17 / 24 |
+| 26.1.2 | 1830 | 90 / 36 / 129 / 25 | 187 / 147 / 98 / 99 | 54 / 13 / 0 / 9 | 114 / 29 / 17 / 24 |
+| 26.3 | 1914 | 129 / 36 / 168 / 29 | 202 / 153 / 98 / 100 | 54 / 13 / 0 / 9 | 114 / 29 / 17 / 24 |
 
 - **1.21.4 → 1.21.11:** creaking_heart goes from 12 to 18 states, and the copper bulbs move into the lit/avoid split. These are the +4 absent and +3 identity-avoid states.
 - **26.1:** adds no full cubes, only note_block instruments, which CE uses.
@@ -156,7 +158,7 @@ Largest clean families (1.21.11, states):
 | hay_block, bone_block, muddy_mangrove_roots (3 axes each), carved_pumpkin (4), melon, sponge, dried kelp, honeycomb block, moss, pale moss, sculk, clay, dirt, coarse/rooted dirt, bookshelf, fletching_table, reinforced_deepslate | ~35 | clean. fletching_table is a plain `Block` in 26.3 [JAR] and not in CE's interactable list [SRC]. |
 | grass_block, podzol (snowy × 2) | 6 | minor: the client predicts `snowy` from neighbour updates |
 
-Major-caveat absent blocks (115): interactable workstations (crafting/cartography/smithing table, loom, furnace family `lit=false`, barrel 12, dispenser/dropper 6+6, crafter 36), falling blocks (sand, red sand, gravel, 16 concrete powders, suspicious sand/gravel 4+4: dust particles under them over air), mycelium (constant spore particles), wet_sponge (drips), canonical spruce/birch leaves states, mangrove_roots.
+Major-caveat absent blocks (98): interactable workstations (crafting/cartography table, loom, furnace family `lit=false`, barrel 12, dispenser/dropper 6+6, crafter 36), falling blocks (sand, red sand, gravel, suspicious sand/gravel 4+4: dust particles under them over air), mycelium (constant spore particles), wet_sponge (drips), canonical spruce/birch leaves states, mangrove_roots.
 
 ### 2.4 Nether/End blocks
 
@@ -230,7 +232,7 @@ Rough remaining full-cube demand (INF):
 - soils: ≈ 40;
 - wood: 19 species × (log, stripped log, wood, stripped wood) × 3 axes + planks ≈ 250.
 
-With ores that is **≈ 1600–1650** opaque full cubes, against the 1289 solid pool. The extra supply (668 on 1.21.11, 728 on 26.3) covers the gap, with ~300 left over. Leaves stay in their own pool.
+With ores that is **≈ 1600–1650** opaque full cubes, against the 1289 solid pool. The extra supply (527 on 1.21.11, 587 on 26.3 after PAR-PROC-30/31) covers the gap, with ~150 left over. Leaves stay in their own pool.
 
 **Biggest demand-side lever:** if poor/normal/rich share one texture per ore×rock (or differ only in loose-rock/propick feedback), ore demand drops from 1113 to 609. This is a design divergence; record it in the ledger.
 
@@ -246,7 +248,7 @@ With ores that is **≈ 1600–1650** opaque full cubes, against the 1289 solid 
 | D | **chorus_plant** (63) | ItemsAdder `REAL_TRANSPARENT`, Oraxen/Nexo ChorusBlock | 63 | Odd hitbox, transparency OK. CE pool size is **0** (chorus is unused in CE defaults) | [WEB docs.nexomc.com chorusblock-mechanic] |
 | E | **leaves** distance × persistent × waterlogged | CE leaves pool (117+117), Polymer `TRANSPARENT_BLOCK`/`BIOME_TRANSPARENT_BLOCK` | 28 per type | §5.2 | [WEB Polymer DefaultModelData.java] |
 | F | **other identity-duplicate pools**: anvil facing, sapling stage, cave/weeping/twisting vines age, kelp, sugar cane, cactus, farmland moisture 2–6, sculk sensor power, doors/trapdoors (powered), copper slabs | CE `mappings.yml`, Polymer (`FARMLAND_BLOCK` 5, slabs 5, doors 168 per direction) | see prior report §1.5 | Shape of the source block (not full cube) | [SRC mappings.yml; WEB Polymer DefaultModelData.java] |
-| G | **Explicit repurposing of vanilla full cubes** (this inventory) | CE explicit `state:` | +664…728 terrain-grade | The real vanilla blocks must be mapped away. One model per state | §2 |
+| G | **Explicit repurposing of vanilla full cubes** (this inventory) | CE explicit `state:` | +523…587 terrain-grade | The real vanilla blocks must be mapped away. One model per state | §2 |
 | H | **Display entity on an empty or barrier state** ("furniture-like blocks") | CE `entity_renderer` + `transparent`/barrier, Polymer `requestEmpty` + virtual entities, Filament (Fabric, Polymer-based), ItemsAdder/Oraxen/Nexo furniture | unlimited | One or more entities per block. Polymer docs warn of "much higher client performance cost". CE Community does **no** culling (Premium only). Lighting is sampled at one point (§5.1) | [WEB polymer.pb4.eu; modrinth filament]; [SRC config.yml L812–842; prior report renderers §1.9] |
 | I | **Block-entity renderer abuse**: ItemsAdder `TILE` = spawner rendering a custom-model entity | ItemsAdder | "infinite" | "Textures disappear at a distance, revealing the vanilla spawner texture"; lag with many in view; the ItemsAdder docs say do not use it for ores or worldgen | [WEB wiki.itemsadder.com/adding-content/blocks] |
 | J | **Data-driven registries with renderers**: banner patterns, pot sherds, painting variants | none for full blocks | unlimited textures | Not full cubes (banner and pot shapes). Not applicable to terrain | [INF] |
@@ -433,6 +435,7 @@ The leaves pool is already counted separately: 117 non-waterlogged + 117 waterlo
 - `rendertypes.py`: decode `ItemBlockRenderTypes` with mappings → `research/fc/rendertypes_<ver>.txt`
 - `blockprops.py`: 26.3 `Blocks.<clinit>` + class-override parser → `research/fc/blockprops_26.3.json`
 - `classify.py`: categories and behaviour → `research/vanilla-fullcube-supply.csv`, `research/fc/totals.json`
+- `tools/datagen/scripts/export_fullcube_states.py` (in the repo): the same classification per state, plus the TFC recipe results read from the checkout → `tools/datagen/src/main/resources/dev/tfp/datagen/visuals/fullcube-states.csv`. Args: `<research/fc dir> <mcmeta dir> <out.csv> <TFC checkout>`
 
 ---
 

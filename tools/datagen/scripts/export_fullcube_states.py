@@ -1,11 +1,12 @@
-# Usage: python3 -I export_fullcube_states.py <research/fc dir> <mcmeta dir> <out.csv>
+# Usage: python3 -I export_fullcube_states.py <research/fc dir> <mcmeta dir> <out.csv> <TFC checkout>
 # Per-state export of the vanilla full-cube supply for the datagen visual allocator (M1-DGN-04).
 # Inputs: fc_<ver>.json (fullcube.py), blockprops_26.3.json (blockprops.py), rendertypes_<ver>.txt (rendertypes.py)
-# and misode/mcmeta blocks_<ver>.json, as described in docs/research/block-budget-workarounds.md section 7.
+# and misode/mcmeta blocks_<ver>.json (summary branch, blocks/data.min.json), as described in
+# docs/research/block-budget-workarounds.md section 7, and the TFC checkout at the pinned commit (recipe results).
 # The classification below is the same as the one that produced docs/research/vanilla-fullcube-supply.csv
 # (classify.py); a datagen unit test checks that the per-block counts of both files agree.
 import json, sys, csv, re, collections, os
-fcdir, metadir, outcsv = sys.argv[1], sys.argv[2], sys.argv[3]
+fcdir, metadir, outcsv, tfccheckout = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 VERS = ['1.21.4', '1.21.11', '26.1.2', '26.3']
 fc = {v: json.load(open(f'{fcdir}/fc_{v}.json')) for v in VERS}
 meta = {v: json.load(open(f'{metadir}/blocks_{v}.json')) for v in VERS}
@@ -97,12 +98,48 @@ def behaviour(b, st):
     return 'clean', ''
 
 TFC_WORLDGEN = {'bedrock', 'snow_block', 'ice', 'packed_ice', 'blue_ice', 'powder_snow', 'snow'}  # referenced by TFC worldgen (src/tfc .../world)
-# made by TFC workbench recipes (other recipe types pending), so player-made in a TFC world
-# (PAR-PROC-30: tfc/recipe/crafting/bricks.json gives minecraft:bricks)
-TFC_CRAFTED = {'bricks'}
+
+def tfc_recipe_results(tfc):
+    """Every minecraft: id that an active recipe of the TFC tree gives (PAR-PROC-30/31): all recipe types under
+    src/generated/resources/data/*/recipe (tfc: barrel, loom, heating, glassworking, crafting, ... and TFC's
+    overrides of vanilla recipes in data/minecraft/recipe). Recipes disabled by a neoforge:false condition are
+    skipped, and so are results that are one of the recipe's own ingredients or inputs (tfc:landslide and
+    tfc:collapse move a block that is already there; they make nothing new). Mirrored by
+    tools/datagen/src/test/java/dev/tfp/datagen/visuals/CraftedResultsNotRepurposedTest.java."""
+    out = set()
+    data = os.path.join(tfc, 'src/generated/resources/data')
+    def ids(o, keyfilter):
+        found = set()
+        def walk(o):
+            if isinstance(o, dict):
+                for k, v in o.items():
+                    if keyfilter(k):
+                        found.update(re.findall(r'"(minecraft:[a-z0-9_/]+)"', json.dumps(v)))
+                    walk(v)
+            elif isinstance(o, list):
+                for v in o: walk(v)
+        walk(o)
+        return found
+    for ns in sorted(os.listdir(data)):
+        d = os.path.join(data, ns, 'recipe')
+        for dp, _, fs in os.walk(d):
+            for f in fs:
+                if not f.endswith('.json'): continue
+                j = json.load(open(os.path.join(dp, f)))
+                if any(c.get('type') == 'neoforge:false' for c in j.get('neoforge:conditions', [])): continue
+                made = ids(j, lambda k: 'result' in k or 'output' in k)
+                used = ids(j, lambda k: 'ingredient' in k or 'input' in k or k == 'key')
+                out |= {m.split(':', 1)[1] for m in made - used}
+    return out
+
+# made by an active TFC recipe of any type, so player-made in a TFC world (PAR-PROC-30: crafting/bricks.json;
+# PAR-PROC-31: barrel, loom, heating, glassworking and TFC's vanilla recipe overrides, read from the checkout)
+TFC_CRAFTED = tfc_recipe_results(tfccheckout)
+# turned into another full cube by vanilla block physics: placed concrete powder hardens next to water
+TFC_DERIVED = {f'{c}_concrete' for c in COLORS if f'{c}_concrete_powder' in TFC_CRAFTED}
 # a vanilla block TFC's world generates or a TFC recipe makes; never a repurposed visual state
 # (guarded by tools/datagen/src/test/java/dev/tfp/datagen/visuals/CraftedResultsNotRepurposedTest.java)
-TFC_PRESENT = TFC_WORLDGEN | TFC_CRAFTED
+TFC_PRESENT = TFC_WORLDGEN | TFC_CRAFTED | TFC_DERIVED
 FORMED = {'obsidian': 'formed by lava+water', 'cobblestone': 'formed by lava+water', 'stone': 'formed by lava+water',
           'basalt': 'formed by lava over soul soil next to blue ice', 'snow_block': '', }
 def source_family(b):
