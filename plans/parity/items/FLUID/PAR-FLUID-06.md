@@ -2,7 +2,7 @@
 id: PAR-FLUID-06
 title: "River current in-game verification: a boat and a dropped item drift downstream"
 area: FLUID
-status: open
+status: done
 wave: 10
 deps: [PAR-FLUID-03]
 size: S
@@ -18,6 +18,7 @@ in_game_steps:
   - "summon minecraft:oak_boat on the river surface; drop a stick into the river; record 3 frames 2 s apart (GUI scale 2)"
 plan:
   - "Deferred in-game check of PAR-FLUID-03 (PROTOCOL §6.5): the worker session that built PAR-FLUID-03 had no subagent tool to run the headless server and client, so the screenshot check moved here. Run it on the current branch; a failure is fixed in PAR-FLUID-03's files (`core/.../worldwater/**`, `paper/.../worldwater/**`) through a follow-up."
+  - "Done: PAR-FLUID-06 verification on Paper 1.21.11 + vanilla client (river at x 1456..1480, z 1470..1496): the boat drifts with the ssw/sww flow at 0.126 blocks/tick, the stick at about 0.43 (vanilla item drag), a swimming player keeps x/z; no code change; :core:test :paper:test :tools:datagen:test green; evidence docs/verification/PAR-FLUID-06/"
 tests:
   - "none (in-game check only)"
 done_criteria:

@@ -104,7 +104,7 @@ Totals: 303 items; open 216, done 83, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-SURV-08 | Alcohol and intoxication | SURV | 9 | done |
 | PAR-SURV-12 | Dehydration self-test: a tfp:dehydration hit through the registry, armour reduces it | SURV | 9 | done |
 | PAR-FLUID-04 | Hot spring healing and bubble columns | FLUID | 10 | done |
-| PAR-FLUID-06 | River current in-game verification: a boat and a dropped item drift downstream | FLUID | 10 | open |
+| PAR-FLUID-06 | River current in-game verification: a boat and a dropped item drift downstream | FLUID | 10 | done |
 | PAR-FLUID-07 | Open-water drinking reads WorldWaterService: salt water in every salty TFC biome, river water fresh | FLUID | 10 | open |
 | PAR-FLUID-08 | Bucket config keys in config.yml and the bucket look after every fill | FLUID | 10 | open |
 | PAR-FLUID-09 | Bucket in-game verification: fill a wooden bucket from a river and place it | FLUID | 10 | open |
