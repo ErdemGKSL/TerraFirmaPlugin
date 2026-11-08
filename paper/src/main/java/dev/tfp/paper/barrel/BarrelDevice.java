@@ -208,7 +208,10 @@ public final class BarrelDevice {
             return DeviceResult.pass();
         }
 
-        /** TFC {@code SealableDeviceBlock.beforeRemove}: an unsealed barrel ejects (the slots drop; the fluid splashes). */
+        /**
+         * TFC {@code SealableDeviceBlock.beforeRemove} ejects only an unsealed barrel; here every barrel, sealed or not,
+         * drops its slots and splashes its fluid (the item never carries contents; see the ledger's DROP divergence).
+         */
         @Override
         public void removed(DeviceContext<BarrelData> ctx) {
             BarrelData data = ctx.deviceState();
@@ -313,17 +316,19 @@ public final class BarrelDevice {
 
     /**
      * TFC {@code FluidHelpers.with(player, hand)} after {@code updateContainerItem}: a single held item is replaced by the
-     * container; from a larger stack one item is used and the container goes into the inventory (or drops).
+     * container; from a larger stack one item is used and the container goes into the inventory (or drops). In creative a
+     * single held item stays as it was (TFC skips {@code setItemInHand}); a larger stack still loses one item, because TFC
+     * shrinks {@code originalStack} in place before the creative check.
      */
     static void updateHand(Player player, EquipmentSlot hand, ItemStack held, ItemStack container) {
         if (held.getAmount() <= 1) {
-            player.getInventory().setItem(hand, container);
+            if (player.getGameMode() != GameMode.CREATIVE) {
+                player.getInventory().setItem(hand, container);
+            }
             return;
         }
         ItemStack rest = held.clone();
-        if (player.getGameMode() != GameMode.CREATIVE) {
-            rest.setAmount(held.getAmount() - 1);
-        }
+        rest.setAmount(held.getAmount() - 1);
         player.getInventory().setItem(hand, rest);
         give(player, container);
     }

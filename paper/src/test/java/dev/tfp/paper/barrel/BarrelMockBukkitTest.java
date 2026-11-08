@@ -270,6 +270,24 @@ class BarrelMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void creativeKeepsASingleHeldContainerAndStillShrinksAStack() {
+        // TFC FluidHelpers.with: creative skips setItemInHand; a stack > 1 is shrunk in place before that check
+        player.setGameMode(org.bukkit.GameMode.CREATIVE);
+        hold(new ItemStack(Material.WATER_BUCKET));
+        assertThat(click()).isTrue();
+        assertThat(record().state().fluid()).isEqualTo(new FluidAmount("minecraft:water", 1000));
+        assertThat(held().getType()).as("creative: the held water bucket is unchanged").isEqualTo(Material.WATER_BUCKET);
+        assertThat(held().getAmount()).isEqualTo(1);
+
+        ItemStack two = woodenBucket("tfp:brine", 0);
+        two.setAmount(2);
+        hold(two);
+        // the barrel holds water; two empty wooden buckets: one is filled and given, the held stack loses one
+        assertThat(click()).isTrue();
+        assertThat(held().getAmount()).as("creative still shrinks a larger stack, as TFC").isEqualTo(1);
+    }
+
+    @Test
     void vinegarAddedToSaltWaterMakesBrine() {
         hold(woodenBucket("tfp:salt_water", 900));
         click();
