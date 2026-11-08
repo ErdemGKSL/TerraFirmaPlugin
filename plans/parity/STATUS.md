@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 289 items; open 207, done 78, blocked 4; waves 1..56 (wave 0 = already done).
+Totals: 290 items; open 208, done 78, blocked 4; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -112,6 +112,7 @@ Totals: 289 items; open 207, done 78, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-SURV-09 | Death, respawn and regeneration rules | SURV | 10 | open |
 | PAR-CLIM-01 | Calendar config, sleep skipping and doDaylightCycle sync | CLIMATE | 11 | open |
 | PAR-CLIM-02 | Precipitation per position on Paper and the in-game snow-vs-rain check | CLIMATE | 11 | open |
+| PAR-FLUID-10 | Vanilla bucket from a spring pool gives tfp:bucket/spring_water; waterlogged blocks in oceans give fresh water | FLUID | 11 | open |
 | PAR-HEAT-03 | Hot items: burn damage while held, item entities cool in water and snow | HEAT | 11 | open |
 | PAR-PROC-11 | Composter | PROC | 11 | open |
 | PAR-CLIM-03 | Snow and ice accumulation: lazy-vs-stepped equivalence and server check | CLIMATE | 12 | open |

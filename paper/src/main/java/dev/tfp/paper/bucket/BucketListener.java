@@ -74,8 +74,9 @@ import org.bukkit.util.RayTraceResult;
  *       that holds fluid empties all of it into the world ({@link BucketRules#place}): a transient flowing block unless
  *       the config allows sources ({@link BucketConfig}). Only {@link WorldFluid#placedAs placeable} fluids are placed;
  *       any other fluid stays in the bucket (NP-FLUID-01).</li>
- *   <li>TFC's fluid buckets ({@code tfp:bucket/<fluid>}): the vanilla {@code BucketItem}: a placeable fluid is placed as a
- *       source and the bucket becomes a vanilla empty bucket (kept in creative); any other fluid is refused.</li>
+ *   <li>TFC's fluid buckets ({@code tfp:bucket/<fluid>}, vanilla {@code BucketItem}s in TFC): emptied by the same
+ *       {@code emptyFluidFrom} rules with source placement on ({@link BucketRules#place}): a placeable fluid is placed as
+ *       a source and the bucket becomes a vanilla empty bucket (kept in creative); any other fluid is refused.</li>
  *   <li>A vanilla empty bucket filled from salt water gives {@code tfp:bucket/salt_water}, as TFC's salt water source
  *       gives TFC's salt water bucket.</li>
  * </ul>

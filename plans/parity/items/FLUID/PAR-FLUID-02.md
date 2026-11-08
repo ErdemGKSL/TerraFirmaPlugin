@@ -22,9 +22,10 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
-  - "Wooden bucket (1000 mB, places water only if configured), red steel (lava), blue steel; vanilla bucket behaviour on TFC fluids; in-world placement of non-vanilla fluids refused (divergence: closest vanilla water/lava)."
+  - "Wooden bucket (1000 mB, places water only if configured), red steel (lava), blue steel; TFC fluid buckets empty through the emptyFluidFrom rules with sources on; in-world placement of non-vanilla fluids refused (divergence: closest vanilla water/lava)."
   - "In-game check moved to PAR-FLUID-09 (steps and criterion there): this worker had no subagent tool to delegate the headless server and client run to (CLAUDE.md delegates test runs). The `buckets:` config keys and the bucket look after fills outside the bucket listener (debug fill, block tanks) are PAR-FLUID-08."
   - "Done: core `bucket/BucketKind`, `BucketConfig` (TFC defaults: no source blocks), `WorldFluid` (water/lava pickup; the water kind from PAR-FLUID-03's `WorldWaterService`, else ocean = salt water; water-family fluids place as vanilla water, lava as lava, others refused), `BucketRules` (pickup, TFC `emptyFluidFrom` branch for branch, `FluidHelpers.with` hand update); paper `bucket/BucketModule`, `BucketListener` (source-only ray in the interaction range, PlayerBucketFill/EmptyEvent for protection plugins, TFC sounds, creative and stack split, TFC fluid buckets place a source and return a vanilla bucket, vanilla bucket filled from salt water gives `tfp:bucket/salt_water`), `BucketVisuals` (custom_model_data flag + fluid colour); datagen `bucket/BucketItems` (3 tank buckets with a condition model + 66 `tfp:bucket/<fluid>` items, TFC names). Tests: core BucketRulesTest 13, paper BucketListenerMockBukkitTest 13, datagen BucketItemsTest 4. Ledger: feature row + 6 divergences. Verification: PAR-FLUID-09."
+  - "Unblock round: both reviews accepted; review notes applied (ledger wording on TFC's vanilla BucketItem and the differences from BucketItem.use, water kinds worded as PAR-FLUID-03 says, listener javadoc). Spring-water vanilla bucket and the waterlogged ocean rule split off to PAR-FLUID-10. PAR-FLUID-09 needs a free server slot (the earlier capture was blocked by another agent's wedged server and a nearly full disk)."
 tests:
   - "paper: MockBukkit fill/place"
 done_criteria:
