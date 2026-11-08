@@ -99,7 +99,7 @@ Totals: 303 items; open 216, done 83, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-FLUID-02 | Buckets: wooden bucket, red and blue steel buckets, fluid placement policy | FLUID | 9 | done |
 | PAR-FLUID-03 | Salt water, spring water and river water in the world | FLUID | 9 | done |
 | PAR-HUD-16 | HUD season per player: tfp_season follows the viewer's hemisphere (southern players see the opposite month's name) | HUD | 9 | open |
-| PAR-PROC-08 | Barrel block: fluids, sealing, sealed and instant recipes, preservation | PROC | 9 | open |
+| PAR-PROC-08 | Barrel block: fluids, sealing, sealed and instant recipes, preservation | PROC | 9 | done |
 | PAR-PROC-22 | Basket: TFC's bundle item (TFCBundleItem) with its size limits | PROC | 9 | done |
 | PAR-SURV-08 | Alcohol and intoxication | SURV | 9 | open |
 | PAR-SURV-12 | Dehydration self-test: a tfp:dehydration hit through the registry, armour reduces it | SURV | 9 | open |
@@ -113,6 +113,7 @@ Totals: 303 items; open 216, done 83, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-HUD-19 | Health and thirst bar states: hurt/regeneration glow, absorption in the fill and the yellow surplus bar, thirst overheat tint | HUD | 10 | open |
 | PAR-SURV-09 | Death, respawn and regeneration rules | SURV | 10 | open |
 | PAR-INFRA-43 | Button and mud carriers vs our worldgen placeholders: no small-ground-piece or charcoal-pile carrier draws over placed loose-rock, stick or mud placeholders | INFRA | 10 | open |
+| PAR-PROC-32 | Barrel CE blocks: tfp:wood/barrel/<wood> hitbox demands, configuration/barrel, in-game brining check | PROC | 10 | open |
 | PAR-CLIM-01 | Calendar config, sleep skipping and doDaylightCycle sync | CLIMATE | 11 | open |
 | PAR-CLIM-02 | Precipitation per position on Paper and the in-game snow-vs-rain check | CLIMATE | 11 | open |
 | PAR-FLUID-10 | Vanilla bucket from a spring pool gives tfp:bucket/spring_water; waterlogged blocks in oceans give fresh water | FLUID | 11 | open |

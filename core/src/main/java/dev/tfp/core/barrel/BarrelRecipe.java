@@ -78,8 +78,8 @@ public record BarrelRecipe(String id, int duration, String inputFluid, int input
         final boolean itemOk = inputItem == null
             || (!main.isEmpty() && inputItem.test(main.item()) && main.count() >= inputItemCount);
         final boolean fluidOk = inputFluid.equals(state.fluid().fluid()) && state.fluid().amount() >= inputFluidAmount;
-        final boolean moreFluid = !isInfinite() || inputItem == null
-            || state.fluid().amount() / inputFluidAmount >= main.count() / inputItemCount;
+        final boolean moreFluid = BarrelAssembly.moreFluidThanItems(isInfinite(), state.fluid().amount(), inputFluidAmount,
+            main.count(), inputItem == null ? 0 : inputItemCount);
         return itemOk && fluidOk && moreFluid;
     }
 
@@ -118,16 +118,9 @@ public record BarrelRecipe(String id, int duration, String inputFluid, int input
         final String fluidId = state.fluid().fluid();
         final BarrelStack items = state.main();
 
-        int multiplier = inputItem == null
-            ? fluidIn / inputFluidAmount
-            : Math.min(fluidIn / inputFluidAmount, items.count() / inputItemCount);
-        if (!outputFluid.isEmpty()) {
-            int room = capacity;
-            if (fluidIn > 0 && fluidId.equals(outputFluid)) {
-                room -= fluidIn;
-            }
-            multiplier = Math.min(multiplier, room / outputFluidAmount);
-        }
+        final boolean same = fluidId.equals(outputFluid);
+        final int multiplier = BarrelAssembly.multiplier(fluidIn, inputFluidAmount, items.count(),
+            inputItem == null ? 0 : inputItemCount, outputFluid.isEmpty() ? 0 : outputFluidAmount, same, capacity);
 
         BarrelStack main = BarrelStack.EMPTY;
         if (!outputItem.isEmpty() && outputItemCount * multiplier > 0) {
@@ -135,7 +128,7 @@ public record BarrelRecipe(String id, int duration, String inputFluid, int input
             main = new BarrelStack(outId, outputItemCount * multiplier);
         }
         BarrelStack excess = BarrelStack.EMPTY;
-        final int remainder = items.count() - multiplier * (inputItem == null ? 0 : inputItemCount);
+        final int remainder = BarrelAssembly.remainingItems(items.count(), inputItem == null ? 0 : inputItemCount, multiplier);
         if (remainder > 0) {
             if (main.isEmpty()) {
                 main = new BarrelStack(items.item(), remainder);
@@ -148,15 +141,11 @@ public record BarrelRecipe(String id, int duration, String inputFluid, int input
 
         final FluidAmount fluid;
         if (outputFluid.isEmpty()) {
-            final int retain = fluidIn - multiplier * inputFluidAmount;
+            final int retain = BarrelAssembly.retainedFluid(fluidIn, inputFluidAmount, multiplier);
             fluid = retain > 0 ? new FluidAmount(fluidId, retain) : FluidAmount.EMPTY;
         } else {
-            long amount = (long) outputFluidAmount * multiplier;
-            if (fluidIn > 0 && fluidId.equals(outputFluid)) {
-                amount += fluidIn;
-            }
-            amount = Math.min(capacity, amount);
-            fluid = amount > 0 ? new FluidAmount(outputFluid, (int) amount) : FluidAmount.EMPTY;
+            final int amount = BarrelAssembly.outputFluid(fluidIn, outputFluidAmount, multiplier, same, capacity);
+            fluid = amount > 0 ? new FluidAmount(outputFluid, amount) : FluidAmount.EMPTY;
         }
         return new Assembly(new BarrelState(fluid, main, excess, state.sealed(), state.sealedTick(), state.recipeTick(),
             state.asOf()), multiplier);
