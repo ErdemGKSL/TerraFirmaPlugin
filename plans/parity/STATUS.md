@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 310 items; open 223, done 83, blocked 4; waves 1..56 (wave 0 = already done).
+Totals: 314 items; open 219, done 91, blocked 4; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
