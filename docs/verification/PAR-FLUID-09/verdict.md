@@ -1,7 +1,8 @@
 # PAR-FLUID-09 in-game check: fill a wooden bucket from a river and place it
 
 - Date: 2026-11-08
-- Code: branch HEAD `3a863ae`, jar built from this worktree (`:dist:shadowJar`, shared generated content). The bucket code
+- Code: branch HEAD `3a863ae` (the tested jar was built at `3a863ae`, the parent of the docs-only commit `90add35`
+  that adds this verdict), jar built from this worktree (`:dist:shadowJar`, shared generated content). The bucket code
   (`core/bucket`, `paper/bucket`, `tools/datagen/bucket`) is unchanged since PAR-FLUID-02.
 - Server: Paper 1.21.11 build 132, CraftEngine 26.9.2, BetterModel 3.5.1, BetterHud 2.2.0-SNAPSHOT-449, PacketEvents
   2.14.0, TFP world generator (`spikes/client/server.sh`, `TFP_WORLD=1`, primed and restarted; seed
@@ -9,7 +10,9 @@
 - Client: vanilla 1.21.11 under Xvfb, 1280 x 720, GUI scale 2 (`spikes/client/session.sh`), pack applied 3 s after the join.
 - Run and judged by the worker session itself (no subagent tool was available in this session).
 - `/tick freeze` was used around the fill and the place clicks so the frame shows the world change before vanilla fluid
-  ticks act on it (players still interact while the game is frozen); `/tick unfreeze` right after.
+  ticks act on it (players still interact while the game is frozen); `/tick unfreeze` right after. Each freeze window held exactly one bucket use, so the double-use guard bug
+  filed as PAR-FLUID-13 (a second use at the same frozen game time is rejected) never triggered in this run; that
+  item's statement and this procedure do not contradict each other.
 
 ## Steps
 
