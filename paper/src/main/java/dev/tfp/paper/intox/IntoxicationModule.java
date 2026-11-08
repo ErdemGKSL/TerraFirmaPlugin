@@ -44,7 +44,8 @@ import org.bukkit.event.player.PlayerRespawnEvent;
  *       ({@link ChatSlur}) and sent as plain text, as TFC's {@code Component.literal}. Runs on Paper's async chat
  *       thread: it only reads the store (lock-free) and one clock snapshot, and writes nothing.</li>
  *   <li><b>Death</b>: TFC gives the respawned player a fresh {@code PlayerInfo} (only nutrition may be copied), so a
- *       respawn after a death is sober again. Leaving the End is no death and keeps it.</li>
+ *       respawn after a death is sober again. Leaving the End is no death and keeps it (TFC reads a fresh
+ *       {@code PlayerInfo} there until relog; see the ledger divergence).</li>
  * </ul>
  * TFC has no other effect of intoxication: no nausea or other potion effect (the alcohol drinkable defines none) and no
  * HUD element. Game modes: TFC slurs in every game mode (intoxication is no need that creative turns off); kept.
@@ -88,7 +89,11 @@ public final class IntoxicationModule implements FeatureModule, Listener {
         return service;
     }
 
-    /** Async chat thread: TFC's drunk chat. */
+    /**
+     * Async chat thread: TFC's drunk chat. A slurred message replaces the whole component with plain text (TFC's
+     * {@code Component.literal}), so styling or click events set by chat plugins before this LOW listener are lost
+     * on drunk messages; plugins listening later decorate the slurred text as usual.
+     */
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onChat(AsyncChatEvent event) {
         IntoxicationService s = service;
