@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
@@ -49,6 +50,7 @@ public final class PaperComposterEffects implements ComposterEffects {
     private final Supplier<BlockVisuals> visuals;
     private final Consumer<Block> callback;
     private final ComposterLang lang;
+    private final LongSupplier clock;
     /**
      * Composters with a ripening callback queued, with its due time (wall-clock millis). A request due earlier replaces
      * the queued one (the ready ticks got shorter); the replaced task fires but finds a different due time and does
@@ -67,6 +69,13 @@ public final class PaperComposterEffects implements ComposterEffects {
     /** @param callback calls the device back (the device router's neighbour update) */
     public PaperComposterEffects(Scheduler scheduler, CustomBlocks blocks, Supplier<BlockVisuals> visuals,
             Consumer<Block> callback, ComposterLang lang) {
+        this(scheduler, blocks, visuals, callback, lang, System::currentTimeMillis);
+    }
+
+    /** @param clock wall-clock millis for the due times (tests inject one) */
+    PaperComposterEffects(Scheduler scheduler, CustomBlocks blocks, Supplier<BlockVisuals> visuals,
+            Consumer<Block> callback, ComposterLang lang, LongSupplier clock) {
+        this.clock = Objects.requireNonNull(clock, "clock");
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.visuals = Objects.requireNonNull(visuals, "visuals");
@@ -124,7 +133,7 @@ public final class PaperComposterEffects implements ComposterEffects {
     public void ripenAt(Block block, long ticks) {
         Pending key = Pending.of(block);
         long delay = Math.max(1, ticks);
-        long now = System.currentTimeMillis();
+        long now = clock.getAsLong();
         long due = now + delay * 50L;
         boolean[] queued = {false};
         pending.compute(key, (k, old) -> {
