@@ -38,6 +38,8 @@ import dev.tfp.paper.boot.TfpCommands;
 import dev.tfp.paper.boot.TfpCommands.Reply;
 import dev.tfp.paper.config.ConfigService;
 import dev.tfp.paper.data.RegistryService;
+import dev.tfp.paper.hud.HudStyles;
+import dev.tfp.paper.hud.HudStylesHolder;
 import dev.tfp.paper.i18n.Messages;
 import dev.tfp.paper.install.Installer;
 import dev.tfp.paper.install.PackRebuildTrigger;
@@ -851,11 +853,19 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         return "precipitation here: " + type.name();
     }
 
-    /** The climate line of {@code /tfp debug chunk}, the same for a player and for the console. */
+    /** The climate line of {@code /tfp debug chunk}, the same for a player and for the console, in the HUD's unit. */
     private static String climateLine(ClimateReading r) {
+        return climateLine(r, HudStylesHolder.current());
+    }
+
+    /**
+     * The climate line with the temperatures in {@code styles}' unit ({@code hud.climate-temperature-style}, PAR-HUD-18),
+     * as TFC formats every climate temperature with {@code climateTooltipStyle}. Rainfall stays in mm.
+     */
+    static String climateLine(ClimateReading r, HudStyles styles) {
         return r.isKnown()
-                ? "climate now: temperature " + ClimateFormat.temperature(r.temperature())
-                        + ", average " + ClimateFormat.temperature(r.averageTemperature())
+                ? "climate now: temperature " + styles.temperatureText(r.temperature())
+                        + ", average " + styles.temperatureText(r.averageTemperature())
                         + ", rainfall " + ClimateFormat.rainfall(r.rainfall())
                         + " (calendar tick " + r.calendarTicks() + ")"
                 : "climate now: unknown (no calendar reading yet, or not the overworld)";
@@ -937,13 +947,23 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         return service.readNow(player).thenApply(now -> {
             List<String> lines = new ArrayList<>(base.details());
             lines.add(now.map(TfpPlugin::climateLine).orElse("climate now: the player left"));
-            String hudValue = hudCache.isActive()
-                    ? ClimateFormat.temperature(hudCache.snapshot(player.getUniqueId()).ambientTemperature())
-                    : "not shown (no HUD plugin renders it)";
-            lines.add("HUD tfp_ambient_temp: " + hudValue);
+            boolean hudActive = hudCache.isActive();
+            lines.add(hudTemperatureLine(hudActive
+                    ? hudCache.snapshot(player.getUniqueId()).ambientTemperature() : Double.NaN,
+                    hudActive, HudStylesHolder.current()));
             lines.add("chunk input: neutral, until chunk data exists (M2-GEN-05)");
             return base.withDetails(lines);
         });
+    }
+
+    /**
+     * The {@code HUD tfp_ambient_temp:} line of {@code /tfp debug chunk}: the cached HUD value in the HUD's unit, so it
+     * reads exactly as the plate does (PAR-HUD-18).
+     */
+    static String hudTemperatureLine(double ambientCelsius, boolean hudActive, HudStyles styles) {
+        return "HUD tfp_ambient_temp: " + (hudActive
+                ? styles.temperatureText(ambientCelsius)
+                : "not shown (no HUD plugin renders it)");
     }
 
     /** {@code /tfp debug snowtime}: writes the chunk's {@link ChunkSnowTime} on the chunk's region, as {@code debugChunkAt} reads it. */

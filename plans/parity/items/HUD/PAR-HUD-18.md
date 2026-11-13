@@ -2,7 +2,7 @@
 id: PAR-HUD-18
 title: "/tfp debug chunk climate lines follow hud.climate-temperature-style"
 area: HUD
-status: open
+status: done
 wave: 9
 deps: [PAR-HUD-17]
 size: S
@@ -17,6 +17,7 @@ plan:
   - "Current (PAR-HUD-17): the HUD plate's tfp_ambient_temp follows hud.climate-temperature-style (HudStylesHolder.current().temperatureText), but TfpPlugin.climateLine and the 'HUD tfp_ambient_temp:' line of /tfp debug chunk still print ClimateFormat.temperature (Celsius, double half-up)."
   - "Use HudStylesHolder.current().temperatureText for the temperature and average temperature in climateLine and for the HUD line, so the debug output matches the HUD in every unit (TFC formats every climate temperature with climateTooltipStyle)."
   - "Update the ledger row of PAR-HUD-17 (debug chunk) and docs/hud/versions.md section 2."
+  - "Done: TfpPlugin.climateLine(reading, styles) and hudTemperatureLine use HudStylesHolder.current().temperatureText (Celsius default unchanged in value apart from TFC float rounding, already the HUD plate since PAR-HUD-17); paper DebugChunkClimateLinesTest (4 tests: FAHRENHEIT 68.0°F, CELSIUS, KELVIN, unknown, HUD inactive); ledger divergence row of PAR-HUD-17 closed; docs/hud/versions.md section 2 updated."
 tests:
   - "paper: the climate line and the HUD line of /tfp debug chunk in FAHRENHEIT (68.0°F at 20 C) and CELSIUS"
 done_criteria:
