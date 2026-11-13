@@ -17,7 +17,7 @@ files_owned:
   - "docs/verification/PAR-PROC-26/**"
 ui: true
 in_game_steps:
-  - "ce item give Bot tfp:handstone, tfp:sandpaper, tfp:spindle, tfp:bone_needle, tfp:gem_saw; data get entity Bot Inventory[i].components: each has minecraft:damage 0 next to max_damage"
+  - "ce item give Bot tfp:handstone, tfp:sandpaper, tfp:spindle, tfp:bone_needle, tfp:gem_saw; data get entity Bot Inventory[i].components: the four paper-base items show minecraft:damage 0 next to max_damage; the gem saw shows no damage entry (its iron_pickaxe prototype already holds damage 0 and data get lists only the patch), so check it with set_damage (damage changes) and the bar after use instead"
   - "item modify entity Bot hotbar.0 {\"function\":\"minecraft:set_damage\",\"damage\":0.5}: the durability bar appears (vanilla treats the item as damageable)"
   - "Hover the gem saw at GUI scale 2 and 3 with the cursor exactly on its slot: TFC texture and the name Gem Saw; the crop shows the hovered slot next to the tooltip; 8x crop of its icon. Recapture Mortar the same way (an earlier capture put its tooltip over the recipe-book button)"
   - "ce item give Bot every saw and tool item (tfp:gem_saw and each metal knife, hammer, scythe, saw): each arrives with its TFC name and texture"

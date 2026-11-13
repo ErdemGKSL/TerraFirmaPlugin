@@ -276,9 +276,13 @@ class MaterialItemsTest {
             Map<String, Object> data = (Map<String, Object>) ((Map<String, Object>) config.get(id)).get("data");
             assertThat((Map<String, Object>) data.get("components")).as(id).containsExactly(Map.entry("minecraft:damage", 0));
         }
-        // the gem saw's iron_pickaxe base already has vanilla's damage 0 prototype (a damageable item)
+        // the gem saw's damageability depends on its vanilla base: iron_pickaxe's prototype already holds damage 0, so an
+        // explicit damage 0 would be dropped from the stack's patch (data get ... components never shows it). Guard the base
+        // and TFC's BRONZE uses (1300); changing the base to a non-damageable material must also emit damage 0.
         Map<String, Object> saw = (Map<String, Object>) config.get("tfp:gem_saw");
-        assertThat((Map<String, Object>) saw.get("arguments")).containsEntry("material", "iron_pickaxe");
+        assertThat((Map<String, Object>) saw.get("arguments")).containsEntry("material", "iron_pickaxe")
+            .containsEntry("durability", 1300);
+        assertThat((Map<String, Object>) saw.get("data")).doesNotContainKey("components");
     }
 
     /** The named sample of the done criterion (the ce item give list) is in the config. */
