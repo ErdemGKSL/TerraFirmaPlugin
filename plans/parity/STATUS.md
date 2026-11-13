@@ -110,7 +110,7 @@ Totals: 315 items; open 220, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-FLUID-09 | Bucket in-game verification: fill a wooden bucket from a river and place it | FLUID | 10 | done |
 | PAR-HEAT-01 | Item heat glow: hot items glow by heat level on vanilla clients | HEAT | 10 | done |
 | PAR-HEAT-02 | Heat tooltip in TFC colours and metal info lines (melting point, workable, weldable) | HEAT | 10 | done |
-| PAR-HUD-19 | Health and thirst bar states: hurt/regeneration glow, absorption in the fill and the yellow surplus bar, thirst overheat tint | HUD | 10 | open |
+| PAR-HUD-19 | Health and thirst bar states: hurt/regeneration glow, absorption in the fill and the yellow surplus bar, thirst overheat tint | HUD | 10 | done |
 | PAR-SURV-09 | Death, respawn and regeneration rules | SURV | 10 | open |
 | PAR-INFRA-43 | Button and mud carriers vs our worldgen placeholders: no small-ground-piece or charcoal-pile carrier draws over placed loose-rock, stick or mud placeholders | INFRA | 10 | open |
 | PAR-INFRA-44 | Heavy weighted pressure plate is a TFC player block (wrought-iron recipe): no transparent carrier may draw placed plates empty | INFRA | 10 | open |

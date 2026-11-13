@@ -25,6 +25,10 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m3-surv-06-ph-air` | breath left behind the air bar | M3-SURV-06 | placeholder | `tfp_air` (snapshot, vanilla breath 0..300) | M3 | needed | Also a listener `tfp_air` (0..1). Source is `Player.getRemainingAir`. |
 | `m3-surv-06-ph-armor` | armour points behind the armour bar | M3-SURV-06 | placeholder | `tfp_armor` (snapshot, vanilla armour attribute 0..30) | M3 | needed | Also a listener `tfp_armor` (0..1 on vanilla's 20-point scale; TFC's best full set, blue or red steel, is 3+6+8+3 = 20, `TFCArmorMaterials`). Source is `Attribute.ARMOR`. |
 | `par-hud-17-ph-health-text` | the text on the health bar | PAR-HUD-17 | placeholder | `tfp_health_text` (snapshot, in the hud.health-display-style of config.yml) | M3 | needed | TFC `HealthDisplayStyle` of the shown health and max (`850/850` at TFC's default; `17.0/17.0`, `850`, `17.0` for VANILLA, TFC_CURRENT, VANILLA_CURRENT). Reads the styles published on each config load (`HudStylesHolder`), never the file. |
+| `par-hud-19-ph-absorption` | absorption added to the health fill and text; shows the yellow surplus layer | PAR-HUD-19 | placeholder | `tfp_absorption` (snapshot, TFC's x50 scale) | M3 | needed | TFC `renderHealthBar` fills and prints `health + absorption`; `tfp_health` (number and listener) and `tfp_health_text` include it. The surplus layer shows while `tfp_absorption > 0`. 0 in creative and spectator. |
+| `par-hud-19-ph-health-surplus` | fill of the yellow surplus bar over the health bar | PAR-HUD-19 | placeholder | `tfp_health_surplus` (snapshot, listener 0..1) | M3 | needed | Listener only (no number): TFC `surplusPercent = clamp(clamp((health + absorption) / max, 0, 1) + absorption / 20 - 1, 0, 1)`, computed on the player's thread by `PlayerNeedsHudService.barStates`. |
+| `par-hud-19-ph-health-glow` | health bar highlight (TFC overlay.png v=29) on or off | PAR-HUD-19 | placeholder | `tfp_health_glow` (snapshot, 0 or 1) | M3 | needed | TFC condition: hurt (0 < health < max) with saturation > 0, or `hurtTime > 0`, or Regeneration; the 10-tick hurt time is a stamp in the snapshot read against the clock at placeholder time. |
+| `par-hud-19-ph-thirst-overheat` | thirst overheat tint level | PAR-HUD-19 | placeholder | `tfp_thirst_overheat` (snapshot, 0..4) | M3 | needed | TFC alpha `getThirstContributionFromTemperature() / 0.4` (22..34 °C) rounded to quarters; one pre-tinted thirst frame per level (ledger divergence: stepped alpha). |
 | `par-hud-09-ph-mount-health` | the ridden animal's health behind the mount health bar | PAR-HUD-09 | placeholder | `tfp_mount_health` (mount reading, TFC's x50 scale, 0 when not riding a living entity) | M3 | needed | Also a listener `tfp_mount_health` (0..1). Published from the rider's thread by `MountHudService` (`(health + absorption) x 50`, TFC `renderHealthBar` with modifier 1). |
 | `par-hud-09-ph-mount-max-health` | the ridden animal's max health behind the mount text | PAR-HUD-09 | placeholder | `tfp_mount_max_health` (mount reading, x50, 0 when not riding a living entity) | M3 | needed | The mount bar shows only while it is above 0. |
 | `m1-int-04-ph-held-temp` | held item temperature for the popup | M1-INT-04 | placeholder | `tfp_held_temp` (snapshot, item heat from M3-HEAT-01) | M1 | needed | Popup condition `tfp_held_temp > 0` (betterhud skill). |
@@ -33,8 +37,8 @@ Ids are the lower-case plan item id plus an element name (`m3-surv-06-health-bar
 | `m2-cal-02-ph-date` | calendar date text | M2-CAL-02 | placeholder | `tfp_date` (snapshot of the published calendar) | M2 | needed | `tick: 20` on the element that reads it. |
 | `m2-cal-02-ph-season` | season name: TFC's 12 `Month.Style.SEASON` names ("Early Autumn"; PAR-HUD-15; PAR-HUD-16: of the viewer's hemisphere, "Early Spring" in a southern September) | M2-CAL-02 | placeholder | `tfp_season` (published calendar + the viewer's HudSnapshot.northernHemisphere) | M2 | needed | `tick: 20` on the element that reads it. |
 | `m2-clim-03-ph-ambient-temp` | ambient temperature at the player | M2-CLIM-03 | placeholder | `tfp_ambient_temp` (snapshot, movement throttle) | M2 | needed | Also a listener `tfp_ambient_temp` (-20..40 °C as 0..1, `HudValues.thermometer`) for the thermometer bar. Chunk climate input is neutral until the M2-GEN-05 wiring (ledger divergence). |
-| `m3-surv-06-health-bar` | health bar with "45/50" text | M3-SURV-06 | bar | `tfp_health`, `tfp_max_health` | M3 | needed | Spike M0-BH-01 is `[x]` for health and thirst on 1.21.11 and 26.3. TFC reference: `IngameOverlays.HEALTH`. TFC's 81x9 sprite; the text (`[tfp_health_text]`, PAR-HUD-17: TFC's `healthDisplayStyle` from config.yml) sits inside the bar with a black shadow (TFC's dark-red one looked muddy over the empty channel; section 5, ledger). |
-| `m3-surv-06-thirst-bar` | thirst bar | M3-SURV-06 | bar | `tfp_thirst` (listener, 0..1) | M3 | needed | Spike M0-BH-01 `[x]`. TFC reference: `IngameOverlays.THIRST`. TFC's 81x5 sprite, one 6 px step above hunger (section 5). |
+| `m3-surv-06-health-bar` | health bar with "45/50" text | M3-SURV-06 | bar | `tfp_health` (listener, 0..1, health + absorption) | M3 | needed | Spike M0-BH-01 is `[x]` for health and thirst on 1.21.11 and 26.3. TFC reference: `IngameOverlays.HEALTH`. TFC's 81x9 sprite; the text (`[tfp_health_text]`, PAR-HUD-17: TFC's `healthDisplayStyle` from config.yml) sits inside the bar with a black shadow (TFC's dark-red one looked muddy over the empty channel; section 5, ledger). PAR-HUD-19: fill and text include absorption; state layers: the white highlight ring while `tfp_health_glow > 0`, the yellow surplus fill (`tfp_health_surplus`) while `tfp_absorption > 0` (section 5). |
+| `m3-surv-06-thirst-bar` | thirst bar | M3-SURV-06 | bar | `tfp_thirst` (listener, 0..1) | M3 | needed | Spike M0-BH-01 `[x]`. TFC reference: `IngameOverlays.THIRST`. TFC's 81x5 sprite, one 6 px step above hunger (section 5). PAR-HUD-19: four pre-tinted overheat rings, each while `tfp_thirst_overheat == n` (section 5). |
 | `m3-surv-06-hunger-bar` | hunger bar | M3-SURV-06 | bar | `tfp_hunger` (listener) | M3 | needed | The BetterHud built-in `food` class only works if the vanilla food level is synced (M3-SURV-02 open item). TFC reference: `IngameOverlays.FOOD`. TFC's 81x5 food sprite recoloured orange (divergence, section 5). |
 | `m3-surv-06-air-bar` | air bar (breath left), plain light-blue fill | M3-SURV-06 | bar | `tfp_air` (listener, 0..1) | M3 | needed | Replaces the vanilla air bubbles (hidden by `m3-surv-06-hide-air`). Compact 81x7 bar directly above thirst, only while `tfp_air < 300`; red fill below 60 (section 5). |
 | `m3-surv-06-armor-bar` | armour bar (armour points), plain steel-grey fill | M3-SURV-06 | bar | `tfp_armor` (listener, 0..1) | M3 | needed | Replaces the vanilla armour row (hidden by `m3-surv-06-hide-armor`). Thin 81x7 bar directly above health with one empty row between, only while `tfp_armor > 0` (section 5). |
@@ -72,7 +76,7 @@ Not named by any plan item (decide in X-HUD-01 or add to M3-SURV-06):
 
 Method: a Python script (`/tmp/claude-0/-home-user-TerraFirmaPlugin/7076116e-0f7a-5b74-a249-6fd913ce4602/scratchpad/hud_counts.py`, not checked in) reads section 1. It takes each row whose first cell is a backticked id, reads the kind (column 4), the milestone (column 6) and the `unspecified in plan` text in the source and data columns, and counts them. Section 2 rows are not counted.
 
-Total elements: **33**. Of these, 4 are unspecified in plan (rows marked above).
+Total elements: **38**. Of these, 4 are unspecified in plan (rows marked above).
 
 | kind | count | of which unspecified in plan |
 |---|---|---|
@@ -81,18 +85,18 @@ Total elements: **33**. Of these, 4 are unspecified in plan (rows marked above).
 | readout | 4 | 2 |
 | popup | 2 | 1 |
 | indicator | 1 | 1 |
-| placeholder | 15 | 0 |
+| placeholder | 19 | 0 |
 | hidden-vanilla | 4 | 0 |
-| **total** | **34** | **4** |
+| **total** | **38** | **4** |
 
 | milestone | elements | of which placeholder | of which unspecified in plan |
 |---|---|---|---|
 | M1 | 5 | 5 | 0 |
 | M2 | 7 | 3 | 0 |
-| M3 | 19 | 7 | 1 |
+| M3 | 23 | 11 | 1 |
 | M4 | 1 | 0 | 1 |
 | M6 | 2 | 0 | 2 |
-| **total** | **34** | **15** | **4** |
+| **total** | **38** | **19** | **4** |
 
 ## 4. TFC overlay reference (not counted)
 
@@ -122,11 +126,11 @@ GUI pixels from the bottom-centre (`H` = GUI height) unless noted. Columns are g
 
 | element | canvas | interior (fill mask) | layout x | screen columns | rows | z (layer) | shown |
 |---|---|---|---|---|---|---|---|
-| mount health + "1100/1100" (PAR-HUD-09) | 81x10 (the health art) | x 1..79, y 1..8 | -90 | centre-91 .. centre-11 | H-59 .. H-50 with armour (one empty row, H-49, above armour); H-51 .. H-42 without (layout `tfp_par_hud_09_mount_health_bar_low`, one empty row, H-41, above health) | bg 1, fill 2, text 3 (shadow `FF000000`) | `tfp_mount_max_health > 0` (riding a living entity), plus `tfp_armor > 0` / `<= 0` for the two placements |
+| mount health + "1100/1100" (PAR-HUD-09) | 81x10 (the health art) | x 1..79, y 1..8 | -90 | centre-91 .. centre-11 | H-59 .. H-50 with armour (one empty row, H-49, above armour); H-51 .. H-42 without (layout `tfp_par_hud_09_mount_health_bar_low`, one empty row, H-41, above health) | bg 1, fill 2, text 4 (shadow `FF000000`) | `tfp_mount_max_health > 0` (riding a living entity), plus `tfp_armor > 0` / `<= 0` for the two placements |
 | armour | 81x7 | x 1..79, y 1..5 | -90 | centre-91 .. centre-11 | H-48 .. H-42 (one empty row, H-41, above health) | bg 1, fill 2 | `tfp_armor > 0` (plain steel-grey fill, 0..20 points) |
-| health + "850/850" | 81x10 | x 1..79, y 1..8 | -90 | centre-91 .. centre-11 | H-40 .. H-31 | bg 1, fill 2, text 3 (shadow `FF000000`, black) | always |
+| health + "850/850" | 81x10 | x 1..79, y 1..8 | -90 | centre-91 .. centre-11 | H-40 .. H-31 | bg 1, fill 2, glow ring and surplus fill 3, text 4 (shadow `FF000000`, black) | always; glow while `tfp_health_glow > 0`, surplus (listener `tfp_health_surplus`, same split as the fill) while `tfp_absorption > 0` |
 | hunger | 81x7 | x 1..79, y 1..5 | +11 | centre+10 .. centre+90 | H-37 .. H-31 | bg 1, fill 2 | always |
-| thirst | 81x7 | x 1..79, y 1..5 | +11 | same | H-45 .. H-39 | bg 1, fill 2 | always |
+| thirst | 81x7 | x 1..79, y 1..5 | +11 | same | H-45 .. H-39 | bg 1, fill 2, overheat ring 3 | always; overheat ring `n` while `tfp_thirst_overheat == n` (n = 1..4) |
 | air (plain fill) | 81x7 | x 1..79, y 1..5 | +11 | same | H-53 .. H-47 | bg 1, fill / fill_critical 2 | `tfp_air < 300`; red fill below 60 (one condition on the value, the same at every GUI scale; `HudLayoutsTest.airRedThresholdIsOneScaleIndependentConditionAt60`) |
 | info plate | 189x22 (PAR-HUD-15: fits "September 30, 1000  (Early Autumn)", 179 px, the longest line with TFC's 12 season names in either hemisphere, plus inset 5, shadow 1, margin 4) | single layer | 1, HUD `pixel.x` +1 (`BetterHudPack.INFO_SHIFT_X`) | screen x 1..189 at GUI 2 and 1/3..189 1/3 at GUI 3 (gui 0/0; the HUD shift keeps the left frame column on screen) | screen y 1..22 | 0 | always |
 | thermometer | 64x8 | tube x 1..62 y 2..5, bulb x 1..3 y 1 and 6 | 6, HUD +1 | screen x 6..69 | screen y 13..20 | bg 1, fill 2 | always |
@@ -138,7 +142,9 @@ Art pipeline (2026-10-22): every PNG is indexed colour (4-bit for the bars, 8-bi
 
 Divergences from TFC (ledger): new plain art instead of TFC's overlay sheet; an armour bar instead of vanilla's armour icons (TFC keeps the vanilla row); hunger is orange; black health-text shadow instead of TFC's dark red; air is a plain light-blue bar above thirst instead of the vanilla bubbles (same visibility rule: only below full breath); a thermometer bar and plate on the HUD (TFC shows climate in the inventory's climate screen). The BetterHud demo compass is switched off.
 
-Verified in game (PAR-HUD-04, 2026-10-22, Paper 1.21.11, GUI scale 2 and 3, full / low / empty / submerged): the `layer` order (fill in front of bg, text in front of fill), the `offset: left` reading (canvas left edge at layout x, plus `SCREEN_SHIFT_X`), the vertical trim compensation (frames exactly on the rows above at both scales), the fill never covering the frame, the empty channel at 0 %, and the air bar (only below full air, directly above thirst, red below 60). Crops and verdict: `docs/hud/screenshots/par-hud-04/`. Reproduced by an independent rerun on `06ed6ce` (same rows and column counts at both scales). The fill width is BetterHud's `round(78 x pct)` frame, not TFC's floor (`(int)(81 x pct)`); it differs by at most 2 columns and is in the ledger Divergences, with the TFC health glow, absorption bar and thirst overheat tint we do not draw.
+Verified in game (PAR-HUD-04, 2026-10-22, Paper 1.21.11, GUI scale 2 and 3, full / low / empty / submerged): the `layer` order (fill in front of bg, text in front of fill), the `offset: left` reading (canvas left edge at layout x, plus `SCREEN_SHIFT_X`), the vertical trim compensation (frames exactly on the rows above at both scales), the fill never covering the frame, the empty channel at 0 %, and the air bar (only below full air, directly above thirst, red below 60). Crops and verdict: `docs/hud/screenshots/par-hud-04/`. Reproduced by an independent rerun on `06ed6ce` (same rows and column counts at both scales). The fill width is BetterHud's `round(78 x pct)` frame, not TFC's floor (`(int)(81 x pct)`); it differs by at most 2 columns and is in the ledger Divergences.
+
+Bar states (PAR-HUD-19, TFC `IngameOverlays.renderHealthBar` / `renderThirst`): derived in `HudArt` at datagen time from the bar resources, no new master. The health glow is the bar's frame ring in white (TFC `overlay.png` v=29 is a white outline); the surplus bar is the health fill re-hued to TFC's surplus yellow (`#ffba28` hue, saturation and brightness kept), clipped like the fill (TFC also draws its own frame over the bar; ours stays inside the interior); the thirst overheat frames are the thirst frame ring in TFC's `#820000` composited over our black frame at alpha 1/4, 2/4, 3/4, 4/4. The derived PNGs are indexed colour like the resources.
 
 ## 6. Game modes (PAR-HUD-12)
 

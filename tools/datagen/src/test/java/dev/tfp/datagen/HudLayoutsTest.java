@@ -29,9 +29,9 @@ class HudLayoutsTest {
     void realCatalogueRowCountsMatchTheCountsSection() {
         HudLayouts.Catalogue cat = HudLayouts.parse(HudLayouts.catalogue());
 
-        assertThat(cat.elements()).hasSize(34);
+        assertThat(cat.elements()).hasSize(38);
         Map<String, Integer> expected = Map.of(
-            "placeholder", 15, "bar", 7, "overlay", 1, "readout", 4, "popup", 2, "indicator", 1, "hidden-vanilla", 4);
+            "placeholder", 19, "bar", 7, "overlay", 1, "readout", 4, "popup", 2, "indicator", 1, "hidden-vanilla", 4);
         assertThat(countsByKind(cat.elements())).isEqualTo(expected);
         assertThat(cat.total()).isEqualTo(expected);
     }
@@ -41,7 +41,7 @@ class HudLayoutsTest {
         HudLayouts.Summary s = HudLayouts.run(new OutputTree(), HudLayouts.catalogue());
 
         assertThat(s.emitted()).isEqualTo(Map.of(
-            "placeholder", 15, "bar", 7, "overlay", 1, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 4));
+            "placeholder", 19, "bar", 7, "overlay", 1, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 4));
         assertThat(s.leftOut()).hasSize(4);
         assertThat(String.join("\n", s.leftOut())).contains(
             "m3-surv-02-nutrition-readout", "m6-mech-01-rotation-readout", "m4-pros-01-result-message",
@@ -94,7 +94,8 @@ class HudLayoutsTest {
 
         Map<String, Object> images = yaml(out, HudLayouts.IMAGES);
         assertThat(images).containsKeys("tfp_m3_surv_06_health_bar_bg", "tfp_m3_surv_06_health_bar_fill");
-        assertThat(text(images, "tfp_m3_surv_06_health_bar_fill")).contains("class=placeholder", "value=tfp_health", "max=tfp_max_health");
+        // PAR-HUD-19: our own listener, (health + absorption) / max clamped to 0..1 (TFC renderHealthBar).
+        assertThat(text(images, "tfp_m3_surv_06_health_bar_fill")).contains("class=tfp_health").doesNotContain("class=placeholder");
 
         Map<String, Object> bar = map(yaml(out, HudLayouts.BAR_LAYOUTS).get("tfp_m3_surv_06_health_bar"));
         Map<String, Object> text = map(map(bar.get("texts")).get("1"));
@@ -185,7 +186,8 @@ class HudLayoutsTest {
         placeholders.forEach(p -> names.add(map(p).get("name")));
         assertThat(names).containsExactlyInAnyOrder("tfp_health", "tfp_max_health", "tfp_thirst", "tfp_hunger",
             "tfp_held_temp", "tfp_date", "tfp_season", "tfp_ambient_temp", "tfp_air", "tfp_armor", "tfp_mount_health",
-            "tfp_mount_max_health", "tfp_held_heat", "tfp_held_heat_color", "tfp_health_text");
+            "tfp_mount_max_health", "tfp_held_heat", "tfp_held_heat_color", "tfp_health_text", "tfp_absorption",
+            "tfp_health_surplus", "tfp_health_glow", "tfp_thirst_overheat");
     }
 
     @Test
@@ -368,9 +370,20 @@ class HudLayoutsTest {
             map(map(layouts.get(name)).get("images")).values().forEach(v -> entries.add(map(v)));
             assertThat(map(layouts.get(name))).containsEntry("offset", "left");
             HudArt.Bar art = HudArt.bar(spec.art());
-            assertThat(entries).hasSize(2 + art.variants().size());
+            List<HudLayouts.StateLayer> states = HudLayouts.STATES.getOrDefault(e.getKey(), List.of());
+            assertThat(entries).hasSize(2 + art.variants().size() + states.size());
             for (Map<String, Object> img : entries) {
                 String image = (String) img.get("name");
+                HudLayouts.StateLayer state = states.stream()
+                    .filter(st -> HudLayouts.imageName(st.file()).equals(image)).findFirst().orElse(null);
+                if (state != null) {
+                    // PAR-HUD-19: derived state layers share the canvas origin too.
+                    assertThat(img.get("x")).as(image).isEqualTo(spec.x());
+                    assertThat(img.get("y")).as(image)
+                        .isEqualTo(spec.y() + HudArt.firstOpaqueRow(state.image(art), state.file()));
+                    assertThat(img.get("layer")).as(image).isEqualTo(HudLayouts.LAYER_STATE);
+                    continue;
+                }
                 String own = image.substring("tfp_".length()) + ".png";
                 // A bar that borrows art (the mount bar) names its copies after itself: map back to the art file.
                 String file = own.startsWith(name.substring("tfp_".length()))
@@ -547,7 +560,12 @@ class HudLayoutsTest {
             String file = path.substring(path.lastIndexOf('/') + 1);
             // The mount bar's copies of the health art (HudLayouts.packFile).
             file = file.replace("par_hud_09_mount_health_bar_", "m3_surv_06_health_bar_");
-            byte[] expected = file.endsWith("_mirrored.png")
+            String own = file;
+            HudLayouts.StateLayer state = HudLayouts.STATES.values().stream().flatMap(List::stream)
+                .filter(st -> st.file().equals(own)).findFirst().orElse(null);
+            byte[] expected = state != null
+                ? HudArt.indexedPng(state.image(HudArt.bar(file.substring(0, file.indexOf("_bar_") + 4))))
+                : file.endsWith("_mirrored.png")
                 ? HudArt.mirrored(file.replace("_mirrored.png", ".png")) : HudArt.bytes(file);
             assertThat(out.get(BetterHudPack.DIR + "assets/" + path)).as(path).isEqualTo(expected);
         }
@@ -702,7 +720,7 @@ class HudLayoutsTest {
         Map<String, Object> images = yaml(out, HudLayouts.IMAGES);
         assertThat(text(images, "tfp_par_hud_09_mount_health_bar_fill"))
             .contains("class=placeholder", "value=tfp_mount_health", "max=tfp_mount_max_health");
-        assertThat(text(images, "tfp_m3_surv_06_health_bar_fill")).contains("value=tfp_health");
+        assertThat(text(images, "tfp_m3_surv_06_health_bar_fill")).contains("class=tfp_health");
         assertThat(map(images.get("tfp_par_hud_09_mount_health_bar_bg")).get("file"))
             .isEqualTo("tfp/hud/par_hud_09_mount_health_bar_bg.png");
         assertThat(out.get(BetterHudPack.DIR + "assets/tfp/hud/par_hud_09_mount_health_bar_fill.png"))
@@ -785,5 +803,105 @@ class HudLayoutsTest {
         HudLayouts.Cond own = new HudLayouts.Cond("tfp_air", "<", 300);
         assertThat(HudLayouts.gated(List.of())).containsExactly(HudLayouts.NEEDS_ACTIVE);
         assertThat(HudLayouts.gated(List.of(own))).containsExactly(own, HudLayouts.NEEDS_ACTIVE);
+    }
+
+    /**
+     * PAR-HUD-19, TFC {@code renderHealthBar}: the health bar layout carries the highlight ring (single image, while
+     * {@code tfp_health_glow > 0}) and the yellow surplus fill (listener {@code tfp_health_surplus}, the fill's split and
+     * clip direction, while {@code tfp_absorption > 0}), behind the text and under the layout's game-mode gate. The
+     * mount bar (same art) has neither.
+     */
+    @Test
+    void healthBarCarriesTheGlowAndTheSurplusLayers() {
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+        Map<String, Object> images = yaml(out, HudLayouts.IMAGES);
+        Map<String, Object> glow = map(images.get("tfp_m3_surv_06_health_bar_glow"));
+        assertThat(glow).containsEntry("type", "single").containsEntry("file", "tfp/hud/m3_surv_06_health_bar_glow.png");
+        Map<String, Object> surplus = map(images.get("tfp_m3_surv_06_health_bar_fill_surplus"));
+        Map<String, Object> fill = map(images.get("tfp_m3_surv_06_health_bar_fill"));
+        assertThat(surplus).containsEntry("type", "listener").containsEntry("split", fill.get("split"))
+            .containsEntry("split-type", "left");
+        assertThat(text(images, "tfp_m3_surv_06_health_bar_fill_surplus")).contains("class=tfp_health_surplus");
+
+        Map<String, Object> bar = map(yaml(out, HudLayouts.BAR_LAYOUTS).get("tfp_m3_surv_06_health_bar"));
+        Map<String, Map<String, Object>> byName = new java.util.LinkedHashMap<>();
+        map(bar.get("images")).values().forEach(v -> byName.put((String) map(v).get("name"), map(v)));
+        assertThat(map(byName.get("tfp_m3_surv_06_health_bar_glow").get("conditions")).values())
+            .containsExactly(Map.of("first", "tfp_health_glow", "second", 0, "operation", ">"));
+        assertThat(map(byName.get("tfp_m3_surv_06_health_bar_fill_surplus").get("conditions")).values())
+            .containsExactly(Map.of("first", "tfp_absorption", "second", 0, "operation", ">"));
+        assertThat(byName.get("tfp_m3_surv_06_health_bar_glow").get("layer")).isEqualTo(HudLayouts.LAYER_STATE);
+        int text = (int) map(map(bar.get("texts")).get("1")).get("layer");
+        assertThat(HudLayouts.LAYER_STATE).isGreaterThan(HudLayouts.LAYER_FILL).isLessThan(text);
+        Map<String, Object> conds = map(bar.get("conditions"));
+        assertThat(conds.get(String.valueOf(conds.size())))
+            .isEqualTo(Map.of("first", "tfp_max_health", "second", 0, "operation", ">"));
+
+        for (String mount : List.of("tfp_par_hud_09_mount_health_bar", "tfp_par_hud_09_mount_health_bar_low")) {
+            Map<String, Object> layout = map(yaml(out, HudLayouts.BAR_LAYOUTS).get(mount));
+            assertThat(map(layout.get("images"))).hasSize(2);
+        }
+    }
+
+    /**
+     * PAR-HUD-19, TFC {@code renderThirst}: one pre-tinted overheat ring per level, each shown only while
+     * {@code tfp_thirst_overheat} equals it, so at most one shows.
+     */
+    @Test
+    void thirstBarCarriesOneOverheatFramePerLevel() {
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+        Map<String, Object> bar = map(yaml(out, HudLayouts.BAR_LAYOUTS).get("tfp_m3_surv_06_thirst_bar"));
+        List<Map<String, Object>> frames = new java.util.ArrayList<>();
+        map(bar.get("images")).values().stream().map(HudLayoutsTest::map)
+            .filter(v -> ((String) v.get("name")).contains("_overheat_")).forEach(frames::add);
+        assertThat(HudLayouts.OVERHEAT_FRAMES).isEqualTo(4);
+        assertThat(frames).hasSize(HudLayouts.OVERHEAT_FRAMES);
+        for (int level = 1; level <= HudLayouts.OVERHEAT_FRAMES; level++) {
+            Map<String, Object> frame = frames.get(level - 1);
+            assertThat(frame.get("name")).isEqualTo("tfp_m3_surv_06_thirst_bar_overheat_" + level);
+            assertThat(map(frame.get("conditions")).values())
+                .containsExactly(Map.of("first", "tfp_thirst_overheat", "second", level, "operation", "=="));
+            assertThat(frame.get("layer")).isEqualTo(HudLayouts.LAYER_STATE);
+            assertThat(out.get(BetterHudPack.DIR + "assets/tfp/hud/m3_surv_06_thirst_bar_overheat_" + level + ".png"))
+                .isNotNull();
+        }
+        Map<String, Object> conds = map(bar.get("conditions"));
+        assertThat(conds.get(String.valueOf(conds.size())))
+            .isEqualTo(Map.of("first", "tfp_max_health", "second", 0, "operation", ">"));
+        // No other bar draws a state layer.
+        assertThat(HudLayouts.STATES.keySet()).containsExactlyInAnyOrder("m3-surv-06-health-bar", "m3-surv-06-thirst-bar");
+    }
+
+    /**
+     * PAR-HUD-19: every state layer stays inside its bar's canvas: the rings only on the frame (outside the interior),
+     * the surplus only inside the interior. As no two bars overlap ({@link #noTwoBarsOverlap}), the layers never reach
+     * the armour, mount or air bars.
+     */
+    @Test
+    void stateLayersStayInsideTheirBarCanvas() {
+        for (var e : HudLayouts.STATES.entrySet()) {
+            HudLayouts.BarSpec spec = HudLayouts.BAR_SPECS.get(e.getKey());
+            HudArt.Bar art = HudArt.bar(spec.art());
+            for (HudLayouts.StateLayer st : e.getValue()) {
+                assertThat(st.file()).startsWith(spec.art());
+                java.awt.image.BufferedImage img = st.image(art);
+                assertThat(img.getWidth()).isEqualTo(art.width());
+                assertThat(img.getHeight()).isEqualTo(art.height());
+                int opaque = 0;
+                for (int y = 0; y < img.getHeight(); y++) {
+                    for (int x = 0; x < img.getWidth(); x++) {
+                        if ((img.getRGB(x, y) >>> 24) == 0) {
+                            continue;
+                        }
+                        opaque++;
+                        assertThat(art.interior(x, y)).as(st.file() + " " + x + "," + y)
+                            .isEqualTo(st.art() == HudLayouts.StateArt.SURPLUS);
+                    }
+                }
+                assertThat(opaque).as(st.file()).isPositive();
+            }
+        }
     }
 }

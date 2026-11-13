@@ -5,6 +5,7 @@
  */
 package dev.tfp.datagen;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -94,7 +95,9 @@ final class HudLayouts {
     static final int LAYER_OVERLAY = 0;
     static final int LAYER_BG = 1;
     static final int LAYER_FILL = 2;
-    static final int LAYER_TEXT = 3;
+    /** PAR-HUD-19: the state layers (glow ring, surplus fill, overheat ring), in front of the fill, behind the text. */
+    static final int LAYER_STATE = 3;
+    static final int LAYER_TEXT = 4;
 
     /** A placement in GUI pixels from the layout anchor. */
     record Place(int x, int y) {
@@ -120,6 +123,68 @@ final class HudLayouts {
      */
     record BarSpec(String art, int x, int y, String hud, List<Text> texts, List<Cond> shownWhile, List<Variant> variants,
                    int split) {
+    }
+
+    /** What a {@link StateLayer} draws (PAR-HUD-19). */
+    enum StateArt {
+        /** TFC's white highlight outline over the whole bar ({@link HudArt#ring} in {@link HudArt#GLOW_RGB}). */
+        GLOW,
+        /** TFC's yellow surplus bar: the fill re-hued ({@link HudArt#rehued}), clipped like the fill. */
+        SURPLUS,
+        /** TFC's red overheat outline at the stepped alpha {@code level / OVERHEAT_FRAMES} ({@link HudArt#overheatRgb}). */
+        OVERHEAT
+    }
+
+    /**
+     * PAR-HUD-19: a layer of derived art drawn over a bar while {@code when} holds ({@code file} is the art file name,
+     * starting with the bar's art name). With a {@code listener} it is a listener image clipped left-to-right like the
+     * fill (same split), else a single image.
+     */
+    record StateLayer(String file, StateArt art, int level, String listener, List<Cond> when, int layer) {
+        BufferedImage image(HudArt.Bar bar) {
+            return switch (art) {
+                case GLOW -> HudArt.ring(bar, HudArt.GLOW_RGB);
+                case SURPLUS -> HudArt.rehued(bar, HudArt.SURPLUS_RGB);
+                case OVERHEAT -> HudArt.ring(bar, HudArt.overheatRgb(level, OVERHEAT_FRAMES));
+            };
+        }
+    }
+
+    /** PAR-HUD-19: absorption on TFC's x 50 scale ({@code HudValues.STATES}); the surplus layer shows while above 0. */
+    static final String ABSORPTION = "tfp_absorption";
+    /** PAR-HUD-19: 1 while TFC draws the health highlight, else 0. */
+    static final String HEALTH_GLOW = "tfp_health_glow";
+    /** PAR-HUD-19: the yellow surplus bar's listener, 0..1. */
+    static final String HEALTH_SURPLUS = "tfp_health_surplus";
+    /** PAR-HUD-19: the thirst overheat frame, 0..{@link #OVERHEAT_FRAMES}. */
+    static final String THIRST_OVERHEAT = "tfp_thirst_overheat";
+    /**
+     * PAR-HUD-19: the pre-tinted overheat frames of the thirst bar (TFC's continuous alpha, stepped). Must match
+     * {@code PlayerNeedsHudService.OVERHEAT_LEVELS}.
+     */
+    static final int OVERHEAT_FRAMES = 4;
+
+    /**
+     * PAR-HUD-19, TFC {@code IngameOverlays.renderHealthBar} and {@code renderThirst}: the state layers per catalogue id.
+     * Health: the highlight ring while {@link #HEALTH_GLOW} is 1, the yellow surplus fill (listener
+     * {@link #HEALTH_SURPLUS}) while {@link #ABSORPTION} is above 0. Thirst: one overheat ring per level, each shown while
+     * {@link #THIRST_OVERHEAT} equals it. The bar layout's own conditions (and the game-mode gate) apply to them too.
+     */
+    static final Map<String, List<StateLayer>> STATES = Map.of(
+        "m3-surv-06-health-bar", List.of(
+            new StateLayer(HudArt.glowFile("m3_surv_06_health_bar"), StateArt.GLOW, 0, null,
+                List.of(new Cond(HEALTH_GLOW, ">", 0)), LAYER_STATE),
+            new StateLayer(HudArt.surplusFile("m3_surv_06_health_bar"), StateArt.SURPLUS, 0, HEALTH_SURPLUS,
+                List.of(new Cond(ABSORPTION, ">", 0)), LAYER_STATE)),
+        "m3-surv-06-thirst-bar", overheatLayers("m3_surv_06_thirst_bar"));
+
+    private static List<StateLayer> overheatLayers(String bar) {
+        List<StateLayer> out = new ArrayList<>();
+        for (int level = 1; level <= OVERHEAT_FRAMES; level++) {
+            out.add(new StateLayer(HudArt.overheatFile(bar, level), StateArt.OVERHEAT, level, null,
+                List.of(new Cond(THIRST_OVERHEAT, "==", level)), LAYER_STATE));
+        }
+        return List.copyOf(out);
     }
 
     /** A single-layer image (the info plate) at a HUD gui anchor; {@code flipX} ships a mirrored copy. */
@@ -365,6 +430,19 @@ final class HudLayouts {
                     "split-type", "left", "setting", m("listener", listener)));
                 putArt(out, f, packed);
             }
+            List<StateLayer> states = STATES.getOrDefault(e.id(), List.of());
+            for (StateLayer st : states) {
+                String packed = packFile(name, spec, st.file());
+                Map<String, Object> image = st.listener() == null
+                    ? m("type", "single", "file", artPath(packed))
+                    : m("type", "listener", "file", artPath(packed), "split", split, "split-type", "left",
+                        "setting", m("listener", m("class", st.listener())));
+                if (st.listener() != null) {
+                    requireKnown(e, st.listener(), names);
+                }
+                barImages.put(imageName(packed), image);
+                out.put(BetterHudPack.DIR + "assets/" + artPath(packed), HudArt.indexedPng(st.image(art)));
+            }
 
             boolean info = spec.hud().equals(INFO_HUD);
             Lowered low = LOWERED.get(e.id());
@@ -372,7 +450,7 @@ final class HudLayouts {
             if (low != null) {
                 own.add(new Cond(low.when().value(), negate(low.when().operation()), low.when().threshold()));
             }
-            Map<String, Object> layout = barLayout(spec, art, name, spec.y(), info ? own : gated(own), e, names);
+            Map<String, Object> layout = barLayout(spec, art, name, spec.y(), info ? own : gated(own), states, e, names);
             (info ? infoLayouts : barLayouts).put(name, layout);
             if (!info) {
                 barHudLayouts.put(String.valueOf(barHudLayouts.size() + 1),
@@ -385,7 +463,7 @@ final class HudLayouts {
                 List<Cond> lowOwn = new ArrayList<>(spec.shownWhile());
                 lowOwn.add(low.when());
                 String lowName = name + LOWERED_SUFFIX;
-                barLayouts.put(lowName, barLayout(spec, art, name, low.y(), gated(lowOwn), e, names));
+                barLayouts.put(lowName, barLayout(spec, art, name, low.y(), gated(lowOwn), states, e, names));
                 barHudLayouts.put(String.valueOf(barHudLayouts.size() + 1),
                     m("name", lowName, "gui", m("x", BARS_GUI_X, "y", BARS_GUI_Y)));
             }
@@ -545,10 +623,11 @@ final class HudLayouts {
 
     /**
      * One bar layout at canvas row {@code y}: the bg and fill layers (each y plus its first opaque row), the fill
-     * variants, the texts and the layout's {@code shown} conditions (already gated when the bar is on the bars HUD).
+     * variants, the state layers (PAR-HUD-19), the texts and the layout's {@code shown} conditions (already gated when
+     * the bar is on the bars HUD).
      */
     private static Map<String, Object> barLayout(BarSpec spec, HudArt.Bar art, String name, int y, List<Cond> shown,
-                                                 Element e, Set<String> names) {
+                                                 List<StateLayer> states, Element e, Set<String> names) {
         Map<String, Object> images = new LinkedHashMap<>();
         images.put("1", layer(name + "_bg", spec.x(), y + HudArt.firstOpaqueRow(art.bgFile()), LAYER_BG, List.of(), e, names));
         List<Cond> plain = new ArrayList<>();
@@ -564,6 +643,11 @@ final class HudLayouts {
             Map<String, Object> img = layer(imageName(packFile(name, spec, vf)), spec.x(), y + HudArt.firstOpaqueRow(vf),
                 LAYER_FILL, v.when(), e, names);
             images.put(String.valueOf(images.size() + 1), img);
+        }
+        for (StateLayer st : states) {
+            int row = HudArt.firstOpaqueRow(st.image(art), st.file());
+            images.put(String.valueOf(images.size() + 1), layer(imageName(packFile(name, spec, st.file())), spec.x(),
+                y + row, st.layer(), st.when(), e, names));
         }
         if (!spec.texts().isEmpty()) {
             Map<String, Object> texts = new LinkedHashMap<>();

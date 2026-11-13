@@ -2,7 +2,7 @@
 id: PAR-HUD-19
 title: "Health and thirst bar states: hurt/regeneration glow, absorption in the fill and the yellow surplus bar, thirst overheat tint"
 area: HUD
-status: open
+status: done
 wave: 10
 deps: [PAR-HUD-17, PAR-HUD-16, PAR-HUD-12, PAR-SURV-04]
 size: M
@@ -36,6 +36,8 @@ plan:
   - "Art: a highlight variant layer of the health bar, a yellow surplus fill layer (same clip rule as the fill), and N pre-tinted overheat frames of the thirst bar, derived from the existing masters by `tools/images/hud_layers.py` (deterministic derivation, as the existing bg/fill layers) or, if a new master is needed, through the image-generation skill (raws under art/raw/hud-health-bar/ and art/raw/hud-thirst-bar/). No hand-drawn pixels."
   - "HudLayouts: the highlight layer shown while `tfp_health_glow` = 1, the surplus layer clipped by the surplus listener, the overheat frame chosen by `tfp_thirst_overheat`; the game-mode gate of PAR-HUD-12 applies to all of them; catalogue rows for the new placeholders and layers."
   - "Ledger: close the three divergence rows (or narrow each to the stepped alpha and our art)."
+  - "Note: the state art is derived in tools/datagen HudArt at datagen time (ring recolour, fill re-hue, indexed PNG), deterministically from the existing bar resources, the same way as the mirrored plate; hud_layers.py and the art resources needed no change and no new master."
+  - "Done: HudSnapshot.BarStates (absorption on the x50 scale, TFC surplusPercent, steady glow, hurt-time stamp, overheat level 0..4) published by PlayerNeedsHudService on each reading, on a hit (onDamage stamps the 10-tick hurt time, the glow ends at placeholder time) and after a potion effect change; HudValues: tfp_health number/listener and tfp_health_text include absorption, STATES tfp_absorption/tfp_health_glow/tfp_thirst_overheat and listener tfp_health_surplus registered by BetterHudIntegration; HudLayouts STATES: white ring while tfp_health_glow > 0, yellow surplus listener layer while tfp_absorption > 0, four pre-tinted thirst rings by tfp_thirst_overheat, all under the game-mode gate; health fill is now our tfp_health listener; catalogue rows and counts. Tests: PlayerNeedsHudServiceTest (+3), PlayerNeedsHudStatesMockBukkitTest (5), HudValuesBarStatesTest (5), HudLayoutsTest (+3), HudArtTest (+4). In-game check 2026-11-13, Paper 1.21.11 + 1.21.11 client, GUI scale 2 and 3: pass (docs/verification/PAR-HUD-19/). Ledger: the three divergence rows narrowed to our art, the stepped alpha and the 1 s refresh."
 tests:
   - "paper: PlayerNeedsHudServiceTest: glow on hurt with saturation, on hurtTime, on Regeneration, off at full health without regeneration; absorption included in fill and text; overheat steps from the temperature share"
   - "integration/betterhud: HudValues for the three new placeholders"

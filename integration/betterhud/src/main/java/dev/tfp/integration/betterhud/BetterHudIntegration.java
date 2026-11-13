@@ -69,6 +69,15 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
             HudListener listener = player -> read.applyAsDouble(cache.snapshot(player.uuid()));
             api.getListenerManager().addListener(e.getKey(), yaml -> event -> listener);
         }
+        // PAR-HUD-19: the bar states (absorption, glow, overheat level) and the yellow surplus bar's listener.
+        for (Map.Entry<String, ToDoubleFunction<HudSnapshot>> e : HudValues.STATES.entrySet()) {
+            numbers.addPlaceholder(e.getKey(), numberPlaceholder(cache, e.getValue()));
+        }
+        for (Map.Entry<String, ToDoubleFunction<HudSnapshot>> e : HudValues.STATE_LISTENERS.entrySet()) {
+            ToDoubleFunction<HudSnapshot> read = e.getValue();
+            HudListener listener = player -> read.applyAsDouble(cache.snapshot(player.uuid()));
+            api.getListenerManager().addListener(e.getKey(), yaml -> event -> listener);
+        }
         // PAR-HUD-09: the ridden animal's health, read from the rider's published mount reading only.
         for (Map.Entry<String, ToDoubleFunction<MountReading>> e : HudMountValues.NUMBERS.entrySet()) {
             ToDoubleFunction<MountReading> read = e.getValue();
@@ -98,8 +107,8 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
         cache.pusher(BetterHudIntegration::push);
         registered = true;
         Path pack = BetterHudPackTarget.packFolder(ctx.pluginsDirectory());
-        ctx.logger().info("BetterHud: registered " + (HudValues.NUMBERS.size() + HudMountValues.NUMBERS.size()) + " number placeholder(s), "
-                + (HudClockValues.TEXTS.size() + HudClimateValues.TEXTS.size() + HudValues.TEXTS.size()) + " text placeholder(s) and " + (HudValues.LISTENERS.size() + HudMountValues.LISTENERS.size())
+        ctx.logger().info("BetterHud: registered " + (HudValues.NUMBERS.size() + HudValues.STATES.size() + HudMountValues.NUMBERS.size()) + " number placeholder(s), "
+                + (HudClockValues.TEXTS.size() + HudClimateValues.TEXTS.size() + HudValues.TEXTS.size()) + " text placeholder(s) and " + (HudValues.LISTENERS.size() + HudValues.STATE_LISTENERS.size() + HudMountValues.LISTENERS.size())
                 + " listener(s); pack folder " + pack
                 + (BetterHudPackTarget.optedOut(ctx.pluginsDirectory()) ? " (disabled by the owner: packs/-tfp exists)" : ""));
     }
@@ -147,7 +156,8 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
         }
         Set<String> out = new TreeSet<>();
         for (String name : BetterHudAPI.inst().getPlaceholderManager().getNumberContainer().getAllPlaceholders().keySet()) {
-            if (HudValues.NUMBERS.containsKey(name) || HudMountValues.NUMBERS.containsKey(name)) {
+            if (HudValues.NUMBERS.containsKey(name) || HudValues.STATES.containsKey(name)
+                    || HudMountValues.NUMBERS.containsKey(name)) {
                 out.add(name);
             }
         }

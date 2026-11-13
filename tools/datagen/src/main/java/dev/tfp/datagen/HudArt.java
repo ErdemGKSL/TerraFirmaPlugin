@@ -9,14 +9,18 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.awt.image.IndexColorModel;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 import javax.imageio.ImageIO;
 
 /**
@@ -26,7 +30,11 @@ import javax.imageio.ImageIO;
  * used ({@code <name>.layers.json}: canvas and interior mask) is read here too, so the datagen and its tests know the
  * mask. Single-layer images (the info plate) are plain PNGs.
  *
- * <p>Everything is a resource under {@link #DIR}; the bytes go into the pack unchanged.
+ * <p>Everything is a resource under {@link #DIR}; the bytes go into the pack unchanged. PAR-HUD-19: the state layers of
+ * the health and thirst bars are derived here from those resources at datagen time, deterministically (no hand-drawn
+ * pixels, as the mirrored plate): the frame ring recoloured ({@link #ring}: TFC's white highlight, TFC's red overheat
+ * outline composited over our black frame at each stepped alpha) and the fill re-hued to TFC's surplus yellow
+ * ({@link #rehued}).
  */
 final class HudArt {
     static final String DIR = "/dev/tfp/datagen/hud/";
@@ -147,12 +155,131 @@ final class HudArt {
         }
     }
 
+    /** PAR-HUD-19: TFC {@code overlay.png} (0, 29): the health highlight outline, white. */
+    static final int GLOW_RGB = 0xFFFFFF;
+    /** PAR-HUD-19: TFC {@code overlay.png} (90, 29): the thirst overheat outline, {@code #820000}. */
+    static final int OVERHEAT_RGB = 0x820000;
+    /** PAR-HUD-19: TFC {@code overlay.png} (90, 9): the main colour of the yellow surplus bar, {@code #ffba28}. */
+    static final int SURPLUS_RGB = 0xFFBA28;
+
+    /** The health glow layer of {@code bar}: {@code <name>_glow.png}. */
+    static String glowFile(String bar) {
+        return bar + "_glow.png";
+    }
+
+    /** The yellow surplus fill of {@code bar}: {@code <name>_fill_surplus.png}. */
+    static String surplusFile(String bar) {
+        return bar + "_fill_surplus.png";
+    }
+
+    /** The overheat frame {@code level} (1..levels) of {@code bar}: {@code <name>_overheat_<level>.png}. */
+    static String overheatFile(String bar, int level) {
+        return bar + "_overheat_" + level + ".png";
+    }
+
     /**
-     * The first row with an opaque pixel. BetterHud trims transparent rows before drawing and does not move the image
-     * down by the trim, so a layer is placed at {@code bar y + firstOpaqueRow} to stay where the canvas puts it.
+     * The frame ring of {@code bar} (every opaque pixel of its background outside the interior) in {@code rgb}, the rest
+     * transparent, same canvas.
      */
-    static int firstOpaqueRow(String file) {
-        BufferedImage img = image(file);
+    static BufferedImage ring(Bar bar, int rgb) {
+        BufferedImage bg = image(bar.bgFile());
+        BufferedImage out = new BufferedImage(bar.width(), bar.height(), BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < bar.height(); y++) {
+            for (int x = 0; x < bar.width(); x++) {
+                if (!bar.interior(x, y) && (bg.getRGB(x, y) >>> 24) != 0) {
+                    out.setRGB(x, y, 0xFF000000 | rgb);
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * TFC draws the overheat outline {@link #OVERHEAT_RGB} at alpha {@code level / levels} over a black frame; over our
+     * pure black frame that composite is the outline colour scaled by the alpha, so each pre-tinted frame is opaque.
+     */
+    static int overheatRgb(int level, int levels) {
+        double a = (double) level / levels;
+        int r = (int) Math.round(((OVERHEAT_RGB >> 16) & 0xFF) * a);
+        int g = (int) Math.round(((OVERHEAT_RGB >> 8) & 0xFF) * a);
+        int b = (int) Math.round((OVERHEAT_RGB & 0xFF) * a);
+        return (r << 16) | (g << 8) | b;
+    }
+
+    /**
+     * {@code bar}'s fill with every pixel's hue set to the hue of {@code rgb} (saturation and brightness kept, so the
+     * light, main and dark rows stay a ramp): the surplus fill in TFC's yellow.
+     */
+    static BufferedImage rehued(Bar bar, int rgb) {
+        float hue = Color.RGBtoHSB((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF, null)[0];
+        BufferedImage fill = image(bar.fillFile());
+        BufferedImage out = new BufferedImage(bar.width(), bar.height(), BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < bar.height(); y++) {
+            for (int x = 0; x < bar.width(); x++) {
+                int p = fill.getRGB(x, y);
+                if ((p >>> 24) == 0) {
+                    continue;
+                }
+                float[] hsb = Color.RGBtoHSB((p >> 16) & 0xFF, (p >> 8) & 0xFF, p & 0xFF, null);
+                out.setRGB(x, y, 0xFF000000 | (Color.HSBtoRGB(hue, hsb[1], hsb[2]) & 0xFFFFFF));
+            }
+        }
+        return out;
+    }
+
+    /**
+     * {@code img} as an indexed-colour PNG (the art pipeline's format, {@code tools/images/hud_palette.py}): index 0 the
+     * only transparent entry, then the opaque colours in ascending RGB order. Deterministic.
+     */
+    static byte[] indexedPng(BufferedImage img) {
+        TreeSet<Integer> colours = new TreeSet<>();
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getWidth(); x++) {
+                int p = img.getRGB(x, y);
+                if ((p >>> 24) != 0) {
+                    if ((p >>> 24) != 0xFF) {
+                        throw new DatagenException("semi-transparent pixel at " + x + "," + y);
+                    }
+                    colours.add(p & 0xFFFFFF);
+                }
+            }
+        }
+        List<Integer> palette = new ArrayList<>(colours);
+        int size = palette.size() + 1;
+        if (size > 256) {
+            throw new DatagenException("more than 255 colours");
+        }
+        byte[] r = new byte[size];
+        byte[] g = new byte[size];
+        byte[] b = new byte[size];
+        byte[] a = new byte[size];
+        for (int i = 1; i < size; i++) {
+            int c = palette.get(i - 1);
+            r[i] = (byte) (c >> 16);
+            g[i] = (byte) (c >> 8);
+            b[i] = (byte) c;
+            a[i] = (byte) 0xFF;
+        }
+        IndexColorModel cm = new IndexColorModel(8, size, r, g, b, a);
+        BufferedImage out = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_BYTE_INDEXED, cm);
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getWidth(); x++) {
+                int p = img.getRGB(x, y);
+                int index = (p >>> 24) == 0 ? 0 : palette.indexOf(p & 0xFFFFFF) + 1;
+                out.getRaster().setSample(x, y, 0, index);
+            }
+        }
+        try {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            ImageIO.write(out, "png", bytes);
+            return bytes.toByteArray();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /** The first row with an opaque pixel of {@code img}. */
+    static int firstOpaqueRow(BufferedImage img, String what) {
         for (int y = 0; y < img.getHeight(); y++) {
             for (int x = 0; x < img.getWidth(); x++) {
                 if ((img.getRGB(x, y) >>> 24) != 0) {
@@ -160,6 +287,14 @@ final class HudArt {
                 }
             }
         }
-        throw new DatagenException(file + " is fully transparent");
+        throw new DatagenException(what + " is fully transparent");
+    }
+
+    /**
+     * The first row with an opaque pixel. BetterHud trims transparent rows before drawing and does not move the image
+     * down by the trim, so a layer is placed at {@code bar y + firstOpaqueRow} to stay where the canvas puts it.
+     */
+    static int firstOpaqueRow(String file) {
+        return firstOpaqueRow(image(file), file);
     }
 }

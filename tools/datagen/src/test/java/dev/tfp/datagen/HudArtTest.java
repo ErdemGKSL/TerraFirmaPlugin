@@ -322,4 +322,83 @@ class HudArtTest {
     private static int light(int argb) {
         return ((argb >> 16) & 0xFF) + ((argb >> 8) & 0xFF) + (argb & 0xFF);
     }
+
+    /**
+     * PAR-HUD-19: TFC's overheat outline {@code #820000} at alpha {@code level / 4} over our black frame: the frames
+     * darken towards black at level 0 and reach TFC's red at the top level.
+     */
+    @Test
+    void overheatFramesAreTfcsRedOverBlackAtEachSteppedAlpha() {
+        assertThat(HudArt.overheatRgb(1, 4)).isEqualTo(0x210000); // 130 x 0.25 = 32.5, rounded half up
+        assertThat(HudArt.overheatRgb(2, 4)).isEqualTo(0x410000);
+        assertThat(HudArt.overheatRgb(3, 4)).isEqualTo(0x620000);
+        assertThat(HudArt.overheatRgb(4, 4)).isEqualTo(HudArt.OVERHEAT_RGB).isEqualTo(0x820000);
+    }
+
+    /** PAR-HUD-19: the glow and overheat layers are exactly the background's frame ring, recoloured, nothing else. */
+    @Test
+    void ringIsTheBackgroundFrameRecoloured() {
+        HudArt.Bar bar = HudArt.bar("m3_surv_06_health_bar");
+        BufferedImage bg = HudArt.image(bar.bgFile());
+        BufferedImage ring = HudArt.ring(bar, HudArt.GLOW_RGB);
+        for (int y = 0; y < bar.height(); y++) {
+            for (int x = 0; x < bar.width(); x++) {
+                boolean frame = !bar.interior(x, y) && alpha(bg, x, y) != 0;
+                assertThat(ring.getRGB(x, y)).as(x + "," + y).isEqualTo(frame ? 0xFFFFFFFF : 0);
+            }
+        }
+    }
+
+    /**
+     * PAR-HUD-19: the surplus fill is the health fill in TFC's surplus hue ({@code #ffba28}), each pixel keeping its
+     * saturation and brightness, so the light/main/dark rows stay a ramp in the same places.
+     */
+    @Test
+    void surplusIsTheFillInTfcsYellowHue() {
+        HudArt.Bar bar = HudArt.bar("m3_surv_06_health_bar");
+        BufferedImage fill = HudArt.image(bar.fillFile());
+        BufferedImage surplus = HudArt.rehued(bar, HudArt.SURPLUS_RGB);
+        float hue = java.awt.Color.RGBtoHSB(0xFF, 0xBA, 0x28, null)[0];
+        for (int y = 0; y < bar.height(); y++) {
+            for (int x = 0; x < bar.width(); x++) {
+                int f = fill.getRGB(x, y);
+                int s = surplus.getRGB(x, y);
+                assertThat(alpha(surplus, x, y)).isEqualTo(alpha(fill, x, y));
+                if (alpha(fill, x, y) == 0) {
+                    continue;
+                }
+                float[] a = java.awt.Color.RGBtoHSB((f >> 16) & 0xFF, (f >> 8) & 0xFF, f & 0xFF, null);
+                float[] b = java.awt.Color.RGBtoHSB((s >> 16) & 0xFF, (s >> 8) & 0xFF, s & 0xFF, null);
+                assertThat(b[0]).isCloseTo(hue, org.assertj.core.data.Offset.offset(0.01f));
+                assertThat(b[2]).isCloseTo(a[2], org.assertj.core.data.Offset.offset(0.01f));
+            }
+        }
+    }
+
+    /**
+     * PAR-HUD-19: the derived layers are written like the resources: indexed colour, index 0 the only transparent entry,
+     * binary alpha, a small palette, lossless, and the same bytes on every run.
+     */
+    @Test
+    void derivedLayersAreSmallIndexedLosslessPngs() throws Exception {
+        HudArt.Bar health = HudArt.bar("m3_surv_06_health_bar");
+        HudArt.Bar thirst = HudArt.bar("m3_surv_06_thirst_bar");
+        for (BufferedImage src : List.of(HudArt.ring(health, HudArt.GLOW_RGB), HudArt.rehued(health, HudArt.SURPLUS_RGB),
+            HudArt.ring(thirst, HudArt.overheatRgb(2, 4)))) {
+            byte[] png = HudArt.indexedPng(src);
+            assertThat(HudArt.indexedPng(src)).isEqualTo(png);
+            BufferedImage img = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(png));
+            assertThat(img.getColorModel()).isInstanceOf(IndexColorModel.class);
+            IndexColorModel cm = (IndexColorModel) img.getColorModel();
+            assertThat(cm.getAlpha(0)).isZero();
+            assertThat(plteEntries(png)).isBetween(2, 16);
+            for (int y = 0; y < src.getHeight(); y++) {
+                for (int x = 0; x < src.getWidth(); x++) {
+                    int a = alpha(src, x, y);
+                    assertThat(img.getRGB(x, y)).as(x + "," + y).isEqualTo(a == 0 ? img.getRGB(x, y) & 0x00FFFFFF : src.getRGB(x, y));
+                    assertThat(alpha(img, x, y)).isEqualTo(a);
+                }
+            }
+        }
+    }
 }

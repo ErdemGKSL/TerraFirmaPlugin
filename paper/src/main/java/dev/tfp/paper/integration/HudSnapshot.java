@@ -33,12 +33,66 @@ import java.util.function.LongSupplier;
  * @param northernHemisphere PAR-HUD-16: whether the player stands in the northern hemisphere (TFC
  *                    {@code ClientHelpers.inNorthernHemisphere}); the season text shows the opposite month's name in the
  *                    south. True until the first reading and outside the overworld ({@code HudHemisphere})
+ * @param barStates PAR-HUD-19: absorption, the yellow surplus bar, the health glow and the thirst overheat tint (TFC
+ *                  {@code IngameOverlays.renderHealthBar} / {@code renderThirst}); {@link BarStates#NONE} until the first
+ *                  reading
  */
 public record HudSnapshot(double health, double maxHealth, double thirst, double hunger, HeldHeat heldHeat,
         double ambientTemperature, PrecipitationType precipitation, double air, double armor, boolean needsActive,
-        boolean northernHemisphere) {
+        boolean northernHemisphere, BarStates barStates) {
     public HudSnapshot {
         Objects.requireNonNull(heldHeat, "heldHeat");
+        Objects.requireNonNull(barStates, "barStates");
+    }
+
+    /** A snapshot without bar states yet ({@link BarStates#NONE}). */
+    public HudSnapshot(double health, double maxHealth, double thirst, double hunger, HeldHeat heldHeat,
+            double ambientTemperature, PrecipitationType precipitation, double air, double armor, boolean needsActive,
+            boolean northernHemisphere) {
+        this(health, maxHealth, thirst, hunger, heldHeat, ambientTemperature, precipitation, air, armor, needsActive,
+                northernHemisphere, BarStates.NONE);
+    }
+
+    /**
+     * PAR-HUD-19: the extra states of the health and thirst bars, all published from the player's thread
+     * ({@code PlayerNeedsHudService}). TFC {@code IngameOverlays.renderHealthBar}: the fill and the text use
+     * {@code health + absorption}, a yellow surplus bar fills by {@code clamp(percent + absorption / 20 - 1, 0, 1)}, and a
+     * highlight overlay is drawn while {@code (saturation > 0 && hurt) || hurtTime > 0 || Regeneration}; {@code
+     * renderThirst} tints the bar at alpha {@code getThirstContributionFromTemperature() / MAX_TEMPERATURE_THIRST_DECAY}.
+     *
+     * @param absorption     the absorption on the shown (TFC x 50) scale, 0 or more
+     * @param surplus        the yellow surplus bar's fill, 0..1 (TFC's {@code surplusPercent})
+     * @param steadyGlow     the part of the glow condition that holds until the next reading: hurt with saturation, or
+     *                       under Regeneration
+     * @param hurtUntilNanos the {@link System#nanoTime()} at which the last damage's {@code hurtTime} (10 ticks) ends; 0
+     *                       when never hurt. Read against the clock at placeholder time ({@link #healthGlow(long)}), so the
+     *                       glow ends with no further publish
+     * @param thirstOverheat the overheat tint level, 0 (none) .. the number of pre-tinted frames (TFC's alpha, stepped)
+     */
+    public record BarStates(double absorption, double surplus, boolean steadyGlow, long hurtUntilNanos,
+            int thirstOverheat) {
+        /** No absorption, no glow, no tint. */
+        public static final BarStates NONE = new BarStates(0, 0, false, 0L, 0);
+
+        /** The same states with the hurt time ending at {@code nanos} ({@link System#nanoTime()} scale). */
+        public BarStates withHurtUntil(long nanos) {
+            return new BarStates(absorption, surplus, steadyGlow, nanos, thirstOverheat);
+        }
+
+        /** Whether the hurt time of the last damage still runs at {@code nanos}. */
+        public boolean hurtAt(long nanos) {
+            return hurtUntilNanos != 0L && nanos - hurtUntilNanos < 0;
+        }
+    }
+
+    /** PAR-HUD-19: whether the health bar glows at {@code nanos} ({@link System#nanoTime()}): TFC's highlight condition. */
+    public boolean healthGlow(long nanos) {
+        return barStates.steadyGlow() || barStates.hurtAt(nanos);
+    }
+
+    /** PAR-HUD-19: the shown current health, TFC's {@code health + absorption} on the x 50 scale (fill and text). */
+    public double healthWithAbsorption() {
+        return health + barStates.absorption();
     }
 
     /** A snapshot of a player in the northern hemisphere (TFC's default, and the hemisphere at z = 0). */
@@ -161,17 +215,17 @@ public record HudSnapshot(double health, double maxHealth, double thirst, double
 
     public HudSnapshot withThirst(double value) {
         return new HudSnapshot(health, maxHealth, value, hunger, heldHeat, ambientTemperature,
-                precipitation, air, armor, needsActive, northernHemisphere);
+                precipitation, air, armor, needsActive, northernHemisphere, barStates);
     }
 
     public HudSnapshot withHealth(double value, double max) {
         return new HudSnapshot(value, max, thirst, hunger, heldHeat, ambientTemperature,
-                precipitation, air, armor, needsActive, northernHemisphere);
+                precipitation, air, armor, needsActive, northernHemisphere, barStates);
     }
 
     public HudSnapshot withHunger(double value) {
         return new HudSnapshot(health, maxHealth, thirst, value, heldHeat, ambientTemperature,
-                precipitation, air, armor, needsActive, northernHemisphere);
+                precipitation, air, armor, needsActive, northernHemisphere, barStates);
     }
 
     /** A fixed held temperature ({@link HeldHeat#fixed}). */
@@ -182,30 +236,30 @@ public record HudSnapshot(double health, double maxHealth, double thirst, double
     /** The held stack's heat record, evaluated at each read ({@link #heldTemperature()}). */
     public HudSnapshot withHeldHeat(HeldHeat value) {
         return new HudSnapshot(health, maxHealth, thirst, hunger, value, ambientTemperature, precipitation, air, armor,
-                needsActive, northernHemisphere);
+                needsActive, northernHemisphere, barStates);
     }
 
     public HudSnapshot withAmbientTemperature(double value) {
         return new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat, value, precipitation, air, armor,
-                needsActive, northernHemisphere);
+                needsActive, northernHemisphere, barStates);
     }
 
     public HudSnapshot withPrecipitation(PrecipitationType value) {
         return new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat, ambientTemperature,
-                value, air, armor, needsActive, northernHemisphere);
+                value, air, armor, needsActive, northernHemisphere, barStates);
     }
 
     /** The breath left in ticks, clamped to 0..{@link #MAX_AIR}. */
     public HudSnapshot withAir(double value) {
         return new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat, ambientTemperature, precipitation,
-                Math.clamp(value, 0, MAX_AIR), armor, needsActive, northernHemisphere);
+                Math.clamp(value, 0, MAX_AIR), armor, needsActive, northernHemisphere, barStates);
     }
 
     /** The armour points, clamped to 0..{@link #ARMOR_CAP} (NaN reads as 0). */
     public HudSnapshot withArmor(double value) {
         return new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat, ambientTemperature,
                 precipitation, air,
-                Double.isNaN(value) ? 0 : Math.clamp(value, 0, ARMOR_CAP), needsActive, northernHemisphere);
+                Double.isNaN(value) ? 0 : Math.clamp(value, 0, ARMOR_CAP), needsActive, northernHemisphere, barStates);
     }
 
     /**
@@ -214,7 +268,7 @@ public record HudSnapshot(double health, double maxHealth, double thirst, double
      */
     public HudSnapshot withNeedsActive(boolean value) {
         return new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat, ambientTemperature, precipitation, air, armor,
-                value, northernHemisphere);
+                value, northernHemisphere, barStates);
     }
 
     /**
@@ -223,6 +277,13 @@ public record HudSnapshot(double health, double maxHealth, double thirst, double
      */
     public HudSnapshot withNorthernHemisphere(boolean value) {
         return value == northernHemisphere ? this : new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat,
-                ambientTemperature, precipitation, air, armor, needsActive, value);
+                ambientTemperature, precipitation, air, armor, needsActive, value, barStates);
+    }
+
+    /** PAR-HUD-19: the bar states, published from the player's thread ({@code PlayerNeedsHudService}). */
+    public HudSnapshot withBarStates(BarStates value) {
+        Objects.requireNonNull(value, "value");
+        return value.equals(barStates) ? this : new HudSnapshot(health, maxHealth, thirst, hunger, heldHeat,
+                ambientTemperature, precipitation, air, armor, needsActive, northernHemisphere, value);
     }
 }

@@ -10,9 +10,12 @@ import dev.tfp.core.food.NutritionLevels;
 import dev.tfp.core.food.NutritionState;
 import dev.tfp.core.health.HealthConfig;
 import dev.tfp.core.health.HealthDisplay;
+import dev.tfp.core.health.HealthScale;
 import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.heat.HeatState;
 import dev.tfp.core.recipe.food.FoodData;
+import dev.tfp.core.thirst.ThirstConfig;
+import dev.tfp.core.thirst.ThirstState;
 import dev.tfp.paper.heat.HeatPdc;
 import dev.tfp.paper.heat.ItemHeatHooks;
 import dev.tfp.paper.hud.HudHemisphere;
@@ -33,7 +36,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -42,6 +47,7 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffectType;
 
 /**
  * Health, max health, thirst, hunger, air and armour for the HUD (M3-SURV-04, M3-SURV-06, M3-SURV-03). The thirst is evaluated lazily here
@@ -81,10 +87,31 @@ import org.bukkit.inventory.ItemStack;
  * <p>PAR-HUD-16: each reading also publishes the player's hemisphere ({@link HudHemisphere}, TFC
  * {@code ClientHelpers.inNorthernHemisphere}), read here on the player's thread, so the {@code tfp_season} text follows a
  * player who crosses a hemisphere band (or changes world) within one {@value #PERIOD_TICKS}-tick reading.
+ *
+ * <p>PAR-HUD-19: each reading also publishes the {@link HudSnapshot.BarStates} of TFC {@code IngameOverlays
+ * .renderHealthBar} and {@code renderThirst} ({@link #barStates}): the absorption (fill and text include it), the yellow
+ * surplus bar, the steady part of the health glow (hurt with saturation, or Regeneration) and the thirst overheat level
+ * ({@link #overheatLevel}). A damage to the player ({@link #onDamage}) stamps the end of TFC's {@code hurtTime} (10 ticks)
+ * into the snapshot at once, so the glow shows on BetterHud's next update and ends by itself when the placeholder reads a
+ * later clock; it also republishes on the next tick (the health after the hit). A potion effect change republishes too
+ * (Regeneration, Absorption).
  */
 public final class PlayerNeedsHudService implements Listener {
     /** The throttle: one reading per player per second. */
     public static final long PERIOD_TICKS = 20;
+
+    /**
+     * PAR-HUD-19: the number of pre-tinted overheat frames of the thirst bar; TFC's alpha {@code contribution / 0.4} is
+     * stepped to {@code 0..OVERHEAT_LEVELS} ({@link #overheatLevel}). Must match {@code HudLayouts.OVERHEAT_FRAMES} in
+     * tools/datagen.
+     */
+    public static final int OVERHEAT_LEVELS = 4;
+
+    /** Vanilla {@code LivingEntity.hurtDuration}: {@code hurtTime} runs 10 ticks after a hit (500 ms at 20 TPS). */
+    static final long HURT_NANOS = 10 * 50_000_000L;
+
+    /** TFC's surplus divisor ({@code absorption / 20f}): the absorption that fills the yellow bar once. */
+    static final float SURPLUS_ABSORPTION = 20f;
 
     private final PlayerDataStore data;
     private final Scheduler scheduler;
@@ -92,6 +119,8 @@ public final class PlayerNeedsHudService implements Listener {
     private final LongSupplier playerTicks;
     private final ItemHeatHooks.Capacities heatCapacities;
     private final HeatConfig heatConfig;
+    /** The clock of the hurt time ({@link System#nanoTime()}; tests replace it). */
+    private LongSupplier nanoClock = System::nanoTime;
 
     /**
      * @param playerTicks    the calendar's player tick ({@code ClockSnapshot.playerTicks}), any thread; also the clock
@@ -161,6 +190,53 @@ public final class PlayerNeedsHudService implements Listener {
         return nutritionOf(stored.get()).levels(hunger, config).healthModifier(config);
     }
 
+    /** Tests: the clock the hurt time is stamped with. */
+    void nanoClock(LongSupplier clock) {
+        this.nanoClock = clock;
+    }
+
+    /**
+     * PAR-HUD-19, TFC {@code IngameOverlays.renderHealthBar} / {@code renderThirst}: the bar states of a player with vanilla
+     * {@code health} of {@code maxHealth}, {@code absorption} (vanilla HP, NaN reads 0 as in TFC), the food
+     * {@code saturation} and Regeneration, at the health modifier {@code modifier}, in {@code ambientTemperature} °C
+     * (NaN: no reading, no tint). The hurt time ({@code hurtUntilNanos}) is carried over from the last snapshot.
+     * <ul>
+     *   <li>absorption on the shown scale ({@link HealthScale#shownHealth}, the same scale as the health);</li>
+     *   <li>surplus {@code clamp(clamp((health + absorption) / max, 0, 1) + absorption / 20 - 1, 0, 1)};</li>
+     *   <li>steady glow {@code (saturation > 0 && 0 < health < max) || regeneration} (the {@code hurtTime > 0} part is the
+     *       hurt stamp, {@link HudSnapshot#healthGlow(long)});</li>
+     *   <li>overheat level {@link #overheatLevel}.</li>
+     * </ul>
+     */
+    static HudSnapshot.BarStates barStates(float health, float maxHealth, float absorption, float saturation,
+            boolean regeneration, float modifier, double ambientTemperature, long hurtUntilNanos) {
+        float abs = Float.isNaN(absorption) || absorption < 0 ? 0f : absorption;
+        double surplus = 0;
+        if (maxHealth > 0) {
+            float percent = Math.clamp((health + abs) / maxHealth, 0f, 1f);
+            surplus = Math.clamp(percent + abs / SURPLUS_ABSORPTION - 1f, 0f, 1f);
+        }
+        boolean hurt = health > 0f && health < maxHealth;
+        boolean steady = (saturation > 0f && hurt) || regeneration;
+        double shownAbsorption = HealthScale.shownHealth(abs, modifier, HealthConfig.DEFAULT);
+        return new HudSnapshot.BarStates(shownAbsorption, surplus, steady, hurtUntilNanos,
+                overheatLevel(ambientTemperature));
+    }
+
+    /**
+     * PAR-HUD-19: TFC's overheat alpha {@code getThirstContributionFromTemperature() / MAX_TEMPERATURE_THIRST_DECAY}
+     * ({@link ThirstState#temperatureContribution}, 0 at 22 °C and below, 1 at 34 °C and above) rounded to the nearest of
+     * {@code 0..}{@value #OVERHEAT_LEVELS}; 0 without a reading (NaN).
+     */
+    static int overheatLevel(double ambientTemperature) {
+        if (Double.isNaN(ambientTemperature)) {
+            return 0;
+        }
+        ThirstConfig config = ThirstConfig.DEFAULT;
+        float alpha = ThirstState.temperatureContribution((float) ambientTemperature, config) / config.maxTemperatureDecay();
+        return Math.clamp(Math.round(alpha * OVERHEAT_LEVELS), 0, OVERHEAT_LEVELS);
+    }
+
     /** Starts the throttle on the global thread. Call once, after the scheduler exists. */
     public void start(Supplier<Collection<? extends Player>> online) {
         scheduler.globalRepeating(1, PERIOD_TICKS, () -> {
@@ -206,10 +282,44 @@ public final class PlayerNeedsHudService implements Listener {
         float modifier = healthModifier(Optional.of(evaluated), player.getFoodLevel());
         HealthDisplay health = HealthDisplay.of((float) player.getHealth(), (float) player.getMaxHealth(), modifier,
                 HealthConfig.DEFAULT);
+        HudSnapshot.BarStates states = barStates((float) player.getHealth(), (float) player.getMaxHealth(),
+                (float) player.getAbsorptionAmount(), player.getSaturation(),
+                player.hasPotionEffect(PotionEffectType.REGENERATION), modifier, base.ambientTemperature(),
+                base.barStates().hurtUntilNanos());
         hud.publish(player, withNeeds(base, evaluated, player.getFoodLevel()).withHealth(health.health(), health.maxHealth())
                 .withAir(player.getRemainingAir()).withArmor(armor(player))
                 .withHeldHeat(heldHeatOf(player)).withNeedsActive(active)
-                .withNorthernHemisphere(HudHemisphere.north(player)));
+                .withNorthernHemisphere(HudHemisphere.north(player)).withBarStates(states));
+    }
+
+    /**
+     * PAR-HUD-19: a hit on the player starts TFC's {@code hurtTime} glow. Paper fires the event on the player's thread
+     * before the damage is applied: the hurt stamp goes into the snapshot here (the glow shows on BetterHud's next update
+     * and ends {@value #HURT_NANOS} ns later at placeholder time), and a republish on the next tick reads the health after
+     * the hit (TFC's {@code hurt with saturation} part of the glow).
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onDamage(EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player player && hud.isActive()) {
+            hurt(player);
+            refresh(player);
+        }
+    }
+
+    /** Player thread only: stamps the end of the hurt time ({@link #HURT_NANOS} from now) into the player's snapshot. */
+    void hurt(Player player) {
+        ThreadAsserts.owned(player);
+        UUID id = player.getUniqueId();
+        HudSnapshot before = hud.snapshot(id);
+        hud.publish(player, before.withBarStates(before.barStates().withHurtUntil(nanoClock.getAsLong() + HURT_NANOS)));
+    }
+
+    /** PAR-HUD-19: Regeneration and Absorption change the glow, the fill and the surplus bar: republish on the next tick. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPotionEffect(EntityPotionEffectEvent event) {
+        if (event.getEntity() instanceof Player player && hud.isActive()) {
+            refresh(player);
+        }
     }
 
     /** The player's armour points (vanilla {@code Attribute.ARMOR}, equipment and effects included); 0 without one. */
