@@ -18,6 +18,7 @@ import dev.tfp.core.heat.HeatLevel;
 import dev.tfp.core.heat.HeatState;
 import dev.tfp.core.heat.ItemHeatDefinitions;
 import dev.tfp.paper.packet.ClientItemDecoration;
+import dev.tfp.paper.tooltip.HeatDisplayStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,9 +26,11 @@ import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 
 /**
- * The heat line in the item tooltip of outgoing item packets (M3-HEAT-01), computed from the packet's own copy of the
+ * The heat line in the item tooltip of outgoing item packets (M3-HEAT-01), in TFC's level colour and not italic
+ * (PAR-HEAT-02), computed from the packet's own copy of the
  * stack: its {@code tfp:heat} record (see {@link HeatPdc}) in {@code custom_data.PublicBukkitValues}, its CraftEngine id
  * and the item heat capacity. Nothing is read from the server's stack and nothing ticks: the temperature is the lazy
  * one at the time the packet is built, so a stack shows the level it had when it was last sent.
@@ -36,6 +39,10 @@ import net.kyori.adventure.text.Component;
  * lines added), so {@link #strip} removes exactly that when a creative-mode client sends the stack back
  * ({@link dev.tfp.paper.packet.CreativeReturnHandler}). Netty thread: reads one volatile clock value and the
  * immutable definitions snapshot.
+ *
+ * <p>Since PAR-INFRA-05 the {@code tooltip} module replaces the handler that applies this decoration, so its line is the
+ * fallback of a server without that module; the full TFC heat and metal lines are {@link HeatTooltipLine} and
+ * {@link HeatTooltipMeltsInto}. {@link HeatGlow} still uses {@link #level} for the item's glow.
  */
 public final class HeatTooltipDecoration implements ClientItemDecoration {
     public static final String NAME = "heat-tooltip";
@@ -114,10 +121,18 @@ public final class HeatTooltipDecoration implements ClientItemDecoration {
             return false; // already decorated (a packet copy that was built from a decorated one)
         }
         List<Component> lines = new ArrayList<>(item.getComponentOr(ComponentTypes.LORE, ItemLore.EMPTY).getLines());
-        lines.add(Component.text(text.apply(level.get(), locale)));
+        lines.add(line(level.get(), text.apply(level.get(), locale)));
         item.setComponent(ComponentTypes.LORE, new ItemLore(lines));
         data.setTag(MARKER, new NBTInt(1));
         return true;
+    }
+
+    /**
+     * The lore line of a heat level (PAR-HEAT-02): the text in TFC's colour of the level ({@code Heat}), not italic
+     * (lore is italic by default on a vanilla client; TFC's tooltip lines are upright).
+     */
+    static Component line(HeatLevel level, String text) {
+        return Component.text(text, HeatDisplayStyle.color(level)).decoration(TextDecoration.ITALIC, false);
     }
 
     @Override
