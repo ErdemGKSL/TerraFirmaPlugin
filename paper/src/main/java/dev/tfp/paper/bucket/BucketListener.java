@@ -64,6 +64,7 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -115,8 +116,16 @@ public final class BucketListener implements Listener {
     private final Function<String, Optional<ItemStack>> create;
     private final Function<Block, String> waterFluid;
     private final Predicate<Block> springWater;
-    /** The last game tick a player's bucket acted: the main and the off hand of one click act once. */
-    private final Map<UUID, Long> lastUse = new ConcurrentHashMap<>();
+    /**
+     * The player's own tick ({@link Player#getTicksLived()}) at which their bucket last acted: the interact events of one
+     * click (main and off hand, block and air) come in the same player tick and act once (PAR-FLUID-13). Keyed on the
+     * player entity's tick count, which advances every tick the player is ticked on its region thread (Folia), also with
+     * the daylight cycle off ({@code advance_time false}) and under {@code /tick freeze} (players are never frozen); never
+     * on the world's day time or game time, which stand still in those cases.
+     */
+    private final Map<UUID, Integer> lastUse = new ConcurrentHashMap<>();
+    /** The block the player's bucket acts on ({@link #target}); a stand-in in tests. */
+    private final Function<Player, Hit> targeter;
     /** Set while this listener fires its own bucket events, so {@link #onVanillaFill} leaves them alone. */
     private final ThreadLocal<Boolean> firing = ThreadLocal.withInitial(() -> false);
 
@@ -147,6 +156,20 @@ public final class BucketListener implements Listener {
         this.create = create;
         this.waterFluid = waterFluid;
         this.springWater = springWater;
+        this.targeter = BucketListener::target;
+    }
+
+    /** With a stand-in for the targeted block (tests: MockBukkit has no block ray trace). */
+    BucketListener(Function<ItemStack, Optional<String>> itemId, BiPredicate<FluidContainerKind, String> usable,
+            Supplier<BucketConfig> config, Function<String, Optional<ItemStack>> create,
+            Function<Block, String> waterFluid, Predicate<Block> springWater, Function<Player, Hit> targeter) {
+        this.itemId = itemId;
+        this.usable = usable;
+        this.config = config;
+        this.create = create;
+        this.waterFluid = waterFluid;
+        this.springWater = springWater;
+        this.targeter = targeter;
     }
 
     /** With the vanilla-biome salt rule for water ({@link #biomeWaterFluid}). */
@@ -236,12 +259,12 @@ public final class BucketListener implements Listener {
                 && !player.isSneaking()) {
             return;
         }
-        Hit hit = target(player);
+        Hit hit = targeter.apply(player);
         if (hit == null) {
             return;
         }
-        long tick = player.getWorld().getFullTime();
-        Long last = lastUse.get(player.getUniqueId());
+        int tick = player.getTicksLived();
+        Integer last = lastUse.get(player.getUniqueId());
         if (last != null && last == tick) {
             event.setCancelled(true);
             return;
@@ -258,6 +281,12 @@ public final class BucketListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        lastUse.remove(event.getPlayer().getUniqueId());
+    }
+
+    /** A respawned player is a new entity whose tick count starts again: the last use of the old one no longer counts. */
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
         lastUse.remove(event.getPlayer().getUniqueId());
     }
 

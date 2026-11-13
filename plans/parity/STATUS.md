@@ -129,7 +129,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-CLIM-15 | Self-test weather.precip_sample and PrecipitationService in ModuleServices | CLIMATE | 12 | done |
 | PAR-CLIM-16 | Calendar sleep-skip self-test: calendar.sleep_skip on Paper and Folia | CLIMATE | 12 | done |
 | PAR-CLIM-17 | Console /tfp debug chunk <x> <z> answers over RCON and reads precipitation through vanilla's rain gates | CLIMATE | 12 | open |
-| PAR-FLUID-13 | Bucket double-use guard keyed on day time: buckets stop working when the daylight cycle is off | FLUID | 12 | open |
+| PAR-FLUID-13 | Bucket double-use guard keyed on day time: buckets stop working when the daylight cycle is off | FLUID | 12 | | done |
 | PAR-FLUID-14 | /tfp debug water names hot spring pool water spring | FLUID | 12 | open |
 | PAR-INFRA-45 | InstallerTest teardown flake: rebuildWaitsUntilBetterHudIsNotReloading fails deleting @TempDir plugins | INFRA | 12 | open |
 | PAR-DATA-16 | Pistons cannot move water sources: 1-tick piston pulses drop the water of waterlogged blocks (TFC's MC-130183 fix) | DATA | 12 | done |
