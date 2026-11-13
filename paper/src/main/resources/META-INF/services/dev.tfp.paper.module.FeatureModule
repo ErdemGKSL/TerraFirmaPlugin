@@ -29,3 +29,4 @@ dev.tfp.paper.worldwater.hot.HotSpringModule
 dev.tfp.paper.heat.HeatGlowModule
 dev.tfp.paper.health.HealthModule
 dev.tfp.paper.heat.HeatTooltipModule
+dev.tfp.paper.player.RespawnModule

@@ -111,7 +111,7 @@ Totals: 315 items; open 220, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-HEAT-01 | Item heat glow: hot items glow by heat level on vanilla clients | HEAT | 10 | done |
 | PAR-HEAT-02 | Heat tooltip in TFC colours and metal info lines (melting point, workable, weldable) | HEAT | 10 | done |
 | PAR-HUD-19 | Health and thirst bar states: hurt/regeneration glow, absorption in the fill and the yellow surplus bar, thirst overheat tint | HUD | 10 | done |
-| PAR-SURV-09 | Death, respawn and regeneration rules | SURV | 10 | open |
+| PAR-SURV-09 | Death, respawn and regeneration rules | SURV | 10 | done |
 | PAR-INFRA-43 | Button and mud carriers vs our worldgen placeholders: no small-ground-piece or charcoal-pile carrier draws over placed loose-rock, stick or mud placeholders | INFRA | 10 | done |
 | PAR-INFRA-44 | Heavy weighted pressure plate is a TFC player block (wrought-iron recipe): no transparent carrier may draw placed plates empty | INFRA | 10 | open |
 | PAR-PROC-32 | Barrel CE blocks: tfp:wood/barrel/<wood> hitbox demands, configuration/barrel, in-game brining check | PROC | 10 | done |
@@ -119,6 +119,7 @@ Totals: 315 items; open 220, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-CLIM-01 | Calendar config, sleep skipping and doDaylightCycle sync | CLIMATE | 11 | open |
 | PAR-CLIM-02 | Precipitation per position on Paper and the in-game snow-vs-rain check | CLIMATE | 11 | open |
 | PAR-FLUID-10 | Vanilla bucket from a spring pool gives tfp:bucket/spring_water; waterlogged blocks in oceans give fresh water | FLUID | 11 | open |
+| PAR-SURV-14 | Survival config keys in config.yml: keepNutritionAfterDeath, peaceful passive regeneration, naturalRegenerationModifier | SURV | 11 | open |
 | PAR-FLUID-11 | Hot spring in-game verification: health rises standing in a hot spring | FLUID | 11 | open |
 | PAR-FLUID-12 | Bucket config keys: buckets: section in config.yml, typed config and BucketModule reads the current value | FLUID | 11 | open |
 | PAR-HEAT-03 | Hot items: burn damage while held, item entities cool in water and snow | HEAT | 11 | open |
