@@ -1,0 +1,35 @@
+---
+id: PAR-HEAT-18
+title: "Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start)"
+area: HEAT
+status: open
+wave: 14
+deps: [PAR-HEAT-06]
+size: S
+aliases: ["follow-up of PAR-HEAT-05 (its in_game_steps and in-game done-criterion)"]
+tfc_refs:
+  - "src/main/java/net/dries007/tfc/util/events/StartFireEvent.java"
+  - "src/main/java/net/dries007/tfc/common/items/FirestarterItem.java"
+files_owned:
+  - "docs/verification/PAR-HEAT-05/**"
+  - "itest/src/main/java/dev/tfp/itest/cases/FireStartCase.java"
+ui: true
+in_game_steps:
+  - "ce item give Bot tfp:firestarter"
+  - "drop 3 minecraft:stick and 1 log (any #tfc:firepit_logs) on a grass block, all inside one block"
+  - "look at the grass block under the pile and hold right-click with the firestarter until the bow-like use ends (3.6 s); repeat until it lights (chance 0.5 + 0.1 per kindling item, 0.15 in rain)"
+  - "tfp debug block"
+  - "Screenshot at GUI scale 2: the firestarter held up (bow animation) during the use; the lit firepit afterwards with the log in its fuel; the sticks and log gone from the ground"
+plan:
+  - "Deferred in-game check of PAR-HEAT-05 (PROTOCOL §6.5): the firepit is built through the `FirepitFactory` that PAR-HEAT-06 installs on `FireStarting` (paper/fire); before that a strong start on a stick pile places a fire block. PAR-HEAT-06 must call `services().require(FireStarting.class).firepitFactory(...)` and register a `FireLightable` that lights an unlit firepit."
+  - "Add the self-test case `fire.start` (itest/.../cases/FireStartCase.java + its line in SelfTestSuite): on the self-test world, drop 3 sticks and 1 log on a block, call `FireStarting.start` with `Starter.fixed(STRONG, 1.0)` (a base of 1.0 always builds), assert the result FIREPIT, a firepit block at the position with the log in a fuel slot and lit, and no item entities left; then a WEAK start (no lightable) changes nothing. Run on Paper and Folia."
+  - "Store crops and verdict.md in docs/verification/PAR-HEAT-05/."
+tests:
+  - "itest: fire.start on Paper and Folia 1.21.11"
+done_criteria:
+  - "In-game: a firestarter lights a stick+log pile into a firepit (self-test `fire.start`)"
+---
+
+# PAR-HEAT-18: Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start)
+
+All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

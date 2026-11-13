@@ -196,6 +196,10 @@ TFC's `updateShape` (support beam connections, snowy connected grass, wattle, fe
 
 States are `BlockStateRef`s: CraftEngine states through the `CustomBlocks` adapter, vanilla blocks as their block data string. Writes never apply vanilla physics. A decision changes only its own centre, so a chain placed in one tick converges with one commit per changed block. Rules must be idempotent or the runner never settles.
 
+### 7.4 Fire starting (PAR-HEAT-05)
+
+TFC's `StartFireEvent.startFire` is the service `paper/fire/FireStarting` (from `ModuleServices`). Every fire starter calls `start(block, face, player, stack, Starter)`: the owner region reads the rain gate of the block above, the worker pool draws the plan (`core/fuel/FireStartPlan`: rain-scaled chance, strength, firepit roll), and the owner region applies it with live reads: fluid in front of the face, then each registered **`FireLightable`** in order (TFC's event listeners; a device returns `true` to take the start, which is TFC's cancel), then for a strong start the ground item scan (`core/fuel/FirepitPile`) and the **`FirepitFactory`** the firepit block installs (PAR-HEAT-06), else the vanilla fire block behind a `BlockIgniteEvent`. Devices that TFC lights (firepit, pot, grill, log pile, pit kiln, forge, bloomery, torches, candles, lamps) register a lightable instead of listening to an event. The firestarter's 72-tick use is a vanilla `minecraft:consumable` (bow animation, TFC sound) whose cancelled `PlayerItemConsumeEvent` is the last use tick.
+
 ## 8. World generation
 
 - `worldgen/` ports TFC's `RegionGenerator` pipeline (continents, climate, biomes, rocks, rivers, lakes), layers, river fractal, rock layers, surface builders, veins, features and structures (tree `.nbt` templates).

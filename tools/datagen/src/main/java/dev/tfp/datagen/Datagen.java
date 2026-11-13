@@ -104,6 +104,9 @@ public final class Datagen {
         if (dev.tfp.datagen.basket.BasketItem.available(tfc)) { // PAR-PROC-22: tfp:basket (TFC bundle item); before the coverage gate
             dev.tfp.datagen.basket.BasketItem.run(tfc, out);
         }
+        if (dev.tfp.datagen.fire.FireStarterItems.available(tfc)) { // PAR-HEAT-05: tfp:firestarter, tfp:flint_and_pyrite; before the coverage gate
+            dev.tfp.datagen.fire.FireStarterItems.run(tfc, out);
+        }
         if (dev.tfp.datagen.material.MaterialItems.available(tfc)) { // PAR-PROC-19: plain TFC material items + TFCItems coverage gate; fixtures have no TFCItems
             dev.tfp.datagen.material.MaterialItems.run(tfc, out);
             dev.tfp.datagen.material.ItemCoverage.run(tfc, out);

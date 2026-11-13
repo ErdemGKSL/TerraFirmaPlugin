@@ -134,7 +134,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-INFRA-45 | InstallerTest teardown flake: rebuildWaitsUntilBetterHudIsNotReloading fails deleting @TempDir plugins | INFRA | 12 | open |
 | PAR-DATA-16 | Pistons cannot move water sources: 1-tick piston pulses drop the water of waterlogged blocks (TFC's MC-130183 fix) | DATA | 12 | done |
 | PAR-HEAT-04 | Heating recipes on devices: the 884 heating recipes as a shared service | HEAT | 12 | done |
-| PAR-HEAT-05 | Fire starting: firestarter use-duration, flint and pyrite, StartFireEvent world rules | HEAT | 12 | open |
+| PAR-HEAT-05 | Fire starting: firestarter use-duration, flint and pyrite, StartFireEvent world rules | HEAT | 12 | done |
 | PAR-HEAT-15 | Item bar config key: item-bars.heat in config.yml and TfpConfig, read on /tfp reload | HEAT | 12 | blocked |
 | PAR-HEAT-16 | Item heat of list ingredients: metal tools and parts (item_heat parts_*) cannot be heated | HEAT | 12 | open |
 | PAR-PROC-09 | Barrel GUI, fluid level visual, rain fill, barrel rack | PROC | 12 | open |
@@ -153,6 +153,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-CLIM-19 | Snow catch-up in-game verification: snow piles on plants, ice on a pool and the July melt from one room | CLIMATE | 14 | open |
 | PAR-HEAT-07 | Firepit GUI: fuel slots, input, outputs, temperature bar | HEAT | 14 | open |
 | PAR-HEAT-10 | Torches: burnout to dead torch, relight, wall torches | HEAT | 14 | open |
+| PAR-HEAT-18 | Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start) | HEAT | 14 | open |
 | PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | open |
 | PAR-PROC-18 | Powderkeg | PROC | 14 | open |
 | PAR-CLIM-06 | Seasonal packet rewrite JMH budget and visual checklist | CLIMATE | 15 | open |

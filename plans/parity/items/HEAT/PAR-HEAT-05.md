@@ -2,7 +2,7 @@
 id: PAR-HEAT-05
 title: "Fire starting: firestarter use-duration, flint and pyrite, StartFireEvent world rules"
 area: HEAT
-status: open
+status: done
 wave: 12
 deps: [PAR-INFRA-02]
 size: M
@@ -18,23 +18,21 @@ files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/fire/**"
   - "core/src/main/java/dev/tfp/core/fuel/**"
   - "core/src/test/java/dev/tfp/core/fuel/**"
-ui: true
-in_game_steps:
-  - "ce item give Bot tfp:firestarter"
-  - "place 3 sticks + 1 log on the ground (right-click)"
-  - "hold right-click with the firestarter on them"
-  - "tfp debug block"
+ui: false
+in_game_steps: []
 plan:
   - "Current: core/fuel FuelTable, FuelBurn, FireStart golden-tested."
   - "Firestarter: vanilla `consumable` with use time (or a bow-like use) tracked by PlayerInteractEvent + use-duration; on finish roll FireStart (fireStarterChance) at the target block."
   - "StartFireEvent: an SPI `FireLightable` that devices register (firepit pile, log pile, pit kiln, charcoal forge, torch, candle, lamp); otherwise place vanilla fire if canSurvive."
   - "Firepit creation: firestarter on a pile of 1 log + 3 sticks on the ground (placed items or groundcover) creates the firepit as TFC."
   - "CE items for the firestarter and flint & pyrite."
+  - "Deferred (PROTOCOL §6.5): the firepit block is PAR-HEAT-06 (depends on this item), so the in-game steps, the self-test `fire.start` and the done criterion moved to PAR-HEAT-18."
+  - "Done: core FireStartPlan (draws) and FirepitPile (TFC's item scan); paper/fire FireStarting service (decide async: rain gate snapshot, plan on the worker pool, apply on the region thread), FireLightable SPI (+ TNT), FirepitFactory hook for PAR-HEAT-06, FireStarterListener (firestarter = vanilla consumable 3.6 s bow, finish = cancelled consume; flint and pyrite on right click), PaperFireWorld fire tail with BlockIgniteEvent; datagen fire/FireStarterItems (tfp:firestarter, tfp:flint_and_pyrite, TFC firestarter sound, names). Tests: core FireStartPlanTest (4), FireStartGoldenTest unchanged, paper FireStartingMockBukkitTest (12). The firestarter and flint and pyrite workbench recipes are now emitted, so the one CraftingRecipesTest assertion that expected them pending on PAR-HEAT-05 now asserts the emitted recipe. In-game check: PAR-HEAT-18."
 tests:
   - "paper: MockBukkit use-duration completes and calls the SPI"
   - "core: FireStartGoldenTest unchanged"
 done_criteria:
-  - "In-game: a firestarter lights a stick+log pile into a firepit (self-test `fire.start`)"
+  - "Deferred check tracked in PAR-HEAT-18"
 ---
 
 # PAR-HEAT-05: Fire starting: firestarter use-duration, flint and pyrite, StartFireEvent world rules

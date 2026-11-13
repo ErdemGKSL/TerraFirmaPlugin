@@ -173,9 +173,9 @@ class CraftingRecipesTest {
         Map<String, Object> dye = recipes.get("tfp:crafting/black_dye");
         assertThat(dye).containsEntry("type", "shapeless")
             .containsEntry("ingredients", List.of(List.of("tfp:powder/charcoal", "tfp:powder/coke")));
-        // tfc:crafting/firestarter waits for its result item (PAR-HEAT-05 owns tfc:firestarter).
-        assertThat(report.getAsJsonObject("pending_recipes").getAsJsonArray("tfp:crafting/firestarter").toString())
-            .contains("tfc:firestarter (PAR-HEAT-05)");
+        // tfc:crafting/firestarter: its result item is a CE item since PAR-HEAT-05, so the recipe is emitted.
+        assertThat(((Map<?, ?>) recipes.get("tfp:crafting/firestarter").get("result")).get("id"))
+            .isEqualTo("tfp:firestarter");
         // tfc:crafting/gem_saw: its CE result has a tool rule on tfp:mineable/glass_saw, a server tag since PAR-PROC-24
         // (bootstrap datapack), so CE can build it and the recipe is emitted.
         assertThat(recipes).containsKey("tfp:crafting/gem_saw");
