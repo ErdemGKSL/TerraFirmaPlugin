@@ -1,6 +1,8 @@
 # PAR-FLUID-11 in-game check: hot spring healing (PAR-FLUID-04)
 
-Status: **pass** (2026-11-13, HEAD bef3af3, jar built from that tree).
+Status: **pass** (2026-11-13, HEAD bef3af3, jar built from that tree). Committed on top of 96830d6; between bef3af3 and
+96830d6 only `paper/src/main/java/dev/tfp/paper/bucket/BucketListener.java` (PAR-FLUID-10) and PAR-CLIM-02 docs changed, so the hot spring code
+(`paper/src/main/java/dev/tfp/paper/worldwater/hot/**`) under test is the same in both trees.
 
 ## Setup
 
@@ -27,6 +29,11 @@ Status: **pass** (2026-11-13, HEAD bef3af3, jar built from that tree).
 
 Bot stood on the corner of two or more pool cells, so +3.27 is what about two touched spring blocks give (TFC: 1 in 10
 per tick per block, 0.08 each, 1.6 per block over 200 ticks).
+
+The health numbers come from `data get entity`; the HUD column (TFC-style health x 42.5, 850 max) is only a cross-check.
+The HUD crops were taken a moment before each `data get` read, not at the same instant: 8.498 x 42.5 = 361 shows as 350
+(the crop caught the health before the first heal rolls), while 11.765 shows as 500 and the dry readings match (350, 360).
+Next time, capture the crop and the reading together. The pass result rests on the `data get` values.
 
 ## Criteria
 

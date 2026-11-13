@@ -15,7 +15,7 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
-  - "Found by PAR-FLUID-11 (in-game, `docs/verification/PAR-FLUID-11/verdict.md`): standing in a hot spring pool that heals (old_mountains, 1421 98 -1536, seed 12345), `/tfp debug water Bot` answers `fresh water`. `WorldWaterModule.describe` reads `ChunkWater.kind(x, y, z)`, which classifies with `springPool = false`; the pool rule lives in PAR-FLUID-04's `SpringWater` service (`paper/.../worldwater/hot/SpringWater.java`, looked up through the module services). Fix: when the `SpringWater` service is present and says the block at the player's feet is spring water, report `spring`; otherwise keep the current answer. Read on the player's thread as now."
+  - "Found by PAR-FLUID-11 (in-game, `docs/verification/PAR-FLUID-11/verdict.md`): standing in a hot spring pool that heals (old_mountains, 1421 98 -1536, seed 12345), `/tfp debug water Bot` answers `fresh water`. `WorldWaterModule.describe` reads `ChunkWater.kind(x, y, z)`, which classifies with `springPool = false`; the pool rule lives in PAR-FLUID-04's `SpringWater` service (`paper/src/main/java/dev/tfp/paper/worldwater/hot/SpringWater.java`, looked up through the module services). Fix: when the `SpringWater` service is present and says the block at the player's feet is spring water, report `spring`; otherwise keep the current answer. Read on the player's thread as now. No `BootstrapTest` change: the `water` debug literal already exists."
 tests:
   - "paper: MockBukkit: a player in a gravel-bedded pool above sea level in an active spring chunk gets `spring water`; on stone-bedded water the answer is unchanged"
 done_criteria:
