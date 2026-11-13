@@ -2,7 +2,7 @@
 id: PAR-DATA-16
 title: "Pistons cannot move water sources: 1-tick piston pulses drop the water of waterlogged blocks (TFC's MC-130183 fix)"
 area: DATA
-status: open
+status: done
 wave: 12
 deps: [PAR-INFRA-10]
 size: S
@@ -22,11 +22,13 @@ plan:
   - "First check whether Paper 1.21.11 and 26.3 already fix MC-130183 (Paper has a config for piston behaviour); record the result in the ledger."
   - "If not fixed: on BlockPistonExtendEvent/BlockPistonRetractEvent snapshot the moved waterlogged blocks (vanilla waterlogged and our CE fluid-logged states), decide in core/piston which arrive dry, and after the move apply the dry state through the region commit queue on the owning region (decide async, apply sync); never create a water source at the old or new position."
   - "Ledger: feature row; Divergences row only if a Paper-side limit prevents an exact match."
+  - "Paper check (2026-11-13, javap of the patched servers): Paper 1.21.11 build 132 and 26.3 build 244 do not fix MC-130183; finalTick places movedState with its water."
+  - "Done: core piston/PistonFluidRule (TFC emptyFluidFrom: waterlogged false, fluid=empty, meltable ice and liquids to air) + paper piston/PistonFluidService/Listener/Module (piston events watch destinations, poll while moving_piston, decide async, region commit queue writes the dry state). Tests: PistonFluidRuleTest (19), PistonFluidMockBukkitTest (9). Divergence: dried one to a few ticks after a 1-tick landing. The itest piston.no_water_dupe needs a case file outside files_owned: follow-up PAR-DATA-17."
 tests:
   - "core: decision table (waterlogged slab/stairs/fence and a CE fluid-logged block, extend and retract, 1-tick and normal pulse) gives dry arrival"
   - "paper: MockBukkit piston events produce the dry state; itest `piston.no_water_dupe` with a 1-tick pulse"
 done_criteria:
-  - "No piston pulse moves a water source with a waterlogged block, on Paper and Folia; tests green"
+  - "No piston pulse moves a water source with a waterlogged block, on Paper and Folia; tests green (in-server check on Paper and Folia tracked in PAR-DATA-17)"
 ---
 
 # PAR-DATA-16: Pistons cannot move water sources
