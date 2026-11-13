@@ -9,7 +9,10 @@ import dev.tfp.core.calendar.CalendarFormat;
 import dev.tfp.core.climate.ClimateFormat;
 import dev.tfp.core.climate.ClimateReading;
 import dev.tfp.core.calendar.TimeCommand;
+import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.clock.GlobalClockHolder;
+import dev.tfp.core.climate.ChunkClimate;
+import dev.tfp.core.climate.OverworldClimate;
 import dev.tfp.core.food.FoodConfig;
 import dev.tfp.core.compat.CompatGate;
 import dev.tfp.core.compat.Version;
@@ -29,6 +32,7 @@ import dev.tfp.paper.blockdata.ChunkDataStore;
 import dev.tfp.paper.blockdata.PdcChunkDataStore;
 import dev.tfp.paper.boot.CompatCheck;
 import dev.tfp.paper.calendar.CalendarService;
+import dev.tfp.paper.climate.ChunkClimateSource;
 import dev.tfp.paper.climate.PlayerClimateService;
 import dev.tfp.paper.climate.SeasonalBiomeService;
 import dev.tfp.paper.weather.ChunkSnowTime;
@@ -881,62 +885,120 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         return "snow rule: event " + event + ", would accumulate: " + (event == SnowRule.Event.ACCUMULATE ? "yes" : "no");
     }
 
-    /** A column for {@code /tfp debug chunk <x> <z>}: the position one block above the surface, read on its region. */
-    private record ConsoleSpot(int y, boolean sky, Set<String> ids, long snowTick) {
-    }
-
-    /** {@code /tfp debug chunk <x> <z>} from the console (no player): the default overworld, the surface at x, z. */
+    /** {@code /tfp debug chunk <x> <z>} from the console (no player): the default overworld, above the ground at x, z. */
     @Override
     public CompletableFuture<Reply> debugChunkAt(int x, int z) {
+        return consoleChunk(x, null, z);
+    }
+
+    /** {@code /tfp debug chunk <x> <z> <y>}: the same readout at the given height (under a roof, inside a building). */
+    @Override
+    public CompletableFuture<Reply> debugChunkAt(int x, int y, int z) {
+        return consoleChunk(x, y, z);
+    }
+
+    private CompletableFuture<Reply> consoleChunk(int x, Integer y, int z) {
         World world = getServer().getWorlds().get(0);
-        int cx = x >> 4;
-        int cz = z >> 4;
-        CompletableFuture<ConsoleSpot> spot = new CompletableFuture<>();
-        Runnable read = () -> {
-            try {
-                Chunk chunk = world.getChunkAt(cx, cz);
-                int top = world.getHighestBlockYAt(x, z, HeightMap.WORLD_SURFACE);
-                int y = top + 1;
-                long snowTick = ChunkSnowTime.read(chunk.getPersistentDataContainer()).lastCalendarTick();
-                spot.complete(new ConsoleSpot(y, y > top, chunkData.ids(chunk), snowTick));
-            } catch (RuntimeException e) {
-                spot.completeExceptionally(e);
-            }
-        };
-        // RCON runs the command on the server thread, which on Paper is also the region thread: read inline
-        // then, so the console can wait for the reply (TfpCommands.reply). Elsewhere, hand it to the region.
-        if (scheduler.isOwner(world, cx, cz)) {
-            read.run();
-        } else {
-            scheduler.region(world, cx, cz, read);
+        ConsoleChunkReadout readout = new ConsoleChunkReadout(chunkData, messages, clock, climate != null, precipitation);
+        return readout.read(world, x, y, z, scheduler, getLogger());
+    }
+
+    /**
+     * {@code /tfp debug chunk <x> <z> [y]} without a player (PAR-CLIM-17). RCON only captures what is sent while the
+     * command runs, and a console command on a tick thread never waits ({@code TfpCommands.reply}, PAR-INFRA-38), so
+     * when the command's thread owns the column's region (always on Paper, whose main thread owns every region) the
+     * whole readout runs inline: the column read, then the pure climate and precipitation decision (one climate
+     * sample, cheap), and the returned future is already complete. Otherwise (Folia, or a column another region owns)
+     * the column is read on its region, the decision runs on a worker, and the reply follows after the command
+     * returned: the reply says so and the hand-off is logged.
+     *
+     * <p>Precipitation goes through vanilla's position gates as TFC's {@code isRainingAt} does
+     * ({@link PrecipitationService#rainReaches}: above the {@code MOTION_BLOCKING} top and full sky light), so a
+     * position under leaves or glass reads {@code NONE}. Without {@code y} the position is the first block above the
+     * ground, leaves ignored ({@code MOTION_BLOCKING_NO_LEAVES} top + 1), so the column under a tree reads sheltered.
+     *
+     * @param climateOn whether the climate service runs (its line is left out otherwise)
+     * @param precipitation the started precipitation service, or {@code null} (then {@code NONE})
+     */
+    public record ConsoleChunkReadout(ChunkDataStore chunkData, Messages messages, GlobalClockHolder clock,
+            boolean climateOn, PrecipitationService precipitation) {
+
+        /** What the region thread reads for the readout. */
+        public record Column(int x, int y, int z, boolean rainReaches, Set<String> ids, long snowTick) {
         }
-        PlayerClimateService climateService = climate;
-        PrecipitationService precipitationService = precipitation;
-        return spot.thenCompose(s -> {
-            BlockPos pos = new BlockPos(x, s.y(), z);
-            CompletableFuture<ClimateReading> reading = climateService == null
-                    ? CompletableFuture.completedFuture(null) : climateService.readAt(world, pos);
-            CompletableFuture<PrecipitationType> type = precipitationService == null || !s.sky()
-                    ? CompletableFuture.completedFuture(PrecipitationType.NONE)
-                    : precipitationService.readAt(world, pos, true);
-            return reading.thenCombine(type, (r, t) -> {
-                List<String> lines = new ArrayList<>();
-                lines.add("position " + x + " " + z + ", y " + s.y() + " (the first block above the surface)");
-                lines.addAll(s.ids().isEmpty()
-                        ? List.of(messages.get(Messages.FALLBACK, "debug.chunk.empty"))
-                        : s.ids().stream().map(id -> "tfp:" + id).toList());
-                lines.add(messages.get(Messages.FALLBACK, "debug.chunk.snow_time",
-                        s.snowTick() == SnowCatchUp.NEVER
-                                ? messages.get(Messages.FALLBACK, "debug.chunk.snow_time.none")
-                                : String.valueOf(s.snowTick())));
-                if (r != null) {
-                    lines.add(climateLine(r));
+
+        /** The readout: inline when this thread owns the column's region, else region read then worker decision. */
+        public CompletableFuture<Reply> read(World world, int x, Integer y, int z, Scheduler scheduler,
+                java.util.logging.Logger log) {
+            int cx = x >> 4;
+            int cz = z >> 4;
+            if (scheduler.isOwner(world, cx, cz)) {
+                try {
+                    return CompletableFuture.completedFuture(decide(world, readColumn(world, x, y, z), false));
+                } catch (RuntimeException e) {
+                    return CompletableFuture.failedFuture(e);
                 }
-                lines.add(precipitationLine(t));
-                lines.add(r == null ? "snow rule: unknown (no climate service)" : snowLine(r, t));
-                return Reply.ok("debug.chunk.header", cx, cz, world.getName()).withDetails(lines);
+            }
+            log.info("tfp debug chunk " + x + " " + z + ": the command's thread does not own the column's region;"
+                    + " the reply follows after the command returned (a console sees it in the server log)");
+            CompletableFuture<Column> column = new CompletableFuture<>();
+            scheduler.region(world, cx, cz, () -> {
+                try {
+                    column.complete(readColumn(world, x, y, z));
+                } catch (RuntimeException e) {
+                    column.completeExceptionally(e);
+                }
             });
-        });
+            return column.thenApplyAsync(c -> decide(world, c, true), scheduler.cpuExecutor());
+        }
+
+        /** Region thread of the column: the position, vanilla's rain gates there, the chunk's stored data. */
+        public Column readColumn(World world, int x, Integer y, int z) {
+            Chunk chunk = world.getChunkAt(x >> 4, z >> 4);
+            int at = y != null ? y : world.getHighestBlockYAt(x, z, HeightMap.MOTION_BLOCKING_NO_LEAVES) + 1;
+            boolean reaches = PrecipitationService.rainReaches(world, x, at, z);
+            long snowTick = ChunkSnowTime.read(chunk.getPersistentDataContainer()).lastCalendarTick();
+            return new Column(x, at, z, reaches, chunkData.ids(chunk), snowTick);
+        }
+
+        /** Pure, any thread: the climate and precipitation decided for the column now, as reply lines. */
+        public Reply decide(World world, Column c, boolean late) {
+            BlockPos pos = new BlockPos(c.x(), c.y(), c.z());
+            ClockSnapshot now = clock.get();
+            ClimateReading r = climateOn ? climateAt(world, pos, now) : null;
+            PrecipitationType t = precipitation == null ? PrecipitationType.NONE
+                    : precipitation.precipitationAt(world, pos, c.rainReaches());
+            List<String> lines = new ArrayList<>();
+            lines.add("position " + c.x() + " " + c.z() + ", y " + c.y() + (c.rainReaches()
+                    ? " (open to the sky)" : " (sheltered: not above the motion-blocking top with sky light 15)"));
+            lines.addAll(c.ids().isEmpty()
+                    ? List.of(messages.get(Messages.FALLBACK, "debug.chunk.empty"))
+                    : c.ids().stream().map(id -> "tfp:" + id).toList());
+            lines.add(messages.get(Messages.FALLBACK, "debug.chunk.snow_time",
+                    c.snowTick() == SnowCatchUp.NEVER
+                            ? messages.get(Messages.FALLBACK, "debug.chunk.snow_time.none")
+                            : String.valueOf(c.snowTick())));
+            if (r != null) {
+                lines.add(climateLine(r));
+            }
+            lines.add(precipitationLine(t));
+            lines.add(r == null ? "snow rule: unknown (no climate service)" : snowLine(r, t));
+            if (late) {
+                lines.add("(decided after the command returned: the console's thread did not own the column's region)");
+            }
+            return Reply.ok("debug.chunk.header", c.x() >> 4, c.z() >> 4, world.getName()).withDetails(lines);
+        }
+
+        /** The climate at {@code pos} now, as {@code PlayerClimateService} computes it for a player (pure). */
+        private static ClimateReading climateAt(World world, BlockPos pos, ClockSnapshot now) {
+            if (world.getEnvironment() != World.Environment.NORMAL) {
+                return ClimateReading.unknown(now.sequence(), now.calendarTicks());
+            }
+            long seed = world.getSeed();
+            OverworldClimate climate = OverworldClimate.forWorldSeed(seed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+            ChunkClimate chunk = ChunkClimateSource.climateAt(seed, pos.x(), pos.z());
+            return ClimateReading.of(climate, chunk, pos, now);
+        }
     }
 
     /** {@code /tfp debug chunk}, climate part (M2-CLIM-03): the value computed now next to what the HUD shows. */

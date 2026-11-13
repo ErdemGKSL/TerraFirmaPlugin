@@ -118,6 +118,14 @@ public final class TfpCommands {
         CompletableFuture<Reply> debugChunkAt(int x, int z);
 
         /**
+         * {@link #debugChunkAt(int, int)} at height {@code y} instead of above the ground (PAR-CLIM-17: reads under a
+         * roof). The default ignores {@code y}.
+         */
+        default CompletableFuture<Reply> debugChunkAt(int x, int y, int z) {
+            return debugChunkAt(x, z);
+        }
+
+        /**
          * Writes {@code tick} as the last snow-update calendar tick of the chunk at block {@code x, z} of the default
          * overworld (the chunk's {@code ChunkSnowTime}), on the chunk's region. {@code tick} is not negative.
          */
@@ -213,7 +221,12 @@ public final class TfpCommands {
                                         .then(Commands.argument("z", IntegerArgumentType.integer())
                                                 .executes(run(handler, messages, (h, ctx) -> h.debugChunkAt(
                                                         IntegerArgumentType.getInteger(ctx, "x"),
-                                                        IntegerArgumentType.getInteger(ctx, "z")))))))
+                                                        IntegerArgumentType.getInteger(ctx, "z"))))
+                                                .then(Commands.argument("y", IntegerArgumentType.integer())
+                                                        .executes(run(handler, messages, (h, ctx) -> h.debugChunkAt(
+                                                                IntegerArgumentType.getInteger(ctx, "x"),
+                                                                IntegerArgumentType.getInteger(ctx, "y"),
+                                                                IntegerArgumentType.getInteger(ctx, "z"))))))))
                         .then(Commands.literal("snowtime")
                                 .then(Commands.argument("x", IntegerArgumentType.integer())
                                         .then(Commands.argument("z", IntegerArgumentType.integer())
