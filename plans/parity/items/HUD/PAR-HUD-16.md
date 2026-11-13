@@ -2,7 +2,7 @@
 id: PAR-HUD-16
 title: "HUD season per player: tfp_season follows the viewer's hemisphere (southern players see the opposite month's name)"
 area: HUD
-status: open
+status: done
 wave: 9
 deps: [PAR-HUD-17]
 size: S
@@ -31,6 +31,7 @@ plan:
   - "Publish the player's hemisphere from the player's thread (TFC `SolarCalculator.getInNorthernHemisphere(z, hemisphereScale)`, ported as core `Solar.inNorthernHemisphere`; the scale is the world's `OverworldClimate.hemisphereScale()`), e.g. a boolean in HudSnapshot written where PlayerNeedsHudService already publishes the position-dependent values (only when it changes)."
   - "Register tfp_season per player in BetterHudIntegration: `player -> HudClockValues.season(clock.get(), cache.snapshot(player.uuid()).northernHemisphere())`; never a Bukkit call on BetterHud's thread. Other dimensions: follow TFC's ClientHelpers.inNorthernHemisphere (ClimateRenderCache's hemisphere scale there)."
   - "Then remove the remaining part of the ledger Divergences row 'TFC shows the season as the Month.Style.SEASON name' (hemisphere)."
+  - "Done: HudSnapshot.northernHemisphere (default true) published by PlayerNeedsHudService on each 1 s reading from the player's thread via paper/hud/HudHemisphere (Solar.inNorthernHemisphere at the block z with OverworldClimate.hemisphereScale(); northern outside the overworld, as the calendar tab); HudClockValues.TEXTS now take (clock, viewer snapshot) and BetterHudIntegration.clockPlaceholder reads the viewer's snapshot by uuid. Tests: HudClockValuesTest (+4 assertions, a registered-placeholder test with two uuids), HudHemisphereTest (4 tests, band edges). Ledger divergence row narrowed to the 1 s lag and non-overworld north. In-game check 2026-11-13 Paper 1.21.11 at GUI 2 and 3: z 0 'September 8, 1001  (Early Autumn)', z 20000 '(Early Spring)', back to Autumn; pass (docs/verification/PAR-HUD-16/; 8-day months, so day 8 instead of 30)."
 tests:
   - "integration/betterhud: tfp_season reads the published hemisphere per player (two uuids, one north one south, September -> Early Autumn / Early Spring); unset clock is '-'"
   - "paper: the hemisphere flag follows Solar.inNorthernHemisphere at the band edges for the world's scale"

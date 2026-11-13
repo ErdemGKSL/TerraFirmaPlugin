@@ -15,6 +15,7 @@ import dev.tfp.core.heat.HeatState;
 import dev.tfp.core.recipe.food.FoodData;
 import dev.tfp.paper.heat.HeatPdc;
 import dev.tfp.paper.heat.ItemHeatHooks;
+import dev.tfp.paper.hud.HudHemisphere;
 import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.scheduler.Scheduler;
@@ -76,6 +77,10 @@ import org.bukkit.inventory.ItemStack;
  * re-stamped at each reading instead of decayed, so the needs are paused. A game-mode switch
  * ({@link #onGameModeChange}) settles the clock and publishes the new mode's flag inside the event, on the player's
  * thread, so the snapshot never lags the switch.
+ *
+ * <p>PAR-HUD-16: each reading also publishes the player's hemisphere ({@link HudHemisphere}, TFC
+ * {@code ClientHelpers.inNorthernHemisphere}), read here on the player's thread, so the {@code tfp_season} text follows a
+ * player who crosses a hemisphere band (or changes world) within one {@value #PERIOD_TICKS}-tick reading.
  */
 public final class PlayerNeedsHudService implements Listener {
     /** The throttle: one reading per player per second. */
@@ -203,7 +208,8 @@ public final class PlayerNeedsHudService implements Listener {
                 HealthConfig.DEFAULT);
         hud.publish(player, withNeeds(base, evaluated, player.getFoodLevel()).withHealth(health.health(), health.maxHealth())
                 .withAir(player.getRemainingAir()).withArmor(armor(player))
-                .withHeldHeat(heldHeatOf(player)).withNeedsActive(active));
+                .withHeldHeat(heldHeatOf(player)).withNeedsActive(active)
+                .withNorthernHemisphere(HudHemisphere.north(player)));
     }
 
     /** The player's armour points (vanilla {@code Attribute.ARMOR}, equipment and effects included); 0 without one. */

@@ -68,14 +68,14 @@ class BetterHudAdapterTest {
     @Test
     void clockTextPlaceholdersFormatThePublishedClock() {
         assertThat(HudClockValues.TEXTS.keySet()).containsExactly("tfp_date", "tfp_season");
-        assertThat(HudClockValues.TEXTS.get("tfp_date").apply(ClockSnapshot.UNSET)).isEqualTo("-");
-        assertThat(HudClockValues.TEXTS.get("tfp_season").apply(ClockSnapshot.UNSET)).isEqualTo("-");
+        assertThat(HudClockValues.TEXTS.get("tfp_date").apply(ClockSnapshot.UNSET, HudSnapshot.DEFAULT)).isEqualTo("-");
+        assertThat(HudClockValues.TEXTS.get("tfp_season").apply(ClockSnapshot.UNSET, HudSnapshot.DEFAULT)).isEqualTo("-");
         ClockSnapshot june = new ClockSnapshot(1, 0, 966_000L, 8, true);
-        assertThat(HudClockValues.TEXTS.get("tfp_date").apply(june)).isEqualTo("June 1, 1000");
-        assertThat(HudClockValues.TEXTS.get("tfp_season").apply(june)).isEqualTo("Early Summer");
+        assertThat(HudClockValues.TEXTS.get("tfp_date").apply(june, HudSnapshot.DEFAULT)).isEqualTo("June 1, 1000");
+        assertThat(HudClockValues.TEXTS.get("tfp_season").apply(june, HudSnapshot.DEFAULT)).isEqualTo("Early Summer");
         ClockSnapshot december = new ClockSnapshot(2, 0, 2_112_000L, 8, false);
-        assertThat(HudClockValues.TEXTS.get("tfp_date").apply(december)).isEqualTo("December 1, 1000");
-        assertThat(HudClockValues.TEXTS.get("tfp_season").apply(december)).isEqualTo("Early Winter");
+        assertThat(HudClockValues.TEXTS.get("tfp_date").apply(december, HudSnapshot.DEFAULT)).isEqualTo("December 1, 1000");
+        assertThat(HudClockValues.TEXTS.get("tfp_season").apply(december, HudSnapshot.DEFAULT)).isEqualTo("Early Winter");
     }
 
     /** M3-SURV-06: thirst and hunger come from the published snapshot, scaled by the snapshot's maxima. */

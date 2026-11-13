@@ -21,6 +21,7 @@ import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 import java.util.logging.Level;
@@ -80,10 +81,8 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
         }
         PlaceholderContainer<String> texts = api.getPlaceholderManager().getStringContainer();
         GlobalClockHolder clock = ctx.clock();
-        for (Map.Entry<String, Function<ClockSnapshot, String>> e : HudClockValues.TEXTS.entrySet()) {
-            Function<ClockSnapshot, String> read = e.getValue();
-            // Reads the published clock only: no world, no snapshot cache, the same value for every player.
-            texts.addPlaceholder(e.getKey(), HudPlaceholder.<String>of((args, reason) -> player -> read.apply(clock.get())));
+        for (Map.Entry<String, BiFunction<ClockSnapshot, HudSnapshot, String>> e : HudClockValues.TEXTS.entrySet()) {
+            texts.addPlaceholder(e.getKey(), clockPlaceholder(clock, cache, e.getValue()));
         }
         // PAR-HUD-17: the health bar text in the configured style (the published HudStyles, never the config file).
         for (Map.Entry<String, Function<HudSnapshot, String>> e : HudValues.TEXTS.entrySet()) {
@@ -103,6 +102,15 @@ public final class BetterHudIntegration implements Integration, HudPlaceholders,
                 + (HudClockValues.TEXTS.size() + HudClimateValues.TEXTS.size() + HudValues.TEXTS.size()) + " text placeholder(s) and " + (HudValues.LISTENERS.size() + HudMountValues.LISTENERS.size())
                 + " listener(s); pack folder " + pack
                 + (BetterHudPackTarget.optedOut(ctx.pluginsDirectory()) ? " (disabled by the owner: packs/-tfp exists)" : ""));
+    }
+
+    /**
+     * PAR-HUD-16: one of our clock text placeholders: reads the published clock and {@code cache} by the viewer's uuid
+     * (the season follows the hemisphere published there), never the world or a Bukkit object.
+     */
+    static HudPlaceholder<String> clockPlaceholder(GlobalClockHolder clock, HudSnapshotCache cache,
+            BiFunction<ClockSnapshot, HudSnapshot, String> read) {
+        return HudPlaceholder.<String>of((args, reason) -> player -> read.apply(clock.get(), cache.snapshot(player.uuid())));
     }
 
     /** One of our number placeholders: reads {@code cache} by the player's uuid, nothing else. */

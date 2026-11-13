@@ -98,7 +98,7 @@ Totals: 314 items; open 219, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-INFRA-42 | Carrier policy matches our worldgen: lily pad, sea pickle and other placed placeholders are not presence absent; guard test | INFRA | 9 | done |
 | PAR-FLUID-02 | Buckets: wooden bucket, red and blue steel buckets, fluid placement policy | FLUID | 9 | done |
 | PAR-FLUID-03 | Salt water, spring water and river water in the world | FLUID | 9 | done |
-| PAR-HUD-16 | HUD season per player: tfp_season follows the viewer's hemisphere (southern players see the opposite month's name) | HUD | 9 | open |
+| PAR-HUD-16 | HUD season per player: tfp_season follows the viewer's hemisphere (southern players see the opposite month's name) | HUD | 9 | done |
 | PAR-PROC-08 | Barrel block: fluids, sealing, sealed and instant recipes, preservation | PROC | 9 | done |
 | PAR-PROC-22 | Basket: TFC's bundle item (TFCBundleItem) with its size limits | PROC | 9 | done |
 | PAR-SURV-08 | Alcohol and intoxication | SURV | 9 | done |
