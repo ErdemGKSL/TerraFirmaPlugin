@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongSupplier;
 import org.bukkit.Difficulty;
+import org.bukkit.GameRule;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
@@ -35,13 +36,16 @@ import org.bukkit.event.player.PlayerRespawnEvent;
  *       outlive the death that clears vanilla effects, is removed. Vanilla resets hunger and saturation.</li>
  *   <li>With {@code enablePeacefulDifficultyPassiveRegeneration} on (off by default, as in TFC), one global throttle
  *       every {@value RespawnRules#PEACEFUL_PERIOD_TICKS} ticks hands each online player to the player's thread for TFC's
- *       extra-peaceful step.</li>
+ *       extra-peaceful step. Its +1 food is skipped while the {@code naturalRegeneration} game rule is on, because
+ *       vanilla's peaceful refill then already supplies exactly TFC's +1.</li>
  * </ul>
  * TFC's {@code naturalRegenerationModifier} is part of the regeneration rule itself ({@code core} {@code HealthRegen},
  * PAR-SURV-05). The settings are read from the JVM properties named in {@link RespawnRules}.
  */
 public final class RespawnModule implements FeatureModule, Listener {
     public static final String ID = "respawn";
+
+    static final GameRule<Boolean> NATURAL_REGENERATION = naturalRegenerationRule();
 
     private final AtomicLong steps = new AtomicLong();
     private volatile RespawnRules rules = RespawnRules.DEFAULT;
@@ -139,6 +143,11 @@ public final class RespawnModule implements FeatureModule, Listener {
         float thirstNow = data.get(id).map(PlayerData::thirst).orElse(PlayerData.MAX_THIRST);
         RespawnRules.PeacefulStep step = rules.peacefulStep(peaceful, active, healTick, health > 0 && health < max,
                 player.getFoodLevel(), thirstNow);
+        if (step.food() > 0 && vanillaRefillsFood(player)) {
+            // TFC turns naturalRegeneration off, so its +1 is the only refill. Here the game rule stays on (PAR-SURV-05)
+            // and vanilla's peaceful branch already adds exactly +1 food every 10 ticks: adding ours would double it.
+            step = new RespawnRules.PeacefulStep(step.heal(), 0, step.thirst());
+        }
         if (step.isNone()) {
             return step;
         }
@@ -148,19 +157,46 @@ public final class RespawnModule implements FeatureModule, Listener {
         if (step.food() > 0) {
             player.setFoodLevel(Math.min(RespawnRules.MAX_FOOD, player.getFoodLevel() + step.food()));
         }
-        if (step.thirst() > 0) {
+        float addThirst = step.thirst();
+        if (addThirst > 0) {
             long now = playerTicks.getAsLong();
             float temperature = (float) hud.snapshot(id).ambientTemperature();
             try {
                 data.update(id, d -> {
                     PlayerData evaluated = GameModeNeeds.evaluate(d, true, now, temperature);
-                    return evaluated.withThirst(evaluated.thirst() + step.thirst());
+                    return evaluated.withThirst(evaluated.thirst() + addThirst);
                 });
             } catch (IllegalStateException notLoaded) {
                 // quit meanwhile
             }
         }
         return step;
+    }
+
+    /** Whether vanilla's peaceful branch refills the food bar itself: the {@code naturalRegeneration} game rule is on. */
+    private static boolean vanillaRefillsFood(Player player) {
+        GameRule<Boolean> rule = NATURAL_REGENERATION;
+        return rule != null && Boolean.TRUE.equals(player.getWorld().getGameRuleValue(rule));
+    }
+
+    /**
+     * The {@code naturalRegeneration} rule (renamed {@code minecraft:natural_health_regeneration} in 1.21.11), looked up
+     * by name so that no version without the old constant fails to link; null when the server has neither.
+     */
+    @SuppressWarnings("unchecked")
+    static GameRule<Boolean> naturalRegenerationRule() {
+        for (GameRule<?> rule : GameRule.values()) {
+            if (rule.getType() != Boolean.class) {
+                continue;
+            }
+            String key = rule.getKey().getKey();
+            String name = rule.getName();
+            if (key.equals("natural_health_regeneration") || name.equals("natural_health_regeneration")
+                    || key.equals("naturalregeneration") || name.equals("naturalRegeneration")) {
+                return (GameRule<Boolean>) rule;
+            }
+        }
+        return null;
     }
 
     private static double maxHealth(Player player) {

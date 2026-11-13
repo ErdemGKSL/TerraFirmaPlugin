@@ -101,6 +101,7 @@ class RespawnModuleMockBukkitTest extends MockServerTest {
     void extraPeacefulRegeneratesHealthFoodAndThirst() {
         RespawnModule m = module(new RespawnRules(true, true));
         alex.getWorld().setDifficulty(Difficulty.PEACEFUL);
+        alex.getWorld().setGameRule(RespawnModule.NATURAL_REGENERATION, false); // as in TFC: our step is the only refill
         alex.setHealth(10);
         alex.setFoodLevel(15);
         now[0] = 100L;
@@ -112,6 +113,27 @@ class RespawnModuleMockBukkitTest extends MockServerTest {
         m.peacefulStep(alex, false);
         assertThat(alex.getHealth()).as("heal only every 20 ticks").isEqualTo(11.0);
         assertThat(alex.getFoodLevel()).isEqualTo(17);
+    }
+
+    @Test
+    void extraPeacefulLeavesTheFoodToVanillaWhileNaturalRegenerationIsOn() {
+        assertThat(RespawnModule.NATURAL_REGENERATION).isNotNull();
+        RespawnModule m = module(new RespawnRules(true, true));
+        alex.getWorld().setDifficulty(Difficulty.PEACEFUL);
+        alex.setFoodLevel(15); // full health: no heal (MockBukkit does not implement Player.heal)
+        now[0] = 100L;
+
+        alex.getWorld().setGameRule(RespawnModule.NATURAL_REGENERATION, true);
+        assertThat(m.peacefulStep(alex, false)).as("vanilla's peaceful refill already adds TFC's +1")
+                .isEqualTo(new RespawnRules.PeacefulStep(0f, 0, 5f));
+        assertThat(alex.getFoodLevel()).isEqualTo(15);
+        assertThat(store.get(ALEX).orElseThrow().thirst()).isEqualTo(17f);
+
+        alex.getWorld().setGameRule(RespawnModule.NATURAL_REGENERATION, false);
+        assertThat(m.peacefulStep(alex, false)).as("as in TFC, the step is the only refill")
+                .isEqualTo(new RespawnRules.PeacefulStep(0f, 1, 5f));
+        assertThat(alex.getFoodLevel()).isEqualTo(16);
+        assertThat(store.get(ALEX).orElseThrow().thirst()).isEqualTo(22f);
     }
 
     @Test
