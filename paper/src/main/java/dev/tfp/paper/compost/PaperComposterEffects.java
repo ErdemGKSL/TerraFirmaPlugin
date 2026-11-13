@@ -19,7 +19,6 @@ import dev.tfp.paper.scheduler.Scheduler;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -50,8 +49,14 @@ public final class PaperComposterEffects implements ComposterEffects {
     private final Supplier<BlockVisuals> visuals;
     private final Consumer<Block> callback;
     private final ComposterLang lang;
-    /** Composters with a ripening callback queued: one at a time; the callback re-checks and queues the next. */
-    private final Set<Pending> pending = ConcurrentHashMap.newKeySet();
+    /**
+     * Composters with a ripening callback queued, with its due time (wall-clock millis). A request due earlier replaces
+     * the queued one (the ready ticks got shorter); the replaced task fires but finds a different due time and does
+     * nothing. A due time long past means the task was dropped (region or chunk unload) and is replaced as well.
+     */
+    private final Map<Pending, Long> pending = new ConcurrentHashMap<>();
+    /** How far past its due time a queued callback counts as dropped. */
+    static final long STALE_MILLIS = 10_000L;
 
     private record Pending(UUID world, int x, int y, int z) {
         static Pending of(Block block) {
@@ -118,12 +123,24 @@ public final class PaperComposterEffects implements ComposterEffects {
     @Override
     public void ripenAt(Block block, long ticks) {
         Pending key = Pending.of(block);
-        if (!pending.add(key)) {
+        long delay = Math.max(1, ticks);
+        long now = System.currentTimeMillis();
+        long due = now + delay * 50L;
+        boolean[] queued = {false};
+        pending.compute(key, (k, old) -> {
+            if (old != null && old <= due && now <= old + STALE_MILLIS) {
+                return old; // an earlier or equal callback is still queued
+            }
+            queued[0] = true;
+            return due;
+        });
+        if (!queued[0]) {
             return;
         }
-        scheduler.regionDelayed(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, Math.max(1, ticks), () -> {
-            pending.remove(key);
-            callback.accept(block);
+        scheduler.regionDelayed(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, delay, () -> {
+            if (pending.remove(key, due)) {
+                callback.accept(block);
+            }
         });
     }
 
