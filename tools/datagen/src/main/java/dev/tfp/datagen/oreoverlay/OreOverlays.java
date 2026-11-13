@@ -17,7 +17,9 @@ import dev.tfp.datagen.Json;
 import dev.tfp.datagen.OutputTree;
 import dev.tfp.datagen.TfcCheckout;
 import dev.tfp.datagen.Yaml;
+import dev.tfp.core.visuals.OverlayFace;
 import dev.tfp.datagen.rendered.CrackedOverlays;
+import dev.tfp.datagen.rendered.RenderedTemplates;
 import dev.tfp.datagen.visuals.Profile;
 import dev.tfp.datagen.visuals.VisualDemand;
 import java.util.ArrayList;
@@ -39,9 +41,13 @@ import java.util.regex.Pattern;
  *   <li>one display-only CE item {@code tfp:ore_overlay/<overlay>} per TFC overlay texture (53): a single 16 x 16 quad
  *       ({@code tfp:item/ore_overlay/<overlay>}) in the {@code z = 8} plane facing {@code -z}, {@code shade: false},
  *       {@code tintindex 0}, tinted by {@code custom_model_data} colour 0 (default white) so the runtime sets the vanilla
- *       face shade per face entity; the UV is TFC's {@code tfc:block/ore} overlay face UV. The per-face rotations that
- *       turn it onto each block face are {@code dev.tfp.core.visuals.OverlayFace};</li>
- *   <li>the ten cracked variants of each overlay ({@link CrackedOverlays}, PAR-INFRA-17's S2 verdict), tinted the same way;</li>
+ *       face tint per face entity; the UV is TFC's {@code tfc:block/ore} overlay face UV. The element is tilted
+ *       {@code OverlayFace.TILT_DEGREES} about x (PAR-INFRA-41) so that the display's untilt turns the lit normal up; the
+ *       per-face transforms that lay it flat onto each block face are {@code dev.tfp.core.visuals.OverlayFace};</li>
+ *   <li>the ten cracked variants of each overlay ({@link CrackedOverlays}, PAR-INFRA-17's S2 verdict), tinted the same
+ *       way, whose crack layer is a tilted twin of PAR-INFRA-17's crack quad ({@link #tiltedCrackQuad(int)}) with a
+ *       plane on each side of the overlay, so the crack lies on the overlay after the untilt and the down-face
+ *       mirror;</li>
  *   <li>one overlay cube model {@code tfp:block/ore_overlay/<overlay>} per overlay (TFC's overlay element of
  *       {@code tfc:block/ore}, pushed 0.01 px outwards) for the ore block items, whose item model is a
  *       {@code minecraft:composite} of the host raw rock model and that cube (template {@code tfp:item/ore_block_item});</li>
@@ -59,10 +65,13 @@ public final class OreOverlays {
     public static final String OCCLUDING = "visuals/ore_overlay/occluding.json";
     public static final String OVERLAY_TEMPLATE = "tfp:item/ore_overlay";
     public static final String BLOCK_ITEM_TEMPLATE = "tfp:item/ore_block_item";
-    /** Vanilla's white: the {@code custom_model_data} colour default (the runtime sets the face shade). */
+    /** Vanilla's white: the {@code custom_model_data} colour default (the runtime sets the face tint). */
     public static final int TINT_DEFAULT = 0xFFFFFF;
     /** How far the item-icon overlay cube sits outside the rock cube (model pixels), so the two never z-fight. */
     static final String CUBE_INFLATE = "0.01";
+    /** The crack twin's planes: PAR-INFRA-17's 7.98 in front of the overlay ({@code z = 8}) and its mirror behind. */
+    static final String CRACK_FRONT_Z = "7.98";
+    static final String CRACK_BACK_Z = "8.02";
     static final String TFC_ORE_MODEL = TfcCheckout.ASSETS + "models/block/ore.json";
     static final String TFC_ORE_COLUMN_MODEL = TfcCheckout.ASSETS + "models/block/ore_column.json";
     private static final Pattern OVERLAY_REF = Pattern.compile(Json.FROM_NS + ":block/ore/([a-z_]+)");
@@ -161,6 +170,11 @@ public final class OreOverlays {
             items.put(OreBlock.overlayItem(overlay), call(OVERLAY_TEMPLATE, Map.of("ore_overlay_model", quadModel(overlay))));
             items.putAll(crackedVariants(overlay));
         }
+        if (!overlays.isEmpty()) {
+            for (int n = 0; n < RenderedTemplates.STAGES; n++) {
+                out.put(MODELS + "item/ore_overlay_crack/" + n + ".json", Json.write(tiltedCrackQuadJson(n)));
+            }
+        }
         Map<String, Object> templates = new LinkedHashMap<>();
         templates.put(OVERLAY_TEMPLATE, overlayTemplate());
         templates.put(BLOCK_ITEM_TEMPLATE, blockItemTemplate());
@@ -251,9 +265,18 @@ public final class OreOverlays {
         throw new DatagenException(src + ": no overlay element");
     }
 
+    /** The element rotation of the overlay quad and its crack twin: {@code TILT_DEGREES} about x through the centre. */
+    static JsonObject tilt() {
+        JsonObject r = new JsonObject();
+        r.add("origin", array(8, 8, 8));
+        r.addProperty("axis", "x");
+        r.addProperty("angle", OverlayFace.TILT_DEGREES);
+        return r;
+    }
+
     /**
-     * The face quad: TFC's overlay north face as the only face of a flat element at {@code z = 8} (the crack quad of
-     * {@link CrackedOverlays} sits at 7.98, in front of it).
+     * The face quad: TFC's overlay north face as the only face of a flat element at {@code z = 8}, tilted by
+     * {@link #tilt()} (the display untilts it; its baked normal stays {@code north}).
      */
     static JsonObject quadModelJson(String overlay, JsonObject overlayElement) {
         JsonObject m = new JsonObject();
@@ -265,6 +288,7 @@ public final class OreOverlays {
         JsonObject el = new JsonObject();
         el.add("from", array(0, 0, 8));
         el.add("to", array(16, 16, 8));
+        el.add("rotation", tilt());
         el.addProperty("shade", false);
         JsonObject faces = new JsonObject();
         JsonObject north = new JsonObject();
@@ -275,6 +299,45 @@ public final class OreOverlays {
         el.add("faces", faces);
         JsonArray elements = new JsonArray();
         elements.add(el);
+        m.add("elements", elements);
+        return m;
+    }
+
+    /** {@code tfp:item/ore_overlay_crack/<n>}: the crack layer of the cracked overlay variants. */
+    public static String tiltedCrackQuad(int n) {
+        RenderedTemplates.crackTexture(n);
+        return Json.TO_NS + ":item/ore_overlay_crack/" + n;
+    }
+
+    /**
+     * The tilted twin of {@link CrackedOverlays#crackQuadModel(int)}: the crack texture on two planes 0.02 px in front of
+     * and behind the overlay quad, tilted like it. The front one lies over the specks on every face; on the mirrored
+     * down face the planes swap sides, so the other one does. The crack texels are fully opaque or clear (alpha 255 or
+     * 1), so the plane behind the overlay changes nothing where the front one also draws.
+     */
+    static JsonObject tiltedCrackQuadJson(int n) {
+        String tex = RenderedTemplates.crackTexture(n);
+        JsonObject m = new JsonObject();
+        m.addProperty("ambientocclusion", false);
+        JsonObject t = new JsonObject();
+        t.addProperty("crack", tex);
+        t.addProperty("particle", tex);
+        m.add("textures", t);
+        JsonArray elements = new JsonArray();
+        for (String z : List.of(CRACK_FRONT_Z, CRACK_BACK_Z)) {
+            JsonObject el = new JsonObject();
+            el.add("from", Json.parse("[0, 0, " + z + "]", "crack"));
+            el.add("to", Json.parse("[16, 16, " + z + "]", "crack"));
+            el.add("rotation", tilt());
+            el.addProperty("shade", false);
+            JsonObject faces = new JsonObject();
+            JsonObject north = new JsonObject();
+            north.add("uv", array(0, 0, 16, 16));
+            north.addProperty("texture", "#crack");
+            faces.add("north", north);
+            el.add("faces", faces);
+            elements.add(el);
+        }
         m.add("elements", elements);
         return m;
     }
@@ -363,13 +426,24 @@ public final class OreOverlays {
         return call(BLOCK_ITEM_TEMPLATE, args);
     }
 
-    /** The ten cracked variants of one overlay with the overlay part tinted like the overlay item. */
+    /**
+     * The ten cracked variants of one overlay with the overlay part tinted like the overlay item and the crack part
+     * replaced by its tilted twin ({@link #tiltedCrackQuad(int)}).
+     */
     @SuppressWarnings("unchecked")
     static Map<String, Object> crackedVariants(String overlay) {
         Map<String, Object> variants = CrackedOverlays.variants(OreBlock.overlayItem(overlay), quadModel(overlay));
+        int n = 0;
         for (Object v : variants.values()) {
             Map<String, Object> model = (Map<String, Object>) ((Map<String, Object>) v).get("model");
-            ((Map<String, Object>) ((List<Object>) model.get("models")).getFirst()).put("tints", tints());
+            List<Object> parts = (List<Object>) model.get("models");
+            ((Map<String, Object>) parts.getFirst()).put("tints", tints());
+            Map<String, Object> crack = (Map<String, Object>) parts.get(1);
+            if (!CrackedOverlays.crackQuad(n).equals(crack.get("path"))) {
+                throw new DatagenException("cracked variant " + n + " of " + overlay + " has crack layer " + crack.get("path"));
+            }
+            crack.put("path", tiltedCrackQuad(n));
+            n++;
         }
         return variants;
     }

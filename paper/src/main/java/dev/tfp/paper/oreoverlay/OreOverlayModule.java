@@ -263,7 +263,7 @@ public final class OreOverlayModule implements FeatureModule {
                 + " ms (CPU time per chunk); region-thread copy avg " + String.format("%.3f", st.builds() == 0 ? 0.0
                 : st.snapshotNanos() / 1e6 / st.builds()) + " ms; patches " + st.patches() + ", fast-path changes " + st.fastPathChanges());
         lines.add("viewers " + st.viewers() + (viewer == null ? "; all viewers: entities " : "; you: entities ") + st.viewerSent() + " / cap " + st.viewerCap()
-                + ", chunks loaded " + st.viewerLoaded() + " (radius " + st.radiusChunks() + "), deferred "
+                + "; viewer chunks loaded " + st.viewerLoaded() + "; overlay radius " + st.radiusChunks() + " chunks; deferred "
                 + st.viewerDeferred());
         return Reply.ok("debug.oreoverlay.stats").withDetails(lines);
     }

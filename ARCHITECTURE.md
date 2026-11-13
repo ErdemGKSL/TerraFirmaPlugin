@@ -243,6 +243,17 @@ publish on the chunk's region thread, same-tick fast path on the block-change pa
 `docs/research/ore-entity-renderer-design.md`. Backlog: PAR-WORLD-17, PAR-INFRA-15/16/17, PAR-REL-12. `level-3a`/`3b`
 merged only ore grades and are removed.
 
+**Overlay lighting (PAR-INFRA-41, 2026-11-13).** The client lights an item quad with the entity directional lights from its
+baked (axis-snapped) normal, whatever `shade` says, so a flat face quad came out at down 0.40 / north 0.74 / east 0.50 of its
+tint (the old per-face shade tint alone drew down specks dark brown). The quad element is tilted -22.5 degrees about x in
+the model (baked normal still `north`); the display's right rotation untilts the geometry, which tilts the lit normal
+toward the texture top (world up on side faces); the down face gets scale `(1, 1, -1)` (a mirror across the quad plane:
+same vertices and winding, normal up); the `custom_model_data` tint is `vanilla shade / item light` (`OverlayFace.tint()`:
+N/S `0xE3E3E3`, E/W `0xC6C6C6`, up `0xFFFFFF`, down `0x808080`). The crack layer of the cracked variants is a tilted twin
+(`tfp:item/ore_overlay_crack/<n>`, a plane on each side of the overlay so one is in front after the down mirror). Measured
+speck/rock ratio vs TFC: 0.93-1.04 on every face, noon/midnight/block light, 1.21.11 and 26.3
+(`docs/verification/PAR-INFRA-41/`). Overworld lights only (the Nether's entity lights differ).
+
 **S1 measured (PAR-WORLD-17, 2026-11-04, `docs/spikes/S1-ore-overlay.md`):** cluster veins give 60-351 ore blocks per
 chunk at the median but a mean of 620-1074 (large veins, up to ≈ 8 100 in a chunk), 2-3.5 × the estimate. These counts
 exclude the disc and pipe veins, `kaolin_disc`, geodes and the montane second pass, which our world does not place yet,

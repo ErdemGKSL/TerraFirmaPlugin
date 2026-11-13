@@ -39,7 +39,8 @@ class OverlayModelTest {
         assertThat(Json.write(quad).replaceAll("\\s+", "")).isEqualTo(("""
             {"ambientocclusion": false,
              "textures": {"overlay": "tfp:block/ore/normal_native_gold", "particle": "tfp:block/ore/normal_native_gold"},
-             "elements": [{"from": [0, 0, 8], "to": [16, 16, 8], "shade": false,
+             "elements": [{"from": [0, 0, 8], "to": [16, 16, 8],
+               "rotation": {"origin": [8, 8, 8], "axis": "x", "angle": -22.5}, "shade": false,
                "faces": {"north": {"uv": [0, 0, 16, 16], "texture": "#overlay", "tintindex": 0}}}]}
             """).replaceAll("\\s+", ""));
         // The overlay item: the quad, tinted by custom_model_data colour 0 (default white) at tintindex 0.
@@ -66,8 +67,9 @@ class OverlayModelTest {
     }
 
     /**
-     * Golden face orientation: the quad item (as the item_display renderer draws it: model / 16 - 0.5, turned 180 degrees
-     * about y, then {@link OverlayFace#rotation()}, standing in the neighbour cell with {@link OverlayFace#translation()})
+     * Golden face orientation: the quad item (as the item_display renderer draws it: the element tilted by its rotation,
+     * model / 16 - 0.5, turned 180 degrees about y, then the display transform: {@link OverlayFace#rightRotation()},
+     * {@link OverlayFace#scale()}, {@link OverlayFace#rotation()}, standing in the neighbour cell with {@link OverlayFace#translation()})
      * puts every texel where vanilla draws it on that face of {@code tfc:block/ore} (default UVs of a full face, as
      * {@code BlockElement}'s per-face UV rules give them), {@value OverlayFace#OFFSET} in front of the face.
      */
@@ -89,9 +91,11 @@ class OverlayModelTest {
                 double u = t[0];
                 double v = t[1];
                 // north face of the quad element (uv [0, 0, 16, 16]): u runs to -x, v to -y
-                double[] model = {(16 - u) / 16 - 0.5, (16 - v) / 16 - 0.5, 8.0 / 16 - 0.5};
+                double[] model = tilt(new double[] {(16 - u) / 16 - 0.5, (16 - v) / 16 - 0.5, 8.0 / 16 - 0.5}, el);
                 double[] turned = {-model[0], model[1], -model[2]}; // ItemDisplayRenderer: Axis.YP.rotation(PI)
-                double[] r = face.rotate(turned);
+                double[] untilted = OverlayFace.rotate(face.rightRotation(), turned);
+                float[] sc = face.scale();
+                double[] r = face.rotate(new double[] {untilted[0] * sc[0], untilted[1] * sc[1], untilted[2] * sc[2]});
                 float[] tr = face.translation();
                 double[] got = {r[0] + face.dx() + tr[0], r[1] + face.dy() + tr[1], r[2] + face.dz() + tr[2]};
                 double[] want = vanilla(face, u, v);
@@ -101,6 +105,15 @@ class OverlayModelTest {
                 assertThat(got).as(face + " texel " + u + "," + v).containsExactly(want, within(1e-5));
             }
         }
+    }
+
+    /** The element rotation (about x through the model centre, right-handed like vanilla's FaceBakery) of a centred point. */
+    static double[] tilt(double[] p, JsonObject el) {
+        JsonObject rot = el.getAsJsonObject("rotation");
+        assertThat(rot.get("axis").getAsString()).isEqualTo("x");
+        assertThat(rot.get("origin").toString()).isEqualTo("[8,8,8]");
+        double a = Math.toRadians(rot.get("angle").getAsDouble());
+        return new double[] {p[0], p[1] * Math.cos(a) - p[2] * Math.sin(a), p[1] * Math.sin(a) + p[2] * Math.cos(a)};
     }
 
     /** Vanilla's position (model pixels) of texel {@code (u, v)} on a full face with the default UV. */
@@ -141,7 +154,24 @@ class OverlayModelTest {
         List<Map<String, Object>> parts = (List<Map<String, Object>>) model.get("models");
         assertThat(parts.get(0)).containsEntry("path", "tfp:item/ore_overlay/rich_hematite")
             .containsEntry("tints", OreOverlays.tints());
-        assertThat(parts.get(1)).containsEntry("path", "tfp:item/render/overlay_crack_3").doesNotContainKey("tints");
+        assertThat(parts.get(1)).containsEntry("path", "tfp:item/ore_overlay_crack/3").doesNotContainKey("tints");
+    }
+
+    /** PAR-INFRA-41: the crack layer is tilted like the overlay, with a plane on each side of it (the down face mirrors). */
+    @Test
+    void tiltedCrackTwinGolden() {
+        assertThat(OreOverlays.tiltedCrackQuad(7)).isEqualTo("tfp:item/ore_overlay_crack/7");
+        assertThat(Json.write(OreOverlays.tiltedCrackQuadJson(7)).replaceAll("\\s+", "")).isEqualTo(("""
+            {"ambientocclusion": false,
+             "textures": {"crack": "minecraft:block/destroy_stage_7", "particle": "minecraft:block/destroy_stage_7"},
+             "elements": [
+               {"from": [0, 0, 7.98], "to": [16, 16, 7.98],
+                "rotation": {"origin": [8, 8, 8], "axis": "x", "angle": -22.5}, "shade": false,
+                "faces": {"north": {"uv": [0, 0, 16, 16], "texture": "#crack"}}},
+               {"from": [0, 0, 8.02], "to": [16, 16, 8.02],
+                "rotation": {"origin": [8, 8, 8], "axis": "x", "angle": -22.5}, "shade": false,
+                "faces": {"north": {"uv": [0, 0, 16, 16], "texture": "#crack"}}}]}
+            """).replaceAll("\\s+", ""));
     }
 
     @Test

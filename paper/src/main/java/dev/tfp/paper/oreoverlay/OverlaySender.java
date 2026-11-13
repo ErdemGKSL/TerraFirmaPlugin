@@ -32,7 +32,7 @@ public interface OverlaySender {
     void remove(UUID viewer, int[] ids);
 
     /**
-     * Swaps the item of a sent overlay (crack stages), keeping its face shade. Called from any thread (region, Netty,
+     * Swaps the item of a sent overlay (crack stages), keeping its face tint. Called from any thread (region, Netty,
      * global tick).
      */
     void morph(UUID viewer, int entityId, OverlayFace face, String itemModel);

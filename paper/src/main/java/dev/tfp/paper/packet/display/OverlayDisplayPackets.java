@@ -32,17 +32,21 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * The packets of one ore face overlay (PAR-INFRA-16, design §3.1): {@code ADD_ENTITY} of an {@code item_display} at the
  * centre of the open neighbour cell (it takes that cell's light) and {@code SET_ENTITY_DATA} with the translation
- * {@code -normal * 0.49}, the face's fixed left rotation ({@link OverlayFace#rotation()}), the {@code view_range} of the
+ * {@code -normal * 0.49}, the face's fixed left rotation ({@link OverlayFace#rotation()}), the untilt of the tilted quad
+ * as right rotation and the down-face mirror as scale (PAR-INFRA-41, {@link OverlayFace}), the {@code view_range} of the
  * cutoff and the overlay item: {@code paper} with {@code item_model} = the CraftEngine overlay item id and
- * {@code custom_model_data} colour 0 = the vanilla face shade (the quad has {@code shade: false}). Pure builders; the
- * caller sends them.
+ * {@code custom_model_data} colour 0 = the face tint ({@link OverlayFace#tint()}: the vanilla face shade divided by the
+ * item light of the lit normal). Pure builders; the caller sends them.
  *
- * <p>Display metadata indices of 1.21.4 to 1.21.11 (the S1 spike's): 11 translation, 13 left rotation, 17 view range, 23
- * item, 24 item display context (0 = none). 26.x is assumed to keep them; the in-game steps on 26.3 check it.
+ * <p>Display metadata indices of 1.21.4 to 1.21.11 (the S1 spike's): 11 translation, 12 scale, 13 left rotation, 14 right
+ * rotation, 17 view range, 23 item, 24 item display context (0 = none). 26.x is assumed to keep them; the in-game steps on
+ * 26.3 check it.
  */
 public final class OverlayDisplayPackets {
     public static final int TRANSLATION = 11;
+    public static final int SCALE = 12;
     public static final int LEFT_ROTATION = 13;
+    public static final int RIGHT_ROTATION = 14;
     public static final int VIEW_RANGE = 17;
     public static final int ITEM = 23;
     public static final int DISPLAY_CONTEXT = 24;
@@ -52,11 +56,11 @@ public final class OverlayDisplayPackets {
     private OverlayDisplayPackets() {
     }
 
-    /** What the overlay item carries: the item model and the face shade (colour 0 of {@code custom_model_data}). */
+    /** What the overlay item carries: the item model and the face tint (colour 0 of {@code custom_model_data}). */
     public record ItemSpec(ResourceLocation model, int shade) {
     }
 
-    /** The item spec of an overlay item id ({@code ns:path}) on a face of {@code shade}. */
+    /** The item spec of an overlay item id ({@code ns:path}) tinted {@code shade} (a face's {@link OverlayFace#tint()}). */
     public static ItemSpec spec(String itemModel, int shade) {
         int colon = itemModel.indexOf(':');
         ResourceLocation model = colon < 0 ? new ResourceLocation("minecraft", itemModel)
@@ -64,7 +68,7 @@ public final class OverlayDisplayPackets {
         return new ItemSpec(model, shade);
     }
 
-    /** The overlay item stack: {@code paper} with the item model and the face shade as colour 0. */
+    /** The overlay item stack: {@code paper} with the item model and the face tint as colour 0. */
     public static ItemStack item(ItemSpec spec) {
         return ItemStack.builder().type(ItemTypes.PAPER)
                 .component(ComponentTypes.ITEM_MODEL, new ItemModel(spec.model()))
@@ -102,16 +106,23 @@ public final class OverlayDisplayPackets {
     private static WrapperPlayServerEntityMetadata data(int entityId, OverlayFace face, Vector3f translation,
             String itemModel, float viewRange) {
         List<EntityData<?>> data = new ArrayList<>(transform(face, translation, viewRange));
-        data.add(new EntityData<>(ITEM, EntityDataTypes.ITEMSTACK, item(spec(itemModel, face.shade()))));
+        data.add(new EntityData<>(ITEM, EntityDataTypes.ITEMSTACK, item(spec(itemModel, face.tint()))));
         return new WrapperPlayServerEntityMetadata(entityId, data);
     }
 
-    /** The metadata entries other than the item: translation, left rotation, view range, display context. */
+    /**
+     * The metadata entries other than the item: translation, scale (the down-face mirror), left rotation (the face),
+     * right rotation (the untilt), view range, display context.
+     */
     public static List<EntityData<?>> transform(OverlayFace face, Vector3f translation, float viewRange) {
         float[] q = face.rotation();
+        float[] r = face.rightRotation();
+        float[] s = face.scale();
         return List.of(
                 new EntityData<>(TRANSLATION, EntityDataTypes.VECTOR3F, translation),
+                new EntityData<>(SCALE, EntityDataTypes.VECTOR3F, new Vector3f(s[0], s[1], s[2])),
                 new EntityData<>(LEFT_ROTATION, EntityDataTypes.QUATERNION, new Quaternion4f(q[0], q[1], q[2], q[3])),
+                new EntityData<>(RIGHT_ROTATION, EntityDataTypes.QUATERNION, new Quaternion4f(r[0], r[1], r[2], r[3])),
                 new EntityData<>(VIEW_RANGE, EntityDataTypes.FLOAT, viewRange),
                 new EntityData<>(DISPLAY_CONTEXT, EntityDataTypes.BYTE, (byte) 0));
     }
@@ -131,7 +142,7 @@ public final class OverlayDisplayPackets {
     /** Only the item, for a crack-stage swap. */
     public static WrapperPlayServerEntityMetadata morph(int entityId, OverlayFace face, String itemModel) {
         return new WrapperPlayServerEntityMetadata(entityId,
-                List.of(new EntityData<>(ITEM, EntityDataTypes.ITEMSTACK, item(spec(itemModel, face.shade())))));
+                List.of(new EntityData<>(ITEM, EntityDataTypes.ITEMSTACK, item(spec(itemModel, face.tint())))));
     }
 
     public static WrapperPlayServerDestroyEntities remove(int[] ids) {

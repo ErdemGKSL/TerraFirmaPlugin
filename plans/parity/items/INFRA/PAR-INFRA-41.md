@@ -2,7 +2,7 @@
 id: PAR-INFRA-41
 title: "Ore overlay specks as bright as TFC's: down-face specks read dark brown (0.38 of TFC relative to the rock), side faces 26% dark"
 area: INFRA
-status: open
+status: done
 wave: 9
 deps: [PAR-INFRA-37]
 size: M
@@ -31,6 +31,7 @@ plan:
   - "Current (PAR-INFRA-37, 2026-11-07, both versions): on the down face the rock is drawn at 0.40 of TFC's granite (vanilla down shade 0.5 x light) but the specks at 0.15 of TFC's gold: 0.38 of where TFC draws them relative to the rock, so they read dark brown (`docs/verification/PAR-INFRA-37/down-face-vs-tfc.png`, the ceiling specks in the cave walks). North-face specks: speck/rock ratio 1.03 at noon, midnight and torch light vs TFC's 1.39 (about 26% dark). The orientation is right."
   - "Likely cause: the face quad is an item_display item, and the client lights display items with the entity directional lights (both from above), on top of the `OverlayFace` shade tint (down 0x808080, `shade: false` quad): a downward normal only gets the ambient term. Options to try: per-face tint compensation (the down tint can at most double, not enough alone), a quad whose normal points up (geometry flipped by the display rotation so the lit normal is the up one), or `shade`/normal tricks in the item model; whichever matches TFC's ratio on all six faces without breaking the night and torch light following (PAR-INFRA-37 row 3)."
   - "Stats label (PAR-INFRA-37 review): `tfp debug oreoverlay stats` prints 'chunks loaded N (radius R)', which reads as a contradiction (N is the chunks sent to the viewer by view distance, R the overlay cutoff radius); rename to e.g. 'viewer chunks loaded N; overlay radius R chunks' (`OreOverlayModule.stats`)."
+  - "Done (2026-11-13): tilted quad (element rotation -22.5 about x) + RIGHT_ROTATION untilt + DOWN scale (1, 1, -1) + tint = shade / item light (OverlayFace.tint(): N/S 0xE3E3E3, E/W 0xC6C6C6, up 0xFFFFFF, down 0x808080), tilted two-plane crack twin tfp:item/ore_overlay_crack/<n> in the cracked variants, stats label 'viewer chunks loaded N; overlay radius R chunks'. Tests: OverlayFaceTest (5), OverlayModelTest (7, tilt golden + crack twin), OverlayDisplayPacketsTest (scale/right rotation/tint golden). In game speck/rock 0.93-1.04 of TFC on down/north/east/up at noon, midnight and block light on 1.21.11 and 26.3: docs/verification/PAR-INFRA-41/verdict.md. Natural exposure step: no exposed generated vein found (no caves yet, M2-GEN-09)."
 tests:
   - "OverlayFaceTest / OverlayModelTest: the per-face tint or normal rule"
   - "In-game ratios per face within 10% of TFC's on both versions"
