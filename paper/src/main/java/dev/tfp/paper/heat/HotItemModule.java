@@ -10,8 +10,8 @@ import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
 
 /**
- * PAR-HEAT-03: hot item entities cool in water, in snow and on snow blocks and ice, and do not despawn while hot
- * ({@link HotItemListener}). Held hot items do not burn the player, as in TFC.
+ * PAR-HEAT-03: hot item entities cool in water, in snow and on snow blocks and ice, and despawn at the normal lifespan
+ * as in TFC, or one lifespan after they cooled if that came first ({@link HotItemListener}). Held hot items do not burn the player, as in TFC.
  */
 public final class HotItemModule implements FeatureModule {
     public static final String ID = "hot_items";

@@ -18,6 +18,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -118,16 +119,28 @@ class HotItemListenerTest extends MockServerTest {
     }
 
     @Test
-    void hotItemsDoNotDespawnUntilALifespanAfterTheyCooled() {
-        world.getBlockAt(0, 63, 0).setType(Material.PACKED_ICE);
-        Item item = drop(0, 64, 0, 300f);
-        age(item, 10);
-        assertThat(listener.keepAlive(item, NEVER)).isTrue(); // 300 - 2.8 - 125 > 0
-        age(item, 20);
-        assertThat(listener.keepAlive(item, NEVER)).isTrue(); // cold at check 3, but cooled just now
-        assertThat(hooks.temperature(item.getItemStack())).isZero();
+    void anItemStillHotAtTheDespawnEventDespawnsLikeInTfc() {
+        Item item = drop(0, 64, 0, 2000f); // air: 0.28 C/tick, still about 320 C after one lifespan
         age(item, HotItemListener.LIFESPAN);
         assertThat(listener.keepAlive(item, NEVER)).isFalse();
+        assertThat(hooks.temperature(item.getItemStack())).isGreaterThan(0f);
+        assertThat(item.getPersistentDataContainer().has(HotItemListener.COLD_AT)).isFalse();
+    }
+
+    @Test
+    void anItemThatCooledBeforeTheLifespanLivesOneLifespanFromThatCheck() {
+        world.getBlockAt(0, 63, 0).setType(Material.PACKED_ICE);
+        Item item = drop(0, 64, 0, 300f);
+        age(item, 30);
+        listener.evaluate(item, NEVER); // 300 - 2.8 - 125 per check: cold at check 3
+        assertThat(hooks.temperature(item.getItemStack())).isZero();
+        Integer coldAt = item.getPersistentDataContainer().get(HotItemListener.COLD_AT, PersistentDataType.INTEGER);
+        assertThat(coldAt).isNotNull().isLessThanOrEqualTo(item.getTicksLived()).isGreaterThan(item.getTicksLived() - 10);
+
+        age(item, coldAt + HotItemListener.LIFESPAN - 1 - item.getTicksLived());
+        assertThat(listener.keepAlive(item, NEVER)).isTrue(); // X + 6000 not reached yet
+        age(item, 1);
+        assertThat(listener.keepAlive(item, NEVER)).isFalse(); // despawns at X + 6000
     }
 
     @Test

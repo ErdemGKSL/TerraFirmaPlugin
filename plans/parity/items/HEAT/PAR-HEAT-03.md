@@ -22,7 +22,8 @@ plan:
   - "Holding an item above the burn threshold without tongs sets the player on fire briefly as TFC (check the exact rule in ForgeEventHandler/PlayerTick)."
   - "Item entities above 0 C in water or on snow cool faster (TFC onItemExpire / item entity tick: coolHotItemEntities) via a lazy cooling modifier written when the item is picked up; steam particle only at that moment."
   - "Note: TFC at c3b4d9536 has no burn rule for held hot items (no tongs; nothing in ForgeEventHandler, the player tick or HeatCapability), so none is added (parity)."
-  - "Done: HotItemCooling (pure replay of onItemExpire: water 50, snow 70, snow block 75, ice/sea ice 100, packed ice 125 per 10-tick check, with melt/evaporation chances), HotItemListener (pickup, hopper, despawn; entity PDC progress; region-applied melts; keeps hot items from despawning), HotItemModule; tests HotItemCoolingTest 10, HotItemListenerTest 6; in-game docs/verification/PAR-HEAT-03/ (water 358.6 C vs air 860.8 C)"
+  - "Done: HotItemCooling (pure replay of onItemExpire: water 50, snow 70, snow block 75, ice/sea ice 100, packed ice 125 per 10-tick check, with melt/evaporation chances), HotItemListener (pickup, hopper, despawn; entity PDC progress; region-applied melts; despawn as TFC: a still-hot item despawns at age 6000, an item cooled at X < 6000 lives until X + 6000), HotItemModule; tests HotItemCoolingTest 10, HotItemListenerTest 7; in-game docs/verification/PAR-HEAT-03/ (water 358.6 C vs air 860.8 C)"
+  - "Note: the cooling golden asked for under tests lives in paper (HotItemCoolingTest): HotItemCooling is pure but files_owned has no core path."
 tests:
   - "core: cooling modifier golden"
 done_criteria:

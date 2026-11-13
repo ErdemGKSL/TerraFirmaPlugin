@@ -41,8 +41,9 @@ import org.bukkit.persistence.PersistentDataType;
 
 /**
  * PAR-HEAT-03: hot item entities cool in water and snow and on snow blocks and ice (TFC
- * {@code ForgeEventHandler.onItemExpire}), and are kept from despawning while hot (TFC extends their lifespan until they
- * are cold, then gives them a normal lifespan).
+ * {@code ForgeEventHandler.onItemExpire}). Like TFC they despawn at the normal lifespan even while still hot (TFC stops
+ * extending once {@code entity.lifespan >= lifespan}); only an item that reached 0 °C before that age gets one normal
+ * lifespan from the check at which it cooled ({@code setExtraLife(lifespan)}).
  *
  * <p>Lazy: nothing ticks. When an item entity is touched (picked up by a player or mob, pulled by a hopper, about to
  * despawn), the checks TFC would have run since the last evaluation are replayed by {@link HotItemCooling} from a
@@ -98,28 +99,18 @@ public final class HotItemListener implements Listener {
     }
 
     /**
-     * Evaluates the item and answers whether it must not despawn yet: it is still hot, or it reached 0 °C less than
-     * {@link #LIFESPAN} ticks ago (TFC: {@code setExtraLife(lifespan)} once cold).
+     * Evaluates the item and answers whether it must not despawn yet: it reached 0 °C at an age below {@link #LIFESPAN}
+     * and less than {@link #LIFESPAN} ticks ago (TFC: {@code setExtraLife(lifespan)} once cold). An item that is still hot
+     * at the despawn event despawns, as in TFC, whose {@code onItemExpire} returns early once
+     * {@code entity.lifespan >= lifespan} (the 10-tick extensions add up to the normal lifespan at age 6000).
      */
     public boolean keepAlive(Item item, RandomGenerator random) {
         if (!HotItemCooling.COOL_HOT_ITEM_ENTITIES) {
             return false;
         }
         evaluate(item, random);
-        ItemStack stack = item.getItemStack();
-        Optional<HeatState> record = HeatPdc.read(stack);
-        if (record.isEmpty()) {
-            return false;
-        }
-        float capacity = capacities.of(stack);
-        if (!(capacity > 0f)) {
-            return false;
-        }
-        if (record.get().temperatureAt(now.getAsLong(), capacity, config) > 0f) {
-            return true;
-        }
         Integer coldAt = item.getPersistentDataContainer().get(COLD_AT, PersistentDataType.INTEGER);
-        return coldAt != null && item.getTicksLived() - coldAt < LIFESPAN;
+        return coldAt != null && coldAt < LIFESPAN && item.getTicksLived() - coldAt < LIFESPAN;
     }
 
     /**
