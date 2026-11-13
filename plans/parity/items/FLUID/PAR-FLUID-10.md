@@ -2,7 +2,7 @@
 id: PAR-FLUID-10
 title: "Vanilla bucket from a spring pool gives tfp:bucket/spring_water; waterlogged blocks in oceans give fresh water"
 area: FLUID
-status: open
+status: done
 wave: 11
 deps: [PAR-FLUID-02, PAR-FLUID-04]
 size: S
@@ -18,6 +18,7 @@ ui: false
 in_game_steps: []
 plan:
   - "Follow-up of PAR-FLUID-02 (review notes). Once PAR-FLUID-04 (or PAR-FLUID-03) tells spring pools apart in `WorldWaterService`, a vanilla empty bucket filled from spring water gives `tfp:bucket/spring_water` (TFC: the spring water source gives `bucket/spring_water`), as `onVanillaFill` already does for salt water. Also: water taken by a wooden/metal bucket from a vanilla waterlogged block reads as fresh `minecraft:water` (TFC: a vanilla waterlogged block holds vanilla water), not by the ocean salt rule; revisit together with PAR-FLUID-07's ocean drinking rule. Remove or update the two PAR-FLUID-02 gap notes in the ledger's pickup divergence row."
+  - "Done: BucketListener reads PAR-FLUID-04's SpringWater (module service, looked up lazily when a bucket is filled because the hotspring module enables after the bucket module; BucketModule is not this item's file) for water sources: tank buckets take tfp:spring_water, a vanilla bucket becomes tfp:bucket/spring_water; any vanilla waterlogged block gives minecraft:water (tank and vanilla bucket). Tests: paper BucketSpringWaterMockBukkitTest 7, BucketListenerMockBukkitTest 13 unchanged. Ledger: bucket feature row and the pickup divergence row updated (gap notes removed; TFC's salt-holding fluid-logged sea plants read as fresh here)."
 tests:
   - "paper: MockBukkit vanilla bucket on a spring pool; waterlogged block in an ocean biome"
 done_criteria:

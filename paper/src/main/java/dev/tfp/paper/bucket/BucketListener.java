@@ -7,7 +7,9 @@
  * file: src/main/java/net/dries007/tfc/common/items/FluidContainerItem.java @ c3b4d9536 (use),
  *       src/main/java/net/dries007/tfc/common/fluids/FluidHelpers.java @ c3b4d9536 (transferBetweenWorldAndItem,
  *       pickupFluidInto, emptyFluidFrom, playTransferSound, with), net.minecraft.world.item.BucketItem (the TFC fluid
- *       buckets' use, which TFC inherits)
+ *       buckets' use, which TFC inherits),
+ *       src/main/java/net/dries007/tfc/common/blocks/HotWaterBlock.java @ c3b4d9536 (the spring water source, picked up
+ *       as spring water), src/main/java/net/dries007/tfc/common/items/TFCItems.java @ c3b4d9536 (bucket/spring_water)
  */
 package dev.tfp.paper.bucket;
 
@@ -22,14 +24,19 @@ import dev.tfp.core.bucket.WorldFluid;
 import dev.tfp.core.fluid.FluidContainerKind;
 import dev.tfp.core.thirst.Drinkables;
 import dev.tfp.core.vessel.FluidAmount;
+import dev.tfp.paper.TfpPlugin;
 import dev.tfp.paper.itemdata.ItemFluids;
+import dev.tfp.paper.module.ModuleServices;
+import dev.tfp.paper.worldwater.hot.SpringWater;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
@@ -60,6 +67,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.RayTraceResult;
 
 /**
@@ -78,7 +86,10 @@ import org.bukkit.util.RayTraceResult;
  *       {@code emptyFluidFrom} rules with source placement on ({@link BucketRules#place}): a placeable fluid is placed as
  *       a source and the bucket becomes a vanilla empty bucket (kept in creative); any other fluid is refused.</li>
  *   <li>A vanilla empty bucket filled from salt water gives {@code tfp:bucket/salt_water}, as TFC's salt water source
- *       gives TFC's salt water bucket.</li>
+ *       gives TFC's salt water bucket; filled from a hot spring pool (PAR-FLUID-04's {@link SpringWater}) it gives
+ *       {@code tfp:bucket/spring_water} (PAR-FLUID-10).</li>
+ *   <li>The water of a vanilla waterlogged block is plain {@code minecraft:water} wherever it stands (PAR-FLUID-10: in
+ *       TFC a vanilla waterlogged block holds vanilla water), for tank buckets and vanilla buckets alike.</li>
  * </ul>
  * Every world change first fires a {@link PlayerBucketFillEvent} / {@link PlayerBucketEmptyEvent}, so protection plugins
  * can refuse it. The change is one block in reach of the player, decided by the pure {@link BucketRules} and written at
@@ -90,6 +101,9 @@ public final class BucketListener implements Listener {
     /** The prefix of TFC's per-fluid vanilla buckets. */
     public static final String FLUID_BUCKET_PREFIX = "tfp:bucket/";
     public static final String SALT_WATER_BUCKET = FLUID_BUCKET_PREFIX + "salt_water";
+    public static final String SPRING_WATER_BUCKET = FLUID_BUCKET_PREFIX + "spring_water";
+    /** TFC's spring water fluid, the content of a tank bucket filled from a hot spring pool. */
+    static final String SPRING_WATER = "tfp:spring_water";
     /** The vanilla survival block interaction range, used when the attribute is missing. */
     static final double DEFAULT_REACH = 4.5;
     /** {@code getFlowing(1, false)}: a flowing block of amount 1 has the block level {@code 8 - 1}. */
@@ -100,6 +114,7 @@ public final class BucketListener implements Listener {
     private final Supplier<BucketConfig> config;
     private final Function<String, Optional<ItemStack>> create;
     private final Function<Block, String> waterFluid;
+    private final Predicate<Block> springWater;
     /** The last game tick a player's bucket acted: the main and the off hand of one click act once. */
     private final Map<UUID, Long> lastUse = new ConcurrentHashMap<>();
     /** Set while this listener fires its own bucket events, so {@link #onVanillaFill} leaves them alone. */
@@ -116,17 +131,75 @@ public final class BucketListener implements Listener {
     public BucketListener(Function<ItemStack, Optional<String>> itemId, BiPredicate<FluidContainerKind, String> usable,
             Supplier<BucketConfig> config, Function<String, Optional<ItemStack>> create,
             Function<Block, String> waterFluid) {
+        this(itemId, usable, config, create, waterFluid, moduleSpringWater());
+    }
+
+    /**
+     * @param springWater whether a water source block is hot spring water (PAR-FLUID-04's {@link SpringWater}), on the
+     *                    block's owner thread
+     */
+    BucketListener(Function<ItemStack, Optional<String>> itemId, BiPredicate<FluidContainerKind, String> usable,
+            Supplier<BucketConfig> config, Function<String, Optional<ItemStack>> create,
+            Function<Block, String> waterFluid, Predicate<Block> springWater) {
         this.itemId = itemId;
         this.usable = usable;
         this.config = config;
         this.create = create;
         this.waterFluid = waterFluid;
+        this.springWater = springWater;
     }
 
     /** With the vanilla-biome salt rule for water ({@link #biomeWaterFluid}). */
     public BucketListener(Function<ItemStack, Optional<String>> itemId, BiPredicate<FluidContainerKind, String> usable,
             Supplier<BucketConfig> config, Function<String, Optional<ItemStack>> create) {
-        this(itemId, usable, config, create, BucketListener::biomeWaterFluid);
+        this(itemId, usable, config, create, BucketListener::biomeWaterFluid, block -> false);
+    }
+
+    /**
+     * The spring water rule of the running plugin: PAR-FLUID-04's {@link SpringWater} module service, looked up when a
+     * bucket is filled (the hotspring module is enabled after the bucket module) and kept once found; false while no
+     * hotspring module runs (then no water is spring water).
+     */
+    static Predicate<Block> moduleSpringWater() {
+        AtomicReference<SpringWater> found = new AtomicReference<>();
+        return block -> {
+            SpringWater springs = found.get();
+            if (springs == null) {
+                springs = lookupSpringWater();
+                if (springs == null) {
+                    return false;
+                }
+                found.set(springs);
+            }
+            return springs.isSpringWater(block);
+        };
+    }
+
+    private static SpringWater lookupSpringWater() {
+        try {
+            if (JavaPlugin.getProvidingPlugin(BucketListener.class) instanceof TfpPlugin plugin) {
+                ModuleServices services = plugin.moduleServices();
+                return services == null ? null : services.get(SpringWater.class).orElse(null);
+            }
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // not loaded by a plugin class loader (unit tests): no spring water
+        }
+        return null;
+    }
+
+    /**
+     * The container fluid of the water a bucket takes from {@code block}: plain water from a vanilla waterlogged block
+     * (TFC: a vanilla waterlogged block holds vanilla water, salt only in TFC's own fluid-logged blocks), spring water from a
+     * hot spring pool, else the world water kind. Owner thread of the block.
+     */
+    String waterOf(Block block, boolean waterlogged) {
+        if (waterlogged) {
+            return WorldFluid.WATER.pickedUp(false);
+        }
+        if (springWater.test(block)) {
+            return SPRING_WATER;
+        }
+        return waterFluid.apply(block);
     }
 
     /** The fallback water rule: salt water in a vanilla ocean biome, else fresh water. */
@@ -188,18 +261,31 @@ public final class BucketListener implements Listener {
         lastUse.remove(event.getPlayer().getUniqueId());
     }
 
-    /** A vanilla bucket filled with ocean water becomes TFC's salt water bucket. */
+    /**
+     * A vanilla bucket filled with salt water becomes TFC's salt water bucket, filled from a hot spring pool TFC's spring
+     * water bucket; the water of a waterlogged block stays a vanilla water bucket.
+     */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onVanillaFill(PlayerBucketFillEvent event) {
         if (firing.get()) {
             return;
         }
         ItemStack result = event.getItemStack();
-        if (result == null || result.getType() != Material.WATER_BUCKET
-                || !Drinkables.SALT_WATER.equals(waterFluid.apply(event.getBlock()))) {
+        if (result == null || result.getType() != Material.WATER_BUCKET) {
             return;
         }
-        create.apply(SALT_WATER_BUCKET).ifPresent(event::setItemStack);
+        Block block = event.getBlock();
+        boolean waterlogged = block.getType() != Material.WATER && block.getBlockData() instanceof Waterlogged w
+                && w.isWaterlogged();
+        String fluid = waterOf(block, waterlogged);
+        String bucket = switch (fluid) {
+            case Drinkables.SALT_WATER -> SALT_WATER_BUCKET;
+            case SPRING_WATER -> SPRING_WATER_BUCKET;
+            default -> null;
+        };
+        if (bucket != null) {
+            create.apply(bucket).ifPresent(event::setItemStack);
+        }
     }
 
     /** The block in view, counting fluid sources, within the player's block interaction range; or null. */
@@ -282,7 +368,7 @@ public final class BucketListener implements Listener {
         } else {
             return false;
         }
-        String fluid = source == WorldFluid.WATER ? waterFluid.apply(block) : source.pickedUp(false);
+        String fluid = source == WorldFluid.WATER ? waterOf(block, waterlogged) : source.pickedUp(false);
         BucketRules.Pickup pickup = BucketRules.pickup(fluid, container.defaultCapacity(), usable.test(container, fluid));
         if (!pickup.removesSource()) {
             return false;
