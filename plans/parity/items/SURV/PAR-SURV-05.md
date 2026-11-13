@@ -2,7 +2,7 @@
 id: PAR-SURV-05
 title: "Health and damage: TFC health scale, physical damage types, entity and armour resistances"
 area: SURV
-status: open
+status: done
 wave: 8
 deps: []
 size: M
@@ -31,6 +31,7 @@ plan:
   - "EntityDamageEvent hook (MONITOR-safe priority, entity thread): map the damage source to crush/pierce/slash (core PhysicalDamageType), apply the target's entity resistance and the worn armour's item resistances (data exported), then the player health modifier from nutrition."
   - "Forging bonus damage multiplier on the weapon (PAR-METAL-06 writes it; read 1.0 until then)."
   - "Natural regeneration replaced by HealthRegen (food/thirst gates); persist HealthState in PlayerData."
+  - "Done: paper/health HealthModule (PhysicalDamageListener: TFC onLivingHurt on every living entity at HIGH priority, resistances from the exported entity/item_damage_resistance data via core DamageResistances + IncomingDamage; HealthRegenerator: SATIATED/REGEN cancelled for players, TFC regeneration every 10 ticks; /tfp debug damage logs each hit). HealthState is not persisted: the vanilla health is the stored value. Forging bonus via a WeaponDamageBonus service, 1 until PAR-METAL provides it. Tests: core IncomingDamageTest (7), paper PhysicalDamageListenerTest (8), HealthGoldenTest unchanged. In-game: pass (docs/verification/PAR-SURV-05/), steel armour factor 0.3012 in the log."
 tests:
   - "core: HealthGoldenTest unchanged"
   - "paper: MockBukkit damage with a steel chestplate vs crush/pierce"

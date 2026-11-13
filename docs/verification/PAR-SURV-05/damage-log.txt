@@ -1,0 +1,13 @@
+06:38:16 damage - -> minecraft:player: minecraft:in_wall 1.000 x bonus 1.000, type crushing, resistance 0.00, factor 1.0000, health modifier 0.850 = 1.176
+06:38:16 damage - -> minecraft:player: minecraft:in_wall 1.000 x bonus 1.000, type crushing, resistance 0.00, factor 1.0000, health modifier 0.850 = 1.176
+06:38:48 damage minecraft:zombie -> minecraft:player: minecraft:mob_attack 3.000 x bonus 1.000, type none, resistance 0.00, factor 1.0000, health modifier 0.850 = 3.529
+06:38:48 damage minecraft:zombie -> minecraft:player: minecraft:mob_attack 3.000 x bonus 1.000, type none, resistance 0.00, factor 1.0000, health modifier 0.850 = 3.529
+06:38:49 damage minecraft:zombie -> minecraft:player: minecraft:mob_attack 3.000 x bonus 1.000, type none, resistance 0.00, factor 1.0000, health modifier 0.850 = 3.529
+06:39:19 damage minecraft:zombie -> minecraft:player: minecraft:mob_attack 3.000 x bonus 1.000, type none, resistance 120.00, factor 0.3012, health modifier 0.850 = 1.063
+06:39:20 damage minecraft:zombie -> minecraft:player: minecraft:mob_attack 3.000 x bonus 1.000, type none, resistance 120.00, factor 0.3012, health modifier 0.850 = 1.063
+06:39:21 damage minecraft:zombie -> minecraft:player: minecraft:mob_attack 3.000 x bonus 1.000, type none, resistance 120.00, factor 0.3012, health modifier 0.850 = 1.063
+06:39:22 damage minecraft:zombie -> minecraft:player: minecraft:mob_attack 3.000 x bonus 1.000, type none, resistance 120.00, factor 0.3012, health modifier 0.850 = 1.063
+06:39:23 damage minecraft:zombie -> minecraft:player: minecraft:mob_attack 3.000 x bonus 1.000, type none, resistance 120.00, factor 0.3012, health modifier 0.850 = 1.063
+06:39:24 damage minecraft:zombie -> minecraft:player: minecraft:mob_attack 3.000 x bonus 1.000, type none, resistance 120.00, factor 0.3012, health modifier 0.850 = 1.063
+06:39:48 damage minecraft:zombie -> minecraft:player: minecraft:mob_attack 3.000 x bonus 1.000, type none, resistance 0.00, factor 1.0000, health modifier 0.826 = 3.634
+06:39:49 damage minecraft:zombie -> minecraft:player: minecraft:mob_attack 3.000 x bonus 1.000, type none, resistance 0.00, factor 1.0000, health modifier 0.826 = 3.634
