@@ -2,7 +2,7 @@
 id: PAR-CLIM-15
 title: "Self-test weather.precip_sample and PrecipitationService in ModuleServices"
 area: CLIMATE
-status: open
+status: done
 wave: 12
 deps: [PAR-CLIM-02]
 size: S
@@ -18,6 +18,7 @@ plan:
   - "Current: PAR-CLIM-02 samples precipitation per player every 20 ticks (PrecipitationService.sampleOf) and decides any block with precipitationAt/isRainingAt; consumers find it through the static PrecipitationService.current(). The in-server case and the ModuleServices wiring were outside its files."
   - "itest case weather.precip_sample: with a forced climate (the self-test world's seed, a high cold column in a winter month and a low warm column in a summer month, calendar set through the CalendarService), check precipitationAt gives SNOW at the cold column and RAIN at the warm one at a rain time of OverworldClimate.rainIntensity, NONE under a placed roof (rainReaches false on the region thread) and in the Nether; add the case to SelfTestSuite."
   - "TfpPlugin.java: add only the one moduleServices.provide line. Provide PrecipitationService in ModuleServices next to the other plugin services, so modules (barrel rain fill PAR-PROC-09, fire starting PAR-HEAT-05, drinking in rain) look it up with services().require instead of the static holder."
+  - "Done: itest weather.precip_sample (PrecipSampleCase, in SelfTestSuite; SelfTestSuiteTest counts 29) passed on Paper 1.21.11 via :itest:runSelfTest (column 0,0: SNOW at y 318 in DECEMBER, RAIN at y 128 in JULY, NONE under a stone roof and in world_nether); TfpPlugin provides PrecipitationService in ModuleServices; ledger rows updated, no new divergence."
 tests:
   - "itest: weather.precip_sample"
 done_criteria:

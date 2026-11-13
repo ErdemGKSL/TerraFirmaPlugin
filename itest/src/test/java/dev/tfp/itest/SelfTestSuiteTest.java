@@ -40,6 +40,7 @@ class SelfTestSuiteTest {
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("neighbour.converge")); // PAR-INFRA-26
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("dehydration")); // PAR-SURV-12
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("barrel.recipes")); // PAR-PROC-32
-        assertThat(cases).hasSize(28);
+        assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("weather.precip_sample")); // PAR-CLIM-15
+        assertThat(cases).hasSize(29);
     }
 }

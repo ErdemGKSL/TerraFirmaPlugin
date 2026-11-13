@@ -489,6 +489,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         precipitation = playerPrecipitation;
         getServer().getPluginManager().registerEvents(playerPrecipitation, this);
         playerPrecipitation.start(() -> getServer().getOnlinePlayers());
+        moduleServices.provide(PrecipitationService.class, playerPrecipitation); // PAR-CLIM-15
 
         // M3-SURV-06: thirst and hunger for the HUD, read on each player's thread and throttled on the global thread.
         // PAR-HUD-11: the held heat record is published with the heat hooks' own capacities and evaluated lazily.

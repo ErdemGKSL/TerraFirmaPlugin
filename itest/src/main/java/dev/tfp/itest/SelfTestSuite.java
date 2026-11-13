@@ -55,6 +55,7 @@ public final class SelfTestSuite {
                 new DeviceRoundTripCase(),
                 new dev.tfp.itest.cases.BarrelRecipesCase(),
                 new dev.tfp.itest.cases.CatchUpCase(),
+                new dev.tfp.itest.cases.PrecipSampleCase(),
                 new dev.tfp.itest.cases.LootCase(),
                 new dev.tfp.itest.cases.VanillaLootCase(),
                 new dev.tfp.itest.cases.NeighbourConvergeCase(),
