@@ -70,3 +70,15 @@ morning reading is 1.6 C, the warm part of the day passes 2 C).
   July melt under the new `in_game_steps` remain to be shot; F3 read y=116.0 on the floor, so the next capture adds a
   Targeted Block or `/data` check that the floor block is unchanged and the layers sit at Y+1, plus
   `execute if block 12 Y -1976 minecraft:ice` and the clone-count readouts.
+- Third workflow recapture (2026-11-13, rejected: 0 layers after the stamp moved from 1000 to 2316360): not a catch-up
+  defect, the wrong world. Its readout at 8 -1976 was rainfall 21 mm, average -1.5 C; at level-seed 1234 that chunk has
+  129 to 416 mm in every month (the July readout above, 128.6 mm, is the yearly low), so the run was on a random world
+  (`spikes/client/server.sh` does not set `level-seed`, and the steps did not check it). 0 layers is TFC-consistent for
+  such a site: `SnowCatchUp.plan` walks the month's samples with `getRain` per sample against the mean rainfall, as
+  TFC's `onTickChunk` (WeatherHelpers:232-275) does, and at 21 mm a sample needs a rain intensity above
+  `clampedMap(21, 0, 500, 1, 0)` = 0.958, which no sample of that month reaches. The seed-1234 site plans the capped 64
+  steps from stamp 1000 at any surface height. Both are pinned by `core/.../weather/SnowCatchUpSiteTest.java`. The
+  item's `in_game_steps` now write and check `level-seed=1234` and gate on rainfall >= 100 mm (the instant `would
+  accumulate` line is today's precipitation, not the catch-up's input). The snow-pile-on-plants, ice-on-pool and F3 room
+  shots moved to PAR-CLIM-19 (PROTOCOL 6.5: they show PAR-CLIM-04's blocks). The `-8.1 C` average above is Bot's
+  reading at y 145 in chunk (0, -125), not the ground of chunk (0, -124): the average drops 0.162 C per block of height.
