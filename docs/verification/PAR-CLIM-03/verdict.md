@@ -32,7 +32,9 @@ morning reading is 1.6 C, the warm part of the day passes 2 C).
 - `july-melted.png`: the same camera after the July reload: the snow is gone except a few layers (5 counted in the test
   chunk), summer grass tint. Chunks at the left edge of the full frame still showed January snow: they stayed loaded
   across the clock jump (neighbours of the forced chunk), so they got no catch-up and only the live samples near a
-  player melt them (TFC's live branch does the same: a chunk ticked within 4,000 ticks gets no catch-up).
+  player melt them (TFC's live branch does the same: a chunk ticked within 4,000 ticks gets no catch-up). In TFC the larger reason is the
+  units: `/time add` and TFC's month skip do not advance player ticks, and TFC measures the catch-up window in player
+  ticks, so TFC would not catch up even a reloaded chunk after such a jump; ours does (calendar ticks, ledger catch-up row).
 - `july-readout.png`: the readout above.
 
 ## Criteria
@@ -52,3 +54,12 @@ morning reading is 1.6 C, the warm part of the day passes 2 C).
 - Memory: the first client join together with the server (`-Xmx5G`) and other agents' builds ran the host out of memory
   (kernel OOM kill, server watchdog dumps). The run continued with the client started later; all readouts above are from
   after that.
+- Workflow recapture (2026-11-13, rejected as inconclusive, not as a defect): the room had a snow_block floor (snow on
+  it is white on white), 00 was taken with a layer already present, 01 followed a second `snowtime` write, and no shot
+  showed F3. The item's `in_game_steps` now spell out the room (grass and stone floor, a short_grass strip for snow
+  piles, a water pool for ice, no barrier roof), a single `snowtime` write, a clean unload/reload checked with
+  `execute unless loaded`, a low camera and F3 shots. The counts above (0 -> 60, 60 -> 5) are unaffected. The snow pile
+  and ice pile are vanilla snow layer and ice placeholders (ledger), so F3 shows `minecraft:snow` / `minecraft:ice`.
+- Health 850 -> 639 in that recapture: the item does not deal damage (no snow or ice code path hurts players); the
+  recapture steps now keep Bot in creative so a drop there would point at a bug elsewhere (body temperature, PAR-SURV).
+- Empty `tfp debug chunk` RCON reply during the catch-up after a clock jump: tracked as PAR-CLIM-17.

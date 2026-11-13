@@ -13,6 +13,7 @@ import dev.tfp.core.weather.SnowCatchUp.Climate;
 import dev.tfp.core.weather.SnowCatchUp.Plan;
 import dev.tfp.core.world.BlockPos;
 import java.util.Random;
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -22,7 +23,10 @@ import org.junit.jupiter.api.Test;
  * <p><b>The stepped side</b> is TFC's live branch, replayed per calendar tick with a seeded random in TFC's order of
  * draws: {@code nextInt(80) == 0}, then accumulate when the temperature is below -2 C and it precipitates (the mean
  * rainfall over the last tick), else melt when it is above 2 C and {@code nextInt(3) == 0}. Its expected value per tick is
- * 1/80 accumulations in cold precipitation and 1/240 melts in warmth.
+ * 1/80 accumulations in cold precipitation and 1/240 melts in warmth. Simplification: both branches read the warmer of
+ * the site's two columns ({@link Site#temperature}), as the catch-up does; TFC's live branch reads only the sequential
+ * placement position for accumulation and only the random climate-check position for melting. The two columns are a few
+ * blocks apart in the same chunk, so the difference is far below the tolerances.
  *
  * <p><b>The lazy side</b> is the catch-up a chunk gets each time it is loaded after an absence: the sequence is cut into
  * absences of {@link #ABSENCE} ticks and each gets one {@code plan}. A sample stands for 4 000 ticks: 51 accumulations
@@ -197,7 +201,7 @@ class SnowLazyVsSteppedTest {
             Counts lazy = lazy(TEMPERATE, from, to);
             Counts expected = steppedExpectation(TEMPERATE, from, to, true);
             double scale = Math.max(Math.abs(expected.net()), 60);
-            assertThat(lazy.net()).as("month " + month + " net").isCloseTo(expected.net(), org.assertj.core.data.Offset.offset(0.5 * scale));
+            assertThat(lazy.net()).as("month " + month + " net").isCloseTo(expected.net(), Offset.offset(0.5 * scale));
         }
     }
 
@@ -220,7 +224,7 @@ class SnowLazyVsSteppedTest {
         }
     }
 
-    private static org.assertj.core.data.Offset<Double> tolerance(double expected, double fraction) {
-        return org.assertj.core.data.Offset.offset(Math.max(fraction * Math.abs(expected), 8.0));
+    private static Offset<Double> tolerance(double expected, double fraction) {
+        return Offset.offset(Math.max(fraction * Math.abs(expected), 8.0));
     }
 }
