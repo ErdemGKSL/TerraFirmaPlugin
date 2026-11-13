@@ -181,9 +181,17 @@ public final class PrecipitationService implements Listener {
      * <p>
      * The decision follows TFC: it reads only the climate's rain at the calendar time, the instant temperature and the
      * rainfall, never the vanilla rain flag, so {@code /weather rain} alone does not make it RAIN or SNOW (coupling the
-     * vanilla weather to the climate is PAR-CLIM-12). Pass the exact position the TFC caller passes: {@code pos.above()}
-     * for the barrel, firestarter and flint-and-pyrite, {@code pos} for the firepit, {@code pos.above()} and
-     * {@code above(2)} for the forge.
+     * vanilla weather to the climate is PAR-CLIM-12). Pass the exact position the TFC caller passes. TFC's own callers
+     * of {@code level.isRainingAt} at c3b4d9536 (vanilla's callers, such as fire, are not listed):
+     * <ul>
+     *   <li>{@code pos.above()}: barrel ({@code BarrelBlockEntity}:179), firestarter and flint-and-pyrite
+     *       ({@code abovePos}), leaves ({@code TFCLeavesBlock}:84), drying bricks ({@code DryingBricksBlock}:179), the
+     *       block-entity tooltip ({@code BlockEntityTooltips}:584, {@code entity.getBlockPos().above()});</li>
+     *   <li>{@code pos}: firepit ({@code AbstractFirepitBlockEntity}:88 and 127), weathering blocks
+     *       ({@code IWeatheringBlock}:163);</li>
+     *   <li>{@code pos.above()} and {@code pos.above(2)}: charcoal forge ({@code CharcoalForgeBlockEntity}:86);</li>
+     *   <li>{@code player.blockPosition().above()}: drinking in the rain while looking up ({@code ForgeEventHandler}:772).</li>
+     * </ul>
      *
      * @param rainReaches {@link #rainReaches} for the position, read on its region thread
      */

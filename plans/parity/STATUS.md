@@ -128,6 +128,7 @@ Totals: 315 items; open 220, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-CLIM-03 | Snow and ice accumulation: lazy-vs-stepped equivalence and server check | CLIMATE | 12 | open |
 | PAR-CLIM-15 | Self-test weather.precip_sample and PrecipitationService in ModuleServices | CLIMATE | 12 | open |
 | PAR-CLIM-16 | Calendar sleep-skip self-test: calendar.sleep_skip on Paper and Folia | CLIMATE | 12 | open |
+| PAR-CLIM-17 | Console /tfp debug chunk <x> <z> answers over RCON and reads precipitation through vanilla's rain gates | CLIMATE | 12 | open |
 | PAR-FLUID-13 | Bucket double-use guard keyed on day time: buckets stop working when the daylight cycle is off | FLUID | 12 | open |
 | PAR-DATA-16 | Pistons cannot move water sources: 1-tick piston pulses drop the water of waterlogged blocks (TFC's MC-130183 fix) | DATA | 12 | open |
 | PAR-HEAT-04 | Heating recipes on devices: the 884 heating recipes as a shared service | HEAT | 12 | open |
