@@ -208,6 +208,25 @@ class HeatTooltipLinesTest {
     }
 
     @Test
+    void aChanceResultBelowOneMayLoseTheItemSoItShowsDanger() {
+        // TFC data/tfc/recipe/heating/powder/kaolinite.json: 20% chance of kaolinite powder, else nothing
+        HeatTooltipRecipes.Heating kaolin = HeatTooltipRecipes.heating(recipe("tfp:heating/powder/kaolinite", """
+                {"type": "tfc:heating", "ingredient": {"item": "tfp:kaolin_clay"},
+                 "result_item": {"stack": {"count": 1, "id": "tfp:powder/kaolinite"},
+                                 "modifiers": [{"type": "tfc:chance", "chance": 0.2}]},
+                 "temperature": 500.0}"""));
+        assertThat(kaolin.destroys()).isTrue();
+        assertThat(kaolin.fluid()).isEmpty();
+        // a certain chance keeps the item
+        HeatTooltipRecipes.Heating certain = HeatTooltipRecipes.heating(recipe("tfp:heating/test/certain", """
+                {"type": "tfc:heating", "ingredient": {"item": "tfp:kaolin_clay"},
+                 "result_item": {"stack": {"count": 1, "id": "tfp:powder/kaolinite"},
+                                 "modifiers": [{"type": "tfc:chance", "chance": 1.0}]},
+                 "temperature": 500.0}"""));
+        assertThat(certain.destroys()).isFalse();
+    }
+
+    @Test
     void theGeneratedCopperIngotRecipeGivesTfcsMetalLine() throws IOException {
         String configured = System.getProperty("tfp.contentData");
         assumeTrue(configured != null, "no generated content");

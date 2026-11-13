@@ -18,6 +18,7 @@ import dev.tfp.core.recipe.hooks.FluidHooks;
 import dev.tfp.core.recipe.hooks.FoodHooks;
 import dev.tfp.core.recipe.hooks.HeatHooks;
 import dev.tfp.core.recipe.ingredient.IngredientContext;
+import dev.tfp.core.recipe.output.ItemStackModifier;
 import dev.tfp.core.recipe.output.ItemStackProvider;
 import dev.tfp.core.recipe.output.ItemStackTemplate;
 import dev.tfp.core.tag.TagLookup;
@@ -47,7 +48,8 @@ public final class HeatTooltipRecipes {
      *
      * @param temperature the recipe temperature (TFC {@code getTemperature})
      * @param fluid       the fluid one item melts into, empty when the recipe has none
-     * @param destroys    whether the recipe's item result is empty (the item is lost when heated to the temperature)
+     * @param destroys    whether the recipe's item result is or may be empty (the item may be lost when heated to the
+     *                    temperature)
      */
     public record Heating(float temperature, Optional<FluidAmount> fluid, boolean destroys) {
         public Heating {
@@ -68,7 +70,10 @@ public final class HeatTooltipRecipes {
         this.tags = Objects.requireNonNull(tags, "tags");
     }
 
-    /** The heating recipe of {@code item} at {@code temperature}: the first candidate whose ingredient accepts it. */
+    /**
+     * The heating recipe of {@code item} at {@code temperature}: the first candidate whose ingredient accepts it, in
+     * recipe-id order (TFC uses its recipe cache order; no TFC heating recipes overlap at c3b4d9536).
+     */
     public Optional<Heating> find(TooltipItem item, float temperature) {
         List<RecipeEntry> list = candidates.apply(item.id());
         if (list == null || list.isEmpty()) {
@@ -100,10 +105,17 @@ public final class HeatTooltipRecipes {
     }
 
     /**
-     * Whether an item result is always empty (TFC {@code outputItem.getSingleStack(input).isEmpty()}): no base stack
-     * (or air) and no modifier that could make one from the input.
+     * Whether the item result may be empty (TFC {@code assembleItem(stack).isEmpty()}): no base stack (or air) and no
+     * modifier that could make one from the input, or a {@code tfc:chance} modifier below 1. TFC rolls the chance on
+     * every tooltip redraw (kaolin clay, 0.2: empty about 80% of the time, so its "Danger!!" flickers); we show Danger
+     * steadily whenever the item may be lost (see the ledger's Divergences).
      */
     static boolean isEmpty(ItemStackProvider provider) {
+        boolean mayRollEmpty = provider.modifiers().stream()
+                .anyMatch(m -> m instanceof ItemStackModifier.Chance c && c.chance() < 1f);
+        if (mayRollEmpty) {
+            return true;
+        }
         Optional<ItemStackTemplate> stack = provider.stack();
         boolean base = stack.isPresent() && stack.get().count() > 0 && !stack.get().id().equals("minecraft:air");
         return !base && provider.modifiers().isEmpty();
