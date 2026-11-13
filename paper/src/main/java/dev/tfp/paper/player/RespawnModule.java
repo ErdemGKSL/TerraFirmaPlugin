@@ -9,13 +9,16 @@
  */
 package dev.tfp.paper.player;
 
+import dev.tfp.core.config.TfpConfig;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 import org.bukkit.Difficulty;
 import org.bukkit.GameRule;
 import org.bukkit.attribute.Attribute;
@@ -40,7 +43,9 @@ import org.bukkit.event.player.PlayerRespawnEvent;
  *       vanilla's peaceful refill then already supplies exactly TFC's +1.</li>
  * </ul>
  * TFC's {@code naturalRegenerationModifier} is part of the regeneration rule itself ({@code core} {@code HealthRegen},
- * PAR-SURV-05). The settings are read from the JVM properties named in {@link RespawnRules}.
+ * PAR-SURV-05; read by {@code HealthModule}). The settings are config.yml's {@code survival} section (PAR-SURV-14), read
+ * again at every respawn and peaceful step so that {@code /tfp reload config} applies them at once; the JVM properties
+ * named in {@link RespawnRules} override them.
  */
 public final class RespawnModule implements FeatureModule, Listener {
     public static final String ID = "respawn";
@@ -48,7 +53,7 @@ public final class RespawnModule implements FeatureModule, Listener {
     static final GameRule<Boolean> NATURAL_REGENERATION = naturalRegenerationRule();
 
     private final AtomicLong steps = new AtomicLong();
-    private volatile RespawnRules rules = RespawnRules.DEFAULT;
+    private volatile Supplier<RespawnRules> rules = () -> RespawnRules.DEFAULT;
     private volatile PlayerDataStore data;
     private volatile LongSupplier playerTicks;
     private volatile HudSnapshotCache hud;
@@ -59,6 +64,11 @@ public final class RespawnModule implements FeatureModule, Listener {
 
     /** For tests: the module wired without a {@link ModuleContext}. */
     RespawnModule(RespawnRules rules, PlayerDataStore data, LongSupplier playerTicks, HudSnapshotCache hud) {
+        this(() -> rules, data, playerTicks, hud);
+    }
+
+    /** For tests: the module wired without a {@link ModuleContext}, its rules read from {@code rules} at each use. */
+    RespawnModule(Supplier<RespawnRules> rules, PlayerDataStore data, LongSupplier playerTicks, HudSnapshotCache hud) {
         this.rules = rules;
         this.data = data;
         this.playerTicks = playerTicks;
@@ -72,24 +82,30 @@ public final class RespawnModule implements FeatureModule, Listener {
 
     @Override
     public void enable(ModuleContext ctx) {
-        rules = RespawnRules.fromProperties(System::getProperty);
+        rules = configRules(() -> ctx.config().current().survival(), System::getProperty);
         data = ctx.playerData();
         playerTicks = () -> ctx.clock().get().playerTicks();
         hud = ctx.hudCache();
         ctx.listen(this);
-        if (rules.enablePeacefulDifficultyPassiveRegeneration()) {
-            Scheduler scheduler = ctx.scheduler();
-            throttle = scheduler.globalRepeating(RespawnRules.PEACEFUL_PERIOD_TICKS, RespawnRules.PEACEFUL_PERIOD_TICKS,
-                    () -> {
-                        boolean healTick = steps.incrementAndGet() % 2 == 0;
-                        for (Player player : ctx.plugin().getServer().getOnlinePlayers()) {
-                            scheduler.entity(player, () -> peacefulStep(player, healTick), null);
-                        }
-                    });
-            ctx.logger().info("Peaceful passive regeneration is on (" + RespawnRules.PEACEFUL_REGEN_PROPERTY + ")");
+        // Always scheduled, so that turning the setting on with /tfp reload config takes effect; with it off a run is
+        // one volatile read.
+        Scheduler scheduler = ctx.scheduler();
+        throttle = scheduler.globalRepeating(RespawnRules.PEACEFUL_PERIOD_TICKS, RespawnRules.PEACEFUL_PERIOD_TICKS,
+                () -> {
+                    boolean healTick = steps.incrementAndGet() % 2 == 0;
+                    if (!rules.get().enablePeacefulDifficultyPassiveRegeneration()) {
+                        return;
+                    }
+                    for (Player player : ctx.plugin().getServer().getOnlinePlayers()) {
+                        scheduler.entity(player, () -> peacefulStep(player, healTick), null);
+                    }
+                });
+        RespawnRules now = rules.get();
+        if (now.enablePeacefulDifficultyPassiveRegeneration()) {
+            ctx.logger().info("Peaceful passive regeneration is on (survival.peaceful-passive-regeneration)");
         }
-        if (!rules.keepNutritionAfterDeath()) {
-            ctx.logger().info("Nutrition is reset on death (" + RespawnRules.KEEP_NUTRITION_PROPERTY + "=false)");
+        if (!now.keepNutritionAfterDeath()) {
+            ctx.logger().info("Nutrition is reset on death (survival.keep-nutrition-after-death: false)");
         }
     }
 
@@ -103,7 +119,16 @@ public final class RespawnModule implements FeatureModule, Listener {
     }
 
     RespawnRules rules() {
-        return rules;
+        return rules.get();
+    }
+
+    /**
+     * The rules of the config section {@code survival} currently applied, with the JVM properties
+     * ({@link RespawnRules#KEEP_NUTRITION_PROPERTY}, {@link RespawnRules#PEACEFUL_REGEN_PROPERTY}) over it.
+     */
+    static Supplier<RespawnRules> configRules(Supplier<TfpConfig.Survival> survival,
+            Function<String, String> properties) {
+        return () -> RespawnRules.fromProperties(RespawnRules.fromConfig(survival.get()), properties);
     }
 
     /** Player thread: a respawn after a death starts from TFC's fresh player data. */
@@ -119,7 +144,7 @@ public final class RespawnModule implements FeatureModule, Listener {
             return;
         }
         long now = playerTicks.getAsLong();
-        RespawnRules r = rules;
+        RespawnRules r = rules.get();
         try {
             data.update(id, d -> r.afterDeath(d, now));
         } catch (IllegalStateException notLoaded) {
@@ -141,7 +166,7 @@ public final class RespawnModule implements FeatureModule, Listener {
         double max = maxHealth(player);
         double health = player.getHealth();
         float thirstNow = data.get(id).map(PlayerData::thirst).orElse(PlayerData.MAX_THIRST);
-        RespawnRules.PeacefulStep step = rules.peacefulStep(peaceful, active, healTick, health > 0 && health < max,
+        RespawnRules.PeacefulStep step = rules.get().peacefulStep(peaceful, active, healTick, health > 0 && health < max,
                 player.getFoodLevel(), thirstNow);
         if (step.food() > 0 && vanillaRefillsFood(player)) {
             // TFC turns naturalRegeneration off, so its +1 is the only refill. Here the game rule stays on (PAR-SURV-05)

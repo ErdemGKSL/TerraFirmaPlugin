@@ -2,7 +2,7 @@
 id: PAR-SURV-14
 title: "Survival config keys in config.yml: keepNutritionAfterDeath, peaceful passive regeneration, naturalRegenerationModifier"
 area: SURV
-status: open
+status: done
 wave: 11
 deps: [PAR-SURV-09]
 size: S
@@ -21,6 +21,7 @@ ui: false
 in_game_steps: []
 plan:
   - "Follow-up of PAR-SURV-09. Add a `survival` section to our config (`TfpConfig`/`ConfigCodec`, default `config.yml`, `ConfigServiceTest`'s key and section lists): `keep-nutrition-after-death` (TFC `keepNutritionAfterDeath`, true), `peaceful-passive-regeneration` (TFC `enablePeacefulDifficultyPassiveRegeneration`, false), `natural-regeneration-modifier` (TFC `naturalRegenerationModifier`, 1, range 0..100). `RespawnModule` reads the first two from the config instead of the JVM properties (`RespawnRules.fromProperties`; keep the properties as overrides or drop them); `HealthModule` builds its `HealthConfig` with the modifier instead of `HealthConfig.DEFAULT` (also the `PlayerNeedsHudService` health display, if it uses the regeneration factor). If PAR-FLUID-12 adds a shared server-options section first, put the keys there. Remove the PAR-SURV-09 config divergence row in the ledger when done."
+  - "Done: `survival` section in TfpConfig/ConfigCodec/config.yml (TFC defaults and comments, modifier 0..100 warns out of range); RespawnModule reads config (JVM properties still override) live per respawn/step; HealthModule rebuilds HealthRegenerator for the configured modifier. Tests: ConfigCodecTest +2, ConfigServiceTest +2, RespawnRulesTest +1, RespawnModuleMockBukkitTest +1 (config reload then respawn shows default nutrition). PAR-SURV-09 divergence row replaced by a key-naming row."
 tests:
   - "core: ConfigCodec reads and writes the survival keys, defaults TFC's, out-of-range modifier warns"
   - "paper: MockBukkit respawn with keep-nutrition-after-death false resets nutrition"

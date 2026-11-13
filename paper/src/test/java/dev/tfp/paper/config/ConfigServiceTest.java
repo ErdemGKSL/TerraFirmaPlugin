@@ -10,7 +10,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import dev.tfp.core.bucket.BucketConfig;
 import dev.tfp.core.climate.ClimateTemperatureStyle;
 import dev.tfp.core.config.ConfigCodec;
+import dev.tfp.core.health.HealthConfig;
 import dev.tfp.core.health.HealthDisplayStyle;
+import dev.tfp.core.health.HealthRegen;
+import dev.tfp.paper.health.HealthModule;
 import dev.tfp.paper.hud.HudStyles;
 import dev.tfp.paper.hud.HudStylesHolder;
 import dev.tfp.core.config.TfpConfig;
@@ -99,7 +102,7 @@ class ConfigServiceTest {
         Files.writeString(file, owner);
         ConfigService.Outcome o = service.load();
         assertThat(o.created()).isFalse();
-        assertThat(o.added()).containsExactly("ore-overlay", "auto-install", "catchup", "hud", "buckets");
+        assertThat(o.added()).containsExactly("ore-overlay", "auto-install", "catchup", "hud", "buckets", "survival");
         assertThat(o.warnings()).hasSize(2).anyMatch(w -> w.contains("visuals.extra"))
                 .anyMatch(w -> w.contains("config.yml visuals.profile.\"26\": level-3b was removed") && w.contains("using level-2"));
         String text = Files.readString(file);
@@ -159,6 +162,38 @@ class ConfigServiceTest {
         assertThat(o.applied()).isTrue();
         assertThat(o.warnings()).singleElement().asString().contains("catchup.sweep-radius-chunks");
         assertThat(service.current().catchUp()).isEqualTo(new TfpConfig.CatchUp(40, 4, 1000, 1000));
+    }
+
+    /** PAR-SURV-14: the shipped survival section is TFC's defaults with TFC's comments; a reload applies an edit. */
+    @Test
+    void shippedSurvivalSectionIsTfcDefaultsAndReloads() throws IOException {
+        Map<?, ?> tree = Yamls.load(SHIPPED);
+        assertThat(tree.get("survival")).isEqualTo(Map.of("keep-nutrition-after-death", true,
+                "peaceful-passive-regeneration", false, "natural-regeneration-modifier", 1.0));
+        assertThat(SHIPPED).contains("If player's nutrition should be kept even after death",
+                "A multiplier for how quickly the player regenerates health");
+        service.load();
+        assertThat(service.current().survival()).isEqualTo(TfpConfig.Survival.DEFAULTS);
+        Files.writeString(file, Files.readString(file)
+                .replace("keep-nutrition-after-death: true", "keep-nutrition-after-death: false")
+                .replace("natural-regeneration-modifier: 1.0", "natural-regeneration-modifier: 250"));
+        ConfigService.Outcome o = service.load();
+        assertThat(o.applied()).isTrue();
+        assertThat(o.warnings()).singleElement().asString()
+                .contains("survival.natural-regeneration-modifier: expected a number in 0..100, got '250'; using 1");
+        assertThat(service.current().survival()).isEqualTo(new TfpConfig.Survival(false, false, 1d));
+    }
+
+    /** PAR-SURV-14: the health module's regeneration config is TFC's default at the shipped modifier and scales with it. */
+    @Test
+    void naturalRegenerationModifierScalesTheHealthConfig() {
+        double shipped = ConfigCodec.parse(Yamls.load(SHIPPED)).config().survival().naturalRegenerationModifier();
+        assertThat(HealthModule.healthConfig(shipped)).isEqualTo(HealthConfig.DEFAULT);
+        HealthConfig doubled = HealthModule.healthConfig(2d);
+        assertThat(doubled.naturalRegenerationModifier()).isEqualTo(2f);
+        assertThat(HealthRegen.healPerStep(20f, 100f, doubled))
+                .isEqualTo(2f * HealthRegen.healPerStep(20f, 100f, HealthConfig.DEFAULT));
+        assertThat(HealthRegen.healPerStep(20f, 100f, HealthModule.healthConfig(0d))).isZero();
     }
 
     /** PAR-FLUID-12: the shipped buckets section is TFC's defaults with TFC's comments, and equals BucketConfig.fromTree. */

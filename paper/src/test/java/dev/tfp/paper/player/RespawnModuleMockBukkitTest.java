@@ -7,8 +7,13 @@ package dev.tfp.paper.player;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.tfp.paper.config.ConfigService;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.testing.MockServerTest;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
@@ -86,6 +91,37 @@ class RespawnModuleMockBukkitTest extends MockServerTest {
         PlayerData d = store.get(ALEX).orElseThrow();
         assertThat(d.thirst()).isEqualTo(PlayerData.MAX_THIRST);
         assertThat(d.nutrition()).isEmpty();
+    }
+
+    /** PAR-SURV-14: keep-nutrition-after-death false in config.yml and a reload: the next respawn has default nutrition. */
+    @Test
+    void configReloadWithoutKeepNutritionResetsNutritionOnTheNextRespawn() throws IOException {
+        Path file = dir.resolve("config/config.yml");
+        ConfigService config = new ConfigService(file, () -> shippedConfig());
+        config.load();
+        RespawnModule m = new RespawnModule(RespawnModule.configRules(() -> config.current().survival(), k -> null),
+                store, () -> now[0], hud);
+        server.getPluginManager().registerEvents(m, plugin);
+        assertThat(m.rules()).isEqualTo(RespawnRules.DEFAULT);
+        respawn(PlayerRespawnEvent.RespawnReason.DEATH);
+        assertThat(store.get(ALEX).orElseThrow().nutrition()).as("TFC default: kept").containsExactly(RespawnRulesTest.BREAD);
+
+        Files.writeString(file, Files.readString(file)
+                .replace("keep-nutrition-after-death: true", "keep-nutrition-after-death: false"));
+        assertThat(config.load().applied()).isTrue(); // what /tfp reload config does
+        assertThat(m.rules()).isEqualTo(new RespawnRules(false, false));
+        respawn(PlayerRespawnEvent.RespawnReason.DEATH);
+        PlayerData d = store.get(ALEX).orElseThrow();
+        assertThat(d.nutrition()).as("default nutrition").isEmpty();
+        assertThat(d.thirst()).isEqualTo(PlayerData.MAX_THIRST);
+    }
+
+    private static String shippedConfig() {
+        try (InputStream in = RespawnModuleMockBukkitTest.class.getClassLoader().getResourceAsStream("config.yml")) {
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
     }
 
     @Test

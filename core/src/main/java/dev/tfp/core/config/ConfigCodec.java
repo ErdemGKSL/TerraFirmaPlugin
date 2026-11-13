@@ -12,6 +12,7 @@ import dev.tfp.core.config.TfpConfig.Hud;
 import dev.tfp.core.config.TfpConfig.NetherEndBlocks;
 import dev.tfp.core.config.TfpConfig.OreOverlay;
 import dev.tfp.core.config.TfpConfig.Profile;
+import dev.tfp.core.config.TfpConfig.Survival;
 import dev.tfp.core.config.TfpConfig.Visuals;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -53,7 +54,7 @@ public final class ConfigCodec {
         Reader r = new Reader();
         Map<?, ?> top = root == null ? Map.of() : root;
         r.unknown(top, "", List.of("visuals", "ore-overlay", "auto-install", "catchup", "hud",
-                BucketConfig.SECTION));
+                BucketConfig.SECTION, Survival.SECTION));
 
         Map<?, ?> v = r.section(top, "visuals");
         r.unknown(v, "visuals.", List.of("profile", "solid-reserve-warning", "use-nether-end-blocks"));
@@ -127,8 +128,20 @@ public final class ConfigCodec {
         BucketConfig buckets = new BucketConfig(
                 r.bool(b, bp, BucketConfig.WOODEN_KEY, bd.woodenBucketCanPlaceSources()),
                 r.bool(b, bp, BucketConfig.METAL_KEY, bd.metalBucketCanPlaceSources()));
-        return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto, catchUp, hud, buckets),
-                r.warnings, r.defaulted);
+
+        // PAR-SURV-14: TFC ServerConfig keepNutritionAfterDeath, enablePeacefulDifficultyPassiveRegeneration,
+        // naturalRegenerationModifier.
+        String sp = Survival.SECTION + ".";
+        Map<?, ?> sv = r.section(top, Survival.SECTION);
+        r.unknown(sv, sp, Survival.KEYS);
+        Survival sd = Survival.DEFAULTS;
+        Survival survival = new Survival(
+                r.bool(sv, sp, Survival.KEEP_NUTRITION_KEY, sd.keepNutritionAfterDeath()),
+                r.bool(sv, sp, Survival.PEACEFUL_REGEN_KEY, sd.peacefulPassiveRegeneration()),
+                r.doubleIn(sv, sp, Survival.REGEN_MODIFIER_KEY, sd.naturalRegenerationModifier(), Survival.MIN_MODIFIER,
+                        Survival.MAX_MODIFIER));
+        return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto, catchUp, hud, buckets,
+                survival), r.warnings, r.defaulted);
     }
 
     /** The tree that {@link #parse} reads back to an equal config. Keys in config.yml order. */
@@ -167,6 +180,12 @@ public final class ConfigCodec {
         buckets.put(BucketConfig.WOODEN_KEY, c.buckets().woodenBucketCanPlaceSources());
         buckets.put(BucketConfig.METAL_KEY, c.buckets().metalBucketCanPlaceSources());
         root.put(BucketConfig.SECTION, buckets);
+        Survival sv = c.survival();
+        Map<String, Object> survival = new LinkedHashMap<>();
+        survival.put(Survival.KEEP_NUTRITION_KEY, sv.keepNutritionAfterDeath());
+        survival.put(Survival.PEACEFUL_REGEN_KEY, sv.peacefulPassiveRegeneration());
+        survival.put(Survival.REGEN_MODIFIER_KEY, sv.naturalRegenerationModifier());
+        root.put(Survival.SECTION, survival);
         return root;
     }
 
@@ -214,6 +233,24 @@ public final class ConfigCodec {
             String range = max == Integer.MAX_VALUE ? ">= " + min : "in " + min + ".." + max;
             warn(prefix + key + ": expected a whole number " + range + ", got '" + o + "'; using " + def);
             return def;
+        }
+
+        double doubleIn(Map<?, ?> m, String prefix, String key, double def, double min, double max) {
+            if (!m.containsKey(key)) {
+                defaulted.add(prefix + key);
+                return def;
+            }
+            Object o = m.get(key);
+            if (o instanceof Number n && n.doubleValue() >= min && n.doubleValue() <= max) {
+                return n.doubleValue();
+            }
+            warn(prefix + key + ": expected a number in " + plain(min) + ".." + plain(max) + ", got '" + o + "'; using "
+                    + plain(def));
+            return def;
+        }
+
+        private static String plain(double d) {
+            return d == Math.rint(d) && !Double.isInfinite(d) ? Long.toString((long) d) : Double.toString(d);
         }
 
         boolean bool(Map<?, ?> m, String prefix, String key, boolean def) {

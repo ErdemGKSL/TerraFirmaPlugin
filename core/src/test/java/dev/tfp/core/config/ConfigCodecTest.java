@@ -56,7 +56,9 @@ class ConfigCodecTest {
         ConfigCodec.Parsed p = ConfigCodec.parse(Map.of());
         assertThat(p.config()).isEqualTo(TfpConfig.DEFAULTS);
         assertThat(p.warnings()).isEmpty();
-        assertThat(p.defaulted()).hasSize(21).contains("buckets.wooden-bucket-can-place-sources",
+        assertThat(p.defaulted()).hasSize(24).contains("survival.keep-nutrition-after-death",
+                "survival.peaceful-passive-regeneration", "survival.natural-regeneration-modifier",
+                "buckets.wooden-bucket-can-place-sources",
                 "buckets.metal-bucket-can-place-sources", "hud.health-display-style", "hud.disabled-experience-bar-style",
 "visuals.profile", "auto-install.restore-deleted", "catchup.sweep-period-ticks",
                 "catchup.commit-budget-micros",
@@ -258,6 +260,59 @@ class ConfigCodecTest {
         // The 4- and 5-argument constructors keep TFC's bucket defaults.
         assertThat(new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS, CatchUp.DEFAULTS).buckets())
                 .isEqualTo(BucketConfig.DEFAULTS);
+    }
+
+    /** PAR-SURV-14: TFC's survival server options, defaulted to TFC's values, round-tripped. */
+    @Test
+    void survivalKeysAreReadWrittenAndDefaulted() {
+        assertThat(TfpConfig.DEFAULTS.survival()).isEqualTo(new TfpConfig.Survival(true, false, 1d));
+        assertThat(ConfigCodec.toMap(TfpConfig.DEFAULTS).get("survival")).isEqualTo(Map.of(
+                "keep-nutrition-after-death", true, "peaceful-passive-regeneration", false,
+                "natural-regeneration-modifier", 1d));
+        for (TfpConfig.Survival sv : List.of(new TfpConfig.Survival(false, true, 0d),
+                new TfpConfig.Survival(true, true, 2.5d), new TfpConfig.Survival(false, false, 100d))) {
+            TfpConfig c = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS, CatchUp.DEFAULTS,
+                    TfpConfig.Hud.DEFAULTS, BucketConfig.DEFAULTS, sv);
+            ConfigCodec.Parsed p = ConfigCodec.parse(ConfigCodec.toMap(c));
+            assertThat(p.warnings()).isEmpty();
+            assertThat(p.defaulted()).isEmpty();
+            assertThat(p.config()).isEqualTo(c);
+        }
+        // A whole number is read as the modifier too.
+        ConfigCodec.Parsed one = ConfigCodec.parse(Map.of("survival", Map.of("keep-nutrition-after-death", false,
+                "natural-regeneration-modifier", 3)));
+        assertThat(one.warnings()).isEmpty();
+        assertThat(one.config().survival()).isEqualTo(new TfpConfig.Survival(false, false, 3d));
+        assertThat(one.defaulted()).contains("survival.peaceful-passive-regeneration")
+                .doesNotContain("survival.keep-nutrition-after-death", "survival.natural-regeneration-modifier");
+        // The 6-argument constructor keeps TFC's survival defaults.
+        assertThat(new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS, CatchUp.DEFAULTS,
+                TfpConfig.Hud.DEFAULTS, BucketConfig.DEFAULTS).survival()).isEqualTo(TfpConfig.Survival.DEFAULTS);
+    }
+
+    @Test
+    void survivalOutOfRangeModifierBadValuesAndUnknownKeysWarn() {
+        ConfigCodec.Parsed high = ConfigCodec.parse(Map.of("survival", Map.of("natural-regeneration-modifier", 100.5)));
+        assertThat(high.config().survival()).isEqualTo(TfpConfig.Survival.DEFAULTS);
+        assertThat(high.warnings()).singleElement().asString().isEqualTo(
+                "survival.natural-regeneration-modifier: expected a number in 0..100, got '100.5'; using 1");
+        ConfigCodec.Parsed low = ConfigCodec.parse(Map.of("survival", Map.of("natural-regeneration-modifier", -1)));
+        assertThat(low.config().survival().naturalRegenerationModifier()).isEqualTo(1d);
+        assertThat(low.warnings()).singleElement().asString().contains("got '-1'");
+        ConfigCodec.Parsed nan = ConfigCodec.parse(Map.of("survival", Map.of("natural-regeneration-modifier", Double.NaN)));
+        assertThat(nan.config().survival()).isEqualTo(TfpConfig.Survival.DEFAULTS);
+        assertThat(nan.warnings()).hasSize(1);
+        ConfigCodec.Parsed bad = ConfigCodec.parse(Map.of("survival", Map.of("keep-nutrition-after-death", "no",
+                "natural-regeneration-modifier", "fast", "thirst-modifier", 2)));
+        assertThat(bad.config().survival()).isEqualTo(TfpConfig.Survival.DEFAULTS);
+        assertThat(bad.warnings()).hasSize(3)
+                .anyMatch(w -> w.contains("survival.keep-nutrition-after-death: expected true or false, got 'no'"))
+                .anyMatch(w -> w.contains("survival.natural-regeneration-modifier: expected a number in 0..100, got 'fast'"))
+                .anyMatch(w -> w.contains("unknown key 'survival.thirst-modifier'"));
+        assertThat(ConfigCodec.parse(Map.of("survival", true)).warnings()).singleElement().asString()
+                .contains("survival: expected a section");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> new TfpConfig.Survival(true, false, 101d))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

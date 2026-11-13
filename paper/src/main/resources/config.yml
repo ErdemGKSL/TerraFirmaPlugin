@@ -91,3 +91,16 @@ hud:
 buckets:
   wooden-bucket-can-place-sources: false
   metal-bucket-can-place-sources: false
+
+# Survival (TFC server config). Apply changes with /tfp reload config.
+# keep-nutrition-after-death: If player's nutrition should be kept even after death. Hunger and thirst
+#   are not affected and will be reset.
+# peaceful-passive-regeneration: If peaceful difficulty should still have vanilla-esque passive
+#   regeneration of health, food, and hunger (TFC enablePeacefulDifficultyPassiveRegeneration).
+# natural-regeneration-modifier: A multiplier for how quickly the player regenerates health, under
+#   TFC's passive regeneration. By default, the player regenerates 0.2 HP/second, or 0.6 HP/second
+#   when above 80% hunger and thirst, where 1 HP = 1/50 of a heart. 0..100.
+survival:
+  keep-nutrition-after-death: true
+  peaceful-passive-regeneration: false
+  natural-regeneration-modifier: 1.0

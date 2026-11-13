@@ -7,6 +7,7 @@ package dev.tfp.paper.player;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.tfp.core.config.TfpConfig;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,17 @@ class RespawnRulesTest {
         assertThat(RespawnRules.fromProperties(k -> null)).isEqualTo(RespawnRules.DEFAULT);
         assertThat(RespawnRules.fromProperties(Map.of(RespawnRules.KEEP_NUTRITION_PROPERTY, "false",
                 RespawnRules.PEACEFUL_REGEN_PROPERTY, " TRUE ")::get)).isEqualTo(new RespawnRules(false, true));
+    }
+
+    /** PAR-SURV-14: config.yml's survival section, with the JVM properties over it. */
+    @Test
+    void rulesFromTheConfigSectionWithPropertyOverrides() {
+        assertThat(RespawnRules.fromConfig(TfpConfig.Survival.DEFAULTS)).isEqualTo(RespawnRules.DEFAULT);
+        RespawnRules config = RespawnRules.fromConfig(new TfpConfig.Survival(false, true, 5d));
+        assertThat(config).isEqualTo(new RespawnRules(false, true));
+        assertThat(RespawnRules.fromProperties(config, k -> null)).isEqualTo(config);
+        assertThat(RespawnRules.fromProperties(config, Map.of(RespawnRules.KEEP_NUTRITION_PROPERTY, "true",
+                RespawnRules.PEACEFUL_REGEN_PROPERTY, " ")::get)).isEqualTo(new RespawnRules(true, true));
     }
 
     @Test

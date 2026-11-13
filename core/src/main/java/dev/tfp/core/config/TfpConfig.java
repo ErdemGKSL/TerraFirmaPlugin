@@ -21,13 +21,20 @@ import java.util.Optional;
  * here as their features land.
  */
 public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp, Hud hud,
-        BucketConfig buckets) {
+        BucketConfig buckets, Survival survival) {
     public static final TfpConfig DEFAULTS = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS,
-            CatchUp.DEFAULTS, Hud.DEFAULTS, BucketConfig.DEFAULTS);
+            CatchUp.DEFAULTS, Hud.DEFAULTS, BucketConfig.DEFAULTS, Survival.DEFAULTS);
 
     public TfpConfig {
         Objects.requireNonNull(hud, "hud");
         Objects.requireNonNull(buckets, "buckets");
+        Objects.requireNonNull(survival, "survival");
+    }
+
+    /** A config with TFC's survival defaults ({@link Survival#DEFAULTS}). */
+    public TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp, Hud hud,
+            BucketConfig buckets) {
+        this(visuals, oreOverlay, autoInstall, catchUp, hud, buckets, Survival.DEFAULTS);
     }
 
     /** A config with TFC's bucket defaults ({@link BucketConfig#DEFAULTS}). */
@@ -224,6 +231,38 @@ public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall auto
             m.put(XP_BAR_KEY, true);
             m.put(XP_STYLE_KEY, "HOVER");
             return m;
+        }
+    }
+
+    /**
+     * {@code survival.*}: TFC's {@code ServerConfig} player survival options (PAR-SURV-14). Read again on every
+     * {@code /tfp reload config}.
+     *
+     * @param keepNutritionAfterDeath     TFC {@code keepNutritionAfterDeath} (true): a death keeps the nutrition records
+     * @param peacefulPassiveRegeneration TFC {@code enablePeacefulDifficultyPassiveRegeneration} (false): TFC's
+     *                                    extra-peaceful heal, hunger and thirst refill
+     * @param naturalRegenerationModifier TFC {@code naturalRegenerationModifier} (1, range 0..100): the factor on TFC's
+     *                                    passive health regeneration
+     */
+    public record Survival(boolean keepNutritionAfterDeath, boolean peacefulPassiveRegeneration,
+            double naturalRegenerationModifier) {
+        public static final String SECTION = "survival";
+        public static final String KEEP_NUTRITION_KEY = "keep-nutrition-after-death";
+        public static final String PEACEFUL_REGEN_KEY = "peaceful-passive-regeneration";
+        public static final String REGEN_MODIFIER_KEY = "natural-regeneration-modifier";
+        /** The keys of the section, in config.yml order. */
+        public static final List<String> KEYS = List.of(KEEP_NUTRITION_KEY, PEACEFUL_REGEN_KEY, REGEN_MODIFIER_KEY);
+        /** TFC's {@code define(..., 1d, 0d, 100d)} bounds of {@code naturalRegenerationModifier}. */
+        public static final double MIN_MODIFIER = 0d;
+        public static final double MAX_MODIFIER = 100d;
+        /** TFC's {@code ServerConfig} defaults. */
+        public static final Survival DEFAULTS = new Survival(true, false, 1d);
+
+        public Survival {
+            if (!(naturalRegenerationModifier >= MIN_MODIFIER && naturalRegenerationModifier <= MAX_MODIFIER)) {
+                throw new IllegalArgumentException("naturalRegenerationModifier must be in 0..100: "
+                        + naturalRegenerationModifier);
+            }
         }
     }
 }

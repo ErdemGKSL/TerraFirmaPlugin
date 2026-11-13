@@ -11,6 +11,7 @@
  */
 package dev.tfp.paper.player;
 
+import dev.tfp.core.config.TfpConfig;
 import java.util.function.Function;
 
 /**
@@ -29,9 +30,12 @@ import java.util.function.Function;
 public record RespawnRules(boolean keepNutritionAfterDeath, boolean enablePeacefulDifficultyPassiveRegeneration) {
     /** TFC's server config defaults. */
     public static final RespawnRules DEFAULT = new RespawnRules(true, false);
-    /** JVM property overriding {@link #keepNutritionAfterDeath} until the config file carries it. */
+    /** JVM property overriding {@link #keepNutritionAfterDeath} (config.yml {@code survival.keep-nutrition-after-death}). */
     public static final String KEEP_NUTRITION_PROPERTY = "tfp.keepNutritionAfterDeath";
-    /** JVM property overriding {@link #enablePeacefulDifficultyPassiveRegeneration}. */
+    /**
+     * JVM property overriding {@link #enablePeacefulDifficultyPassiveRegeneration} (config.yml
+     * {@code survival.peaceful-passive-regeneration}).
+     */
     public static final String PEACEFUL_REGEN_PROPERTY = "tfp.enablePeacefulDifficultyPassiveRegeneration";
 
     /** TFC's peaceful step period ({@code tickCount % 10 == 0}). */
@@ -45,8 +49,18 @@ public record RespawnRules(boolean keepNutritionAfterDeath, boolean enablePeacef
 
     /** The rules with the JVM properties applied over {@link #DEFAULT} (absent = TFC default). */
     public static RespawnRules fromProperties(Function<String, String> properties) {
-        return new RespawnRules(bool(properties.apply(KEEP_NUTRITION_PROPERTY), DEFAULT.keepNutritionAfterDeath),
-                bool(properties.apply(PEACEFUL_REGEN_PROPERTY), DEFAULT.enablePeacefulDifficultyPassiveRegeneration));
+        return fromProperties(DEFAULT, properties);
+    }
+
+    /** The rules with the JVM properties applied over {@code base} (absent or blank = the base value). */
+    public static RespawnRules fromProperties(RespawnRules base, Function<String, String> properties) {
+        return new RespawnRules(bool(properties.apply(KEEP_NUTRITION_PROPERTY), base.keepNutritionAfterDeath),
+                bool(properties.apply(PEACEFUL_REGEN_PROPERTY), base.enablePeacefulDifficultyPassiveRegeneration));
+    }
+
+    /** PAR-SURV-14: the rules of config.yml's {@code survival} section. */
+    public static RespawnRules fromConfig(TfpConfig.Survival survival) {
+        return new RespawnRules(survival.keepNutritionAfterDeath(), survival.peacefulPassiveRegeneration());
     }
 
     private static boolean bool(String value, boolean fallback) {
