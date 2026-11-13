@@ -2,7 +2,7 @@
 id: PAR-PROC-11
 title: "Composter"
 area: PROC
-status: open
+status: done
 wave: 11
 deps: [PAR-INFRA-02, PAR-INFRA-11]
 size: S
@@ -19,19 +19,18 @@ files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/compost/**"
   - "tools/datagen/src/test/java/dev/tfp/datagen/compost/**"
   - "content/generated/content/craftengine/tfp/configuration/compost/**"
-ui: true
-in_game_steps:
-  - "tfp debug place tfp:composter"
-  - "add 4 green 4 brown"
-  - "tfp time add days 12"
-  - "sneak-right-click; screenshot"
+ui: false
+in_game_steps: []
 plan:
   - "Per-wood composter? (TFC: one composter); add greens/browns, lazy ready time, sneak extraction, rotten state and pest attraction (PAR-FAUNA-13), hopper automation, ready particles only on interaction."
+  - "One composter (TFC registers one, not per wood). The CraftEngine block needs hitbox carriers from the selector (HardcodedCarrierTest), and HitboxDemands.java / tfc-shapes.json are outside this item's files_owned: the block entry, its carriers and the in-game check (in_game_steps and the screenshot) moved to the follow-up PAR-PROC-34 (PROTOCOL 3 + 6.5); ui set to false here."
+  - "Done: core ComposterState (bin + sampled ready ticks, codec, catch-up settle; ComposterStateTest 5) on the existing CompostGoldenTest / CompostLazyVsSteppedTest / CompostDeterminismTest; paper/compost ComposterDevice (kind tfp:composter: TFC use order, sneak extraction above, messages, poison/rotten output, creative, standing-inside FAIL, block state stage/type sync, ripening callback, catch-up settle, hopper-below automation, output drop on removal), ComposterModule (TFC composter tags in getCompost order, food rot, chunk rainfall + horizontal composters for getReadyTicks), PaperComposterEffects, ComposterLang; ComposterMockBukkitTest 12; ledger row and divergences. In-game check deferred to PAR-PROC-34."
 tests:
   - "core: CompostGoldenTest exists"
   - "paper: extraction"
 done_criteria:
   - "Compost ready after composterTicks"
+  - "Deferred check tracked in PAR-PROC-34"
 ---
 
 # PAR-PROC-11: Composter
