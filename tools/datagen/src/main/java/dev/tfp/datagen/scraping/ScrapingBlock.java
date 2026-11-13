@@ -48,10 +48,9 @@ import java.util.regex.Pattern;
  * {@link DeviceAppearance} refuses a transparent appearance without {@code entity_renderer} elements, so the
  * {@code transparent} flag and the settings are added to the literal entry here.
  * <p>
- * Not run by {@code Datagen} yet: the selector's carrier today is {@code minecraft:lily_pad} (carrier-policy says
- * {@code absent}), but our worldgen places real lily pads as the floating-plant placeholder ({@code PlantBlocks}), and a
- * transparent appearance draws every one of them empty. PAR-INFRA-42 corrects the policy; then PAR-PROC-29 adds the run
- * line back on the new carrier.
+ * The carrier is {@code minecraft:heavy_weighted_pressure_plate[power=0]} (PAR-INFRA-42/44: 14 x 1 x 14, no collision);
+ * real heavy plates are crafted from wrought iron, so the policy hides them one hop to {@code power=1} and this entry
+ * writes that {@code block_state_mappings} line from {@link HitboxAllocation.Assignment#hideTarget()}.
  */
 public final class ScrapingBlock {
     public static final String ID = HitboxDemands.SCRAPING_ID;

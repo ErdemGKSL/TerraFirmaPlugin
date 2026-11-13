@@ -83,21 +83,23 @@ class GeneratedCarrierTest {
             }
         }
         // Today: the forge (8 heat levels), the bellows (4 facings), the firepit, grill and pot (lit, unlit), the quern
-        // (base, handstone; PAR-PROC-04); the forge's and the quern's hide mappings. The scraping surface (PAR-PROC-29) is not
-        // generated until PAR-INFRA-42 stops its carrier from being a vanilla block our worldgen places.
+        // (base, handstone; PAR-PROC-04); the scraping surface (base, PAR-PROC-29); the forge's, the quern's and the scraping
+        // surface's hide mappings.
         // The exact sets are pinned so that a generator silently dropping out of craftengine/ fails here; a family item
         // that adds an explicit-state block adds its id to this list.
         // PAR-PROC-32: the upright barrel of every wood (unsealed, sealed; hitbox-only, the look is an item display).
-        assertThat(states).isGreaterThanOrEqualTo(60);
+        assertThat(states).isGreaterThanOrEqualTo(61);
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
-            List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern"));
+            List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern",
+                "tfp:scraping"));
         HitboxDemands.BARREL_WOODS.forEach(w -> expected.add(HitboxDemands.barrelId(w)));
-        assertThat(expected).hasSize(26);
+        assertThat(expected).hasSize(27);
         assertThat(checkedIds).as("block ids whose explicit appearance states were checked")
             .containsExactlyElementsOf(expected);
         assertThat(mappings).as("generator block_state_mappings")
-            .containsExactly("minecraft:snow[layers=6] -> minecraft:snow[layers=4]",
-                "minecraft:snow[layers=7] -> minecraft:snow[layers=8]");
+            .containsExactlyInAnyOrder("minecraft:snow[layers=6] -> minecraft:snow[layers=4]",
+                "minecraft:snow[layers=7] -> minecraft:snow[layers=8]",
+                "minecraft:heavy_weighted_pressure_plate[power=0] -> minecraft:heavy_weighted_pressure_plate[power=1]");
         assertThat(problems).as("take carriers from dev.tfp.datagen.hitbox.HitboxAllocation").isEmpty();
     }
 

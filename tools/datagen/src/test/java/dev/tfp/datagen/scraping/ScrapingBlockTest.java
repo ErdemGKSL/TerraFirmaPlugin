@@ -13,6 +13,7 @@ import dev.tfp.datagen.hitbox.HitboxAllocation;
 import dev.tfp.datagen.hitbox.HitboxDemands;
 import dev.tfp.datagen.hitbox.Shape;
 import dev.tfp.datagen.hitbox.TfcShapes;
+import dev.tfp.datagen.hitbox.VanillaCandidates;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -103,6 +104,28 @@ class ScrapingBlockTest {
             assertThat(root).doesNotContainKey("block_state_mappings");
         } else {
             assertThat(root.get("block_state_mappings")).isEqualTo(Map.of(a.state(), a.hideTarget()));
+        }
+    }
+
+    /**
+     * The box the ledger's outline row quotes, read from the vanilla shape tables of every researched version: the
+     * unpressed heavy plate is 14 x 1 x 14 (1 px inset on each side of TFC's 16 x 1 x 16) with no collision, and the
+     * hide target (what a real plate at power 0 is drawn as) is the pressed 14 x 0.5 x 14 plate.
+     */
+    @Test
+    void carrierBoxOnEveryVersion() {
+        HitboxAllocation.Assignment a = HitboxAllocation.agreed(ScrapingBlock.ID, ScrapingBlock.APPEARANCE);
+        assertThat(a.state()).isEqualTo("minecraft:heavy_weighted_pressure_plate[power=0]");
+        assertThat(a.hideTarget()).isEqualTo("minecraft:heavy_weighted_pressure_plate[power=1]");
+        VanillaCandidates v = VanillaCandidates.load();
+        assertThat(v.versions()).isNotEmpty();
+        for (String version : v.versions()) {
+            VanillaCandidates.VState s = v.get(version, a.state());
+            assertThat(s).as(version).isNotNull();
+            assertThat(s.selection()).as(version).isEqualTo(Shape.box(1, 0, 1, 15, 1, 15));
+            assertThat(s.collision().isEmpty()).as(version + " collision").isTrue();
+            VanillaCandidates.VState pressed = v.get(version, a.hideTarget());
+            assertThat(pressed.selection()).as(version).isEqualTo(Shape.box(1, 0, 1, 15, 0.5, 15));
         }
     }
 }

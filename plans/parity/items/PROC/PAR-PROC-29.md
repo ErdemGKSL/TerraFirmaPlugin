@@ -2,7 +2,7 @@
 id: PAR-PROC-29
 title: "Scraping block CE entry: tfc:scraping hitbox row and demand, configuration/scraping, in-game check"
 area: PROC
-status: open
+status: done
 wave: 8
 deps: [PAR-PROC-24, PAR-INFRA-42, PAR-INFRA-44]
 size: S
@@ -42,6 +42,7 @@ plan:
   - "Run every in_game_step at GUI scale 2 and 3, store crops and verdict.md in docs/verification/PAR-PROC-05/."
   - "Note: written through DeviceBlockSpec + DeviceYaml.literal (not templated): the device template always names one minecraft:mineable tag, which tfc:scraping is in none of, and DeviceAppearance refuses a transparent appearance without entity_renderer elements, so ScrapingBlock adds the settings (strength 0.2, stem sounds as plain ids, not occluding/suffocating/view-blocking) and transparent: true to the literal entry; single-state, so states holds only the one appearance."
   - "Superseded by the withdrawal (status blocked; a new Done line follows once PAR-INFRA-42 lands): Done: tfc:scraping shape row + HitboxDemands demand (carrier minecraft:lily_pad, hitbox-only), datagen/scraping/ScrapingBlock writes configuration/scraping/scraping.yml, GeneratedCarrierTest pins tfp:scraping; tests ScrapingBlockTest (3); in-game unrefined paper on a log at GUI 2 and 3 passed (docs/verification/PAR-PROC-05/verdict.md); hide steps stay pending on PAR-FAUNA-17; lily pad outline recorded as a divergence."
+  - "Done (2026-11-13, after PAR-INFRA-44): ScrapingBlock run line re-added in Datagen.generate; scraping.yml generated on minecraft:heavy_weighted_pressure_plate[power=0] (transparent) + the hide mapping power=0 -> power=1; GeneratedCarrierTest pins tfp:scraping (27 ids, >= 61 explicit states, the plate hide mapping); ScrapingBlockTest +1 (carrierBoxOnEveryVersion: selection box(1,0,1,15,1,15), no collision, pressed 14 x 0.5 x 14 on every researched version); ScrapingBlock javadoc updated. Tests core 2689, paper 882, datagen 411, 0 failures. In game (Paper 1.21.11 build 132, CE 26.9.2, GUI 2 and 3, Loaded blocks 1417, no CE issues): every non-hide step passed, real heavy plates drawn pressed and a lily pad pool drawn (docs/verification/PAR-PROC-05/verdict.md). Ledger outline divergence row rewritten (14 x 1 x 14 inset, no collision, Revisit names the collision). Hide steps stay pending on PAR-FAUNA-17."
 tests:
   - "datagen: tfc:scraping shape row, the carrier from the selector, the generated scraping.yml loads in CeYamlCheck"
 done_criteria:
