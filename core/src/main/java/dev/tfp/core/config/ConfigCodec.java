@@ -5,6 +5,7 @@
  */
 package dev.tfp.core.config;
 
+import dev.tfp.core.bucket.BucketConfig;
 import dev.tfp.core.config.TfpConfig.AutoInstall;
 import dev.tfp.core.config.TfpConfig.CatchUp;
 import dev.tfp.core.config.TfpConfig.Hud;
@@ -51,7 +52,8 @@ public final class ConfigCodec {
     public static Parsed parse(Map<?, ?> root) {
         Reader r = new Reader();
         Map<?, ?> top = root == null ? Map.of() : root;
-        r.unknown(top, "", List.of("visuals", "ore-overlay", "auto-install", "catchup", "hud"));
+        r.unknown(top, "", List.of("visuals", "ore-overlay", "auto-install", "catchup", "hud",
+                BucketConfig.SECTION));
 
         Map<?, ?> v = r.section(top, "visuals");
         r.unknown(v, "visuals.", List.of("profile", "solid-reserve-warning", "use-nether-end-blocks"));
@@ -116,7 +118,16 @@ public final class ConfigCodec {
                 r.intIn(cu, "catchup.", "feed-budget-micros", cd.feedBudgetMicros(), 1, CatchUp.MAX_BUDGET_MICROS),
                 r.intIn(cu, "catchup.", "commit-budget-micros", cd.commitBudgetMicros(), 1, CatchUp.MAX_BUDGET_MICROS));
         Hud hud = r.hud(top);
-        return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto, catchUp, hud),
+
+        // PAR-FLUID-12: TFC ServerConfig "buckets" (the source switches; the capacities stay 1000 mB, see the ledger).
+        String bp = BucketConfig.SECTION + ".";
+        Map<?, ?> b = r.section(top, BucketConfig.SECTION);
+        r.unknown(b, bp, List.of(BucketConfig.WOODEN_KEY, BucketConfig.METAL_KEY));
+        BucketConfig bd = BucketConfig.DEFAULTS;
+        BucketConfig buckets = new BucketConfig(
+                r.bool(b, bp, BucketConfig.WOODEN_KEY, bd.woodenBucketCanPlaceSources()),
+                r.bool(b, bp, BucketConfig.METAL_KEY, bd.metalBucketCanPlaceSources()));
+        return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto, catchUp, hud, buckets),
                 r.warnings, r.defaulted);
     }
 
@@ -152,6 +163,10 @@ public final class ConfigCodec {
         catchUp.put("commit-budget-micros", cu.commitBudgetMicros());
         root.put("catchup", catchUp);
         root.put("hud", new LinkedHashMap<>(c.hud().section()));
+        Map<String, Object> buckets = new LinkedHashMap<>();
+        buckets.put(BucketConfig.WOODEN_KEY, c.buckets().woodenBucketCanPlaceSources());
+        buckets.put(BucketConfig.METAL_KEY, c.buckets().metalBucketCanPlaceSources());
+        root.put(BucketConfig.SECTION, buckets);
         return root;
     }
 

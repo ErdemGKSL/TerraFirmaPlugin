@@ -7,6 +7,8 @@ package dev.tfp.core.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.tfp.core.bucket.BucketConfig;
+import dev.tfp.core.bucket.BucketKind;
 import dev.tfp.core.compat.Version;
 import dev.tfp.core.config.TfpConfig.AutoInstall;
 import dev.tfp.core.config.TfpConfig.CatchUp;
@@ -54,7 +56,8 @@ class ConfigCodecTest {
         ConfigCodec.Parsed p = ConfigCodec.parse(Map.of());
         assertThat(p.config()).isEqualTo(TfpConfig.DEFAULTS);
         assertThat(p.warnings()).isEmpty();
-        assertThat(p.defaulted()).hasSize(19).contains("hud.health-display-style", "hud.disabled-experience-bar-style",
+        assertThat(p.defaulted()).hasSize(21).contains("buckets.wooden-bucket-can-place-sources",
+                "buckets.metal-bucket-can-place-sources", "hud.health-display-style", "hud.disabled-experience-bar-style",
 "visuals.profile", "auto-install.restore-deleted", "catchup.sweep-period-ticks",
                 "catchup.commit-budget-micros",
                 "ore-overlay.cutoff-blocks", "ore-overlay.max-per-player", "ore-overlay.surface-outcrops-full-range");
@@ -226,5 +229,50 @@ class ConfigCodecTest {
         assertThat(notASection.warnings()).singleElement().asString().contains("hud: expected a section");
         assertThat(notASection.config().hud()).isEqualTo(TfpConfig.Hud.DEFAULTS);
         assertThat(ConfigCodec.parse(Map.of("hud", Map.of())).config()).isEqualTo(TfpConfig.DEFAULTS);
+    }
+
+    /** PAR-FLUID-12: TFC's bucket switches (ServerConfig "buckets"), defaulted when absent, round-tripped, warned when bad. */
+    @Test
+    void bucketKeysAreReadWrittenAndDefaulted() {
+        assertThat(TfpConfig.DEFAULTS.buckets()).isEqualTo(new BucketConfig(false, false));
+        assertThat(ConfigCodec.toMap(TfpConfig.DEFAULTS).get("buckets")).isEqualTo(Map.of(
+                "wooden-bucket-can-place-sources", false, "metal-bucket-can-place-sources", false));
+        for (BucketConfig b : List.of(new BucketConfig(true, false), new BucketConfig(false, true),
+                new BucketConfig(true, true))) {
+            TfpConfig c = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS, CatchUp.DEFAULTS,
+                    TfpConfig.Hud.DEFAULTS, b);
+            Map<String, Object> tree = ConfigCodec.toMap(c);
+            ConfigCodec.Parsed p = ConfigCodec.parse(tree);
+            assertThat(p.warnings()).isEmpty();
+            assertThat(p.defaulted()).isEmpty();
+            assertThat(p.config()).isEqualTo(c);
+            assertThat(p.config().buckets()).isEqualTo(BucketConfig.fromTree(tree));
+        }
+        ConfigCodec.Parsed one = ConfigCodec.parse(Map.of("buckets", Map.of("wooden-bucket-can-place-sources", true)));
+        assertThat(one.warnings()).isEmpty();
+        assertThat(one.config().buckets()).isEqualTo(new BucketConfig(true, false));
+        assertThat(one.config().buckets().canPlaceSources(BucketKind.WOODEN)).isTrue();
+        assertThat(one.config().buckets().canPlaceSources(BucketKind.RED_STEEL)).isFalse();
+        assertThat(one.defaulted()).contains("buckets.metal-bucket-can-place-sources")
+                .doesNotContain("buckets.wooden-bucket-can-place-sources");
+        // The 4- and 5-argument constructors keep TFC's bucket defaults.
+        assertThat(new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS, CatchUp.DEFAULTS).buckets())
+                .isEqualTo(BucketConfig.DEFAULTS);
+    }
+
+    @Test
+    void bucketBadValuesAndUnknownKeysWarn() {
+        Map<String, Object> tree = Map.of("buckets", Map.of("wooden-bucket-can-place-sources", "yes",
+                "metal-bucket-can-place-sources", 1, "wooden-bucket-capacity", 2000));
+        ConfigCodec.Parsed p = ConfigCodec.parse(tree);
+        assertThat(p.config().buckets()).isEqualTo(BucketConfig.DEFAULTS).isEqualTo(BucketConfig.fromTree(tree));
+        assertThat(p.warnings()).hasSize(3)
+                .anyMatch(w -> w.contains("buckets.wooden-bucket-can-place-sources: expected true or false, got 'yes'; using false"))
+                .anyMatch(w -> w.contains("buckets.metal-bucket-can-place-sources: expected true or false"))
+                .anyMatch(w -> w.contains("unknown key 'buckets.wooden-bucket-capacity'"));
+        assertThat(ConfigCodec.parse(Map.of("buckets", "on")).warnings()).singleElement().asString()
+                .contains("buckets: expected a section");
+        // The section itself is known: no top-level unknown-key warning.
+        assertThat(ConfigCodec.parse(Map.of("buckets", Map.of())).warnings()).isEmpty();
     }
 }

@@ -5,6 +5,7 @@
  */
 package dev.tfp.core.config;
 
+import dev.tfp.core.bucket.BucketConfig;
 import dev.tfp.core.compat.Version;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -19,17 +20,24 @@ import java.util.Optional;
  * {@link ConfigCodec} maps it to and from the YAML tree. TFC's ServerConfig/CommonConfig keys are added
  * here as their features land.
  */
-public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp, Hud hud) {
+public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp, Hud hud,
+        BucketConfig buckets) {
     public static final TfpConfig DEFAULTS = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS,
-            CatchUp.DEFAULTS, Hud.DEFAULTS);
+            CatchUp.DEFAULTS, Hud.DEFAULTS, BucketConfig.DEFAULTS);
 
     public TfpConfig {
         Objects.requireNonNull(hud, "hud");
+        Objects.requireNonNull(buckets, "buckets");
     }
 
-    /** A config with TFC's HUD display defaults ({@link Hud#DEFAULTS}). */
+    /** A config with TFC's bucket defaults ({@link BucketConfig#DEFAULTS}). */
+    public TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp, Hud hud) {
+        this(visuals, oreOverlay, autoInstall, catchUp, hud, BucketConfig.DEFAULTS);
+    }
+
+    /** A config with TFC's HUD display and bucket defaults ({@link Hud#DEFAULTS}, {@link BucketConfig#DEFAULTS}). */
     public TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp) {
-        this(visuals, oreOverlay, autoInstall, catchUp, Hud.DEFAULTS);
+        this(visuals, oreOverlay, autoInstall, catchUp, Hud.DEFAULTS, BucketConfig.DEFAULTS);
     }
 
     /**

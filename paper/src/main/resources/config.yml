@@ -82,3 +82,12 @@ hud:
   climate-temperature-style: CELSIUS
   enable-experience-bar: true
   disabled-experience-bar-style: HOVER
+
+# Buckets (TFC server config "buckets"). Apply changes with /tfp reload config.
+# wooden-bucket-can-place-sources: If true, a wooden bucket can place source blocks
+# metal-bucket-can-place-sources: If true, a metal (red and blue steel) bucket can place source blocks
+# When false, an emptied bucket places a small flowing block that dries up.
+# TFC's woodenBucketCapacity and metalBucketCapacity are not configurable here: both stay 1000 mB.
+buckets:
+  wooden-bucket-can-place-sources: false
+  metal-bucket-can-place-sources: false

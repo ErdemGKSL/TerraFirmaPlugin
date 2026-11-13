@@ -7,6 +7,7 @@ package dev.tfp.paper.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.tfp.core.bucket.BucketConfig;
 import dev.tfp.core.climate.ClimateTemperatureStyle;
 import dev.tfp.core.config.ConfigCodec;
 import dev.tfp.core.health.HealthDisplayStyle;
@@ -98,7 +99,7 @@ class ConfigServiceTest {
         Files.writeString(file, owner);
         ConfigService.Outcome o = service.load();
         assertThat(o.created()).isFalse();
-        assertThat(o.added()).containsExactly("ore-overlay", "auto-install", "catchup", "hud");
+        assertThat(o.added()).containsExactly("ore-overlay", "auto-install", "catchup", "hud", "buckets");
         assertThat(o.warnings()).hasSize(2).anyMatch(w -> w.contains("visuals.extra"))
                 .anyMatch(w -> w.contains("config.yml visuals.profile.\"26\": level-3b was removed") && w.contains("using level-2"));
         String text = Files.readString(file);
@@ -108,6 +109,8 @@ class ConfigServiceTest {
         assertThat(service.current().oreOverlay()).isEqualTo(TfpConfig.OreOverlay.DEFAULTS);
         assertThat(service.current().catchUp()).isEqualTo(TfpConfig.CatchUp.DEFAULTS);
         assertThat(text).contains("# Catch-up of time-based blocks").contains("sweep-period-ticks: 600");
+        assertThat(text).contains("# Buckets (TFC server config \"buckets\")").contains("wooden-bucket-can-place-sources: false");
+        assertThat(service.current().buckets()).isEqualTo(BucketConfig.DEFAULTS);
         assertThat(service.current().visuals().solidReserveWarning()).isEqualTo(500);
         // Second start: nothing more to add, file untouched (the owner's level-3b stays), the warning repeats.
         ConfigService.Outcome again = service.load();
@@ -156,6 +159,18 @@ class ConfigServiceTest {
         assertThat(o.applied()).isTrue();
         assertThat(o.warnings()).singleElement().asString().contains("catchup.sweep-radius-chunks");
         assertThat(service.current().catchUp()).isEqualTo(new TfpConfig.CatchUp(40, 4, 1000, 1000));
+    }
+
+    /** PAR-FLUID-12: the shipped buckets section is TFC's defaults with TFC's comments, and equals BucketConfig.fromTree. */
+    @Test
+    void shippedBucketsSectionIsTfcDefaultsWithTfcComments() {
+        Map<?, ?> tree = Yamls.load(SHIPPED);
+        assertThat(tree.get("buckets")).isEqualTo(Map.of("wooden-bucket-can-place-sources", false,
+                "metal-bucket-can-place-sources", false));
+        assertThat(ConfigCodec.parse(tree).config().buckets()).isEqualTo(BucketConfig.DEFAULTS)
+                .isEqualTo(BucketConfig.fromTree(tree));
+        assertThat(SHIPPED).contains("If true, a wooden bucket can place source blocks",
+                "If true, a metal (red and blue steel) bucket can place source blocks", "1000 mB");
     }
 
     /** PAR-HUD-17: the shipped hud section is TFC's defaults, with no warning and nothing missing. */

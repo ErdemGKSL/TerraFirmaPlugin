@@ -2,7 +2,7 @@
 id: PAR-FLUID-12
 title: "Bucket config keys: buckets: section in config.yml, typed config and BucketModule reads the current value"
 area: FLUID
-status: open
+status: done
 wave: 11
 deps: [PAR-FLUID-08]
 size: S
@@ -22,6 +22,7 @@ in_game_steps: []
 plan:
   - "Split from PAR-FLUID-08 (which built the bucket look after the debug fill). Adding a top-level `buckets:` section needs `ConfigServiceTest` (it lists every section of the default config.yml: `shippedDefaultsParseToTheRecordDefaultsWithNothingMissing` fails while the section is missing from config.yml, `ownerFileKeepsCommentsAndGetsMissingSections` fails once it is there until `buckets` is in its expected list) and `BucketModule` (the listener's supplier), neither owned by PAR-FLUID-08."
   - "(1) `TfpConfig`: a sixth component `BucketConfig buckets` (`core/bucket/BucketConfig`, TFC `woodenBucketCanPlaceSources` / `metalBucketCanPlaceSources`, default false), keeping the 4- and 5-argument constructors with `BucketConfig.DEFAULTS`. (2) `ConfigCodec.parse`: `buckets` in the top-level known list; read `buckets.wooden-bucket-can-place-sources` and `buckets.metal-bucket-can-place-sources` with `Reader.bool` (defaulted when absent, warn on non-booleans, warn on unknown keys such as a capacity key); `toMap` writes them. (3) Append to the default `config.yml`: `# Buckets (TFC server config \"buckets\")` with TFC's comments (`If true, a wooden bucket can place source blocks`, `If true, a metal (red and blue steel) bucket can place source blocks`), both false, and a note that capacities stay 1000 mB; add `\"buckets\"` to `ConfigServiceTest`'s expected added sections. (4) `BucketModule.enable`: replace `() -> BucketConfig.DEFAULTS` with `() -> context.config().current().buckets()` so `/tfp reload config` applies it. (5) Ledger: update the divergence row on TFC's bucket config options: only the capacities stay fixed (every reader of `FluidContainerKind.defaultCapacity` would need the value)."
+  - "Done: TfpConfig gets a sixth component buckets (BucketConfig, 4- and 5-argument constructors keep the defaults); ConfigCodec reads/writes buckets.wooden-bucket-can-place-sources and buckets.metal-bucket-can-place-sources (defaulted, bad values and unknown keys warn); config.yml carries the buckets section with TFC's comments; BucketModule.bucketConfig reads ConfigService.current().buckets() on every use. Tests: core ConfigCodecTest +2 (17), paper ConfigServiceTest +1 (11), BucketConfigWiringMockBukkitTest 1. Ledger bucket row and the config divergence row updated."
 tests:
   - "core: ConfigCodec reads and writes the bucket keys, defaulted when absent, bad values and unknown keys warn, no unknown-key warning for buckets; equals BucketConfig.fromTree on the same tree"
   - "paper: ConfigServiceTest shipped defaults parse with nothing defaulted; an owner file gets the buckets section added"

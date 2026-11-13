@@ -7,18 +7,20 @@ package dev.tfp.paper.bucket;
 
 import dev.tfp.core.bucket.BucketConfig;
 import dev.tfp.core.tag.TagType;
+import dev.tfp.paper.config.ConfigService;
 import dev.tfp.paper.integration.CustomItems;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.tags.Tags;
 import dev.tfp.paper.worldwater.WorldWaterService;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.bukkit.block.Block;
 
 /**
  * PAR-FLUID-02: the wooden, red steel and blue steel buckets and TFC's fluid buckets used on the world
- * ({@link BucketListener}). The source-placement switches are TFC's defaults ({@link BucketConfig#DEFAULTS}: no source
- * blocks) until PAR-FLUID-08 adds the {@code buckets:} section to {@code config.yml}. Listed after the {@code tags}
+ * ({@link BucketListener}). The source-placement switches come from the {@code buckets:} section of {@code config.yml}
+ * (PAR-FLUID-12), read on every use so {@code /tfp reload config} applies them. Listed after the {@code tags}
  * module, whose service it needs, and after {@code worldwater} (PAR-FLUID-03), whose water kinds it uses when present.
  */
 public final class BucketModule implements FeatureModule {
@@ -38,6 +40,11 @@ public final class BucketModule implements FeatureModule {
                 .orElse(BucketListener::biomeWaterFluid);
         context.listen(new BucketListener(tags::itemId,
                 (kind, fluid) -> kind.usableTag().map(tag -> tags.is(TagType.FLUID, fluid, tag)).orElse(true),
-                () -> BucketConfig.DEFAULTS, id -> items.create(id, 1), water));
+                bucketConfig(context.config()), id -> items.create(id, 1), water));
+    }
+
+    /** The listener's bucket config: the {@code buckets:} section of the config currently applied by {@code config}. */
+    static Supplier<BucketConfig> bucketConfig(ConfigService config) {
+        return () -> config.current().buckets();
     }
 }
