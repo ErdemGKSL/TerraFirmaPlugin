@@ -120,7 +120,7 @@ Totals: 315 items; open 220, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-CLIM-02 | Precipitation per position on Paper and the in-game snow-vs-rain check | CLIMATE | 11 | done |
 | PAR-FLUID-10 | Vanilla bucket from a spring pool gives tfp:bucket/spring_water; waterlogged blocks in oceans give fresh water | FLUID | 11 | done |
 | PAR-SURV-14 | Survival config keys in config.yml: keepNutritionAfterDeath, peaceful passive regeneration, naturalRegenerationModifier | SURV | 11 | open |
-| PAR-FLUID-11 | Hot spring in-game verification: health rises standing in a hot spring | FLUID | 11 | open |
+| PAR-FLUID-11 | Hot spring in-game verification: health rises standing in a hot spring | FLUID | 11 | done |
 | PAR-FLUID-12 | Bucket config keys: buckets: section in config.yml, typed config and BucketModule reads the current value | FLUID | 11 | open |
 | PAR-HEAT-03 | Hot items: burn damage while held, item entities cool in water and snow | HEAT | 11 | open |
 | PAR-HEAT-14 | Item bars: the heat bar on hot items (TFC BarSystem HEAT) as a packet-time durability-style bar, with the shared item-bar layer | HEAT | 11 | open |
@@ -130,6 +130,7 @@ Totals: 315 items; open 220, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-CLIM-16 | Calendar sleep-skip self-test: calendar.sleep_skip on Paper and Folia | CLIMATE | 12 | open |
 | PAR-CLIM-17 | Console /tfp debug chunk <x> <z> answers over RCON and reads precipitation through vanilla's rain gates | CLIMATE | 12 | open |
 | PAR-FLUID-13 | Bucket double-use guard keyed on day time: buckets stop working when the daylight cycle is off | FLUID | 12 | open |
+| PAR-FLUID-14 | /tfp debug water names hot spring pool water spring | FLUID | 12 | open |
 | PAR-DATA-16 | Pistons cannot move water sources: 1-tick piston pulses drop the water of waterlogged blocks (TFC's MC-130183 fix) | DATA | 12 | open |
 | PAR-HEAT-04 | Heating recipes on devices: the 884 heating recipes as a shared service | HEAT | 12 | open |
 | PAR-HEAT-05 | Fire starting: firestarter use-duration, flint and pyrite, StartFireEvent world rules | HEAT | 12 | open |

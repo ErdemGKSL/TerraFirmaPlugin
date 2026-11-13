@@ -2,7 +2,7 @@
 id: PAR-FLUID-11
 title: "Hot spring in-game verification: health rises standing in a hot spring"
 area: FLUID
-status: open
+status: done
 wave: 11
 deps: [PAR-FLUID-04]
 size: S
@@ -18,6 +18,7 @@ in_game_steps:
   - "stand in the pool 10 s; screenshot the health bar again"
 plan:
   - "Deferred in-game check of PAR-FLUID-04 (PROTOCOL §6.5): the worker session that built PAR-FLUID-04 had no subagent tool to run the headless server and client, so the screenshot check moved here. Run it on the current branch; a failure is fixed in PAR-FLUID-04's files (`paper/.../worldwater/hot/**`) through a follow-up."
+  - "Done: in-game pass on Paper 1.21.11 (seed 12345, old_mountains spring pool at 1421 98 -1536): health 8.50 -> 11.77 in 10 s in the pool (HUD 350/850 -> 500/850) against 8.25 -> 8.48 on dry land; evidence and verdict in docs/verification/PAR-FLUID-11/. No code change. Follow-up PAR-FLUID-14: `/tfp debug water` calls the pool fresh water."
 tests:
   - "none (in-game check only)"
 done_criteria:
