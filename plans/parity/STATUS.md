@@ -123,7 +123,7 @@ Totals: 315 items; open 220, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-FLUID-11 | Hot spring in-game verification: health rises standing in a hot spring | FLUID | 11 | done |
 | PAR-FLUID-12 | Bucket config keys: buckets: section in config.yml, typed config and BucketModule reads the current value | FLUID | 11 | done |
 | PAR-HEAT-03 | Hot items: burn damage while held, item entities cool in water and snow | HEAT | 11 | done |
-| PAR-HEAT-14 | Item bars: the heat bar on hot items (TFC BarSystem HEAT) as a packet-time durability-style bar, with the shared item-bar layer | HEAT | 11 | open |
+| PAR-HEAT-14 | Item bars: the heat bar on hot items (TFC BarSystem HEAT) as a packet-time durability-style bar, with the shared item-bar layer | HEAT | 11 | done |
 | PAR-PROC-11 | Composter | PROC | 11 | done |
 | PAR-CLIM-03 | Snow and ice accumulation: lazy-vs-stepped equivalence and server check | CLIMATE | 12 | open |
 | PAR-CLIM-15 | Self-test weather.precip_sample and PrecipitationService in ModuleServices | CLIMATE | 12 | open |
@@ -135,6 +135,8 @@ Totals: 315 items; open 220, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-DATA-16 | Pistons cannot move water sources: 1-tick piston pulses drop the water of waterlogged blocks (TFC's MC-130183 fix) | DATA | 12 | open |
 | PAR-HEAT-04 | Heating recipes on devices: the 884 heating recipes as a shared service | HEAT | 12 | open |
 | PAR-HEAT-05 | Fire starting: firestarter use-duration, flint and pyrite, StartFireEvent world rules | HEAT | 12 | open |
+| PAR-HEAT-15 | Item bar config key: item-bars.heat in config.yml and TfpConfig, read on /tfp reload | HEAT | 12 | open |
+| PAR-HEAT-16 | Item heat of list ingredients: metal tools and parts (item_heat parts_*) cannot be heated | HEAT | 12 | open |
 | PAR-PROC-09 | Barrel GUI, fluid level visual, rain fill, barrel rack | PROC | 12 | open |
 | PAR-PROC-34 | Composter CE block: tfc:composter hitbox rows and demands, configuration/compost, in-game check | PROC | 12 | open |
 | PAR-CLIM-04 | Snow piles, ice piles, icicles and sea ice as CraftEngine blocks | CLIMATE | 13 | open |

@@ -33,3 +33,4 @@ dev.tfp.paper.player.RespawnModule
 dev.tfp.paper.calendar.CalendarModule
 dev.tfp.paper.heat.HotItemModule
 dev.tfp.paper.compost.ComposterModule
+dev.tfp.paper.itembar.ItemBarModule

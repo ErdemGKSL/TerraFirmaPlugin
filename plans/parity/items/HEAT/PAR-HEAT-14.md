@@ -2,7 +2,7 @@
 id: PAR-HEAT-14
 title: "Item bars: the heat bar on hot items (TFC BarSystem HEAT) as a packet-time durability-style bar, with the shared item-bar layer"
 area: HEAT
-status: open
+status: done
 wave: 11
 deps: [PAR-HEAT-01, PAR-INFRA-05]
 size: M
@@ -29,6 +29,8 @@ plan:
   - "Spike first, then build: vanilla clients draw the bar from minecraft:damage / minecraft:max_damage. On the outgoing item packet copy (the PAR-INFRA-05 decoration pipeline, never the server stack) set max_damage = 13 and damage = 13 - width. Check on 1.21.11 and 26.3 whether a stackable item (max_stack_size > 1) with max_damage is accepted by the client codec and keeps its count; if not, apply the bar only to single items and record the rest. Strip both components on creative-mode return (creative inventory sends stacks back) and in the recipe book/merchant paths as PAR-HEAT-01 does for its glow float."
   - "Colour: vanilla colours the bar by the damage fraction (green to red), not by TFC's heat colour: Divergences row. Refresh happens on the next item packet (NP-CLIENT-02)."
   - "Server config `item-bars.heat` (TFC displayItemHeatBars, default true) through TfpConfig (NP-CLIENT-04: server-wide instead of per player)."
+  - "Built: max_damage is 1300 and damage max(1, (13 - width) * 100), not 13 / 13 - width: a vanilla client only draws the bar of a damaged item, so width 13 needs damage >= 1, and 1300 keeps every width exact. Spike on 1.21.11: the client accepts max_damage on a stack with max_stack_size 64 and keeps its count (verdict 05); 26.3 not run. The config key is read from config.yml at enable by ItemBarModule (TfpConfig, ConfigCodec and config.yml are not in files_owned): follow-up PAR-HEAT-15 types it and applies it on /tfp reload. In-game the step with a heated damaged metal pickaxe could not run: metal tools have heat capacity 0 here (list ingredients in item_heat parts_*), follow-up PAR-HEAT-16; checked with a damageable copper ingot instead."
+  - "Done: core `itembar` (ItemBar, ItemBarRegistry with TFC's getCustomBar recursion, HeatBar, ShownBar); paper `itembar` (ItemBars service, BarStack, HeatBars, ItemBarRender, ItemBarHandler packet handler `item-bar`, ItemBarModule feature module `item_bar`). Tests: core ItemBarGoldenTest 9, paper ItemBarRenderTest 13; :core:test :paper:test :tools:datagen:test green. Ledger: feature row + 5 divergences. Verification: pass, docs/verification/PAR-HEAT-14/."
 tests:
   - "core: ItemBarGoldenTest (heat widths for recipe and no-recipe items, the 1..13 clamp, cold item invisible, other bar wins)"
   - "paper: packet copy gets max_damage/damage, the server stack does not; creative return strips them; config off shows nothing"
