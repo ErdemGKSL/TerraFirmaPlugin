@@ -10,7 +10,9 @@ package dev.tfp.paper.fire;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -36,9 +38,18 @@ public final class PaperFireWorld implements FireWorld {
     private static final BlockFace[] FIRE_FACES = {BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST,
         BlockFace.UP};
 
+    /**
+     * Blocks whose fluid state is always water although they are neither a liquid nor {@link Waterlogged} (vanilla
+     * {@code LiquidBlockContainer}s with a fixed {@code Fluids.WATER} source state).
+     */
+    private static final Set<Material> ALWAYS_WATER = EnumSet.of(Material.SEAGRASS, Material.TALL_SEAGRASS,
+        Material.KELP, Material.KELP_PLANT, Material.BUBBLE_COLUMN);
+
     @Override
     public boolean hasFluid(Block block) {
-        return block.isLiquid() || block.getBlockData() instanceof Waterlogged w && w.isWaterlogged();
+        // TFC: !state.getFluidState().isEmpty()
+        return block.isLiquid() || ALWAYS_WATER.contains(block.getType())
+            || block.getBlockData() instanceof Waterlogged w && w.isWaterlogged();
     }
 
     @Override
@@ -59,14 +70,73 @@ public final class PaperFireWorld implements FireWorld {
         item.remove();
     }
 
+    /**
+     * The block-shape reads of the fire tail. A seam only because MockBukkit does not implement collision shapes, face
+     * sturdiness or {@code isSupported}; on a server it is always {@link #BUKKIT}.
+     */
+    interface Shapes {
+        /** {@code isCollisionShapeFullBlock}. */
+        boolean fullCollision(Block block);
+
+        /** TFC's destroy test: {@code canBeReplaced() || getCollisionShape().isEmpty()}. */
+        boolean replaceableOrNoCollision(Block block);
+
+        /** {@code isFaceSturdy(level, below, UP)}. */
+        boolean sturdyTop(Block block);
+
+        /** {@code fireState.canSurvive(level, pos)}. */
+        boolean survives(BlockData fire, Block pos);
+    }
+
+    /** The real reads. */
+    static final Shapes BUKKIT = new Shapes() {
+        @Override
+        public boolean fullCollision(Block block) {
+            Collection<BoundingBox> boxes = block.getCollisionShape().getBoundingBoxes();
+            if (boxes.size() != 1) {
+                return false;
+            }
+            BoundingBox b = boxes.iterator().next();
+            return b.getMinX() <= 0 && b.getMinY() <= 0 && b.getMinZ() <= 0 && b.getMaxX() >= 1 && b.getMaxY() >= 1
+                && b.getMaxZ() >= 1;
+        }
+
+        @Override
+        public boolean replaceableOrNoCollision(Block block) {
+            return block.isReplaceable() || block.getCollisionShape().getBoundingBoxes().isEmpty();
+        }
+
+        @Override
+        public boolean sturdyTop(Block block) {
+            return block.getBlockData().isFaceSturdy(BlockFace.UP, BlockSupport.FULL);
+        }
+
+        @Override
+        public boolean survives(BlockData fire, Block pos) {
+            return fire.isSupported(pos);
+        }
+    };
+
+    private final Shapes shapes;
+
+    public PaperFireWorld() {
+        this(BUKKIT);
+    }
+
+    PaperFireWorld(Shapes shapes) {
+        this.shapes = shapes;
+    }
+
     @Override
     public boolean placeFire(Block clicked, BlockFace face, Player player) {
+        // TFC startFire: a full-collision target lights the cell its clicked face points into (the top face of the
+        // ground lights the cell above; a side face lights the neighbour on that side, which is the player's own cell
+        // when they stand against it, as with vanilla flint and steel); a flammable non-solid target is replaced.
         Block pos = clicked;
         boolean destroy = false;
-        if (fullCollision(clicked)) {
+        if (shapes.fullCollision(clicked)) {
             pos = clicked.getRelative(face);
-        } else if (clicked.getType().isFlammable()
-                && (clicked.isReplaceable() || clicked.getCollisionShape().getBoundingBoxes().isEmpty())) {
+        } else if (clicked.getType().isFlammable() && shapes.replaceableOrNoCollision(clicked)) {
             destroy = true;
         }
         // BaseFireBlock.canBePlacedAt: air (after the destroy) and the fire state can survive (portals are not lit)
@@ -74,7 +144,7 @@ public final class PaperFireWorld implements FireWorld {
             return false;
         }
         BlockData fire = fireState(pos);
-        if (!fire.isSupported(pos)) {
+        if (!shapes.survives(fire, pos)) {
             return false;
         }
         BlockIgniteEvent ignite = new BlockIgniteEvent(pos, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, player);
@@ -91,26 +161,14 @@ public final class PaperFireWorld implements FireWorld {
         return true;
     }
 
-    /** {@code isCollisionShapeFullBlock}: the collision shape is the whole cube. */
-    static boolean fullCollision(Block block) {
-        Collection<BoundingBox> boxes = block.getCollisionShape().getBoundingBoxes();
-        if (boxes.size() != 1) {
-            return false;
-        }
-        BoundingBox b = boxes.iterator().next();
-        return b.getMinX() <= 0 && b.getMinY() <= 0 && b.getMinZ() <= 0 && b.getMaxX() >= 1 && b.getMaxY() >= 1
-            && b.getMaxZ() >= 1;
-    }
-
     /** {@code BaseFireBlock.getState}: soul fire on soul fire bases, else fire with faces where it has no floor. */
-    static BlockData fireState(Block pos) {
+    BlockData fireState(Block pos) {
         Block below = pos.getRelative(BlockFace.DOWN);
         if (Tag.SOUL_FIRE_BASE_BLOCKS.isTagged(below.getType())) {
             return Material.SOUL_FIRE.createBlockData();
         }
         BlockData fire = Material.FIRE.createBlockData();
-        if (!below.getType().isFlammable() && !below.getBlockData().isFaceSturdy(BlockFace.UP, BlockSupport.FULL)
-                && fire instanceof MultipleFacing facing) {
+        if (!below.getType().isFlammable() && !shapes.sturdyTop(below) && fire instanceof MultipleFacing facing) {
             for (BlockFace f : FIRE_FACES) {
                 facing.setFace(f, pos.getRelative(f).getType().isFlammable());
             }
