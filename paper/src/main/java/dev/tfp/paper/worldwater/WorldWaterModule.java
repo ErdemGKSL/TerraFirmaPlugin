@@ -14,8 +14,10 @@ import dev.tfp.paper.boot.TfpCommands.Reply;
 import dev.tfp.paper.module.DebugTree;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
+import dev.tfp.paper.module.ModuleServices;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ThreadAsserts;
+import dev.tfp.paper.worldwater.hot.SpringWater;
 import io.papermc.paper.command.brigadier.Commands;
 import java.util.Locale;
 import java.util.Optional;
@@ -32,7 +34,8 @@ import org.bukkit.event.world.WorldUnloadEvent;
 /**
  * PAR-FLUID-03: salt water, spring water and river water in the world (NP-FLUID-01). The world holds vanilla water; this
  * module provides {@link WorldWaterService} (which TFC water a block stands for, from the seed) and runs the river current
- * ({@link RiverCurrentTracker}). {@code /tfp debug water <name>} tells the water at a player's feet.
+ * ({@link RiverCurrentTracker}). {@code /tfp debug water <name>} tells the water at a player's feet; inside a hot spring
+ * pool it names spring water through the {@link SpringWater} service of the hotspring module when that runs (PAR-FLUID-14).
  *
  * <p>Threads: the scan is started from the global scheduler and runs on each player's thread; pushes run on each entity's
  * thread; chunk water is computed on the CPU pool.
@@ -44,6 +47,7 @@ public final class WorldWaterModule implements FeatureModule, Listener {
     private volatile WorldWaterService water;
     private volatile RiverCurrentTracker current;
     private volatile Scheduler.TaskHandle scanTask;
+    private volatile ModuleServices services;
 
     @Override
     public String id() {
@@ -53,6 +57,7 @@ public final class WorldWaterModule implements FeatureModule, Listener {
     @Override
     public void enable(ModuleContext context) {
         scheduler = context.scheduler();
+        services = context.services();
         water = new WorldWaterService(scheduler.cpuExecutor(), context.logger());
         current = new RiverCurrentTracker(scheduler, water);
         context.services().provide(WorldWaterService.class, water);
@@ -111,7 +116,9 @@ public final class WorldWaterModule implements FeatureModule, Listener {
         CompletableFuture<Reply> out = new CompletableFuture<>();
         scheduler.entity(player, () -> {
             try {
-                out.complete(describe(player, water));
+                ModuleServices s = services;
+                SpringWater springs = s == null ? null : s.get(SpringWater.class).orElse(null);
+                out.complete(describe(player, water, springs));
             } catch (RuntimeException e) {
                 out.completeExceptionally(e);
             }
@@ -119,8 +126,16 @@ public final class WorldWaterModule implements FeatureModule, Listener {
         return out;
     }
 
-    /** Player thread: the water at the player's feet. */
+    /** Player thread: the water at the player's feet, without spring pools. */
     static Reply describe(Player player, WorldWaterService water) {
+        return describe(player, water, null);
+    }
+
+    /**
+     * Player thread: the water at the player's feet. In a TFC world, water that {@code springs} (when given) calls spring
+     * water is named {@code spring}; otherwise the chunk's classification stands.
+     */
+    static Reply describe(Player player, WorldWaterService water, SpringWater springs) {
         ThreadAsserts.owned(player);
         Location at = player.getLocation();
         World world = player.getWorld();
@@ -137,6 +152,9 @@ public final class WorldWaterModule implements FeatureModule, Listener {
         }
         ChunkWater c = chunk.get();
         WaterKind kind = c.kind(x & 15, y, z & 15);
+        if (springs != null && springs.isSpringWater(world.getBlockAt(x, y, z))) {
+            kind = WaterKind.SPRING;
+        }
         Flow flow = c.flow(x & 15, z & 15);
         return Reply.ok("debug.water.done", player.getName(), x, y, z, name(kind), flow.serializedName(),
                 TfcBiomes.name(c.biome(x & 15, z & 15)).toLowerCase(Locale.ROOT), c.surfaceHeight(x & 15, z & 15));

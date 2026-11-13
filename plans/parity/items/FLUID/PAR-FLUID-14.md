@@ -2,7 +2,7 @@
 id: PAR-FLUID-14
 title: "/tfp debug water names hot spring pool water spring"
 area: FLUID
-status: open
+status: done
 wave: 12
 deps: [PAR-FLUID-04]
 size: S
@@ -16,6 +16,7 @@ ui: false
 in_game_steps: []
 plan:
   - "Found by PAR-FLUID-11 (in-game, `docs/verification/PAR-FLUID-11/verdict.md`): standing in a hot spring pool that heals (old_mountains, 1421 98 -1536, seed 12345), `/tfp debug water Bot` answers `fresh water`. `WorldWaterModule.describe` reads `ChunkWater.kind(x, y, z)`, which classifies with `springPool = false`; the pool rule lives in PAR-FLUID-04's `SpringWater` service (`paper/src/main/java/dev/tfp/paper/worldwater/hot/SpringWater.java`, looked up through the module services). Fix: when the `SpringWater` service is present and says the block at the player's feet is spring water, report `spring`; otherwise keep the current answer. Read on the player's thread as now. No `BootstrapTest` change: the `water` debug literal already exists."
+  - "Done: `WorldWaterModule` keeps the module services and, on the player's thread, asks the `SpringWater` service (when the hotspring module provides it) about the block at the player's feet in TFC worlds; spring water answers `spring`, everything else keeps the chunk's kind. Tests: `paper/src/test/java/dev/tfp/paper/worldwater/DebugWaterSpringMockBukkitTest` (4: gravel pool in an old_mountains spring chunk is spring, stone bed unchanged, plains gravel pool unchanged, no service unchanged). No in-game check (ui: false)."
 tests:
   - "paper: MockBukkit: a player in a gravel-bedded pool above sea level in an active spring chunk gets `spring water`; on stone-bedded water the answer is unchanged"
 done_criteria:
