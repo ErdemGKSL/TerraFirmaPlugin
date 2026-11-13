@@ -183,6 +183,8 @@ class HitboxCarrierTest {
                 assertThat(c.override()).isNotNull();
                 assertThat(c.overrideIndex()).isZero();
                 assertThat(c.chosen().colIoU()).isEqualTo(1);
+                // PAR-INFRA-44: the heavy plate is crafted in TFC (natural, hidden): real power=0 plates go to power=1.
+                assertThat(c.chosen().hideTarget()).isEqualTo("minecraft:heavy_weighted_pressure_plate[power=1]");
             }
         }
         assertThat(states).as("ITEM_0..3: 16 states, the full one also holds a large item").isEqualTo(16);

@@ -2,7 +2,7 @@
 id: PAR-INFRA-44
 title: "Heavy weighted pressure plate is a TFC player block (wrought-iron recipe): no transparent carrier may draw placed plates empty"
 area: INFRA
-status: open
+status: done
 wave: 10
 deps: [PAR-INFRA-42]
 size: S
@@ -21,6 +21,8 @@ plan:
   - "Decide with the owner (the placed-item rule names this carrier): (a) mark the heavy plate `player` (or `natural` with a hide: power=0 has no other unpressed state, so a hide would show real plates pressed) and move the transparent carriers to minecraft:light_weighted_pressure_plate[power=0] (same 14 x 1 x 14 box, no collision; TFC has no gold-plate recipe: confirm the vanilla gold recipe is not craftable on our server, else it has the same problem), or (b) keep the heavy plate and make the plugin replace placed vanilla heavy plates by a CE block that draws the plate. Fix the light_weighted_pressure_plate note either way."
   - "Guard test CarrierPolicyRecipeTest: no block whose item is the result of a recipe in content/data (or TFC's recipe tree) is `presence: absent` without an allow-list entry and reason."
   - "Then PAR-PROC-29 re-adds its ScrapingBlock run line on the new carrier (its plan names the exact edits)."
+  - "Decision (2026-11-13, within files_owned): the item's `natural` with a hide option. Option (a) needs the owner's class-overrides.json (placed_item names heavy_weighted_pressure_plate[power=0], outside files_owned) and the light plate is no safe home either: TFC keeps vanilla's gold-plate recipe and vanilla gold comes from the Nether, so with the Nether on players craft and place it. So heavy_weighted_pressure_plate is `natural` + `hide: nearest_free_value:power` (real power=0 plates are sent as power=1, drawn pressed, never empty) and light_weighted_pressure_plate is `player`. Every carrier keeps power=0 (scraping score 0.459 -> 0.446 with the hide penalty); the generators that emit a carrier write the power=0 -> power=1 block_state_mapping (ScrapingBlock already does from Assignment.hideTarget). PAR-PROC-29 can re-add its run line on the same carrier."
+  - "Done: carrier-policy.json (heavy natural + hide, light player, notes fixed); CarrierPolicyRecipeTest (7: recipe scan of TFC's tree + content/data, guard fails on the old policy for heavy and light, kept vanilla gold recipe, plates player-or-hidden, no non-vanilla look on a crafted block without a hide, allow-list daylight_detector/lightning_rod only while vanilla-look); hide pins added in HitboxCarrierTest (placed_item) and CarrierPolicyWorldgenTest (scraping). Full datagen run: only reports/hitbox-carriers-*.md change (scraping and plate rows gain the hide, one new hide mapping). :core:test :paper:test :tools:datagen:test green. Ledger divergence row added."
 tests:
   - "CarrierPolicyRecipeTest fails on today's policy (heavy_weighted_pressure_plate) and passes after the fix"
   - "Full datagen run: hitbox reports change only in the intended rows; GeneratedCarrierTest, HardcodedCarrierTest, CarrierPolicyWorldgenTest green"

@@ -214,5 +214,7 @@ class CarrierPolicyWorldgenTest {
         Assignment scraping = HitboxAllocation.agreed(HitboxDemands.SCRAPING_ID, HitboxDemands.SCRAPING_APPEARANCE);
         assertThat(scraping.carrier().block()).isNotEqualTo("minecraft:lily_pad");
         assertThat(scraping.state()).isEqualTo("minecraft:heavy_weighted_pressure_plate[power=0]");
+        // PAR-INFRA-44: players craft the heavy plate (TFC's wrought-iron recipe); real unpressed plates are sent pressed.
+        assertThat(scraping.hideTarget()).isEqualTo("minecraft:heavy_weighted_pressure_plate[power=1]");
     }
 }
