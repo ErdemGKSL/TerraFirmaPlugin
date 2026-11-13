@@ -32,8 +32,8 @@ files_owned:
   - "docs/hud/versions.md"
 ui: true
 in_game_steps:
-  - "set hud.health-display-style VANILLA and hud.climate-temperature-style FAHRENHEIT in config.yml; tfp reload; screenshot the health text and the top-left plate at GUI scale 2"
-  - "set both back to the defaults (TFC, CELSIUS); tfp reload; screenshot again: 850/850-style health text and the Celsius plate unchanged from before"
+  - "set hud.health-display-style VANILLA and hud.climate-temperature-style FAHRENHEIT in config.yml; `/tfp reload config` (bare `/tfp reload` reloads data only and does not re-read config.yml); screenshot the health text and the top-left plate at GUI scale 2"
+  - "set both back to the defaults (TFC, CELSIUS); `/tfp reload config`; screenshot again: 850/850-style health text and the Celsius plate unchanged from before"
 plan:
   - "Done: in-game check run 2026-11-13 on Paper 1.21.11 + 1.21.11 client at GUI scale 2 and 3: VANILLA/FAHRENHEIT, VANILLA_CURRENT/KELVIN and TFC_CURRENT/RANKINE change the health text and the plate after /tfp reload config, back to TFC/CELSIUS restores 850/850-style text and Celsius; pass (docs/verification/PAR-HUD-17/). Code and tests in 532b5b1 (ConfigCodecTest, ConfigServiceTest, HudValuesHealthTextTest, HudClimateValuesStyleTest, HudLayoutsTest)."
   - "UNBLOCKED (manager, 2026-11-07): the block was only a full disk. Code is complete; run the two in_game_steps, judge the screenshots, store docs/verification/PAR-HUD-17/ and set done."
@@ -48,10 +48,10 @@ plan:
   - "Update docs/hud/versions.md section 2 (the 'ours now' column) and the ledger rows of PAR-HUD-14."
 tests:
   - "integration/betterhud: tfp_health_text per style (850/850, 17.0/17.0, 850, 17.0) and tfp_ambient_temp per unit (68.0°F at 20 C)"
-  - "core/paper: ConfigCodec/ConfigService read the hud section without warnings for the shipped config.yml; bad values warn and keep the defaults; /tfp reload swaps the styles"
+  - "core/paper: ConfigCodec/ConfigService read the hud section without warnings for the shipped config.yml; bad values warn and keep the defaults; `/tfp reload config` swaps the styles"
   - "tools/datagen: HudLayoutsTest health text pattern"
 done_criteria:
-  - "Each style key changes the HUD text in game after /tfp reload; defaults unchanged"
+  - "Each style key changes the HUD text in game after `/tfp reload config`; defaults unchanged"
 ---
 
 # PAR-HUD-17: Wire the HUD display styles: hud.* keys in config.yml, health text and climate temperature placeholders follow HudStyles
