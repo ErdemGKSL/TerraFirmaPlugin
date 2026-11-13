@@ -139,6 +139,8 @@ All codecs carry a version number and have migration tests. The shared layer is 
 
 The global clock is `core/clock/GlobalClockHolder`: one volatile immutable `ClockSnapshot` (player ticks, calendar ticks, month length, running), published by the calendar on the global scheduler (M2), read lock-free anywhere.
 
+World time follows the calendar (PAR-CLIM-01, `paper/calendar/CalendarModule` + `DaylightSync`): on every published state, on the global thread, each overworld-type world gets day time `calendarTicks + 18000` (TFC `updateDayTime`) and the vanilla daylight rule set to the calendar's running flag (on while it runs, so clients move the sun between the once-per-second corrections and vanilla fires its night skip; off while it is arrested). Vanilla's `TimeSkipEvent` `NIGHT_SKIP` and `COMMAND` become forward calendar skips (`CalendarService.skip`, TFC `skipForwardBy`) whose event amount lands the world on the calendar; beds follow TFC's 8 pm–5 am window; other changes of the daylight rule are cancelled. TFC's calendar keys live in `plugins/TerraFirmaPlugin/calendar.yml` (TFC names; the new-world keys only shape a calendar created afterwards).
+
 ### 7.1 Device blocks (PAR-INFRA-02)
 
 A TFC device (`DeviceBlock` + `InventoryBlockEntity` + `ICalendarTickable`) is a CraftEngine block whose behaviour is **`tfp:device`** plus a **`DeviceKind<S>`** registered on the Paper side. Feature code never sees CraftEngine:

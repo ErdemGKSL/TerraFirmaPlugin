@@ -2,7 +2,7 @@
 id: PAR-CLIM-01
 title: "Calendar config, sleep skipping and doDaylightCycle sync"
 area: CLIMATE
-status: open
+status: done
 wave: 11
 deps: [PAR-INFRA-01]
 size: M
@@ -29,6 +29,7 @@ plan:
   - "Config keys (same names as TFC CommonConfig/ServerConfig): defaultMonthLength (daysInMonth), calendarStartDay (reject -1 as TFC), enableTimeStopWhenServerEmpty."
   - "Sleep skipping: when vanilla skips the night (TimeSkipEvent SLEEP), advance the calendar by the same ticks through CalendarTransaction semantics (player ticks vs calendar ticks as TFC)."
   - "doDaylightCycle sync: the gamerule mirrors the calendar 'doDaylightCycle' state; arrested time when the server is empty if enabled."
+  - "Done: core/calendar CalendarConfig (TFC's four keys, -1 start day refused) and SleepSkip (TFC's 8 pm-5 am window, ticks slept, vanilla day time = calendar + 18000, vanilla /time skips forward only); paper/calendar CalendarModule (calendar.yml, PlayerBedEnterEvent window, TimeSkipEvent NIGHT_SKIP/COMMAND -> CalendarService.skip with the event amount landing on the calendar, daylight rule changes by others cancelled) and DaylightSync (world day time and daylight rule = running flag on every publication); CalendarService config, time stop and change listener. Tests: SleepSkipTest 29 (golden vs TFC float), CalendarConfigTest 4, CalendarModuleMockBukkitTest 10. In-game check passed: docs/verification/PAR-CLIM-01/verdict.md. 6 ledger divergences. The itest case calendar.sleep_skip needs an itest file outside files_owned: follow-up PAR-CLIM-16."
 tests:
   - "core: golden for the transaction arithmetic (TFC ServerCalendar.skipForwardBy)"
   - "paper: MockBukkit TimeSkipEvent advances calendar"

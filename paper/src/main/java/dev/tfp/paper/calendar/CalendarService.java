@@ -9,12 +9,14 @@
 package dev.tfp.paper.calendar;
 
 import dev.tfp.core.calendar.CalendarCodec;
+import dev.tfp.core.calendar.CalendarConfig;
 import dev.tfp.core.calendar.CalendarState;
 import dev.tfp.core.calendar.TimeCommand;
 import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.persist.PersistException;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,9 +35,13 @@ import org.bukkit.persistence.PersistentDataType;
  *       lives only here; everyone else reads the published snapshot.</li>
  *   <li><b>Start.</b> Worlds are not loaded when we enable (load: STARTUP), so the first global tick reads the
  *       state from the first world's PDC ({@link #KEY}). A missing key means a new calendar:
- *       {@link CalendarState#defaults()} (TFC {@code resetToDefault}), saved at once.</li>
- *   <li><b>Running.</b> The calendar runs while at least one player is online (TFC {@code arePlayersLoggedOn}).
- *       {@link #setRunWhenEmpty} overrides that (self-test; a config option later).</li>
+ *       {@link CalendarConfig#initialState()} of the {@linkplain #configure configuration} (TFC {@code resetToDefault}),
+ *       saved at once.</li>
+ *   <li><b>Running.</b> The calendar runs while at least one player is online (TFC {@code arePlayersLoggedOn}), or
+ *       always when {@code enableTimeStopWhenServerEmpty} is off (PAR-CLIM-01). {@link #setRunWhenEmpty} overrides
+ *       that too (self-test).</li>
+ *   <li><b>Listeners.</b> Every published state (load, advance, skip) is handed to the {@link #onChange} listener on
+ *       the global thread; PAR-CLIM-01 holds the vanilla day time and the daylight game rule to it there.</li>
  *   <li><b>Advance.</b> Every {@value #PERIOD_TICKS} server ticks by {@value #PERIOD_TICKS} player ticks.</li>
  *   <li><b>Persistence.</b> Every {@value #SAVE_EVERY_RUNS} advances, and at shutdown; the server writes the world
  *       PDC with {@code level.dat}. Data from a newer plugin version is left untouched (no writes this run);
@@ -61,6 +67,8 @@ public final class CalendarService {
     private volatile CalendarState state;
     private volatile World world;
     private volatile boolean runWhenEmpty;
+    private volatile CalendarConfig config = CalendarConfig.DEFAULTS;
+    private volatile Consumer<CalendarState> listener = s -> { };
     /** The PDC holds data from a newer version: never overwrite it. */
     private volatile boolean readOnly;
     private long runs;
@@ -90,13 +98,15 @@ public final class CalendarService {
             if (!load()) {
                 return;
             }
+            state = state.withRunning(isRunning());
             state.publishTo(clock);
+            changed(state);
             return;
         }
-        boolean running = runWhenEmpty || playersOnline.getAsBoolean();
-        s = s.withRunning(running).advance(PERIOD_TICKS);
+        s = s.withRunning(isRunning()).advance(PERIOD_TICKS);
         state = s;
         s.publishTo(clock);
+        changed(s);
         if (++runs % SAVE_EVERY_RUNS == 0) {
             save();
         }
@@ -117,8 +127,8 @@ public final class CalendarService {
             logger.severe("World " + w.getName() + ": " + KEY + " is not a byte array; starting a new calendar");
         }
         if (bytes == null) {
-            state = CalendarState.defaults();
-            logger.info("New calendar in world " + w.getName() + " (TFC defaults)");
+            state = config.initialState();
+            logger.info("New calendar in world " + w.getName() + " (" + config + ")");
             save();
             return true;
         }
@@ -126,12 +136,12 @@ public final class CalendarService {
             state = CalendarCodec.CODEC.fromBytes(bytes);
         } catch (PersistException.NewerVersion e) {
             readOnly = true;
-            state = CalendarState.defaults();
+            state = config.initialState();
             logger.log(Level.SEVERE, "World " + w.getName() + ": the calendar was saved by a newer TerraFirmaPlugin; "
                     + "running on defaults and NOT saving it this run", e);
         } catch (PersistException e) {
             pdc.set(UNREADABLE_KEY, PersistentDataType.BYTE_ARRAY, bytes);
-            state = CalendarState.defaults();
+            state = config.initialState();
             logger.log(Level.SEVERE, "World " + w.getName() + ": unreadable calendar (kept as " + UNREADABLE_KEY
                     + "); starting a new one", e);
             save();
@@ -186,8 +196,40 @@ public final class CalendarService {
         CalendarState next = s.skipForward(ticks);
         state = next;
         next.publishTo(clock);
+        changed(next);
         save();
         return new Skipped(ticks, next);
+    }
+
+    /** Whether the calendar runs now: a player online, the time stop off, or the self-test override. */
+    boolean isRunning() {
+        return runWhenEmpty || !config.enableTimeStopWhenServerEmpty() || playersOnline.getAsBoolean();
+    }
+
+    private void changed(CalendarState s) {
+        try {
+            listener.accept(s);
+        } catch (RuntimeException e) {
+            logger.log(Level.SEVERE, "Calendar listener failed", e);
+        }
+    }
+
+    /**
+     * PAR-CLIM-01: the calendar configuration. Set it before the first global tick (a module's {@code enable}); the
+     * new-world keys only shape a calendar created after this call.
+     */
+    public void configure(CalendarConfig config) {
+        this.config = java.util.Objects.requireNonNull(config, "config");
+    }
+
+    /** The calendar configuration in use. */
+    public CalendarConfig config() {
+        return config;
+    }
+
+    /** PAR-CLIM-01: called on the global thread with every published state; replaces the previous listener. */
+    public void onChange(Consumer<CalendarState> listener) {
+        this.listener = java.util.Objects.requireNonNull(listener, "listener");
     }
 
     /** Runs the calendar even with no player online; returns the previous value. */
