@@ -2,7 +2,7 @@
 id: PAR-HEAT-16
 title: "Item heat of list ingredients: metal tools and parts (item_heat parts_*) cannot be heated"
 area: HEAT
-status: open
+status: done
 wave: 12
 deps: [PAR-HEAT-01]
 size: S
@@ -18,6 +18,7 @@ in_game_steps: []
 plan:
   - "Current: `ItemHeatDefinitions.fromRegistry` reads only `Ingredient.Item` and `Ingredient.Tag`; TFC's `item_heat/<metal>/parts_*.json` use a list ingredient (decoded as `Ingredient.AnyOf`), so every metal tool, tool head, armour part and the other parts listed there has heat capacity 0: `tfp debug heat` on a copper pickaxe sets the record but reads 'temperature now: 0.0 C', the item neither glows (PAR-HEAT-01), shows a heat line (PAR-HEAT-02) nor a heat bar (PAR-HEAT-14), and cannot be heated in devices."
   - "Expand `AnyOf` (and nested item/tag children) into its member items, keeping TFC's first-definition-wins order (`HeatDefinition` lookup by ingredient test in registry order)."
+  - "Done: ItemHeatDefinitions expands AnyOf and neoforge:compound (nested items, lists and tags) into member items; ItemHeatDefinitionsTest gains a synthetic list/tag/compound case and real-content asserts for the copper parts_100 members (pickaxe 2.857143, 648/864 C); :core:test :paper:test :tools:datagen:test green; no in-game check (ui: false)."
 tests:
   - "core: fromRegistry with a list ingredient of items and tags gives each member the definition; copper pickaxe has capacity 2.857143 from the real content"
 done_criteria:

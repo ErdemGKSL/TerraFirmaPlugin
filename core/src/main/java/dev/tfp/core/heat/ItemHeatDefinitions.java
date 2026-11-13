@@ -23,7 +23,9 @@ import java.util.Optional;
  * for metals, its forging and welding temperatures. An item without a definition cannot be heated.
  *
  * <p>Built from a registry snapshot: an {@code item} ingredient maps one id, a {@code tag} ingredient maps every
- * member of the item tag; the first definition wins and an explicit item beats a tag member. Immutable.
+ * member of the item tag, and a list ingredient (TFC's {@code item_heat/<metal>/parts_*.json}, decoded as
+ * {@link Ingredient.AnyOf}) maps each of its members; the first definition wins and an explicit item beats a tag
+ * member. Immutable.
  */
 public final class ItemHeatDefinitions {
     /**
@@ -51,7 +53,7 @@ public final class ItemHeatDefinitions {
         this.byItem = Map.copyOf(byItem);
     }
 
-    /** Builds the table from the {@code item_heat} definitions of {@code snapshot} (item and item-tag ingredients). */
+    /** Builds the table from the {@code item_heat} definitions of {@code snapshot} (item, item-tag and list ingredients). */
     public static ItemHeatDefinitions fromRegistry(RegistrySnapshot snapshot) {
         Registry<SchemaRecord> heat = snapshot.get(DefinitionKinds.key("item_heat"));
         Map<String, HeatData> items = new LinkedHashMap<>();
@@ -61,21 +63,34 @@ public final class ItemHeatDefinitions {
             if (ingredient.isEmpty()) {
                 continue;
             }
-            HeatData data = data(r);
-            switch (ingredient.get()) {
-                case Ingredient.Item item -> items.putIfAbsent(item.item(), data);
-                case Ingredient.Tag tag -> {
-                    for (String id : snapshot.tags().members(TagType.ITEM, tag.tag())) {
-                        tagged.putIfAbsent(id, data);
-                    }
-                }
-                default -> {
-                    // other ingredient types do not appear in TFC's item heat data
-                }
-            }
+            collect(ingredient.get(), data(r), snapshot, items, tagged);
         }
         tagged.forEach(items::putIfAbsent);
         return new ItemHeatDefinitions(items);
+    }
+
+    /**
+     * Maps the members of {@code ingredient} to {@code data}: an item into {@code items}, the members of an item tag
+     * into {@code tagged}, and a list ({@link Ingredient.AnyOf}, a JSON array) or {@code neoforge:compound} child by
+     * child in order. TFC indexes a definition under every item its ingredient lists
+     * ({@code RecipeHelpers.itemKeys}), so list members are heatable exactly like single items.
+     */
+    private static void collect(Ingredient ingredient, HeatData data, RegistrySnapshot snapshot,
+            Map<String, HeatData> items, Map<String, HeatData> tagged) {
+        switch (ingredient) {
+            case Ingredient.Item item -> items.putIfAbsent(item.item(), data);
+            case Ingredient.Tag tag -> {
+                for (String id : snapshot.tags().members(TagType.ITEM, tag.tag())) {
+                    tagged.putIfAbsent(id, data);
+                }
+            }
+            case Ingredient.AnyOf list -> list.children().forEach(c -> collect(c, data, snapshot, items, tagged));
+            case Ingredient.Compound compound ->
+                    compound.children().forEach(c -> collect(c, data, snapshot, items, tagged));
+            default -> {
+                // other ingredient types do not appear in TFC's item heat data
+            }
+        }
     }
 
     /** The heat data of a decoded {@code item_heat} definition (absent temperatures are NaN, TFC's "cannot"). */

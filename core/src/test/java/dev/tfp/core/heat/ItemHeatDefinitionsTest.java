@@ -15,7 +15,10 @@ import dev.tfp.core.registry.DefinitionKinds;
 import dev.tfp.core.registry.KnownIds;
 import dev.tfp.core.registry.Registry;
 import dev.tfp.core.registry.RegistrySnapshot;
+import dev.tfp.core.tag.TagFile;
 import dev.tfp.core.tag.TagRegistry;
+import dev.tfp.core.tag.TagResolver;
+import dev.tfp.core.tag.TagType;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -48,6 +51,56 @@ class ItemHeatDefinitionsTest {
     }
 
     @Test
+    void listIngredientGivesEveryMemberTheDefinition() {
+        // PAR-HEAT-16: TFC item_heat/<metal>/parts_*.json use a JSON array of items (and may mix in tags)
+        TagResolver resolver = new TagResolver();
+        resolver.add(TagType.ITEM, "c:tools/test", new TagFile(false, List.of(
+                new TagFile.Entry("tfp:tagged_tool", false, true), new TagFile.Entry("tfp:shared", false, true)),
+                List.of()), "test");
+        TagResolver.Result resolved = resolver.resolve(new TagResolver.IdTable() {
+            @Override
+            public boolean hasId(TagType type, String id) {
+                return true;
+            }
+
+            @Override
+            public boolean hasExternalTag(TagType type, String tag) {
+                return false;
+            }
+        });
+        assertThat(resolved.errors()).isEmpty();
+        TagRegistry tags = resolved.registry();
+        Registry<SchemaRecord> heat = Registry.builder(DefinitionKinds.key("item_heat"))
+                .register("tfp:copper/parts_100", new SchemaRecord("item_heat", Map.of(
+                        "ingredient", new Ingredient.AnyOf(List.of(
+                                new Ingredient.Item("tfp:metal/pickaxe/copper"),
+                                new Ingredient.Item("tfp:metal/pickaxe_head/copper"),
+                                new Ingredient.AnyOf(List.of(new Ingredient.Item("tfp:nested"))),
+                                new Ingredient.Tag("c:tools/test"))),
+                        "heat_capacity", 2.857143f, "forging_temperature", 648.0f, "welding_temperature", 864.0f)))
+                .register("tfp:later", new SchemaRecord("item_heat", Map.of(
+                        "ingredient", new Ingredient.Compound(List.of(
+                                new Ingredient.Item("tfp:metal/pickaxe/copper"),
+                                new Ingredient.Item("tfp:compound_member"),
+                                new Ingredient.Item("tfp:shared"))),
+                        "heat_capacity", 9f)))
+                .build();
+        RegistrySnapshot snapshot = new RegistrySnapshot(Map.of("item_heat", heat), tags, Set.of());
+        ItemHeatDefinitions defs = ItemHeatDefinitions.fromRegistry(snapshot);
+
+        for (String id : List.of("tfp:metal/pickaxe/copper", "tfp:metal/pickaxe_head/copper", "tfp:nested",
+                "tfp:tagged_tool")) {
+            ItemHeatDefinitions.HeatData d = defs.get(id).orElseThrow();
+            assertThat(d.heatCapacity()).as(id).isEqualTo(2.857143f);
+            assertThat(d.forgingTemperature()).as(id).isEqualTo(648.0f);
+            assertThat(d.weldingTemperature()).as(id).isEqualTo(864.0f);
+        }
+        assertThat(defs.heatCapacity("tfp:compound_member")).as("neoforge:compound member").isEqualTo(9f);
+        assertThat(defs.heatCapacity("tfp:shared")).as("an explicit item beats a tag member").isEqualTo(9f);
+        assertThat(defs.size()).isEqualTo(6);
+    }
+
+    @Test
     void generatedContentHasTfcMetalHeatData() throws java.io.IOException {
         String configured = System.getProperty("tfp.contentData");
         Path data = Path.of(configured == null ? "content/generated/content/data" : configured);
@@ -60,5 +113,13 @@ class ItemHeatDefinitionsTest {
         assertThat(copper.forgingTemperature()).isEqualTo(648.0f);
         assertThat(copper.weldingTemperature()).isEqualTo(864.0f);
         assertThat(defs.size()).isGreaterThan(100);
+        // PAR-HEAT-16: TFC data/tfc/tfc/item_heat/copper/parts_100.json @ c3b4d9536 is a list ingredient
+        for (String id : List.of("tfp:metal/pickaxe/copper", "tfp:metal/pickaxe_head/copper",
+                "tfp:metal/scythe_blade/copper", "tfp:metal/unfinished_lamp/copper")) {
+            ItemHeatDefinitions.HeatData part = defs.get(id).orElseThrow(() -> new AssertionError(id));
+            assertThat(part.heatCapacity()).as(id).isEqualTo(2.857143f);
+            assertThat(part.forgingTemperature()).as(id).isEqualTo(648.0f);
+            assertThat(part.weldingTemperature()).as(id).isEqualTo(864.0f);
+        }
     }
 }
