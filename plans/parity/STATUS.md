@@ -122,7 +122,7 @@ Totals: 315 items; open 220, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-SURV-14 | Survival config keys in config.yml: keepNutritionAfterDeath, peaceful passive regeneration, naturalRegenerationModifier | SURV | 11 | open |
 | PAR-FLUID-11 | Hot spring in-game verification: health rises standing in a hot spring | FLUID | 11 | done |
 | PAR-FLUID-12 | Bucket config keys: buckets: section in config.yml, typed config and BucketModule reads the current value | FLUID | 11 | done |
-| PAR-HEAT-03 | Hot items: burn damage while held, item entities cool in water and snow | HEAT | 11 | open |
+| PAR-HEAT-03 | Hot items: burn damage while held, item entities cool in water and snow | HEAT | 11 | done |
 | PAR-HEAT-14 | Item bars: the heat bar on hot items (TFC BarSystem HEAT) as a packet-time durability-style bar, with the shared item-bar layer | HEAT | 11 | open |
 | PAR-PROC-11 | Composter | PROC | 11 | open |
 | PAR-CLIM-03 | Snow and ice accumulation: lazy-vs-stepped equivalence and server check | CLIMATE | 12 | open |

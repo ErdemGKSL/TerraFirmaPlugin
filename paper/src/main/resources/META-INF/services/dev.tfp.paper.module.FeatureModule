@@ -31,3 +31,4 @@ dev.tfp.paper.health.HealthModule
 dev.tfp.paper.heat.HeatTooltipModule
 dev.tfp.paper.player.RespawnModule
 dev.tfp.paper.calendar.CalendarModule
+dev.tfp.paper.heat.HotItemModule
