@@ -2,7 +2,7 @@
 id: PAR-PROC-32
 title: "Barrel CE blocks: tfp:wood/barrel/<wood> hitbox demands, configuration/barrel, in-game brining check"
 area: PROC
-status: open
+status: done
 wave: 10
 deps: [PAR-PROC-08, PAR-INFRA-13]
 size: M
@@ -33,6 +33,8 @@ plan:
   - "Block entries: datagen/barrel writes configuration/barrel/barrel.yml through DeviceBlockSpec + DeviceYaml.templated, one block per TFC wood (WoodFamilies' list): the tfp:device behaviour, the property sealed (boolean, default false; BarrelDevice.SEALED, the device writes it), TFC's strength / sound / axe tool read from TFCBlocks, the loot from TFC's loot table (the item itself), the block item with TFC's item model, TFC's models and textures copied (sealed and unsealed upright models). Add the section to CeYamlCheck if it is new. Placement: TFC needs a sturdy block below (getStateForPlacement) and FACING (not down) for barrels on their side; the side states come with PAR-PROC-09's rack."
   - "itest: BarrelRecipesCase (SelfTestSuite hub line): on the running server all 331 barrel recipes (309 sealed, 20 instant, 2 instant fluid) decode through BarrelRecipeBook (the MockBukkit BarrelRecipesContentDataMockBukkitTest already checks the datagen output)."
   - "In-game check (PROTOCOL 6): run the steps with the bot; screenshot the sealed and unsealed barrel and the meat's tooltip showing Brined; store docs/verification/PAR-PROC-08/. Also check that BucketListener (PAR-FLUID-02) does not place the bucket's fluid in the world when the bucket is used on the barrel (the device consumes the click first)."
+  - "Choice (hitbox): the allocator serves only 16 explicit model carriers for the 12x16x12 outline (cactus ages) against 40 per-wood looks, and the open barrel scores 0.24 anyway, so every barrel demand is hitbox-only (look TRANSPARENT; all 40 share cactus[age=10]) and the per-wood TFC model is an entity_renderer item display (tfp:render/wood/barrel{,_sealed}/<wood>, rotation 0,180,0 like the forge overlays). Placement support (sturdy below) is left to PAR-PROC-09 with the side states (ledger)."
+  - "Done: datagen barrel/BarrelBlock (configuration/barrel/barrel.yml: 20 blocks, 20 block items, 40 render items; TFC's models, textures, names), HitboxDemands barrel demands, GeneratedCarrierTest pins the 20 ids, BarrelBlockTest 4, itest BarrelRecipesCase (barrel.recipes PASSED on Paper 1.21.11 :itest:runSelfTest: 309/20/2, 20 blocks and items; the run's only failure, worldgen.terrain_generates, is its run dir's vanilla world from the degraded first start); in-game check passed (docs/verification/PAR-PROC-08/verdict.md: sealed/unsealed oak barrel, beef Brined after 5 h, BucketListener leaves the barrel click alone); ledger row and 3 divergences."
 tests:
   - "datagen: BarrelBlockTest (one entry per wood, sealed property, carriers from the allocation)"
   - "itest: BarrelRecipesCase"

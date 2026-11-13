@@ -87,9 +87,14 @@ class GeneratedCarrierTest {
         // generated until PAR-INFRA-42 stops its carrier from being a vanilla block our worldgen places.
         // The exact sets are pinned so that a generator silently dropping out of craftengine/ fails here; a family item
         // that adds an explicit-state block adds its id to this list.
-        assertThat(states).isGreaterThanOrEqualTo(20);
+        // PAR-PROC-32: the upright barrel of every wood (unsealed, sealed; hitbox-only, the look is an item display).
+        assertThat(states).isGreaterThanOrEqualTo(60);
+        java.util.SortedSet<String> expected = new java.util.TreeSet<>(
+            List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern"));
+        HitboxDemands.BARREL_WOODS.forEach(w -> expected.add(HitboxDemands.barrelId(w)));
+        assertThat(expected).hasSize(26);
         assertThat(checkedIds).as("block ids whose explicit appearance states were checked")
-            .containsExactly("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern");
+            .containsExactlyElementsOf(expected);
         assertThat(mappings).as("generator block_state_mappings")
             .containsExactly("minecraft:snow[layers=6] -> minecraft:snow[layers=4]",
                 "minecraft:snow[layers=7] -> minecraft:snow[layers=8]");

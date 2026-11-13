@@ -35,6 +35,14 @@ public final class HitboxDemands {
     public static final String SCRAPING_ID = "tfp:scraping";
     public static final String SCRAPING_APPEARANCE = "base";
 
+    /** PAR-PROC-32: the upright barrel's two appearances (TFC {@code sealed=false|true}). */
+    public static final String BARREL_UNSEALED = "unsealed";
+    public static final String BARREL_SEALED = "sealed";
+    /** PAR-PROC-32: TFC's woods ({@code Wood.java}); BarrelBlock checks the list against the checkout. */
+    public static final List<String> BARREL_WOODS = List.of("acacia", "ash", "aspen", "birch", "blackwood", "chestnut",
+        "douglas_fir", "hickory", "kapok", "mangrove", "maple", "oak", "palm", "pine", "rosewood", "sequoia", "spruce",
+        "sycamore", "white_cedar", "willow");
+
     private HitboxDemands() {
     }
 
@@ -55,6 +63,20 @@ public final class HitboxDemands {
         d.add(new Demand("tfp:quern", QUERN_HANDSTONE, "tfc:quern[has_handstone=true]", 0, QUERN_MODEL, true, 1));
         // PAR-PROC-29: the scraping surface; drawn empty, the look is the item display of PaperScrapingEffects.
         d.add(new Demand(SCRAPING_ID, SCRAPING_APPEARANCE, "tfc:scraping", 0, HitboxAllocation.TRANSPARENT, true, 1));
+        // PAR-PROC-32: the upright barrel per wood, unsealed and sealed. The allocator serves at most 16 explicit model
+        // carriers for TFC's 12x16x12 outline (the cactus ages; 40 looks are needed), so every barrel state is hitbox-only
+        // and the per-wood look is an entity_renderer element (BarrelBlock). The side and rack states come with PAR-PROC-09.
+        for (String w : BARREL_WOODS) {
+            for (boolean sealed : new boolean[] {false, true}) {
+                d.add(new Demand(barrelId(w), sealed ? BARREL_SEALED : BARREL_UNSEALED,
+                    "tfc:wood/barrel[axis=y,sealed=" + sealed + "]", 0, HitboxAllocation.TRANSPARENT, true, 1));
+            }
+        }
         return d;
+    }
+
+    /** PAR-PROC-32: the CE block id of the barrel of {@code wood}. */
+    public static String barrelId(String wood) {
+        return "tfp:wood/barrel/" + wood;
     }
 }
