@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 314 items; open 219, done 91, blocked 4; waves 1..56 (wave 0 = already done).
+Totals: 315 items; open 220, done 91, blocked 4; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -113,6 +113,7 @@ Totals: 314 items; open 219, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-HUD-19 | Health and thirst bar states: hurt/regeneration glow, absorption in the fill and the yellow surplus bar, thirst overheat tint | HUD | 10 | open |
 | PAR-SURV-09 | Death, respawn and regeneration rules | SURV | 10 | open |
 | PAR-INFRA-43 | Button and mud carriers vs our worldgen placeholders: no small-ground-piece or charcoal-pile carrier draws over placed loose-rock, stick or mud placeholders | INFRA | 10 | open |
+| PAR-INFRA-44 | Heavy weighted pressure plate is a TFC player block (wrought-iron recipe): no transparent carrier may draw placed plates empty | INFRA | 10 | open |
 | PAR-PROC-32 | Barrel CE blocks: tfp:wood/barrel/<wood> hitbox demands, configuration/barrel, in-game brining check | PROC | 10 | open |
 | PAR-PROC-33 | Basket in-game verification: small items go in, a log is refused, bundle tooltip at GUI scale 2 and 3 | PROC | 10 | open |
 | PAR-CLIM-01 | Calendar config, sleep skipping and doDaylightCycle sync | CLIMATE | 11 | open |

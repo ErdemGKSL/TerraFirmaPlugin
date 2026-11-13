@@ -64,3 +64,14 @@ Not run: the hide steps (pending PAR-FAUNA-17, see the item's pending line); a T
 | Support: the surface goes with its log, the item drops | **Pass** (step 8) |
 | Persistence across relog and restart | **Pass** (step 5) |
 | Scraping a soaked hide yields a scraped hide | Pending PAR-FAUNA-17 |
+
+## Re-add attempt 2026-11-13 (not committed; PAR-PROC-29 blocked on PAR-INFRA-44)
+
+After PAR-INFRA-42 the selector's carrier is `minecraft:heavy_weighted_pressure_plate[power=0]` (vanilla shape data: selection
+14 x 1 x 14 inset 1 px, no collision). The re-add (run line, regenerated `scraping.yml`) was built on top of 7976702 and run on
+Paper 1.21.11 build 132, CraftEngine 26.9.2, headless 1.21.11 client (GUI 2, then GUI 3 after a client kill and server
+restart). All non-hide steps behaved as in the run above. It is withdrawn again because the carrier is not free: TFC ships a
+crafting recipe for the heavy weighted pressure plate (two wrought-iron ingots), and a placed vanilla heavy plate at power=0
+is drawn empty by the transparent appearance (`11-heavy-plate-drawn-empty.png`: a `setblock` heavy plate in front of the
+gold light plate on the left is invisible). Follow-up: PAR-INFRA-44. The screenshots of this attempt are not kept (the
+entry is not shipped); the verdict above stays the reference until the re-add on the final carrier.
