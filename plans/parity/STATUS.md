@@ -117,7 +117,7 @@ Totals: 315 items; open 220, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-PROC-32 | Barrel CE blocks: tfp:wood/barrel/<wood> hitbox demands, configuration/barrel, in-game brining check | PROC | 10 | done |
 | PAR-PROC-33 | Basket in-game verification: small items go in, a log is refused, bundle tooltip at GUI scale 2 and 3 | PROC | 10 | done |
 | PAR-CLIM-01 | Calendar config, sleep skipping and doDaylightCycle sync | CLIMATE | 11 | open |
-| PAR-CLIM-02 | Precipitation per position on Paper and the in-game snow-vs-rain check | CLIMATE | 11 | open |
+| PAR-CLIM-02 | Precipitation per position on Paper and the in-game snow-vs-rain check | CLIMATE | 11 | done |
 | PAR-FLUID-10 | Vanilla bucket from a spring pool gives tfp:bucket/spring_water; waterlogged blocks in oceans give fresh water | FLUID | 11 | open |
 | PAR-SURV-14 | Survival config keys in config.yml: keepNutritionAfterDeath, peaceful passive regeneration, naturalRegenerationModifier | SURV | 11 | open |
 | PAR-FLUID-11 | Hot spring in-game verification: health rises standing in a hot spring | FLUID | 11 | open |
@@ -126,6 +126,7 @@ Totals: 315 items; open 220, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-HEAT-14 | Item bars: the heat bar on hot items (TFC BarSystem HEAT) as a packet-time durability-style bar, with the shared item-bar layer | HEAT | 11 | open |
 | PAR-PROC-11 | Composter | PROC | 11 | open |
 | PAR-CLIM-03 | Snow and ice accumulation: lazy-vs-stepped equivalence and server check | CLIMATE | 12 | open |
+| PAR-CLIM-15 | Self-test weather.precip_sample and PrecipitationService in ModuleServices | CLIMATE | 12 | open |
 | PAR-FLUID-13 | Bucket double-use guard keyed on day time: buckets stop working when the daylight cycle is off | FLUID | 12 | open |
 | PAR-DATA-16 | Pistons cannot move water sources: 1-tick piston pulses drop the water of waterlogged blocks (TFC's MC-130183 fix) | DATA | 12 | open |
 | PAR-HEAT-04 | Heating recipes on devices: the 884 heating recipes as a shared service | HEAT | 12 | open |

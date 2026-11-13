@@ -39,7 +39,7 @@ class PrecipitationServiceTest {
     @Test
     void coveredPositionIsNoneWhateverTheClimate() {
         var capture = new PrecipitationService.Capture(PLAYER, 42L, true, POS, false);
-        PrecipitationService.Decision decision = PrecipitationService.compute(capture, CLOCK);
+        dev.tfp.core.weather.PrecipitationSample decision = PrecipitationService.compute(capture, CLOCK);
         assertThat(decision.type()).isEqualTo(PrecipitationType.NONE);
         assertThat(decision.clockSequence()).isEqualTo(CLOCK.sequence());
     }

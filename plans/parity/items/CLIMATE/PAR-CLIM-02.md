@@ -2,7 +2,7 @@
 id: PAR-CLIM-02
 title: "Precipitation per position on Paper and the in-game snow-vs-rain check"
 area: CLIMATE
-status: open
+status: done
 wave: 11
 deps: []
 size: S
@@ -24,6 +24,7 @@ plan:
   - "Current: `core/weather/PrecipitationType.decide` is golden-tested; PrecipitationService exists."
   - "Sample per player position (throttled 20 ticks) and expose `precipitationAt(pos)` to other systems (barrel rain fill, drinking in rain, fire dousing)."
   - "Server check: snow falls on cold ground at the right season, rain in warm areas."
+  - "Done: PrecipitationService samples every online player every 20 ticks whether or not a HUD is active (core PrecipitationSample/PrecipitationSamples, newest clock reading wins), uses vanilla isRainingAt position gates (MOTION_BLOCKING top + sky light 15), and exposes sampleOf(player), precipitationAt/isRainingAt(world, pos, rainReaches) and PrecipitationService.current(). Tests: PrecipitationSamplesTest (3), PrecipitationSamplingMockBukkitTest (7, fake clock, forced cold/warm climate). In-game: docs/verification/PAR-CLIM-02/verdict.md (pass; client particles per NP-CLIM-02). The itest weather.precip_sample and the ModuleServices wiring are outside files_owned: follow-up PAR-CLIM-15."
 tests:
   - "paper: fake-clock sampling test"
   - "itest: `weather.precip_sample` with a forced climate"
