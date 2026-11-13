@@ -2,7 +2,7 @@
 id: PAR-PROC-29
 title: "Scraping block CE entry: tfc:scraping hitbox row and demand, configuration/scraping, in-game check"
 area: PROC
-status: blocked
+status: open
 wave: 8
 deps: [PAR-PROC-24, PAR-INFRA-42]
 size: S
