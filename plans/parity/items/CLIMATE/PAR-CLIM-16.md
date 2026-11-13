@@ -2,7 +2,7 @@
 id: PAR-CLIM-16
 title: "Calendar sleep-skip self-test: calendar.sleep_skip on Paper and Folia"
 area: CLIMATE
-status: open
+status: done
 wave: 12
 deps: [PAR-CLIM-01]
 size: S
@@ -18,6 +18,7 @@ plan:
   - "Follow-up of PAR-CLIM-01, whose files_owned did not include an itest case file."
   - "Case `calendar.sleep_skip` (SelfTestSuite hub line): on the running server, with the calendar forced to run (`CalendarService.setRunWhenEmpty`), set the calendar to 9 pm with `CalendarService.skip`, check the overworld's full time is `calendarTicks + 18000` and the daylight rule is on; fire a `TimeSkipEvent` NIGHT_SKIP on the global thread (`OnThread.global`) and check the calendar is at 5 am the next day, the player ticks advanced by `slept * dayLength / 20`, the published clock moved, and `world.getFullTime() + event.getSkipAmount()` equals the calendar's new day time."
   - "Also check a `/gamerule` change of the daylight rule from the console is cancelled (WorldGameRuleChangeEvent) and an empty server with the time stop on turns the rule off."
+  - "Done: CalendarSleepSkipCase registered after calendar.persist (SelfTestSuiteTest count 30, needed to keep :itest:test green); calendar.sleep_skip PASSED in :itest:runSelfTest on Paper 1.21.11 and Folia 1.21.11 (9 pm at 981000, slept 8000 calendar / 9600 player ticks to 5 am, vanilla lands at 1007000, console /gamerule minecraft:advance_time cancelled, empty server stops the calendar and turns the rule off). The same runs fail worldgen.terrain_generates (vanilla world surface SHORT_GRASS / TALL_SEAGRASS), which this item does not touch. No new divergence."
 tests:
   - "itest: `calendar.sleep_skip` passes on Paper 1.21.11 and Folia (:itest:runSelfTest)"
 done_criteria:

@@ -48,6 +48,7 @@ public final class SelfTestSuite {
                 new dev.tfp.itest.cases.DehydrationDamageCase(),
                 new RegionSchedulerCase(),
                 new CalendarPersistCase(),
+                new dev.tfp.itest.cases.CalendarSleepSkipCase(),
                 new ItemDataRoundTripCase(),
                 new CraftEnginePackIssuesCase(),
                 new CraftEngineBlockRoundTripCase(),
