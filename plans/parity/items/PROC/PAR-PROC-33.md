@@ -2,7 +2,7 @@
 id: PAR-PROC-33
 title: "Basket in-game verification: small items go in, a log is refused, bundle tooltip at GUI scale 2 and 3"
 area: PROC
-status: open
+status: done
 wave: 10
 deps: [PAR-PROC-22]
 size: S
@@ -22,6 +22,7 @@ in_game_steps:
 plan:
   - "Deferred from PAR-PROC-22 (PROTOCOL 6.5): PAR-PROC-22's rule is done and tested (BasketItemTest, BasketMockBukkitTest: TFC's size rule, all 17 vanilla bundle materials, both click paths). Its screenshot stage could not run because the single headless server slot was held by another item's server; the check moved here so it does not hold the item. PAR-PROC-22 does not depend on this item."
   - "Run the in_game_steps (cheap-model agent where available); the main session judges every screenshot and writes docs/verification/PAR-PROC-22/verdict.md."
+  - "Done: in-game run on Paper 1.21.11 + client 1.21.11 at GUI scale 2 and 3: 16 stick and 16 stone went into tfp:basket (bundle tooltip lists both, half-full bar), 4 oak logs were refused (stayed on the cursor, bundle_contents unchanged per RCON); the icon matches TFC's basket texture. No code change. Evidence and verdict (all pass): docs/verification/PAR-PROC-22/."
 tests:
   - "None beyond the in-game steps (the rule is unit-tested in PAR-PROC-22)"
 done_criteria:
