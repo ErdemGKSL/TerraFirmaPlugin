@@ -32,9 +32,11 @@ morning reading is 1.6 C, the warm part of the day passes 2 C).
 - `july-melted.png`: the same camera after the July reload: the snow is gone except a few layers (5 counted in the test
   chunk), summer grass tint. Chunks at the left edge of the full frame still showed January snow: they stayed loaded
   across the clock jump (neighbours of the forced chunk), so they got no catch-up and only the live samples near a
-  player melt them (TFC's live branch does the same: a chunk ticked within 4,000 ticks gets no catch-up). In TFC the larger reason is the
-  units: `/time add` and TFC's month skip do not advance player ticks, and TFC measures the catch-up window in player
-  ticks, so TFC would not catch up even a reloaded chunk after such a jump; ours does (calendar ticks, ledger catch-up row).
+  player melt them. This leftover January snow is our divergence, not TFC behaviour: in TFC, `/time add` and the
+  sleep skip go through `ServerCalendar.skipForwardBy`, which also advances player ticks (by `calendarTicks /
+  calendarTickRate`), so every chunk still ticking would see more than 4,000 ticks since its last random tick and run
+  the full catch-up on its next tick, melting that snow. Ours catches up only on chunk load; recorded in the ledger's
+  snow catch-up row with a revisit target (skip-time catch-up of loaded chunks).
 - `july-readout.png`: the readout above.
 
 ## Criteria
@@ -63,3 +65,8 @@ morning reading is 1.6 C, the warm part of the day passes 2 C).
 - Health 850 -> 639 in that recapture: the item does not deal damage (no snow or ice code path hurts players); the
   recapture steps now keep Bot in creative so a drop there would point at a bug elsewhere (body temperature, PAR-SURV).
 - Empty `tfp debug chunk` RCON reply during the catch-up after a clock jump: tracked as PAR-CLIM-17.
+- Second workflow recapture (2026-11-13, accepted as visual-only): chunk 0,-124 showed the scattered 1-3 layer pattern
+  with no texture faults. It still used a snow_block floor, so the snow-pile-on-plants and ice-on-pool paths and the
+  July melt under the new `in_game_steps` remain to be shot; F3 read y=116.0 on the floor, so the next capture adds a
+  Targeted Block or `/data` check that the floor block is unchanged and the layers sit at Y+1, plus
+  `execute if block 12 Y -1976 minecraft:ice` and the clone-count readouts.
