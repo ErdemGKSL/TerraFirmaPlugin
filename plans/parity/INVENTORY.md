@@ -254,6 +254,13 @@ Status legend: **done** (rules, glue and visuals in game), **partial** (some lay
 | FAUNA | Fertilized egg incubation bar (client/BarSystem EGG) | not started | PAR-FAUNA-23 |
 | WORLD | Coral plants, fans and wall fans (Coral x Coral.BlockType, 30 blocks) and TFCSeaPickleBlock as TFC blocks; generation writes vanilla placeholders today | placeholder | PAR-WORLD-25 |
 | DATA | Piston water-source dupe fix for waterlogged blocks (PistonBlockEntityMixin, MC-130183) | not started | PAR-DATA-16 |
+| WORLD | Amethyst geodes (placed_feature tfc:geode: vanilla geode feature with hardened basalt, quartzite and amethyst ore, last entry of in_biome/veins; VeinData skips it) | not started | PAR-WORLD-26 |
+| INFRA | Static info tooltip lines (PhysicalDamageType deals/resists lines, fuel 'Burns at', 'usable in sluice and pan', Lore: rock display category, rock category, glass type) | not started | PAR-INFRA-46 |
+| METAL | Forging tooltips (ForgingBonusComponent bonus + smith via Tooltips.author, ForgingCapability 'Worked') | not started | PAR-METAL-21 |
+| FARM | Wild plant block rules (common/blocks/plant canSurvive per shape, cactus entityInside damage, tall halves, plant stacking, flower shearing, TopPlantBlock/GrowingBranchingCactusBlock/KelpTreeFlowerBlock/TFCVineBlock growth, plantLongGrowthChance) | not started | PAR-FARM-12 |
+| FARM | Plant info and fertilizer tooltips (PlantableInfo on SeedItem, FruitBlocks, TFCSaplingBlock; Fertilizer N/P/K lines) | not started | PAR-FARM-13 |
+| GATHER | Axe stripping (LogBlock and BambooBlock getToolModifiedState AXE_STRIP) | not started | PAR-GATHER-08 |
+| INFRA | Block flammability (ExtendedProperties.flammable / flammableLike*, ignitedByLava, IForgeBlockExtension fire hooks) on CE blocks | not started | PAR-INFRA-47 |
 
 ## Features already at parity (no open item)
 
@@ -297,4 +304,4 @@ Auditor: `NOT-PARITY.md` is the full list of what stays outside parity (design d
 | Create TFC world screen (CreateTFCWorldScreen) | client screen | bukkit.yml generator + config | PAR-WORLD-16, PAR-WORLD-22 |
 | Creative mode tabs (TFCCreativeTabs) | client creative inventory | CraftEngine item browser categories in TFC's order | PAR-DATA-15 |
 
-Counts over the item rows: done 4, impossible-on-vanilla 3, not started 81, partial 140, placeholder 13.
+Counts over the item rows: done 4, impossible-on-vanilla 3, not started 92, partial 141, placeholder 13.
