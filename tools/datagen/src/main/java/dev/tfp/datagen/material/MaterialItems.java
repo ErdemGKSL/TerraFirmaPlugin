@@ -41,7 +41,8 @@ import java.util.regex.Pattern;
  * left to it. Each item gets its TFC model and textures, its TFC name in every TFC locale (written into the pack as
  * {@code assets/tfp_material/lang/<locale>.json}: the {@code tfp} lang files belong to the asset pipeline), and the stack
  * size of TFC's {@code item_size} weight (64 without one). Items with durability ({@code handstone} 250, {@code spindle} and
- * {@code sandpaper} 40, {@code bone_needle} 64) carry {@code max_damage} and stack to one, as vanilla requires. Item heat is
+ * {@code sandpaper} 40, {@code bone_needle} 64) carry {@code max_damage} and {@code minecraft:damage} 0
+ * (as TFC's {@code durability(n)}, so vanilla treats them as damageable) and stack to one, as vanilla requires. Item heat is
  * not written here: the runtime reads TFC's {@code item_heat} data. The gem saw is a mining tool of TFC's bronze tier
  * (TFC's {@code GemSawItem}: {@code tfc:mineable_with_glass_saw}); its glassworking use is PAR-PROC-16's.
  *
@@ -207,7 +208,10 @@ public final class MaterialItems {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("max_stack_size", item.stackSize());
         if (item.durability() > 0) {
+            // TFC's Properties.durability(n) sets MAX_DAMAGE n and DAMAGE 0. Vanilla's isDamageableItem() needs both, and the
+            // paper base has no damage component: without it set_damage, hurtAndBreak and ItemStack#damage do nothing.
             data.put("max_damage", item.durability());
+            data.put("components", Map.of("minecraft:damage", 0));
         }
         entry.put("data", data);
         return entry;

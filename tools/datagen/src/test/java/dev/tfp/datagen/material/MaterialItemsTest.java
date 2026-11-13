@@ -257,6 +257,30 @@ class MaterialItemsTest {
         assertThat(hand.has("overrides")).isFalse();
     }
 
+    /** TFC's Properties.durability(n) sets DAMAGE 0 with MAX_DAMAGE n: every item with max_damage also carries damage 0. */
+    @Test
+    @SuppressWarnings("unchecked")
+    void durabilityItemsCarryDamageZero() {
+        int count = 0;
+        for (Map.Entry<String, Object> e : config.entrySet()) {
+            Map<String, Object> data = (Map<String, Object>) ((Map<String, Object>) e.getValue()).get("data");
+            if (data == null || !data.containsKey("max_damage")) {
+                assertThat(data == null ? null : data.get("components")).as(e.getKey()).isNull();
+                continue;
+            }
+            count++;
+            assertThat((Map<String, Object>) data.get("components")).as(e.getKey()).containsEntry("minecraft:damage", 0);
+        }
+        assertThat(count).isGreaterThanOrEqualTo(4);
+        for (String id : List.of("tfp:handstone", "tfp:sandpaper", "tfp:spindle", "tfp:bone_needle")) {
+            Map<String, Object> data = (Map<String, Object>) ((Map<String, Object>) config.get(id)).get("data");
+            assertThat((Map<String, Object>) data.get("components")).as(id).containsExactly(Map.entry("minecraft:damage", 0));
+        }
+        // the gem saw's iron_pickaxe base already has vanilla's damage 0 prototype (a damageable item)
+        Map<String, Object> saw = (Map<String, Object>) config.get("tfp:gem_saw");
+        assertThat((Map<String, Object>) saw.get("arguments")).containsEntry("material", "iron_pickaxe");
+    }
+
     /** The named sample of the done criterion (the ce item give list) is in the config. */
     @Test
     void doneCriterionSampleExists() {

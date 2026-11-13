@@ -2,7 +2,7 @@
 id: PAR-PROC-26
 title: "Durability material items carry minecraft:damage 0 (vanilla damageable); gem saw in-game check"
 area: PROC
-status: open
+status: done
 wave: 8
 deps: [PAR-PROC-24]
 size: S
@@ -26,6 +26,7 @@ in_game_steps:
 plan:
   - "Found 2026-11-05 by PAR-PROC-23 (docs/verification/PAR-PROC-19/verdict.md): MaterialItems emits max_damage for TFC's durability items (handstone 250, sandpaper 40, spindle, bone needle, ...) on a paper base, but no minecraft:damage component. Vanilla ItemStack.isDamageableItem() needs MAX_DAMAGE and DAMAGE, so set_damage, hurtAndBreak and Paper's ItemStack#damage do nothing on a fresh item. TFC's Properties.durability(n) sets both (DAMAGE 0). Emit damage 0 with max_damage (CE data key or raw component), regenerate, extend MaterialItemsTest."
   - "The gem saw could not be given in that check (PAR-PROC-24: tfp:mineable/glass_saw is not a server tag); once PAR-PROC-24 is done, check its name, texture and durability here."
+  - "Done: MaterialItems writes components {minecraft:damage: 0} next to max_damage for every durability item (handstone, sandpaper, spindle, bone needle); the gem saw's iron_pickaxe base already has damage 0. Test MaterialItemsTest.durabilityItemsCarryDamageZero. In game 2026-11-13 (docs/verification/PAR-PROC-26/verdict.md): set_damage works and bars show, sandpaper loses 1 per ruby craft, gem saw breaks glass and takes 1 damage, 36 metal tools + gem saw give with TFC names and textures, gem saw and mortar tooltips at GUI scale 2 and 3, glue caps at 32 and halite at 16. All pass."
 tests:
   - "tools/datagen material: every item with max_damage also sets damage 0"
 done_criteria:

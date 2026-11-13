@@ -82,7 +82,7 @@ Totals: 314 items; open 219, done 91, blocked 4; waves 1..56 (wave 0 = already d
 | PAR-SURV-10 | TFC damage types in the server registry (tfp:dehydration and the others), dehydration hits through it | SURV | 8 | done |
 | PAR-REL-12 | Visual and overlay budget guards: profile-vs-pool unit test, overlay entities-per-chunk itest budget | REL | 8 | done |
 | PAR-INFRA-34 | Verify the ore overlay datagen in game: host-rock look of buried ores, composite ore block item icons, pick-block | INFRA | 8 | done |
-| PAR-PROC-26 | Durability material items carry minecraft:damage 0 (vanilla damageable); gem saw in-game check | PROC | 8 | open |
+| PAR-PROC-26 | Durability material items carry minecraft:damage 0 (vanilla damageable); gem saw in-game check | PROC | 8 | done |
 | PAR-PROC-27 | Tool item build guards: self-test gives every item with a minecraft:tool component; datagen check that tool rules name only shipped block tags | PROC | 8 | done |
 | PAR-PROC-29 | Scraping block CE entry: tfc:scraping hitbox row and demand, configuration/scraping, in-game check | PROC | 8 | blocked |
 | PAR-PROC-30 | minecraft:bricks is craftable in TFC: stop repurposing it as a visual state; bricks craft in-game re-check | PROC | 8 | done |
