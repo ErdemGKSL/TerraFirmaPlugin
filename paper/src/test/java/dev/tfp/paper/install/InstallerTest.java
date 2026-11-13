@@ -148,9 +148,12 @@ class InstallerTest {
         }
 
         void close() throws InterruptedException {
-            awaitIdle();
-            closed = true;
-            es.shutdown();
+            try {
+                awaitIdle();
+            } finally {
+                closed = true;
+                es.shutdown();
+            }
             if (!es.awaitTermination(10, TimeUnit.SECONDS)) {
                 throw new AssertionError("io executor did not terminate");
             }
