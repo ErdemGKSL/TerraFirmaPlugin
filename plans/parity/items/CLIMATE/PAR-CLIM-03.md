@@ -2,7 +2,7 @@
 id: PAR-CLIM-03
 title: "Snow and ice accumulation: lazy-vs-stepped equivalence and server check"
 area: CLIMATE
-status: open
+status: done
 wave: 12
 deps: [PAR-CLIM-02]
 size: S
@@ -26,6 +26,7 @@ plan:
   - "Write the lazy-vs-stepped equivalence test over one climate sequence (stepped onTickChunk vs SnowCatchUp)."
   - "Server check: melting on a warm day, first-load cost of new chunks recorded in docs/perf."
   - "Close the rain and melt divergence rows in the ledger or update them."
+  - "Done: SnowLazyVsSteppedTest (5 tests: stepped replay vs its expectation, catch-up vs fuzzed stepped expectation over a year at three sites, bounds vs the plain stepped run, monthly sign, capped month); SnowCatchUpStats (+ test, -Dtfp.snow.stats=true) for the first-load cost in docs/perf/snow-catch-up.md; server check docs/verification/PAR-CLIM-03/verdict.md (January catch-up 0 -> 60 layers, July melt 60 -> 5); ledger: rain row closed, melt position kept"
 tests:
   - "core: SnowLazyVsSteppedTest"
 done_criteria:

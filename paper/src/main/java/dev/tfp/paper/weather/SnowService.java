@@ -127,6 +127,8 @@ public final class SnowService implements Listener {
     private final Scheduler scheduler;
     private final CommitBudget budget = new CommitBudget(BUDGET_NANOS, System::nanoTime);
     private final Map<UUID, WorldSnow> worlds = new ConcurrentHashMap<>();
+    /** Catch-up counters (PAR-CLIM-03 first-load cost), logged with {@code -Dtfp.snow.stats=true}. */
+    private final SnowCatchUpStats stats = new SnowCatchUpStats();
     private final BlockData air = Material.AIR.createBlockData();
     private final BlockData water = Material.WATER.createBlockData();
     private final BlockData ice = Material.ICE.createBlockData();
@@ -148,6 +150,24 @@ public final class SnowService implements Listener {
                 sample(player);
             }
         });
+        if (SnowCatchUpStats.enabled()) {
+            scheduler.globalRepeating(STATS_PERIOD_TICKS, STATS_PERIOD_TICKS, this::logStats);
+        }
+    }
+
+    /** The stats log period: 30 s. */
+    static final long STATS_PERIOD_TICKS = 600;
+
+    /** Global thread: one line of catch-up counters and one of each world's pipeline metrics, when chunks loaded. */
+    private void logStats() {
+        String line = stats.drain();
+        if (line == null) {
+            return;
+        }
+        LOG.info("[snow] catch-up " + line);
+        for (WorldSnow snow : worlds.values()) {
+            LOG.info("[snow:" + snow.world.getName() + "] pipeline " + snow.pipeline.metrics());
+        }
     }
 
     /** Player thread: picks the columns near the player, then hands each one to its owning region. */
@@ -238,29 +258,34 @@ public final class SnowService implements Listener {
             if (!now.isSet() || !world.isChunkLoaded(cx, cz)) {
                 return;
             }
+            long started = System.nanoTime();
             SnowCatchUpSchedule.Load load = schedule.onLoad(world.getChunkAt(cx, cz).getPersistentDataContainer());
             if (!load.catchUp()) {
+                stats.load(System.nanoTime() - started);
                 return;
             }
             // The two columns stand for TFC's two sampled positions (the random surface and the sequential one).
             BlockPos a = surfaceOf(cx * 16 + 8, cz * 16 + 8);
             BlockPos b = surfaceOf(cx * 16 + 3, cz * 16 + 11);
+            stats.load(System.nanoTime() - started);
             if (a == null || b == null) {
                 return;
             }
+            stats.due.increment();
             int existing = blocks.pileCount(cx, cz);
             int days = now.daysInMonth();
             long last = load.lastCalendarTick();
             long calendar = load.calendarTick();
             CompletableFuture
                     .supplyAsync(() -> {
+                        long planStarted = System.nanoTime();
                         OverworldClimate climate = OverworldClimate.forWorldSeed(world.getSeed(),
                                 OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
                         // Both sampled columns are in this chunk, so one chunk climate serves both
                         ChunkClimate chunk = ChunkClimateSource.climateAt(world.getSeed(), cx * 16 + 8, cz * 16 + 8);
                         float rainfall = SnowCatchUp.averageRainfall(SnowCatchUp.averagingFrom(last, calendar), calendar,
                                 t -> climate.instantRainfall(chunk, t, days));
-                        return SnowCatchUp.plan(last, calendar, new SnowCatchUp.Climate() {
+                        SnowCatchUp.Plan plan = SnowCatchUp.plan(last, calendar, new SnowCatchUp.Climate() {
                             @Override
                             public float temperature(long t) {
                                 return Math.max(climate.instantTemperature(a, chunk, t, days),
@@ -272,6 +297,8 @@ public final class SnowService implements Listener {
                                 return climate.rainIntensity(t);
                             }
                         }, rainfall, existing, SnowCatchUp.DEFAULT_MAX_UPDATES);
+                        stats.plan(System.nanoTime() - planStarted, plan.accumulate(), plan.melt());
+                        return plan;
                     }, scheduler.cpuExecutor())
                     .whenComplete((plan, error) -> {
                         if (error != null) {
@@ -292,6 +319,7 @@ public final class SnowService implements Listener {
             if (!world.isChunkLoaded(cx, cz)) {
                 return; // never write a chunk that is not loaded
             }
+            long started = System.nanoTime();
             int end = Math.min(total, from + STEPS_PER_HOP);
             for (int i = from; i < end; i++) {
                 BlockPos surface = surfaceOf(columnX(cx, cz, i), columnZ(cx, cz, i));
@@ -304,6 +332,7 @@ public final class SnowService implements Listener {
                 // rather than left for an unrelated sample of that column.
                 forced.remove(surface);
             }
+            stats.hop(System.nanoTime() - started);
             if (end < total) {
                 scheduler.region(world, cx, cz, () -> catchUpHop(cx, cz, kind, total, end));
             }

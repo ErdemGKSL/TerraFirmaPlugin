@@ -125,7 +125,7 @@ Totals: 333 items; open 212, done 118, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-HEAT-03 | Hot items: burn damage while held, item entities cool in water and snow | HEAT | 11 | done |
 | PAR-HEAT-14 | Item bars: the heat bar on hot items (TFC BarSystem HEAT) as a packet-time durability-style bar, with the shared item-bar layer | HEAT | 11 | done |
 | PAR-PROC-11 | Composter | PROC | 11 | done |
-| PAR-CLIM-03 | Snow and ice accumulation: lazy-vs-stepped equivalence and server check | CLIMATE | 12 | open |
+| PAR-CLIM-03 | Snow and ice accumulation: lazy-vs-stepped equivalence and server check | CLIMATE | 12 | done |
 | PAR-CLIM-15 | Self-test weather.precip_sample and PrecipitationService in ModuleServices | CLIMATE | 12 | done |
 | PAR-CLIM-16 | Calendar sleep-skip self-test: calendar.sleep_skip on Paper and Folia | CLIMATE | 12 | open |
 | PAR-CLIM-17 | Console /tfp debug chunk <x> <z> answers over RCON and reads precipitation through vanilla's rain gates | CLIMATE | 12 | open |
