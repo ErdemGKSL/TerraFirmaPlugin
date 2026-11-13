@@ -32,6 +32,7 @@ import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityExhaustionEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.BeforeEach;
@@ -173,6 +174,20 @@ class PhysicalDamageListenerTest extends MockServerTest {
         EntityRegainHealthEvent mob = new EntityRegainHealthEvent(zombie, 1, EntityRegainHealthEvent.RegainReason.SATIATED);
         regen.onRegain(mob);
         assertThat(mob.isCancelled()).as("only players").isFalse();
+    }
+
+    @Test
+    void vanillaRegenerationExhaustionIsSuppressedForPlayers() {
+        HealthRegenerator regen = new HealthRegenerator(HealthConfig.DEFAULT, p -> Optional.of(PlayerData.NEW),
+                (p, a) -> { });
+        EntityExhaustionEvent regenExhaustion =
+                new EntityExhaustionEvent(bot, EntityExhaustionEvent.ExhaustionReason.REGEN, 6f);
+        regen.onExhaustion(regenExhaustion);
+        assertThat(regenExhaustion.isCancelled()).as("vanilla adds REGEN exhaustion even after a cancelled heal").isTrue();
+        EntityExhaustionEvent sprint =
+                new EntityExhaustionEvent(bot, EntityExhaustionEvent.ExhaustionReason.SPRINT, 0.1f);
+        regen.onExhaustion(sprint);
+        assertThat(sprint.isCancelled()).as("other exhaustion stays").isFalse();
     }
 
     @Test

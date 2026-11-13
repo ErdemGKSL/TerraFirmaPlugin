@@ -21,12 +21,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityExhaustionEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 
 /**
  * PAR-SURV-05: TFC's passive regeneration in place of vanilla's. TFC turns the {@code naturalRegeneration} game rule
  * off, so neither vanilla's food regeneration ({@code SATIATED}) nor peaceful regeneration ({@code REGEN}) happens;
- * here those two regain reasons are cancelled for players instead of changing the world's game rule. Every
+ * here those two regain reasons are cancelled for players instead of changing the world's game rule. Vanilla's
+ * {@code FoodData.tick} adds its regeneration exhaustion ({@code ExhaustionReason.REGEN}) after the heal whatever the
+ * regain event decided, so that exhaustion is cancelled too: with the game rule off TFC adds none. Every
  * {@value #PERIOD_TICKS} ticks ({@code tickCount % 10 == 0}) a hurt player with food {@code >= 4} and thirst {@code > 20}
  * heals {@link HealthRegen#healPerStep} vanilla HP (reason {@code CUSTOM}, as TFC's {@code heal} fires the heal event).
  *
@@ -56,6 +59,18 @@ public final class HealthRegenerator implements Listener {
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onRegain(EntityRegainHealthEvent event) {
         if (event.getEntity() instanceof Player && suppressed(event.getRegainReason())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * The exhaustion vanilla's food regeneration adds after each {@code SATIATED} heal; {@code FoodData.tick} adds it
+     * even when the regain event was cancelled. TFC's game rule off means it never happens.
+     */
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    public void onExhaustion(EntityExhaustionEvent event) {
+        if (event.getEntity() instanceof Player
+                && event.getExhaustionReason() == EntityExhaustionEvent.ExhaustionReason.REGEN) {
             event.setCancelled(true);
         }
     }

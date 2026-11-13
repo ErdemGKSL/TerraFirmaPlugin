@@ -149,7 +149,9 @@ public final class PhysicalDamageListener implements Listener {
 
     /**
      * TFC {@code getHealthModifier} of the stored nutrition at the vanilla food level, the same value the health bar
-     * uses; without stored data, the modifier of TFC's average nutrition.
+     * uses; without stored data, the modifier of TFC's average nutrition. TFC always has the player's data; here it can be
+     * missing only before the data has loaded (or for a player the store never saw), and the average is TFC's own
+     * starting value, so the fallback matches a fresh TFC player.
      */
     static float healthModifier(Optional<PlayerData> stored, int foodLevel) {
         NutritionConfig config = NutritionConfig.DEFAULT;
