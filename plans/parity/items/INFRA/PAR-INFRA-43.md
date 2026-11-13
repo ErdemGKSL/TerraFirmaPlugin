@@ -2,7 +2,7 @@
 id: PAR-INFRA-43
 title: "Button and mud carriers vs our worldgen placeholders: no small-ground-piece or charcoal-pile carrier draws over placed loose-rock, stick or mud placeholders"
 area: INFRA
-status: open
+status: done
 wave: 10
 deps: [PAR-INFRA-42]
 size: S
@@ -20,6 +20,7 @@ plan:
   - "Current (PAR-INFRA-42): paper/worldgen/GroundcoverBlocks places minecraft:stone_button (loose rocks) and minecraft:oak_button (sticks), TfcTerrain places minecraft:mud (mud surface). The carrier policy keeps all three `presence: absent` on CarrierPolicyWorldgenTest's allow-list because HitboxCarrierTest pins oak_button for tfc:rock/loose[count=1], tfc:ore/small and tfc:groundcover[shape=small] and mud for tfc:charcoal_pile[layers=8], and VanillaCandidatesTest checks mud against docs/research/vanilla-fullcube-supply.csv (absent). No demand uses them today; the guard test fails as soon as one draws a non-vanilla look on them."
   - "Decide before the first groundcover / loose rock / charcoal pile demand ships: either the worldgen places the CE blocks instead of these placeholders (then the allow-list entries stand, with that reason), or the policy marks the blocks `reserved` (no integer property, no hide target) and the pins move to the next free carriers (re-derive from the reports). Mud: a model on the mud carrier would draw every generated mud surface as a charcoal pile."
   - "Remove the allow-list entries that no longer apply; regenerate and diff reports/hitbox-carriers-*.md."
+  - "Done: worldgen still places the vanilla placeholders (paper/worldgen is out of scope), so the policy excludes the placed button states stone_button/oak_button[face=floor,facing=north,powered=false|true] (excluded_states; the other floor facings stay the small-ground-piece carrier, pins unchanged) and marks mud reserved (charcoal_pile[layers=8] re-pinned to snow[layers=8] with hide snow[layers=7], score 0.970). CarrierPolicyWorldgenTest has no allow-list (placed-state table checked against TfcTerrain.placeholderData, new guard over every pinned selector carrier); VanillaCandidatesTest accepts reserved for CSV-absent worldgen placeholders. Reports: only charcoal_pile[layers=8] and the runner-up columns change; allocations unchanged. Ledger divergence row added."
 tests:
   - "CarrierPolicyWorldgenTest with an empty (or justified) allow-list; HitboxCarrierTest pins updated to the re-derived carriers"
 done_criteria:

@@ -1,5 +1,5 @@
 {
-  "about": "PAR-INFRA-13: how each vanilla block of vanilla-shapes-<version>.json may serve as a hitbox carrier. presence: absent = never in a TFC world (usable as is); natural = occurs in TFC worlds or our worldgen places it (usable only with a one-hop hide mapping); player = players craft or place it in TFC (never usable); reserved = kept for another family, or a worldgen placeholder with no hide target (PAR-INFRA-42; CarrierPolicyWorldgenTest checks absent against paper/worldgen); reference = dumped for comparison only. only_class: the one shape class that may use the block (reserved by its class override); every other class rejects it. Every dumped block must be listed here or in hard_ban. replaceable_only: the states that are really replaceable when the dump's flag (BlockState.canBeReplaced(), the material flag) is wider: SnowLayerBlock lets any other item replace only layers=1 (a held snow layer adds a layer to any count below 8, see the snow notes in the item).",
+  "about": "PAR-INFRA-13: how each vanilla block of vanilla-shapes-<version>.json may serve as a hitbox carrier. presence: absent = never in a TFC world (usable as is); natural = occurs in TFC worlds or our worldgen places it (usable only with a one-hop hide mapping); player = players craft or place it in TFC (never usable); reserved = kept for another family, or a worldgen placeholder with no hide target (PAR-INFRA-42, mud by PAR-INFRA-43; CarrierPolicyWorldgenTest checks absent against paper/worldgen; an absent block our worldgen places in known states lists those states in excluded_states, PAR-INFRA-43 buttons); reference = dumped for comparison only. only_class: the one shape class that may use the block (reserved by its class override); every other class rejects it. Every dumped block must be listed here or in hard_ban. replaceable_only: the states that are really replaceable when the dump's flag (BlockState.canBeReplaced(), the material flag) is wider: SnowLayerBlock lets any other item replace only layers=1 (a held snow layer adds a layer to any count below 8, see the snow notes in the item).",
   "blocks": {
     "minecraft:snow": {"presence": "natural", "hide": "nearest_free_value:layers", "replaceable_only": ["minecraft:snow[layers=1]"], "note": "TFC snowfall places vanilla snow layers 1-8; real instances of a used layer count are sent as the nearest unused count"},
     "minecraft:white_carpet": {"presence": "player", "note": "wool carpets are crafted in TFC"},
@@ -9,8 +9,8 @@
     "minecraft:oak_pressure_plate": {"presence": "reserved", "note": "kept for the wood pressure-plate family (freed sets)"},
     "minecraft:light_weighted_pressure_plate": {"presence": "absent", "note": "no gold or iron plates in TFC; unpressed 14x1x14, no collision"},
     "minecraft:heavy_weighted_pressure_plate": {"presence": "absent", "note": "owner: the placed-item carrier (power=0)"},
-    "minecraft:stone_button": {"presence": "absent", "states_consumed": 2, "note": "pair powered=false/true with one model (client press prediction); our worldgen places it today as the loose-rock placeholder (GroundcoverBlocks), no hide property: kept absent as the small-ground-piece carrier until PAR-INFRA-43 (guard: CarrierPolicyWorldgenTest)"},
-    "minecraft:oak_button": {"presence": "absent", "states_consumed": 2, "note": "pair powered=false/true with one model (client press prediction); our worldgen places it today as the stick placeholder (GroundcoverBlocks), no hide property: kept absent as the small-ground-piece carrier until PAR-INFRA-43 (guard: CarrierPolicyWorldgenTest)"},
+    "minecraft:stone_button": {"presence": "absent", "states_consumed": 2, "note": "pair powered=false/true with one model (client press prediction); our worldgen places face=floor,facing=north as the loose-rock placeholder (GroundcoverBlocks, TfcTerrain.placeholderData): PAR-INFRA-43 excludes those two states (excluded_states), the other floor facings stay the small-ground-piece carrier (guard: CarrierPolicyWorldgenTest)"},
+    "minecraft:oak_button": {"presence": "absent", "states_consumed": 2, "note": "pair powered=false/true with one model (client press prediction); our worldgen places face=floor,facing=north as the stick placeholder (GroundcoverBlocks, TfcTerrain.placeholderData): PAR-INFRA-43 excludes those two states (excluded_states), the other floor facings stay the small-ground-piece carrier (guard: CarrierPolicyWorldgenTest)"},
     "minecraft:iron_trapdoor": {"presence": "absent", "note": "not hand-openable: no client toggle prediction"},
     "minecraft:flower_pot": {"presence": "player", "note": "vanilla flower pots stay craftable"},
     "minecraft:cauldron": {"presence": "player", "note": "vanilla cauldron stays in the game"},
@@ -27,7 +27,7 @@
     "minecraft:stonecutter": {"presence": "absent", "note": "16x9x16"},
     "minecraft:farmland": {"presence": "absent", "note": "TFC uses its own farmland blocks"},
     "minecraft:dirt_path": {"presence": "absent", "note": "TFC uses its own path blocks"},
-    "minecraft:mud": {"presence": "absent", "note": "full outline, 14 px collision; our worldgen places it as the mud surface (TfcTerrain), one state (no hide target): kept absent until PAR-INFRA-43 (research CSV and HitboxCarrierTest pin it), no demand may take it with a model (guard: CarrierPolicyWorldgenTest)"},
+    "minecraft:mud": {"presence": "reserved", "note": "PAR-INFRA-43: our worldgen places it as the mud surface (TfcTerrain); one state, no hide target: never a carrier (a model on it would draw every generated mud surface as the carrier's block). The research CSV says absent (TFC itself never places vanilla mud)"},
     "minecraft:lightning_rod": {"presence": "absent", "note": "4x16 post"},
     "minecraft:pointed_dripstone": {"presence": "absent", "note": "random XZ offset: rejected by the offset filter"},
     "minecraft:lantern": {"presence": "absent", "note": "emits light 15"},
@@ -60,7 +60,11 @@
     "minecraft:frogspawn": "reads as a group of eggs (owner ban list) and belongs on water: not even a ground piece may use it"
   },
   "excluded_states": {
-    "minecraft:snow[layers=1]": "replaceable: a held block predicts placing into it client-side (item rule: keep snow[1] out of the candidate set)"
+    "minecraft:snow[layers=1]": "replaceable: a held block predicts placing into it client-side (item rule: keep snow[1] out of the candidate set)",
+    "minecraft:stone_button[face=floor,facing=north,powered=false]": "worldgen placeholder (PAR-INFRA-43): paper worldgen places this button state (powered=true after a click), real instances would show the carrier look",
+    "minecraft:stone_button[face=floor,facing=north,powered=true]": "worldgen placeholder (PAR-INFRA-43): paper worldgen places this button state (powered=true after a click), real instances would show the carrier look",
+    "minecraft:oak_button[face=floor,facing=north,powered=false]": "worldgen placeholder (PAR-INFRA-43): paper worldgen places this button state (powered=true after a click), real instances would show the carrier look",
+    "minecraft:oak_button[face=floor,facing=north,powered=true]": "worldgen placeholder (PAR-INFRA-43): paper worldgen places this button state (powered=true after a click), real instances would show the carrier look"
   },
   "lit_particles": ["minecraft:campfire", "minecraft:soul_campfire", "minecraft:candle", "minecraft:smoker"],
   "object_ban": {

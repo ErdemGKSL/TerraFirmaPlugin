@@ -58,10 +58,16 @@ class VanillaCandidatesTest {
             if (cols[1].equals("tfc_present")) {
                 assertThat(p.presence()).as(block + " is tfc_present in the CSV").isIn(Presence.NATURAL, Presence.PLAYER);
             } else if (cols[1].equals("absent")) {
-                assertThat(p.presence()).as(block + " is absent in the CSV").isEqualTo(Presence.ABSENT);
+                // TFC never places it; our own worldgen may still use it as a one-state placeholder, then it is reserved
+                // (PAR-INFRA-43: mud, the mud surface of TfcTerrain).
+                assertThat(p.presence()).as(block + " is absent in the CSV").isIn(Presence.ABSENT, Presence.RESERVED);
+                if (p.presence() == Presence.RESERVED) {
+                    assertThat(p.note()).as(block + ": reserved although TFC never places it").contains("worldgen");
+                }
             }
         }
         assertThat(checked).as("snow, mud and smoker are in both tables").isGreaterThanOrEqualTo(3);
         assertThat(v.policy("minecraft:snow").presence()).isEqualTo(Presence.NATURAL);
+        assertThat(v.policy("minecraft:mud").presence()).as("our mud-surface placeholder").isEqualTo(Presence.RESERVED);
     }
 }

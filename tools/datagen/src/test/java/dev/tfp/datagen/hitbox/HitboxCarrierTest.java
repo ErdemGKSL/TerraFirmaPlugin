@@ -63,8 +63,12 @@ class HitboxCarrierTest {
         }
         // snow[layers=1] is replaceable (any held block predicts placing into it): out of the candidate set.
         pin("tfc:charcoal_pile[layers=1]", PLATE, 196.0 / 512, 1);
-        // 8 layers: mud is exact too (16 outline, 14 collision) and needs no hide mapping.
-        pin("tfc:charcoal_pile[layers=8]", "minecraft:mud", 1, 1);
+        // 8 layers: snow[8] is exact (16 outline, 14 collision). PAR-INFRA-43: mud would be exact without a hide mapping, but
+        // our worldgen places it as the mud surface (one state, no hide target), so the policy reserves it.
+        pin("tfc:charcoal_pile[layers=8]", "minecraft:snow[layers=8]", 1, 1);
+        assertThat(rejected(select("tfc:charcoal_pile[layers=8]", VersionFamily.V1_21), "minecraft:mud").reason())
+            .startsWith("reserved").contains("mud surface");
+        assertThat(select("tfc:charcoal_pile[layers=8]", VersionFamily.V1_21).chosen().hideTarget()).isEqualTo("minecraft:snow[layers=7]");
         pin("tfc:firepit", "minecraft:daylight_detector[inverted=false,power=0]", 1088.0 / 1536, 1088.0 / 1536);
         pin("tfc:grill", "minecraft:snow[layers=5]", 1664.0 / 2704, 1376.0 / 2480);
         pin("tfc:pot", "minecraft:cactus[age=0]", 2120.0 / 3256, 2120.0 / 3060);
@@ -79,6 +83,14 @@ class HitboxCarrierTest {
         pin("tfc:rock/loose[count=1]", BUTTON, 48.0 / 72, 1);
         pin("tfc:rock/loose[count=2]", PLATE, 144.0 / 340, 1);
         pin("tfc:rock/loose[count=3]", "minecraft:red_mushroom", 144.0 / 216, 1);
+        // PAR-INFRA-43: the floor/north states are our worldgen's loose-rock and stick placeholders, so they are excluded;
+        // the other floor facings (same shape) stay the small-ground-piece carriers.
+        for (String b : List.of("minecraft:oak_button", "minecraft:stone_button")) {
+            for (String powered : List.of("false", "true")) {
+                assertThat(rejected(select("tfc:rock/loose[count=1]", VersionFamily.V1_21),
+                    b + "[face=floor,facing=north,powered=" + powered + "]").reason()).startsWith("excluded: worldgen placeholder");
+            }
+        }
         pin("tfc:ore/small", BUTTON, 48.0 / 72, 1);
         pin("tfc:groundcover[shape=small]", BUTTON, 48.0 / 72, 1);
         pin("tfc:groundcover[shape=medium]", "minecraft:red_mushroom", 144.0 / 216, 1);
