@@ -43,9 +43,12 @@ class FireStartPlanTest {
     void firestarterIsStrongAndRainScalesTheFirepitChance() {
         FireStartPlan dry = FireStartPlan.firestarter(FireStartPlan.FIRESTARTER_CHANCE, false, draws(0.42f));
         assertThat(dry.strength()).isEqualTo(Strength.STRONG);
-        assertThat(dry.firepitBase()).isEqualTo(0.5);
+        // TFC's key collision: the effective fireStarterChance is 0.25, not the declared 0.5
+        assertThat(dry.firepitBase()).isEqualTo(0.25);
+        assertThat(FireStartPlan.FIRESTARTER_CHANCE).isEqualTo(FireStartPlan.FLINT_AND_PYRITE_CHANCE);
         assertThat(dry.firepitRoll()).isEqualTo(0.42f);
-        assertThat(FireStartPlan.firestarter(0.5, true, draws(0f)).firepitBase()).isEqualTo(0.15, within(1e-12));
+        assertThat(FireStartPlan.firestarter(FireStartPlan.FIRESTARTER_CHANCE, true, draws(0f)).firepitBase())
+            .isEqualTo(0.075, within(1e-12));
     }
 
     @Test

@@ -26,9 +26,14 @@ import java.util.random.RandomGenerator;
  * @param firepitRoll the draw compared with the firepit chance, in {@code [0, 1)}
  */
 public record FireStartPlan(FireStart.Strength strength, double firepitBase, float firepitRoll) {
-    /** The server default of TFC's {@code fireStarterChance}. */
-    public static final double FIRESTARTER_CHANCE = 0.5;
-    /** The server default of TFC's {@code flintAndPyriteChance} (TFC reads it from the key {@code fireStarterChance}). */
+    /**
+     * The firestarter chance TFC actually ships. TFC's {@code ServerConfig} defines {@code fireStarterChance} (0.5) and
+     * {@code flintAndPyriteChance} (0.25) under the same key {@code "fireStarterChance"}; NeoForge's
+     * {@code ModConfigSpec.Builder.define} replaces the first spec with the second, so a fresh {@code tfc-server.toml}
+     * holds 0.25 and both items read it. The declared 0.5 is never in effect.
+     */
+    public static final double FIRESTARTER_CHANCE = 0.25;
+    /** The chance flint and pyrite reads: the same key {@code fireStarterChance}, shipped default 0.25. */
     public static final double FLINT_AND_PYRITE_CHANCE = 0.25;
 
     /** TFC {@code FirestarterItem}: always strong, firepit base {@code chance x (raining ? 0.3 : 1)}. */
