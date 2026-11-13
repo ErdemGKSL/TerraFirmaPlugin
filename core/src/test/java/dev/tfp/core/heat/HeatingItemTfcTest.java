@@ -22,6 +22,9 @@ import org.junit.jupiter.api.Test;
  *   <li>{@code HeatingRecipe.getRecipe(stack) != null}: a recipe lookup on a stack, left out until the heating
  *       recipes are ported.</li>
  * </ul>
+ * PAR-HEAT-04 ports the whole case on real stacks and the datagen output in
+ * {@code paper/.../heat/HeatingServiceMockBukkitTest#testCookMeatOnTheContentData} ({@code HeatingSelfCheck}, also the
+ * body of the in-server self-test {@code heat.cook_meat}).
  * The part that is pure heat arithmetic is ported below: an item heated to {@code Heat.maxVisibleTemperature()} reads
  * back that temperature, and it is the visible top level.
  */
