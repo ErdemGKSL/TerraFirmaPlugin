@@ -2,7 +2,7 @@
 id: PAR-HEAT-15
 title: "Item bar config key: item-bars.heat in config.yml and TfpConfig, read on /tfp reload"
 area: HEAT
-status: open
+status: blocked
 wave: 12
 deps: [PAR-HEAT-14]
 size: S
@@ -19,6 +19,7 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
+  - "Blocked: adding the top-level `item-bars:` section to config.yml breaks `paper/src/test/java/dev/tfp/paper/config/ConfigServiceTest.java` (`ownerFileKeepsCommentsAndGetsMissingSections` lists every section YamlDefaultsMerge appends: it needs `\"item-bars\"` after `\"survival\"`), which is not in this item's files_owned (same case as PAR-FLUID-08 -> PAR-FLUID-12). Unblock by adding that file to files_owned. The rest was implemented and green apart from that one assertion: TfpConfig.ItemBars(heat) record + 7-arg constructor, ConfigCodec parse/toMap for item-bars.heat (bad value warns, defaults true; item-bars a known section), config.yml section with TFC's comment, ItemBarModule.heatSetting(ConfigService) reading current() per call, ConfigCodecTest +1 (itemBarKeysAreReadWrittenAndDefaulted, defaulted count 24 -> 25), new ItemBarConfigTest (5 tests: shipped key, reload on/off/on, bad value, old config appended, helpers)."
   - "Current: PAR-HEAT-14's ItemBarModule reads `item-bars.heat` (TFC displayItemHeatBars, default true) straight from config.yml at enable; the key is not in the shipped config.yml, ConfigCodec reports `item-bars` as an unknown key, and /tfp reload does not re-read it."
   - "Add an `item-bars:` section with `heat: true` (comment: TFC displayItemHeatBars, server-wide per NP-CLIENT-04) to config.yml, a typed `ItemBars(boolean heat)` record to TfpConfig with ConfigCodec parsing (bad value: default with a warning), and make ItemBarModule's heat bar read `context.config().current()` on every call instead of its own file read (so /tfp reload applies it)."
 tests:
