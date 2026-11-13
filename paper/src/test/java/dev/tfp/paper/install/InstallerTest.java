@@ -25,7 +25,14 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -83,6 +90,72 @@ class InstallerTest {
     static final String DEMO_COMPASS = "BetterHud/compasses/default_compass.yml";
     /** The start of BetterHud's shipped demo compass. */
     static final String DEMO_COMPASS_YML = "default_compass:\n  type: circle\n  default: true\n  scale: 0.75\n";
+
+    /**
+     * PAR-INFRA-45: the io executor of the triggers whose BetterHud wait polls on a delayed executor. Those polls,
+     * the build after them and its pack-record write run on background threads, and the record write runs after
+     * {@code settled()} completes, so {@link #closeIo} drains this before JUnit deletes the {@code @TempDir}.
+     */
+    final TrackedIo io = new TrackedIo();
+
+    @AfterEach
+    void closeIo() throws InterruptedException {
+        io.close();
+    }
+
+    /**
+     * A single-thread executor that counts its queued and running tasks. A task submitted from inside a running
+     * task is counted before that one ends, so {@link #awaitIdle} sees no gap; after {@link #close} new tasks
+     * (late delayed HUD polls) are dropped and never touch the folder.
+     */
+    static final class TrackedIo implements Executor {
+        private final ExecutorService es = Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "InstallerTest-io");
+            t.setDaemon(true);
+            return t;
+        });
+        private final AtomicInteger pending = new AtomicInteger();
+        private volatile boolean closed;
+
+        @Override
+        public void execute(Runnable task) {
+            if (closed) {
+                return;
+            }
+            pending.incrementAndGet();
+            try {
+                es.execute(() -> {
+                    try {
+                        task.run();
+                    } finally {
+                        pending.decrementAndGet();
+                    }
+                });
+            } catch (RejectedExecutionException e) {
+                pending.decrementAndGet();
+            }
+        }
+
+        /** Waits until no task is queued or running (delayed polls not yet due are not counted). */
+        void awaitIdle() throws InterruptedException {
+            long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+            while (pending.get() > 0) {
+                if (System.nanoTime() > end) {
+                    throw new AssertionError("io work still running after 10 s");
+                }
+                Thread.sleep(5);
+            }
+        }
+
+        void close() throws InterruptedException {
+            awaitIdle();
+            closed = true;
+            es.shutdown();
+            if (!es.awaitTermination(10, TimeUnit.SECONDS)) {
+                throw new AssertionError("io executor did not terminate");
+            }
+        }
+    }
 
     static void write(Path p, String text) throws IOException {
         Files.createDirectories(p.getParent());
@@ -337,7 +410,7 @@ class InstallerTest {
         FakeHudReloader hud = new FakeHudReloader().reloading(true);
         FakePackRebuilder ce = new FakePackRebuilder();
         PackRebuildTrigger t = new PackRebuildTrigger(run(L1), stateDir(), ce, hud, new FakeVisualPools(), null, null,
-                500, Runnable::run, LOG);
+                500, io, LOG);
         t.onCraftEngineReload();
         assertThat(t.rebuildRequested()).isTrue();
         Thread.sleep(1200); // a few polls
@@ -347,6 +420,8 @@ class InstallerTest {
         t.settled().get(5, java.util.concurrent.TimeUnit.SECONDS);
         assertThat(ce.requests()).isEqualTo(1);
         assertThat(hud.reloads()).isZero(); // we only wait; the build reloads BetterHud itself
+        io.awaitIdle(); // the pack record is written on the io executor after settled() (PAR-INFRA-45)
+        assertThat(Installer.readPackRecord(stateDir())).isPresent();
     }
 
     /** BetterHud merged inside the first build (not reloading when it finished): no second build. */
@@ -356,7 +431,7 @@ class InstallerTest {
         FakeHudReloader hud = new FakeHudReloader();
         FakePackRebuilder ce = new FakePackRebuilder();
         PackRebuildTrigger t = new PackRebuildTrigger(run(L1), stateDir(), ce, hud, new FakeVisualPools(), null, null,
-                500, Runnable::run, LOG);
+                500, io, LOG);
         t.onCraftEngineReload();
         t.onCraftEngineReload(); // the rebuild's own CraftEngine reload
         t.settled().get(5, java.util.concurrent.TimeUnit.SECONDS);
@@ -379,7 +454,7 @@ class InstallerTest {
             }
         });
         PackRebuildTrigger t = new PackRebuildTrigger(run(L1), stateDir(), ce, hud, new FakeVisualPools(), null, null,
-                500, Runnable::run, LOG);
+                500, io, LOG);
         t.onCraftEngineReload();
         assertThat(ce.requests()).isEqualTo(1);
         Thread.sleep(1200); // a few polls
