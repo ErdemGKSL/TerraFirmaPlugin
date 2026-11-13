@@ -178,6 +178,12 @@ public final class PrecipitationService implements Listener {
      * TFC {@code getPrecipitationAt} with vanilla's gates, decided now for any position: NONE outside the overworld,
      * before the first calendar reading, or when rain does not reach the position. Pure and thread-safe; meant for the
      * worker step of a decide-async system (it samples the climate noise).
+     * <p>
+     * The decision follows TFC: it reads only the climate's rain at the calendar time, the instant temperature and the
+     * rainfall, never the vanilla rain flag, so {@code /weather rain} alone does not make it RAIN or SNOW (coupling the
+     * vanilla weather to the climate is PAR-CLIM-12). Pass the exact position the TFC caller passes: {@code pos.above()}
+     * for the barrel, firestarter and flint-and-pyrite, {@code pos} for the firepit, {@code pos.above()} and
+     * {@code above(2)} for the forge.
      *
      * @param rainReaches {@link #rainReaches} for the position, read on its region thread
      */

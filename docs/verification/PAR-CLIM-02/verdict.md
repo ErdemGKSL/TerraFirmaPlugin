@@ -39,3 +39,18 @@ precipitation here: RAIN | snow rule: event MELT, would accumulate: no
 | Client falling particles show snow at the cold site | Not reached, accepted substitute: the client draws rain there because its particles follow the seasonal variant biome's fixed temperature (NOT-PARITY NP-CLIM-02; the 0 C band edge is PAR-CLIM-05) |
 
 Pass, with the client-particle difference recorded under NP-CLIM-02.
+
+## Notes for screenshot reviewers
+
+- **Rain particles at a sub-zero site are expected until PAR-CLIM-05.** The seasonal variant biomes keep the TFC base
+  biome's climate (temperature 0.5, precipitation on; see `SeasonalVariantRainTest`), so the vanilla client always draws
+  rain there, at any server temperature. That is the substitute in NOT-PARITY NP-CLIM-02 and the ledger Divergences row
+  "The client's snow or rain follows the biome temperature ..." (open in PAR-CLIM-05), not a defect of this item. The
+  check for this item is the server decision (`precipitation here: SNOW`) and the snow layers it builds.
+- **`precipitation here: NONE` under `/weather rain` is TFC-correct.** TFC's `WeatherHelpers.getPrecipitationAt` reads
+  only the climate's rain at the calendar time (`getRain`), the instant temperature and the rainfall, never the vanilla
+  rain flag, and TFC's weather cycle overrides `/weather rain`. Outside a climate rain window the decision is NONE while
+  the vanilla storm still draws. Coupling vanilla weather to the climate is PAR-CLIM-12 (ledger row starting 'TFC's "raining
+  at" is vanilla `isRainingAt` ...'). To see SNOW or RAIN, step the calendar into a rain window as in step 2 above.
+- A re-capture should use a January date (step 1), a climate rain tick (step 2), and face into the test area so the
+  ground under the rain is in frame.

@@ -17,9 +17,10 @@ files_owned:
   - "core/src/test/java/dev/tfp/core/weather/Precipitation*"
 ui: true
 in_game_steps:
-  - "tfp time set hour 12"
-  - "weather rain"
-  - "tp Bot to a cold site (tfp debug chunk shows < 0 C) and a warm site; screenshot each"
+  - "tfp time set hour 12, then tfp time add months 7 (January)"
+  - "tfp time add hours 1 until /tfp debug chunk shows precipitation (not NONE) at the cold column: TFC's decision follows the climate's rain windows, not /weather"
+  - "weather rain 1000000 (only so the vanilla client draws a storm; it does not change the decision)"
+  - "tp Bot to a cold site (tfp debug chunk shows < 0 C, precipitation SNOW) and a warm site (RAIN); screenshot each facing the ground under the open sky. Client particles are rain at both sites until PAR-CLIM-05 (NP-CLIM-02)"
 plan:
   - "Current: `core/weather/PrecipitationType.decide` is golden-tested; PrecipitationService exists."
   - "Sample per player position (throttled 20 ticks) and expose `precipitationAt(pos)` to other systems (barrel rain fill, drinking in rain, fire dousing)."
