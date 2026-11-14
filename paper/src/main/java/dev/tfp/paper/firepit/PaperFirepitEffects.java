@@ -81,6 +81,11 @@ public final class PaperFirepitEffects implements FirepitEffects {
             case LOG -> org.bukkit.Sound.BLOCK_WOOD_PLACE;
             case ASH -> org.bukkit.Sound.BLOCK_SAND_BREAK;
         };
+        if (sound == Sound.LOG) {
+            // TFC tryInsertLog: Helpers.playPlaceSound with SoundType.WOOD, volume (1 + 1) / 2, pitch 1 * 0.8
+            block.getWorld().playSound(centre(block), s, SoundCategory.BLOCKS, 1f, 0.8f);
+            return;
+        }
         ThreadLocalRandom r = ThreadLocalRandom.current();
         // TFC Helpers.playSound: volume 1 + nextFloat, pitch nextFloat + 0.7 + 0.3
         block.getWorld().playSound(centre(block), s, SoundCategory.BLOCKS, 1f + r.nextFloat(), r.nextFloat() + 1f);
