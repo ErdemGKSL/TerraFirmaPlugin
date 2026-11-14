@@ -240,6 +240,9 @@ public final class TorchService {
         if (kind.isEmpty()) {
             return false;
         }
+        // Apply step of an already-decided fire start (FireStarting decided it), so the relit block and the counter are
+        // written here on the owning region thread rather than through the burnout pipeline. The burnout callback is
+        // queued inside the edit because it needs the edit's calendar "now".
         TorchRules.FireStart start = TorchRules.fireStart(kind.get());
         Kind lit = kind.get().relit();
         if (start == TorchRules.FireStart.RELIT) {

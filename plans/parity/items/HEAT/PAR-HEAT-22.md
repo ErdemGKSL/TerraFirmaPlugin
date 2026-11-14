@@ -23,9 +23,12 @@ plan:
   - "Current: core/light TorchRules has TFC's dropped-torch constants (extinguished batch count > 5 ? 1 + nextInt(5) : count, ages 20 / 160, chance 0.01); paper/light reads torchTicks from the constant TorchModule.TORCH_TICKS (86,400)."
   - "Dropped torch items, lazily (no per-entity ticking, as HotItemListener does for hot items): in a fire-extinguishing fluid, the torches go out in TFC's batches, each rolling the torch's loot table with burnt_out (LootService, LootContext burnt_out) and the extinguish sound; on a #tfc:lit_by_dropped_torch block (inside after 160 ticks, below after 20), TFC's 1 % per tick chance to start a STRONG fire there through FireStarting and kill the item (replay the elapsed ticks' draws at evaluation). TFC's lava particles stay off (particles only on explicit actions)."
   - "The torchTicks config key (TFC ServerConfig torchTicks, -1 disables) in config.yml and TfpConfig, read on /tfp reload, passed to TorchModule's suppliers."
+  - "One source for the default: the config default and datagen light/TorchBlocks.TORCH_TICKS both match core LightSourceRules.DEFAULT_TORCH_TICKS (a test ties them)."
+  - "Calendar skips: after a forward skip (CalendarService.skip, /tfp time add, sleep) re-check the tracked loaded torches against the calendar (a skip listener or a 20-tick global check as charcoal PitClock does), so they swap as soon as TFC's random ticks would; then drop the skip clause from the ledger row."
 tests:
   - "paper: MockBukkit dropped torches in water go out in batches and drop burnt-out loot; a dropped torch on leaves lights them"
   - "core/paper: torchTicks from config, -1 never burns out"
+  - "paper: MockBukkit forward calendar skip past the burn time swaps a loaded torch without a click or chunk reload; chunk-load catch-up driven through the CatchUpService index (TorchModule.lazyBlocks)"
 done_criteria:
   - "Dropped torch behaviour and the config key as TFC, recorded in the ledger"
 ---
