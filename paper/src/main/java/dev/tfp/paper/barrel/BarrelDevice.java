@@ -11,7 +11,10 @@
  * file: src/main/java/net/dries007/tfc/common/blockentities/BarrelBlockEntity.java @ c3b4d9536 (SLOT_FLUID_CONTAINER_IN,
  * SLOT_FLUID_CONTAINER_OUT, SLOT_ITEM, isItemValid, onSeal, onUnseal, onCalendarUpdate, serverTick: updateFluidIOSlots and
  * the rain fill, ejectInventory),
- * file: src/main/java/net/dries007/tfc/common/fluids/FluidHelpers.java @ c3b4d9536 (with: the held container's update)
+ * file: src/main/java/net/dries007/tfc/common/fluids/FluidHelpers.java @ c3b4d9536 (with: the held container's update),
+ * PAR-PROC-38: BarrelBlock.java @ c3b4d9536 (useItemOn: sneaking with an empty hand on a racked barrel's top takes the rack
+ * back, a rack item on an unracked barrel on its side racks it facing the player; updateShape: a barrel on its side without
+ * a sturdy face below goes), BarrelBlockEntity.java @ c3b4d9536 (serverTick: the rain only on an upright barrel)
  */
 package dev.tfp.paper.barrel;
 
@@ -57,6 +60,11 @@ import org.bukkit.inventory.ItemStack;
  * {@link BarrelSimulation}, so every callback, and the removal drop, sees the barrel as of now. Every access that sees the
  * world (a click, the open screen, {@code /tfp debug barrel}) also {@link #settle}s TFC's fluid IO slots and the rain fill
  * ({@link BarrelRain}). Nothing ticks.
+ *
+ * <p>PAR-PROC-38: the barrel's {@code facing} and {@code rack} block states ({@link BarrelRackWorld}): a barrel on its side
+ * takes no rain and shows no fluid surface, its tap pours lazily ({@link BarrelRackTap}, settled before every access through
+ * {@link BarrelRackWorld#tap}), the rack is put on and taken off by a click, and a barrel on its side goes when its support
+ * goes.
  */
 public final class BarrelDevice {
     /** The kind id: covers {@code tfp:wood/barrel/<wood>}. */
@@ -72,6 +80,11 @@ public final class BarrelDevice {
     public static final String SEALED = "sealed";
     /** NeoForge {@code Tags.Items.RODS_WOODEN}. */
     public static final String RODS_WOODEN = "c:rods/wooden";
+    /** PAR-PROC-38: TFC {@code BarrelBlock.FACING} (up or a side) and {@code RACK}. */
+    public static final String FACING = "facing";
+    public static final String RACK = "rack";
+    /** PAR-PROC-38: TFC {@code hitResult.getLocation().y - pos.getY() > 0.875f}: the rack's top. */
+    public static final double RACK_TOP = 0.875;
 
     /** TFC {@code level.isRainingAt(pos.above())} for a barrel; region thread of the barrel. */
     @FunctionalInterface
@@ -105,9 +118,10 @@ public final class BarrelDevice {
      * @param effects the world effects
      * @param rain    the rain at the block above
      * @param screens opens the barrel screen
+     * @param racks   PAR-PROC-38: the facing, the rack, the support and the tap
      */
     public record Services(BarrelRecipeBook book, Predicate<ItemStack> fits, Predicate<ItemStack> rod,
-            BarrelEffects effects, Rain rain, Screens screens) {
+            BarrelEffects effects, Rain rain, Screens screens, BarrelRackWorld racks) {
         public Services {
             Objects.requireNonNull(book, "book");
             Objects.requireNonNull(fits, "fits");
@@ -115,6 +129,13 @@ public final class BarrelDevice {
             Objects.requireNonNull(effects, "effects");
             Objects.requireNonNull(rain, "rain");
             Objects.requireNonNull(screens, "screens");
+            Objects.requireNonNull(racks, "racks");
+        }
+
+        /** Every barrel upright (no rack world). */
+        public Services(BarrelRecipeBook book, Predicate<ItemStack> fits, Predicate<ItemStack> rod, BarrelEffects effects,
+                Rain rain, Screens screens) {
+            this(book, fits, rod, effects, rain, screens, BarrelRackWorld.NONE);
         }
 
         /** No rain, no screen. */
@@ -200,13 +221,14 @@ public final class BarrelDevice {
      * What an access that sees the world does to the caught-up record before anything else: the rain fill up to
      * {@code now} ({@link BarrelRain#settle}, {@code raining} read at the block above), then TFC's fluid IO slots
      * ({@code updateFluidIOSlots}: a container in the fluid-in slot transfers with the tank when the fluid-out slot is empty,
-     * and the result lands in fluid-out), then the instant recipes that change enables. Every barrel is upright until the
-     * barrel rack (PAR-PROC-38) adds the facing.
+     * and the result lands in fluid-out), then the instant recipes that change enables. PAR-PROC-38: only an upright barrel
+     * takes rain (TFC {@code facing == Direction.UP}).
      */
     static DeviceRecord<BarrelData> settle(DeviceRecord<BarrelData> record, long now, boolean raining, Block block,
             Services services, StackCodec stacks) {
         BarrelData before = record.state();
-        BarrelData data = BarrelRain.settle(before, now, raining, true, services.book().capacity());
+        boolean upright = services.racks().facing(block) == org.bukkit.block.BlockFace.UP;
+        BarrelData data = BarrelRain.settle(before, now, raining, upright, services.book().capacity());
         DeviceRecord<BarrelData> next = data.equals(before) ? record : record.withState(data);
         if (data.sealed()) {
             return next;
@@ -308,12 +330,22 @@ public final class BarrelDevice {
         return write(record, record.state(), instant(block, io, services), stacks);
     }
 
-    /** After a write: the fluid surface follows the tank and the seal. */
+    /**
+     * After a write: the fluid surface follows the tank and the seal. PAR-PROC-38: a barrel on its side shows none (TFC's
+     * renderer draws the surface only facing up).
+     */
     static void surface(Block block, BarrelData before, BarrelData after, Services services) {
         if (before.sealed() != after.sealed() || !before.fluid().equals(after.fluid())) {
-            services.effects().surface(block, after.sealed() ? FluidAmount.EMPTY : after.fluid(),
+            boolean upright = services.racks().facing(block) == org.bukkit.block.BlockFace.UP;
+            services.effects().surface(block, after.sealed() || !upright ? FluidAmount.EMPTY : after.fluid(),
                 services.book().capacity());
         }
+    }
+
+    /** PAR-PROC-38: the block state that holds {@code facing} and {@code rack} (written over the current one). */
+    public static BlockStateRef rackState(String blockId, org.bukkit.block.BlockFace facing, boolean rack) {
+        return BlockStateRef.of(blockId).with(FACING, facing.name().toLowerCase(java.util.Locale.ROOT))
+            .with(RACK, Boolean.toString(rack));
     }
 
     // ---- the handler ----------------------------------------------------------------------------------
@@ -337,8 +369,32 @@ public final class BarrelDevice {
         private DeviceRecord<BarrelData> click(DeviceContext<BarrelData> ctx, Player player, ItemStack stack,
                 DeviceRecord<BarrelData> record) {
             BarrelData data = record.state();
+            BarrelRackWorld racks = services.racks();
+            Block block = ctx.block();
             if (StackCodec.isEmpty(stack) && player.isSneaking()) {
+                // TFC: a racked barrel's top, with air above, gives the rack back; anywhere else the seal toggles
+                if (racks.racked(block) && block.getRelative(org.bukkit.block.BlockFace.UP).getType().isAir()
+                        && racks.hitHeight(player, block) > RACK_TOP) {
+                    Optional<ItemStack> rack = racks.rackItem();
+                    if (rack.isPresent()) {
+                        give(player, rack.get());
+                        services.effects().racked(block, rackState(ctx.state().id(), racks.facing(block), false), false);
+                        return record;
+                    }
+                }
                 return toggleSeal(record, ctx.now(), ctx.block(), ctx.state().id(), services, ctx.stacks());
+            }
+            org.bukkit.block.BlockFace facing = racks.facing(block);
+            if (racks.isRackItem(stack) && facing != org.bukkit.block.BlockFace.UP && !racks.racked(block)) {
+                // TFC: racked, facing the player (player.getDirection().getOpposite())
+                if (player.getGameMode() != GameMode.CREATIVE) {
+                    ItemStack rest = stack.clone();
+                    rest.setAmount(stack.getAmount() - 1);
+                    player.getInventory().setItem(ctx.hand(), rest.getAmount() <= 0 ? ItemStack.empty() : rest);
+                }
+                services.effects().racked(block, rackState(ctx.state().id(), BarrelRackListener.horizontal(player).getOppositeFace(), true),
+                    true);
+                return record;
             }
             if (!data.sealed()) {
                 Optional<BarrelFluidTransfer.ItemTank> tank = services.book().tanks().tank(stack);
@@ -362,6 +418,21 @@ public final class BarrelDevice {
             // TFC: serverPlayer.openMenu(barrel), also while sealed (the screen locks the slots then)
             services.screens().open(player, ctx.block(), ctx.state().id());
             return record;
+        }
+
+        /**
+         * TFC {@code updateShape}: a barrel on its side whose block below lost its sturdy top face goes (TFC sets air; the
+         * removal drops the contents, and a racked barrel's rack item, TFC {@code onRemove}).
+         */
+        @Override
+        public DeviceResult<BarrelData> neighbourChanged(DeviceContext<BarrelData> ctx) {
+            BarrelRackWorld racks = services.racks();
+            Block block = ctx.block();
+            if (racks.facing(block) != org.bukkit.block.BlockFace.UP && !racks.supported(block)) {
+                services.effects().collapse(block, racks.racked(block) ? racks.rackItem().orElse(ItemStack.empty())
+                    : ItemStack.empty());
+            }
+            return DeviceResult.pass();
         }
 
         /** TFC {@code BarrelBlock.attack}: a sealed barrel hit with a wooden rod sounds its fill level. */

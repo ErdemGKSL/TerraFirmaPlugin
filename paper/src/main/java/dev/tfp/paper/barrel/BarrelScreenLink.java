@@ -100,6 +100,8 @@ public final class BarrelScreenLink implements BarrelLink {
             return Optional.empty();
         }
         BarrelDevice.Services s = env.services();
+        // PAR-PROC-38: the taps around the barrel first (they write this record and its neighbour's)
+        s.racks().tap(block);
         boolean raining = s.rain().rainingAbove(block);
         BarrelData[] before = new BarrelData[1];
         Optional<DeviceRecord<BarrelData>> stored = env.devices().edit(block, env.kind(), (record, now) -> {

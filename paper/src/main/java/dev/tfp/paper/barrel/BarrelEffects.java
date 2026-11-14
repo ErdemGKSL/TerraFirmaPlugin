@@ -41,6 +41,32 @@ public interface BarrelEffects {
     default void surface(Block block, FluidAmount fluid, int capacity) {
     }
 
+    /**
+     * PAR-PROC-38: TFC {@code setBlockAndUpdate(pos, state.setValue(RACK, ..).setValue(FACING, ..))}: the properties of
+     * {@code wanted} are written over the barrel's current state by a later region task, with TFC's sound (racking: the
+     * block's place sound, {@code Helpers.playPlaceSound}; unracking: {@code WOOD_PLACE} at pitch 0.85).
+     */
+    default void racked(Block block, BlockStateRef wanted, boolean racked) {
+    }
+
+    /**
+     * PAR-PROC-38: the placement facing (TFC {@code getStateForPlacement}): the properties of {@code wanted} written over the
+     * barrel's current state by a later region task, silently.
+     */
+    default void state(Block block, BlockStateRef wanted) {
+    }
+
+    /** PAR-PROC-38: TFC's {@code BARREL_DRIP} sound, once per settle that moved fluid through the tap. */
+    default void drip(Block block) {
+    }
+
+    /**
+     * PAR-PROC-38: TFC {@code updateShape}: a barrel on its side lost the sturdy face below and goes; {@code rack} is the rack
+     * item TFC's {@code onRemove} spawns for a racked barrel (empty for none).
+     */
+    default void collapse(Block block, ItemStack rack) {
+    }
+
     /** Effects that do nothing (tests). */
     BarrelEffects NONE = new BarrelEffects() {
         @Override

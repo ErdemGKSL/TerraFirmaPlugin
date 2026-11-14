@@ -42,6 +42,17 @@ public final class HitboxDemands {
     public static final List<String> BARREL_WOODS = List.of("acacia", "ash", "aspen", "birch", "blackwood", "chestnut",
         "douglas_fir", "hickory", "kapok", "mangrove", "maple", "oak", "palm", "pine", "rosewood", "sequoia", "spruce",
         "sycamore", "white_cedar", "willow");
+    /**
+     * PAR-PROC-38: the demand patterns of a barrel on its side (TFC {@code facing} a side): one per axis and rack, matching
+     * the appearances {@code <axis>_<facing>_<sealed|unsealed>} and {@code <axis>_<facing>_<sealed|unsealed>_rack}.
+     */
+    public static final List<String> BARREL_SIDE_AXES = List.of("x", "z");
+    /** PAR-PROC-38: the barrel rack block and its one appearance (TFC {@code BarrelRackBlock}). */
+    public static final String BARREL_RACK_ID = "tfp:barrel_rack";
+    public static final String BARREL_RACK_APPEARANCE = "base";
+    public static final String BARREL_RACK_MODEL = "tfp:block/barrel_rack";
+    /** PAR-PROC-38: served after every other demand (adding the rack and the side states moves no other carrier). */
+    static final int BARREL_SIDE_WEIGHT = -2;
 
     /** PAR-PROC-34: the composter block, its stage-0 appearance and the compost types of TFC's {@code CompostType}. */
     public static final String COMPOSTER_ID = "tfp:composter";
@@ -106,6 +117,19 @@ public final class HitboxDemands {
                     "tfc:wood/barrel[axis=y,sealed=" + sealed + "]", 0, HitboxAllocation.TRANSPARENT, true, 1));
             }
         }
+        // PAR-PROC-38: the barrel on its side, per wood, axis and rack (TFC SHAPE_X / SHAPE_Z, with RACK_SHAPE when racked),
+        // hitbox-only like the upright barrel (the look is TFC's side model as an item display, turned per facing), and the
+        // barrel rack with TFC's model.
+        for (String w : BARREL_WOODS) {
+            for (String axis : BARREL_SIDE_AXES) {
+                for (boolean rack : new boolean[] {false, true}) {
+                    d.add(new Demand(barrelId(w), barrelSideDemand(axis, rack), barrelSideDemandKey(axis, rack), 0,
+                        HitboxAllocation.TRANSPARENT, true, BARREL_SIDE_WEIGHT));
+                }
+            }
+        }
+        d.add(new Demand(BARREL_RACK_ID, BARREL_RACK_APPEARANCE, "tfc:barrel_rack", 0, BARREL_RACK_MODEL, true,
+            BARREL_SIDE_WEIGHT));
         // PAR-PROC-34: the composter, one outline per stage (TFC's well from max(2, stage * 2)). Every stage carries TFC's
         // bin model (one look, so stages may share a carrier); the compost of each type is an entity_renderer overlay
         // (ComposterBlock), so the 25 looks of TFC's multipart take 8 carriers at most. Stage 8 is a full cube and is no
@@ -256,6 +280,30 @@ public final class HitboxDemands {
 
     public static String charcoalPileKey(int layers) {
         return "tfc:charcoal_pile[layers=" + layers + "]";
+    }
+
+    /** PAR-PROC-38: the demand pattern of a barrel on its side along {@code axis}, racked or not. */
+    public static String barrelSideDemand(String axis, boolean rack) {
+        return axis + "_*" + (rack ? "_rack" : "sealed");
+    }
+
+    /**
+     * PAR-PROC-38: the row the side demands are served for. TFC's own side rows ({@link #barrelSideKey}) rank
+     * {@code farmland[moisture=6]} first among the free carriers; drawn empty, its full bottom face makes the client cull
+     * the top face of the block below, so the gaps beside TFC's 12 wide side model and between the rack's legs showed
+     * through the ground (in game, PAR-PROC-38). The side demands therefore borrow the sealed upright barrel's row, whose
+     * transparent cactus carrier occludes nothing below (14 x 15 collision as farmland's 16 x 15; ledger divergence).
+     */
+    public static final String BARREL_SIDE_BORROWED_ROW = "tfc:wood/barrel[axis=y,sealed=true]";
+
+    /** PAR-PROC-38: the tfc-shapes row a side demand is served for ({@link #BARREL_SIDE_BORROWED_ROW}). */
+    public static String barrelSideDemandKey(String axis, boolean rack) {
+        return BARREL_SIDE_BORROWED_ROW;
+    }
+
+    /** PAR-PROC-38: the tfc-shapes row of a barrel on its side ({@code tfc:wood/barrel[axis=x,rack=false]}). */
+    public static String barrelSideKey(String axis, boolean rack) {
+        return "tfc:wood/barrel[axis=" + axis + ",rack=" + rack + "]";
     }
 
     /** PAR-PROC-32: the CE block id of the barrel of {@code wood}. */

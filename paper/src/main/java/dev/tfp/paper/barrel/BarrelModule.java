@@ -78,6 +78,10 @@ import org.bukkit.inventory.ItemStack;
  * {@code /tfp debug barrel [fill <mB> [fluid] | rain <on|off>]} inspects, fills or forces the rain on the barrel the
  * player looks at. A fluid container used on a barrel is routed by {@link BucketGuard}, which also keeps the vanilla item
  * use (a bucket emptied into the world) from following the click.
+ *
+ * <p>PAR-PROC-38: the {@link BarrelRackListener} (the barrel's facing on placement, the barrel rack, the rack left by a
+ * broken racked barrel) is the device's {@link BarrelRackWorld}; the {@link BarrelRackTap} is settled before every access
+ * (the access hook, the screen link, the debug command).
  */
 public final class BarrelModule implements FeatureModule {
     public static final String ID = "barrel";
@@ -90,6 +94,7 @@ public final class BarrelModule implements FeatureModule {
     private volatile AutoCloseable hook;
     private volatile BarrelScreenLink.Env env;
     private volatile BucketGuard guard;
+    private volatile BarrelRackListener racks;
     /** The barrels {@code /tfp debug barrel rain on} forces the climate's rain on (the vanilla gates still apply). */
     private final Set<BarrelScreenLink.Key> forcedRain = ConcurrentHashMap.newKeySet();
 
@@ -116,15 +121,21 @@ public final class BarrelModule implements FeatureModule {
         Scheduler scheduler = context.scheduler();
         Messages messages = context.messages();
         BarrelScreenLink.Env[] holder = new BarrelScreenLink.Env[1];
+        BarrelRackTap[] tap = new BarrelRackTap[1];
+        BarrelRackListener rackWorld = new BarrelRackListener(context.integrations().customBlocks(), items, devices,
+            scheduler, effects, () -> tap[0]);
         BarrelDevice.Services barrel = new BarrelDevice.Services(book, fits,
             stack -> tags.is(stack, BarrelDevice.RODS_WOODEN), effects, rain(services, forcedRain),
-            (player, block, blockId) -> open(holder[0], services, player, block, blockId));
+            (player, block, blockId) -> open(holder[0], services, player, block, blockId), rackWorld);
         DeviceKind<BarrelData> kind = devices.register(BarrelDevice.kind(barrel, devices.stacks()));
+        tap[0] = new BarrelRackTap(devices, kind, barrel, devices.stacks(), scheduler);
+        racks = rackWorld;
+        context.listen(rackWorld);
         BarrelScreenLink.Env e = new BarrelScreenLink.Env(devices, kind, barrel, devices.stacks(), scheduler, messages,
             context.clock());
         holder[0] = e;
         env = e;
-        hook = devices.hook(BarrelDevice.ID, new ScreenSync(services, scheduler));
+        hook = devices.hook(BarrelDevice.ID, new ScreenSync(services, scheduler, rackWorld));
         BucketGuard g = new BucketGuard(devices, context.integrations().customBlocks(), tanks, scheduler,
             context.logger());
         guard = g;
@@ -273,14 +284,21 @@ public final class BarrelModule implements FeatureModule {
 
     /**
      * Keeps an open screen in step with the other writers of the slots (the sneak seal, a bucket, a neighbour update,
-     * removal): commits its copy before, reloads it after. On the viewer's thread: inline when this thread owns the
+     * removal): commits its copy before, reloads it after. PAR-PROC-38: then settles the taps around the barrel, so the
+     * click sees the fluid TFC's ticking would have moved. On the viewer's thread: inline when this thread owns the
      * viewer, otherwise the reload is queued there (the click is then not preceded by the commit; the commit after it is
      * refused by a sealed barrel, see {@link BarrelScreenLink#commit}).
      */
-    record ScreenSync(ModuleServices services, Scheduler scheduler) implements DeviceService.AccessHook {
+    record ScreenSync(ModuleServices services, Scheduler scheduler, BarrelRackWorld racks)
+            implements DeviceService.AccessHook {
+        ScreenSync(ModuleServices services, Scheduler scheduler) {
+            this(services, scheduler, BarrelRackWorld.NONE);
+        }
+
         @Override
         public void before(Block block) {
             withViewer(block, (screens, key) -> screens.edit(key), false);
+            racks.tap(block);
         }
 
         @Override
@@ -385,6 +403,7 @@ public final class BarrelModule implements FeatureModule {
     /** The debug step on the barrel's region thread. */
     static Reply debugAt(BarrelScreenLink.Env e, Block block, String where, int amount, TfcFluid fluid, boolean forced) {
         // an open screen sees the new tank at its next reload (the fill changes no slot)
+        e.services().racks().tap(block);
         boolean raining = e.services().rain().rainingAbove(block);
         BarrelData[] before = new BarrelData[1];
         boolean[] sealed = new boolean[1];
@@ -410,6 +429,9 @@ public final class BarrelModule implements FeatureModule {
         lines.add("sealed: " + d.sealed() + (d.sealed() ? " at " + d.sealedTick() + ", recipe tick " + d.recipeTick() : ""));
         lines.add("rain: " + (raining ? "raining" : "dry") + " above" + (forced ? " (forced)" : "") + ", clock "
             + d.rainTick());
+        BarrelRackWorld racks = e.services().racks();
+        lines.add("facing: " + racks.facing(block).name().toLowerCase(java.util.Locale.ROOT) + ", rack " + racks.racked(block)
+            + ", tap clock " + d.pourTick() + (d.pourSeen() ? " (open)" : " (closed)"));
         BarrelContents c = BarrelDevice.contents(stored.get(), e.stacks());
         lines.add("slots: in " + describe(c.containerIn()) + ", out " + describe(c.containerOut()) + ", item "
             + describe(c.main()) + ", excess " + c.excess().size());
@@ -429,6 +451,11 @@ public final class BarrelModule implements FeatureModule {
             HandlerList.unregisterAll(g);
         }
         guard = null;
+        BarrelRackListener r = racks;
+        if (r != null) {
+            HandlerList.unregisterAll(r);
+        }
+        racks = null;
         forcedRain.clear();
         for (AutoCloseable c : new AutoCloseable[] {sizer, hook}) {
             if (c != null) {

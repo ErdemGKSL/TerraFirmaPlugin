@@ -97,13 +97,15 @@ class GeneratedCarrierTest {
         // the solid pool (3 auto_state appearances, checked by checkPool), the other 22 explicit states.
         // PAR-PROC-37: the log pile (32 appearances: 24 explicit states, counts 13..16 of both axes on pools), the burning
         // log pile (32 leaves pool states) and the charcoal pile (7 explicit states, layer 8 from the solid pool).
-        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7);
+        // PAR-PROC-38: 16 side appearances per barrel (4 facings x seal x rack) and the barrel rack's one.
+        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1);
         assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1);
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
             List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern",
-                "tfp:scraping", HitboxDemands.COMPOSTER_ID, HitboxDemands.LOG_PILE_ID, HitboxDemands.CHARCOAL_PILE_ID));
+                "tfp:scraping", HitboxDemands.COMPOSTER_ID, HitboxDemands.LOG_PILE_ID, HitboxDemands.CHARCOAL_PILE_ID,
+                HitboxDemands.BARREL_RACK_ID));
         HitboxDemands.BARREL_WOODS.forEach(w -> expected.add(HitboxDemands.barrelId(w)));
-        assertThat(expected).hasSize(30);
+        assertThat(expected).hasSize(31);
         assertThat(checkedIds).as("block ids whose explicit appearance states were checked")
             .containsExactlyElementsOf(expected);
         assertThat(mappings).as("generator block_state_mappings")
@@ -263,6 +265,50 @@ class GeneratedCarrierTest {
                     .doesNotStartWith("minecraft:daylight_detector").doesNotStartWith(VanillaCandidates.POOL_PREFIX);
             }
         }
+    }
+
+    @Test
+    void theBarrelSideRackAndBarrelRackCarriersArePinned() {
+        // PAR-PROC-38: the barrel on its side per axis and rack (TFC SHAPE_X / SHAPE_Z, with RACK_SHAPE racked) and the
+        // barrel rack (RACK_SHAPE). TFC's side rows are in hitbox/tfc-shapes.json, but their best free carrier is a
+        // farmland state, whose full bottom face, drawn empty, culls the ground's top face (a see-through gap beside the
+        // side model in game): the side demands borrow the sealed upright row and share its transparent cactus carrier.
+        // The rack takes a closed top iron trapdoor, hitbox-only (its look is TFC's model as an item display). Served last
+        // (weight -2), so adding them moved no other block's carrier. Every wood agrees on one carrier per axis and rack.
+        Map<String, TfcShapes.Row> rows = TfcShapes.load();
+        for (String axis : HitboxDemands.BARREL_SIDE_AXES) {
+            for (boolean rack : new boolean[] {false, true}) {
+                String key = HitboxDemands.barrelSideKey(axis, rack);
+                assertThat(rows).containsKey(key);
+                String carrier = null;
+                for (String w : HitboxDemands.BARREL_WOODS) {
+                    Assignment a = HitboxAllocation.agreed(HitboxDemands.barrelId(w), HitboxDemands.barrelSideDemand(axis, rack));
+                    assertThat(a.demand().tfcKey()).isEqualTo(HitboxDemands.BARREL_SIDE_BORROWED_ROW);
+                    assertThat(a.mode()).as(key).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
+                    assertThat(a.hideTarget()).isNull();
+                    carrier = carrier == null ? a.state() : carrier;
+                    assertThat(a.state()).isEqualTo(carrier);
+                }
+                assertThat(carrier).as(key).isEqualTo("minecraft:cactus[age=10]")
+                    .isEqualTo(HitboxAllocation.agreed(HitboxDemands.barrelId("oak"), HitboxDemands.BARREL_SEALED).state());
+                // the selector's own pick for TFC's row would be a farmland state (the one refused above)
+                assertThat(HitboxCarrier.select(HitboxCarrier.TfcState.of(key), dev.tfp.datagen.visuals.Profile.defaultFor(
+                    dev.tfp.datagen.visuals.VersionFamily.V1_21), dev.tfp.datagen.visuals.VersionFamily.V1_21).ranked())
+                    .anyMatch(c -> c.carrier().startsWith("minecraft:farmland["));
+            }
+        }
+        Assignment rack = HitboxAllocation.agreed(HitboxDemands.BARREL_RACK_ID, HitboxDemands.BARREL_RACK_APPEARANCE);
+        assertThat(rows).containsKey("tfc:barrel_rack");
+        assertThat(rack.mode()).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
+        assertThat(rack.state()).isEqualTo(
+            "minecraft:iron_trapdoor[facing=east,half=top,open=false,powered=false,waterlogged=false]");
+        // the patterns match exactly the side appearances of their axis and rack
+        assertThat(matches(HitboxDemands.barrelSideDemand("x", false), "x_east_unsealed")).isTrue();
+        assertThat(matches(HitboxDemands.barrelSideDemand("x", false), "x_west_sealed")).isTrue();
+        assertThat(matches(HitboxDemands.barrelSideDemand("x", false), "x_west_sealed_rack")).isFalse();
+        assertThat(matches(HitboxDemands.barrelSideDemand("z", true), "z_north_unsealed_rack")).isTrue();
+        assertThat(matches(HitboxDemands.barrelSideDemand("z", true), "x_east_unsealed_rack")).isFalse();
+        assertThat(matches(HitboxDemands.barrelSideDemand("x", false), HitboxDemands.BARREL_SEALED)).isFalse();
     }
 
     /**

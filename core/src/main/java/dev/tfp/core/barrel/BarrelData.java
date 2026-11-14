@@ -5,7 +5,7 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/blockentities/BarrelBlockEntity.java @ c3b4d9536 (saveAdditional /
- * loadAdditional: sealedTick, recipeTick; the tank), src/main/java/net/dries007/tfc/common/blocks/devices/BarrelBlock.java
+ * loadAdditional: sealedTick, recipeTick; the tank; tickPouring for the tap clock), src/main/java/net/dries007/tfc/common/blocks/devices/BarrelBlock.java
  * @ c3b4d9536 (SEALED)
  */
 package dev.tfp.core.barrel;
@@ -25,11 +25,14 @@ import java.util.Objects;
  * @param rainTick   PAR-PROC-35: the tick the rain fill was last settled ({@link BarrelRain#settle}), or
  *                   {@link BarrelRules#NO_TICK} before the first settle
  * @param rainSeen   PAR-PROC-35: whether it rained at the block above at {@code rainTick}
+ * @param pourTick   PAR-PROC-38: the tick the tap was last settled ({@link BarrelTap#settle}), or
+ *                   {@link BarrelRules#NO_TICK} before the first settle
+ * @param pourSeen   PAR-PROC-38: whether the tap could pour at {@code pourTick}
  */
 public record BarrelData(FluidAmount fluid, boolean sealed, long sealedTick, long recipeTick, long rainTick,
-        boolean rainSeen) {
+        boolean rainSeen, long pourTick, boolean pourSeen) {
     public static final BarrelData FRESH = new BarrelData(FluidAmount.EMPTY, false, 0L, BarrelRules.NO_TICK,
-        BarrelRules.NO_TICK, false);
+        BarrelRules.NO_TICK, false, BarrelRules.NO_TICK, false);
 
     public static final VersionedCodec<BarrelData> CODEC = VersionedCodec.<BarrelData>builder("barrel", 1)
         .build((s, out) -> {
@@ -40,13 +43,16 @@ public record BarrelData(FluidAmount fluid, boolean sealed, long sealedTick, lon
             out.putLong("recipe_tick", s.recipeTick());
             out.putLong("rain_tick", s.rainTick());
             out.putBoolean("rain_seen", s.rainSeen());
+            out.putLong("pour_tick", s.pourTick());
+            out.putBoolean("pour_seen", s.pourSeen());
         }, in -> {
             int amount = in.getInt("amount", 0);
             String id = in.getString("fluid", "");
             FluidAmount fluid = amount <= 0 || id.isEmpty() ? FluidAmount.EMPTY : new FluidAmount(id, amount);
             return new BarrelData(fluid, in.getBoolean("sealed", false), in.getLong("sealed_tick", 0L),
                 in.getLong("recipe_tick", BarrelRules.NO_TICK), in.getLong("rain_tick", BarrelRules.NO_TICK),
-                in.getBoolean("rain_seen", false));
+                in.getBoolean("rain_seen", false), in.getLong("pour_tick", BarrelRules.NO_TICK),
+                in.getBoolean("pour_seen", false));
         });
 
     public BarrelData {
@@ -54,25 +60,30 @@ public record BarrelData(FluidAmount fluid, boolean sealed, long sealedTick, lon
     }
 
     public BarrelData withFluid(FluidAmount next) {
-        return new BarrelData(next, sealed, sealedTick, recipeTick, rainTick, rainSeen);
+        return new BarrelData(next, sealed, sealedTick, recipeTick, rainTick, rainSeen, pourTick, pourSeen);
     }
 
     public BarrelData withRecipeTick(long tick) {
-        return new BarrelData(fluid, sealed, sealedTick, tick, rainTick, rainSeen);
+        return new BarrelData(fluid, sealed, sealedTick, tick, rainTick, rainSeen, pourTick, pourSeen);
     }
 
     /** TFC {@code onSeal}: the seal tick, and the recipe tick when a recipe matches. */
     public BarrelData sealedAt(long now, boolean recipeMatches) {
-        return new BarrelData(fluid, true, now, recipeMatches ? now : recipeTick, rainTick, rainSeen);
+        return new BarrelData(fluid, true, now, recipeMatches ? now : recipeTick, rainTick, rainSeen, pourTick, pourSeen);
     }
 
     /** The rain clock after a settle at {@code tick} that saw rain ({@code seen}) or not. */
     public BarrelData withRain(long tick, boolean seen) {
-        return new BarrelData(fluid, sealed, sealedTick, recipeTick, tick, seen);
+        return new BarrelData(fluid, sealed, sealedTick, recipeTick, tick, seen, pourTick, pourSeen);
+    }
+
+    /** PAR-PROC-38: the tap clock after a settle at {@code tick} that saw the tap open ({@code seen}) or not. */
+    public BarrelData withPour(long tick, boolean seen) {
+        return new BarrelData(fluid, sealed, sealedTick, recipeTick, rainTick, rainSeen, tick, seen);
     }
 
     /** TFC {@code onUnseal}: both ticks cleared. */
     public BarrelData unsealed() {
-        return new BarrelData(fluid, false, 0L, BarrelRules.NO_TICK, rainTick, rainSeen);
+        return new BarrelData(fluid, false, 0L, BarrelRules.NO_TICK, rainTick, rainSeen, pourTick, pourSeen);
     }
 }

@@ -2,7 +2,7 @@
 id: PAR-PROC-38
 title: "Barrel rack, sideways barrel and tap pouring, and their in-game check"
 area: PROC
-status: open
+status: done
 wave: 14
 deps: [PAR-PROC-35]
 size: L
@@ -41,6 +41,7 @@ plan:
   - "2. Placement and use (TFC `getStateForPlacement`, `useItemOn`): placing a barrel on a rack lays it sideways facing the player; a rack item on a sideways barrel racks it; sneak with an empty hand on the rack's top takes the rack back; breaking a racked barrel leaves the rack (`onDestroyedByPlayer`) and `onRemove` returns the rack item; a sideways barrel needs sturdy support below. The facing goes into `BarrelDevice.settle` (no rain on a sideways barrel; the surface hidden)."
   - "3. Tap (TFC `tickPouring`): an unsealed sideways barrel with fluid pours 1 mB per tick through the tap (`pos.relative(facing)` must be air) into the fluid handler below the tap (another barrel, a TFC fluid block entity), lazily: decide async, apply sync, credited at accesses of either device; TFC's drip sound every 12 ticks becomes an action-only sound."
   - "4. In-game step above (cheap-model agent, the main session judges): store crops and verdict.md in docs/verification/PAR-PROC-38/. The barrel GUI, bucket, surface and rain checks are PAR-PROC-35's (`/tfp debug barrel rain on` forces the climate rain there)."
+  - "Done: `tfp:barrel_rack` (datagen `barrelrack/BarrelRackBlock`), the barrel's `facing`/`rack` states (20 per wood, TFC's side models turned 180 - y; the side demands borrow the sealed upright row: the farmland carrier of TFC's side rows showed the ground through in game), `BarrelRackListener` (placement facing and support, barrel on rack, broken racked barrel leaves the rack, explosion drops it), `BarrelDevice` rack/unrack clicks and support loss, `BarrelRackTap` + `core/barrel/BarrelTap` (lazy tap, both-ends rule, settled before every access of either barrel). Tests: core BarrelTapTest 4, paper BarrelRackMockBukkitTest 12, datagen BarrelBlockTest 5, BarrelRackBlockTest 2, GeneratedCarrierTest +1. In game: docs/verification/PAR-PROC-38/verdict.md (pass). Ledger: feature row + 6 divergences. `./gradlew check`: only the existing `dist` ArchitectureTest PacketEvents violation (heat, itembar, blocksound; not this item's files) fails."
 tests:
   - "datagen: barrel rack entry, the facing/rack states and their carriers pinned in GeneratedCarrierTest"
   - "paper: placing on a rack, racking, unracking, breaking a racked barrel; a sideways barrel takes no rain; the tap pours lazily into a barrel below (lazy vs stepped)"

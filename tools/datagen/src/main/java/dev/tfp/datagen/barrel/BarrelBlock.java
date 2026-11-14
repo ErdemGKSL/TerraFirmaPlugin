@@ -46,9 +46,15 @@ import java.util.regex.Pattern;
  * {@code craftengine/tfp/configuration/barrel/barrel.yml}. The plugin's {@code BarrelDevice} (PAR-PROC-08) runs them.
  *
  * <ul>
- *   <li>One state property, {@code sealed} (TFC {@code SealableDeviceBlock.SEALED}, default false; the device writes it).
- *       TFC's {@code facing}, {@code rack} and {@code powered} are not states yet: the barrel is always upright (the side
- *       and rack states come with PAR-PROC-09's rack, the redstone seal with a follow-up).</li>
+ *   <li>The state properties {@code sealed} (TFC {@code SealableDeviceBlock.SEALED}, default false; the device writes it),
+ *       and since PAR-PROC-38 {@code facing} (TFC {@code FACING_NOT_DOWN}: up or a side, default up; a string property, so
+ *       CraftEngine adds no placement logic of its own: the plugin's {@code BarrelRackListener} sets it as TFC's
+ *       {@code getStateForPlacement} does) and {@code rack} (TFC {@code RACK}, default false). TFC's {@code powered} is
+ *       not a state yet (the redstone seal is a follow-up). 20 states per wood.</li>
+ *   <li>PAR-PROC-38: a barrel on its side takes the carrier of its axis and rack demand (served for the sealed upright
+ *       row, {@link HitboxDemands#BARREL_SIDE_BORROWED_ROW}: the same transparent cactus state) and draws TFC's side model ({@code <wood>_side}, {@code <wood>_side_rack}) turned
+ *       by TFC's blockstate {@code y} ({@code 180 - y} about the display's y). An upright racked state (TFC has it, nothing
+ *       reaches it) draws the upright model.</li>
  *   <li>Carriers: the hitbox selector serves both outlines ({@code tfc:wood/barrel[axis=y,sealed=false|true]}) hitbox-only
  *       ({@link HitboxDemands}): there are 40 per-wood looks and only 16 explicit carriers for the 12x16x12 outline, so the
  *       carrier is drawn empty and the look is an {@code entity_renderer} item display of TFC's block model of that wood
@@ -74,6 +80,11 @@ public final class BarrelBlock {
     static final String RP = PACK + "resourcepack/assets/tfp/";
     static final String LANG_RP = PACK + "resourcepack/assets/tfp_barrel/lang/";
     public static final String PROPERTY = "sealed";
+    /** PAR-PROC-38: TFC {@code BarrelBlock.FACING} ({@code FACING_NOT_DOWN}, vanilla's Direction order without down). */
+    public static final String FACING = "facing";
+    public static final List<String> FACINGS = List.of("up", "north", "south", "west", "east");
+    /** PAR-PROC-38: TFC {@code BarrelBlock.RACK}. */
+    public static final String RACK = "rack";
     /** The half turn every block-model item display needs to match the block (see ForgeDevices.OVERLAY_ROTATION). */
     static final String RENDER_ROTATION = "0,180,0";
     private static final Pattern WOOD_ENUM = Pattern.compile("public enum Wood implements RegistryWood\\s*\\{(.*?);", Pattern.DOTALL);
@@ -110,7 +121,37 @@ public final class BarrelBlock {
         return Json.TO_NS + ":render/wood/" + (sealed ? "barrel_sealed/" : "barrel/") + wood;
     }
 
-    /** Writes the entries, their models, textures and names. Returns the number of server states (2 per wood). */
+    /** PAR-PROC-38: TFC's side model suffix ({@code _side}, {@code _side_rack}). */
+    static String sideSuffix(boolean rack) {
+        return rack ? "_side_rack" : "_side";
+    }
+
+    /** PAR-PROC-38: the side block model of {@code wood} (TFC's, copied). */
+    public static String sideModel(String wood, boolean sealed, boolean rack) {
+        return model(wood, sealed) + sideSuffix(rack);
+    }
+
+    /** PAR-PROC-38: the display-only item that draws {@link #sideModel}. */
+    public static String sideRenderItem(String wood, boolean sealed, boolean rack) {
+        return renderItem(wood, sealed) + sideSuffix(rack);
+    }
+
+    /** PAR-PROC-38: the axis of a side facing. */
+    public static String axis(String facing) {
+        return facing.equals("east") || facing.equals("west") ? "x" : "z";
+    }
+
+    /** PAR-PROC-38: the appearance of a barrel on its side ({@code x_east_unsealed}, {@code z_north_sealed_rack}). */
+    public static String sideAppearance(String facing, boolean sealed, boolean rack) {
+        return axis(facing) + "_" + facing + "_" + (sealed ? "sealed" : "unsealed") + (rack ? "_rack" : "");
+    }
+
+    /** PAR-PROC-38: the display turn of TFC's blockstate {@code y} (see CharcoalBlocks.renderRotation). */
+    static String sideRotation(int y) {
+        return "0," + Math.floorMod(180 - y, 360) + ",0";
+    }
+
+    /** Writes the entries, their models, textures and names. Returns the number of server states (20 per wood). */
     public static int run(TfcCheckout tfc, OutputTree out) {
         checkSource(tfc);
         List<String> woods = woods(tfc);
@@ -127,9 +168,9 @@ public final class BarrelBlock {
             }
             tool = t;
             checkLoot(tfc, wood);
-            checkBlockstate(tfc, wood);
+            Map<String, Integer> turns = checkBlockstate(tfc, wood);
             copyModels(tfc, out, wood);
-            DeviceBlockSpec spec = spec(wood, strength, t);
+            DeviceBlockSpec spec = spec(wood, strength, t, turns);
             states += (int) spec.stateCount();
             merge(DeviceYaml.templated(spec), blocks, items, mappings);
         }
@@ -169,7 +210,8 @@ public final class BarrelBlock {
         }
         String barrel = tfc.readString(SOURCE).replaceAll("\\s+", " ");
         for (String needle : List.of(".setValue(SEALED, false) .setValue(FACING, Direction.UP) .setValue(RACK, false)",
-                "super.createBlockStateDefinition(builder.add(FACING, RACK));")) {
+                "super.createBlockStateDefinition(builder.add(FACING, RACK));",
+                "public static final EnumProperty<Direction> FACING = TFCBlockStateProperties.FACING_NOT_DOWN;")) {
             if (!barrel.contains(needle)) {
                 throw new DatagenException(SOURCE + " no longer contains \"" + needle + "\": re-check the barrel entry");
             }
@@ -271,46 +313,99 @@ public final class BarrelBlock {
         }
     }
 
-    /** TFC's upright states draw {@code barrel/<wood>} unsealed and {@code barrel_sealed/<wood>} sealed. */
-    static void checkBlockstate(TfcCheckout tfc, String wood) {
+    /**
+     * TFC's upright states draw {@code barrel/<wood>} unsealed and {@code barrel_sealed/<wood>} sealed; PAR-PROC-38: the
+     * side states draw {@code <wood>_side} or {@code <wood>_side_rack} turned by one {@code y} per facing (the same for
+     * every seal and rack). Returns the side facings' {@code y}.
+     */
+    static Map<String, Integer> checkBlockstate(TfcCheckout tfc, String wood) {
         String src = BLOCKSTATES + wood + ".json";
         JsonObject variants = Json.parse(tfc.readString(src), src).getAsJsonObject().getAsJsonObject("variants");
-        for (boolean sealed : new boolean[] {false, true}) {
-            for (boolean rack : new boolean[] {false, true}) {
-                String key = "facing=up,rack=" + rack + ",sealed=" + sealed;
-                JsonObject v = variants == null ? null : variants.getAsJsonObject(key);
-                String want = Json.FROM_NS + ":block/wood/" + (sealed ? "barrel_sealed/" : "barrel/") + wood;
-                if (v == null || !want.equals(v.get("model").getAsString()) || v.has("x") || v.has("y")) {
-                    throw new DatagenException(src + ": " + key + " no longer draws " + want + " unrotated");
+        if (variants == null || variants.size() != FACINGS.size() * 4) {
+            throw new DatagenException(src + ": not one variant per facing, rack and seal");
+        }
+        Map<String, Integer> turns = new LinkedHashMap<>();
+        for (String facing : FACINGS) {
+            for (boolean sealed : new boolean[] {false, true}) {
+                for (boolean rack : new boolean[] {false, true}) {
+                    String key = "facing=" + facing + ",rack=" + rack + ",sealed=" + sealed;
+                    JsonObject v = variants.getAsJsonObject(key);
+                    String base = Json.FROM_NS + ":block/wood/" + (sealed ? "barrel_sealed/" : "barrel/") + wood;
+                    boolean up = facing.equals("up");
+                    String want = up ? base : base + sideSuffix(rack);
+                    if (v == null || !want.equals(v.get("model").getAsString()) || v.has("x") || (up && v.has("y"))) {
+                        throw new DatagenException(src + ": " + key + " no longer draws " + want
+                            + (up ? " unrotated" : " turned about y only"));
+                    }
+                    if (!up) {
+                        int y = v.has("y") ? v.get("y").getAsInt() : 0;
+                        Integer old = turns.putIfAbsent(facing, y);
+                        if (old != null && old != y) {
+                            throw new DatagenException(src + ": facing=" + facing + " turns " + old + " and " + y);
+                        }
+                    }
                 }
             }
         }
+        return turns;
     }
 
-    static DeviceBlockSpec spec(String wood, String strength, String tool) {
+    static DeviceBlockSpec spec(String wood, String strength, String tool, Map<String, Integer> turns) {
         String id = id(wood);
         HitboxAllocation.Assignment unsealed = carrier(id, HitboxDemands.BARREL_UNSEALED);
         HitboxAllocation.Assignment sealed = carrier(id, HitboxDemands.BARREL_SEALED);
+        List<HitboxAllocation.Assignment> carriers = new ArrayList<>(List.of(unsealed, sealed));
         DeviceBlockSpec.Builder b = DeviceBlockSpec.builder(id)
             .property(DeviceProperty.bool(PROPERTY, false))
+            .property(DeviceProperty.names(FACING, FACINGS, "up"))
+            .property(DeviceProperty.bool(RACK, false))
             .appearance(DeviceAppearance.rendered(HitboxDemands.BARREL_UNSEALED,
                 DeviceAppearance.Carrier.state(unsealed.state()), List.of(renderer(wood, false))))
             .appearance(DeviceAppearance.rendered(HitboxDemands.BARREL_SEALED,
-                DeviceAppearance.Carrier.state(sealed.state()), List.of(renderer(wood, true))))
-            .everyState(s -> Boolean.parseBoolean(s.get(PROPERTY)) ? HitboxDemands.BARREL_SEALED : HitboxDemands.BARREL_UNSEALED,
-                null)
+                DeviceAppearance.Carrier.state(sealed.state()), List.of(renderer(wood, true))));
+        for (String facing : FACINGS) {
+            if (facing.equals("up")) {
+                continue;
+            }
+            for (boolean rack : new boolean[] {false, true}) {
+                HitboxAllocation.Assignment side = carrier(id, HitboxDemands.barrelSideDemand(axis(facing), rack));
+                carriers.add(side);
+                for (boolean s : new boolean[] {false, true}) {
+                    b.appearance(DeviceAppearance.rendered(sideAppearance(facing, s, rack),
+                        DeviceAppearance.Carrier.state(side.state()), List.of(DeviceAppearance.Renderer
+                            .item(sideRenderItem(wood, s, rack)).rotated(sideRotation(turns.get(facing))))));
+                }
+            }
+        }
+        b.everyState(BarrelBlock::appearance, null)
             .settings(DeviceBlockSpec.Settings.of(strength, strength, DeviceSound.WOOD, tool))
             .loot(DeviceLoot.self())
             .deviceBehaviour()
             .blockItem(langKey(wood))
             .renderItem(renderItem(wood, false), model(wood, false))
             .renderItem(renderItem(wood, true), model(wood, true));
-        for (HitboxAllocation.Assignment a : List.of(unsealed, sealed)) {
-            if (a.hideTarget() != null) {
+        for (boolean s : new boolean[] {false, true}) {
+            for (boolean rack : new boolean[] {false, true}) {
+                b.renderItem(sideRenderItem(wood, s, rack), sideModel(wood, s, rack));
+            }
+        }
+        Map<String, String> hidden = new LinkedHashMap<>();
+        for (HitboxAllocation.Assignment a : carriers) {
+            if (a.hideTarget() != null && hidden.putIfAbsent(a.state(), a.hideTarget()) == null) {
                 b.stateMapping(a.state(), a.hideTarget());
             }
         }
         return b.build();
+    }
+
+    /** The appearance of one server state: upright by the seal (also when racked), on its side by facing, seal, rack. */
+    static String appearance(Map<String, String> state) {
+        boolean sealed = Boolean.parseBoolean(state.get(PROPERTY));
+        String facing = state.get(FACING);
+        if (facing.equals("up")) {
+            return sealed ? HitboxDemands.BARREL_SEALED : HitboxDemands.BARREL_UNSEALED;
+        }
+        return sideAppearance(facing, sealed, Boolean.parseBoolean(state.get(RACK)));
     }
 
     private static DeviceAppearance.Renderer renderer(String wood, boolean sealed) {
@@ -327,14 +422,23 @@ public final class BarrelBlock {
         return a;
     }
 
-    /** TFC's per-wood block models (both upright states) and item model, renamed; and the textures they name. */
+    /**
+     * TFC's per-wood block models (both upright states and, PAR-PROC-38, the four side models) and item model, renamed;
+     * and the textures they name.
+     */
     static void copyModels(TfcCheckout tfc, OutputTree out, String wood) {
-        for (String path : List.of("block/wood/barrel/" + wood, "block/wood/barrel_sealed/" + wood)) {
+        List<String> paths = new ArrayList<>();
+        for (String dir : List.of("block/wood/barrel/", "block/wood/barrel_sealed/")) {
+            for (String suffix : List.of("", "_side", "_side_rack")) {
+                paths.add(dir + wood + suffix);
+            }
+        }
+        for (String path : paths) {
             String src = MODELS + path + ".json";
             String text = tfc.readString(src);
             JsonObject m = Json.parse(text, src).getAsJsonObject();
             String parent = m.get("parent").getAsString();
-            if (!parent.equals(Json.FROM_NS + ":block/barrel") && !parent.equals(Json.FROM_NS + ":block/barrel_sealed")) {
+            if (!parent.startsWith(Json.FROM_NS + ":") || !PARENTS.contains(parent.substring(parent.indexOf(':') + 1))) {
                 throw new DatagenException(src + ": parent " + parent + " is not a barrel base model");
             }
             out.put(RP + "models/" + path + ".json", Json.write(Json.rename(m)));
@@ -349,9 +453,13 @@ public final class BarrelBlock {
         out.put(RP + "models/item/wood/barrel/" + wood + ".json", Json.write(Json.rename(item)));
     }
 
-    /** The two base models TFC's per-wood models inherit from, and their hoop texture. */
+    /** The base models TFC's per-wood models inherit from (PAR-PROC-38: and the four side ones). */
+    static final List<String> PARENTS = List.of("block/barrel", "block/barrel_sealed", "block/barrel_side",
+        "block/barrel_side_rack", "block/barrel_side_sealed", "block/barrel_side_sealed_rack");
+
+    /** The base models, and their hoop, tap and rack textures. */
     static void copyParents(TfcCheckout tfc, OutputTree out) {
-        for (String path : List.of("block/barrel", "block/barrel_sealed")) {
+        for (String path : PARENTS) {
             String src = MODELS + path + ".json";
             String text = tfc.readString(src);
             out.put(RP + "models/" + path + ".json", Json.write(Json.rename(Json.parse(text, src))));

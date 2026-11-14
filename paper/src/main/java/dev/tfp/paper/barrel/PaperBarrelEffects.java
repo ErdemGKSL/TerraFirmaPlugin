@@ -10,7 +10,9 @@
  * the instant recipe sound, ejectInventory's PLAYER_SPLASH),
  * file: src/main/java/net/dries007/tfc/common/fluids/FluidHelpers.java @ c3b4d9536 (playTransferSound),
  * file: src/main/java/net/dries007/tfc/util/Helpers.java @ c3b4d9536 (spawnItem),
- * file: src/main/java/net/dries007/tfc/client/render/blockentity/BarrelBlockEntityRenderer.java @ c3b4d9536 (the fluid face)
+ * file: src/main/java/net/dries007/tfc/client/render/blockentity/BarrelBlockEntityRenderer.java @ c3b4d9536 (the fluid face),
+ * PAR-PROC-38: BarrelBlock.java @ c3b4d9536 (useItemOn: the rack's place sound and WOOD_PLACE 0.85; updateShape; onRemove:
+ * the rack item), BarrelBlockEntity.java @ c3b4d9536 (tickPouring: BARREL_DRIP)
  */
 package dev.tfp.paper.barrel;
 
@@ -57,6 +59,10 @@ import org.joml.Vector3f;
  * still-water plane {@link #SURFACE_MODEL} tinted with the fluid's colour (custom model data colour 0), scaled and raised
  * to {@link BarrelFluidVisuals#surface}. A CraftEngine {@code entity_renderer} follows block states only, and a state per
  * fill level and fluid colour would not fit, so the plane is a real display, as the quern's parts.
+ *
+ * <p>PAR-PROC-38: every state write lays the wanted properties over the barrel's current state (the seal keeps the facing
+ * and rack, the rack keeps the seal). TFC's {@code tfc:block.barrel.drip} is not in the pack: the vanilla dripstone water
+ * drip stands in (ledger).
  */
 public final class PaperBarrelEffects implements BarrelEffects {
     static final Sound OPEN = Sound.BLOCK_BARREL_OPEN;
@@ -65,6 +71,8 @@ public final class PaperBarrelEffects implements BarrelEffects {
     public static final NamespacedKey SURFACE = new NamespacedKey("tfp", "barrel_fluid");
     /** The item model of the surface plane (datagen {@code BarrelScreenArt}): a 1 x 1 block face at model y 8, tint 0. */
     public static final String SURFACE_MODEL = "tfp:render/barrel_fluid";
+    /** PAR-PROC-38: the stand-in for TFC's {@code BARREL_DRIP}. */
+    static final Sound DRIP = Sound.BLOCK_POINTED_DRIPSTONE_DRIP_WATER;
 
     private final Scheduler scheduler;
     private final CustomBlocks blocks;
@@ -90,11 +98,59 @@ public final class PaperBarrelEffects implements BarrelEffects {
 
     private void syncState(Block block, BlockStateRef wanted) {
         Optional<BlockStateRef> now = blocks.stateAt(block);
-        if (now.isEmpty() || !now.get().id().equals(wanted.id()) || now.get().equals(wanted)) {
-            return; // broken, replaced or already right
+        if (now.isEmpty() || !now.get().id().equals(wanted.id())) {
+            return; // broken or replaced
         }
-        Optional<BlockData> data = visuals.get().blockData(wanted);
+        BlockStateRef next = overlay(now.get(), wanted);
+        if (now.get().equals(next)) {
+            return; // already right
+        }
+        Optional<BlockData> data = visuals.get().blockData(next);
         data.ifPresent(d -> block.setBlockData(d, false));
+    }
+
+    /** {@code current} with every property of {@code wanted}. */
+    static BlockStateRef overlay(BlockStateRef current, BlockStateRef wanted) {
+        BlockStateRef out = current;
+        for (java.util.Map.Entry<String, String> e : wanted.properties().entrySet()) {
+            out = out.with(e.getKey(), e.getValue());
+        }
+        return out;
+    }
+
+    @Override
+    public void racked(Block block, BlockStateRef wanted, boolean racked) {
+        Location at = centre(block);
+        if (racked) {
+            block.getWorld().playSound(at, Sound.BLOCK_WOOD_PLACE, SoundCategory.BLOCKS, 1.0f, 0.8f);
+        } else {
+            block.getWorld().playSound(at, Sound.BLOCK_WOOD_PLACE, SoundCategory.BLOCKS, 1.0f, 0.85f);
+        }
+        state(block, wanted);
+    }
+
+    @Override
+    public void state(Block block, BlockStateRef wanted) {
+        scheduler.region(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, () -> syncState(block, wanted));
+    }
+
+    @Override
+    public void drip(Block block) {
+        block.getWorld().playSound(centre(block), DRIP, SoundCategory.BLOCKS, 1.0f, 1.0f);
+    }
+
+    @Override
+    public void collapse(Block block, ItemStack rack) {
+        String id = blocks.stateAt(block).map(BlockStateRef::id).orElse(null);
+        scheduler.region(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, () -> {
+            Optional<BlockStateRef> now = blocks.stateAt(block);
+            if (id == null || now.isEmpty() || !now.get().id().equals(id)) {
+                return; // already gone
+            }
+            if (blocks.remove(block)) {
+                spawn(block, rack);
+            }
+        });
     }
 
     @Override
