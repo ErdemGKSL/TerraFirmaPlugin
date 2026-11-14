@@ -261,6 +261,9 @@ Status legend: **done** (rules, glue and visuals in game), **partial** (some lay
 | FARM | Plant info and fertilizer tooltips (PlantableInfo on SeedItem, FruitBlocks, TFCSaplingBlock; Fertilizer N/P/K lines) | not started | PAR-FARM-13 |
 | GATHER | Axe stripping (LogBlock and BambooBlock getToolModifiedState AXE_STRIP) | not started | PAR-GATHER-08 |
 | INFRA | Block flammability (ExtendedProperties.flammable / flammableLike*, ignitedByLava, IForgeBlockExtension fire hooks) on CE blocks | not started | PAR-INFRA-47 |
+| DECO | Wood workbenches (Wood.BlockType.WORKBENCH, TFCCraftingTableBlock, TFCWorkbenchContainer range rule; TFC disables minecraft:crafting_table's recipe) | not started | PAR-DECO-17 |
+| INFRA | Block coverage of TFCBlocks (every assets/tfc/blockstates id generated, owned by a named item or an NP entry; the item-side gate is PAR-PROC-19's ItemCoverage) | not started | PAR-INFRA-49 |
+| INFRA | Feature item tooltip lines (ItemListComponent and Helpers.addInventoryTooltipInfo contents, BarrelBlock/SealableDeviceBlock/CrucibleBlock item contents, EggComponent fertilized and hatch day, JavelinItem thrown damage, PanItem deposit, FlowerCuttingItem, LampBlockItem, GlassWorking steps) | not started | PAR-INFRA-50 |
 
 ## Features already at parity (no open item)
 
@@ -304,4 +307,4 @@ Auditor: `NOT-PARITY.md` is the full list of what stays outside parity (design d
 | Create TFC world screen (CreateTFCWorldScreen) | client screen | bukkit.yml generator + config | PAR-WORLD-16, PAR-WORLD-22 |
 | Creative mode tabs (TFCCreativeTabs) | client creative inventory | CraftEngine item browser categories in TFC's order | PAR-DATA-15 |
 
-Counts over the item rows: done 4, impossible-on-vanilla 3, not started 92, partial 141, placeholder 13.
+Counts over the item rows: done 4, impossible-on-vanilla 3, not started 95, partial 141, placeholder 13.

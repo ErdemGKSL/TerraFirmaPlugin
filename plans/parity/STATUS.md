@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 350 items; open 198, done 144, blocked 8; waves 1..56 (wave 0 = already done).
+Totals: 353 items; open 201, done 144, blocked 8; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -159,6 +159,8 @@ Totals: 350 items; open 198, done 144, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-HEAT-18 | Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start) | HEAT | 14 | blocked |
 | PAR-HEAT-19 | Firepit loaded in game: configuration/devices/firepit.yml, TFC firepit models, self-test firepit.cook and the in-game check | HEAT | 14 | done |
 | PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | open |
+| PAR-INFRA-49 | Block coverage gate: every TFC blockstate is a loaded CE block, a family block, an owned id of a named parity item or an NP entry (reports/tfc-block-coverage.json) | INFRA | 14 | open |
+| PAR-INFRA-50 | Feature item tooltips no item owns: item-list contents of sealed device items, crucible contents, fertilized egg and hatch day, javelin thrown damage, pan deposit, flower cutting, lamp fluid, glass batch steps | INFRA | 14 | open |
 | PAR-PROC-18 | Powderkeg | PROC | 14 | open |
 | PAR-PROC-36 | Salad completion: salad screen art, eating and tooltip read the salad's own food data, in-game check | PROC | 14 | open |
 | PAR-PROC-37 | Log pile, burning log pile and charcoal pile CE blocks: hitbox rows and demands, configuration/charcoal, support rule, in-game check | PROC | 14 | open |
@@ -293,6 +295,7 @@ Totals: 350 items; open 198, done 144, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-DECO-10 | Ropes, rope anchors and rope knots | DECO | 40 | open |
 | PAR-FAUNA-03 | Entity texture variants, gendered and aged textures, render review | FAUNA | 40 | open |
 | PAR-FAUNA-04 | Spawning by climate on Paper | FAUNA | 40 | open |
+| PAR-DECO-17 | Wood workbenches: the 20 tfc:wood/workbench blocks as CE blocks that open the 3x3 crafting grid | DECO | 41 | open |
 | PAR-FAUNA-05 | Livestock: feeding, familiarity and breeding interactions | FAUNA | 41 | open |
 | PAR-PROC-06 | Loom: weaving cloth, burlap, wool, silk | PROC | 41 | open |
 | PAR-PROC-07 | Sewing table GUI | PROC | 41 | open |
