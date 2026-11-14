@@ -34,8 +34,8 @@ import org.bukkit.persistence.PersistentDataType;
 public final class SaladPdc {
     public static final int VERSION = 1;
 
-    static final NamespacedKey FOOD = new NamespacedKey("tfp", "dynamic_food");
-    static final NamespacedKey INGREDIENTS = new NamespacedKey("tfp", "ingredients");
+    public static final NamespacedKey FOOD = new NamespacedKey("tfp", "dynamic_food");
+    public static final NamespacedKey INGREDIENTS = new NamespacedKey("tfp", "ingredients");
     static final NamespacedKey BOWL = new NamespacedKey("tfp", "bowl");
 
     private static final NamespacedKey V = new NamespacedKey("tfp", "v");

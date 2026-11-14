@@ -72,8 +72,8 @@ public final class FoodTooltipContributor implements TooltipContributor {
     /** The salad PDC keys ({@code SaladPdc}) as the packet layer sees them. */
     static final String DYNAMIC_FOOD = "tfp:dynamic_food";
     static final String INGREDIENTS = "tfp:ingredients";
-    /** {@code SaladPdc.VERSION}. */
-    private static final int DYNAMIC_VERSION = 1;
+    /** {@code SaladPdc.VERSION} (pinned by {@code DynamicFoodTest.thePacketKeysMatchSaladPdc}). */
+    static final int DYNAMIC_VERSION = 1;
 
     private final FoodExpiryContributor expiry;
     private final TooltipStyles styles;

@@ -210,4 +210,11 @@ class DynamicFoodTest extends MockServerTest {
         assertThat(FoodTooltipContributor.itemNameKey("tfp:food/red_apple")).isEqualTo("item.tfp.food.red_apple");
         assertThat(FoodTooltipContributor.itemNameKey("minecraft:carrot")).isEqualTo("item.minecraft.carrot");
     }
+
+    @Test
+    void thePacketKeysMatchSaladPdc() {
+        assertThat(FoodTooltipContributor.DYNAMIC_FOOD).isEqualTo(SaladPdc.FOOD.asString());
+        assertThat(FoodTooltipContributor.INGREDIENTS).isEqualTo(SaladPdc.INGREDIENTS.asString());
+        assertThat(FoodTooltipContributor.DYNAMIC_VERSION).isEqualTo(SaladPdc.VERSION);
+    }
 }

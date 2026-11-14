@@ -32,3 +32,15 @@
 | Eating a salad adds its mixed nutrients | **Pass** (step 5; `NutritionEatDynamicFoodMockBukkitTest`) |
 
 No plugin errors in the server log (the one exception is PacketEvents' own update check, HTTP 403 from GitHub).
+
+## Independent rerun on commit 1610510 (2026-11-14)
+
+Paper 1.21.11, vanilla 1.21.11 client, GUI scale 2 and 3, same steps (`minecraft:bowl` again, since
+`tfp:ceramic/bowl` has no CE item yet). Every salad step matched the run above: the screen opened with the 4 bowls in
+place, 2 vegetable salads were made, the inputs shrank to carrots 2, apples 0, bowls 2, eating one salad at food 9 raised
+it to 13 with nonzero grain, fruit, vegetables and protein, and a bowl came back (server NBT: bowls 3, salads 2 and 1).
+The tester marked the run "rejected" only for noise outside this item, so the verdict stays **Pass**:
+- the Bot died twice from a leftover thirst debug value (`Bot dehydrated to death`; once "You Died" at TFC health 0/761
+  with no server death line, a debug-path question for its own item); both runs were redone after `tfp debug thirst Bot 100`;
+- `gamerule keepInventory` is `keep_inventory` on this server version;
+- PacketEvents' update check failed with HTTP 403 from GitHub on the sandbox network.
