@@ -9,6 +9,8 @@
  *       src/main/java/net/dries007/tfc/common/blocks/devices/PlacedItemBlock.java @ c3b4d9536 (makeShapes: the union of the occupied quadrants),
  *       src/main/java/net/dries007/tfc/common/blocks/devices/CrucibleBlock.java @ c3b4d9536 (the shape without channel connections),
  *       src/main/java/net/dries007/tfc/common/blocks/devices/TFCComposterBlock.java @ c3b4d9536 (SHAPES: the well per stage),
+ *       src/main/java/net/dries007/tfc/common/blocks/devices/LogPileBlock.java @ c3b4d9536 (SHAPES_BY_DIR_BY_COUNT,
+ *       BASED_SHAPES_BY_DIR_BY_COUNT, getShapeByDirByCount),
  *       the getShape / getCollisionShape choices of the block classes named in SPECS @ c3b4d9536
  */
 package dev.tfp.datagen.hitbox;
@@ -51,6 +53,10 @@ public final class TfcShapes {
         "CharcoalPileBlock", B + "CharcoalPileBlock.java",
         "BarrelBlock", D + "BarrelBlock.java",
         "FirepitBlock", D + "FirepitBlock.java");
+
+    /** PAR-PROC-37: TFC {@code HORIZONTAL_AXIS} and {@code COUNT_1_16}: the log pile's axes and its 1..16 logs. */
+    public static final List<String> LOG_PILE_AXES = List.of("x", "z");
+    public static final int LOG_PILE_MAX = 16;
 
     /** How the shape-quality ban list treats a class (the owner's object rule). */
     public enum Kind {
@@ -108,6 +114,12 @@ public final class TfcShapes {
         m.put("tfc:thatch", "new ThatchBlock(ExtendedProperties.of(MapColor.SAND).strength(0.6F, 0.4F).noOcclusion()");
         m.put("tfc:wattle[woven=false]", "new WattleBlock(ExtendedProperties.of(MapColor.WOOD).strength(0.3F).noOcclusion()");
         m.put("tfc:lobster_trap", "new LobsterTrapBlock(ExtendedProperties.of(MapColor.METAL).strength(3f).sound(SoundType.METAL).noOcclusion()");
+        // PAR-PROC-37: the burning log pile (every axis and count) draws TFC's partial log models.
+        for (String axis : LOG_PILE_AXES) {
+            for (int count = 1; count <= LOG_PILE_MAX; count++) {
+                m.put(burningKey(axis, count), ".cloneItem(Items.CHARCOAL).noOcclusion()));");
+            }
+        }
         return m;
     }
 
@@ -276,7 +288,74 @@ public final class TfcShapes {
                 List.of(COMPOSTER_SHAPE, "return SHAPES[state.getValue(STAGE)];", "new VoxelShape[9]", "for (int i = 0; i < 9; ++i)"),
                 List.of("getCollisionShape"), x -> composter(st)));
         }
+        // PAR-PROC-37: the log pile, 16 logs in 4 rows of 4 per axis (LogPileBlock.SHAPES_BY_DIR_BY_COUNT, built in a
+        // Util.make loop, so ported): the selection adds the 15.5 x 1 x 15.5 base below 4 logs, the collision has none.
+        // The burning log pile has no getShape / getCollisionShape (the full cube) and is noOcclusion (SEE_THROUGH).
+        String logPile = D + "LogPileBlock.java";
+        String burning = D + "BurningLogPileBlock.java";
+        for (String axis : LOG_PILE_AXES) {
+            for (int count = 1; count <= LOG_PILE_MAX; count++) {
+                final int c = count;
+                s.add(new Spec(logPileKey(axis, count), "log_pile", Kind.OBJECT, List.of(logPile, HELPERS), null, null,
+                    LOG_PILE_NEEDLES, List.of(), x -> logPile(axis, c)));
+            }
+        }
+        for (String axis : LOG_PILE_AXES) {
+            for (int count = 1; count <= LOG_PILE_MAX; count++) {
+                s.add(Spec.of(burningKey(axis, count), "full_cube", Kind.OBJECT, List.of(burning), "Shapes.block()", "same",
+                    List.of("class BurningLogPileBlock extends Block"), List.of("getShape(", "getCollisionShape")));
+            }
+        }
         return s;
+    }
+
+    static final List<String> LOG_PILE_NEEDLES = List.of(
+        "box2ByCount[i] = new double[] {0, 4 * layer, 0, 16, 4 * layer + 4, 4 * row};",
+        "box1ByCount[i] = new double[] {0, 0, 0, 16, 4 * (layer), 16};",
+        "layer = i / 4;", "row = i % 4 + 1;",
+        "Direction direction = Direction.SOUTH;", "direction = Direction.EAST;",
+        "shapes[dir][count] = Shapes.or(box1, box2);",
+        "final VoxelShape baseBox = Block.box(0.25, 0, 0.25, 15.75, 1, 15.75);",
+        "final int dir = axis == Direction.Axis.X ? 0 : 1;",
+        "if (based && count < 4)",
+        "return getShapeByDirByCount(state.getValue(AXIS), state.getValue(COUNT), true);",
+        "protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context)\n    {\n        return getShapeByDirByCount(state.getValue(AXIS), state.getValue(COUNT), false);",
+        "case EAST -> Block.box(16 - z2, y1, x1, 16 - z1, y2, x2);",
+        "case SOUTH -> Block.box(16 - x2, y1, 16 - z2, 16 - x1, y2, 16 - z1);");
+
+    public static String logPileKey(String axis, int count) {
+        return "tfc:log_pile[axis=" + axis + ",count=" + count + "]";
+    }
+
+    public static String burningKey(String axis, int count) {
+        return "tfc:burning_log_pile[axis=" + axis + ",count=" + count + "]";
+    }
+
+    /**
+     * {@code LogPileBlock.getShapeByDirByCount(axis, count, based)}: the full layers below ({@code box1}, 4 px each) or'd
+     * with the top layer's rows ({@code box2}, 4 px deep each), turned SOUTH for axis x and EAST for axis z
+     * ({@code Helpers.rotateShape}); {@code based} adds the base plate below 4 logs. Returns {selection, collision}.
+     */
+    static Shape[] logPile(String axis, int count) {
+        int i = count - 1;
+        int layer = i / 4;
+        int row = i % 4 + 1;
+        double[] b2 = {0, 4 * layer, 0, 16, 4 * layer + 4, 4 * row};
+        double[] b1 = {0, 0, 0, 16, 4 * layer, 16};
+        boolean east = axis.equals("z");
+        Shape shape = rotated(east, b1).union(rotated(east, b2));
+        Shape based = count < 4 ? Shape.box(0.25, 0, 0.25, 15.75, 1, 15.75).union(shape) : shape;
+        return new Shape[] {based, shape};
+    }
+
+    /** {@code Helpers.rotateShape(SOUTH|EAST, box)}; a box without volume is empty ({@code Shapes.box}). */
+    private static Shape rotated(boolean east, double[] b) {
+        double[] r = east ? new double[] {16 - b[5], b[1], b[0], 16 - b[2], b[4], b[3]}
+            : new double[] {16 - b[3], b[1], 16 - b[5], 16 - b[0], b[4], 16 - b[2]};
+        if (r[3] - r[0] <= 0 || r[4] - r[1] <= 0 || r[5] - r[2] <= 0) {
+            return Shape.EMPTY;
+        }
+        return Shape.box(r[0], r[1], r[2], r[3], r[4], r[5]);
     }
 
     /** TFC {@code TFCBlockStateProperties.STAGE_8}: the composter's stages 0..8. */

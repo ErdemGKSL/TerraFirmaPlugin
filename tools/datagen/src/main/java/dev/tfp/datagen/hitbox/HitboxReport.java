@@ -80,7 +80,7 @@ public final class HitboxReport {
         if (r.hideMappings().isEmpty()) {
             b.append("none\n");
         }
-        r.hideMappings().forEach((k, v) -> b.append("- `").append(k).append("` -> `").append(v).append("`\n"));
+        new java.util.TreeMap<>(r.hideMappings()).forEach((k, v) -> b.append("- `").append(k).append("` -> `").append(v).append("`\n"));
         b.append("\nHidden vanilla states: ").append(r.hideMappings().size()).append("\n");
         b.append("\n## Reference: every TFC shape row, unbudgeted\n\n");
         b.append("Below ").append(HitboxCarrier.MIN_SCORE).append(" a rare block takes hitbox-only mode. Rejected: the best ")

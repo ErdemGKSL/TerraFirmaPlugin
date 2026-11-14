@@ -2,7 +2,7 @@
 id: PAR-PROC-10
 title: "Log pile and charcoal pit"
 area: PROC
-status: blocked
+status: done
 wave: 13
 deps: [PAR-INFRA-02, PAR-INFRA-10, PAR-HEAT-05, PAR-INFRA-13]
 size: M
@@ -37,6 +37,7 @@ plan:
   - "Insulation check: the six sides are classified on the pile's region thread inside its device callback (TFC isValidCoverBlock), the sweep is the pure CharcoalSpread.sweep, and every world change it decides runs as a region task after the callback (decide, then apply)."
   - "Unblocker pass (2026-11-14, after the accepted blocked state of ebf0f07): no blocking review note remains; the only open criterion is the in-game one, which needs PAR-PROC-37's blocks (a size-M item with its own files_owned, open in wave 14), so this item stays blocked. Fixed here: the ledger fallback row now states TFC's sturdy-face condition and the charcoal sneak click, and the MockBukkit test count (17)."
   - "Implemented (runtime, 405ecc2 + 63be09e): core/charcoal LogPileColumn (insertAndPushUp with suckLogsFromAbove, extractFromTop), LogPileData (click memory, TFC's 6 and 10 tick double clicks), BurningPileData (logs, lit tick), CharcoalPile (layer break, merge down, canSurvive), CharcoalSpread.randomTicks; paper/charcoal CharcoalPitDevice (kinds tfp:log_pile: 16 one-log slots of #tfp:log_pile_logs, plain-click extraction from the top pile, lost floor breaks and drops, fire next to it lights it; tfp:burning_log_pile: lit with the logs, sweep on light and per random tick, the top pile converts the column with the charcoal pile below after charcoalTicks), CharcoalListener (sneak log placement and insertion, charcoal layers, layer breaks, per game mode), PitClock (loaded burning piles, conversion due by calendar tick so a time skip converts, random ticks at vanilla's rate every 20 ticks), CharcoalModule (FireLightable for strong starts, chunk load and unload hooks), PaperCharcoalEffects. Tests: core LogPileColumnTest (13), paper CharcoalPitMockBukkitTest (17, incl. a covered lit pile of 16 logs becomes 6 charcoal layers after charcoalTicks). Ledger: feature row and 8 divergence rows. In-game check: not yet run with the blocks (in-game run at 63be09e: no CE log pile, a vanilla log placed, REJECT); runs in PAR-PROC-37."
+  - "Done (2026-11-14, closed by PAR-PROC-37): the CraftEngine blocks exist and the in-game run passed: sneak-placed logs make a log pile of up to 16 logs (no vanilla log), a covered pile lit with fire burns and after tfp time add hours 20 is a charcoal pile, one layer per break with one charcoal, a plain charcoal click opens a furnace and takes a log from a log pile; docs/verification/PAR-PROC-10/verdict.md. The vanilla-log fallback ledger row is replaced by PAR-PROC-37's hitbox rows; the double layer per charcoal sneak click is PAR-PROC-40."
 tests:
   - "paper: MockBukkit conversion after charcoalTicks"
   - "core: CharcoalPitGoldenTest exists"

@@ -129,6 +129,9 @@ public final class Datagen {
         if (dev.tfp.datagen.compost.ComposterBlock.available(tfc)) { // PAR-PROC-34: tfp:composter block entry, models, textures, names; fixtures have no composter
             dev.tfp.datagen.compost.ComposterBlock.run(tfc, out);
         }
+        if (dev.tfp.datagen.charcoal.CharcoalBlocks.available(tfc)) { // PAR-PROC-37: tfp:log_pile, tfp:burning_log_pile, tfp:charcoal_pile entries, models, textures; fixtures have no log pile
+            dev.tfp.datagen.charcoal.CharcoalBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.powderkeg.PowderkegScreenArt.available(tfc)) { // PAR-PROC-18: powderkeg screen art; fixtures have no powderkeg screen
             dev.tfp.datagen.powderkeg.PowderkegScreenArt.run(tfc, out);
         }
@@ -159,6 +162,7 @@ public final class Datagen {
         }
         dev.tfp.datagen.heat.HeatGlowModels.run(out); // PAR-HEAT-01: heat glow item model definitions; after every CE item and CommonTags
         out.put("third-party.json", "[]\n"); // no non-EUPL file is copied yet (checked by :checkNotice)
+        report.ceStates(Report.countCeStates(out.files())); // PAR-PROC-37: the installer sizes serverside-blocks from the states
         out.put("reports/datagen-summary.json", Json.write(report.toJson()));
         out.put(Manifest.FILE, Manifest.build(tfc.head(), tfc.inputs(), out.files()));
         return new Result(out, report);

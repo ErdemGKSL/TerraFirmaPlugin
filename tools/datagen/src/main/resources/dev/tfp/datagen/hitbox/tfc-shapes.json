@@ -797,6 +797,550 @@
       "selection": [[0, 0, 0, 16, 16, 16]],
       "collision": [[0, 0, 0, 16, 16, 16]],
       "from": "TFCComposterBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=1]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 1, 16], [0, 0, 12, 0.25, 4, 16], [15.75, 0, 12, 16, 4, 16], [0.25, 1, 12, 15.75, 4, 16]],
+      "collision": [[0, 0, 12, 16, 4, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=2]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 1, 16], [0, 0, 8, 0.25, 4, 16], [15.75, 0, 8, 16, 4, 16], [0.25, 1, 8, 15.75, 4, 16]],
+      "collision": [[0, 0, 8, 16, 4, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=3]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 1, 16], [0, 0, 4, 0.25, 4, 16], [15.75, 0, 4, 16, 4, 16], [0.25, 1, 4, 15.75, 4, 16]],
+      "collision": [[0, 0, 4, 16, 4, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=4]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 4, 16]],
+      "collision": [[0, 0, 0, 16, 4, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=5]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 4, 16], [0, 4, 12, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 4, 16], [0, 4, 12, 16, 8, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=6]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 4, 16], [0, 4, 8, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 4, 16], [0, 4, 8, 16, 8, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=7]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 4, 16], [0, 4, 4, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 4, 16], [0, 4, 4, 16, 8, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=8]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=9]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 12, 16, 12, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 12, 16, 12, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=10]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 16, 12, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 16, 12, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=11]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 4, 16, 12, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 4, 16, 12, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=12]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=13]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16], [0, 12, 12, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16], [0, 12, 12, 16, 16, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=14]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16], [0, 12, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16], [0, 12, 8, 16, 16, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=15]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16], [0, 12, 4, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16], [0, 12, 4, 16, 16, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=x,count=16]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=1]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[12, 0, 0, 16, 4, 16], [0.25, 0, 0.25, 12, 1, 15.75]],
+      "collision": [[12, 0, 0, 16, 4, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=2]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 4, 16], [0.25, 0, 0.25, 8, 1, 15.75]],
+      "collision": [[8, 0, 0, 16, 4, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=3]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[4, 0, 0, 16, 4, 16], [0.25, 0, 0.25, 4, 1, 15.75]],
+      "collision": [[4, 0, 0, 16, 4, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=4]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 4, 16]],
+      "collision": [[0, 0, 0, 16, 4, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=5]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 4, 16], [12, 4, 0, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 4, 16], [12, 4, 0, 16, 8, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=6]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 4, 16], [8, 4, 0, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 4, 16], [8, 4, 0, 16, 8, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=7]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 4, 16], [4, 4, 0, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 4, 16], [4, 4, 0, 16, 8, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=8]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=9]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [12, 8, 0, 16, 12, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [12, 8, 0, 16, 12, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=10]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 12, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 12, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=11]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [4, 8, 0, 16, 12, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [4, 8, 0, 16, 12, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=12]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=13]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16], [12, 12, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16], [12, 12, 0, 16, 16, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=14]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16], [8, 12, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16], [8, 12, 0, 16, 16, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=15]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16], [4, 12, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16], [4, 12, 0, 16, 16, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:log_pile[axis=z,count=16]",
+      "class": "log_pile",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "from": "LogPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=1]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=2]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=3]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=4]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=5]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=6]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=7]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=8]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=9]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=10]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=11]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=12]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=13]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=14]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=15]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=x,count=16]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=1]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=2]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=3]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=4]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=5]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=6]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=7]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=8]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=9]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=10]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=11]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=12]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=13]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=14]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=15]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:burning_log_pile[axis=z,count=16]",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "BurningLogPileBlock.java Shapes.block() / same"
     }
   ]
 }

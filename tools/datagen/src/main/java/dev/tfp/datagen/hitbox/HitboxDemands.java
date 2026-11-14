@@ -50,6 +50,33 @@ public final class HitboxDemands {
     /** PAR-PROC-34: TFC's bin model ({@code tfc:block/composter/composter}), drawn on every stage's carrier. */
     public static final String COMPOSTER_MODEL = "tfp:block/composter/composter";
 
+    /**
+     * PAR-PROC-37: the log pile, the burning log pile and the charcoal pile (TFC registerNoItem blocks; the plugin's
+     * CharcoalPitDevice writes their properties).
+     */
+    public static final String LOG_PILE_ID = "tfp:log_pile";
+    public static final String BURNING_LOG_PILE_ID = "tfp:burning_log_pile";
+    public static final String CHARCOAL_PILE_ID = "tfp:charcoal_pile";
+    /** PAR-PROC-37: TFC's {@code CharcoalPileBlock.LAYERS} 1..8; the eighth layer is TFC's full cube. */
+    public static final int CHARCOAL_PILE_MAX = 8;
+    /** PAR-PROC-37: served after every other demand (adding these blocks moves no carrier of another block). */
+    static final int CHARCOAL_WEIGHT = -1;
+    /**
+     * PAR-PROC-37: the first log pile count drawn from a CE pool (13..15 nearly full: the leaves pool, the selector's pick
+     * once the farmland and campfire carriers are taken; 16 is TFC's full cube: the solid pool).
+     */
+    public static final int LOG_PILE_POOL_FROM = 13;
+    public static final String CHARCOAL_POOL = "solid";
+    public static final String BURNING_LOG_PILE_POOL = "leaves";
+    /**
+     * PAR-PROC-37: outlines whose best free carrier is a crafted block (the daylight detector, which TFC crafts) take the
+     * next count's TFC row instead (the outline one log row or one layer larger; a ledger divergence).
+     */
+    public static final java.util.Map<String, String> BORROWED_ROWS = java.util.Map.of(
+        TfcShapes.logPileKey("x", 5), TfcShapes.logPileKey("x", 6),
+        TfcShapes.logPileKey("z", 5), TfcShapes.logPileKey("z", 6),
+        "tfc:charcoal_pile[layers=3]", "tfc:charcoal_pile[layers=4]");
+
     private HitboxDemands() {
     }
 
@@ -87,6 +114,20 @@ public final class HitboxDemands {
         for (int stage = 0; stage < COMPOSTER_POOL_STAGE; stage++) {
             d.add(new Demand(COMPOSTER_ID, composterDemand(stage), composterKey(stage), 0, COMPOSTER_MODEL, true, 0));
         }
+        // PAR-PROC-37: the log pile, one outline and one look per axis and count up to LOG_PILE_POOL_FROM - 1 (TFC's
+        // log_pile_<count> model, turned y 90 for axis x as blockstates/log_pile.json does), and the charcoal pile, layers
+        // 1..7 with TFC's charcoal_height models. The fuller log piles, every burning log pile and the eight-layer charcoal
+        // pile are drawn from CE's pools (POOLS, the selector's own pick for them), so they are no demands here.
+        for (String axis : TfcShapes.LOG_PILE_AXES) {
+            for (int count = 1; count < LOG_PILE_POOL_FROM; count++) {
+                d.add(new Demand(LOG_PILE_ID, logPileAppearance(axis, count), logPileDemandKey(axis, count), 0,
+                    logPileLook(axis, count, false), true, CHARCOAL_WEIGHT));
+            }
+        }
+        for (int layers = 1; layers < CHARCOAL_PILE_MAX; layers++) {
+            d.add(new Demand(CHARCOAL_PILE_ID, charcoalPileAppearance(layers), charcoalDemandKey(layers), 0,
+                charcoalPileModel(layers), true, CHARCOAL_WEIGHT));
+        }
         return d;
     }
 
@@ -116,8 +157,105 @@ public final class HitboxDemands {
     public static final java.util.Map<String, java.util.Map.Entry<String, String>> FULL_CUBE_POOLS = java.util.Map.of(
         COMPOSTER_ID, java.util.Map.entry("*_" + COMPOSTER_POOL_STAGE, COMPOSTER_POOL));
 
+    /**
+     * PAR-PROC-37: the pool appearances of the charcoal pit blocks (block id to appearance pattern to pool), in the order
+     * {@link #charcoalPitPool} tries them: every burning log pile (TFC's full cube, noOcclusion: the see-through pool), the
+     * full log pile and the full charcoal pile (opaque full outlines), the nearly full log piles (the leaves pool, full
+     * collision). GeneratedCarrierTest accepts {@code auto_state} for these too; CharcoalBlocksTest pins them.
+     */
+    public static final java.util.Map<String, java.util.Map<String, String>> POOLS = pools();
+
+    private static java.util.Map<String, java.util.Map<String, String>> pools() {
+        java.util.Map<String, String> log = new java.util.LinkedHashMap<>();
+        log.put("*_" + TfcShapes.LOG_PILE_MAX, CHARCOAL_POOL);
+        for (int count = LOG_PILE_POOL_FROM; count < TfcShapes.LOG_PILE_MAX; count++) {
+            log.put("*_" + count, BURNING_LOG_PILE_POOL);
+        }
+        return java.util.Map.of(LOG_PILE_ID, java.util.Collections.unmodifiableMap(log),
+            BURNING_LOG_PILE_ID, java.util.Map.of("*_*", BURNING_LOG_PILE_POOL),
+            CHARCOAL_PILE_ID, java.util.Map.of(charcoalPileAppearance(CHARCOAL_PILE_MAX), CHARCOAL_POOL));
+    }
+
     public static String composterKey(int stage) {
         return "tfc:composter[stage=" + stage + "]";
+    }
+
+    /** PAR-PROC-37: the log pile (and burning log pile) appearance of {@code axis} and {@code count} ({@code x_1}). */
+    public static String logPileAppearance(String axis, int count) {
+        return axis + "_" + count;
+    }
+
+    /**
+     * PAR-PROC-37: TFC's log pile model of {@code count} ({@code tfp:block/log_pile/log_pile_<count>}, with
+     * {@code _burning} for the burning pile).
+     */
+    public static String logPileModel(int count, boolean burning) {
+        return "tfp:block/log_pile/log_pile_" + count + (burning ? "_burning" : "");
+    }
+
+    /** PAR-PROC-37: TFC's blockstates/log_pile.json turns the model y 90 for axis x, none for axis z. */
+    public static int logPileRotation(String axis) {
+        return axis.equals("x") ? 90 : 0;
+    }
+
+    /** PAR-PROC-37: the look key of a log pile state: the model and its turn (two turns are two looks). */
+    public static String logPileLook(String axis, int count, boolean burning) {
+        int y = logPileRotation(axis);
+        return y == 0 ? logPileModel(count, burning) : logPileModel(count, burning) + "@y" + y;
+    }
+
+    /** PAR-PROC-37: the charcoal pile appearance of {@code layers} ({@code layers_1}). */
+    public static String charcoalPileAppearance(int layers) {
+        return "layers_" + layers;
+    }
+
+    /** PAR-PROC-37: TFC's charcoal pile model of {@code layers} (blockstates/charcoal_pile.json). */
+    public static String charcoalPileModel(int layers) {
+        return layers == CHARCOAL_PILE_MAX ? "tfp:block/charcoal_pile/charcoal_block"
+            : "tfp:block/charcoal_pile/charcoal_height" + (2 * layers);
+    }
+
+    /** PAR-PROC-37: the tfc-shapes row the log pile demand of {@code axis} and {@code count} is served for. */
+    public static String logPileDemandKey(String axis, int count) {
+        String key = TfcShapes.logPileKey(axis, count);
+        return BORROWED_ROWS.getOrDefault(key, key);
+    }
+
+    /** PAR-PROC-37: the tfc-shapes row the charcoal pile demand of {@code layers} is served for. */
+    public static String charcoalDemandKey(int layers) {
+        String key = charcoalPileKey(layers);
+        return BORROWED_ROWS.getOrDefault(key, key);
+    }
+
+    /**
+     * PAR-PROC-37: the CE pool an appearance of a charcoal pit block is drawn from, or null for an explicit carrier of
+     * {@link #all()}.
+     */
+    public static String charcoalPitPool(String blockId, String appearance) {
+        java.util.Map<String, String> m = POOLS.get(blockId);
+        if (m == null) {
+            return null;
+        }
+        for (java.util.Map.Entry<String, String> e : m.entrySet()) {
+            if (matches(e.getKey(), appearance)) {
+                return e.getValue();
+            }
+        }
+        return null;
+    }
+
+    /** A {@code *} pattern ({@code heat_*}, {@code *_16}) or a plain name. */
+    public static boolean matches(String pattern, String name) {
+        if (!pattern.contains("*")) {
+            return pattern.equals(name);
+        }
+        String[] parts = pattern.split("\\*", -1);
+        return name.startsWith(parts[0]) && name.endsWith(parts[parts.length - 1])
+            && name.length() >= parts[0].length() + parts[parts.length - 1].length();
+    }
+
+    public static String charcoalPileKey(int layers) {
+        return "tfc:charcoal_pile[layers=" + layers + "]";
     }
 
     /** PAR-PROC-32: the CE block id of the barrel of {@code wood}. */
