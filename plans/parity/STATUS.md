@@ -159,7 +159,7 @@ Totals: 353 items; open 201, done 144, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-HEAT-18 | Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start) | HEAT | 14 | blocked |
 | PAR-HEAT-19 | Firepit loaded in game: configuration/devices/firepit.yml, TFC firepit models, self-test firepit.cook and the in-game check | HEAT | 14 | done |
 | PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | open |
-| PAR-INFRA-49 | Block coverage gate: every TFC blockstate is a loaded CE block, a family block, an owned id of a named parity item or an NP entry (reports/tfc-block-coverage.json) | INFRA | 14 | open |
+| PAR-INFRA-49 | Block coverage gate: every TFC blockstate is a loaded CE block, a family block, an owned id of a named parity item or an NP entry (reports/tfc-block-coverage.json) | INFRA | 14 | done |
 | PAR-INFRA-50 | Feature item tooltips no item owns: item-list contents of sealed device items, crucible contents, fertilized egg and hatch day, javelin thrown damage, pan deposit, flower cutting, lamp fluid, glass batch steps | INFRA | 14 | open |
 | PAR-PROC-18 | Powderkeg | PROC | 14 | open |
 | PAR-PROC-36 | Salad completion: salad screen art, eating and tooltip read the salad's own food data, in-game check | PROC | 14 | open |

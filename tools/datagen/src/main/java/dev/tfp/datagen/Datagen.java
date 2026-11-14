@@ -129,6 +129,9 @@ public final class Datagen {
         if (dev.tfp.datagen.compost.ComposterBlock.available(tfc)) { // PAR-PROC-34: tfp:composter block entry, models, textures, names; fixtures have no composter
             dev.tfp.datagen.compost.ComposterBlock.run(tfc, out);
         }
+        if (dev.tfp.datagen.coverage.BlockCoverage.available(tfc)) { // PAR-INFRA-49: TFC blockstate coverage gate; after every block generator and ItemCoverage; fixtures have no TFCItems
+            dev.tfp.datagen.coverage.BlockCoverage.run(tfc, out);
+        }
         LootTableExport.run(tfc, out); // PAR-INFRA-21: TFC loot tables of delegated blocks and spawned entities for the Paper runtime
         Advancements.run(tfc, out);
         FieldGuide.run(tfc, out);

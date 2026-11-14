@@ -2,7 +2,7 @@
 id: PAR-INFRA-49
 title: "Block coverage gate: every TFC blockstate is a loaded CE block, a family block, an owned id of a named parity item or an NP entry (reports/tfc-block-coverage.json)"
 area: INFRA
-status: open
+status: done
 wave: 14
 deps: [PAR-PROC-19, PAR-INFRA-13]
 size: S
@@ -22,6 +22,7 @@ plan:
   - "tools/datagen/coverage/BlockCoverage (modelled on ItemCoverage, same report shape): the TFC block ids are every blockstate file under assets/tfc/blockstates of the pinned checkout (the same source id_map.json uses). Each id is classified in this order: generated (a `blocks:` entry of a loaded CE file: configuration/** or devices/**, parsed from the emitted output tree, not from a second hand-kept list), family (an entry of families/*.yml that is generated but not loaded yet: report the file), owned (the first matching rule of an ordered OWNERS list of {regex, parity item id, what}), not_parity (an NP entry of plans/parity/NOT-PARITY.md, e.g. the tfc:fluid/* world fluids and river/spring water of NP-FLUID-01: report the NP id), else unowned. Write reports/tfc-block-coverage.json with totals, counts per class, per owner and per generated file, and the full id -> class/owner map; fail the run when unowned > 0, listing every unowned id. Add the run line to Datagen.java (hub) after the last block generator and after ItemCoverage."
   - "Build OWNERS from the item files of plans/parity/items as they stand (titles, plans and tfc_refs): e.g. crop/, dead_crop/, wild_crop/ -> PAR-FARM-03/PAR-FARM-05; plant/ shapes -> PAR-WORLD-12, fruit tree and berry blocks -> PAR-FARM-06/07/08, banana -> PAR-FARM-09, plant/potted -> PAR-DECO-13; coral/, sea_pickle -> PAR-WORLD-25; wood/workbench -> PAR-DECO-17; device blocks to their device items. The OWNERS rules must not shadow a generated id (generated wins) and each rule must match at least one id (stale-rule check), as ItemCoverage does."
   - "Note in the report comment that a loaded CE block can still be a placeholder (vanilla stand-in visual or missing behaviour): this gate proves ownership, not parity; the owners' done criteria prove parity."
+  - "Done: tools/datagen/coverage/BlockCoverage + the run line in Datagen.java; reports/tfc-block-coverage.json on the pinned checkout: 4,521 TFC blockstates = 1,379 generated + 1,626 family (families/*.yml and the unloaded devices/grill.yml, devices/pot.yml specs) + 1,446 owned (53 OWNERS rules, 53 open items) + 70 not_parity (NP-FLUID-01: fluid/* and the three bubble columns) + 0 unowned. BlockCoverageTest (5) green; :core:test :paper:test :tools:datagen:test and verifyContent pass. No in-game check (ui: false)."
 tests:
   - "tools/datagen: BlockCoverageTest on the real checkout (/opt/tfc): unowned == 0; every owner id names an existing file in plans/parity/items (not done items only when the id is still listed as owned); every NP id exists in NOT-PARITY.md; no rule is stale; a synthetic TFC id with no rule makes the run fail and names the id"
   - "tools/datagen: verifyContent passes with the new report"
