@@ -134,8 +134,12 @@ class SaladMockBukkitTest extends MockServerTest {
         assertThat(amount(SaladScreen.SLOT_BOWLS)).isEqualTo(10);
         assertThat(player.getInventory().getItem(0)).isNull();
         assertThat(output()).isNull();
-        // the other slots are refused filler
-        assertThat(top().getItem(0).getType()).isEqualTo(Material.GRAY_STAINED_GLASS_PANE);
+        // PAR-PROC-36: the other slots are empty (the art draws the panel) and refused
+        for (int slot = 0; slot < top().getSize(); slot++) {
+            if (SaladScreen.tfcSlot(slot) < 0) {
+                assertThat(top().getItem(slot)).as("decoration slot %d", slot).isNull();
+            }
+        }
         assertThat(click(0, ClickType.LEFT, InventoryAction.PICKUP_ALL).isCancelled()).isTrue();
     }
 
@@ -277,7 +281,6 @@ class SaladMockBukkitTest extends MockServerTest {
         assertThat(player.getInventory().contains(Material.CARROT, 5)).isTrue();
         assertThat(player.getInventory().contains(Material.BOWL, 3)).isTrue();
         assertThat(player.getInventory().contains(Material.GREEN_DYE)).isFalse();
-        assertThat(player.getInventory().contains(Material.GRAY_STAINED_GLASS_PANE)).isFalse();
     }
 
     private ItemStack salad(int count) {

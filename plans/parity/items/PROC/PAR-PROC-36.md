@@ -2,7 +2,7 @@
 id: PAR-PROC-36
 title: "Salad completion: salad screen art, eating and tooltip read the salad's own food data, in-game check"
 area: PROC
-status: open
+status: done
 wave: 14
 deps: [PAR-INFRA-03, PAR-SURV-02, PAR-SURV-03]
 size: M
@@ -39,6 +39,7 @@ plan:
   - "Eating: `NutritionEatListener` takes the food of a stack with `tfp:dynamic_food` (SaladPdc.food) instead of the item definition (TFC `FoodComponent.getData()` of a dynamic food), so a salad records its mixed water, saturation and nutrients; `ItemFoodHooks` rot checks use the stack's decay modifier (4.0 for salads, the definition says 4.5)."
   - "Tooltip: `FoodTooltipContributor` reads the stack's dynamic food (nutrition lines of a salad), and lists the ingredients like TFC's tooltip if TFC does; drop the PAR-SURV-02 divergence row about dynamic foods."
   - "In-game check (moved from PAR-PROC-14, PROTOCOL 6.5): run in_game_steps on the headless Paper 1.21.11 server and client; evidence in docs/verification/PAR-PROC-14/."
+  - "Done: datagen salad/SaladArt writes tfp:gui/salad (configuration/salad/salad_gui.yml, own config like the powderkeg art instead of GuiImages.all, whose GuiArt is not owned); SaladModule opens through the shared glyph GuiService without filler panes; NutritionEatListener.dynamic eats tfp:dynamic_food; DecayModifiers.byId and the tooltip expiry use the stack's 4.0; FoodTooltipContributor shows the salad's nutrients and TFC's '1 x <name>' ingredient lines. Tests: SaladArtTest 5, NutritionEatDynamicFoodMockBukkitTest 3, DynamicFoodTest 5, SaladMockBukkitTest updated. In-game pass at GUI scale 2 and 3: docs/verification/PAR-PROC-14/verdict.md (tfp:ceramic/bowl has no CE item yet, the run used minecraft:bowl from #c:bowls)."
 tests:
   - "paper: eating a stack with tfp:dynamic_food records its nutrients; tooltip shows them; rot uses the stack's decay modifier"
   - "datagen: tfp:gui/salad image entry and PNG size"

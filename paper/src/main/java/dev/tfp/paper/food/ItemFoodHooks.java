@@ -4,7 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/component/food/FoodCapability.java @ c3b4d9536 (isRotten, hasTrait, addTooltipInfo)
+ * file: src/main/java/net/dries007/tfc/common/component/food/FoodCapability.java @ c3b4d9536 (isRotten, hasTrait, addTooltipInfo),
+ *       src/main/java/net/dries007/tfc/common/component/food/FoodComponent.java @ c3b4d9536 (getData of a dynamic food)
  */
 package dev.tfp.paper.food;
 
@@ -13,8 +14,10 @@ import dev.tfp.core.food.FoodDefinitions;
 import dev.tfp.core.food.FoodStage;
 import dev.tfp.core.food.FoodState;
 import dev.tfp.core.food.FoodTrait;
+import dev.tfp.core.recipe.food.FoodData;
 import dev.tfp.core.recipe.hooks.FoodHooks;
 import dev.tfp.paper.i18n.Messages;
+import dev.tfp.paper.salad.SaladPdc;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -36,7 +39,8 @@ public final class ItemFoodHooks implements FoodHooks<ItemStack> {
     /**
      * The item's food-data {@code decay_modifier} (TFC {@code FoodData.decayModifier}). The plugin uses
      * {@link #byId}: the item's custom id looked up in the food definitions (M3-SURV-02); an item without an
-     * id or without a definition gets {@link FoodDefinitions#UNKNOWN_DECAY_MODIFIER} (1). {@link #UNIT} is 1 for
+     * id or without a definition gets {@link FoodDefinitions#UNKNOWN_DECAY_MODIFIER} (1). A dynamic food (a salad,
+     * {@code tfp:dynamic_food}) uses its own stored modifier first (TFC {@code getData()} of a dynamic food). {@link #UNIT} is 1 for
      * every stack (tests).
      */
     @FunctionalInterface
@@ -53,7 +57,14 @@ public final class ItemFoodHooks implements FoodHooks<ItemStack> {
             Objects.requireNonNull(idOf, "idOf");
             Objects.requireNonNull(definitions, "definitions");
             return stack -> {
-                Optional<String> id = stack == null ? Optional.empty() : idOf.apply(stack);
+                if (stack == null) {
+                    return FoodDefinitions.UNKNOWN_DECAY_MODIFIER;
+                }
+                Optional<FoodData> dynamic = SaladPdc.food(stack);
+                if (dynamic.isPresent()) {
+                    return dynamic.get().decayModifier(); // PAR-PROC-36: a salad's own 4.0, not the definition's 4.5
+                }
+                Optional<String> id = idOf.apply(stack);
                 return id.isEmpty() ? FoodDefinitions.UNKNOWN_DECAY_MODIFIER : definitions.get().decayModifier(id.get());
             };
         }

@@ -27,16 +27,15 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * PAR-PROC-14: one open salad screen ({@link SaladScreen} layout, {@link SaladMix} rules). The salad in the output slot
+ * PAR-PROC-14: one open salad screen ({@link SaladScreen} layout and TFC's re-laid art (PAR-PROC-36), {@link SaladMix}
+ * rules); the slots that are not TFC slots stay empty and the GUI framework refuses clicks on them. The salad in the output slot
  * is recomputed after every change of the inputs or the bowls; taking it shrinks every input and the bowls by the amount
  * taken. Closing gives the inputs and the bowls back; a salad still in the output is not made (TFC skips it).
  *
@@ -91,7 +90,6 @@ public final class SaladMenu {
         }
         menu.session = s;
         s.put(KEY, menu);
-        menu.fillDecoration();
         PlayerInventory inv = player.getInventory();
         for (EquipmentSlot hand : new EquipmentSlot[] {EquipmentSlot.HAND, EquipmentSlot.OFF_HAND}) {
             ItemStack held = inv.getItem(hand);
@@ -123,27 +121,6 @@ public final class SaladMenu {
         return b.output(SaladScreen.OUTPUT_CHEST_SLOT)
             .onClose((s, p) -> closed())
             .build();
-    }
-
-    /**
-     * Until the salad art exists (PAR-PROC-36) the screen is a plain chest: the slots that are not TFC slots hold a
-     * nameless grey pane so the seven slots stand out. Clicks on them are refused by the GUI framework.
-     */
-    private void fillDecoration() {
-        Inventory inv = session.getInventory();
-        for (int slot = 0; slot < SaladScreen.CHEST.size(); slot++) {
-            if (SaladScreen.tfcSlot(slot) < 0) {
-                inv.setItem(slot, filler());
-            }
-        }
-    }
-
-    static ItemStack filler() {
-        ItemStack pane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
-        ItemMeta meta = pane.getItemMeta();
-        meta.setHideTooltip(true);
-        pane.setItemMeta(meta);
-        return pane;
     }
 
     private ItemStack at(int tfcSlot) {
@@ -243,11 +220,6 @@ public final class SaladMenu {
             inv.setItem(chest, null);
             if (stack != null && !stack.isEmpty()) {
                 give(player, stack);
-            }
-        }
-        for (int slot = 0; slot < SaladScreen.CHEST.size(); slot++) {
-            if (SaladScreen.tfcSlot(slot) < 0) {
-                inv.setItem(slot, null);
             }
         }
     }

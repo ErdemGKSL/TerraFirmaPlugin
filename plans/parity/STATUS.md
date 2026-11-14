@@ -162,7 +162,7 @@ Totals: 353 items; open 201, done 144, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-INFRA-49 | Block coverage gate: every TFC blockstate is a loaded CE block, a family block, an owned id of a named parity item or an NP entry (reports/tfc-block-coverage.json) | INFRA | 14 | done |
 | PAR-INFRA-50 | Feature item tooltips no item owns: item-list contents of sealed device items, crucible contents, fertilized egg and hatch day, javelin thrown damage, pan deposit, flower cutting, lamp fluid, glass batch steps | INFRA | 14 | open |
 | PAR-PROC-18 | Powderkeg | PROC | 14 | done |
-| PAR-PROC-36 | Salad completion: salad screen art, eating and tooltip read the salad's own food data, in-game check | PROC | 14 | open |
+| PAR-PROC-36 | Salad completion: salad screen art, eating and tooltip read the salad's own food data, in-game check | PROC | 14 | done |
 | PAR-PROC-37 | Log pile, burning log pile and charcoal pile CE blocks: hitbox rows and demands, configuration/charcoal, support rule, in-game check | PROC | 14 | open |
 | PAR-PROC-38 | Barrel rack, sideways barrel and tap pouring, and their in-game check | PROC | 14 | open |
 | PAR-CLIM-06 | Seasonal packet rewrite JMH budget and visual checklist | CLIMATE | 15 | open |

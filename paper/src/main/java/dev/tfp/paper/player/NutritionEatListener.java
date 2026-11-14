@@ -10,6 +10,7 @@ import dev.tfp.core.food.FoodDefinitions;
 import dev.tfp.core.recipe.food.FoodData;
 import dev.tfp.paper.food.ItemFoodHooks;
 import dev.tfp.paper.integration.CustomItems;
+import dev.tfp.paper.salad.SaladPdc;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ThreadAsserts;
 import java.util.Optional;
@@ -52,6 +53,9 @@ import org.bukkit.potion.PotionEffectType;
  *       glass bottle, with no nutrition and no eaten hook;</li>
  *   <li>anything else (potions, custom non-food items) is left alone.</li>
  * </ul>
+ *
+ * <p>A dynamic food (a salad) is eaten with the food data stored on the stack ({@link #dynamic}), like TFC's
+ * {@code FoodComponent.getData()}.
  *
  * <p>A food is rotten when its stack is rotten or its definition always is ({@link EatDecision#alwaysRotten}: vanilla
  * rotten flesh, {@code decay_modifier} infinity, has no stamp). A rotten food records nothing and gives TFC's rotten-food effects (Hunger II, sometimes Poison I). Every eaten
@@ -106,8 +110,8 @@ public final class NutritionEatListener implements Listener {
         ThreadAsserts.owned(player);
         ItemStack stack = event.getItem();
         Material type = stack.getType();
-        EatDecision decision = EatDecision.decide(items.idOf(stack), type.getKey().toString(), type.isEdible(),
-                definitions.get());
+        EatDecision decision = dynamic(EatDecision.decide(items.idOf(stack), type.getKey().toString(), type.isEdible(),
+                definitions.get()), stack);
         switch (decision.action()) {
             case IGNORE -> {
                 return;
@@ -146,6 +150,21 @@ public final class NutritionEatListener implements Listener {
         } else {
             eat(player, decision, rotten, true);
         }
+    }
+
+    /**
+     * PAR-PROC-36, TFC {@code FoodComponent.getData()}: a dynamic food (a salad, with {@code tfp:dynamic_food} in its
+     * PDC, {@link SaladPdc}) is eaten with its own food data instead of its item's definition, so its mixed water,
+     * saturation and nutrients are recorded. Only an eat decision changes; a stack without dynamic data keeps the
+     * definition.
+     */
+    static EatDecision dynamic(EatDecision decision, ItemStack stack) {
+        if (decision.action() != EatDecision.Action.EAT && decision.action() != EatDecision.Action.EAT_INSTEAD) {
+            return decision;
+        }
+        Optional<FoodData> own = SaladPdc.food(stack);
+        return own.isEmpty() ? decision
+                : new EatDecision(decision.action(), decision.itemId(), own, decision.remainder());
     }
 
     /**

@@ -22,8 +22,10 @@ import java.util.List;
  * onto the first chest row (columns 2 to 6, TFC's x 44 to 116 are chest columns), the bowl and output slots onto the
  * third row (TFC y 56 to chest y 54), under the same columns as TFC.
  *
- * <p>The background ({@link #BACKGROUND}, TFC's {@code textures/gui/salad.png} re-laid on those rows) is not generated
- * yet (follow-up PAR-PROC-36); until then the screen shows a plain title and filler panes, see the paper side.
+ * <p>PAR-PROC-36: the background ({@link #BACKGROUND}) is TFC's {@code textures/gui/salad.png} re-laid on those rows by
+ * the datagen ({@code dev.tfp.datagen.salad.SaladArt}) in horizontal bands: the input row and the joining bracket move
+ * up {@link #DY_INPUTS}, the bowl and salad row (with the bowl picture) up {@link #DY_BOWLS}, the player inventory
+ * down {@link #DY_PLAYER} (TFC y 84 to the chest's {@code playerRowY(0)}); the gaps are filled with plain panel rows.
  */
 public final class SaladScreen {
     /** TFC slot indices. */
@@ -41,6 +43,28 @@ public final class SaladScreen {
     public static final int BOWL_CHEST_SLOT = 2 * ChestGeometry.COLUMNS + 2;
     /** Chest slot of the salad (TFC x 116 = chest column 6, third chest row). */
     public static final int OUTPUT_CHEST_SLOT = 2 * ChestGeometry.COLUMNS + 6;
+
+    /** TFC's slot positions ({@code SaladContainer.addContainerSlots}) and screen height. */
+    public static final int TFC_INPUT_X = 44;
+    public static final int TFC_INPUT_Y = 24;
+    public static final int TFC_BOWL_X = 44;
+    public static final int TFC_OUTPUT_X = 116;
+    public static final int TFC_BOWL_Y = 56;
+    public static final int TFC_HEIGHT = 166;
+    /** TFC's first player inventory row ({@code init(playerInventory, 0)}). */
+    public static final int TFC_PLAYER_Y = 84;
+
+    /** Band moves of the art: the inputs onto chest row 0, the bowl row onto chest row 2, the inventory. */
+    public static final int DY_INPUTS = ChestGeometry.SLOT_Y0 - TFC_INPUT_Y;
+    public static final int DY_BOWLS = ChestGeometry.SLOT_Y0 + 2 * ChestGeometry.SLOT - TFC_BOWL_Y;
+    public static final int DY_PLAYER = CHEST.playerRowY(0) - TFC_PLAYER_Y;
+    /** TFC art rows of each band: [start, end). Rows above the inputs band (after the 4 px border) are plain panel. */
+    public static final int INPUT_BAND_START = 10;
+    public static final int BOWL_BAND_START = 52;
+    public static final int BOWL_BAND_END = 78;
+    public static final int PLAYER_BAND_START = 82;
+    /** A plain panel row of TFC's art (between the bowl row and the inventory). */
+    public static final int PLAIN_ROW = 78;
 
     public static final GuiImage BACKGROUND = GuiImage.of("tfp:gui/salad", 0, 0, ChestGeometry.WIDTH, CHEST.height());
     public static final GuiLayers LAYERS = new GuiLayers(BACKGROUND, List.of());

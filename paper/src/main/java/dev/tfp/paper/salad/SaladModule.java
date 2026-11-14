@@ -29,8 +29,9 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * PAR-PROC-14: salads on the module SPI. Needs the GUI framework (its click routing), the tags and the recipe runtime
- * before it in the service file. The salad screen has no art yet (PAR-PROC-36), so it opens through its own
- * plain-title {@link GuiService}; the shared {@code GuiListener} routes its clicks like every other screen's. Also
+ * before it in the service file. The salad screen opens through the shared {@link GuiService}, which draws TFC's
+ * re-laid {@code salad.png} ({@code tfp:gui/salad}, PAR-PROC-36) in the title; the shared {@code GuiListener} routes
+ * its clicks like every other screen's. Also
  * registers the {@code tfc:empty_bowl} output modifier (TFC {@code EmptyBowlModifier}: the barrel's bowl cleaning gives
  * back the bowl stored on the salad).
  */
@@ -44,13 +45,12 @@ public final class SaladModule implements FeatureModule {
 
     @Override
     public void enable(ModuleContext context) {
-        context.services().require(GuiService.class); // the shared click routing must be on
-        GuiService plain = new GuiService(context.plugin().getServer(), context.scheduler(), System::currentTimeMillis, false);
+        GuiService gui = context.services().require(GuiService.class); // TFC's art in the glyph title, shared clicks
         Tags tags = context.services().require(Tags.class);
         ItemFoodHooks hooks = context.services().require(ItemFoodHooks.class);
         FoodDefinitionsCache definitions = context.services().require(FoodDefinitionsCache.class);
         CustomItems items = context.integrations().customItems();
-        SaladMenu.Services services = new SaladMenu.Services(plain, context.scheduler(), context.messages(),
+        SaladMenu.Services services = new SaladMenu.Services(gui, context.scheduler(), context.messages(),
             stack -> tags.is(stack, SaladMenu.SALAD_BOWLS), stack -> tags.is(stack, SaladMenu.USABLE_IN_SALAD),
             stack -> food(stack, tags::itemId, definitions), hooks::isRotten, tags::itemId,
             (id, amount) -> create(items, id, amount), stack -> hooks.stamp(stack, List.of()));
