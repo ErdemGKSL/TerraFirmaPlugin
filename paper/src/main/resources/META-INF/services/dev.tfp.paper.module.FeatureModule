@@ -38,3 +38,4 @@ dev.tfp.paper.piston.PistonFluidModule
 dev.tfp.paper.heat.HeatingModule
 dev.tfp.paper.fire.FireModule
 dev.tfp.paper.barrel.gui.BarrelGuiModule
+dev.tfp.paper.weather.cycle.WeatherCycleModule
