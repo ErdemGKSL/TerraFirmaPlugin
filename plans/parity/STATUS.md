@@ -155,7 +155,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-CLIM-19 | Snow catch-up in-game verification: snow piles on plants, ice on a pool and the July melt from one room | CLIMATE | 14 | open |
 | PAR-CLIM-20 | Climate weather cycle follow-up: in-game check (local rain per player), itest weather.cycle, PrecipitationService honours the weather flag | CLIMATE | 14 | done |
 | PAR-HEAT-07 | Firepit GUI: fuel slots, input, outputs, temperature bar | HEAT | 14 | done |
-| PAR-HEAT-10 | Torches: burnout to dead torch, relight, wall torches | HEAT | 14 | open |
+| PAR-HEAT-10 | Torches: burnout to dead torch, relight, wall torches | HEAT | 14 | done |
 | PAR-HEAT-18 | Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start) | HEAT | 14 | open |
 | PAR-HEAT-19 | Firepit loaded in game: configuration/devices/firepit.yml, TFC firepit models, self-test firepit.cook and the in-game check | HEAT | 14 | open |
 | PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | open |
@@ -169,6 +169,8 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-HEAT-20 | Firepit screen art and block wiring: datagen art for tfp:gui/firepit and its thermometer, FirepitDevice opens the screen, in-game check | HEAT | 15 | open |
 | PAR-HEAT-11 | Candles, candle cakes and jack-o'-lanterns: burnout, lighting, carving | HEAT | 15 | open |
 | PAR-CLIM-21 | Snow and ice stop with the weather flag off (SnowService live step and catch-up), as TFC onTickChunk | CLIMATE | 15 | open |
+| PAR-HEAT-21 | Torches loaded in game: hitbox carriers, configuration/light/torch.yml, the dead torch look and the in-game burnout check | HEAT | 15 | open |
+| PAR-HEAT-22 | Dropped torches (go out in water, light leaves, thatch, log piles and pit kilns) and the torchTicks config key | HEAT | 15 | open |
 | PAR-CLIM-14 | Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute | CLIMATE | 16 | open |
 | PAR-HEAT-12 | Firebox, stove and stove pot | HEAT | 16 | open |
 | PAR-PHYS-01 | TFC falling blocks: canFallThrough, landing, damage | PHYS | 16 | open |
