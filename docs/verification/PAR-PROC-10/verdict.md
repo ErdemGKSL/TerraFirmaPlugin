@@ -1,14 +1,59 @@
 # PAR-PROC-10 / PAR-PROC-37 verification: log pile, charcoal pit, charcoal pile in game
 
-Two runs. The re-run (2026-11-14, below first) answers the reviews of ddbeb5b: it repeats the conversion the TFC way with
-a look-at readout of every block id, and it supersedes the first run's `04` to `07`. The first run's `08` to `14` (axis x
-models, the charcoal clicks on a log pile and a furnace, charcoal layers 1, 2 and 8) stay as they were.
+Three runs. The re-run (2026-11-14, below the third check) answers the reviews of ddbeb5b: it repeats the conversion the
+TFC way with a look-at readout of every block id, and it supersedes the first run's `04` to `07`. The first run's `08` to
+`14` (axis x models, the charcoal clicks on a log pile and a furnace, charcoal layers 1, 2 and 8) stay as they were. The
+third check (`25` to `35`) answers the independent in-game rejection of 6d1c438.
+
+## Third check (answer to the in-game rejection of 6d1c438)
+
+- Code under test: 6d1c438, `:dist:shadowJar` built in a fresh worktree after `tools/worktree/share-build.sh`.
+- Server: Paper 1.21.11 with the same plugin set, by `spikes/client/server.sh` with `TFP_WORLD=1` (`block.serverside-blocks`
+  already 3000), then `ce reload all` once (the PAR-INFRA-55 step). Checked before joining: the hosted pack
+  (`plugins/CraftEngine/cache/hosted/default/resource_pack.zip`) has `blockstates/iron_trapdoor.json` (the 1/2-log state
+  `facing=east,half=bottom,open=false,powered=false` -> `minecraft:block/empty`, the 3/4-log states -> TFC's
+  `log_pile_3`/`log_pile_4`), `campfire.json`, `soul_campfire.json`, `farmland.json` and `oak_leaves.json` (the burning
+  pile's leaves-pool states -> `log_pile_<n>_burning`). CraftEngine's `cache/visual_block_states.json` holds leaves states
+  only for the auto_state appearances (the burning pile, 13 to 15 logs); `tfp:log_pile[count=1]` has the explicit
+  iron trapdoor state from the YAML, which the allocation cache does not touch.
+- Client: headless 1.21.11 as `Bot`, survival, op (for the look-at readout `/tfp debug block`), full 1280x720 shots so the
+  hotbar counts show. A fresh site: stone floor at y 149 around (200, 150, 298), noon.
+- Run and judged by the main session of this fix-up: CLAUDE.md asks for the run to be delegated to a Haiku agent, but this
+  worker had no agent tool.
+
+Steps, all by the player through the client (sneak held 0.9 s before each sneak click), except the dirt walls and cover,
+which were set by command:
+
+1. One sneak click with 64 oak logs on the stone: `25`, readout `tfp:log_pile[axis=z,count=1]`; TFC's `log_pile_1` (one
+   4x4x16 log at x 12..16, here on the east edge) with the flat iron trapdoor outline. Seven more: `26`, `count=8`, half
+   block with the log ends on the north face. Eight more: `27`, `count=16`, the full cube with `log_pile_front` (log ends)
+   on the north face and the side texture on top; 64 -> 48 logs.
+2. Charcoal click, isolated: slot 2 (8 charcoal), plain right click on the 16-log pile. Before (`28`): pile `count=16`,
+   48 oak logs, 8 charcoal (`clear Bot ... 0` counts). After (`29`): pile `count=15`, 49 oak logs, 8 charcoal, no item
+   entity and no charcoal pile. One sneak click with a log put the pile back to 16 (48 logs).
+3. Dirt on the four sides of the pile, stone below (`30`). The player stood on the south dirt and sneak-clicked the pile's
+   top with flint and steel: the server had a real fire at (200, 151, 298) (`execute if block ... fire` passed; the flint
+   and steel took 1 damage) (`31`). With the fire removed for one readout: `tfp:burning_log_pile[axis=z,count=16]` with
+   TFC's `molten_lit` model (`32`). The top was then covered with dirt (closed on all six faces).
+4. `tfp time add hours 20`, then the top dirt removed: `tfp:charcoal_pile[layers=5]` (`33`, from above; `34`, from the
+   north with the north dirt removed). Five layers lies in TFC's 4 to 8 for 16 logs.
+5. Shovel held on the pile for 1.5 s: two layer breaks, `layers=5` -> `layers=3`, two `minecraft:charcoal` item entities
+   of count 1 (`35`), one charcoal per break.
+
+| Rejection point | Finding |
+|---|---|
+| 1. a 1-log pile is "almost invisible" and should be a full cube | Not a defect. TFC's `blockstates/log_pile.json` uses `log_pile_1` .. `log_pile_16`; `log_pile_1` is one 4x4x16 log. `25` shows that log with a flat outline. The full-cube outline over an empty cell was not reproduced with the pack checked above; it fits a stale first-install pack (PAR-INFRA-55; temporary ledger row) or a client-only ghost block, not the generated mapping. |
+| 2. the 16-log pile has no log ends | Not a defect. TFC's `log_pile_16` puts `log_pile_front` (log ends) on the two faces along the axis (north/south for axis z) and `log_pile_side` elsewhere, top included; `27` shows exactly that. A shot from the east or west, or from above, shows only the side texture, as in TFC. |
+| 3. no burning pile, no charcoal | PASS here (`32`, `33`, `34`); the rejected run's pile never lit (see "Ghost fire" below). |
+| 4. charcoal click not isolated | PASS with one clean click (`28`, `29`). |
 
 ## Re-run (verdict for ddbeb5b)
 
+(This section and the first run below are history; only the fix-up commit wording was corrected.)
+
 - Code under test: ddbeb5b (`push-to-main/dreamy-heisenberg-f5azym`), jar built with `:tools:datagen:generateContent`
-  and `:dist:shadowJar` (`counts.ce_states` 1611). The fix-up commit that carries this verdict changes no runtime code
-  (a class comment, the ledger, docs and a datagen test).
+  and `:dist:shadowJar` (`counts.ce_states` 1611). The fix-up commit that carries this verdict (6d1c438) changes no
+  runtime code (a class comment, the ledger and docs).
 - Server: Paper 1.21.11, CraftEngine 26.9.2, BetterModel 3.5.1, BetterHud 2.2.0-SNAPSHOT-449, PacketEvents, by
   `spikes/client/server.sh` with `TFP_WORLD=1`, primed and restarted (`block.serverside-blocks` 2000 -> 3000); the restart
   loaded 1422 CraftEngine blocks with no issue.
