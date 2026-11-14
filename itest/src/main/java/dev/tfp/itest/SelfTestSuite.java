@@ -57,6 +57,7 @@ public final class SelfTestSuite {
                 new dev.tfp.itest.cases.BarrelRecipesCase(),
                 new dev.tfp.itest.cases.HeatCookMeatCase(),
                 new dev.tfp.itest.cases.FireStartCase(),
+                new dev.tfp.itest.cases.FirepitCookCase(),
                 new dev.tfp.itest.cases.CatchUpCase(),
                 new dev.tfp.itest.cases.PrecipSampleCase(),
                 new dev.tfp.itest.cases.WeatherCycleCase(),

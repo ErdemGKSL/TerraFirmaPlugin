@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 349 items; open 198, done 143, blocked 8; waves 1..56 (wave 0 = already done).
+Totals: 350 items; open 198, done 144, blocked 8; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -157,7 +157,7 @@ Totals: 349 items; open 198, done 143, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-HEAT-07 | Firepit GUI: fuel slots, input, outputs, temperature bar | HEAT | 14 | done |
 | PAR-HEAT-10 | Torches: burnout to dead torch, relight, wall torches | HEAT | 14 | done |
 | PAR-HEAT-18 | Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start) | HEAT | 14 | blocked |
-| PAR-HEAT-19 | Firepit loaded in game: configuration/devices/firepit.yml, TFC firepit models, self-test firepit.cook and the in-game check | HEAT | 14 | open |
+| PAR-HEAT-19 | Firepit loaded in game: configuration/devices/firepit.yml, TFC firepit models, self-test firepit.cook and the in-game check | HEAT | 14 | done |
 | PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | open |
 | PAR-PROC-18 | Powderkeg | PROC | 14 | open |
 | PAR-PROC-36 | Salad completion: salad screen art, eating and tooltip read the salad's own food data, in-game check | PROC | 14 | open |
@@ -171,6 +171,7 @@ Totals: 349 items; open 198, done 143, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-CLIM-21 | Snow and ice stop with the weather flag off (SnowService live step and catch-up), as TFC onTickChunk | CLIMATE | 15 | open |
 | PAR-HEAT-21 | Torches loaded in game: hitbox carriers, configuration/light/torch.yml, the dead torch look and the in-game burnout check | HEAT | 15 | open |
 | PAR-HEAT-22 | Dropped torches (go out in water, light leaves, thatch, log piles and pit kilns) and the torchTicks config key | HEAT | 15 | open |
+| PAR-HEAT-23 | Firepit look in game: TFC's lit and unlit models on their own carriers (axis z turned 90), and the in-game firepit check | HEAT | 16 | open |
 | PAR-CLIM-14 | Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute | CLIMATE | 16 | open |
 | PAR-HEAT-12 | Firebox, stove and stove pot | HEAT | 16 | open |
 | PAR-PHYS-01 | TFC falling blocks: canFallThrough, landing, damage | PHYS | 16 | open |

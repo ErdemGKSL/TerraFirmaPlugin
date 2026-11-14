@@ -72,8 +72,9 @@ class FirepitTest {
 
         assertThat(Firepit.LOADED_OUTPUT).isEqualTo(AssetPipeline.PACK + "configuration/devices/firepit.yml");
         String literal = new String(out.get(Firepit.OUTPUT), StandardCharsets.UTF_8);
-        assertThat(out.get(Firepit.LOADED_OUTPUT)).as("switched on by PAR-HEAT-19").isNull();
-        String loaded = Firepit.loadedYaml(TfcCheckout.open(root, PIN));
+        assertThat(out.get(Firepit.LOADED_OUTPUT)).as("written since PAR-HEAT-19").isNotNull();
+        String loaded = new String(out.get(Firepit.LOADED_OUTPUT), StandardCharsets.UTF_8);
+        assertThat(loaded).isEqualTo(Firepit.loadedYaml(TfcCheckout.open(root, PIN)));
         Map<?, ?> block = (Map<?, ?>) ((Map<?, ?>) ((Map<?, ?>) CeYamlCheck.parse(loaded, Firepit.LOADED_OUTPUT))
             .get("blocks")).get(Firepit.BLOCK_ID);
         Map<?, ?> literalBlock = (Map<?, ?>) ((Map<?, ?>) ((Map<?, ?>) CeYamlCheck.parse(literal, Firepit.OUTPUT))
@@ -88,6 +89,54 @@ class FirepitTest {
         assertThat(block.get("states")).isEqualTo(literalBlock.get("states"));
         assertThat(block.get("loot")).isEqualTo(literalBlock.get("loot"));
         assertThat(literal).as("the unloaded fixture keeps no behaviour").doesNotContain("tfp:device");
+    }
+
+    /**
+     * PAR-HEAT-19: CraftEngine loads only {@code configuration/} (the files {@link CeYamlCheck#assertValid} walks): the
+     * loaded entry is there, once, and the literal {@code devices/firepit.yml} is outside, so {@code tfp:firepit} is not
+     * registered twice.
+     */
+    @Test
+    void onlyTheLoadedEntryIsInTheConfigurationCraftEngineLoads() throws IOException {
+        Path root = checkout();
+        writeFirepit(root, 4, DEFINITION, allVisualVariants());
+        OutputTree out = new OutputTree();
+        Firepit.run(TfcCheckout.open(root, PIN), out);
+
+        assertThat(Firepit.LOADED_OUTPUT).startsWith(AssetPipeline.CONFIG);
+        assertThat(Firepit.OUTPUT).doesNotStartWith(AssetPipeline.CONFIG);
+        List<String> defining = out.files().entrySet().stream()
+            .filter(e -> e.getKey().startsWith(AssetPipeline.CONFIG) && e.getKey().endsWith(".yml"))
+            .filter(e -> new String(e.getValue(), StandardCharsets.UTF_8).contains("  " + Firepit.BLOCK_ID + ":"))
+            .map(Map.Entry::getKey).toList();
+        assertThat(defining).containsExactly(Firepit.LOADED_OUTPUT);
+        assertThat(new String(out.get(Firepit.LOADED_OUTPUT), StandardCharsets.UTF_8)).contains("template: tfp:block/device");
+    }
+
+    /** PAR-HEAT-19: the models AssetPipeline copies are the variants of TFC's blockstate, lit and unlit, once each. */
+    @Test
+    void modelsAreTheBlockstateVariants() throws IOException {
+        Path root = checkout();
+        writeFirepit(root, 4, DEFINITION, allVisualVariants());
+        assertThat(Firepit.models(TfcCheckout.open(root, PIN))).containsExactlyInAnyOrder("block/firepit_lit", "block/firepit_unlit");
+    }
+
+    /** PAR-HEAT-19, real checkout: TFC's lit and unlit firepit models and their textures are in the pack. */
+    @Test
+    void realCheckoutCopiesTheLitAndUnlitModels() {
+        TfcCheckout tfc = realCheckout();
+        assertThat(Firepit.models(tfc)).containsExactly("block/firepit_lit", "block/firepit_unlit");
+        OutputTree out = new OutputTree();
+        AssetPipeline.run(tfc, out, new Report());
+        for (String model : Firepit.models(tfc)) {
+            assertThat(out.contains(AssetPipeline.RP + "models/" + model + ".json")).as(model).isTrue();
+        }
+        String lit = new String(out.get(AssetPipeline.RP + "models/block/firepit_lit.json"), StandardCharsets.UTF_8);
+        assertThat(lit).contains("tfp:block/devices/firepit/rocks", "tfp:block/devices/firepit/hot_coals", "block/campfire_fire")
+            .doesNotContain("tfc:");
+        for (String tex : List.of("rocks", "hot_coals", "coals")) {
+            assertThat(out.contains(AssetPipeline.RP + "textures/block/devices/firepit/" + tex + ".png")).as(tex).isTrue();
+        }
     }
 
     @Test
@@ -346,7 +395,8 @@ class FirepitTest {
     private static void writeBlockstate(Path root, List<String> variants) throws IOException {
         StringBuilder sb = new StringBuilder("{\n  \"variants\": {\n");
         for (int i = 0; i < variants.size(); i++) {
-            sb.append("    \"").append(variants.get(i)).append("\": { \"model\": \"tfc:block/firepit\" }")
+            String model = variants.get(i).contains("lit=true") ? "tfc:block/firepit_lit" : "tfc:block/firepit_unlit";
+            sb.append("    \"").append(variants.get(i)).append("\": { \"model\": \"").append(model).append("\" }")
                 .append(i == variants.size() - 1 ? "\n" : ",\n");
         }
         sb.append("  }\n}\n");

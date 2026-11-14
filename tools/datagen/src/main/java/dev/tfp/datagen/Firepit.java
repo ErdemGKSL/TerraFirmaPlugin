@@ -62,7 +62,12 @@ import java.util.regex.Pattern;
  * {@code configuration/}, so CraftEngine does not load it (the firepit-family fixture {@code DeviceSpecParityTest}
  * checks). {@link #loadedYaml} is the entry CraftEngine is to load at {@link #LOADED_OUTPUT} (PAR-HEAT-06): the same spec
  * through the device template {@code tfp:block/device}, which adds the {@code tfp:device} behaviour, so the placed block
- * routes to the firepit device kind ({@code paper/firepit}). Writing it is PAR-HEAT-19.
+ * routes to the firepit device kind ({@code paper/firepit}); {@link #run} writes it (PAR-HEAT-19).
+ *
+ * <p><b>Models.</b> TFC's {@code firepit_lit} and {@code firepit_unlit} block models (the variants of the TFC blockstate,
+ * {@link #models}) are copied into the pack by {@link AssetPipeline}. Drawing them on the carriers needs a carrier per
+ * (lit, axis) pair in MODEL mode from the hitbox selector (the firepit, grill and pot now share one vanilla-look
+ * {@code daylight_detector} state, which can carry only one model); that is PAR-HEAT-23.
  */
 final class Firepit {
     static final String SOURCE = "src/main/java/net/dries007/tfc/common/blocks/devices/FirepitBlock.java";
@@ -71,8 +76,7 @@ final class Firepit {
     static final String OUTPUT = AssetPipeline.PACK + "devices/firepit.yml";
     /**
      * PAR-HEAT-06: where the loaded entry goes ({@link #loadedYaml}, template {@code tfp:block/device} with the
-     * {@code tfp:device} behaviour). Not written yet: a firepit in {@code configuration/} changes the fixture expectations
-     * of {@code DatagenTest} (its {@code non_occluding} list), a file outside PAR-HEAT-06; PAR-HEAT-19 switches it on.
+     * {@code tfp:device} behaviour). Written by {@link #run} since PAR-HEAT-19.
      */
     static final String LOADED_OUTPUT = AssetPipeline.PACK + "configuration/devices/firepit.yml";
     static final String BLOCK_ID = Json.TO_NS + ":firepit";
@@ -102,6 +106,7 @@ final class Firepit {
         checkAgainstTfc(tfc, states);
         DeviceBlockSpec spec = spec(tfc, BLOCK_ID, props);
         out.put(OUTPUT, DeviceYaml.writeLiteral(spec));
+        out.put(LOADED_OUTPUT, DeviceYaml.writeTemplated(loaded(spec))); // PAR-HEAT-19: the entry CraftEngine loads
         return states.size();
     }
 
@@ -327,6 +332,30 @@ final class Firepit {
                 throw new DatagenException(BLOCKSTATE + " has no variant " + key + " for the firepit");
             }
         }
+    }
+
+    /**
+     * The block models of the TFC blockstate's variants ({@code block/firepit_lit}, {@code block/firepit_unlit}; no
+     * namespace), in variant order without duplicates. Fails when a variant is not a TFC model or the blockstate is missing.
+     */
+    static List<String> models(TfcCheckout tfc) {
+        if (!tfc.exists(BLOCKSTATE)) {
+            throw new DatagenException("TFC checkout has no " + BLOCKSTATE);
+        }
+        JsonObject variants = JsonParser.parseString(tfc.readString(BLOCKSTATE)).getAsJsonObject().getAsJsonObject("variants");
+        Set<String> models = new java.util.LinkedHashSet<>();
+        for (String key : variants.keySet()) {
+            var v = variants.get(key);
+            if (!v.isJsonObject() || !v.getAsJsonObject().has("model")) {
+                throw new DatagenException(BLOCKSTATE + ": variant " + key + " is not one model");
+            }
+            String model = v.getAsJsonObject().get("model").getAsString();
+            if (!model.startsWith(Json.FROM_NS + ":block/")) {
+                throw new DatagenException(BLOCKSTATE + ": variant " + key + " model " + model + " is not a TFC block model");
+            }
+            models.add(model.substring(Json.FROM_NS.length() + 1));
+        }
+        return new ArrayList<>(models);
     }
 
     /** A variant key with its properties in alphabetical order, so keys compare regardless of the order written. */

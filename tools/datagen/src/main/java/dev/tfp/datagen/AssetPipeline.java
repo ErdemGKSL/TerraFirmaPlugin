@@ -156,6 +156,16 @@ public final class AssetPipeline {
         if (tfc.exists(ForgeDevices.FORGE_BLOCKSTATE)) {
             modelQueue.addAll(ForgeDevices.forgeModels(tfc).values());
         }
+        // PAR-HEAT-19: TFC's firepit block models (lit and unlit, from the blockstate) with their textures; the vanilla
+        // campfire_fire texture stays a vanilla reference. The small fixture checkouts have the blockstate but no models;
+        // FirepitTest pins the real checkout's.
+        if (tfc.exists(Firepit.BLOCKSTATE)) {
+            for (String model : Firepit.models(tfc)) {
+                if (tfc.exists(TfcCheckout.ASSETS + "models/" + model + ".json")) {
+                    modelQueue.add(model);
+                }
+            }
+        }
         // Metal mining tools (M4-TOOL-02 data slice): the tier of each metal is read from TFC's TFCTiers.
         METAL_TOOL_KINDS.forEach((kind, mineable) -> {
             for (String f : tfc.list(TfcCheckout.ASSETS + "models/item/metal/" + kind + "/")) {
