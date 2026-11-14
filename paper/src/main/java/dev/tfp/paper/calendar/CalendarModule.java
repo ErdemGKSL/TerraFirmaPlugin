@@ -27,13 +27,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
+import java.util.function.LongConsumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.kyori.adventure.text.Component;
 import org.bukkit.World;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -66,6 +70,8 @@ public final class CalendarModule implements FeatureModule, Listener {
     public static final String FILE = "calendar.yml";
     /** Vanilla's "you can only sleep at night" text, shown when TFC's window refuses a bed vanilla would allow. */
     static final String NO_SLEEP_KEY = "block.minecraft.bed.no_sleep";
+    /** The 26.x API's world-less time-skip event (absent on 1.21.x). */
+    static final String CLOCK_SKIP_EVENT = "org.bukkit.event.world.ClockTimeSkipEvent";
 
     static final String DEFAULT_TEXT = """
             # TerraFirmaPlugin calendar (TFC's calendar options, under TFC's names).
@@ -93,6 +99,8 @@ public final class CalendarModule implements FeatureModule, Listener {
     private volatile Messages messages;
     private volatile Logger logger;
     private volatile BooleanSupplier onGlobalThread = () -> true;
+    private volatile Supplier<? extends List<World>> worlds = org.bukkit.Bukkit::getWorlds;
+    private final AtomicBoolean unknownReasonLogged = new AtomicBoolean();
 
     public CalendarModule() {
     }
@@ -127,7 +135,9 @@ public final class CalendarModule implements FeatureModule, Listener {
         messages = ctx.messages();
         onGlobalThread = org.bukkit.Bukkit::isGlobalTickThread;
         cal.configure(loadConfig(ctx.plugin().getDataFolder().toPath().resolve(FILE), logger));
-        DaylightSync s = new DaylightSync(() -> ctx.plugin().getServer().getWorlds());
+        Supplier<List<World>> serverWorlds = () -> ctx.plugin().getServer().getWorlds();
+        worlds = serverWorlds;
+        DaylightSync s = new DaylightSync(serverWorlds);
         if (DaylightSync.DAYLIGHT == null) {
             logger.warning("Calendar: no daylight game rule on this server version; the sun is held by the time alone");
         }
@@ -135,6 +145,21 @@ public final class CalendarModule implements FeatureModule, Listener {
         service = cal;
         cal.onChange(s::apply);
         ctx.listen(this);
+        listenForClockSkips(ctx);
+    }
+
+    /** PAR-CLIM-22: on the 26.x API, also handle the world-less {@code ClockTimeSkipEvent} ({@link #onClockTimeSkip}). */
+    private void listenForClockSkips(ModuleContext ctx) {
+        Class<? extends Event> clockEvent;
+        try {
+            clockEvent = Class.forName(CLOCK_SKIP_EVENT, false, TimeSkipEvent.class.getClassLoader())
+                    .asSubclass(Event.class);
+        } catch (ClassNotFoundException | ClassCastException e) {
+            return; // 1.21.x: TimeSkipEvent is the only time-skip event
+        }
+        ctx.plugin().getServer().getPluginManager().registerEvent(clockEvent, this, EventPriority.HIGH,
+                (listener, event) -> onClockTimeSkip(event), ctx.plugin(), true);
+        logger.fine("Calendar: listening for " + CLOCK_SKIP_EVENT);
     }
 
     @Override
@@ -204,40 +229,83 @@ public final class CalendarModule implements FeatureModule, Listener {
     /**
      * Vanilla's night skip and {@code /time} become calendar skips; our own time changes ({@code CUSTOM}) and other
      * worlds are left alone. The calendar is written on the global thread only: where the event fires elsewhere, the
-     * skip is queued there and the amount is predicted from the published clock.
+     * skip is queued there and the amount is predicted from the published clock. The reason is read through
+     * {@link TimeSkipReasons} (PAR-CLIM-22): the 26.x API moved {@code getSkipReason()} to {@code ClockTimeSkipEvent}
+     * with a different return type.
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onTimeSkip(TimeSkipEvent event) {
-        DaylightSync s = sync;
-        CalendarService cal = service;
-        if (s == null || cal == null || s.applying() || event.getSkipReason() == TimeSkipEvent.SkipReason.CUSTOM
-                || event.getWorld().getEnvironment() != World.Environment.NORMAL) {
+        skip(TimeSkipReasons.of(event), event.getWorld(), event.getSkipAmount(), event::setSkipAmount);
+    }
+
+    /**
+     * PAR-CLIM-22: the world-less {@code ClockTimeSkipEvent} of the 26.x API, which Paper fires for {@code /time}
+     * instead of {@code TimeSkipEvent} when {@code time.affects-all-worlds} is on in {@code paper-global.yml}. The
+     * shared clock is measured against the first overworld-type world, as the calendar's own world. Registered by
+     * {@link #enable} only where that class exists.
+     */
+    void onClockTimeSkip(Event event) {
+        if (event instanceof TimeSkipEvent || (event instanceof Cancellable c && c.isCancelled())
+                || !TimeSkipReasons.hasAmount(event)) {
             return;
         }
+        World world = firstNormalWorld();
+        if (world == null) {
+            return;
+        }
+        skip(TimeSkipReasons.of(event), world, TimeSkipReasons.amount(event),
+                amount -> TimeSkipReasons.setAmount(event, amount));
+    }
+
+    private World firstNormalWorld() {
+        for (World w : worlds.get()) {
+            if (w.getEnvironment() == World.Environment.NORMAL) {
+                return w;
+            }
+        }
+        return null;
+    }
+
+    private void skip(TimeSkipReasons.Reason reason, World world, long skipAmount, LongConsumer setSkipAmount) {
+        DaylightSync s = sync;
+        CalendarService cal = service;
+        if (s == null || cal == null || s.applying() || world.getEnvironment() != World.Environment.NORMAL) {
+            return;
+        }
+        if (reason == TimeSkipReasons.Reason.UNKNOWN) {
+            Logger log = logger;
+            if (unknownReasonLogged.compareAndSet(false, true) && log != null) {
+                log.warning("Calendar: a time skip with an unknown reason was left alone (treated as CUSTOM)");
+            }
+            return;
+        }
+        if (reason == TimeSkipReasons.Reason.CUSTOM) {
+            return;
+        }
+        boolean night = reason == TimeSkipReasons.Reason.NIGHT_SKIP;
         TimeCommand.Delta delta;
-        if (event.getSkipReason() == TimeSkipEvent.SkipReason.NIGHT_SKIP) {
+        if (night) {
             delta = st -> SleepSkip.calendarTicksSlept(st.calendarTicks());
         } else {
-            long calendarSkip = SleepSkip.calendarSkipForVanilla(event.getSkipAmount());
+            long calendarSkip = SleepSkip.calendarSkipForVanilla(skipAmount);
             delta = st -> calendarSkip;
         }
-        World world = event.getWorld();
         if (onGlobalThread.getAsBoolean()) {
             CalendarService.Skipped moved = cal.skip(delta);
             if (moved == null) {
                 return; // not loaded yet: vanilla's skip stands, the first sync will hold the world to the calendar
             }
-            event.setSkipAmount(SleepSkip.vanillaDayTime(moved.state().calendarTicks()) - world.getFullTime());
+            setSkipAmount.accept(SleepSkip.vanillaDayTime(moved.state().calendarTicks()) - world.getFullTime());
             return;
         }
         ClockSnapshot now = clock.get();
         if (!now.isSet()) {
             return;
         }
-        long predicted = now.calendarTicks() + (event.getSkipReason() == TimeSkipEvent.SkipReason.NIGHT_SKIP
+        long predicted = now.calendarTicks() + (night
                 ? SleepSkip.calendarTicksSlept(now.calendarTicks())
-                : SleepSkip.calendarSkipForVanilla(event.getSkipAmount()));
-        event.setSkipAmount(SleepSkip.vanillaDayTime(predicted) - world.getFullTime());
+                : SleepSkip.calendarSkipForVanilla(skipAmount));
+        setSkipAmount.accept(SleepSkip.vanillaDayTime(predicted) - world.getFullTime());
         scheduler.global(() -> cal.skip(delta));
     }
 
