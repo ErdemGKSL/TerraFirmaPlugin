@@ -19,7 +19,9 @@ import org.junit.jupiter.api.Test;
 /**
  * PAR-PROC-09 "tank glyph frame per level": what each generated tank frame draws, without the shared content store. TFC's
  * BarrelScreen.renderBg fills a solid column from window y {@code 70 - fill} down to y 70 (16 wide at x 8), tiled from the
- * top by RenderHelpers.fillAreaWithSprite, and draws the gauge (18 x 52 at 7, 19) on top.
+ * top by RenderHelpers.fillAreaWithSprite, and draws the gauge (18 x 52 at 7, 19) on top. Those numbers are in TFC's window
+ * space; our chest layout moves the tank and gauge up by {@link BarrelScreenArt#DY_TANK} (-1), so in our window space the
+ * tank bottom is y 69 and the gauge sits at (7, 18).
  */
 class BarrelScreenArtTest {
     private static final double EPS = 1e-9;
@@ -105,7 +107,7 @@ class BarrelScreenArtTest {
             int gy = BarrelScreenArt.GAUGE_Y + BarrelScreenArt.DY_TANK;
             assertThat(to[1]).isCloseTo(BarrelScreenArt.unitY(gy), within(EPS));
             assertThat(from[1]).isCloseTo(BarrelScreenArt.unitY(gy + BarrelScreenArt.GAUGE_HEIGHT), within(EPS));
-            // the gauge frames the whole tank, bottom (window y 69) to top (y 19)
+            // the gauge frames the whole tank; our window space (TFC's y 70 / 20 moved up 1): tank bottom y 69, tank top y 19
             assertThat(from[1]).isLessThanOrEqualTo(BarrelScreenArt.unitY(BOTTOM));
             assertThat(to[1]).isGreaterThanOrEqualTo(BarrelScreenArt.unitY(BOTTOM - BarrelScreenArt.TANK_HEIGHT));
             assertThat(from[2]).isLessThan(8);
