@@ -38,6 +38,9 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.event.Event;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -281,7 +284,7 @@ class CharcoalPitMockBukkitTest extends MockServerTest {
         device = new CharcoalPitDevice(services, codec, new PitClock(), service::neighbourChanged);
         service.register(device.logPileKind());
         service.register(device.burningKind());
-        listener = new CharcoalListener(device, services, b -> true);
+        listener = new CharcoalListener(device, services, b -> true, id -> service.kinds().find(id).isPresent());
         floor = world.getBlockAt(0, 63, 0);
         floor.setType(Material.STONE);
         pile = world.getBlockAt(0, 64, 0);
@@ -579,5 +582,66 @@ class CharcoalPitMockBukkitTest extends MockServerTest {
         DeviceRecord<LogPileData> r = record(pile);
         assertThat(r.state().lastClickPlacement()).isTrue();
         assertThat(r.state().lastClickTick()).isEqualTo(clock.get());
+    }
+
+    private PlayerInteractEvent rightClick(Block clicked, BlockFace face) {
+        PlayerInteractEvent e = new PlayerInteractEvent(player, Action.RIGHT_CLICK_BLOCK,
+            player.getInventory().getItem(EquipmentSlot.HAND), clicked, face, EquipmentSlot.HAND);
+        listener.onInteract(e);
+        return e;
+    }
+
+    @Test
+    void aPlainCharcoalClickLeavesAChestOrFurnaceToItsOwnUse() {
+        for (Material m : new Material[] {Material.CHEST, Material.FURNACE}) {
+            Block box = world.getBlockAt(2, 64, 0);
+            box.setType(m);
+            world.getBlockAt(1, 63, 0).setType(Material.STONE); // a sturdy top below the west cell
+            player.setSneaking(false);
+            hold(Material.CHARCOAL, 4);
+            PlayerInteractEvent side = rightClick(box, BlockFace.WEST);
+            PlayerInteractEvent top = rightClick(box, BlockFace.UP);
+            assertThat(side.useInteractedBlock()).as(m + " side").isNotEqualTo(Event.Result.DENY);
+            assertThat(top.useInteractedBlock()).as(m + " top").isNotEqualTo(Event.Result.DENY);
+            assertThat(state(box.getRelative(BlockFace.WEST))).isNull();
+            assertThat(state(box.getRelative(BlockFace.UP))).isNull();
+            assertThat(player.getInventory().getItem(EquipmentSlot.HAND).getAmount()).isEqualTo(4);
+        }
+    }
+
+    @Test
+    void aPlainCharcoalClickOnALogPileTakesALogAndASneakClickPlacesAPile() {
+        buildPile(3);
+        player.setSneaking(false);
+        hold(Material.CHARCOAL, 4);
+        clock.addAndGet(100);
+        world.getBlockAt(-1, 63, 0).setType(Material.STONE); // a sturdy top below the west cell
+        PlayerInteractEvent e = rightClick(pile, BlockFace.WEST);
+        assertThat(e.useInteractedBlock()).isNotEqualTo(Event.Result.DENY);
+        assertThat(e.useItemInHand()).isNotEqualTo(Event.Result.DENY);
+        Block west = pile.getRelative(BlockFace.WEST);
+        assertThat(state(west)).as("no charcoal pile beside the log pile").isNull();
+        // CraftEngine's device use (the tfp:device behaviour) then runs: LogPileBlock.useItemOn extracts
+        assertThat(service.use(pile, player, EquipmentSlot.HAND, player.getInventory().getItem(EquipmentSlot.HAND)))
+            .isTrue();
+        effects.flush();
+        assertThat(effects.given).hasSize(1);
+        assertThat(logs(pile)).isEqualTo(2);
+
+        player.setSneaking(true);
+        PlayerInteractEvent sneak = rightClick(pile, BlockFace.WEST);
+        assertThat(sneak.useInteractedBlock()).isEqualTo(Event.Result.DENY);
+        assertThat(state(west)).isEqualTo(CharcoalPitDevice.charcoalPile(1));
+        assertThat(player.getInventory().getItem(EquipmentSlot.HAND).getAmount()).isEqualTo(3);
+        assertThat(logs(pile)).isEqualTo(2);
+    }
+
+    @Test
+    void aPlainCharcoalClickOnACharcoalPileAddsALayer() {
+        blocks.place(pile, CharcoalPitDevice.charcoalPile(2), false);
+        player.setSneaking(false);
+        hold(Material.CHARCOAL, 4);
+        rightClick(pile, BlockFace.UP);
+        assertThat(state(pile)).isEqualTo(CharcoalPitDevice.charcoalPile(3));
     }
 }

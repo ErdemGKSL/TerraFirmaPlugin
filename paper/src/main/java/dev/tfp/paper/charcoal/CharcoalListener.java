@@ -54,12 +54,18 @@ public final class CharcoalListener implements Listener {
     private final CharcoalPitDevice device;
     private final CharcoalPitDevice.Services services;
     private final Predicate<Block> owns;
+    private final Predicate<String> deviceKind;
 
-    /** @param owns whether the current thread owns a block's region */
-    public CharcoalListener(CharcoalPitDevice device, CharcoalPitDevice.Services services, Predicate<Block> owns) {
+    /**
+     * @param owns whether the current thread owns a block's region
+     * @param deviceKind whether a CraftEngine block id has a registered device kind (its own use: log pile, firepit...)
+     */
+    public CharcoalListener(CharcoalPitDevice device, CharcoalPitDevice.Services services, Predicate<Block> owns,
+            Predicate<String> deviceKind) {
         this.device = Objects.requireNonNull(device, "device");
         this.services = Objects.requireNonNull(services, "services");
         this.owns = Objects.requireNonNull(owns, "owns");
+        this.deviceKind = Objects.requireNonNull(deviceKind, "deviceKind");
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = false)
@@ -73,13 +79,34 @@ public final class CharcoalListener implements Listener {
         if (clicked == null || StackCodec.isEmpty(item)) {
             return;
         }
-        boolean handled = item.getType() == Material.CHARCOAL
+        boolean isCharcoal = item.getType() == Material.CHARCOAL;
+        // TFC runs the charcoal entry at ITEM_AFTER_BLOCK: the clicked block's own use comes first, unless the player
+        // sneaks (vanilla skips the block's use for a sneaking player holding an item). The log entry needs sneaking.
+        if (isCharcoal && !event.getPlayer().isSneaking() && blockUseFirst(clicked, event.useInteractedBlock())) {
+            return;
+        }
+        boolean handled = isCharcoal
             ? charcoal(event.getPlayer(), event.getHand(), clicked, event.getBlockFace(), item)
             : log(event.getPlayer(), event.getHand(), clicked, event.getBlockFace(), item);
         if (handled) {
             event.setUseInteractedBlock(Event.Result.DENY);
             event.setUseItemInHand(Event.Result.DENY);
         }
+    }
+
+    /**
+     * Whether the clicked block has a use of its own that runs before TFC's charcoal entry: a CraftEngine block with a
+     * device kind (the log pile extracts a log, a firepit opens), or an interactable vanilla block (chest, furnace,
+     * crafting table) whose use the event has not denied. A charcoal pile has no use, so a layer is still added whatever
+     * its carrier block is (a note-block carrier is interactable to Bukkit).
+     */
+    @SuppressWarnings("deprecation") // Material.isInteractable: the closest Bukkit answer to "the block has a use"
+    boolean blockUseFirst(Block clicked, Event.Result useBlock) {
+        Optional<BlockStateRef> s = services.state().apply(clicked);
+        if (s.isPresent()) {
+            return !s.get().id().equals(CharcoalPitDevice.CHARCOAL_PILE) && deviceKind.test(s.get().id());
+        }
+        return clicked.getType().isInteractable() && useBlock != Event.Result.DENY;
     }
 
     /** The log entry. Returns whether the click was used. */

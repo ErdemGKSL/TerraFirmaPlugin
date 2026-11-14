@@ -80,7 +80,8 @@ public final class CharcoalModule implements FeatureModule {
             && blocks.stateAt(ctx.block()).map(s -> s.id().equals(CharcoalPitDevice.LOG_PILE)).orElse(false)
             && device.light(ctx.block())));
         context.listen(new CharcoalListener(device, services,
-            block -> scheduler.isOwner(block.getWorld(), block.getX() >> 4, block.getZ() >> 4)));
+            block -> scheduler.isOwner(block.getWorld(), block.getX() >> 4, block.getZ() >> 4),
+            id -> devices.kinds().find(id).isPresent()));
         Optional<CatchUpService> catchUp = context.services().get(CatchUpService.class);
         blocks.onChunkLoad(chunk -> catchUp.ifPresent(c -> chunkLoaded(chunk, c, blocks, devices, scheduler)));
         blocks.onChunkUnload(chunk -> clock.untrackChunk(chunk.getWorld(), chunk.getX(), chunk.getZ()));

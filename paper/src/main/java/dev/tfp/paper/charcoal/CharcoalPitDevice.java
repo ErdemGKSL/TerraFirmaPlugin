@@ -409,8 +409,13 @@ public final class CharcoalPitDevice {
             LogPileColumn.Insert<ItemBlob> result = LogPileColumn.insert(column, airAbove, stacks.encode(op.log), op.count,
                 all);
             op.inserted = result.inserted();
-            if (op.inserted > 0) {
-                services.effects().sound(block, CharcoalEffects.Sound.LOG_PLACE);
+            // dumbInsert plays the place sound at each pile that took logs
+            for (int i = 0; i < result.piles().size(); i++) {
+                int before = i < column.size() ? LogPileColumn.count(column.get(i)) : 0;
+                if (LogPileColumn.count(result.piles().get(i)) > before) {
+                    services.effects().sound(i < blocks.size() ? blocks.get(i) : cursor,
+                        CharcoalEffects.Sound.LOG_PLACE);
+                }
             }
             for (int i = 1; i < column.size(); i++) {
                 List<ItemBlob> slots = result.piles().get(i);
@@ -557,6 +562,7 @@ public final class CharcoalPitDevice {
             }
             for (int i = 0; i < c.layers().size(); i++) {
                 Block cell = under.getRelative(BlockFace.UP, i + 1);
+                clock.untrack(cell); // the lower piles were listed with NEVER
                 int layers = c.layers().get(i);
                 if (layers > 0) {
                     services.effects().place(cell, charcoalPile(layers), BURNING, null);
