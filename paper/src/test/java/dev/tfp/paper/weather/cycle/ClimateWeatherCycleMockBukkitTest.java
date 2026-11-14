@@ -14,9 +14,11 @@ import dev.tfp.core.weather.cycle.WeatherCycle;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.testing.MockServerTest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -27,9 +29,13 @@ import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.block.BlockFormEvent;
 import org.bukkit.event.block.EntityBlockFormEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.mockbukkit.mockbukkit.world.WorldMock;
 
@@ -37,7 +43,10 @@ import org.mockbukkit.mockbukkit.world.WorldMock;
  * PAR-CLIM-12 on MockBukkit with an inline scheduler: in a TFC world the vanilla weather rule goes off and the storm and
  * thunder flags follow the climate, a {@code /weather} change is undone by the next sync, the weather flag clears the
  * sky and persists in the world PDC, a player's own weather follows the climate at their position and is released in a
- * vanilla world, a vanilla world keeps its weather, and weather snow and ice never form in a TFC world.
+ * vanilla world, a vanilla world keeps its weather, and weather snow and ice never form in a TFC world. Regression for
+ * the in-game failure (a bot at a dry site saw rain): a join, respawn, world change and teleport re-decide one tick
+ * later without the timer, a join/respawn/world change re-sends CLEAR (Paper's instant rain level 0), and the world's
+ * storm does not touch a CLEAR player.
  */
 class ClimateWeatherCycleMockBukkitTest extends MockServerTest {
     private WorldMock tfc;
@@ -47,9 +56,34 @@ class ClimateWeatherCycleMockBukkitTest extends MockServerTest {
     private long rainTick;
     private long clearTick;
     private long thunderTick;
+    private InlineScheduler scheduler;
 
-    /** Everything runs inline on the calling thread. */
+    /** A player that records every {@code setPlayerWeather} call: each one is a packet with an instant rain level. */
+    private static final class CountingPlayer extends PlayerMock {
+        final List<WeatherType> sent = new ArrayList<>();
+
+        CountingPlayer(ServerMock server, String name) {
+            super(server, name);
+        }
+
+        @Override
+        public void setPlayerWeather(WeatherType type) {
+            sent.add(type);
+            super.setPlayerWeather(type);
+        }
+    }
+
+    /** Everything runs inline on the calling thread; delayed entity tasks wait for {@link #tick()}. */
     private static final class InlineScheduler implements Scheduler {
+        private final List<Runnable> delayed = new ArrayList<>();
+
+        /** Runs the delayed tasks (one server tick later). */
+        void tick() {
+            List<Runnable> due = new ArrayList<>(delayed);
+            delayed.clear();
+            due.forEach(Runnable::run);
+        }
+
         @Override
         public void region(Location location, Runnable task) {
             task.run();
@@ -79,7 +113,8 @@ class ClimateWeatherCycleMockBukkitTest extends MockServerTest {
 
         @Override
         public boolean entityDelayed(Entity entity, long delayTicks, Runnable task, Runnable retired) {
-            throw new UnsupportedOperationException();
+            delayed.add(task);
+            return true;
         }
 
         @Override
@@ -133,7 +168,8 @@ class ClimateWeatherCycleMockBukkitTest extends MockServerTest {
         tfc = server.addSimpleWorld("tfc");
         vanilla = server.addSimpleWorld("vanilla");
         clock = new GlobalClockHolder();
-        cycle = new ClimateWeatherCycle(clock, new InlineScheduler(), w -> w.getName().equals("tfc"),
+        scheduler = new InlineScheduler();
+        cycle = new ClimateWeatherCycle(clock, scheduler, w -> w.getName().equals("tfc"),
                 () -> server.getWorlds(), () -> server.getOnlinePlayers());
         server.getPluginManager().registerEvents(cycle, plugin);
         long seed = tfc.getSeed();
@@ -222,7 +258,9 @@ class ClimateWeatherCycleMockBukkitTest extends MockServerTest {
                 .isFalse();
         ClimateWeatherCycle reloaded = new ClimateWeatherCycle(clock, new InlineScheduler(), w -> true,
                 () -> server.getWorlds(), () -> server.getOnlinePlayers());
-        assertThat(reloaded.enabled(tfc)).as("read back from the world PDC").isFalse();
+        assertThat(reloaded.enabled(tfc)).as("not loaded yet").isTrue();
+        assertThat(reloaded.loadEnabled(tfc)).as("read back from the world PDC").isFalse();
+        assertThat(reloaded.enabled(tfc)).isFalse();
         cycle.setEnabled(tfc, true);
         syncAt(thunderTick);
         assertThat(tfc.hasStorm()).isTrue();
@@ -250,6 +288,87 @@ class ClimateWeatherCycleMockBukkitTest extends MockServerTest {
         cycle.refresh(inWet);
         assertThat(inWet.getPlayerWeather()).isNull();
         assertThat(cycle.manages(inWet.getUniqueId())).isFalse();
+    }
+
+    @Test
+    void joinedPlayerAtDrySiteIsSentClearAfterSendLevelInfoAndOnRespawnAndWorldChange() {
+        BlockPos dry = findSite(false);
+        syncAt(rainTick);
+        assertThat(tfc.hasStorm()).as("it rains elsewhere").isTrue();
+        CountingPlayer bot = new CountingPlayer(server, "bot");
+        bot.setLocation(new Location(tfc, dry.x() + 0.5, dry.y(), dry.z() + 0.5));
+        server.addPlayer(bot);
+        scheduler.tick(); // a join event fired by addPlayer itself, if any
+        bot.sent.clear();
+
+        server.getPluginManager().callEvent(new PlayerJoinEvent(bot, (Component) null));
+        assertThat(bot.sent).as("not before Paper's sendLevelInfo").isEmpty();
+        scheduler.tick();
+        assertThat(bot.sent).as("joined at a dry site: CLEAR (client rain level 0) one tick later")
+                .containsExactly(WeatherType.CLEAR);
+
+        bot.sent.clear();
+        server.getPluginManager().callEvent(new PlayerRespawnEvent(bot, bot.getLocation(), false, false, false,
+                PlayerRespawnEvent.RespawnReason.DEATH));
+        scheduler.tick();
+        assertThat(bot.sent).as("a respawn re-sends CLEAR though it did not change").containsExactly(WeatherType.CLEAR);
+
+        bot.sent.clear();
+        server.getPluginManager().callEvent(new PlayerChangedWorldEvent(bot, vanilla));
+        scheduler.tick();
+        assertThat(bot.sent).as("a world change re-sends CLEAR").containsExactly(WeatherType.CLEAR);
+
+        bot.sent.clear();
+        syncAt(rainTick + 20);
+        assertThat(bot.sent).as("the timer does not re-send an unchanged decision").isEmpty();
+        assertThat(bot.getPlayerWeather()).isEqualTo(WeatherType.CLEAR);
+    }
+
+    @Test
+    void teleportFromWetToDrySiteIsClearWithoutWaitingForTheTimer() {
+        BlockPos wet = findSite(true);
+        BlockPos dry = findSite(false);
+        CountingPlayer bot = new CountingPlayer(server, "bot");
+        server.addPlayer(bot);
+        bot.teleport(new Location(tfc, wet.x() + 0.5, wet.y(), wet.z() + 0.5));
+        syncAt(rainTick);
+        scheduler.tick();
+        assertThat(bot.getPlayerWeather()).isEqualTo(WeatherType.DOWNFALL);
+
+        bot.sent.clear();
+        bot.teleport(new Location(tfc, dry.x() + 0.5, dry.y(), dry.z() + 0.5));
+        scheduler.tick(); // one tick, no sync
+        assertThat(bot.sent).containsExactly(WeatherType.CLEAR);
+        assertThat(bot.getPlayerWeather()).isEqualTo(WeatherType.CLEAR);
+
+        bot.sent.clear();
+        bot.teleport(new Location(tfc, dry.x() + 1.5, dry.y(), dry.z() + 0.5));
+        scheduler.tick();
+        assertThat(bot.sent).as("an unchanged decision is not re-sent on a teleport (no flash over the ramp)").isEmpty();
+
+        bot.teleport(new Location(tfc, wet.x() + 0.5, wet.y(), wet.z() + 0.5));
+        scheduler.tick();
+        assertThat(bot.getPlayerWeather()).isEqualTo(WeatherType.DOWNFALL);
+    }
+
+    @Test
+    void worldStormDoesNotChangeAClearPlayersWeather() {
+        BlockPos dry = findSite(false);
+        CountingPlayer bot = new CountingPlayer(server, "bot");
+        server.addPlayer(bot);
+        bot.teleport(new Location(tfc, dry.x() + 0.5, dry.y(), dry.z() + 0.5));
+        syncAt(clearTick);
+        scheduler.tick();
+        assertThat(bot.getPlayerWeather()).isEqualTo(WeatherType.CLEAR);
+        bot.sent.clear();
+        syncAt(rainTick); // the world's storm turns on
+        assertThat(tfc.hasStorm()).isTrue();
+        assertThat(bot.getPlayerWeather()).isEqualTo(WeatherType.CLEAR);
+        assertThat(bot.sent).as("no DOWNFALL sent to a player at a dry site").isEmpty();
+        tfc.setStorm(false);
+        syncAt(rainTick + 20);
+        assertThat(bot.getPlayerWeather()).isEqualTo(WeatherType.CLEAR);
+        assertThat(bot.sent).isEmpty();
     }
 
     @Test

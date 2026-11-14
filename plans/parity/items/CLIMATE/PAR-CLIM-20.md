@@ -19,7 +19,7 @@ files_owned:
 ui: true
 in_game_steps:
   - "Fresh TFC world; gamerule doWeatherCycle (advance_weather on 1.21.11+) true; tfp debug chunk at a dry site (rainfall < 100 mm) and at a wet site (> 400 mm); note precipitation; the gamerule reads false after one second"
-  - "tfp time add hours 1 repeatedly until tfp debug chunk at the wet site shows RAIN; screenshot the sky at the wet site (rain falls) and at the dry site at the same calendar tick (no rain drawn)"
+  - "tfp time add hours 1 repeatedly until tfp debug chunk at the wet site shows RAIN; with two bots, one standing at the wet site and one at the dry site, each for at least 120 ticks since its last join or teleport (the local rain level fades 0.01 per tick, as TFC, plus up to 20 ticks of decision lag), screenshot both skies in the same tick: rain falls at the wet site and none is drawn at the dry site. With one bot, wait at least 120 ticks after each teleport and note both calendar ticks (same climate rain window)"
   - "weather clear (vanilla command); wait 100 ticks; screenshot: the climate cycle keeps the TFC weather (as TFC, where advanceWeatherCycle is replaced)"
 plan:
   - "Moved from PAR-CLIM-12 (2026-11-14): PAR-CLIM-12 built and unit-tested the cycle (core/weather/cycle, paper/weather/cycle: ClimateWeatherCycle, VanillaWeatherGates, WeatherCycleModule); its worker had no headless-client session to run, and the case file and PrecipitationService are outside its files."
