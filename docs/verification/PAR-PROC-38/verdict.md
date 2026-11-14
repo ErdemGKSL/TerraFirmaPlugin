@@ -83,3 +83,19 @@ grey-brown, greenish look of the rejected run was the cactus texture over it).
 
 The rack and unrack clicks, a broken racked barrel leaving its rack, the support rule and the explosion drop are covered
 by `BarrelRackMockBukkitTest`; the barrel GUI, buckets and rain are PAR-PROC-35's checks.
+
+## Second in-game check: "no surface in the target" (answered)
+
+A checker saw no water in the tap's target at 720 and 1000 mB from about 4.5 blocks south and 1.6 blocks above the rim
+(about 20 degrees down). TFC's surface height there is y = 0.140625 + 0.734375 * fill: about 0.194 at 720 mB and 0.214 at
+1000 mB, only 0.07 to 0.09 above the inner floor, and that sightline over the near rim meets the far inner wall at about
+0.7 of the barrel's height, so the plane is hidden. `05-target-1000.png` (taken from almost straight above, same block,
+1000 mB, filled by the tap) shows it. Look at a tap target from a pitch of 60 degrees or more within about 2 blocks, and
+add a north-east view to see the tap and the target together.
+
+Regression tests: `BarrelRackMockBukkitTest.theTapPoursOneMbPerTickIntoTheBarrelBelowLazily` now asserts that after the
+pour the target holds exactly one surface display at `BarrelFluidVisuals.surface(n, 10000).y()` (120 and 500 mB) and the
+barrel on its side none; `BarrelSurfaceLookupMockBukkitTest.successiveUpdatesKeepOnePlaneAtTfcsHeight` asserts two
+updates keep one plane. Writing them found that `PaperBarrelEffects` built its locations with `block.getLocation().add`,
+which moves MockBukkit's block (its location is shared); it now builds a new `Location` (Paper's `getLocation` returns a
+copy, so the server was not affected).

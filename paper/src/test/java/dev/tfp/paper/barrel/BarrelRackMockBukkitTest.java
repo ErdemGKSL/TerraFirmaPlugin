@@ -12,6 +12,7 @@ import dev.tfp.core.barrel.BarrelRules;
 import dev.tfp.core.device.DeviceRecord;
 import dev.tfp.core.persist.DataMap;
 import dev.tfp.core.vessel.FluidAmount;
+import dev.tfp.paper.barrel.gui.BarrelFluidVisuals;
 import dev.tfp.paper.device.DeviceKind;
 import dev.tfp.paper.device.DeviceKinds;
 import dev.tfp.paper.device.DeviceService;
@@ -20,6 +21,7 @@ import dev.tfp.paper.integration.FakeCustomBlocks;
 import dev.tfp.paper.testing.MockServerTest;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,6 +34,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -69,6 +72,10 @@ class BarrelRackMockBukkitTest extends MockServerTest {
     private final List<String> drips = new ArrayList<>();
     private final List<ItemStack> spawned = new ArrayList<>();
     private final List<FluidAmount> surfaces = new ArrayList<>();
+    /** The last surface fluid per barrel ({@link PaperBarrelEffects#marker}). */
+    private final Map<String, FluidAmount> surfaceAt = new HashMap<>();
+    /** The real surface display path (PAR-PROC-35's item display), so a test can look at the plane itself. */
+    private PaperBarrelEffects displays;
     private final List<Block> collapsed = new ArrayList<>();
     private BarrelTestWorld data;
     private DeviceService service;
@@ -108,6 +115,8 @@ class BarrelRackMockBukkitTest extends MockServerTest {
         @Override
         public void surface(Block block, FluidAmount fluid, int capacity) {
             surfaces.add(fluid);
+            surfaceAt.put(PaperBarrelEffects.marker(block), fluid);
+            displays.surface(block, fluid, capacity);
         }
 
         @Override
@@ -140,6 +149,7 @@ class BarrelRackMockBukkitTest extends MockServerTest {
         data = new BarrelTestWorld(dir).load(clock::get);
         world = server.addSimpleWorld("racks");
         BarrelTestScheduler scheduler = new BarrelTestScheduler();
+        displays = new PaperBarrelEffects(scheduler, blocks, () -> null);
         service = new DeviceService(new DeviceKinds(), blocks, () -> store, clock::get, stacks, data.items,
             Logger.getLogger("test"));
         BarrelRecipeBook book = new BarrelRecipeBook(data.recipes, data.tanks(), BarrelRules.DEFAULT_CAPACITY);
@@ -380,11 +390,26 @@ class BarrelRackMockBukkitTest extends MockServerTest {
         assertThat(water(stepped[1])).isEqualTo(water(lazy[1]));
         assertThat(water(stepped[0])).isEqualTo(water(lazy[0]));
         assertThat(drips).contains("0,65,0");
+        // the target's surface follows the pour (TFC BarrelBlockEntityRenderer: any unsealed upright barrel with fluid)
+        assertSurface(lazy[1], 120);
+        assertSurface(stepped[1], 120);
+        assertThat(PaperBarrelEffects.surfaces(lazy[0])).as("a barrel on its side shows no surface").isEmpty();
         // until the source is empty
         clock.addAndGet(1000);
         racks.tap(lazy[0]);
         assertThat(water(lazy[0])).isZero();
         assertThat(water(lazy[1])).isEqualTo(500);
+        assertSurface(lazy[1], 500);
+    }
+
+    /** The target shows exactly one surface plane of {@code mB} water at TFC's height. */
+    private void assertSurface(Block target, int mB) {
+        assertThat(surfaceAt.get(PaperBarrelEffects.marker(target))).isEqualTo(new FluidAmount(WATER, mB));
+        List<ItemDisplay> planes = PaperBarrelEffects.surfaces(target);
+        assertThat(planes).as("one plane, never stacked").hasSize(1);
+        float y = BarrelFluidVisuals.surface(mB, BarrelRules.DEFAULT_CAPACITY).y();
+        assertThat(planes.getFirst().getTransformation().getTranslation().y()).isEqualTo(y);
+        assertThat(planes.getFirst().getLocation().getY()).isEqualTo(target.getY());
     }
 
     @Test

@@ -7,6 +7,8 @@ package dev.tfp.paper.barrel;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.tfp.core.vessel.FluidAmount;
+import dev.tfp.paper.barrel.gui.BarrelFluidVisuals;
 import dev.tfp.paper.testing.MockServerTest;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -45,5 +47,21 @@ class BarrelSurfaceLookupMockBukkitTest extends MockServerTest {
         world.spawn(new Location(world, 0.5, 65, 0.5), ItemDisplay.class, d -> d.getPersistentDataContainer()
             .set(PaperBarrelEffects.SURFACE, PersistentDataType.STRING, PaperBarrelEffects.marker(block)));
         assertThat(PaperBarrelEffects.surfaces(block)).hasSize(1);
+    }
+
+    @Test
+    void successiveUpdatesKeepOnePlaneAtTfcsHeight() {
+        var world = server.addSimpleWorld("updates");
+        Block block = world.getBlockAt(2, 66, 2);
+        PaperBarrelEffects effects = new PaperBarrelEffects(new BarrelTestScheduler(),
+            new dev.tfp.paper.integration.FakeCustomBlocks(), () -> null);
+        effects.surface(block, new FluidAmount("minecraft:water", 720), 10_000);
+        effects.surface(block, new FluidAmount("minecraft:water", 1000), 10_000);
+        var planes = PaperBarrelEffects.surfaces(block);
+        assertThat(planes).as("the stacking bug: one display, updated in place").hasSize(1);
+        assertThat(planes.getFirst().getTransformation().getTranslation().y())
+            .isEqualTo(BarrelFluidVisuals.surface(1000, 10_000).y());
+        effects.surface(block, FluidAmount.EMPTY, 10_000);
+        assertThat(PaperBarrelEffects.surfaces(block)).isEmpty();
     }
 }

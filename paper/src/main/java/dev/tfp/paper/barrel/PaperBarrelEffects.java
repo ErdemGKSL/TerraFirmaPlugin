@@ -84,8 +84,13 @@ public final class PaperBarrelEffects implements BarrelEffects {
         this.visuals = Objects.requireNonNull(visuals, "visuals");
     }
 
+    /** A new location {@code dy} above the middle of {@code block}'s bottom face (never the block's own location). */
+    private static Location at(Block block, double dy) {
+        return new Location(block.getWorld(), block.getX() + 0.5, block.getY() + dy, block.getZ() + 0.5);
+    }
+
     private static Location centre(Block block) {
-        return block.getLocation().add(0.5, 0.5, 0.5);
+        return at(block, 0.5);
     }
 
     @Override
@@ -195,7 +200,7 @@ public final class PaperBarrelEffects implements BarrelEffects {
         }
         ItemStack shown = surfaceItem(fluid.fluid());
         Transformation t = transformation(face);
-        Location at = block.getLocation().add(0.5, 0, 0.5);
+        Location at = at(block, 0);
         if (found.isEmpty()) {
             block.getWorld().spawn(at, ItemDisplay.class, d -> {
                 d.setItemStack(shown);
