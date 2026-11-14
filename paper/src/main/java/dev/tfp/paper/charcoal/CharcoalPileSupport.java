@@ -34,8 +34,12 @@ import org.bukkit.block.BlockSupport;
  * queue; pure and idempotent.
  *
  * <p>The top-face test runs off the region thread, so it reads no world: {@link #VANILLA_TOP} parses a vanilla state
- * string once into Bukkit block data and caches whether its top face is sturdy (TFC {@code isFaceFull} of the collision
- * shape, the {@code FULL} support type). A CraftEngine state below that is not a charcoal pile is unknown off-thread (its
+ * string once into Bukkit block data and caches whether its top face is sturdy ({@code isFaceSturdy(UP, FULL)}, which reads
+ * the block's support shape; TFC tests {@code isFaceFull} of the collision shape, and the two differ for leaves and
+ * {@code snow[layers=8]}: a recorded divergence). Both calls are safe off the region thread on Paper and Folia: parsing a
+ * state string only reads the immutable block registry, and {@code CraftBlockData.isFaceSturdy} evaluates the state's
+ * cached shape with an empty block getter, touching no world or chunk. A CraftEngine state below that is not a charcoal
+ * pile is unknown off-thread (its
  * real collision is CraftEngine's), so the rule keeps the pile then; a pile below with fewer than eight layers is TFC's
  * merge case (the charcoal listener's), so the rule keeps it too.
  *
@@ -46,7 +50,7 @@ public final class CharcoalPileSupport implements ShapeRule<BlockStateRef> {
     static final BlockStateRef AIR = BlockStateRef.of("minecraft:air");
     static final String MINECRAFT = "minecraft";
 
-    /** TFC {@code isFaceFull(collision, UP)} of a vanilla state string, parsed once per string. Thread-safe. */
+    /** A full (sturdy, {@code FULL}) top face of a vanilla state string, parsed once per string. Thread-safe. */
     public static final Function<BlockStateRef, Optional<Boolean>> VANILLA_TOP = new VanillaTop();
 
     private final Function<BlockStateRef, Optional<Boolean>> fullTop;
