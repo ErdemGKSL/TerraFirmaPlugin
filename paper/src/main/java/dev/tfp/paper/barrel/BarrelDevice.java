@@ -349,11 +349,13 @@ public final class BarrelDevice {
                     if (moved.isPresent()) {
                         BarrelFluidTransfer.Result r = moved.get();
                         ItemStack container = services.book().tanks().withContent(stack, r.item());
-                        updateHand(player, ctx.hand(), stack, container);
                         services.effects().transfer(ctx.block(), r.moved(),
                             r.direction() == FluidTransferRules.BlockTransfer.FILL_ITEM);
-                        return write(record, data, instant(ctx.block(), contents.withFluid(r.barrel()), services),
-                            ctx.stacks());
+                        DeviceRecord<BarrelData> next = write(record, data,
+                            instant(ctx.block(), contents.withFluid(r.barrel()), services), ctx.stacks());
+                        // the hand last: a failure before here leaves both the bucket and the tank as they were
+                        updateHand(player, ctx.hand(), stack, container);
+                        return next;
                     }
                 }
             }

@@ -149,7 +149,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-PROC-10 | Log pile and charcoal pit | PROC | 13 | done |
 | PAR-PROC-14 | Salads | PROC | 13 | done |
 | PAR-INFRA-48 | NeighbourRunnerTest flake: chainOfTenPlacementsConvergesWithOneCommitPerChangedBlock sees 14 provisional writes instead of 10 | INFRA | 13 | done |
-| PAR-PROC-35 | Barrel wiring: the block opens the barrel screen, fluid surface visual, lazy rain fill, barrel rack and tap, in-game check | PROC | 13 | done |
+| PAR-PROC-35 | Barrel wiring: the block opens the barrel screen, buckets reach the tank, fluid surface visual, lazy rain fill, in-game check (rack and tap: PAR-PROC-38) | PROC | 13 | done |
 | PAR-CLIM-05 | Seasonal grass tint: decide band resolution and make the colour change visible | CLIMATE | 14 | blocked |
 | PAR-CLIM-13 | TFC time command completion: `/tfp time set` dayLength, monthLength, rain and clear, and the calendar tick rate | CLIMATE | 14 | open |
 | PAR-CLIM-19 | Snow catch-up in-game verification: snow piles on plants, ice on a pool and the July melt from one room | CLIMATE | 14 | open |
@@ -162,7 +162,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-PROC-18 | Powderkeg | PROC | 14 | open |
 | PAR-PROC-36 | Salad completion: salad screen art, eating and tooltip read the salad's own food data, in-game check | PROC | 14 | open |
 | PAR-PROC-37 | Log pile, burning log pile and charcoal pile CE blocks: hitbox rows and demands, configuration/charcoal, support rule, in-game check | PROC | 14 | open |
-| PAR-PROC-38 | Barrel rack, sideways barrel and tap pouring, and the in-game barrel check | PROC | 14 | open |
+| PAR-PROC-38 | Barrel rack, sideways barrel and tap pouring, and their in-game check | PROC | 14 | open |
 | PAR-CLIM-06 | Seasonal packet rewrite JMH budget and visual checklist | CLIMATE | 15 | open |
 | PAR-HEAT-08 | Grill on firepit: placement, five slots, cooking, GUI | HEAT | 15 | open |
 | PAR-HEAT-09 | Cooking pot on firepit: boiling, soups and jams, pot fluid, GUI | HEAT | 15 | open |
