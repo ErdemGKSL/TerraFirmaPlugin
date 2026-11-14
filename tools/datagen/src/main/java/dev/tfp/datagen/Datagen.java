@@ -126,6 +126,9 @@ public final class Datagen {
         if (dev.tfp.datagen.barrel.BarrelBlock.available(tfc)) { // PAR-PROC-32: tfp:wood/barrel/<wood> entries, models, textures, names; fixtures have no barrels
             dev.tfp.datagen.barrel.BarrelBlock.run(tfc, out);
         }
+        if (dev.tfp.datagen.compost.ComposterBlock.available(tfc)) { // PAR-PROC-34: tfp:composter block entry, models, textures, names; fixtures have no composter
+            dev.tfp.datagen.compost.ComposterBlock.run(tfc, out);
+        }
         LootTableExport.run(tfc, out); // PAR-INFRA-21: TFC loot tables of delegated blocks and spawned entities for the Paper runtime
         Advancements.run(tfc, out);
         FieldGuide.run(tfc, out);

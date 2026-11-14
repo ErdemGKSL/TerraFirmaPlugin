@@ -43,6 +43,13 @@ public final class HitboxDemands {
         "douglas_fir", "hickory", "kapok", "mangrove", "maple", "oak", "palm", "pine", "rosewood", "sequoia", "spruce",
         "sycamore", "white_cedar", "willow");
 
+    /** PAR-PROC-34: the composter block, its stage-0 appearance and the compost types of TFC's {@code CompostType}. */
+    public static final String COMPOSTER_ID = "tfp:composter";
+    public static final String COMPOSTER_EMPTY = "empty";
+    public static final List<String> COMPOSTER_TYPES = List.of("normal", "ready", "rotten");
+    /** PAR-PROC-34: TFC's bin model ({@code tfc:block/composter/composter}), drawn on every stage's carrier. */
+    public static final String COMPOSTER_MODEL = "tfp:block/composter/composter";
+
     private HitboxDemands() {
     }
 
@@ -72,7 +79,45 @@ public final class HitboxDemands {
                     "tfc:wood/barrel[axis=y,sealed=" + sealed + "]", 0, HitboxAllocation.TRANSPARENT, true, 1));
             }
         }
+        // PAR-PROC-34: the composter, one outline per stage (TFC's well from max(2, stage * 2)). Every stage carries TFC's
+        // bin model (one look, so stages may share a carrier); the compost of each type is an entity_renderer overlay
+        // (ComposterBlock), so the 25 looks of TFC's multipart take 8 carriers at most. Stage 8 is a full cube and is no
+        // demand here: it is drawn from CE's solid pool (COMPOSTER_POOL_STAGE).
+        // Weight 0: served after every earlier demand, so adding the composter moves no carrier of another block.
+        for (int stage = 0; stage < COMPOSTER_POOL_STAGE; stage++) {
+            d.add(new Demand(COMPOSTER_ID, composterDemand(stage), composterKey(stage), 0, COMPOSTER_MODEL, true, 0));
+        }
         return d;
+    }
+
+    /** PAR-PROC-34: the composter appearance of {@code type} at {@code stage} (TFC's model name; stage 0 is empty). */
+    public static String composterAppearance(String type, int stage) {
+        return stage == 0 ? COMPOSTER_EMPTY : type + "_" + stage;
+    }
+
+    /** PAR-PROC-34: the demand serving every appearance of {@code stage} ({@code empty}, or the pattern {@code *_N}). */
+    public static String composterDemand(int stage) {
+        return stage == 0 ? COMPOSTER_EMPTY : "*_" + stage;
+    }
+
+    /**
+     * PAR-PROC-34: the composter stage whose outline is TFC's full cube ({@code SHAPES[8]}, the well has no height). Like
+     * every full-cube block it is drawn from CraftEngine's {@code auto_state} pool {@link #COMPOSTER_POOL} (the selector
+     * scores that pool 1.0 for the row {@code tfc:composter[stage=8]}; ComposterBlockTest checks it), each type with a
+     * merged bin and compost model, so it is not a demand of the explicit-carrier budget.
+     */
+    public static final int COMPOSTER_POOL_STAGE = 8;
+    public static final String COMPOSTER_POOL = "solid";
+
+    /**
+     * Full-cube appearances drawn from a CE pool by their generator instead of an explicit carrier: block id to the
+     * appearance pattern and the pool. GeneratedCarrierTest accepts {@code auto_state} only for these.
+     */
+    public static final java.util.Map<String, java.util.Map.Entry<String, String>> FULL_CUBE_POOLS = java.util.Map.of(
+        COMPOSTER_ID, java.util.Map.entry("*_" + COMPOSTER_POOL_STAGE, COMPOSTER_POOL));
+
+    public static String composterKey(int stage) {
+        return "tfc:composter[stage=" + stage + "]";
     }
 
     /** PAR-PROC-32: the CE block id of the barrel of {@code wood}. */

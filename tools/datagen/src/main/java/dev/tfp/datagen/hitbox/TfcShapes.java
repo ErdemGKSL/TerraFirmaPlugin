@@ -8,6 +8,7 @@
  *       src/main/java/net/dries007/tfc/util/Helpers.java @ c3b4d9536 (rotateShape),
  *       src/main/java/net/dries007/tfc/common/blocks/devices/PlacedItemBlock.java @ c3b4d9536 (makeShapes: the union of the occupied quadrants),
  *       src/main/java/net/dries007/tfc/common/blocks/devices/CrucibleBlock.java @ c3b4d9536 (the shape without channel connections),
+ *       src/main/java/net/dries007/tfc/common/blocks/devices/TFCComposterBlock.java @ c3b4d9536 (SHAPES: the well per stage),
  *       the getShape / getCollisionShape choices of the block classes named in SPECS @ c3b4d9536
  */
 package dev.tfp.datagen.hitbox;
@@ -266,7 +267,28 @@ public final class TfcShapes {
         s.add(Spec.of("tfc:scraping", "scraping", Kind.OBJECT, List.of(D + "ScrapingBlock.java"), "SHAPE", "same",
             List.of("protected VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)\n    {\n        return SHAPE;"),
             List.of("getCollisionShape")));
+        // PAR-PROC-34: the composter, a full cube minus the 14x14 well from max(2, stage * 2) up (TFCComposterBlock.SHAPES,
+        // built in a Util.make loop, so ported); getShape only, so the collision is the same. TYPE changes no shape.
+        String composter = D + "TFCComposterBlock.java";
+        for (int stage = 0; stage <= COMPOSTER_MAX_STAGE; stage++) {
+            final int st = stage;
+            s.add(new Spec("tfc:composter[stage=" + stage + "]", "composter", Kind.OBJECT, List.of(composter), null, null,
+                List.of(COMPOSTER_SHAPE, "return SHAPES[state.getValue(STAGE)];", "new VoxelShape[9]", "for (int i = 0; i < 9; ++i)"),
+                List.of("getCollisionShape"), x -> composter(st)));
+        }
         return s;
+    }
+
+    /** TFC {@code TFCBlockStateProperties.STAGE_8}: the composter's stages 0..8. */
+    public static final int COMPOSTER_MAX_STAGE = 8;
+    static final String COMPOSTER_SHAPE = "shapes[i] = Shapes.join(Shapes.block(), Block.box(1.0D, Math.max(2, i * 2), 1.0D, "
+        + "15.0D, 16.0D, 15.0D), BooleanOp.ONLY_FIRST);";
+
+    /** {@code TFCComposterBlock.SHAPES[stage]}: the full block minus the well from {@code max(2, stage * 2)} to the top. */
+    static Shape[] composter(int stage) {
+        double floor = Math.max(2, stage * 2);
+        Shape shape = floor >= 16 ? Shape.FULL : Shape.FULL.minus(Shape.box(1, floor, 1, 15, 16, 15));
+        return new Shape[] {shape, shape};
     }
 
     static String placedKey(int mask) {
