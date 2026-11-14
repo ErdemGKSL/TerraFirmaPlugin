@@ -2,7 +2,7 @@
 id: PAR-CLIM-21
 title: "Snow and ice stop with the weather flag off (SnowService live step and catch-up), as TFC onTickChunk"
 area: CLIMATE
-status: open
+status: done
 wave: 15
 deps: [PAR-CLIM-20]
 size: S
@@ -17,6 +17,7 @@ ui: false
 plan:
   - "Moved from PAR-CLIM-20 (2026-11-14): PrecipitationService now reads the weather flag (ClimateWeatherCycle.enabled) and vanilla's level.isRaining() gate (PrecipitationService.decide / climateRaining), but SnowService decides snow and melt with climate.rainIntensity(t) directly (the live step near SnowService:606 and the catch-up's SnowCatchUp.Climate.rainIntensity near :372). TFC's WeatherHelpers.onTickChunk (line 209) returns at once when !tracker.isWeatherEnabled(): no snow accumulation and no melting at all (live and catch-up)."
   - "Read the flag the way PrecipitationService.weatherOf does (ModuleServices ClimateWeatherCycle, captured on the global/region thread into the snapshot) and skip both accumulation and melting when it is off, in the live step and in the catch-up (decide what happens to the chunk's snow stamp so turning the flag back on does not replay the off time; TFC still sets lastRandomTick only when the flag is on, so the next on-tick catches up at most one month). Ledger: update the 'isWeatherEnabled' divergence row."
+  - "Done: SnowService captures the flag (ClimateWeatherCycle via ModuleServices, as PrecipitationService) into each SnowSample; liveEvent gives NONE and forced catch-up steps decide nothing with it off; load/skip/unload keep the stamp while off; the sampling round stamps loaded chunks when the flag turns off and catches them up once when it turns back on (at most one month, as TFC's next tick). Tests: SnowServiceWeatherFlagTest (5). Ledger isWeatherEnabled row updated."
 tests:
   - "paper: SnowServiceWeatherFlagTest (flag off: a cold wet site in a rain window plans no accumulation and a warm snowy site no melt, live and catch-up)"
 done_criteria:

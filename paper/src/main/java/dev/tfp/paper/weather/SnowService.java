@@ -18,6 +18,7 @@ import dev.tfp.core.weather.SnowRule.Cell;
 import dev.tfp.core.weather.SnowRule.Change;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.core.world.ChunkPos;
+import dev.tfp.paper.TfpPlugin;
 import dev.tfp.paper.climate.ChunkClimateSource;
 import dev.tfp.paper.pipeline.AsyncDecisionPipeline;
 import dev.tfp.paper.pipeline.BlockChange;
@@ -25,18 +26,22 @@ import dev.tfp.paper.pipeline.CommitBudget;
 import dev.tfp.paper.pipeline.PipelineMetrics;
 import dev.tfp.paper.pipeline.RegionExecutor;
 import dev.tfp.paper.scheduler.Scheduler;
+import dev.tfp.paper.weather.cycle.ClimateWeatherCycle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,6 +66,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Snow, snow piles, ice, ice piles, icicles and sea ice in the overworld (M2-WTH-02, M2-WTH-03), decide async, apply sync.
@@ -98,6 +105,16 @@ import org.bukkit.event.world.ChunkUnloadEvent;
  * <p>Placeholders (ledger): a snow pile is a vanilla snow layer and an ice pile is ice, both with their memory in the
  * chunk; sea ice is blue ice (a block TFC's world does not otherwise have, so it is told apart from lake ice and never
  * melted by the weather, as in TFC); an icicle is downward pointed dripstone.
+ *
+ * <p><b>The weather flag (PAR-CLIM-21).</b> TFC's {@code WeatherHelpers.onTickChunk} returns at once when
+ * {@code WorldTracker.isWeatherEnabled} is false: no accumulation and no melting, live or caught up, and the chunk's
+ * {@code lastRandomTick} is not moved. Here the flag ({@link ClimateWeatherCycle#enabled}, true where the cycle does not
+ * drive the world) is captured into each snapshot, and a snapshot taken with it off decides no snow or ice change
+ * (forced catch-up steps included). While it is off a load, a skip or an unload leaves the chunk's stamp alone and plans
+ * nothing; the sampling round watches the flag, stamps every loaded chunk when it turns off (the time before was
+ * live-sampled, as TFC's ticks moved {@code lastRandomTick}) and gives every loaded chunk a load-style catch-up from its
+ * stamp when it turns back on, so the off time is caught up at most one month, as TFC's next ticked chunk does. Sea ice
+ * stands in for worldgen and is not gated.
  */
 public final class SnowService implements Listener {
     private static final Logger LOG = Logger.getLogger(SnowService.class.getName());
@@ -147,9 +164,46 @@ public final class SnowService implements Listener {
     // Built on first use (a worker thread may build it twice; both are equal).
     private volatile BlockData icicleTip;
 
+    /** TFC {@code WorldTracker.isWeatherEnabled} per world (PAR-CLIM-21). Any thread. */
+    private final Predicate<World> weatherEnabled;
+
     public SnowService(GlobalClockHolder clock, Scheduler scheduler) {
+        this(clock, scheduler, pluginWeatherFlag());
+    }
+
+    /** Tests: {@code weatherEnabled} replaces the plugin's climate weather cycle. */
+    SnowService(GlobalClockHolder clock, Scheduler scheduler, Predicate<World> weatherEnabled) {
         this.clock = clock;
         this.scheduler = scheduler;
+        this.weatherEnabled = weatherEnabled;
+    }
+
+    /**
+     * The weather flag the way {@code PrecipitationService.weatherEnabled} reads it: the climate weather cycle from
+     * {@code ModuleServices} (cached once found), its flag where it drives the world, true elsewhere, without the cycle
+     * (the weather_cycle module off or not enabled yet) and outside the plugin (tests). Any thread (a map read).
+     */
+    private static Predicate<World> pluginWeatherFlag() {
+        AtomicReference<Optional<ClimateWeatherCycle>> found = new AtomicReference<>();
+        return world -> {
+            Optional<ClimateWeatherCycle> c = found.get();
+            if (c == null) {
+                try {
+                    c = JavaPlugin.getPlugin(TfpPlugin.class).moduleServices().get(ClimateWeatherCycle.class);
+                    if (c.isPresent()) {
+                        found.set(c);
+                    }
+                } catch (IllegalArgumentException | IllegalStateException | ClassCastException | NullPointerException e) {
+                    c = Optional.empty(); // not running as the plugin (tests)
+                }
+            }
+            return c.isEmpty() || !c.get().controls(world) || c.get().enabled(world);
+        };
+    }
+
+    /** Whether the weather of {@code world} is on (TFC {@code isWeatherEnabled}). Any thread. */
+    boolean weatherEnabled(World world) {
+        return weatherEnabled.test(world);
     }
 
     /** Starts the sampling on the global thread. Call once, after the scheduler exists. */
@@ -185,6 +239,9 @@ public final class SnowService implements Listener {
      * calendar skip), hands each loaded overworld chunk its catch-up pass on its region (PAR-CLIM-18).
      */
     void observeClock() {
+        for (WorldSnow snow : worlds.values()) {
+            snow.observeWeather();
+        }
         SnowSkipCatchUp.Skip skip = skips.observe(clock.get());
         if (skip == null) {
             return;
@@ -234,9 +291,10 @@ public final class SnowService implements Listener {
      * @param salty      the column is in an ocean biome: its water is salt water
      * @param randomSeed the seed of TFC's {@code level.random} for this decision
      * @param forced     the event a catch-up step applies, or {@code null} for the event the climate gives now
+     * @param weather    the world's weather flag at the capture (TFC {@code isWeatherEnabled}); off decides no snow change
      */
     record SnowSample(BlockPos surface, Map<BlockPos, SnowBlock> blocks, Map<Long, Integer> heights, boolean[] sky,
-            boolean salty, long worldSeed, long randomSeed, long capturedNanos, SnowRule.Event forced) {}
+            boolean salty, long worldSeed, long randomSeed, long capturedNanos, SnowRule.Event forced, boolean weather) {}
 
     /** The pipeline of one world. Its region work runs on that world's region threads. */
     private final class WorldSnow {
@@ -251,9 +309,12 @@ public final class SnowService implements Listener {
         private final PendingUnloadStamps pendingUnload = new PendingUnloadStamps();
         /** The loaded chunks, by chunk key: added by the load pass on the region, removed on unload (PAR-CLIM-18). */
         private final Set<Long> loaded = ConcurrentHashMap.newKeySet();
+        /** The weather flag the last sampling round saw (PAR-CLIM-21). Written on the global thread only. */
+        private volatile boolean weatherSeen;
 
         WorldSnow(World world) {
             this.world = world;
+            this.weatherSeen = weatherEnabled(world);
             this.seaIcePattern = SeaIce.forLevelSeed(world.getSeed());
             this.schedule = new SnowCatchUpSchedule(() -> clock.get().calendarTicks());
             RegionExecutor regions = new WorldRegions(world, scheduler);
@@ -261,7 +322,8 @@ public final class SnowService implements Listener {
             PipelineMetrics[] metrics = new PipelineMetrics[1];
             this.pipeline = new AsyncDecisionPipeline<>("snow:" + world.getName(), regions, this.blocks,
                     scheduler.cpuExecutor(), budget,
-                    (pos, now) -> capture(world, pos, now, regions, this.blocks, metrics[0], forced.remove(pos)),
+                    (pos, now) -> capture(world, pos, now, regions, this.blocks, metrics[0], forced.remove(pos),
+                            weatherEnabled(world)),
                     s -> decide(s, seaIcePattern));
             metrics[0] = pipeline.metrics();
         }
@@ -297,8 +359,8 @@ public final class SnowService implements Listener {
             // Tracked from here: a skip pass only reaches a chunk whose load pass has run, so the two never overlap.
             loaded.add(ChunkPos.key(cx, cz));
             ClockSnapshot now = clock.get();
-            if (!now.isSet()) {
-                return;
+            if (!now.isSet() || !weatherEnabled(world)) {
+                return; // weather off: TFC's onTickChunk returns before lastRandomTick, so the stamp stays (PAR-CLIM-21)
             }
             long started = System.nanoTime();
             SnowCatchUpSchedule.Load load = schedule.onLoad(world.getChunkAt(cx, cz).getPersistentDataContainer());
@@ -309,8 +371,49 @@ public final class SnowService implements Listener {
             catchUp(cx, cz, load, now.daysInMonth(), started, true);
         }
 
+        /**
+         * Global thread, every round (PAR-CLIM-21): when the weather flag changed since the last round, each loaded chunk
+         * is stamped now (turned off: the time before was live-sampled) or caught up from its stamp, as on a load (turned
+         * on: the off time, at most one month, as TFC's next ticked chunk).
+         */
+        void observeWeather() {
+            boolean on = weatherEnabled(world);
+            if (on == weatherSeen) {
+                return;
+            }
+            weatherSeen = on;
+            for (long key : loaded) {
+                ChunkPos pos = ChunkPos.fromKey(key);
+                scheduler.region(world, pos.x(), pos.z(), () -> onWeather(pos.x(), pos.z(), on));
+            }
+        }
+
+        /** Region thread of the chunk: the pass of a weather flag change ({@link #observeWeather}). */
+        void onWeather(int cx, int cz, boolean on) {
+            if (!world.isChunkLoaded(cx, cz)) {
+                loaded.remove(ChunkPos.key(cx, cz));
+                return;
+            }
+            ClockSnapshot now = clock.get();
+            if (!now.isSet() || weatherEnabled(world) != on) {
+                return; // the flag flipped back before this pass: the next round's pass decides
+            }
+            PersistentDataContainer data = world.getChunkAt(cx, cz).getPersistentDataContainer();
+            if (!on) {
+                schedule.onUnload(data); // stamp now
+                return;
+            }
+            SnowCatchUpSchedule.Load load = schedule.onLoad(data);
+            if (load.catchUp()) {
+                catchUp(cx, cz, load, now.daysInMonth(), System.nanoTime(), false);
+            }
+        }
+
         /** Global thread: hands each loaded chunk its pass over the skipped window, on its region (PAR-CLIM-18). */
         void skipped(SnowSkipCatchUp.Skip skip) {
+            if (!weatherEnabled(world)) {
+                return; // weather off: no catch-up and the stamps stay (PAR-CLIM-21)
+            }
             for (long key : loaded) {
                 ChunkPos pos = ChunkPos.fromKey(key);
                 scheduler.region(world, pos.x(), pos.z(), () -> onSkip(pos.x(), pos.z(), skip));
@@ -324,7 +427,7 @@ public final class SnowService implements Listener {
                 return;
             }
             ClockSnapshot now = clock.get();
-            if (!now.isSet()) {
+            if (!now.isSet() || !weatherEnabled(world)) {
                 return;
             }
             SnowCatchUpSchedule.Load load = SnowSkipCatchUp.onSkip(world.getChunkAt(cx, cz).getPersistentDataContainer(),
@@ -420,7 +523,8 @@ public final class SnowService implements Listener {
             Long requested = pendingUnload.take(ChunkPos.key(chunk.getX(), chunk.getZ()));
             if (requested != null) {
                 schedule.onUnload(chunk.getPersistentDataContainer(), requested);
-            } else if (clock.get().isSet()) {
+            } else if (clock.get().isSet() && weatherEnabled(world)) {
+                // With the weather off the stamp stays where the flag turned off (PAR-CLIM-21).
                 schedule.onUnload(chunk.getPersistentDataContainer());
             }
         }
@@ -477,7 +581,7 @@ public final class SnowService implements Listener {
      * owners; a chunk that is not loaded is left out (unknown), never loaded.
      */
     private static CompletableFuture<SnowSample> capture(World world, BlockPos surface, long nowNanos,
-            RegionExecutor regions, WorldBlocks blocks, PipelineMetrics metrics, SnowRule.Event forced) {
+            RegionExecutor regions, WorldBlocks blocks, PipelineMetrics metrics, SnowRule.Event forced, boolean weather) {
         int x = surface.x();
         int y = surface.y();
         int z = surface.z();
@@ -546,7 +650,7 @@ public final class SnowService implements Listener {
         long seed = world.getSeed();
         long randomSeed = ThreadLocalRandom.current().nextLong();
         Supplier<SnowSample> done = () -> new SnowSample(surface, Map.copyOf(out), Map.copyOf(heights), sky, salty, seed,
-                randomSeed, nowNanos, forced);
+                randomSeed, nowNanos, forced, weather);
         if (remote.isEmpty()) {
             return CompletableFuture.completedFuture(done.get());
         }
@@ -580,6 +684,9 @@ public final class SnowService implements Listener {
         long at = s.capturedNanos();
 
         if (s.forced() != null) {
+            if (!s.weather()) {
+                return List.of(); // weather off: TFC's onTickChunk returns before the catch-up (PAR-CLIM-21)
+            }
             // A catch-up step (M2-WTH-04): the plan already decided the event, so the climate is not read here.
             List<Change> changes = switch (s.forced()) {
                 case ACCUMULATE -> SnowRule.accumulate(view, surface, new Random(s.randomSeed()), ICICLE_SCAN);
@@ -601,17 +708,28 @@ public final class SnowService implements Listener {
             }
         }
 
-        OverworldClimate climate = OverworldClimate.forWorldSeed(s.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
-        ClimateReading reading = ClimateReading.of(climate, ChunkClimateSource.climateAt(s.worldSeed(), surface.x(), surface.z()),
-                surface, now);
-        PrecipitationType precipitation = PrecipitationType.decide(reading.temperature(), reading.rainfall(),
-                climate.rainIntensity(reading.calendarTicks()), true);
-        List<Change> changes = switch (SnowRule.event(reading.temperature(), precipitation)) {
+        List<Change> changes = switch (liveEvent(s.worldSeed(), surface, now, s.weather())) {
             case NONE -> List.of();
             case ACCUMULATE -> SnowRule.accumulate(view, surface, new Random(s.randomSeed()), ICICLE_SCAN);
             case MELT -> SnowRule.melt(view, surface, MELT_DEPTH);
         };
         return toBlockChanges(changes, s, at);
+    }
+
+    /**
+     * The event of a live step at {@code surface}: TFC's {@code onTickChunk} condition from the climate, or
+     * {@link SnowRule.Event#NONE} with the weather flag off (TFC returns before it: no accumulation, no melt). Pure.
+     */
+    static SnowRule.Event liveEvent(long worldSeed, BlockPos surface, ClockSnapshot now, boolean weather) {
+        if (!weather) {
+            return SnowRule.Event.NONE;
+        }
+        OverworldClimate climate = OverworldClimate.forWorldSeed(worldSeed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        ClimateReading reading = ClimateReading.of(climate, ChunkClimateSource.climateAt(worldSeed, surface.x(), surface.z()),
+                surface, now);
+        PrecipitationType precipitation = PrecipitationType.decide(reading.temperature(), reading.rainfall(),
+                climate.rainIntensity(reading.calendarTicks()), true);
+        return SnowRule.event(reading.temperature(), precipitation);
     }
 
     /** The writes of the rule's changes; empty when one names a block the glue cannot write (the decision is dropped). */
