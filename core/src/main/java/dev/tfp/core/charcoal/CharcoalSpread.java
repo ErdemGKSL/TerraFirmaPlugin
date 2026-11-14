@@ -20,8 +20,9 @@ import java.util.function.IntUnaryOperator;
  * {@link #LOG_PILE_LIGHT_DELAY} ticks), places fire in an air side, or, with a 1-in-7 draw on a side that is neither a valid
  * cover nor air, turns the burning pile itself into fire and stops.
  *
- * <p>Pure: the caller classifies each side and passes the random draw in. This sweep runs on TFC's random tick, which is not
- * lazy; see the ledger for the divergence.
+ * <p>Pure: the caller classifies each side and passes the random draw in. TFC runs the sweep when the pile is lit and on
+ * every random tick; the plugin keeps the random ticks of loaded burning piles at vanilla's rate ({@link #randomTicks}),
+ * see the ledger.
  */
 public final class CharcoalSpread {
     /** TFC {@code BurningLogPileBlock.TICK_DELAY}: ticks before a neighbouring log pile is lit. */
@@ -63,6 +64,28 @@ public final class CharcoalSpread {
      * @param side   the side's index in {@code Direction.values()} order
      */
     public record Step(Action action, int side) {
+    }
+
+    /** Blocks in a chunk section: vanilla picks {@code randomTickSpeed} of them per section and tick. */
+    public static final int SECTION_BLOCKS = 16 * 16 * 16;
+
+    /**
+     * How many random ticks one block gets in {@code ticks} server ticks: vanilla {@code ServerLevel.tickChunk} draws
+     * {@code randomTickSpeed} random positions in each section every tick, so each draw hits a given block with chance
+     * {@code 1 / 4096}. Draws {@code nextInt(4096)} once per position, {@code ticks * randomTickSpeed} times.
+     */
+    public static int randomTicks(int ticks, int randomTickSpeed, IntUnaryOperator nextInt) {
+        if (ticks < 0 || randomTickSpeed < 0) {
+            throw new IllegalArgumentException("ticks and randomTickSpeed must be >= 0: " + ticks + ", " + randomTickSpeed);
+        }
+        int hits = 0;
+        long draws = (long) ticks * randomTickSpeed;
+        for (long i = 0; i < draws; i++) {
+            if (nextInt.applyAsInt(SECTION_BLOCKS) == 0) {
+                hits++;
+            }
+        }
+        return hits;
     }
 
     /**
