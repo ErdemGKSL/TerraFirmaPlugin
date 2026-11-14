@@ -121,7 +121,7 @@ public final class BlockCoverage {
         // devices
         Owner.of("barrel_rack", "PAR-PROC-38", "barrel rack"),
         Owner.of("log_pile|burning_log_pile|charcoal_pile", "PAR-PROC-37", "log pile, burning log pile, charcoal pile"),
-        Owner.of("powderkeg", "PAR-PROC-18", "powderkeg"),
+        Owner.of("powderkeg", "PAR-PROC-39", "powderkeg"),
         Owner.of("([a-z_]+_)?poured_glass|glass_basin", "PAR-PROC-17", "glass basin, hot and coloured poured glass"),
         Owner.of("placed_item", "PAR-POT-01", "placed items"),
         Owner.of("pit_kiln", "PAR-POT-03", "pit kiln"),

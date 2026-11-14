@@ -45,3 +45,4 @@ dev.tfp.paper.tooltip.info.StaticInfoTooltipModule
 dev.tfp.paper.salad.SaladModule
 dev.tfp.paper.charcoal.CharcoalModule
 dev.tfp.paper.light.TorchModule
+dev.tfp.paper.powderkeg.PowderkegModule

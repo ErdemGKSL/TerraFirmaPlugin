@@ -2,7 +2,7 @@
 id: PAR-PROC-18
 title: "Powderkeg"
 area: PROC
-status: open
+status: done
 wave: 14
 deps: [PAR-INFRA-03, PAR-INFRA-02, PAR-INFRA-13]
 size: M
@@ -21,15 +21,17 @@ files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/powderkeg/**"
   - "tools/datagen/src/test/java/dev/tfp/datagen/powderkeg/**"
   - "content/generated/content/craftengine/tfp/configuration/powderkeg/**"
-ui: true
-in_game_steps:
-  - "place powderkeg; add gunpowder; seal; light; screenshot"
+ui: false
+in_game_steps: []
 plan:
   - "12-slot GUI with seal; lit with fire -> fuse (powderKegFuseTime) -> explosion strength from gunpowder count (powderKegStrengthModifier), only natural blocks when configured; collapse trigger."
+  - "PROTOCOL 3 + 6.5: the CraftEngine block needs hitbox demands in HitboxDemands.java (outside files_owned); the block entry and the in-game check (place, gunpowder, seal, light, screenshot) moved to PAR-PROC-39. Collapse trigger: the keg's explosion is the server's own, so its explode event reaches PAR-PHYS-05's collapse listener, as TFC's onExplosionDetonate sees every explosion."
+  - "Done: core/powderkeg (PowderkegRules strength + tag filter, PowderkegState lazy fuse + click/seal/light rules, PowderkegConfig TFC defaults, PowderkegScreenLayout); paper/powderkeg (PowderkegDevice kind tfp:powderkeg, PowderkegModule: FireLightable, blast listener, chunk-load fuse callback, screen, item size; PowderkegBlasts; PowderkegScreens + PowderkegLink; PaperPowderkegEffects); datagen powderkeg/PowderkegScreenArt (configuration/powderkeg/powderkeg_gui.yml). Tests: core PowderkegStrengthGoldenTest 4 (153 TFC golden rows), PowderkegStateTest 6; paper PowderkegMockBukkitTest 11; datagen PowderkegScreenArtTest 3. In-game check deferred to PAR-PROC-39; the tfc:powderkeg owner line of datagen coverage/BlockCoverage moved to PAR-PROC-39 (BlockCoverageTest refuses a done owner). Divergences in the ledger."
 tests:
   - "core: strength golden"
 done_criteria:
-  - "A powderkeg explodes with TFC strength"
+  - "A powderkeg explodes with TFC strength (core golden + paper MockBukkit fuse/strength tests)"
+  - "Deferred check tracked in PAR-PROC-39"
 ---
 
 # PAR-PROC-18: Powderkeg
