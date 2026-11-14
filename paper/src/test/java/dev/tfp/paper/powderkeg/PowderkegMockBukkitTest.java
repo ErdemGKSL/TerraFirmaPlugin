@@ -352,6 +352,8 @@ class PowderkegMockBukkitTest extends MockServerTest {
         Block dirt = world.getBlockAt(1, 63, 0);
         List<Block> lit = new ArrayList<>();
         List<List<Block>> seen = new ArrayList<>();
+        // the boom callback stands in for createExplosion: the server fires the explode event while the
+        // explosion runs, so filter() is reached from inside it (through the holder, set once blasts exists)
         PowderkegBlasts[] holder = new PowderkegBlasts[1];
         PowderkegBlasts blasts = new PowderkegBlasts(new PowderkegBlasts.Env(
             b -> PowderkegModule.isKeg(blocks, b),
