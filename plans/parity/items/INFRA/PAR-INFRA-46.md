@@ -2,7 +2,7 @@
 id: PAR-INFRA-46
 title: "Static info tooltip lines: damage type and resistances, fuel, sluice/pan deposits, rock-category and glass-type lore"
 area: INFRA
-status: open
+status: done
 wave: 13
 deps: [PAR-INFRA-05, PAR-SURV-05]
 size: M
@@ -36,6 +36,7 @@ plan:
   - "Pure part in core/item/info: which lines an item id gets from the tag snapshot and the data (damage-type tag order as TFC checks it, resistance percentages, fuel lookup by ingredient incl. tags, deposit membership, lore by id pattern from TFC's registration code); golden rows exported from /opt/tfc by a scratch script."
   - "Paper part in paper/tooltip/info: one feature module registering TooltipContributors in TFC's order (damage after size and before forging; fuel after heat; deposit after metal content), language through the existing i18n keys. Lore lines go first, directly under the name, as TFC's lore component does; record that they are packet lore, not an item component (same reason as the jar Sealed/Unsealed row in the ledger)."
   - "Items that do not exist yet (stone tool heads PAR-TOOL-01, glass batches PAR-PROC-17, deposit items PAR-WORLD-09/PAR-PROC-12) get their lines from the id rules as soon as they are generated: unit-test those ids now; their in-game look is checked by those items' own tooltip steps."
+  - "Done: core/item/info (DamageInfo, FuelInfo, DepositItems, StaticLore, RockDisplayCategory, RockCategory) and paper/tooltip/info (four contributors at orders 50/150/600/750, LegacyLines, module static_info_tooltip); lang en_us and tr_tr; tests ItemInfoGoldenTest (70) and StaticInfoTooltipMockBukkitTest (10); ledger row and two divergences (packet lore, fuel lookup order). In-game check: docs/verification/PAR-INFRA-46/ when run."
 tests:
   - "core: golden lines per sample id (sword, mace, javelin, knife, armour piece, charcoal, peat, a log tag, a deposit, raw granite, chalk bricks, a stone axe head, each glass batch) vs TFC"
   - "paper: MockBukkit pipeline run: order relative to size/heat/metal lines, no duplicate after a creative round trip"
