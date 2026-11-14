@@ -19,13 +19,17 @@ import dev.tfp.paper.i18n.Messages;
 import dev.tfp.paper.testing.MockServerTest;
 import dev.tfp.paper.tooltip.HeatDisplayStyle;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import org.bukkit.Material;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -103,6 +107,13 @@ class FirepitScreensMockBukkitTest extends MockServerTest {
         return o.session();
     }
 
+    private InventoryClickEvent hotbarSwap(int raw, int hotbar) {
+        InventoryClickEvent e = new InventoryClickEvent(player.getOpenInventory(), InventoryType.SlotType.CONTAINER, raw,
+            ClickType.NUMBER_KEY, InventoryAction.HOTBAR_SWAP, hotbar);
+        server.getPluginManager().callEvent(e);
+        return e;
+    }
+
     private InventoryClickEvent click(int raw, ClickType type, InventoryAction action) {
         InventoryView view = player.getOpenInventory();
         InventoryType.SlotType st = raw < view.getTopInventory().getSize() ? InventoryType.SlotType.CONTAINER
@@ -165,7 +176,7 @@ class FirepitScreensMockBukkitTest extends MockServerTest {
     @Test
     void clicksIntoTheChestSlotsTfcDoesNotHaveAreCancelled() {
         open(new FakeLink(0));
-        java.util.Set<Integer> used = new java.util.HashSet<>(FirepitScreenLayout.THERMOMETER_SLOTS);
+        Set<Integer> used = new HashSet<>(FirepitScreenLayout.THERMOMETER_SLOTS);
         for (int tfc = 0; tfc < FirepitSim.SLOTS; tfc++) {
             used.add(FirepitScreenLayout.chestSlot(tfc));
         }
@@ -178,6 +189,17 @@ class FirepitScreensMockBukkitTest extends MockServerTest {
             assertThat(click(slot, ClickType.LEFT, InventoryAction.PLACE_ALL).isCancelled()).as("unused slot " + slot).isTrue();
             assertThat(click(slot, ClickType.SHIFT_LEFT, InventoryAction.MOVE_TO_OTHER_INVENTORY).isCancelled())
                 .as("shift-click on unused slot " + slot).isTrue();
+            player.setItemOnCursor(null);
+            player.getInventory().setItem(0, new ItemStack(Material.OAK_LOG));
+            assertThat(hotbarSwap(slot, 0).isCancelled()).as("number-key swap into unused slot " + slot).isTrue();
+            player.setItemOnCursor(new ItemStack(Material.OAK_LOG));
+            assertThat(click(slot, ClickType.DOUBLE_CLICK, InventoryAction.COLLECT_TO_CURSOR).isCancelled())
+                .as("double-click on unused slot " + slot).isTrue();
+            InventoryDragEvent drag = new InventoryDragEvent(player.getOpenInventory(), null,
+                new ItemStack(Material.OAK_LOG, 2), false,
+                Map.of(FUEL_TOP, new ItemStack(Material.OAK_LOG), slot, new ItemStack(Material.OAK_LOG)));
+            server.getPluginManager().callEvent(drag);
+            assertThat(drag.isCancelled()).as("drag across unused slot " + slot).isTrue();
         }
     }
 
