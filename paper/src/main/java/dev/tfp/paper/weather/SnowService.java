@@ -90,6 +90,11 @@ import org.bukkit.event.world.ChunkUnloadEvent;
  * chunk, through the same pipeline and budget. Unloading stamps the chunk, so the time it was loaded and sampled is not
  * caught up again. Chunks that are not loaded are never written.
  *
+ * <p><b>Calendar skips (PAR-CLIM-18).</b> TFC's loaded chunks catch up a calendar skip on their next tick. Here the
+ * sampling round also watches the published clock ({@link SnowSkipCatchUp#observe}); a jump the catch-up is due for gives
+ * each loaded chunk one pass on its region over the skipped window, through the same plan, hops and budget as a load, and
+ * stamps the chunk at the skip's end.
+ *
  * <p>Placeholders (ledger): a snow pile is a vanilla snow layer and an ice pile is ice, both with their memory in the
  * chunk; sea ice is blue ice (a block TFC's world does not otherwise have, so it is told apart from lake ice and never
  * melted by the weather, as in TFC); an icicle is downward pointed dripstone.
@@ -129,14 +134,18 @@ public final class SnowService implements Listener {
     private final Map<UUID, WorldSnow> worlds = new ConcurrentHashMap<>();
     /** Catch-up counters (PAR-CLIM-03 first-load cost), logged with {@code -Dtfp.snow.stats=true}. */
     private final SnowCatchUpStats stats = new SnowCatchUpStats();
+    /** The calendar-skip detector (PAR-CLIM-18). Global thread only. */
+    private final SnowSkipCatchUp skips = new SnowSkipCatchUp();
     private final BlockData air = Material.AIR.createBlockData();
     private final BlockData water = Material.WATER.createBlockData();
     private final BlockData ice = Material.ICE.createBlockData();
     private final BlockData seaIce = Material.BLUE_ICE.createBlockData();
-    private final BlockData snowOneLayer = Material.SNOW.createBlockData(d -> ((Snow) d).setLayers(1));
+    // One layer is the snow block's default state.
+    private final BlockData snowOneLayer = Material.SNOW.createBlockData();
     // Pointed dripstone is read and built through its state string, never through a BlockData interface: Paper 26.x's
     // CraftPointedDripstone implements only Speleothem, so a cast to PointedDripstone throws (PAR-CLIM-10).
-    private final BlockData icicleTip = Bukkit.createBlockData(ICICLE_TIP);
+    // Built on first use (a worker thread may build it twice; both are equal).
+    private volatile BlockData icicleTip;
 
     public SnowService(GlobalClockHolder clock, Scheduler scheduler) {
         this.clock = clock;
@@ -146,6 +155,7 @@ public final class SnowService implements Listener {
     /** Starts the sampling on the global thread. Call once, after the scheduler exists. */
     public void start(Supplier<Collection<? extends Player>> online) {
         scheduler.globalRepeating(1, PERIOD_TICKS, () -> {
+            observeClock();
             for (Player player : online.get()) {
                 sample(player);
             }
@@ -168,6 +178,31 @@ public final class SnowService implements Listener {
         for (WorldSnow snow : worlds.values()) {
             LOG.info("[snow:" + snow.world.getName() + "] pipeline " + snow.pipeline.metrics());
         }
+    }
+
+    /**
+     * Global thread, every round: when the calendar jumped by more than the catch-up threshold since the last round (a
+     * calendar skip), hands each loaded overworld chunk its catch-up pass on its region (PAR-CLIM-18).
+     */
+    void observeClock() {
+        SnowSkipCatchUp.Skip skip = skips.observe(clock.get());
+        if (skip == null) {
+            return;
+        }
+        for (WorldSnow snow : worlds.values()) {
+            snow.skipped(skip);
+        }
+    }
+
+    /** Counters (tests). */
+    SnowCatchUpStats stats() {
+        return stats;
+    }
+
+    /** The chunks of {@code world} whose load this service has seen and that have not unloaded since (tests). */
+    Set<Long> loadedChunks(World world) {
+        WorldSnow snow = worlds.get(world.getUID());
+        return snow == null ? Set.of() : Set.copyOf(snow.loaded);
     }
 
     /** Player thread: picks the columns near the player, then hands each one to its owning region. */
@@ -214,6 +249,8 @@ public final class SnowService implements Listener {
         private final AsyncDecisionPipeline<SnowBlock, SnowSample> pipeline;
         /** Stamps a debug command asked for on a chunk's next unload (the unload takes its entry). */
         private final PendingUnloadStamps pendingUnload = new PendingUnloadStamps();
+        /** The loaded chunks, by chunk key: added by the load pass on the region, removed on unload (PAR-CLIM-18). */
+        private final Set<Long> loaded = ConcurrentHashMap.newKeySet();
 
         WorldSnow(World world) {
             this.world = world;
@@ -254,8 +291,13 @@ public final class SnowService implements Listener {
          * plan is computed on the worker pool; its steps are then handed back to this region in hops.
          */
         void onLoad(int cx, int cz) {
+            if (!world.isChunkLoaded(cx, cz)) {
+                return;
+            }
+            // Tracked from here: a skip pass only reaches a chunk whose load pass has run, so the two never overlap.
+            loaded.add(ChunkPos.key(cx, cz));
             ClockSnapshot now = clock.get();
-            if (!now.isSet() || !world.isChunkLoaded(cx, cz)) {
+            if (!now.isSet()) {
                 return;
             }
             long started = System.nanoTime();
@@ -264,16 +306,50 @@ public final class SnowService implements Listener {
                 stats.load(System.nanoTime() - started);
                 return;
             }
+            catchUp(cx, cz, load, now.daysInMonth(), started, true);
+        }
+
+        /** Global thread: hands each loaded chunk its pass over the skipped window, on its region (PAR-CLIM-18). */
+        void skipped(SnowSkipCatchUp.Skip skip) {
+            for (long key : loaded) {
+                ChunkPos pos = ChunkPos.fromKey(key);
+                scheduler.region(world, pos.x(), pos.z(), () -> onSkip(pos.x(), pos.z(), skip));
+            }
+        }
+
+        /** Region thread of the chunk: the skip's catch-up, as on a load, from the later of its stamp and the skip's start. */
+        void onSkip(int cx, int cz, SnowSkipCatchUp.Skip skip) {
+            if (!world.isChunkLoaded(cx, cz)) {
+                loaded.remove(ChunkPos.key(cx, cz));
+                return;
+            }
+            ClockSnapshot now = clock.get();
+            if (!now.isSet()) {
+                return;
+            }
+            SnowCatchUpSchedule.Load load = SnowSkipCatchUp.onSkip(world.getChunkAt(cx, cz).getPersistentDataContainer(),
+                    skip);
+            if (load.catchUp()) {
+                catchUp(cx, cz, load, now.daysInMonth(), System.nanoTime(), false);
+            }
+        }
+
+        /**
+         * Region thread of the chunk: plans the catch-up of {@code load}'s window on the worker pool, then hands its steps
+         * back to this region in hops.
+         */
+        private void catchUp(int cx, int cz, SnowCatchUpSchedule.Load load, int days, long started, boolean onLoad) {
             // The two columns stand for TFC's two sampled positions (the random surface and the sequential one).
             BlockPos a = surfaceOf(cx * 16 + 8, cz * 16 + 8);
             BlockPos b = surfaceOf(cx * 16 + 3, cz * 16 + 11);
-            stats.load(System.nanoTime() - started);
+            if (onLoad) {
+                stats.load(System.nanoTime() - started);
+            }
             if (a == null || b == null) {
                 return;
             }
             stats.due.increment();
             int existing = blocks.pileCount(cx, cz);
-            int days = now.daysInMonth();
             long last = load.lastCalendarTick();
             long calendar = load.calendarTick();
             CompletableFuture
@@ -340,6 +416,7 @@ public final class SnowService implements Listener {
 
         /** Region thread of the chunk, on unload: stamps it, so the time it was loaded is not caught up again. */
         void onUnload(Chunk chunk) {
+            loaded.remove(ChunkPos.key(chunk.getX(), chunk.getZ()));
             Long requested = pendingUnload.take(ChunkPos.key(chunk.getX(), chunk.getZ()));
             if (requested != null) {
                 schedule.onUnload(chunk.getPersistentDataContainer(), requested);
@@ -565,7 +642,7 @@ public final class SnowService implements Listener {
             case FREEZE -> SnowBlock.of(ice);
             case PLACE_ICE_PILE -> new SnowBlock(ice, new SnowBlock.Pile(isIcePileable(old.data()) ? old.data() : water,
                     c.withAbove() && above != null ? above.data() : null), null);
-            case PLACE_ICICLE -> SnowBlock.of(icicleTip);
+            case PLACE_ICICLE -> SnowBlock.of(icicleTip());
             case ICICLE_TO_BASE, ICICLE_TO_TIP -> {
                 if (!isDownIcicle(old.data())) {
                     yield null;
@@ -617,6 +694,15 @@ public final class SnowService implements Listener {
             Integer h = s.heights().get(columnKey(x, z));
             return h == null ? Integer.MIN_VALUE : h;
         }
+    }
+
+    private BlockData icicleTip() {
+        BlockData tip = icicleTip;
+        if (tip == null) {
+            tip = Bukkit.createBlockData(ICICLE_TIP);
+            icicleTip = tip;
+        }
+        return tip;
     }
 
     /** The class of a placeholder block for {@link SnowRule}. */

@@ -2,7 +2,7 @@
 id: PAR-CLIM-18
 title: "Snow catch-up after a calendar skip for chunks that stay loaded (/tfp time add, sleep skip)"
 area: CLIMATE
-status: open
+status: done
 wave: 13
 deps: [PAR-CLIM-03]
 size: S
@@ -25,6 +25,7 @@ plan:
   - "Build: when `CalendarService.skip` (and the sleep skip) moves the calendar, hand each loaded overworld chunk to its region and run the same path as `SnowService.WorldSnow.onLoad` (stamp check with `SnowCatchUp.isDue`, plan on the worker pool, forced steps in hops of `STEPS_PER_HOP`, budgeted pipeline), then stamp the chunk. Skips shorter than the 4,000-tick threshold do nothing, as in TFC. No ticking: one pass per skip."
   - "Keep `core/` unchanged unless a pure helper is needed (then add it under `core/.../weather/Snow*`, owned by PAR-CLIM-03's glob, in this item's commit)."
   - "Ledger: close the 'Yes (skip trigger)' revisit of the snow catch-up row."
+  - "Done: SnowSkipCatchUp (the sampling round watches the published clock; a jump of more than 4,000 calendar ticks gives each loaded overworld chunk one region pass over the window from the later of its stamp and the tick before the jump, same plan, hops and budget as a load, then stamps it at the jump's end; no CalendarService hook was needed, so /tfp time, the sleep skip and vanilla /time are all covered). Tests: SnowSkipCatchUpMockBukkitTest (5). Server check: docs/verification/PAR-CLIM-18/verdict.md (56 -> 1 layers across a 6-month skip, chunk kept loaded)."
 tests:
   - "paper: MockBukkit: a loaded chunk stamped at tick 1000, then `skip` by one month, gets a catch-up plan and its stamp moves to the new tick; a skip under 4,000 ticks plans nothing"
 done_criteria:

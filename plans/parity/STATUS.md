@@ -141,7 +141,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-PROC-34 | Composter CE block: tfc:composter hitbox rows and demands, configuration/compost, in-game check | PROC | 12 | done |
 | PAR-CLIM-04 | Snow piles, ice piles, icicles and sea ice as CraftEngine blocks | CLIMATE | 13 | blocked |
 | PAR-CLIM-12 | Climate-driven weather cycle: rain and thunder from the climate model replace vanilla's weather cycle; vanilla precipitation ticking off; local rain per player | CLIMATE | 13 | done |
-| PAR-CLIM-18 | Snow catch-up after a calendar skip for chunks that stay loaded (/tfp time add, sleep skip) | CLIMATE | 13 | open |
+| PAR-CLIM-18 | Snow catch-up after a calendar skip for chunks that stay loaded (/tfp time add, sleep skip) | CLIMATE | 13 | done |
 | PAR-DATA-17 | Self-test piston.no_water_dupe: a real 1-tick piston pulse moves no water source, on Paper and Folia | DATA | 13 | open |
 | PAR-HEAT-06 | Firepit block: placement, fuel, lazy temperature, ash, extinguish by rain and water | HEAT | 13 | open |
 | PAR-HEAT-17 | Self-test heat.cook_meat: TFC HeatingItemTest on a real Paper and Folia server | HEAT | 13 | open |
