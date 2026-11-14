@@ -146,7 +146,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-HEAT-06 | Firepit block: placement, fuel, lazy temperature, ash, extinguish by rain and water | HEAT | 13 | done |
 | PAR-HEAT-17 | Self-test heat.cook_meat: TFC HeatingItemTest on a real Paper and Folia server | HEAT | 13 | done |
 | PAR-INFRA-46 | Static info tooltip lines: damage type and resistances, fuel, sluice/pan deposits, rock-category and glass-type lore | INFRA | 13 | done |
-| PAR-PROC-10 | Log pile and charcoal pit | PROC | 13 | done |
+| PAR-PROC-10 | Log pile and charcoal pit | PROC | 13 | blocked |
 | PAR-PROC-14 | Salads | PROC | 13 | done |
 | PAR-INFRA-48 | NeighbourRunnerTest flake: chainOfTenPlacementsConvergesWithOneCommitPerChangedBlock sees 14 provisional writes instead of 10 | INFRA | 13 | done |
 | PAR-PROC-35 | Barrel wiring: the block opens the barrel screen, buckets reach the tank, fluid surface visual, lazy rain fill, in-game check (rack and tap: PAR-PROC-38) | PROC | 13 | done |
