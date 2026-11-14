@@ -61,6 +61,7 @@ public final class FirepitGuiModule implements FeatureModule {
         ItemHeatHooks.Capacities capacities = ItemHeatHooks.Capacities.byId(tags::itemId, heat);
         FirepitSlotRules r = new FirepitSlotRules(
             stack -> tags.itemId(stack).flatMap(id -> fuels.get().get(id)).isPresent() && tags.is(stack, FIREPIT_FUEL),
+            // TFC HeatCapability.has: every item heat definition has a positive heat capacity, so capacity > 0 means "has one"
             stack -> capacities.of(stack) > 0);
         FirepitScreens s = new FirepitScreens(gui, context.scheduler(), context.messages(), TooltipStyles.TFC_DEFAULTS.heat());
         context.listen(new FirepitGuiListener(s));

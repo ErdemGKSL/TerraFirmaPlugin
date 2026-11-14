@@ -163,6 +163,25 @@ class FirepitScreensMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void clicksIntoTheChestSlotsTfcDoesNotHaveAreCancelled() {
+        open(new FakeLink(0));
+        java.util.Set<Integer> used = new java.util.HashSet<>(FirepitScreenLayout.THERMOMETER_SLOTS);
+        for (int tfc = 0; tfc < FirepitSim.SLOTS; tfc++) {
+            used.add(FirepitScreenLayout.chestSlot(tfc));
+        }
+        assertThat(used).doesNotContain(2, 13);
+        for (int slot = 0; slot < 36; slot++) {
+            if (used.contains(slot)) {
+                continue;
+            }
+            player.setItemOnCursor(new ItemStack(Material.OAK_LOG));
+            assertThat(click(slot, ClickType.LEFT, InventoryAction.PLACE_ALL).isCancelled()).as("unused slot " + slot).isTrue();
+            assertThat(click(slot, ClickType.SHIFT_LEFT, InventoryAction.MOVE_TO_OTHER_INVENTORY).isCancelled())
+                .as("shift-click on unused slot " + slot).isTrue();
+        }
+    }
+
+    @Test
     void placingAStackPutsOneItemInAndTheCommitCascadesTheFuel() {
         FakeLink link = new FakeLink(0);
         GuiSession session = open(link);
