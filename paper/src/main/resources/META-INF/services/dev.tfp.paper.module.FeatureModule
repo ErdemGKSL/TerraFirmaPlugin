@@ -41,3 +41,4 @@ dev.tfp.paper.barrel.gui.BarrelGuiModule
 dev.tfp.paper.weather.cycle.WeatherCycleModule
 dev.tfp.paper.firepit.FirepitModule
 dev.tfp.paper.tooltip.info.StaticInfoTooltipModule
+dev.tfp.paper.salad.SaladModule

@@ -147,7 +147,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-HEAT-17 | Self-test heat.cook_meat: TFC HeatingItemTest on a real Paper and Folia server | HEAT | 13 | done |
 | PAR-INFRA-46 | Static info tooltip lines: damage type and resistances, fuel, sluice/pan deposits, rock-category and glass-type lore | INFRA | 13 | done |
 | PAR-PROC-10 | Log pile and charcoal pit | PROC | 13 | open |
-| PAR-PROC-14 | Salads | PROC | 13 | open |
+| PAR-PROC-14 | Salads | PROC | 13 | done |
 | PAR-INFRA-48 | NeighbourRunnerTest flake: chainOfTenPlacementsConvergesWithOneCommitPerChangedBlock sees 14 provisional writes instead of 10 | INFRA | 13 | done |
 | PAR-PROC-35 | Barrel wiring: the block opens the barrel screen, fluid surface visual, lazy rain fill, barrel rack and tap, in-game check | PROC | 13 | open |
 | PAR-CLIM-05 | Seasonal grass tint: decide band resolution and make the colour change visible | CLIMATE | 14 | blocked |
@@ -160,6 +160,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-HEAT-19 | Firepit loaded in game: configuration/devices/firepit.yml, TFC firepit models, self-test firepit.cook and the in-game check | HEAT | 14 | open |
 | PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | open |
 | PAR-PROC-18 | Powderkeg | PROC | 14 | open |
+| PAR-PROC-36 | Salad completion: salad screen art, eating and tooltip read the salad's own food data, in-game check | PROC | 14 | open |
 | PAR-CLIM-06 | Seasonal packet rewrite JMH budget and visual checklist | CLIMATE | 15 | open |
 | PAR-HEAT-08 | Grill on firepit: placement, five slots, cooking, GUI | HEAT | 15 | open |
 | PAR-HEAT-09 | Cooking pot on firepit: boiling, soups and jams, pot fluid, GUI | HEAT | 15 | open |
