@@ -282,7 +282,11 @@ public final class HitboxDemands {
         return "tfc:charcoal_pile[layers=" + layers + "]";
     }
 
-    /** PAR-PROC-38: the demand pattern of a barrel on its side along {@code axis}, racked or not. */
+    /**
+     * PAR-PROC-38: the demand pattern of a barrel on its side along {@code axis}, racked or not. A demand holds one
+     * {@code *} pattern; the unracked one, {@code x_*sealed}, takes both {@code x_<facing>_sealed} and
+     * {@code x_<facing>_unsealed} and no {@code _rack} name (pinned in GeneratedCarrierTest).
+     */
     public static String barrelSideDemand(String axis, boolean rack) {
         return axis + "_*" + (rack ? "_rack" : "sealed");
     }
@@ -296,7 +300,11 @@ public final class HitboxDemands {
      */
     public static final String BARREL_SIDE_BORROWED_ROW = "tfc:wood/barrel[axis=y,sealed=true]";
 
-    /** PAR-PROC-38: the tfc-shapes row a side demand is served for ({@link #BARREL_SIDE_BORROWED_ROW}). */
+    /**
+     * PAR-PROC-38: the tfc-shapes row a side demand is served for ({@link #BARREL_SIDE_BORROWED_ROW}). The axis and rack
+     * are kept on purpose: every side demand borrows the one row today, and a carrier with TFC's own side shape would
+     * return {@link #barrelSideKey} here without touching the callers.
+     */
     public static String barrelSideDemandKey(String axis, boolean rack) {
         return BARREL_SIDE_BORROWED_ROW;
     }

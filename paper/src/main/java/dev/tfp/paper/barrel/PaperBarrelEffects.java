@@ -239,10 +239,20 @@ public final class PaperBarrelEffects implements BarrelEffects {
             new Quaternionf());
     }
 
+    /**
+     * PAR-PROC-38 (in game): where the surface display of {@code block} is looked for. The display stands at the block's
+     * bottom face with a zero-size box, and the entity lookup keeps only boxes that overlap strictly: the block's own box
+     * missed it, so every update spawned another plane. This box is centred on the bottom face (half a block each way).
+     */
+    static BoundingBox surfaceSearch(Block block) {
+        return new BoundingBox(block.getX(), block.getY() - 0.5, block.getZ(), block.getX() + 1, block.getY() + 0.5,
+            block.getZ() + 1);
+    }
+
     static List<ItemDisplay> surfaces(Block block) {
         String key = marker(block);
         List<ItemDisplay> out = new ArrayList<>();
-        for (Entity e : block.getWorld().getNearbyEntities(BoundingBox.of(block), ItemDisplay.class::isInstance)) {
+        for (Entity e : block.getWorld().getNearbyEntities(surfaceSearch(block), ItemDisplay.class::isInstance)) {
             if (key.equals(e.getPersistentDataContainer().get(SURFACE, PersistentDataType.STRING))) {
                 out.add((ItemDisplay) e);
             }

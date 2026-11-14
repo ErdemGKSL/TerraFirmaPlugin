@@ -311,6 +311,79 @@ class GeneratedCarrierTest {
         assertThat(matches(HitboxDemands.barrelSideDemand("x", false), HitboxDemands.BARREL_SEALED)).isFalse();
     }
 
+    @Test
+    void everyHitboxOnlyCarrierIsDrawnEmptyAndNeverOccursNaturally() {
+        // PAR-PROC-38 review: a hitbox-only carrier must reach the client with no vanilla model. CraftEngine writes the
+        // variant {"model": "minecraft:block/empty"} into assets/minecraft/blockstates/<block>.json for an appearance with
+        // an explicit state and transparent: true (checked in a built pack: cactus age=10 and the rack's and the small log
+        // piles' iron trapdoor states map to minecraft:block/empty). An appearance on such a state without transparent and
+        // without a model keeps the vanilla look (a cactus top over the barrel), so every generated appearance on a
+        // hitbox-only carrier must say transparent and bring no model. Drawn empty, every real instance of the carrier
+        // state would be invisible too, so the carrier block must never occur in a TFC world (policy "absent") or have a
+        // hide target.
+        Map<String, Assignment> hitboxOnly = new java.util.TreeMap<>();
+        VanillaCandidates v = HitboxCarrier.standardContext().vanilla();
+        List<String> problems = new ArrayList<>();
+        for (Demand d : HitboxDemands.all()) {
+            Assignment a = HitboxAllocation.agreed(d.blockId(), d.appearance());
+            if (a.mode() != HitboxAllocation.Mode.HITBOX_ONLY) {
+                continue;
+            }
+            hitboxOnly.put(d.id(), a);
+            String block = a.state().contains("[") ? a.state().substring(0, a.state().indexOf('[')) : a.state();
+            VanillaCandidates.BlockPolicy p = v.policy(block);
+            if (a.hideTarget() == null && (p == null || p.presence() != VanillaCandidates.Presence.ABSENT)) {
+                problems.add(d.id() + ": hitbox-only carrier " + a.state() + " may occur in a TFC world and has no hide target");
+            }
+        }
+        assertThat(hitboxOnly.values()).extracting(Assignment::state)
+            .contains("minecraft:cactus[age=10]",
+                "minecraft:iron_trapdoor[facing=east,half=top,open=false,powered=false,waterlogged=false]");
+        SortedMap<String, byte[]> files = Datagen.generate(RealCheckout.open().root(), TfcCheckout.PINNED_COMMIT).tree().files();
+        java.util.Set<String> drawnEmpty = new java.util.TreeSet<>();
+        int checked = 0;
+        for (Map.Entry<String, byte[]> e : files.entrySet()) {
+            if (!e.getKey().startsWith("craftengine/") || !e.getKey().endsWith(".yml")
+                    || !(load(new String(e.getValue(), StandardCharsets.UTF_8)) instanceof Map<?, ?> top)
+                    || !(top.get("blocks") instanceof Map<?, ?> blocks)) {
+                continue;
+            }
+            for (Map.Entry<?, ?> b : blocks.entrySet()) {
+                String id = String.valueOf(b.getKey());
+                if (!(b.getValue() instanceof Map<?, ?> block)) {
+                    continue;
+                }
+                for (Map.Entry<String, Object> app : appearances(block).entrySet()) {
+                    Demand d = demand(id, app.getKey());
+                    if (d == null || !(app.getValue() instanceof Map<?, ?> m) || !(m.get("state") instanceof String state)) {
+                        continue;
+                    }
+                    Assignment a = hitboxOnly.get(d.id());
+                    if (a == null || !a.state().equals(state)) {
+                        continue;
+                    }
+                    checked++;
+                    if (!Boolean.TRUE.equals(m.get("transparent"))) {
+                        problems.add(e.getKey() + " " + id + "#" + app.getKey() + ": hitbox-only carrier " + state
+                            + " without transparent: true (the client draws the vanilla model)");
+                    }
+                    for (String key : List.of("model", "models", "texture", "blueprint")) {
+                        if (m.containsKey(key)) {
+                            problems.add(e.getKey() + " " + id + "#" + app.getKey() + ": hitbox-only carrier " + state
+                                + " also brings " + key);
+                        }
+                    }
+                    drawnEmpty.add(state);
+                }
+            }
+        }
+        // every barrel (2 upright + 16 side appearances per wood) and the rack
+        assertThat(checked).isGreaterThanOrEqualTo(HitboxDemands.BARREL_WOODS.size() * 18 + 1);
+        assertThat(drawnEmpty).contains("minecraft:cactus[age=10]",
+            "minecraft:iron_trapdoor[facing=east,half=top,open=false,powered=false,waterlogged=false]");
+        assertThat(problems).isEmpty();
+    }
+
     /**
      * An {@code auto_state} outside the visual templates is allowed only for a full-cube appearance its generator draws
      * from a CE pool ({@link HitboxDemands#FULL_CUBE_POOLS}), and must name that pool.
