@@ -356,6 +356,10 @@ public final class CharcoalBlocks {
         settings.put("fire_spread_chance", fire.flammability());
         if (spec.id().equals(BURNING)) {
             settings.put("can_occlude", false); // TFC noOcclusion()
+            // TFC keeps the vanilla default (a full collision cube suffocates and blocks view): every burning state is a
+            // full cube, so all suffocate. The leaves carrier never does, so both are written for the whole block.
+            settings.put("is_suffocating", true);
+            settings.put("is_view_blocking", true);
         }
         Map<String, Object> ordered = new LinkedHashMap<>();
         block.forEach((k, v) -> {

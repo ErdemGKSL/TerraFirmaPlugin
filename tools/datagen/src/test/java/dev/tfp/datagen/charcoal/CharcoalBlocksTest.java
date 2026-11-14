@@ -175,6 +175,13 @@ class CharcoalBlocksTest {
                 .containsEntry("device_tool_tag", "minecraft:mineable/axe");
             Map<String, Object> settings = (Map<String, Object>) b.get("settings");
             assertThat(settings.containsKey("can_occlude")).isEqualTo(f[1].equals(CharcoalBlocks.BURNING)); // noOcclusion
+            if (f[1].equals(CharcoalBlocks.BURNING)) {
+                // TFC: every burning state is a full collision cube, so it suffocates and blocks view.
+                assertThat(settings).containsEntry("is_suffocating", true).containsEntry("is_view_blocking", true);
+            } else {
+                // Per state in TFC (only the 16-log pile): taken from each state's carrier, so never written.
+                assertThat(settings).doesNotContainKey("is_suffocating").doesNotContainKey("is_view_blocking");
+            }
             assertThat(settings).containsEntry("burnable", true).containsEntry("burn_chance", Integer.parseInt(f[2]))
                 .containsEntry("fire_spread_chance", Integer.parseInt(f[3]));
             // registerNoItem: no block item.
@@ -189,6 +196,8 @@ class CharcoalBlocksTest {
         assertThat(c).doesNotContainKey("behavior").doesNotContainKey("template");
         Map<String, Object> settings = (Map<String, Object>) c.get("settings");
         assertThat(settings.get("hardness").toString()).isEqualTo("0.2");
+        // TFC: LAYERS >= 8 only, per state: taken from each layer's carrier, so never written.
+        assertThat(settings).doesNotContainKey("is_suffocating").doesNotContainKey("is_view_blocking");
         assertThat(settings).containsEntry("push_reaction", "popped").containsEntry("tags", List.of("minecraft:mineable/shovel"));
         assertThat(((Map<String, Object>) settings.get("sounds")).values().toString()).contains("tfp:block.charcoal.break");
         assertThat(c.get("loot").toString()).contains("minecraft:charcoal");
