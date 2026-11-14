@@ -26,7 +26,7 @@ files_owned:
 ui: true
 in_game_steps:
   - "op Bot (the `tfp debug` tree needs op and a player sender: run the debug commands from client chat; the device readout is `/tfp debug device` while looking at the block, not `/tfp device`)"
-  - "tfp debug place tfp:firepit[lit=false] on a stone block; right-click a tfp:stick_bundle into it (the TFC logs `tfp:wood/log/*` are no CraftEngine items yet and a vanilla `minecraft:oak_log` is no TFC fuel, so right-clicking one is EXPECTED to do nothing (TFC's tryInsertLog refuses it too; the screen it would open instead is PAR-HEAT-20) and is not a failure; use a log once the wood family is loaded) and light it with a firestarter: the block shows TFC's lit model (rocks, hot coals, campfire flame), not a bare daylight_detector"
+  - "tfp debug place tfp:firepit[lit=false] on a solid block (over air it does not survive); right-click two or more `ce item give Bot tfp:stick_bundle` into fuel slots 0-3 (a vanilla `minecraft:oak_log` is no TFC fuel and is refused, as by TFC's tryInsertLog; TFC logs once the wood family loads). Light it at once while SNEAKING (TFC: a plain click is the firepit's own use, so the client never raises the item): hold a firestarter longer than its 3.6 s use, or click flint and pyrite until a strong strike. Check `/tfp debug device` for lit=true before the fuel (600 ticks per bundle) burns out. The block shows TFC's lit model (rocks, hot coals, campfire flame), not a bare daylight_detector"
   - "right-click the lit firepit with `ce item give Bot tfp:food/beef`"
   - "tfp time add hours 1"
   - "tfp debug device (the input slot empty, cooked beef in output slot 5); right-click with an empty hand takes it"
