@@ -2,7 +2,7 @@
 id: PAR-INFRA-23
 title: "Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class"
 area: INFRA
-status: open
+status: done
 wave: 14
 deps: [PAR-INFRA-19, PAR-HEAT-06, PAR-CLIM-10, PAR-INFRA-24]
 size: M
@@ -40,6 +40,7 @@ plan:
   - "Deps: PAR-INFRA-19 and PAR-HEAT-06 make CraftEngine load the firepit family (moved into configuration/devices/), PAR-CLIM-10 lets the plugin enable on 26.x, PAR-INFRA-24 makes the packaged jar ship the content; family items (rocks, ores, piles, containers) add their classes as they land. PAR-INFRA-13 is not a dep and does not wait for this item: its selector is merged and done (manager decision 2026-10-23; a dep either way would be a cycle)."
   - "Current: PAR-INFRA-13 implemented the selector in datagen (reports/hitbox-carriers-1.21.md and -26.md list every carrier). Its in-game steps could not run in that item: most pinned classes have no CE block yet, the firepit family is not loaded by CraftEngine (outside configuration/), and test execution is delegated to a cheap-model agent the worker did not have."
   - "Run the steps above for the classes that exist, store the crops and verdict.md in docs/verification/PAR-INFRA-13/, and record failed carriers in hitbox/unusable.json (then the selector falls back and the ledger needs the fallback row)."
+  - "Done (2026-11-14, jar from a45baaf, Paper 1.21.11-132 and 26.3-244 with vanilla clients): docs/verification/PAR-INFRA-13/verdict.md and 17 crops. Every loaded class (forge snow[7], bellows dirt_path, firepit daylight_detector, quern base stonecutter and handstone snow[6], barrel sealed and unsealed cactus[10], composter level 0) shows the client state and outline of its report row on both families, stand heights equal the carrier collision (0.75, 0.9375, 0.375, 0.5625, 0.625, 0.9375, 0.125), breaks leave air with the CE drop and no ghost cube (the 2026-10-23 regression is not reproduced). FAIL: a held vanilla snow layer on the top face of a snow[layers<8] carrier is predicted as snow[n+1] for 50-150 ms (forge flashes white, quern handstone flashes as the forge); not an override class, so no unusable.json row applies: follow-up PAR-INFRA-51 and a ledger row. Residual: transparent (hitbox-only) carriers draw no crack overlay (ledger row). Firepit sounds on 26.3 pass (log excerpt in the verdict); grill, pot and the not-yet-loaded classes are listed in the verdict with the items that add them. No unusable.json row added."
 tests:
   - "Screenshots + verdict.md in docs/verification/PAR-INFRA-13/"
 done_criteria:

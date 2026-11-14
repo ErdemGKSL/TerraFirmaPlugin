@@ -158,7 +158,7 @@ Totals: 353 items; open 201, done 144, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-HEAT-10 | Torches: burnout to dead torch, relight, wall torches | HEAT | 14 | done |
 | PAR-HEAT-18 | Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start) | HEAT | 14 | blocked |
 | PAR-HEAT-19 | Firepit loaded in game: configuration/devices/firepit.yml, TFC firepit models, self-test firepit.cook and the in-game check | HEAT | 14 | done |
-| PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | open |
+| PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | done |
 | PAR-INFRA-49 | Block coverage gate: every TFC blockstate is a loaded CE block, a family block, an owned id of a named parity item or an NP entry (reports/tfc-block-coverage.json) | INFRA | 14 | done |
 | PAR-INFRA-50 | Feature item tooltips no item owns: item-list contents of sealed device items, crucible contents, fertilized egg and hatch day, javelin thrown damage, pan deposit, flower cutting, lamp fluid, glass batch steps | INFRA | 14 | open |
 | PAR-PROC-18 | Powderkeg | PROC | 14 | open |
@@ -173,6 +173,7 @@ Totals: 353 items; open 201, done 144, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-CLIM-21 | Snow and ice stop with the weather flag off (SnowService live step and catch-up), as TFC onTickChunk | CLIMATE | 15 | open |
 | PAR-HEAT-21 | Torches loaded in game: hitbox carriers, configuration/light/torch.yml, the dead torch look and the in-game burnout check | HEAT | 15 | open |
 | PAR-HEAT-22 | Dropped torches (go out in water, light leaves, thatch, log piles and pit kilns) and the torchTicks config key | HEAT | 15 | open |
+| PAR-INFRA-51 | Held snow layer ghost on snow-layer carriers: the client predicts snow[n+1] on the forge, quern handstone, grill and piles | INFRA | 15 | open |
 | PAR-HEAT-23 | Firepit look in game: TFC's lit and unlit models on their own carriers (axis z turned 90), and the in-game firepit check | HEAT | 16 | open |
 | PAR-CLIM-14 | Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute | CLIMATE | 16 | open |
 | PAR-HEAT-12 | Firebox, stove and stove pot | HEAT | 16 | open |
