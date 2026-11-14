@@ -116,17 +116,20 @@ public final class PowderkegBlasts implements Listener {
         }
     }
 
-    /** Lights and keeps every keg in {@code blocks}; for a keg's own explosion drops what TFC's tags spare. */
+    /**
+     * Lights and keeps every keg in {@code blocks}; for a keg's own explosion first drops what TFC's tags spare, so a
+     * spared keg is not lit either (TFC's {@code finalizeExplosion} skips the block before {@code onBlockExploded}).
+     */
     boolean filter(List<Block> blocks) {
         boolean ours = active();
         for (Iterator<Block> it = blocks.iterator(); it.hasNext();) {
             Block b = it.next();
-            if (env.isKeg().test(b)) {
-                it.remove();
-                env.lightLater().accept(b);
-            } else if (ours && !PowderkegRules.breaks(env.onlyNatural(), env.inTag().test(b, PowderkegRules.CANNOT_BREAK_TAG),
+            if (ours && !PowderkegRules.breaks(env.onlyNatural(), env.inTag().test(b, PowderkegRules.CANNOT_BREAK_TAG),
                     env.onlyNatural() && env.inTag().test(b, PowderkegRules.CAN_BREAK_TAG))) {
                 it.remove();
+            } else if (env.isKeg().test(b)) {
+                it.remove();
+                env.lightLater().accept(b);
             }
         }
         return true;

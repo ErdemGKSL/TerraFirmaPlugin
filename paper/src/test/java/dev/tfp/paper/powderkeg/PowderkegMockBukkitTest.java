@@ -345,6 +345,34 @@ class PowderkegMockBukkitTest extends MockServerTest {
         assertThat(seen).hasSize(1);
     }
 
+    @Test
+    void inEasyModeTheKegsOwnExplosionDoesNotLightAKegOutsideTheBreakingTag() {
+        Block other = world.getBlockAt(5, 64, 0);
+        blocks.place(other, PowderkegDevice.state(PowderkegState.FRESH), true);
+        Block dirt = world.getBlockAt(1, 63, 0);
+        List<Block> lit = new ArrayList<>();
+        List<List<Block>> seen = new ArrayList<>();
+        PowderkegBlasts[] holder = new PowderkegBlasts[1];
+        PowderkegBlasts blasts = new PowderkegBlasts(new PowderkegBlasts.Env(
+            b -> PowderkegModule.isKeg(blocks, b),
+            (b, tag) -> b.equals(dirt) && tag.equals(PowderkegRules.CAN_BREAK_TAG),
+            true, lit::add, b -> blocks.remove(b),
+            (at, power) -> {
+                List<Block> list = new ArrayList<>(List.of(dirt, other));
+                holder[0].filter(list);
+                seen.add(list);
+            }));
+        holder[0] = blasts;
+        blasts.explode(keg, 10);
+        assertThat(seen).containsExactly(List.of(dirt));
+        assertThat(lit).isEmpty();
+        // any other explosion still lights it
+        List<Block> tnt = new ArrayList<>(List.of(dirt, other));
+        blasts.filter(tnt);
+        assertThat(tnt).containsExactly(dirt);
+        assertThat(lit).containsExactly(other);
+    }
+
     private dev.tfp.paper.scheduler.Scheduler scheduler() {
         return new dev.tfp.paper.scheduler.Scheduler() {
             @Override
