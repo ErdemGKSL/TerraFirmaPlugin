@@ -162,9 +162,18 @@ class NeighbourRunnerTest {
         CommitBudget budget = new CommitBudget(1_000_000, fakeNow::get);
         NeighbourRunner<BlockStateRef> r = runner(budget);
         List<BlockPos> row = row(2, 10); // all in chunk 0, one region
-        regions.await(0, () -> row.forEach(p -> r.placeProvisional(p, BlockStateRef.of(BEAM))));
-        assertThat(writes.get()).as("provisional writes at once").isEqualTo(10);
-        assertThat(blocks.get(row.get(3))).isEqualTo(beam.provisional(BlockStateRef.of(BEAM)));
+        // PAR-INFRA-48: read the count and the state inside the placing task. Once it returns, the workers may already
+        // have decided and the region thread committed some changes, so a read after await() would race the pipeline.
+        AtomicInteger provisionalWrites = new AtomicInteger(-1);
+        java.util.concurrent.atomic.AtomicReference<BlockStateRef> placedState =
+                new java.util.concurrent.atomic.AtomicReference<>();
+        regions.await(0, () -> {
+            row.forEach(p -> r.placeProvisional(p, BlockStateRef.of(BEAM)));
+            provisionalWrites.set(writes.get());
+            placedState.set(blocks.get(row.get(3)));
+        });
+        assertThat(provisionalWrites.get()).as("provisional writes at once").isEqualTo(10);
+        assertThat(placedState.get()).isEqualTo(beam.provisional(BlockStateRef.of(BEAM)));
         settle(r);
 
         assertRowConnected(row);
