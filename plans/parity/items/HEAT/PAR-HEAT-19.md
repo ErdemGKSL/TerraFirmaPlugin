@@ -26,11 +26,16 @@ in_game_steps:
   - "right-click the lit firepit with ce item give Bot tfp:food/beef"
   - "tfp time add hours 1"
   - "tfp debug device (the input slot empty, cooked beef in output slot 5); right-click with an empty hand takes it"
-  - "Screenshot at GUI scale 2 of the lit and the unlit firepit"
+  - "tfp debug place tfp:firepit[lit=false]; right-click an oak log into it; light it with a firestarter; the block shows TFC's lit model (logs, coals, flame), not a bare daylight_detector"
+  - "tfp time add hours 1; tfp debug device: read the ash and the temperature (block entity present, kind tfp:firepit)"
+  - "with fuel and in rain: tfp debug device shows the burn going twice as fast and the firepit still lit (rain does not extinguish, per the ledger)"
+  - "douse a warm lit firepit with a water bucket (bucket turns empty) and another with a shovel (one damage); both show the unlit model; a shovel on an unlit firepit with ash gives the wood ash first"
+  - "Screenshots at GUI scale 2 and 3 of the lit and the unlit firepit (the firepit GUI itself is PAR-HEAT-07)"
 plan:
   - "Current: PAR-HEAT-06 ships the firepit device kind (paper/firepit), its catch-up (core/firepit FirepitSim) and `Firepit.loadedYaml` (template tfp:block/device with the tfp:device behaviour), but does not write it: a firepit in configuration/ makes DatagenTest#writesOreOverlayItemsTemplatesAndRuntimeData's `non_occluding` list non-empty (`tfp:firepit`, which is right: TFC's firepit is noOcclusion)."
   - "Write `Firepit.LOADED_OUTPUT` in `Firepit.run` (`out.put(LOADED_OUTPUT, loadedYaml(tfc))`), flip FirepitTest's `isNull` check, and change the DatagenTest expectation to `containsExactly(\"tfp:firepit\")` (the fixture now has a device)."
   - "Copy TFC's firepit_lit / firepit_unlit models and their textures (devices/firepit/rocks, coals, hot_coals; the vanilla campfire_fire) through AssetPipeline and give the lit and unlit appearances `model:` on the daylight_detector carrier (rotated y 90 for axis z), as ForgeDevices does for the charcoal forge."
+  - "FirepitTest: assert the file written at LOADED_OUTPUT is the one CraftEngine loads (the CeYamlCheck section) and that the literal devices/firepit.yml outside configuration/ is not loaded, so the block id is not registered twice."
   - "Self-test `firepit.cook` (FirepitCookCase + its SelfTestSuite line): place tfp:firepit, put an oak log in and light it through FireStarting's lightable, put raw beef in, advance the calendar 1000 ticks, catch up and assert cooked beef in output slot 5 and the input empty. Run on Paper and Folia 1.21.11."
 tests:
   - "itest: `firepit.cook` cooks raw meat on Paper and Folia"

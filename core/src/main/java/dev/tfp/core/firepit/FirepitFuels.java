@@ -23,6 +23,12 @@ import java.util.Optional;
  * TFC {@code Fuel.get(stack)} by item id: the {@code fuel} definitions of a registry snapshot (the 50 files datagen copies
  * from TFC's {@code data/tfc/tfc/fuel}) indexed under every item their ingredient names. An item named directly wins over
  * an item tag member; otherwise the first definition in registry order wins. Immutable, any thread.
+ *
+ * <p>TFC's {@code Fuel.get} takes the first definition that matches. On TFC's data at c3b4d9536 the two rules agree: the
+ * only tag ingredients are the {@code #tfc:*_logs} tags, {@code #c:books} and {@code #minecraft:leaves}, and no item
+ * named directly (planks, coal, charcoal, peat, lignite, stick bundle, dried cactus wood, pinecone, driftwood) is a
+ * member of them. This is the item-to-fuel index; {@link dev.tfp.core.fuel.FuelTable} (PAR-HEAT-05) holds only the
+ * values per data file and no ingredients, so the two do not duplicate each other.
  */
 public final class FirepitFuels {
     public static final FirepitFuels EMPTY = new FirepitFuels(Map.of());

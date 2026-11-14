@@ -55,10 +55,13 @@ import org.bukkit.inventory.ItemStack;
  * framework, with the burn, temperature, ash, smoke and cooking replayed lazily by {@link FirepitSim} on every access
  * (the kind's catch-up). Seven slots as TFC: fuel 0..3, the input 4, the outputs 5 and 6.
  *
- * <p>Right click, in TFC's order: a shovel (or a water bucket, our addition) douses a warm firepit; a firepit fuel goes
- * into the first empty fuel slot; an unlit firepit with ash gives the ash; otherwise TFC opens the firepit screen. Until
- * the screen exists (PAR-HEAT-07) the last step is a stand-in: a heatable item goes into the empty input slot, an empty
- * hand takes the outputs (then the input) out.
+ * <p>Right click, in TFC's {@code useItemOn} order: a firepit fuel goes into the first empty fuel slot; an unlit firepit
+ * with ash gives the ash; otherwise TFC opens the firepit screen. TFC's shovel douse ({@code SHOVEL_DOUSE}) runs only on
+ * a sneak click, after the block's use; CraftEngine skips device handlers on sneak + item, so here a shovel (or a water
+ * bucket, our addition) douses a warm firepit on a plain click, after the log and ash branches and before the screen
+ * step (a ledger divergence). Until the screen exists (PAR-HEAT-07) the screen step is a stand-in: a heatable item goes
+ * into the empty input slot, an empty hand takes the outputs (then the input) out. The extinguish sound plays whenever
+ * the block goes from lit to unlit (douse or burn-out), as TFC's {@code extinguish}.
  *
  * <p>Fire starting lights it ({@link #light}), and a fire starter on a stick and log pile builds one ({@link #build});
  * both go through the router's neighbour callback with a pending action, since only a handler may change a record.
@@ -360,18 +363,6 @@ public final class FirepitDevice {
             ItemStack stack = ctx.item();
             boolean creative = player.getGameMode() == GameMode.CREATIVE;
 
-            // InteractionManager SHOVEL_DOUSE -> DouseFireEvent -> onFireStop: a firepit above 0 C is extinguished
-            FirepitEffects.Douse douse = StackCodec.isEmpty(stack) ? FirepitEffects.Douse.NONE : services.douse().apply(stack);
-            if (douse != FirepitEffects.Douse.NONE && data.temperature() > 0f) {
-                if (data.lit()) {
-                    services.effects().sound(block, FirepitEffects.Sound.EXTINGUISH);
-                }
-                record = record.withState(FirepitSim.extinguish(data));
-                if (!creative) {
-                    services.effects().useDouse(player, ctx.hand(), douse);
-                }
-                return finish(ctx, record, true);
-            }
             // tryInsertLog(player, held, firepit, true)
             if (!StackCodec.isEmpty(stack) && isItemValid(FirepitSim.SLOT_FUEL_INPUT, stack)) {
                 Slots s = new Slots(record);
@@ -393,6 +384,18 @@ public final class FirepitDevice {
                 services.effects().give(player, services.woodAsh().apply(data.ash()));
                 services.effects().sound(block, FirepitEffects.Sound.ASH);
                 return finish(ctx, record.withState(data.withAsh(0)), true);
+            }
+            // InteractionManager SHOVEL_DOUSE -> DouseFireEvent -> onFireStop: a firepit above 0 C is extinguished. TFC runs
+            // it only on a sneak click (ITEM_AFTER_BLOCK, after useItemOn opened the screen); CraftEngine skips device
+            // handlers on sneak + item, so here it is a plain click, after the log and ash branches (ledger divergence).
+            // The extinguish sound plays in finish (lit -> unlit).
+            FirepitEffects.Douse douse = StackCodec.isEmpty(stack) ? FirepitEffects.Douse.NONE : services.douse().apply(stack);
+            if (douse != FirepitEffects.Douse.NONE && data.temperature() > 0f) {
+                record = record.withState(FirepitSim.extinguish(data));
+                if (!creative) {
+                    services.effects().useDouse(player, ctx.hand(), douse);
+                }
+                return finish(ctx, record, true);
             }
             // TFC opens the firepit screen (PAR-HEAT-07); stand-in: the input and the outputs by hand
             Slots s = new Slots(record);
@@ -469,6 +472,10 @@ public final class FirepitDevice {
             FirepitData data = record.state();
             String axis = ctx.state().properties().getOrDefault(AXIS, "x");
             BlockStateRef wanted = state(data, axis);
+            if ("true".equals(ctx.state().properties().get(LIT)) && !data.lit()) {
+                // TFC extinguish plays FIRE_EXTINGUISH on a douse and when the fuel runs out
+                services.effects().sound(block, FirepitEffects.Sound.EXTINGUISH);
+            }
             if (!wanted.equals(ctx.state())) {
                 services.effects().show(block, wanted);
             }

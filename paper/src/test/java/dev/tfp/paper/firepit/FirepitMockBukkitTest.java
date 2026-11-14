@@ -310,27 +310,35 @@ class FirepitMockBukkitTest extends MockServerTest {
     }
 
     @Test
-    void aShovelOrAWaterBucketDousesAWarmFirepitThenTheAshCanBeTaken() {
+    void aShovelOrAWaterBucketDousesAWarmFirepitAfterTheAshPickup() {
         build(Material.OAK_LOG);
         clock.addAndGet(50);
+        // lit: no ash pickup, the shovel douses
         assertThat(click(new ItemStack(Material.IRON_SHOVEL))).isTrue();
         FirepitData d = record().state();
         assertThat(d.lit()).isFalse();
         assertThat(d.temperature()).isEqualTo(50f); // extinguish keeps the heat; the firepit cools from here
+        assertThat(d.ash()).isPositive();
         assertThat(effects.sounds).containsExactly(FirepitEffects.Sound.EXTINGUISH);
         assertThat(effects.doused).containsExactly(FirepitEffects.Douse.SHOVEL);
         assertThat(blocks.stateAt(pit).orElseThrow().properties()).containsEntry("lit", "false");
 
-        // still warm: the water bucket douses again (no sound: it is no longer lit)
+        // unlit, still warm, with ash: TFC's useItemOn hands out the ash before any douse; the shovel takes no damage
+        assertThat(click(new ItemStack(Material.IRON_SHOVEL))).isTrue();
+        assertThat(effects.given).extracting(ItemStack::getType).containsExactly(Material.GUNPOWDER);
+        assertThat(effects.doused).containsExactly(FirepitEffects.Douse.SHOVEL);
+        assertThat(record().state().ash()).isZero();
+        assertThat(record().state().temperature()).isPositive();
+        assertThat(effects.sounds).endsWith(FirepitEffects.Sound.ASH);
+
+        // still warm, no ash: the water bucket douses again (no sound: it is no longer lit)
         assertThat(click(new ItemStack(Material.WATER_BUCKET))).isTrue();
         assertThat(effects.doused).containsExactly(FirepitEffects.Douse.SHOVEL, FirepitEffects.Douse.WATER);
+        assertThat(effects.sounds).containsExactly(FirepitEffects.Sound.EXTINGUISH, FirepitEffects.Sound.ASH);
 
-        clock.addAndGet(100); // cooled to 0: the shovel no longer douses; an empty hand takes the ash
-        assertThat(click(ItemStack.empty())).isTrue();
-        assertThat(effects.given).hasSize(1);
-        assertThat(effects.given.getFirst().getType()).isEqualTo(Material.GUNPOWDER);
-        assertThat(record().state().ash()).isZero();
-        assertThat(effects.sounds).endsWith(FirepitEffects.Sound.ASH);
+        clock.addAndGet(100); // cooled to 0: the shovel no longer douses
+        assertThat(click(new ItemStack(Material.IRON_SHOVEL))).isTrue();
+        assertThat(effects.doused).hasSize(2);
     }
 
     @Test
@@ -363,6 +371,7 @@ class FirepitMockBukkitTest extends MockServerTest {
         service.neighbourChanged(pit);
         assertThat(record().state().lit()).isFalse();
         assertThat(blocks.stateAt(pit).orElseThrow().properties()).containsEntry("lit", "false");
+        assertThat(effects.sounds).as("TFC extinguish sound on burn-out").containsExactly(FirepitEffects.Sound.EXTINGUISH);
     }
 
     @Test
