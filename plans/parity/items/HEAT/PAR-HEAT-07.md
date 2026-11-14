@@ -2,7 +2,7 @@
 id: PAR-HEAT-07
 title: "Firepit GUI: fuel slots, input, outputs, temperature bar"
 area: HEAT
-status: open
+status: done
 wave: 14
 deps: [PAR-HEAT-06, PAR-INFRA-03]
 size: S
@@ -14,17 +14,16 @@ tfc_refs:
 files_owned:
   - "paper/src/main/java/dev/tfp/paper/firepit/gui/**"
   - "paper/src/test/java/dev/tfp/paper/firepit/gui/**"
-ui: true
-in_game_steps:
-  - "tfp debug place tfp:firepit[lit=true]"
-  - "right-click it"
-  - "screenshot"
+ui: false
+in_game_steps: []
 plan:
   - "Textured GUI per docs/gui/catalogue.md `m3-heat-03-firepit`: fuel 4 at (8, 70-18i), input (80,29), outputs (71,57),(89,57), temperature bar overlay."
+  - "Split (PROTOCOL 3a + 6.5): the art (TFC fire_pit.png re-laid out and the thermometer strip at the moved y) needs a datagen generator and its Datagen.java line, and opening the screen from the block replaces the stand-in in `paper/firepit/FirepitDevice.java`; both are outside files_owned, and the block is not loaded until PAR-HEAT-19. They, the in_game_steps and the screenshot criterion move to PAR-HEAT-20 (deps PAR-HEAT-07 and PAR-HEAT-19)."
+  - "Done: paper `firepit/gui/`: `FirepitScreenLayout` (4-row chest = TFC's 176 x 186; DY 2 puts the fuel column on chest column 0, rows 3..0 = TFC slots 0..3; input chest slot 4 (row 0, x 80), outputs 21 and 23 (row 2, one column each side of the input); thermometer column = buttons 1/10/19/28; images `tfp:gui/firepit` and the 52-frame `tfp:gui/firepit_thermometer` at (30, 27); TFC `cascadeFuelSlots`), `FirepitSlotRules` (TFC `isItemValid`: fuel only in slot 3, heatables only in the input), `FirepitLink`/`FirepitSnapshot` (device contract), `FirepitScreens` (service: next-tick commit with the firepit's answer, reload every 10 ticks for the thermometer frame and cooked outputs, TFC slot limits, one viewer, gone firepit), `FirepitGuiListener` (one item per click on limit-1 slots, rest stays on the cursor), `DemoFirepitLink` + `FirepitGuiModule` (`/tfp debug firepitgui [temperature]`). Tests: FirepitScreensMockBukkitTest 10. Ledger row + 4 divergences. Verification: deferred check tracked in PAR-HEAT-20."
 tests:
   - "paper: slot predicates (fuel only in fuel slots)"
 done_criteria:
-  - "Aligned screenshot at scale 2 and 3"
+  - "Deferred check tracked in PAR-HEAT-20"
 ---
 
 # PAR-HEAT-07: Firepit GUI: fuel slots, input, outputs, temperature bar

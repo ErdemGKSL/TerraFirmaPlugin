@@ -286,6 +286,7 @@ class BootstrapTest {
                 "intox",
                 "water",
                 "barrelgui",
+                "firepitgui",
                 "barrel",
                 "damage");
         assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
