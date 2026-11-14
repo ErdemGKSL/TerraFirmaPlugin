@@ -215,6 +215,9 @@ public final class BarrelScreenArt {
         dispatch.add("fallback", empty);
         JsonObject root = new JsonObject();
         root.add("model", dispatch);
+        // The models cover the whole 16 x 50 tank around slot 9; since 1.21.6 the client clips a GUI item to its slot
+        // unless this is set (1.21.4/1.21.5 clients ignore the key).
+        root.addProperty("oversized_in_gui", true);
         return root;
     }
 
@@ -231,8 +234,10 @@ public final class BarrelScreenArt {
     }
 
     /**
-     * The model of fill {@code fill} pixels: TFC's 16 x 16 sprite tiled from the bottom (one element per tile, the top
-     * one cut), tint 0, and the gauge in a thin box around it, so it is in front from either side.
+     * The model of fill {@code fill} pixels: a solid column from the tank bottom up to {@code bottom - fill}, TFC's 16 x
+     * 16 sprite tiled from the top of the fill down like {@code RenderHelpers.fillAreaWithSprite} (one element per tile,
+     * the bottom one cut, each tile showing the sprite's top rows), tint 0, and the gauge in a thin box around it, so it
+     * is in front from either side.
      */
     static JsonObject tankModel(int fill) {
         if (fill < 1 || fill > TANK_HEIGHT) {
@@ -240,13 +245,14 @@ public final class BarrelScreenArt {
         }
         int bottom = TANK_BOTTOM + DY_TANK;
         JsonArray elements = new JsonArray();
-        for (int done = 0; done < fill; done += 16) {
-            int t = Math.min(16, fill - done);
+        int top = bottom - fill;
+        for (int offset = 0; offset < fill; offset += 16) {
+            int t = Math.min(16, fill - offset);
             JsonObject faces = new JsonObject();
-            faces.add("south", face("#fluid", 0, 16 - t, 16, 16, 0));
-            faces.add("north", face("#fluid", 16, 16 - t, 0, 16, 0));
-            elements.add(element(unitX(TANK_X), unitY(bottom - done), 8,
-                unitX(TANK_X + TANK_WIDTH), unitY(bottom - done - t), 8, faces));
+            faces.add("south", face("#fluid", 0, 0, 16, t, 0));
+            faces.add("north", face("#fluid", 16, 0, 0, t, 0));
+            elements.add(element(unitX(TANK_X), unitY(top + offset + t), 8,
+                unitX(TANK_X + TANK_WIDTH), unitY(top + offset), 8, faces));
         }
         JsonObject gauge = new JsonObject();
         gauge.add("south", face("#gauge", 0, 0, 16, 16, -1));

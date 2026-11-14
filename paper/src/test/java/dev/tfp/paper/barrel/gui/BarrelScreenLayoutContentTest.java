@@ -57,6 +57,8 @@ class BarrelScreenLayoutContentTest {
         Path rp = pack().resolve("resourcepack/assets/tfp/");
         String model = BarrelScreenLayout.TANK_ITEM_MODEL.substring("tfp:".length());
         JsonObject def = JsonParser.parseString(Files.readString(rp.resolve("items/" + model + ".json"))).getAsJsonObject();
+        assertThat(def.has("oversized_in_gui") && def.get("oversized_in_gui").getAsBoolean())
+            .as("oversized_in_gui: 1.21.6+ clients clip a GUI item to its slot without it").isTrue();
         JsonObject dispatch = def.getAsJsonObject("model");
         assertThat(dispatch.get("type").getAsString()).isEqualTo("minecraft:range_dispatch");
         assertThat(dispatch.getAsJsonArray("entries")).hasSize(BarrelScreenLayout.TANK_PIXELS);

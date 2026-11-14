@@ -32,12 +32,13 @@ files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxDemands.java"
   - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/GeneratedCarrierTest.java"
   - "content/generated/content/craftengine/tfp/configuration/barrel/**"
-  - "docs/verification/PAR-PROC-09/**"
+  - "docs/verification/PAR-PROC-35/**"
 ui: true
 in_game_steps:
-  - "tfp debug barrelgui 5000 (the screen alone, before any wiring): screenshot at GUI scale 2 and 3; hover the tank; press the seal button; screenshot sealed"
+  - "tfp debug barrelgui 5000 (the screen alone): hover the tank; press the seal button; screenshot sealed (the tank shots are PAR-PROC-09's)"
   - "tfp debug place tfp:wood/barrel/oak"
   - "fill half (5 water buckets); right-click; screenshot GUI and block"
+  - "check that each water bucket reached the record (PAR-PROC-08 transfer path; the PAR-PROC-09 run saw an empty bucket and nothing drawn): read the tank with the debug fill/inspect path below, not /tfp debug barrelgui (a demo barrel)"
   - "weather rain; leave the barrel unsealed under the sky for 400 ticks; the tank gains 100 mB"
   - "place tfp:barrel_rack, then a barrel on it (sideways); screenshot; the tap drains into a container below"
 plan:
@@ -47,13 +48,14 @@ plan:
   - "3. Rain fill: `BarrelFluidVisuals.rainChecks` + `rainFilled` (TFC: 1 mB water per 4 game ticks, unsealed, upright, raining at the block above). Lazy: the catch-up credits the checks of the interval only while `PrecipitationService.isRainingAt(above)` holds at both ends (record the divergence) or keep a rain-start tick in the record; no ticking."
   - "4. Fluid surface visual: an `entity_renderer` element per barrel (the upright CE block, configuration/barrel) at `BarrelFluidVisuals.surface(...)` height, tinted with the fluid's colour through `tint_source` (CE component-copy trick: `craftengine-gui-furniture` skill), updated by `PaperBarrelEffects` when the tank changes (the in-world equivalent of `BarrelBlockEntityRenderer`)."
   - "5. Barrel rack: `tfp:barrel_rack` CE block (TFC `BarrelRackBlock`: bottom-supported, RACK_SHAPE hitbox demand) from `datagen/barrelrack`, and the barrel's `facing` (up or a side) and `rack` states with the hitbox rows `tfc:wood/barrel[axis=x|z,rack=false|true]`; placing a barrel on a rack lays it sideways facing the player; breaking returns the rack. A sideways unsealed barrel pours 1 mB per tick through its tap into the fluid handler below the tap (TFC `tickPouring`), lazily."
-  - "6. In-game steps above (cheap-model agent, the main session judges): store crops and verdict.md in docs/verification/PAR-PROC-09/."
+  - "5b. A debug path for a placed barrel: `/tfp debug barrel fill <mB> [fluid]` (and an inspect line) on the barrel the player looks at, so the surface can be shown without buckets."
+  - "6. In-game steps above (cheap-model agent, the main session judges): store crops and verdict.md in docs/verification/PAR-PROC-35/."
 tests:
   - "paper: BarrelScreenLink commit / seal / instant recipe on the real recipe book (MockBukkit), the screen opened by a right click, busy refusal, edit+reload around the sneak seal"
   - "core or paper: rain fill lazy vs stepped over random rain intervals"
   - "datagen: barrel rack entry, the facing/rack states and their carriers pinned in GeneratedCarrierTest"
 done_criteria:
-  - "Screenshot of the barrel GUI and a half-full barrel showing liquid (moved from PAR-PROC-09)"
+  - "Screenshot of the barrel GUI opened from the block and a half-full barrel showing liquid (moved from PAR-PROC-09); the bucket water reaches the tank"
   - "Rain fills an open barrel; a racked barrel pours from its tap"
 ---
 
