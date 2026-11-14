@@ -2,7 +2,7 @@
 id: PAR-HEAT-17
 title: "Self-test heat.cook_meat: TFC HeatingItemTest on a real Paper and Folia server"
 area: HEAT
-status: open
+status: done
 wave: 13
 deps: [PAR-HEAT-04]
 size: S
@@ -17,6 +17,7 @@ plan:
   - "Current: PAR-HEAT-04 ships `HeatingService` (HeatingModule) and `HeatingSelfCheck` (paper/heat), TFC's HeatingItemTest.testCookMeat over live services; it passes on MockBukkit with the datagen output (HeatingServiceMockBukkitTest#testCookMeatOnTheContentData)."
   - "Add HeatCookMeatCase (`heat.cook_meat`, add it to SelfTestSuite and bump the suite case count its test checks): skip when the module services are off; rebuild the recipe index (`Recipes.rebuild()`, as BarrelRecipesCase does); on the global thread run `HeatingSelfCheck.run(new HeatingSelfCheck.Services(services.require(HeatingService.class), services.require(ItemHeatHooks.class), services.require(ItemHeatDefinitionsCache.class).get(), tfp.integrations().customItems(), services.require(Tags.class).snapshot(), RecipeModule.vanillaIds(), () -> tfp.clock().get().playerTicks()))` and fail with `result.problems()`; report the number of meats checked. With CraftEngine absent the items cannot be created: skip with that reason."
   - "Run :itest:runSelfTest on Paper 1.21.11 and Folia 1.21.11 (Haiku subagent) and record the result in the PAR-HEAT-04 ledger row."
+  - "Done: HeatCookMeatCase (`heat.cook_meat`) added to SelfTestSuite (32 cases, SelfTestSuiteTest updated); :itest:runSelfTest green on Paper 1.21.11 and Folia 1.21.11 (44 raw meats checked); recorded in the PAR-HEAT-04 ledger row; no new divergence."
 tests:
   - "itest `heat.cook_meat` passes on Paper and Folia"
 done_criteria:

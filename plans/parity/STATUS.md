@@ -144,7 +144,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-CLIM-18 | Snow catch-up after a calendar skip for chunks that stay loaded (/tfp time add, sleep skip) | CLIMATE | 13 | done |
 | PAR-DATA-17 | Self-test piston.no_water_dupe: a real 1-tick piston pulse moves no water source, on Paper and Folia | DATA | 13 | done |
 | PAR-HEAT-06 | Firepit block: placement, fuel, lazy temperature, ash, extinguish by rain and water | HEAT | 13 | open |
-| PAR-HEAT-17 | Self-test heat.cook_meat: TFC HeatingItemTest on a real Paper and Folia server | HEAT | 13 | open |
+| PAR-HEAT-17 | Self-test heat.cook_meat: TFC HeatingItemTest on a real Paper and Folia server | HEAT | 13 | done |
 | PAR-INFRA-46 | Static info tooltip lines: damage type and resistances, fuel, sluice/pan deposits, rock-category and glass-type lore | INFRA | 13 | open |
 | PAR-PROC-10 | Log pile and charcoal pit | PROC | 13 | open |
 | PAR-PROC-14 | Salads | PROC | 13 | open |
