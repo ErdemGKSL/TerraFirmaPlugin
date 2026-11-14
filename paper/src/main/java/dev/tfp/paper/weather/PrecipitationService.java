@@ -5,20 +5,21 @@
  */
 package dev.tfp.paper.weather;
 
-import dev.tfp.core.climate.ChunkClimate;
-import dev.tfp.core.climate.ClimateReading;
 import dev.tfp.core.climate.OverworldClimate;
 import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.weather.PrecipitationSample;
 import dev.tfp.core.weather.PrecipitationSamples;
 import dev.tfp.core.weather.PrecipitationType;
+import dev.tfp.core.weather.cycle.WeatherCycle;
 import dev.tfp.core.world.BlockPos;
-import dev.tfp.paper.climate.ChunkClimateSource;
+import dev.tfp.paper.TfpPlugin;
 import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ThreadAsserts;
+import dev.tfp.paper.weather.cycle.ClimateWeatherCycle;
+import dev.tfp.paper.weather.cycle.LocalRain;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,6 +33,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * What falls at each player's position and at any block position (M2-WTH-01, PAR-CLIM-02): TFC's
@@ -52,6 +54,15 @@ import org.bukkit.event.player.PlayerQuitEvent;
  * {@link #sampleOf}, or decide for any block with {@link #precipitationAt} / {@link #isRainingAt} (pure, from their own
  * worker step) after reading {@link #rainReaches} on the block's region thread. They find the service through
  * {@link #current()}.
+ * <p>
+ * The weather (PAR-CLIM-20): in a world the climate weather cycle drives ({@link ClimateWeatherCycle#controls}), the
+ * world's weather flag applies (TFC {@code rainIntensity = isWeatherEnabled() ? getRain(t) : -1}, so with the flag off
+ * nothing falls anywhere). Vanilla's {@code level.isRaining()} gate of {@code isRainingAt} (the rain level above 0.2)
+ * applies everywhere, read from the lazy rain level the cycle steps a climate world along ({@link WeatherCycle#levelsAt},
+ * the same targets the cycle sets the world's storm flag from): it holds the decision back for the first 21 ticks of a
+ * climate rain window, as TFC, without the up-to-one-second lag of the world's storm flag. Overworlds the cycle does not
+ * drive, and every overworld without the cycle module (or outside the plugin), keep the climate as their only
+ * precipitation source with the flag on, as before.
  */
 public final class PrecipitationService implements Listener {
     /** One decision per player per second, as the calendar advances. */
@@ -64,19 +75,65 @@ public final class PrecipitationService implements Listener {
     private final Scheduler scheduler;
     private final HudSnapshotCache hud;
     private final Function<Player, Capture> capture;
+    /** The climate weather cycle, once found (the weather_cycle module is enabled after this service is built). */
+    private final Supplier<Optional<ClimateWeatherCycle>> cycle;
     /** Newest sample per player. Writers are the player's thread; removed on quit. */
     private final PrecipitationSamples samples = new PrecipitationSamples();
 
     public PrecipitationService(GlobalClockHolder clock, Scheduler scheduler, HudSnapshotCache hud) {
-        this(clock, scheduler, hud, Capture::of);
+        this(clock, scheduler, hud, null, pluginCycle());
     }
 
-    /** Tests: {@code capture} replaces the player-thread read. */
+    /** Tests: {@code capture} replaces the player-thread read; no climate weather cycle. */
     PrecipitationService(GlobalClockHolder clock, Scheduler scheduler, HudSnapshotCache hud, Function<Player, Capture> capture) {
+        this(clock, scheduler, hud, capture, Optional::empty);
+    }
+
+    /**
+     * Tests: {@code cycle} replaces the plugin's service lookup; a null {@code capture} reads the player with
+     * {@link Capture#of}.
+     */
+    PrecipitationService(GlobalClockHolder clock, Scheduler scheduler, HudSnapshotCache hud, Function<Player, Capture> capture,
+            Supplier<Optional<ClimateWeatherCycle>> cycle) {
         this.clock = clock;
         this.scheduler = scheduler;
         this.hud = hud;
-        this.capture = capture;
+        this.cycle = cycle;
+        this.capture = capture != null ? capture : p -> Capture.of(p, weatherEnabled(p.getWorld()));
+    }
+
+    /**
+     * The plugin's climate weather cycle from {@code ModuleServices}, cached once found; empty outside the plugin
+     * (tests) and while the weather_cycle module is off or not yet enabled.
+     */
+    private static Supplier<Optional<ClimateWeatherCycle>> pluginCycle() {
+        java.util.concurrent.atomic.AtomicReference<Optional<ClimateWeatherCycle>> found =
+                new java.util.concurrent.atomic.AtomicReference<>();
+        return () -> {
+            Optional<ClimateWeatherCycle> f = found.get();
+            if (f != null) {
+                return f;
+            }
+            try {
+                Optional<ClimateWeatherCycle> c = JavaPlugin.getPlugin(TfpPlugin.class).moduleServices()
+                        .get(ClimateWeatherCycle.class);
+                if (c.isPresent()) {
+                    found.set(c);
+                }
+                return c;
+            } catch (IllegalArgumentException | IllegalStateException | ClassCastException | NullPointerException e) {
+                return Optional.empty(); // not running as the plugin (tests)
+            }
+        };
+    }
+
+    /**
+     * TFC {@code WorldTracker.isWeatherEnabled} for {@code world}: the cycle's flag where the cycle drives the world,
+     * true elsewhere and without the cycle. Any thread (a map read).
+     */
+    public boolean weatherEnabled(World world) {
+        Optional<ClimateWeatherCycle> c = cycle.get();
+        return c.isEmpty() || !c.get().controls(world) || c.get().enabled(world);
     }
 
     /** The service started last, or empty before the plugin started it. Any thread. */
@@ -85,8 +142,14 @@ public final class PrecipitationService implements Listener {
     }
 
     /** What the player thread reads: everything the pure decision needs, as plain values. */
-    record Capture(UUID player, long worldSeed, boolean overworld, BlockPos pos, boolean skyVisible) {
-        static Capture of(Player player) {
+    record Capture(UUID player, long worldSeed, boolean overworld, BlockPos pos, boolean skyVisible,
+            boolean weatherEnabled) {
+        /** Tests: the weather flag on. */
+        Capture(UUID player, long worldSeed, boolean overworld, BlockPos pos, boolean skyVisible) {
+            this(player, worldSeed, overworld, pos, skyVisible, true);
+        }
+
+        static Capture of(Player player, boolean weatherEnabled) {
             World world = player.getWorld();
             Location at = player.getLocation();
             int x = at.getBlockX();
@@ -94,7 +157,8 @@ public final class PrecipitationService implements Listener {
             int z = at.getBlockZ();
             boolean overworld = world.getEnvironment() == World.Environment.NORMAL;
             boolean sky = overworld && rainReaches(world, x, y, z);
-            return new Capture(player.getUniqueId(), world.getSeed(), overworld, new BlockPos(x, y, z), sky);
+            return new Capture(player.getUniqueId(), world.getSeed(), overworld, new BlockPos(x, y, z), sky,
+                    weatherEnabled);
         }
     }
 
@@ -113,19 +177,33 @@ public final class PrecipitationService implements Listener {
     /** The worker-side decision (pure). Not overworld, or no calendar reading yet: NONE. */
     static PrecipitationSample compute(Capture c, ClockSnapshot clock) {
         return new PrecipitationSample(clock.sequence(), clock.calendarTicks(), c.pos(),
-                decide(c.worldSeed(), c.overworld(), c.pos(), c.skyVisible(), clock));
+                decide(c.worldSeed(), c.overworld(), c.pos(), c.skyVisible(), c.weatherEnabled(), clock));
     }
 
-    private static PrecipitationType decide(long worldSeed, boolean overworld, BlockPos pos, boolean rainReaches,
-            ClockSnapshot clock) {
+    /**
+     * The pure decision: vanilla's position gates, TFC's {@code getPrecipitationAt} with the weather flag, then vanilla's
+     * {@code level.isRaining()} gate ({@link #climateRaining}). Thread-safe; it samples the climate noise.
+     */
+    public static PrecipitationType decide(long worldSeed, boolean overworld, BlockPos pos, boolean rainReaches,
+            boolean weatherEnabled, ClockSnapshot clock) {
         if (!overworld || !clock.isSet() || !rainReaches) {
             return PrecipitationType.NONE;
         }
+        PrecipitationType type = LocalRain.at(worldSeed, pos, clock, weatherEnabled, true);
+        if (type == PrecipitationType.NONE) {
+            return type;
+        }
+        return climateRaining(worldSeed, clock.calendarTicks(), weatherEnabled) ? type : PrecipitationType.NONE;
+    }
+
+    /**
+     * Vanilla {@code Level.isRaining()} in a climate-driven world: the rain level the cycle steps by 0.01 per tick toward
+     * the climate's target ({@link WeatherCycle#levelsAt}, thunder left out) is above 0.2. Pure.
+     */
+    static boolean climateRaining(long worldSeed, long calendarTicks, boolean weatherEnabled) {
         OverworldClimate climate = OverworldClimate.forWorldSeed(worldSeed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
-        ChunkClimate chunk = ChunkClimateSource.climateAt(worldSeed, pos.x(), pos.z());
-        ClimateReading reading = ClimateReading.of(climate, chunk, pos, clock);
-        float rainIntensity = climate.rainIntensity(reading.calendarTicks());
-        return PrecipitationType.decide(reading.temperature(), reading.rainfall(), rainIntensity, true);
+        return WeatherCycle.levelsAt(calendarTicks,
+                t -> new WeatherCycle.Target(weatherEnabled ? climate.rainIntensity(t) : -1f, false)).isRaining();
     }
 
     /** Starts the throttle on the global thread. Call once, after the scheduler exists. */
@@ -179,9 +257,9 @@ public final class PrecipitationService implements Listener {
      * before the first calendar reading, or when rain does not reach the position. Pure and thread-safe; meant for the
      * worker step of a decide-async system (it samples the climate noise).
      * <p>
-     * The decision follows TFC: it reads only the climate's rain at the calendar time, the instant temperature and the
-     * rainfall, never the vanilla rain flag, so {@code /weather rain} alone does not make it RAIN or SNOW (coupling the
-     * vanilla weather to the climate is PAR-CLIM-12). Pass the exact position the TFC caller passes. TFC's own callers
+     * The decision follows TFC: the climate's rain at the calendar time (with the world's weather flag), the instant
+     * temperature and the rainfall, behind the rain level gate ({@link #climateRaining}); in a climate-driven world
+     * {@code /weather rain} changes nothing (the cycle undoes it, PAR-CLIM-12). Pass the exact position the TFC caller passes. TFC's own callers
      * of {@code level.isRainingAt} at c3b4d9536 (vanilla's callers, such as fire, are not listed):
      * <ul>
      *   <li>{@code pos.above()}: barrel ({@code BarrelBlockEntity}:179), firestarter and flint-and-pyrite
@@ -196,7 +274,8 @@ public final class PrecipitationService implements Listener {
      * @param rainReaches {@link #rainReaches} for the position, read on its region thread
      */
     public PrecipitationType precipitationAt(World world, BlockPos pos, boolean rainReaches) {
-        return decide(world.getSeed(), world.getEnvironment() == World.Environment.NORMAL, pos, rainReaches, clock.get());
+        return decide(world.getSeed(), world.getEnvironment() == World.Environment.NORMAL, pos, rainReaches,
+                weatherEnabled(world), clock.get());
     }
 
     /** Vanilla {@code Level.isRainingAt} as TFC makes it: rain (not snow) falls at the position. Thread-safe. */

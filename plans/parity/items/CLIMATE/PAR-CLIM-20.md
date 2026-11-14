@@ -2,7 +2,7 @@
 id: PAR-CLIM-20
 title: "Climate weather cycle follow-up: in-game check (local rain per player), itest weather.cycle, PrecipitationService honours the weather flag"
 area: CLIMATE
-status: open
+status: done
 wave: 14
 deps: [PAR-CLIM-12]
 size: S
@@ -25,6 +25,7 @@ plan:
   - "Moved from PAR-CLIM-12 (2026-11-14): PAR-CLIM-12 built and unit-tested the cycle (core/weather/cycle, paper/weather/cycle: ClimateWeatherCycle, VanillaWeatherGates, WeatherCycleModule); its worker had no headless-client session to run, and the case file and PrecipitationService are outside its files."
   - "itest `weather.cycle` case (WeatherCycleCase, add it to SelfTestSuite): on the self-test world, force two calendar ticks through CalendarService.skip (one in a climate rain window, one outside), wait one sync (20 ticks) and assert World.hasStorm() follows ClimateWeatherCycle.target, and that the weather rule reads false."
   - "PrecipitationService.decide reads `services().get(ClimateWeatherCycle.class).map(c -> c.enabled(world))` (TFC: rainIntensity = isWeatherEnabled ? getRain : -1) so snow, HUD, barrel, drinking and firestarter see no rain with the flag off; add vanilla's `level.isRaining()` gate (rain level above 0.2; on Paper: World.hasStorm() as the closest server-side reading) now that the climate drives the vanilla rain (ledger row 'TFC answers Level.isRainingAt ...'). Update the ledger rows 'isWeatherEnabled' and 'TFC answers Level.isRainingAt'."
+  - "Done (2026-11-14): PrecipitationService.decide applies the world's weather flag (weatherEnabled: the module's ClimateWeatherCycle, found in ModuleServices once enabled; true for worlds the cycle does not drive and without the module) and vanilla's isRaining gate from the lazy rain level (climateRaining, WeatherCycle.levelsAt) instead of World.hasStorm(), which lags the climate by up to a sync and broke weather.precip_sample in the vanilla-terrain self-test world. PrecipitationServiceWeatherFlagTest (5 tests); itest weather.cycle (runs its own ClimateWeatherCycle over the vanilla-terrain self-test world) PASSED on Paper and Folia 1.21.11; in-game check docs/verification/PAR-CLIM-20/verdict.md (pass). Snow/ice and the flag: follow-up PAR-CLIM-21 (SnowService is outside this item's files)."
 tests:
   - "itest: `weather.cycle` case (storm state at two forced calendar ticks)"
   - "paper: PrecipitationServiceWeatherFlagTest (flag off gives NONE at a wet site in a rain window)"

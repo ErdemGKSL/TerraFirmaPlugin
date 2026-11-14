@@ -153,7 +153,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-CLIM-05 | Seasonal grass tint: decide band resolution and make the colour change visible | CLIMATE | 14 | blocked |
 | PAR-CLIM-13 | TFC time command completion: `/tfp time set` dayLength, monthLength, rain and clear, and the calendar tick rate | CLIMATE | 14 | blocked |
 | PAR-CLIM-19 | Snow catch-up in-game verification: snow piles on plants, ice on a pool and the July melt from one room | CLIMATE | 14 | open |
-| PAR-CLIM-20 | Climate weather cycle follow-up: in-game check (local rain per player), itest weather.cycle, PrecipitationService honours the weather flag | CLIMATE | 14 | open |
+| PAR-CLIM-20 | Climate weather cycle follow-up: in-game check (local rain per player), itest weather.cycle, PrecipitationService honours the weather flag | CLIMATE | 14 | done |
 | PAR-HEAT-07 | Firepit GUI: fuel slots, input, outputs, temperature bar | HEAT | 14 | open |
 | PAR-HEAT-10 | Torches: burnout to dead torch, relight, wall torches | HEAT | 14 | open |
 | PAR-HEAT-18 | Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start) | HEAT | 14 | open |
@@ -167,6 +167,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-HEAT-08 | Grill on firepit: placement, five slots, cooking, GUI | HEAT | 15 | open |
 | PAR-HEAT-09 | Cooking pot on firepit: boiling, soups and jams, pot fluid, GUI | HEAT | 15 | open |
 | PAR-HEAT-11 | Candles, candle cakes and jack-o'-lanterns: burnout, lighting, carving | HEAT | 15 | open |
+| PAR-CLIM-21 | Snow and ice stop with the weather flag off (SnowService live step and catch-up), as TFC onTickChunk | CLIMATE | 15 | open |
 | PAR-CLIM-14 | Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute | CLIMATE | 16 | open |
 | PAR-HEAT-12 | Firebox, stove and stove pot | HEAT | 16 | open |
 | PAR-PHYS-01 | TFC falling blocks: canFallThrough, landing, damage | PHYS | 16 | open |
