@@ -1,0 +1,11 @@
+[15:16:33 INFO]: Thread RCON Client /127.0.0.1 started
+[15:16:33 ERROR]: Could not pass event TimeSkipEvent to TerraFirmaPlugin v0.1.0-SNAPSHOT
+java.lang.NoSuchMethodError: 'org.bukkit.event.world.TimeSkipEvent$SkipReason org.bukkit.event.world.TimeSkipEvent.getSkipReason()'
+	at TerraFirmaPlugin-0.1.0-SNAPSHOT.jar//dev.tfp.paper.calendar.CalendarModule.onTimeSkip(CalendarModule.java:213) ~[?:?]
+	at org.bukkit.plugin.RegisteredListener.callEvent(RegisteredListener.java:71) ~[paper-api-26.3.build.244-stable.jar:?]
+	at io.papermc.paper.plugin.manager.PaperEventManager.callEvent(PaperEventManager.java:52) ~[paper-26.3.jar:26.3-244-35a2d15]
+	at io.papermc.paper.plugin.manager.PaperPluginManagerImpl.callEvent(PaperPluginManagerImpl.java:131) ~[paper-26.3.jar:26.3-244-35a2d15]
+	at org.bukkit.plugin.SimplePluginManager.callEvent(SimplePluginManager.java:627) ~[paper-api-26.3.build.244-stable.jar:?]
+	at org.bukkit.event.Event.callEvent(Event.java:45) ~[paper-api-26.3.build.244-stable.jar:?]
+	at net.minecraft.server.commands.TimeCommand.moveToTimeMarker(TimeCommand.java:247) ~[paper-26.3.jar:26.3-244-35a2d15]
+	at net.minecraft.server.commands.TimeCommand.setTimeToTimeMarker(TimeCommand.java:225) ~[paper-26.3.jar:26.3-244-35a2d15]

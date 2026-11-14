@@ -1,0 +1,16 @@
+[15:06:19 INFO]: [TfpSpikeS2] [S2] dig start BRICKS at 1186,120,215 by Bot tool=AIR instabreak=false
+[15:06:19 INFO]: [TfpSpikeS2] [S2] stage -1 progress 0.0 at 1186,120,215 tick 8389
+[15:06:19 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[15:06:19 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.stone.hit volume=0.25 pitch=0.5 to Bot cancelled=false
+[15:06:20 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[15:06:20 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.stone.hit volume=0.25 pitch=0.5 to Bot cancelled=false
+[15:06:20 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[15:06:20 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.stone.hit volume=0.25 pitch=0.5 to Bot cancelled=false
+[15:06:20 INFO]: [TerraFirmaPlugin] [tfp-sound] SET minecraft:block.stone.hit 0.5/0.5 -> 0.25/0.5 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847)
+[15:06:20 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.stone.hit volume=0.25 pitch=0.5 to Bot cancelled=false
+[15:06:20 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.nether_wart.break volume=1.0 pitch=0.8 to Bot cancelled=false
+[15:06:20 INFO]: [TfpSpikeS2] [S2] break tfp:firepit[axis=x,lit=false,smoke_level=0] at 1186,120,215 by Bot tool=AIR ticks=13 mode=SURVIVAL
+[15:06:20 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.nether_wart.break volume=1.0 pitch=0.8 to Viewer cancelled=false
+[15:06:20 INFO]: [TerraFirmaPlugin] [tfp-sound] DROP minecraft:block.nether_wart.break 1.0/0.8 -> 0.0/0.0 to Bot (bb19ef2f-2f95-39a8-8bad-bda3ed373847) (cancelled; a MONITOR listener may still log it)
+[15:06:20 INFO]: [TfpSpikeS2] [S2] sound minecraft:block.nether_wart.break volume=1.0 pitch=0.8 to Bot cancelled=true
+[15:06:20 INFO]: [TfpSpikeS2] [S2] dig abort at 1186,120,215 by Bot
