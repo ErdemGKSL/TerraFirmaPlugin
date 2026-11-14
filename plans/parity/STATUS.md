@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 353 items; open 201, done 144, blocked 8; waves 1..56 (wave 0 = already done).
+Totals: 354 items; open 201, done 145, blocked 8; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -161,6 +161,7 @@ Totals: 353 items; open 201, done 144, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | done |
 | PAR-INFRA-49 | Block coverage gate: every TFC blockstate is a loaded CE block, a family block, an owned id of a named parity item or an NP entry (reports/tfc-block-coverage.json) | INFRA | 14 | done |
 | PAR-INFRA-50 | Feature item tooltips no item owns: item-list contents of sealed device items, crucible contents, fertilized egg and hatch day, javelin thrown damage, pan deposit, flower cutting, lamp fluid, glass batch steps | INFRA | 14 | open |
+| PAR-INFRA-54 | Datagen summary counts CraftEngine block states (ce_states) and the hitbox report lists hide mappings sorted | INFRA | 14 | done |
 | PAR-PROC-18 | Powderkeg | PROC | 14 | done |
 | PAR-PROC-36 | Salad completion: salad screen art, eating and tooltip read the salad's own food data, in-game check | PROC | 14 | done |
 | PAR-PROC-37 | Log pile, burning log pile and charcoal pile CE blocks: hitbox rows and demands, configuration/charcoal, support rule, in-game check | PROC | 14 | done |
