@@ -22,6 +22,7 @@ files_owned:
   - "docs/verification/PAR-HEAT-06/**"
 ui: true
 in_game_steps:
+  - "op Bot (the `tfp debug` tree needs op and a player sender: run the debug commands from client chat; the device readout is `/tfp debug device` while looking at the block, not `/tfp device`)"
   - "tfp debug place tfp:firepit[lit=false]; drop 3 sticks and an oak log on a grass block and light them with a firestarter (or `tfp debug place` then right-click an oak log into it and light it)"
   - "right-click the lit firepit with ce item give Bot tfp:food/beef"
   - "tfp time add hours 1"

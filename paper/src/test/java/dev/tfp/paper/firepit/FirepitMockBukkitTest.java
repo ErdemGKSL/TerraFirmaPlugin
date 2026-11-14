@@ -339,6 +339,9 @@ class FirepitMockBukkitTest extends MockServerTest {
         clock.addAndGet(100); // cooled to 0: the shovel no longer douses
         assertThat(click(new ItemStack(Material.IRON_SHOVEL))).isTrue();
         assertThat(effects.doused).hasSize(2);
+        // the stand-in leaves a cold shovel alone: no heat capacity, so it stays in hand and the input stays empty
+        assertThat(slot(FirepitSim.SLOT_ITEM_INPUT).getType()).isEqualTo(Material.AIR);
+        assertThat(player.getInventory().getItemInMainHand().getType()).isEqualTo(Material.IRON_SHOVEL);
     }
 
     @Test
