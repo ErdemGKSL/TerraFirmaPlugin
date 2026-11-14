@@ -58,15 +58,23 @@ import java.util.regex.Pattern;
  * ({@code lightLevel(litBlockEmission(15))}, read by {@link #litLight}: 15 when lit, 0 otherwise). The grill and the pot
  * are written the same way ({@link #spec}).
  *
- * <p>The output is {@code craftengine/tfp/devices/firepit.yml}, outside the CraftEngine {@code configuration/} folder, so
- * CraftEngine does not load it yet. The same holds for the family data, see {@link FruitFamilies}. The behaviour
- * (fuel, temperature, the block entity, the placed block) is not in this entry.
+ * <p><b>Outputs.</b> {@code craftengine/tfp/devices/firepit.yml} is the literal spec without the behaviour, outside
+ * {@code configuration/}, so CraftEngine does not load it (the firepit-family fixture {@code DeviceSpecParityTest}
+ * checks). {@link #loadedYaml} is the entry CraftEngine is to load at {@link #LOADED_OUTPUT} (PAR-HEAT-06): the same spec
+ * through the device template {@code tfp:block/device}, which adds the {@code tfp:device} behaviour, so the placed block
+ * routes to the firepit device kind ({@code paper/firepit}). Writing it is PAR-HEAT-19.
  */
 final class Firepit {
     static final String SOURCE = "src/main/java/net/dries007/tfc/common/blocks/devices/FirepitBlock.java";
     static final String PROPERTIES = "src/main/java/net/dries007/tfc/common/blocks/TFCBlockStateProperties.java";
     static final String BLOCKSTATE = TfcCheckout.ASSETS + "blockstates/firepit.json";
     static final String OUTPUT = AssetPipeline.PACK + "devices/firepit.yml";
+    /**
+     * PAR-HEAT-06: where the loaded entry goes ({@link #loadedYaml}, template {@code tfp:block/device} with the
+     * {@code tfp:device} behaviour). Not written yet: a firepit in {@code configuration/} changes the fixture expectations
+     * of {@code DatagenTest} (its {@code non_occluding} list), a file outside PAR-HEAT-06; PAR-HEAT-19 switches it on.
+     */
+    static final String LOADED_OUTPUT = AssetPipeline.PACK + "configuration/devices/firepit.yml";
     static final String BLOCK_ID = Json.TO_NS + ":firepit";
 
     /** The properties of the TFC blockstate, which has a variant for each of their combinations. */
@@ -92,8 +100,22 @@ final class Firepit {
         List<DeviceProperty> props = props(tfc);
         List<Map<String, String>> states = DeviceBlockSpec.combinations(props);
         checkAgainstTfc(tfc, states);
-        out.put(OUTPUT, DeviceYaml.writeLiteral(spec(tfc, BLOCK_ID, props)));
+        DeviceBlockSpec spec = spec(tfc, BLOCK_ID, props);
+        out.put(OUTPUT, DeviceYaml.writeLiteral(spec));
         return states.size();
+    }
+
+    /**
+     * PAR-HEAT-06: the firepit spec with the {@code tfp:device} behaviour, so the block routes to the firepit device kind.
+     * Everything else (states, carriers, TFC's settings, loot and lit light) is the spec's.
+     */
+    static String loadedYaml(TfcCheckout tfc) {
+        return DeviceYaml.writeTemplated(loaded(spec(tfc, BLOCK_ID, props(tfc))));
+    }
+
+    static DeviceBlockSpec loaded(DeviceBlockSpec spec) {
+        return new DeviceBlockSpec(spec.id(), spec.properties(), spec.appearances(), spec.variants(), spec.settings(),
+            spec.loot(), true, spec.blockItemLangKey(), spec.renderItems(), spec.stateMappings());
     }
 
     /**

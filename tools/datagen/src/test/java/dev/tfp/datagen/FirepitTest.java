@@ -58,6 +58,38 @@ class FirepitTest {
         assertEntry(new String(out.get(Firepit.OUTPUT), StandardCharsets.UTF_8), 4);
     }
 
+    /**
+     * PAR-HEAT-06: the loaded entry under {@code configuration/devices/} calls the device template (settings and the
+     * {@code tfp:device} behaviour) with TFC's settings, keeps TFC's loot and the twenty states of the literal entry.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    void loadedEntryCallsTheDeviceTemplateWithTheSameStates() throws IOException {
+        Path root = checkout();
+        writeFirepit(root, 4, DEFINITION, allVisualVariants());
+        OutputTree out = new OutputTree();
+        Firepit.run(TfcCheckout.open(root, PIN), out);
+
+        assertThat(Firepit.LOADED_OUTPUT).isEqualTo(AssetPipeline.PACK + "configuration/devices/firepit.yml");
+        String literal = new String(out.get(Firepit.OUTPUT), StandardCharsets.UTF_8);
+        assertThat(out.get(Firepit.LOADED_OUTPUT)).as("switched on by PAR-HEAT-19").isNull();
+        String loaded = Firepit.loadedYaml(TfcCheckout.open(root, PIN));
+        Map<?, ?> block = (Map<?, ?>) ((Map<?, ?>) ((Map<?, ?>) CeYamlCheck.parse(loaded, Firepit.LOADED_OUTPUT))
+            .get("blocks")).get(Firepit.BLOCK_ID);
+        Map<?, ?> literalBlock = (Map<?, ?>) ((Map<?, ?>) ((Map<?, ?>) CeYamlCheck.parse(literal, Firepit.OUTPUT))
+            .get("blocks")).get(Firepit.BLOCK_ID);
+        assertThat(block.keySet().stream().map(String::valueOf).toList())
+            .containsExactly("template", "arguments", "loot", "states");
+        assertThat(block.get("template")).isEqualTo("tfp:block/device");
+        Map<String, Object> args = (Map<String, Object>) block.get("arguments");
+        assertThat(args).containsEntry("device_hardness", 0.4).containsEntry("device_resistance", 0.4)
+            .containsEntry("device_tool_tag", "minecraft:mineable/pickaxe")
+            .containsEntry("device_sound_break", "minecraft:block.nether_wart.break");
+        assertThat(block.get("states")).isEqualTo(literalBlock.get("states"));
+        assertThat(block.get("loot")).isEqualTo(literalBlock.get("loot"));
+        assertThat(literal).as("the unloaded fixture keeps no behaviour").doesNotContain("tfp:device");
+    }
+
     @Test
     void fixtureStatesFollowTheDefinitionAndTheSmokeRangeOfTheSource() throws IOException {
         Path root = checkout();

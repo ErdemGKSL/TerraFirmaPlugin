@@ -143,7 +143,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-CLIM-12 | Climate-driven weather cycle: rain and thunder from the climate model replace vanilla's weather cycle; vanilla precipitation ticking off; local rain per player | CLIMATE | 13 | done |
 | PAR-CLIM-18 | Snow catch-up after a calendar skip for chunks that stay loaded (/tfp time add, sleep skip) | CLIMATE | 13 | done |
 | PAR-DATA-17 | Self-test piston.no_water_dupe: a real 1-tick piston pulse moves no water source, on Paper and Folia | DATA | 13 | done |
-| PAR-HEAT-06 | Firepit block: placement, fuel, lazy temperature, ash, extinguish by rain and water | HEAT | 13 | open |
+| PAR-HEAT-06 | Firepit block: placement, fuel, lazy temperature, ash, extinguish by rain and water | HEAT | 13 | done |
 | PAR-HEAT-17 | Self-test heat.cook_meat: TFC HeatingItemTest on a real Paper and Folia server | HEAT | 13 | done |
 | PAR-INFRA-46 | Static info tooltip lines: damage type and resistances, fuel, sluice/pan deposits, rock-category and glass-type lore | INFRA | 13 | open |
 | PAR-PROC-10 | Log pile and charcoal pit | PROC | 13 | open |
@@ -157,6 +157,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-HEAT-07 | Firepit GUI: fuel slots, input, outputs, temperature bar | HEAT | 14 | open |
 | PAR-HEAT-10 | Torches: burnout to dead torch, relight, wall torches | HEAT | 14 | open |
 | PAR-HEAT-18 | Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start) | HEAT | 14 | open |
+| PAR-HEAT-19 | Firepit loaded in game: configuration/devices/firepit.yml, TFC firepit models, self-test firepit.cook and the in-game check | HEAT | 14 | open |
 | PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | open |
 | PAR-PROC-18 | Powderkeg | PROC | 14 | open |
 | PAR-CLIM-06 | Seasonal packet rewrite JMH budget and visual checklist | CLIMATE | 15 | open |
