@@ -311,6 +311,11 @@ class PowderkegMockBukkitTest extends MockServerTest {
         assertThat(record().nonEmptySlots()).hasSize(1);
     }
 
+    /**
+     * The boom callback stands in for {@code World.createExplosion}, which fires the explode event while the explosion
+     * runs; the callback therefore calls {@code filter} on the instance under construction, reached through a holder
+     * that is filled right after the constructor returns (a lambda cannot capture {@code blasts} itself).
+     */
     @Test
     void blastsLightKegsInTheBlockListAndFilterTheKegsOwnExplosionByTfcsTags() {
         Block other = world.getBlockAt(5, 64, 0);
