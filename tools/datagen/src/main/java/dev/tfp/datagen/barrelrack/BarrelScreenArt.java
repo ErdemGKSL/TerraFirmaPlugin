@@ -142,6 +142,8 @@ public final class BarrelScreenArt {
         for (int fill = 1; fill <= TANK_HEIGHT; fill++) {
             out.put(RP + "models/item/gui/barrel_tank/" + fill + ".json", Json.write(tankModel(fill)));
         }
+        out.put(RP + "items/render/barrel_fluid.json", Json.write(surfaceDefinition()));
+        out.put(RP + "models/item/render/barrel_fluid.json", Json.write(surfaceModel()));
         return images.size();
     }
 
@@ -272,6 +274,55 @@ public final class BarrelScreenArt {
         display.add("gui", gui);
         JsonObject m = new JsonObject();
         m.addProperty("gui_light", "front");
+        m.add("textures", textures);
+        m.add("elements", elements);
+        m.add("display", display);
+        return m;
+    }
+
+    // ---- PAR-PROC-35: the in-world fluid surface ------------------------------------------------------------
+
+    /** The item model of the barrel's fluid surface display (the plugin's {@code PaperBarrelEffects.SURFACE_MODEL}). */
+    public static final String SURFACE_ITEM_MODEL = "tfp:render/barrel_fluid";
+    public static final String SURFACE_MODEL = "tfp:item/render/barrel_fluid";
+
+    /** {@code items/render/barrel_fluid.json}: the plane, tinted with custom model data colour 0. */
+    static JsonObject surfaceDefinition() {
+        JsonObject tint = new JsonObject();
+        tint.addProperty("type", "minecraft:custom_model_data");
+        tint.addProperty("index", 0);
+        tint.addProperty("default", -1);
+        JsonArray tints = new JsonArray();
+        tints.add(tint);
+        JsonObject model = new JsonObject();
+        model.addProperty("type", "minecraft:model");
+        model.addProperty("model", SURFACE_MODEL);
+        model.add("tints", tints);
+        JsonObject root = new JsonObject();
+        root.add("model", model);
+        return root;
+    }
+
+    /**
+     * TFC {@code RenderHelpers.renderFluidFace}: one upward face of the fluid's still sprite. Here a unit plane at model
+     * y 8 (the display's origin with the fixed transform at scale 1), which the display scales to TFC's rectangle and
+     * raises to its height.
+     */
+    static JsonObject surfaceModel() {
+        JsonObject faces = new JsonObject();
+        faces.add("up", face("#fluid", 0, 0, 16, 16, 0));
+        JsonArray elements = new JsonArray();
+        elements.add(element(0, 8, 0, 16, 8, 16, faces));
+        JsonObject textures = new JsonObject();
+        textures.addProperty("fluid", FLUID_TEXTURE);
+        textures.addProperty("particle", FLUID_TEXTURE);
+        JsonObject fixed = new JsonObject();
+        fixed.add("rotation", nums(0, 0, 0));
+        fixed.add("translation", nums(0, 0, 0));
+        fixed.add("scale", nums(1, 1, 1));
+        JsonObject display = new JsonObject();
+        display.add("fixed", fixed);
+        JsonObject m = new JsonObject();
         m.add("textures", textures);
         m.add("elements", elements);
         m.add("display", display);

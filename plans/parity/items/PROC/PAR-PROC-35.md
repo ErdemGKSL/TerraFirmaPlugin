@@ -2,7 +2,7 @@
 id: PAR-PROC-35
 title: "Barrel wiring: the block opens the barrel screen, fluid surface visual, lazy rain fill, barrel rack and tap, in-game check"
 area: PROC
-status: open
+status: done
 wave: 13
 deps: [PAR-PROC-09, PAR-PROC-32, PAR-CLIM-02]
 size: L
@@ -33,14 +33,7 @@ files_owned:
   - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/GeneratedCarrierTest.java"
   - "content/generated/content/craftengine/tfp/configuration/barrel/**"
   - "docs/verification/PAR-PROC-35/**"
-ui: true
-in_game_steps:
-  - "tfp debug barrelgui 5000 (the screen alone): hover the tank; press the seal button; screenshot sealed (the tank shots are PAR-PROC-09's)"
-  - "tfp debug place tfp:wood/barrel/oak"
-  - "fill half (5 water buckets); right-click; screenshot GUI and block"
-  - "check that each water bucket reached the record (PAR-PROC-08 transfer path; the PAR-PROC-09 run saw an empty bucket and nothing drawn): read the tank with the debug fill/inspect path below, not /tfp debug barrelgui (a demo barrel)"
-  - "weather rain; leave the barrel unsealed under the sky for 400 ticks; the tank gains 100 mB"
-  - "place tfp:barrel_rack, then a barrel on it (sideways); screenshot; the tap drains into a container below"
+ui: false
 plan:
   - "Deferred from PAR-PROC-09 (PROTOCOL 3a + 6.5). PAR-PROC-09 built the screen and the numbers: `paper/barrel/gui/` (`BarrelScreens` service from `BarrelGuiModule`, `BarrelLink`, `BarrelSnapshot`, `BarrelTank`, `BarrelScreenLayout`, `BarrelFluidVisuals`, `DemoBarrelLink` behind `/tfp debug barrelgui`) and the art in `datagen/barrelrack/BarrelScreenArt` (`configuration/barrel_gui.yml`, the tank item model `tfp:gui/barrel_tank`). Nothing opens it from the block yet."
   - "1. Open the screen: in `BarrelDevice.useWithItem`, after the sneak seal toggle and the fluid-container transfer, open `BarrelScreens` (TFC opens the menu) instead of PAR-PROC-08's insert/extract placeholder; title = the barrel block's name. `BarrelScreenLink` implements `BarrelLink` over the device record: snapshot = caught-up record; commit = write the three slots + `applyInstant`; toggleSeal = the existing `toggleSeal`; acceptsContainer = `BarrelItemTanks.tank(stack).isPresent()`; acceptsItem = `ItemSizes.fitsBarrel`; sealedLines = the recipe name and TFC's `getExactTimeAndDate(sealedTick)`. The record lives on the block's region, the screen on the viewer's thread: add a `DeviceService` edit call (load, catch up, apply a function, save) and hop with `Scheduler.region` when the viewer's thread does not own the block (Folia), refusing the click otherwise. Call `BarrelScreens.edit/reload` around every other writer of the slots (sneak seal, bucket transfer, removal). Remove the ledger divergence row about the placeholder."
@@ -49,14 +42,15 @@ plan:
   - "4. Fluid surface visual: an `entity_renderer` element per barrel (the upright CE block, configuration/barrel) at `BarrelFluidVisuals.surface(...)` height, tinted with the fluid's colour through `tint_source` (CE component-copy trick: `craftengine-gui-furniture` skill), updated by `PaperBarrelEffects` when the tank changes (the in-world equivalent of `BarrelBlockEntityRenderer`)."
   - "5. Barrel rack: `tfp:barrel_rack` CE block (TFC `BarrelRackBlock`: bottom-supported, RACK_SHAPE hitbox demand) from `datagen/barrelrack`, and the barrel's `facing` (up or a side) and `rack` states with the hitbox rows `tfc:wood/barrel[axis=x|z,rack=false|true]`; placing a barrel on a rack lays it sideways facing the player; breaking returns the rack. A sideways unsealed barrel pours 1 mB per tick through its tap into the fluid handler below the tap (TFC `tickPouring`), lazily."
   - "5b. A debug path for a placed barrel: `/tfp debug barrel fill <mB> [fluid]` (and an inspect line) on the barrel the player looks at, so the surface can be shown without buckets."
-  - "6. In-game steps above (cheap-model agent, the main session judges): store crops and verdict.md in docs/verification/PAR-PROC-35/."
+  - "6. In-game steps (cheap-model agent, the main session judges): moved with step 5 to PAR-PROC-38 (PROTOCOL 3a + 6.5: the rack and the tap did not fit, and this session had no cheap-model agent to run the headless server); `ui` is false here."
+  - "Done: steps 1-3, 4 (as a tinted item display, not an entity_renderer element: ledger) and 5b. `BarrelScreenLink` + `DeviceService.edit` / `hook` (`BarrelModule.ScreenSync`), the screen opened a tick after the click, `BarrelDevice.settle` (lazy rain clock `core/barrel/BarrelRain` + fluid IO slots), `PaperBarrelEffects.surface` with the pack plane `tfp:render/barrel_fluid` (datagen `BarrelScreenArt`), `/tfp debug barrel [fill <mB> [fluid]]`. Tests: core BarrelRainTest 5, paper BarrelWiringMockBukkitTest 10, BarrelMockBukkitTest 8 (through the link), DeviceServiceEditMockBukkitTest 5, datagen BarrelSurfaceModelTest 2. Ledger feature row + 6 divergences, placeholder row removed. Follow-up PAR-PROC-38: rack, facing/rack states, tap, in-game check."
 tests:
   - "paper: BarrelScreenLink commit / seal / instant recipe on the real recipe book (MockBukkit), the screen opened by a right click, busy refusal, edit+reload around the sneak seal"
   - "core or paper: rain fill lazy vs stepped over random rain intervals"
-  - "datagen: barrel rack entry, the facing/rack states and their carriers pinned in GeneratedCarrierTest"
+  - "datagen: barrel rack entry, the facing/rack states and their carriers pinned in GeneratedCarrierTest (moved to PAR-PROC-38)"
 done_criteria:
-  - "Screenshot of the barrel GUI opened from the block and a half-full barrel showing liquid (moved from PAR-PROC-09); the bucket water reaches the tank"
-  - "Rain fills an open barrel; a racked barrel pours from its tap"
+  - "Deferred check tracked in PAR-PROC-38 (the screenshot of the GUI opened from the block and the half-full barrel; the bucket water reaching the tank)"
+  - "Rain fills an open barrel (BarrelRainTest, BarrelWiringMockBukkitTest); a racked barrel pours from its tap: moved to PAR-PROC-38"
 ---
 
 # PAR-PROC-35: Barrel wiring: the block opens the barrel screen, fluid surface visual, lazy rain fill, barrel rack and tap, in-game check

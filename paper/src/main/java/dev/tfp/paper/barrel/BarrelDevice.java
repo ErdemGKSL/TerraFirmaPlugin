@@ -5,16 +5,19 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/blocks/devices/BarrelBlock.java @ c3b4d9536 (toggleSeal, useItemOn: sneak with
- * an empty hand toggles the seal, a fluid container transfers; attack: the drum note with a wooden rod),
+ * an empty hand toggles the seal, a fluid container transfers, anything else opens the menu; attack: the drum note with a
+ * wooden rod),
  * file: src/main/java/net/dries007/tfc/common/blocks/devices/SealableDeviceBlock.java @ c3b4d9536 (beforeRemove),
  * file: src/main/java/net/dries007/tfc/common/blockentities/BarrelBlockEntity.java @ c3b4d9536 (SLOT_FLUID_CONTAINER_IN,
- * SLOT_FLUID_CONTAINER_OUT, SLOT_ITEM, isItemValid, onSeal, onUnseal, onCalendarUpdate, serverTick, ejectInventory),
+ * SLOT_FLUID_CONTAINER_OUT, SLOT_ITEM, isItemValid, onSeal, onUnseal, onCalendarUpdate, serverTick: updateFluidIOSlots and
+ * the rain fill, ejectInventory),
  * file: src/main/java/net/dries007/tfc/common/fluids/FluidHelpers.java @ c3b4d9536 (with: the held container's update)
  */
 package dev.tfp.paper.barrel;
 
 import dev.tfp.core.barrel.BarrelData;
 import dev.tfp.core.barrel.BarrelFluidTransfer;
+import dev.tfp.core.barrel.BarrelRain;
 import dev.tfp.core.barrel.BarrelSimulation;
 import dev.tfp.core.device.DeviceRecord;
 import dev.tfp.core.device.ItemBlob;
@@ -32,6 +35,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import org.bukkit.GameMode;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -41,16 +45,18 @@ import org.bukkit.inventory.ItemStack;
  * for every {@code tfp:wood/barrel/<wood>} block.
  *
  * <p>Slots: TFC's three ({@link #SLOT_FLUID_CONTAINER_IN}, {@link #SLOT_FLUID_CONTAINER_OUT}, {@link #SLOT_ITEM}) and
- * {@link #EXCESS_SLOTS} slots for TFC's excess list. The tank, the seal and TFC's ticks are the record's
+ * {@link #EXCESS_SLOTS} slots for TFC's excess list. The tank, the seal, TFC's ticks and the rain clock are the record's
  * {@link BarrelData}; the block state's {@code sealed} property follows the record.
  *
  * <p>Right click with {@link DeviceHandler#useWithItem}, in TFC's order: sneaking with an empty hand toggles the seal; a held
- * fluid container (TFC's buckets, jugs, glass bottles, the vanilla buckets) transfers with the tank. Until the barrel GUI
- * (PAR-PROC-09) exists, any other held item goes into the item slot and an empty hand takes it out (TFC opens the GUI);
- * a sealed barrel accepts nothing. Instant recipes run right after the change that makes them match.
+ * fluid container (TFC's buckets, jugs, glass bottles, the vanilla buckets) transfers with the tank; anything else opens the
+ * barrel screen (PAR-PROC-35, {@link Screens}), where the three slots are edited ({@link BarrelScreenLink}). Instant
+ * recipes run right after the change that makes them match.
  *
  * <p>Lazy: the kind's catch-up ({@link #advance}) settles the sealed recipes from the record's last tick with
- * {@link BarrelSimulation}, so every callback, and the removal drop, sees the barrel as of now. Nothing ticks.
+ * {@link BarrelSimulation}, so every callback, and the removal drop, sees the barrel as of now. Every access that sees the
+ * world (a click, the open screen, {@code /tfp debug barrel}) also {@link #settle}s TFC's fluid IO slots and the rain fill
+ * ({@link BarrelRain}). Nothing ticks.
  */
 public final class BarrelDevice {
     /** The kind id: covers {@code tfp:wood/barrel/<wood>}. */
@@ -67,6 +73,29 @@ public final class BarrelDevice {
     /** NeoForge {@code Tags.Items.RODS_WOODEN}. */
     public static final String RODS_WOODEN = "c:rods/wooden";
 
+    /** TFC {@code level.isRainingAt(pos.above())} for a barrel; region thread of the barrel. */
+    @FunctionalInterface
+    public interface Rain {
+        boolean rainingAbove(Block barrel);
+
+        /** Never raining (tests, no precipitation service). */
+        Rain NONE = barrel -> false;
+    }
+
+    /** TFC {@code serverPlayer.openMenu(barrel)}: opens the barrel screen for a player. */
+    @FunctionalInterface
+    public interface Screens {
+        /**
+         * Called on the barrel's region thread from the click, before the click's record is stored; an implementation
+         * opens the screen on the player's thread one tick later.
+         */
+        void open(Player player, Block block, String blockId);
+
+        /** No screen (tests, the barrel GUI module disabled): the click does nothing. */
+        Screens NONE = (player, block, blockId) -> {
+        };
+    }
+
     /**
      * What the device reads from the rest of the plugin.
      *
@@ -74,14 +103,23 @@ public final class BarrelDevice {
      * @param fits    TFC {@code isItemValid(SLOT_ITEM)}: not huge and very heavy ({@code ItemSizes.fitsBarrel})
      * @param rod     whether a stack is a wooden rod
      * @param effects the world effects
+     * @param rain    the rain at the block above
+     * @param screens opens the barrel screen
      */
     public record Services(BarrelRecipeBook book, Predicate<ItemStack> fits, Predicate<ItemStack> rod,
-            BarrelEffects effects) {
+            BarrelEffects effects, Rain rain, Screens screens) {
         public Services {
             Objects.requireNonNull(book, "book");
             Objects.requireNonNull(fits, "fits");
             Objects.requireNonNull(rod, "rod");
             Objects.requireNonNull(effects, "effects");
+            Objects.requireNonNull(rain, "rain");
+            Objects.requireNonNull(screens, "screens");
+        }
+
+        /** No rain, no screen. */
+        public Services(BarrelRecipeBook book, Predicate<ItemStack> fits, Predicate<ItemStack> rod, BarrelEffects effects) {
+            this(book, fits, rod, effects, Rain.NONE, Screens.NONE);
         }
     }
 
@@ -156,6 +194,128 @@ public final class BarrelDevice {
         return write(record, data.withRecipeTick(p.recipeTick()), p.contents(), stacks);
     }
 
+    // ---- PAR-PROC-35: the access-time settle ------------------------------------------------------------
+
+    /**
+     * What an access that sees the world does to the caught-up record before anything else: the rain fill up to
+     * {@code now} ({@link BarrelRain#settle}, {@code raining} read at the block above), then TFC's fluid IO slots
+     * ({@code updateFluidIOSlots}: a container in the fluid-in slot transfers with the tank when the fluid-out slot is empty,
+     * and the result lands in fluid-out), then the instant recipes that change enables. Every barrel is upright until the
+     * barrel rack (PAR-PROC-38) adds the facing.
+     */
+    static DeviceRecord<BarrelData> settle(DeviceRecord<BarrelData> record, long now, boolean raining, Block block,
+            Services services, StackCodec stacks) {
+        BarrelData before = record.state();
+        BarrelData data = BarrelRain.settle(before, now, raining, true, services.book().capacity());
+        DeviceRecord<BarrelData> next = data.equals(before) ? record : record.withState(data);
+        if (data.sealed()) {
+            return next;
+        }
+        BarrelContents contents = contents(next, stacks);
+        BarrelContents io = fluidIo(contents, services, block);
+        if (io == contents) {
+            if (!data.fluid().equals(before.fluid())) {
+                // the rain changed the tank: an instant recipe may match now
+                BarrelContents after = instant(block, contents, services);
+                return after.equals(contents) ? next : write(next, data, after, stacks);
+            }
+            return next;
+        }
+        return write(next, data, instant(block, io, services), stacks);
+    }
+
+    /** TFC {@code updateFluidIOSlots} once (it repeats every 5 ticks, but after one move the fluid-out slot is full). */
+    static BarrelContents fluidIo(BarrelContents contents, Services services, Block block) {
+        ItemStack in = contents.containerIn();
+        if (StackCodec.isEmpty(in) || !StackCodec.isEmpty(contents.containerOut())) {
+            return contents;
+        }
+        Optional<BarrelFluidTransfer.ItemTank> tank = services.book().tanks().tank(in);
+        if (tank.isEmpty()) {
+            return contents;
+        }
+        BarrelRecipeBook.Session session = services.book().session();
+        Optional<BarrelFluidTransfer.Result> moved = BarrelFluidTransfer.transfer(contents.fluid(), false, session::usable,
+            services.book().capacity(), tank.get());
+        if (moved.isEmpty()) {
+            return contents;
+        }
+        BarrelFluidTransfer.Result r = moved.get();
+        ItemStack container = services.book().tanks().withContent(in, r.item());
+        ItemStack rest;
+        if (in.getAmount() > 1) {
+            // a new container was produced: it goes out, the rest of the stack stays in
+            rest = in.clone();
+            rest.setAmount(in.getAmount() - 1);
+        } else {
+            rest = ItemStack.empty();
+        }
+        services.effects().transfer(block, r.moved(), r.direction() == FluidTransferRules.BlockTransfer.FILL_ITEM);
+        return contents.withFluid(r.barrel()).withContainers(rest, container);
+    }
+
+    /** The instant recipes after a change of the contents (TFC {@code needsInstantRecipeUpdate}). */
+    static BarrelContents instant(Block block, BarrelContents contents, Services services) {
+        Optional<BarrelRecipeBook.Applied> applied = services.book().session().applyInstant(contents);
+        if (applied.isEmpty()) {
+            return contents;
+        }
+        services.effects().recipe(block, applied.get().sound());
+        return applied.get().contents();
+    }
+
+    /**
+     * TFC {@code toggleSeal}: {@code onUnseal} or {@code onSeal}, the block state, the sounds. {@code record} is settled.
+     */
+    static DeviceRecord<BarrelData> toggleSeal(DeviceRecord<BarrelData> record, long now, Block block, String blockId,
+            Services services, StackCodec stacks) {
+        BarrelData data = record.state();
+        BarrelContents contents = contents(record, stacks);
+        BarrelRecipeBook.Session session = services.book().session();
+        BarrelData next;
+        BarrelContents after;
+        if (data.sealed()) {
+            // onUnseal: the ticks cleared, then the current recipe's on_unseal
+            next = data.unsealed();
+            BarrelRecipeView recipe = session.select(contents);
+            after = recipe == null ? contents : session.onUnsealed(recipe, contents);
+        } else {
+            // onSeal: the container slots are dropped, then the recipe's on_seal, which starts at the seal tick
+            for (ItemStack s : List.of(contents.containerIn(), contents.containerOut())) {
+                if (!StackCodec.isEmpty(s)) {
+                    services.effects().spawn(block, s);
+                }
+            }
+            after = contents.withContainers(ItemStack.empty(), ItemStack.empty());
+            BarrelRecipeView recipe = session.select(after);
+            if (recipe != null) {
+                after = session.onSealed(recipe, after, now);
+            }
+            next = data.sealedAt(now, recipe != null);
+        }
+        services.effects().sealed(block, state(blockId, next.sealed()), next.sealed());
+        return write(record, next, instant(block, after, services), stacks);
+    }
+
+    /**
+     * The three slots as a screen left them (TFC's slot callbacks: {@code setAndUpdateSlots}), then the fluid IO slots
+     * and the instant recipes. {@code record} is settled and unsealed.
+     */
+    static DeviceRecord<BarrelData> withSlots(DeviceRecord<BarrelData> record, ItemStack in, ItemStack out, ItemStack item,
+            Block block, Services services, StackCodec stacks) {
+        BarrelContents contents = contents(record, stacks).withContainers(in, out).withMain(item);
+        BarrelContents io = fluidIo(contents, services, block);
+        return write(record, record.state(), instant(block, io, services), stacks);
+    }
+
+    /** After a write: the fluid surface follows the tank and the seal. */
+    static void surface(Block block, BarrelData before, BarrelData after, Services services) {
+        if (before.sealed() != after.sealed() || !before.fluid().equals(after.fluid())) {
+            services.effects().surface(block, after.sealed() ? FluidAmount.EMPTY : after.fluid(),
+                services.book().capacity());
+        }
+    }
+
     // ---- the handler ----------------------------------------------------------------------------------
 
     private record Handler(Services services) implements DeviceHandler<BarrelData> {
@@ -166,33 +326,40 @@ public final class BarrelDevice {
                 return DeviceResult.pass();
             }
             ItemStack stack = ctx.item();
-            DeviceRecord<BarrelData> record = ctx.record();
+            BarrelData original = ctx.record().state();
+            DeviceRecord<BarrelData> record = settle(ctx.record(), ctx.now(), services.rain().rainingAbove(ctx.block()),
+                ctx.block(), services, ctx.stacks());
+            DeviceRecord<BarrelData> result = click(ctx, player, stack, record);
+            surface(ctx.block(), original, result.state(), services);
+            return DeviceResult.consume(result);
+        }
+
+        private DeviceRecord<BarrelData> click(DeviceContext<BarrelData> ctx, Player player, ItemStack stack,
+                DeviceRecord<BarrelData> record) {
             BarrelData data = record.state();
-            BarrelContents contents = contents(record, ctx.stacks());
-            BarrelRecipeBook.Session session = services.book().session();
             if (StackCodec.isEmpty(stack) && player.isSneaking()) {
-                return DeviceResult.consume(toggleSeal(ctx, data, contents, session));
+                return toggleSeal(record, ctx.now(), ctx.block(), ctx.state().id(), services, ctx.stacks());
             }
-            if (data.sealed()) {
-                return DeviceResult.consume(); // TFC: canModify is false; the GUI (PAR-PROC-09) would open
-            }
-            Optional<BarrelFluidTransfer.ItemTank> tank = services.book().tanks().tank(stack);
-            if (tank.isPresent()) {
-                Optional<BarrelFluidTransfer.Result> moved = BarrelFluidTransfer.transfer(contents.fluid(), false,
-                    session::usable, services.book().capacity(), tank.get());
-                if (moved.isPresent()) {
-                    BarrelFluidTransfer.Result r = moved.get();
-                    ItemStack container = services.book().tanks().withContent(stack, r.item());
-                    updateHand(player, ctx.hand(), stack, container);
-                    services.effects().transfer(ctx.block(), r.moved(),
-                        r.direction() == FluidTransferRules.BlockTransfer.FILL_ITEM);
-                    return DeviceResult.consume(changed(ctx, data, contents.withFluid(r.barrel()), session));
+            if (!data.sealed()) {
+                Optional<BarrelFluidTransfer.ItemTank> tank = services.book().tanks().tank(stack);
+                if (tank.isPresent()) {
+                    BarrelContents contents = contents(record, ctx.stacks());
+                    Optional<BarrelFluidTransfer.Result> moved = BarrelFluidTransfer.transfer(contents.fluid(), false,
+                        services.book().session()::usable, services.book().capacity(), tank.get());
+                    if (moved.isPresent()) {
+                        BarrelFluidTransfer.Result r = moved.get();
+                        ItemStack container = services.book().tanks().withContent(stack, r.item());
+                        updateHand(player, ctx.hand(), stack, container);
+                        services.effects().transfer(ctx.block(), r.moved(),
+                            r.direction() == FluidTransferRules.BlockTransfer.FILL_ITEM);
+                        return write(record, data, instant(ctx.block(), contents.withFluid(r.barrel()), services),
+                            ctx.stacks());
+                    }
                 }
             }
-            if (!StackCodec.isEmpty(stack)) {
-                return insert(ctx, data, contents, stack, session);
-            }
-            return extract(ctx, data, contents, session);
+            // TFC: serverPlayer.openMenu(barrel), also while sealed (the screen locks the slots then)
+            services.screens().open(player, ctx.block(), ctx.state().id());
+            return record;
         }
 
         /** TFC {@code BarrelBlock.attack}: a sealed barrel hit with a wooden rod sounds its fill level. */
@@ -218,94 +385,7 @@ public final class BarrelDevice {
             if (!data.fluid().isEmpty()) {
                 services.effects().spilled(ctx.block(), data.fluid());
             }
-        }
-
-        /** TFC {@code toggleSeal}: {@code onUnseal} or {@code onSeal}, the block state, the sounds. */
-        private DeviceRecord<BarrelData> toggleSeal(DeviceContext<BarrelData> ctx, BarrelData data, BarrelContents contents,
-                BarrelRecipeBook.Session session) {
-            long now = ctx.now();
-            BarrelData next;
-            BarrelContents after;
-            if (data.sealed()) {
-                // onUnseal: the ticks cleared, then the current recipe's on_unseal
-                next = data.unsealed();
-                BarrelRecipeView recipe = session.select(contents);
-                after = recipe == null ? contents : session.onUnsealed(recipe, contents);
-            } else {
-                // onSeal: the container slots are dropped, then the recipe's on_seal, which starts at the seal tick
-                for (ItemStack s : List.of(contents.containerIn(), contents.containerOut())) {
-                    if (!StackCodec.isEmpty(s)) {
-                        services.effects().spawn(ctx.block(), s);
-                    }
-                }
-                after = contents.withContainers(ItemStack.empty(), ItemStack.empty());
-                BarrelRecipeView recipe = session.select(after);
-                if (recipe != null) {
-                    after = session.onSealed(recipe, after, now);
-                }
-                next = data.sealedAt(now, recipe != null);
-            }
-            services.effects().sealed(ctx.block(), state(ctx.state().id(), next.sealed()), next.sealed());
-            return written(ctx, next, instant(ctx, after, session));
-        }
-
-        /** The item slot takes the held stack (TFC's GUI slot; filter {@code isItemValid}). */
-        private DeviceResult<BarrelData> insert(DeviceContext<BarrelData> ctx, BarrelData data, BarrelContents contents,
-                ItemStack stack, BarrelRecipeBook.Session session) {
-            if (!services.fits().test(stack)) {
-                return DeviceResult.consume();
-            }
-            ItemStack main = contents.main();
-            int limit = Math.min(64, stack.getMaxStackSize());
-            int room;
-            if (StackCodec.isEmpty(main)) {
-                room = limit;
-            } else if (main.isSimilar(stack)) {
-                room = Math.max(0, limit - main.getAmount());
-            } else {
-                room = 0;
-            }
-            int put = Math.min(room, stack.getAmount());
-            if (put <= 0) {
-                return DeviceResult.consume();
-            }
-            ItemStack next = stack.clone();
-            next.setAmount((StackCodec.isEmpty(main) ? 0 : main.getAmount()) + put);
-            ItemStack left = stack.clone();
-            left.setAmount(stack.getAmount() - put);
-            ctx.player().getInventory().setItem(ctx.hand(), left.getAmount() <= 0 ? null : left);
-            return DeviceResult.consume(changed(ctx, data, contents.withMain(next), session));
-        }
-
-        /** An empty hand takes the item slot (then the excess moves in on the next catch-up, as TFC's next tick). */
-        private DeviceResult<BarrelData> extract(DeviceContext<BarrelData> ctx, BarrelData data, BarrelContents contents,
-                BarrelRecipeBook.Session session) {
-            ItemStack main = contents.main();
-            if (StackCodec.isEmpty(main)) {
-                return DeviceResult.consume();
-            }
-            give(ctx.player(), main);
-            return DeviceResult.consume(changed(ctx, data, contents.withMain(ItemStack.empty()), session));
-        }
-
-        /** After a change of the contents: the instant recipes, then the record. */
-        private DeviceRecord<BarrelData> changed(DeviceContext<BarrelData> ctx, BarrelData data, BarrelContents contents,
-                BarrelRecipeBook.Session session) {
-            return written(ctx, data, instant(ctx, contents, session));
-        }
-
-        private BarrelContents instant(DeviceContext<BarrelData> ctx, BarrelContents contents,
-                BarrelRecipeBook.Session session) {
-            Optional<BarrelRecipeBook.Applied> applied = session.applyInstant(contents);
-            if (applied.isEmpty()) {
-                return contents;
-            }
-            services.effects().recipe(ctx.block(), applied.get().sound());
-            return applied.get().contents();
-        }
-
-        private DeviceRecord<BarrelData> written(DeviceContext<BarrelData> ctx, BarrelData data, BarrelContents contents) {
-            return write(ctx.record(), data, contents, ctx.stacks());
+            services.effects().surface(ctx.block(), FluidAmount.EMPTY, services.book().capacity());
         }
     }
 

@@ -34,6 +34,13 @@ public interface BarrelEffects {
     /** TFC {@code ejectInventory}: an unsealed barrel holding fluid was broken (the splash). */
     void spilled(Block block, FluidAmount fluid);
 
+    /**
+     * PAR-PROC-35, TFC {@code BarrelBlockEntityRenderer}: the fluid surface shows {@code fluid} ({@link FluidAmount#EMPTY}
+     * hides it: an empty, sealed or removed barrel) in a tank of {@code capacity} mB.
+     */
+    default void surface(Block block, FluidAmount fluid, int capacity) {
+    }
+
     /** Effects that do nothing (tests). */
     BarrelEffects NONE = new BarrelEffects() {
         @Override

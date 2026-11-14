@@ -9,6 +9,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.tfp.core.barrel.BarrelData;
 import dev.tfp.core.barrel.BarrelRules;
+import dev.tfp.core.clock.GlobalClockHolder;
+import dev.tfp.paper.i18n.Messages;
 import dev.tfp.core.device.DeviceRecord;
 import dev.tfp.core.food.FoodConfig;
 import dev.tfp.core.food.FoodState;
@@ -99,18 +101,38 @@ class BarrelMockBukkitTest extends MockServerTest {
         service = new DeviceService(new DeviceKinds(), blocks, () -> store, clock::get, stacks, data.items,
             Logger.getLogger("test"));
         BarrelRecipeBook book = new BarrelRecipeBook(data.recipes, data.tanks(), BarrelRules.DEFAULT_CAPACITY);
-        service.register(BarrelDevice.kind(new BarrelDevice.Services(book, s -> true,
-            s -> s.getType() == Material.STICK, effects), stacks));
+        BarrelDevice.Services services = new BarrelDevice.Services(book, s -> true,
+            s -> s.getType() == Material.STICK, effects);
+        DeviceKind<BarrelData> kind = service.register(BarrelDevice.kind(services, stacks));
         barrel = world.getBlockAt(0, 64, 0);
         blocks.place(barrel, BarrelDevice.state(OAK, false), true);
         store.data.put(FakeCustomBlocks.at(barrel), new DataMap());
         player = server.addPlayer();
+        link = new BarrelScreenLink(new BarrelScreenLink.Env(service, kind, services, stacks, new BarrelTestScheduler(),
+            Messages.fromJar(), new GlobalClockHolder()), barrel, OAK);
+    }
+
+    private BarrelScreenLink link;
+
+    /** PAR-PROC-35: the item slot is edited in the barrel screen (TFC's GUI slot), here through its link. */
+    private void put(ItemStack stack) {
+        BarrelContents c = contents();
+        assertThat(link.commit(List.of(c.containerIn(), c.containerOut(), stack))).isPresent();
+    }
+
+    /** The viewer takes the item slot out of the screen. */
+    private ItemStack take() {
+        BarrelContents c = contents();
+        ItemStack main = c.main();
+        assertThat(link.commit(List.of(c.containerIn(), c.containerOut(), ItemStack.empty()))).isPresent();
+        return main;
     }
 
     @SuppressWarnings("unchecked")
     private DeviceRecord<BarrelData> record() {
         DeviceKind<BarrelData> kind = (DeviceKind<BarrelData>) service.kinds().find(OAK).orElseThrow();
-        return kind.codec().decode(store.read(barrel).orElseThrow());
+        DataMap stored = store.read(barrel).orElseThrow();
+        return stored.size() == 0 ? kind.fresh() : kind.codec().decode(stored);
     }
 
     private BarrelContents contents() {
@@ -172,7 +194,9 @@ class BarrelMockBukkitTest extends MockServerTest {
         assertThat(ItemFluids.content(held()).isEmpty()).as("the bucket is empty").isTrue();
 
         hold(meat(4));
-        assertThat(click()).as("meat goes into the item slot").isTrue();
+        assertThat(click()).as("anything else opens the screen (no screen service here)").isTrue();
+        assertThat(contents().mainEmpty()).isTrue();
+        put(meat(4));
         assertThat(contents().main().getAmount()).isEqualTo(4);
 
         toggleSeal();
@@ -197,16 +221,10 @@ class BarrelMockBukkitTest extends MockServerTest {
         toggleSeal();
         assertThat(record().state().sealed()).isFalse();
         assertThat(record().state().recipeTick()).isEqualTo(BarrelRules.NO_TICK);
-        hold(null);
-        assertThat(click()).as("an empty hand takes the meat").isTrue();
-        ItemStack out = null;
-        for (ItemStack s : player.getInventory().getContents()) {
-            if (s != null && s.getType() == Material.BEEF) {
-                out = s;
-            }
-        }
-        assertThat(out).isNotNull();
+        ItemStack out = take();
+        assertThat(out.getType()).isEqualTo(Material.BEEF);
         assertThat(traits(out)).containsExactly(FoodTrait.BRINED);
+        assertThat(contents().mainEmpty()).isTrue();
     }
 
     @Test
@@ -214,8 +232,7 @@ class BarrelMockBukkitTest extends MockServerTest {
         // brined meat in vinegar: pickled after the duration, then preserved_in_vinegar's on_seal adds the vinegar trait
         hold(woodenBucket("tfp:vinegar", 1000));
         click();
-        hold(meat(2, FoodTrait.BRINED));
-        click();
+        put(meat(2, FoodTrait.BRINED));
         toggleSeal();
         clock.addAndGet(100_000);
         service.catchUp(barrel);
@@ -232,8 +249,7 @@ class BarrelMockBukkitTest extends MockServerTest {
     void sealingPickledMeatInVinegarAppliesTheOnSealTrait() {
         hold(woodenBucket("tfp:vinegar", 1000));
         click();
-        hold(meat(3, FoodTrait.BRINED, FoodTrait.PICKLED));
-        click();
+        put(meat(3, FoodTrait.BRINED, FoodTrait.PICKLED));
         toggleSeal();
         assertThat(traits(contents().main())).contains(FoodTrait.VINEGAR);
         clock.addAndGet(1_000_000);
@@ -244,15 +260,14 @@ class BarrelMockBukkitTest extends MockServerTest {
 
     @Test
     void aSealedBarrelTakesNoFluidAndGivesNoItem() {
-        hold(meat(1));
-        click();
+        put(meat(1));
         toggleSeal();
         hold(woodenBucket("tfp:brine", 1000));
         assertThat(click()).as("consumed, nothing moves (TFC opens the GUI)").isTrue();
         assertThat(record().state().fluid().isEmpty()).isTrue();
         assertThat(ItemFluids.content(held())).isEqualTo(new FluidAmount("tfp:brine", 1000));
-        hold(null);
-        click();
+        assertThat(link.commit(List.of(ItemStack.empty(), ItemStack.empty(), ItemStack.empty())))
+            .as("a sealed barrel refuses the screen's copy: the screen gives it back and closes").isEmpty();
         assertThat(contents().main().getAmount()).isEqualTo(1);
     }
 
@@ -263,12 +278,10 @@ class BarrelMockBukkitTest extends MockServerTest {
         assertThat(record().state().fluid()).isEqualTo(new FluidAmount("minecraft:water", 1000));
         assertThat(held().getType()).as("the vanilla bucket comes back empty").isEqualTo(Material.BUCKET);
 
-        hold(data.items.create("tfp:powder/lime", 1).orElseThrow());
-        click();
+        put(data.items.create("tfp:powder/lime", 1).orElseThrow());
         assertThat(record().state().fluid()).as("1 lime for 1000 mB: fewer items than fluid multiples, no recipe")
             .isEqualTo(new FluidAmount("minecraft:water", 1000));
-        hold(data.items.create("tfp:powder/lime", 1).orElseThrow());
-        click();
+        put(data.items.create("tfp:powder/lime", 2).orElseThrow());
         assertThat(record().state().fluid()).isEqualTo(new FluidAmount("tfp:limewater", 1000));
         assertThat(contents().mainEmpty()).as("both lime used").isTrue();
         assertThat(sounds).containsExactly(BarrelRecipeView.DEFAULT_SOUND);
@@ -317,7 +330,9 @@ class BarrelMockBukkitTest extends MockServerTest {
         hold(woodenBucket("tfp:salt_water", 900));
         click();
         hold(jug("tfp:vinegar", 100));
-        assertThat(click()).as("the jug cannot pour vinegar into salt water, so it goes into the item slot").isTrue();
+        assertThat(click()).as("the jug cannot pour vinegar into salt water: the screen opens").isTrue();
+        assertThat(record().state().fluid()).isEqualTo(new FluidAmount("tfp:salt_water", 900));
+        put(jug("tfp:vinegar", 100)); // into the item slot
         BarrelContents c = contents();
         assertThat(c.fluid()).as("900 salt water + 100 vinegar").isEqualTo(new FluidAmount("tfp:brine", 1000));
         assertThat(ItemFluids.content(c.main()).isEmpty()).as("the jug is drained").isTrue();

@@ -116,6 +116,8 @@ public final class DeviceService implements DeviceRouter {
     };
     private volatile Consumer<Block> indexer = block -> {
     };
+    /** PAR-PROC-35: the access hooks per kind id ({@link #hook}). */
+    private final Map<String, AccessHook> hooks = new ConcurrentHashMap<>();
     /** Monotonic nanos (tests replace it). */
     LongSupplier nanos = System::nanoTime;
 
@@ -240,6 +242,7 @@ public final class DeviceService implements DeviceRouter {
             logger.log(Level.SEVERE, "Device " + blockId + " at " + world.getName() + " " + x + "," + y + "," + z
                     + ": removal failed; its contents may be lost", e);
         }
+        hookAfter(kind.get(), world.getBlockAt(x, y, z));
     }
 
     private <S> void removed(World world, int x, int y, int z, BlockStateRef state, DeviceKind<S> kind, DataMap data) {
@@ -338,6 +341,94 @@ public final class DeviceService implements DeviceRouter {
         return kind.codec().encode(kind.codec().fromBytes(bytes).withLastUpdateTick(now));
     }
 
+    // ---- PAR-PROC-35: edits from outside a callback, access hooks -------------------------------------
+
+    /** A change of a device record outside a routed callback ({@link #edit}). */
+    @FunctionalInterface
+    public interface Edit<S> {
+        /**
+         * @param record the record caught up to {@code now}
+         * @param now    player ticks of this edit
+         * @return the record to store (the same one for none)
+         */
+        DeviceRecord<S> apply(DeviceRecord<S> record, long now);
+    }
+
+    /**
+     * PAR-PROC-35: what a kind does around every other access to one of its devices, so a view kept outside the record
+     * (an open screen's copy of the slots) stays in step: {@link #before} runs before the record is loaded for a click or
+     * a neighbour update (commit the view), {@link #after} after it was stored, or after the device was removed (reload
+     * the view). Both run on the block's region thread; their failures are logged, never thrown.
+     */
+    public interface AccessHook {
+        default void before(Block block) {
+        }
+
+        default void after(Block block) {
+        }
+    }
+
+    /** Installs {@code hook} for the devices of {@code kindId} (one per kind; a later one replaces it). */
+    public AutoCloseable hook(String kindId, AccessHook hook) {
+        Objects.requireNonNull(kindId, "kindId");
+        Objects.requireNonNull(hook, "hook");
+        hooks.put(kindId, hook);
+        return () -> hooks.remove(kindId, hook);
+    }
+
+    private void hookBefore(DeviceKind<?> kind, Block block) {
+        AccessHook h = hooks.get(kind.id());
+        if (h != null) {
+            try {
+                h.before(block);
+            } catch (RuntimeException e) {
+                logger.log(Level.WARNING, "Device " + kind.id() + ": access hook failed", e);
+            }
+        }
+    }
+
+    private void hookAfter(DeviceKind<?> kind, Block block) {
+        AccessHook h = hooks.get(kind.id());
+        if (h != null) {
+            try {
+                h.after(block);
+            } catch (RuntimeException e) {
+                logger.log(Level.WARNING, "Device " + kind.id() + ": access hook failed", e);
+            }
+        }
+    }
+
+    /**
+     * PAR-PROC-35: loads the device of {@code kind} at {@code block}, catches it up, applies {@code change} and stores the
+     * result (a screen's commit, a debug fill). Runs no access hook. Region thread of {@code block}.
+     *
+     * @return the stored record, empty when {@code block} is not a readable device of {@code kind} or the change failed
+     */
+    public <S> Optional<DeviceRecord<S>> edit(Block block, DeviceKind<S> kind, Edit<S> change) {
+        Objects.requireNonNull(kind, "kind");
+        Objects.requireNonNull(change, "change");
+        Optional<KindAt> at = kindAt(block);
+        if (at.isEmpty() || !at.get().kind().id().equals(kind.id())) {
+            return Optional.empty();
+        }
+        try {
+            Loaded<S> loaded = load(block, kind);
+            if (loaded == null) {
+                return Optional.empty();
+            }
+            long now = playerTicks.getAsLong();
+            DeviceRecord<S> record = CatchUp.apply(loaded.record(), now, kind.advance()).record();
+            DeviceRecord<S> next = Objects.requireNonNull(change.apply(record, now), "edit returned null");
+            save(block, loaded, next);
+            index(block);
+            return Optional.of(next);
+        } catch (RuntimeException e) {
+            logger.log(Level.SEVERE, "Device " + kind.id() + " at " + block.getWorld().getName() + " " + block.getX()
+                    + "," + block.getY() + "," + block.getZ() + ": edit failed", e);
+            return Optional.empty();
+        }
+    }
+
     // ---- inspection --------------------------------------------------------------------------------
 
     /** The device at {@code block} as stored, without catching it up. Empty for a block that is no device kind. */
@@ -389,12 +480,20 @@ public final class DeviceService implements DeviceRouter {
             }
             return false;
         }
+        boolean hooked = op == Op.USE || op == Op.NEIGHBOUR;
+        if (hooked) {
+            hookBefore(at.get().kind(), block);
+        }
         try {
             return route(block, at.get().state(), at.get().kind(), player, hand, item, op);
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "Device " + at.get().state() + " at " + block.getWorld().getName() + " "
                     + block.getX() + "," + block.getY() + "," + block.getZ() + ": " + op + " failed", e);
             return false;
+        } finally {
+            if (hooked) {
+                hookAfter(at.get().kind(), block);
+            }
         }
     }
 
