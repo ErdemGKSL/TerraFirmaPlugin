@@ -137,7 +137,7 @@ Totals: 335 items; open 212, done 120, blocked 3; waves 1..56 (wave 0 = already 
 | PAR-HEAT-05 | Fire starting: firestarter use-duration, flint and pyrite, StartFireEvent world rules | HEAT | 12 | done |
 | PAR-HEAT-15 | Item bar config key: item-bars.heat in config.yml and TfpConfig, read on /tfp reload | HEAT | 12 | blocked |
 | PAR-HEAT-16 | Item heat of list ingredients: metal tools and parts (item_heat parts_*) cannot be heated | HEAT | 12 | done |
-| PAR-PROC-09 | Barrel GUI, fluid level visual, rain fill, barrel rack | PROC | 12 | open |
+| PAR-PROC-09 | Barrel GUI, fluid level visual, rain fill, barrel rack | PROC | 12 | done |
 | PAR-PROC-34 | Composter CE block: tfc:composter hitbox rows and demands, configuration/compost, in-game check | PROC | 12 | open |
 | PAR-CLIM-04 | Snow piles, ice piles, icicles and sea ice as CraftEngine blocks | CLIMATE | 13 | open |
 | PAR-CLIM-12 | Climate-driven weather cycle: rain and thunder from the climate model replace vanilla's weather cycle; vanilla precipitation ticking off; local rain per player | CLIMATE | 13 | open |
