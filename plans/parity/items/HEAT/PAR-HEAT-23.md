@@ -41,6 +41,7 @@ plan:
   - "Spec: four appearances (`lit_x`, `lit_z`, `unlit_x`, `unlit_z`) chosen by lit and axis in DeviceSpecs.firepitFamily (or a firepit-only factory; the grill and the pot keep two), `model:` on each; the z ones use a rotated copy of TFC's model (y 90, written by datagen next to the copied one, never by hand). Firepit.VISUAL_PROPERTIES already names lit and axis."
   - "TFC draws the fuel logs (firepit_log_1..4 per fuel state) with FirepitBlockEntityRenderer; that is not part of this item: record it as a divergence (or a follow-up with an entity_renderer element) once the model look is in."
   - "Run the in-game steps above (headless client, PROTOCOL 6) and store the crops and verdict in docs/verification/PAR-HEAT-19/."
+  - "Pending from PAR-HEAT-20 (PROTOCOL 6.5, its reviews of 85c731d): with the lit model in place, light a fuelled firepit in game, right-click it and capture the firepit screen opened from the lit block at GUI scale 2 and 3 with the thermometer indicator above the cold frame and hovered (heat text). The PAR-HEAT-20 runs could not light it (a firestarter set vanilla fire, a vanilla flint and steel did nothing), so the moving indicator is shown only on the debug screen (docs/verification/PAR-HEAT-07/verdict.md); store the capture there."
 tests:
   - "datagen: the four firepit carriers are distinct MODEL assignments with TFC's models; the written appearances name them"
 done_criteria:

@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 355 items; open 202, done 145, blocked 8; waves 1..56 (wave 0 = already done).
+Totals: 356 items; open 203, done 145, blocked 8; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -188,6 +188,7 @@ Totals: 355 items; open 202, done 145, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-PHYS-01 | TFC falling blocks: canFallThrough, landing, damage | PHYS | 16 | open |
 | PAR-WORLD-01 | Rendered region and river maps compared with TFC | WORLD | 16 | open |
 | PAR-WORLD-02 | Bukkit biome binding and climate call sites on the real chunk data | WORLD | 16 | open |
+| PAR-INFRA-56 | GUI button tooltips without the size/weight line: ItemSizeTooltipContributor skips items with the tfp:gui_button marker (firepit thermometer, pot, grill, barrel, powderkeg, knapping, tabs) | INFRA | 16 | open |
 | PAR-HEAT-24 | Grill loaded in game: configuration/devices/grill.yml, TFC grill models, the grill screen art and the in-game grill check | HEAT | 17 | open |
 | PAR-INFRA-36 | Verify falling ores keep their face overlays in game (collapse and falling rich ore) | INFRA | 17 | open |
 | PAR-PHYS-02 | Collapse runner: mining triggers collapses decided async, applied as falling blocks | PHYS | 17 | open |
