@@ -56,6 +56,29 @@ class GrillTest {
         FirepitTest.assertEntry(new String(out.get(Grill.OUTPUT), StandardCharsets.UTF_8), 4, Grill.BLOCK_ID, Grill.OUTPUT);
     }
 
+    /** PAR-HEAT-08: the loaded entry is the literal spec through {@code tfp:block/device}; run does not write it yet. */
+    @Test
+    @SuppressWarnings("unchecked")
+    void loadedEntryCallsTheDeviceTemplateWithTheSameStatesAndLoot() {
+        TfcCheckout tfc = FirepitTest.realCheckout();
+        OutputTree out = new OutputTree();
+        Grill.run(tfc, out);
+        assertThat(Grill.LOADED_OUTPUT).isEqualTo(AssetPipeline.PACK + "configuration/devices/grill.yml");
+        assertThat(out.get(Grill.LOADED_OUTPUT)).as("written by PAR-HEAT-24").isNull();
+        String literal = new String(out.get(Grill.OUTPUT), StandardCharsets.UTF_8);
+        String loaded = Grill.loadedYaml(tfc);
+        java.util.Map<?, ?> block = (java.util.Map<?, ?>) ((java.util.Map<?, ?>) ((java.util.Map<?, ?>) CeYamlCheck.parse(loaded, Grill.LOADED_OUTPUT))
+            .get("blocks")).get(Grill.BLOCK_ID);
+        java.util.Map<?, ?> literalBlock = (java.util.Map<?, ?>) ((java.util.Map<?, ?>) ((java.util.Map<?, ?>) CeYamlCheck.parse(literal, Grill.OUTPUT))
+            .get("blocks")).get(Grill.BLOCK_ID);
+        assertThat(block.get("template")).isEqualTo("tfp:block/device");
+        java.util.Map<String, Object> args = (java.util.Map<String, Object>) block.get("arguments");
+        assertThat(args).containsEntry("device_hardness", 0.4).containsEntry("device_tool_tag", "minecraft:mineable/pickaxe");
+        assertThat(block.get("states")).isEqualTo(literalBlock.get("states"));
+        assertThat(block.get("loot")).isEqualTo(literalBlock.get("loot"));
+        assertThat(loaded).contains("tfp:wrought_iron_grill", "tfp:powder/wood_ash");
+    }
+
     @Test
     void fixtureStatesFollowTheInheritedDefinitionAndTheSmokeRangeOfTheSource() throws IOException {
         Path root = checkout();

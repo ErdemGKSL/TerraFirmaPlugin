@@ -30,8 +30,10 @@ import java.util.Map;
  * shared device spec ({@link Firepit#spec}) with TFC's settings, loot (wood ash and {@code tfp:wrought_iron_grill}) and lit light.
  *
  * <p>The output is {@code craftengine/tfp/devices/grill.yml}, outside the CraftEngine {@code configuration/} folder, so
- * CraftEngine does not load it yet. The grill's behaviour (the cooking slots, the block entity, the placed block) is not in
- * this entry.
+ * CraftEngine does not load it yet. {@link #loadedYaml} is the entry CraftEngine is to load at {@link #LOADED_OUTPUT}
+ * (PAR-HEAT-08): the same spec through the device template {@code tfp:block/device}, which adds the {@code tfp:device}
+ * behaviour, so the placed block routes to the grill device kind ({@code paper/grill}). Writing it from {@link #run}, the
+ * TFC grill models and the in-game check are PAR-HEAT-24 (the loaded entry changes the datagen fixture's expectations).
  */
 final class Grill {
     static final String SOURCE = "src/main/java/net/dries007/tfc/common/blocks/devices/GrillBlock.java";
@@ -39,6 +41,8 @@ final class Grill {
     static final String BLOCKSTATE = TfcCheckout.ASSETS + "blockstates/grill.json";
     static final String OUTPUT = AssetPipeline.PACK + "devices/grill.yml";
     static final String BLOCK_ID = Json.TO_NS + ":grill";
+    /** PAR-HEAT-08: where the loaded entry ({@link #loadedYaml}) goes once PAR-HEAT-24 writes it. */
+    static final String LOADED_OUTPUT = AssetPipeline.PACK + "configuration/devices/grill.yml";
 
     private Grill() {
     }
@@ -50,6 +54,14 @@ final class Grill {
         Firepit.checkMultipart(tfc, BLOCKSTATE, states);
         out.put(OUTPUT, DeviceYaml.writeLiteral(Firepit.spec(tfc, BLOCK_ID, props)));
         return states.size();
+    }
+
+    /**
+     * PAR-HEAT-08: the grill spec with the {@code tfp:device} behaviour (template {@code tfp:block/device}), so the block
+     * routes to the grill device kind. States, carriers, TFC's settings, loot and lit light are the spec's.
+     */
+    static String loadedYaml(TfcCheckout tfc) {
+        return DeviceYaml.writeTemplated(Firepit.loaded(Firepit.spec(tfc, BLOCK_ID, props(tfc))));
     }
 
     /** The grill's block state properties: the firepit's, in {@code builder.add} order. */
