@@ -271,7 +271,7 @@ public final class PaperGrillEffects implements GrillEffects {
                 return; // refused: the grill (or what replaced it) stays, nothing is handed out
             }
             atBlock.run();
-            if (!player.isValid() || !scheduler.entity(player, atPlayer, () -> later(block, playerGone))) {
+            if (!scheduler.entity(player, atPlayer, () -> later(block, playerGone))) {
                 playerGone.run();
             }
         });

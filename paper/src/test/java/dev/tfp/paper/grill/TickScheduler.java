@@ -17,6 +17,9 @@ import org.bukkit.entity.Entity;
 /** Test scheduler: entity tasks run now, delayed tasks wait for {@link #runDelayed}, repeating ones for {@link #tick}. */
 public final class TickScheduler implements Scheduler {
     final List<Runnable> delayed = new ArrayList<>();
+    final List<Runnable> regionTasks = new ArrayList<>();
+    /** Entities treated as removed (MockBukkit players cannot be removed). */
+    final java.util.Set<Entity> gone = new java.util.HashSet<>();
     final List<Handle> repeating = new ArrayList<>();
 
     static final class Handle implements TaskHandle {
@@ -44,6 +47,13 @@ public final class TickScheduler implements Scheduler {
         now.forEach(Runnable::run);
     }
 
+    /** Runs the queued region tasks (and those they queue). */
+    public void runRegion() {
+        while (!regionTasks.isEmpty()) {
+            regionTasks.removeFirst().run();
+        }
+    }
+
     /** One run of every live repeating task. */
     public void tick() {
         for (Handle h : new ArrayList<>(repeating)) {
@@ -60,7 +70,7 @@ public final class TickScheduler implements Scheduler {
 
     @Override
     public void region(World world, int chunkX, int chunkZ, Runnable task) {
-        throw new UnsupportedOperationException();
+        regionTasks.add(task);
     }
 
     @Override
@@ -76,6 +86,9 @@ public final class TickScheduler implements Scheduler {
 
     @Override
     public boolean entity(Entity entity, Runnable task, Runnable retired) {
+        if (!entity.isValid() || gone.contains(entity)) {
+            return false; // as Folia's entity scheduler for a removed entity
+        }
         task.run();
         return true;
     }

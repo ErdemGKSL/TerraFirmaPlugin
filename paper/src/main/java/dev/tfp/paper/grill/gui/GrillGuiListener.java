@@ -29,8 +29,8 @@ public final class GrillGuiListener implements Listener {
     }
 
     /**
-     * Before the GUI routes a shift-click from the player inventory (LOW): marks it, so the grill slots refuse
-     * {@code #tfc:firepit_fuel} as TFC's {@code GrillContainer.moveStack} does; cleared at MONITOR.
+     * Runs at LOWEST, before the GUI's own shift-click routing at LOW: marks a shift-click from the player inventory, so
+     * the grill slots refuse {@code #tfc:firepit_fuel} as TFC's {@code GrillContainer.moveStack} does; cleared at MONITOR.
      */
     @EventHandler(priority = EventPriority.LOWEST)
     public void onShift(InventoryClickEvent e) {

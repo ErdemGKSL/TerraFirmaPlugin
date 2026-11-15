@@ -504,6 +504,42 @@ class GrillMockBukkitTest extends MockServerTest {
         assertThat(effects.toFirepit).hasSize(2);
     }
 
+    /** PaperGrillEffects.toFirepit itself: once per block, conversion first, hand-outs only on success, gone player. */
+    @Test
+    void paperTakeOffGatesTheHandOutsOnTheRealConversion() {
+        litFirepit(3);
+        toGrill();
+        TickScheduler scheduler = new TickScheduler();
+        GrillConversion refusing = new GrillConversion(service, blocks,
+            (at, state) -> !state.id().equals(FirepitDevice.ID) && place(at, state), effects);
+        GrillConversion[] use = {refusing};
+        PaperGrillEffects real = new PaperGrillEffects(scheduler, blocks, () -> null, pitEffects, (p, b) -> { },
+            () -> use[0]);
+        List<String> ran = new ArrayList<>();
+        Runnable atBlock = () -> ran.add("block");
+        Runnable atPlayer = () -> ran.add("player");
+        Runnable gone = () -> ran.add("gone");
+
+        assertThat(real.toFirepit(block, player, atBlock, atPlayer, gone)).isTrue();
+        assertThat(real.toFirepit(block, player, atBlock, atPlayer, gone)).as("already queued").isFalse();
+        scheduler.runRegion();
+        assertThat(ran).as("refused: nothing handed out").isEmpty();
+        assertThat(blocks.stateAt(block).orElseThrow().id()).isEqualTo(GrillDevice.ID);
+
+        use[0] = conversion;
+        assertThat(real.toFirepit(block, player, atBlock, atPlayer, gone)).as("queued again after the refusal").isTrue();
+        scheduler.runRegion();
+        assertThat(ran).containsExactly("block", "player");
+        assertThat(blocks.stateAt(block).orElseThrow().id()).isEqualTo(FirepitDevice.ID);
+
+        assertThat(conversion.toGrill(block)).isTrue();
+        ran.clear();
+        assertThat(real.toFirepit(block, player, atBlock, atPlayer, gone)).isTrue();
+        scheduler.gone.add(player); // the player left before the region task ran
+        scheduler.runRegion();
+        assertThat(ran).as("the player left: the grill goes to the block").containsExactly("block", "gone");
+    }
+
     @Test
     void anUnlitGrillGivesItsAshFirstAndTheShovelDousesAWarmOne() {
         litFirepit(1);

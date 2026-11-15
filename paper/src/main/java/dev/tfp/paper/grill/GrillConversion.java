@@ -24,7 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.block.Block;
 
 /**
@@ -40,9 +44,15 @@ import org.bukkit.block.Block;
  *       sound plays, and a neighbour update lets its handler show the state and queue its burn-out callback.</li>
  * </ol>
  *
- * If the new block cannot be placed, the fuel goes back into the old device and nothing else changes.
+ * If the new block cannot be placed, the fuel goes back into the old device and nothing else changes. Every refusal is
+ * logged at FINE with its reason; a placement refused because the target CraftEngine block is not loaded (tfp:grill until
+ * PAR-HEAT-24 writes configuration/devices/grill.yml) is also logged once per id at WARNING, so the silent in-game click
+ * can be told apart from a wrong target.
  */
 public final class GrillConversion {
+    private static final Logger LOG = Logger.getLogger("tfp");
+    private static final Set<String> WARNED = ConcurrentHashMap.newKeySet();
+
     /** Places a custom block state (CraftEngine: removes the old block entity, creates the new one). */
     @FunctionalInterface
     public interface Placer {
@@ -79,8 +89,11 @@ public final class GrillConversion {
         Optional<BlockStateRef> at = blocks.stateAt(block);
         Optional<DeviceKind<FirepitData>> from = kind(fromId);
         Optional<DeviceKind<FirepitData>> to = kind(toId);
-        if (at.isEmpty() || !at.get().id().equals(fromId) || from.isEmpty() || to.isEmpty()) {
-            return false;
+        if (at.isEmpty() || !at.get().id().equals(fromId)) {
+            return refused(block, fromId, toId, "the block is not " + fromId);
+        }
+        if (from.isEmpty() || to.isEmpty()) {
+            return refused(block, fromId, toId, "device kind not registered");
         }
         AtomicReference<DeviceRecord<FirepitData>> taken = new AtomicReference<>();
         Optional<DeviceRecord<FirepitData>> left = devices.edit(block, from.get(), (record, now) -> {
@@ -92,7 +105,7 @@ public final class GrillConversion {
             return out;
         });
         if (left.isEmpty() || taken.get() == null) {
-            return false;
+            return refused(block, fromId, toId, "no device record");
         }
         DeviceRecord<FirepitData> old = taken.get();
         List<ItemBlob> fuel = new ArrayList<>(4);
@@ -105,13 +118,23 @@ public final class GrillConversion {
             .with(FirepitDevice.AXIS, at.get().properties().getOrDefault(FirepitDevice.AXIS, "x"));
         if (!placer.place(block, next)) {
             devices.edit(block, from.get(), (record, now) -> withFuel(record, fuel));
-            return false;
+            if (!blocks.exists(toId) && WARNED.add(toId)) {
+                LOG.warning("grill: cannot turn " + fromId + " into " + toId + ": the CraftEngine block " + toId
+                    + " is not loaded");
+            }
+            return refused(block, fromId, toId, "placement of " + toId + " refused");
         }
         FirepitData moved = GrillSim.converted(data);
         devices.edit(block, to.get(), (record, now) -> withFuel(record.withState(moved), fuel));
         effects.placeSound(block);
         devices.neighbourChanged(block);
         return true;
+    }
+
+    private static boolean refused(Block block, String fromId, String toId, String reason) {
+        LOG.log(Level.FINE, () -> "grill: " + fromId + " -> " + toId + " at " + block.getX() + " " + block.getY() + " "
+            + block.getZ() + " refused: " + reason);
+        return false;
     }
 
     private static DeviceRecord<FirepitData> withFuel(DeviceRecord<FirepitData> record, List<ItemBlob> fuel) {
