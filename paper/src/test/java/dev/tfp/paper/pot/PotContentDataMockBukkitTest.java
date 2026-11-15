@@ -30,6 +30,8 @@ import dev.tfp.paper.device.DeviceKinds;
 import dev.tfp.paper.device.DeviceService;
 import dev.tfp.paper.device.DeviceStore;
 import dev.tfp.paper.device.StackCodec;
+import dev.tfp.paper.firepit.FirepitDevice;
+import dev.tfp.paper.firepit.FirepitEffects;
 import dev.tfp.paper.food.ItemFoodHooks;
 import dev.tfp.paper.heat.ItemHeatHooks;
 import dev.tfp.paper.integration.BlockStateRef;
@@ -74,7 +76,8 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
  * PAR-HEAT-09 on the real datagen output: TFC's 214 pot recipes decode; three vegetables in 1000 mB of water on a hot
  * pot boil into the soup fallback, two servings of vegetable soup with the mixed nutrition of {@link SoupMix}; a bowl
  * takes one serving (the bowl stored on it), the second bowl the other, and the pot is empty after. Also the simple
- * recipe (boiled eggs) and a jam with jars.
+ * recipe (boiled eggs) and a jam with jars; a vanilla water bucket fills the pot; the firepit <-> pot conversion drops
+ * the old device's ash as wood ash.
  */
 class PotContentDataMockBukkitTest extends MockServerTest {
     static final long START = 10_000;
@@ -147,6 +150,7 @@ class PotContentDataMockBukkitTest extends MockServerTest {
 
     static final class Effects implements PotEffects {
         final List<ItemStack> given = new ArrayList<>();
+        final List<ItemStack> spawned = new ArrayList<>();
         final List<Player> screens = new ArrayList<>();
         int toFirepit;
         float hurt;
@@ -166,6 +170,7 @@ class PotContentDataMockBukkitTest extends MockServerTest {
 
         @Override
         public void spawn(Block block, ItemStack stack) {
+            spawned.add(stack);
         }
 
         @Override
@@ -196,8 +201,47 @@ class PotContentDataMockBukkitTest extends MockServerTest {
         }
     }
 
+    /** The firepit's world effects: only the spawned stacks (its removal's ash) are recorded. */
+    static final class PitEffects implements FirepitEffects {
+        final List<ItemStack> spawned = new ArrayList<>();
+
+        @Override
+        public void show(Block block, BlockStateRef state) {
+        }
+
+        @Override
+        public void sound(Block block, Sound sound) {
+        }
+
+        @Override
+        public void smoke(Block block, int smokeLevel) {
+        }
+
+        @Override
+        public void spawn(Block block, ItemStack stack) {
+            spawned.add(stack);
+        }
+
+        @Override
+        public void give(Player player, ItemStack stack) {
+        }
+
+        @Override
+        public void useDouse(Player player, EquipmentSlot hand, Douse douse) {
+        }
+
+        @Override
+        public void callbackIn(Block block, long ticks) {
+        }
+
+        @Override
+        public void breakBlock(Block block) {
+        }
+    }
+
     private final PdcItems items = new PdcItems();
-    private final FakeCustomBlocks blocks = new FakeCustomBlocks().known(PotDevice.ID);
+    private final FakeCustomBlocks blocks = new FakeCustomBlocks().known(PotDevice.ID, PotModule.FIREPIT_ID);
+    private final PitEffects pitEffects = new PitEffects();
     private final MemoryStore store = new MemoryStore();
     private final TableCodec codec = new TableCodec();
     private final Effects effects = new Effects();
@@ -206,6 +250,8 @@ class PotContentDataMockBukkitTest extends MockServerTest {
     private FoodDefinitions foods;
     private DeviceService service;
     private PotDevice device;
+    private FirepitDevice firepit;
+    private PotConversion conversion;
     private Block pot;
     private PlayerMock player;
 
@@ -251,6 +297,21 @@ class PotContentDataMockBukkitTest extends MockServerTest {
             n -> items.create(PotDevice.WOOD_ASH, n).orElseThrow(), () -> items.create(PotDevice.POT_ITEM, 1).orElseThrow(),
             () -> () -> 0L, HeatConfig.DEFAULT, effects), codec);
         service.register(device.kind());
+        firepit = new FirepitDevice(new FirepitDevice.Services(st -> Optional.empty(), st -> false, st -> 0.0,
+            new FirepitDevice.Cooker() {
+                @Override
+                public float recipeTemperature(ItemStack stack) {
+                    return Float.NaN;
+                }
+
+                @Override
+                public Optional<ItemStack> convert(ItemStack heated, float temperature) {
+                    return Optional.empty();
+                }
+            }, st -> FirepitEffects.Douse.NONE, b -> false, b -> true,
+            n -> items.create(PotDevice.WOOD_ASH, n).orElseThrow(), () -> () -> 0L, HeatConfig.DEFAULT, pitEffects), codec);
+        service.register(firepit.kind());
+        conversion = new PotConversion(service, blocks, device.kind(), this::place);
         pot = world.getBlockAt(0, 64, 0);
         blocks.place(pot, BlockStateRef.of(PotDevice.ID).with("lit", "true").with("smoke_level", "0").with("axis", "x"),
             true);
@@ -258,6 +319,21 @@ class PotContentDataMockBukkitTest extends MockServerTest {
         player = server.addPlayer();
         player.teleport(new Location(world, 2.5, 64, 0.5));
         player.setGameMode(GameMode.SURVIVAL);
+    }
+
+    /** CraftEngine replacing a custom block: the old block entity's removal, then a fresh record for the new one. */
+    private boolean place(Block at, BlockStateRef state) {
+        if (!blocks.exists(state.id())) {
+            return false;
+        }
+        Optional<BlockStateRef> old = blocks.stateAt(at);
+        if (old.isPresent()) {
+            DataMap data = store.data.remove(FakeCustomBlocks.at(at));
+            service.removed(at.getWorld(), at.getX(), at.getY(), at.getZ(), old.get().id(), data == null ? new DataMap() : data);
+        }
+        blocks.place(at, state, true);
+        store.data.put(FakeCustomBlocks.at(at), service.created(state.id()).orElse(new DataMap()));
+        return true;
     }
 
     private ItemStack item(String id) {
@@ -374,5 +450,68 @@ class PotContentDataMockBukkitTest extends MockServerTest {
         assertThat(effects.toFirepit).isEqualTo(1);
         assertThat(effects.hurt).isEqualTo(PotDevice.BURN_DAMAGE);
         assertThat(effects.given).singleElement().satisfies(s -> assertThat(items.idOf(s)).contains(PotDevice.POT_ITEM));
+    }
+
+    /** The soup of three vegetables, waiting in a pot that has cooled (so clicks are not refused for boiling). */
+    private void cooledSoup() {
+        fill(new FluidAmount("minecraft:water", 1000), "tfp:food/carrot", "tfp:food/potato", "tfp:food/cabbage");
+        clock.addAndGet(100_000);
+        service.catchUp(pot);
+        assertThat(record().state().hasOutput()).isTrue();
+        service.edit(pot, device.kind(), (r, now) -> r.withState(r.state().withFirepit(FirepitData.FRESH)));
+    }
+
+    @Test
+    void aVanillaWaterBucketFillsThePotAndTheEmptyBucketIsReturned() {
+        click(new ItemStack(Material.WATER_BUCKET));
+        assertThat(record().state().fluid()).isEqualTo(new FluidAmount("minecraft:water", 1000));
+        assertThat(player.getInventory().getItemInMainHand().getType()).isEqualTo(Material.BUCKET);
+    }
+
+    @Test
+    void aWaitingOutputRefusesNewFluid() {
+        cooledSoup();
+        click(new ItemStack(Material.WATER_BUCKET));
+        assertThat(record().state().fluid().isEmpty()).isTrue();
+        assertThat(player.getInventory().getItemInMainHand().getType()).isEqualTo(Material.WATER_BUCKET);
+    }
+
+    @Test
+    void takingSoupInCreativeStillUsesTheBowlAsTfc() {
+        cooledSoup();
+        player.setGameMode(GameMode.CREATIVE);
+        click(new ItemStack(Material.BOWL, 2));
+        assertThat(effects.given).hasSize(1);
+        assertThat(player.getInventory().getItemInMainHand().getAmount()).isEqualTo(1);
+    }
+
+    @Test
+    void aPotOnAFirepitWithAshDropsTheAshAsWoodAsh() {
+        Block pit = pot.getWorld().getBlockAt(4, 64, 0);
+        assertThat(place(pit, BlockStateRef.of(PotModule.FIREPIT_ID).with("lit", "false").with("smoke_level", "0")
+            .with("axis", "z"))).isTrue();
+        service.edit(pit, firepit.kind(), (r, now) -> r.withState(r.state().withAsh(5)));
+        assertThat(conversion.toPot(pit)).isTrue();
+        assertThat(blocks.stateAt(pit).orElseThrow().id()).isEqualTo(PotDevice.ID);
+        assertThat(pitEffects.spawned).singleElement().satisfies(st -> {
+            assertThat(items.idOf(st)).contains(PotDevice.WOOD_ASH);
+            assertThat(st.getAmount()).isEqualTo(5);
+        });
+        assertThat(device.kind().codec().decode(store.read(pit).orElseThrow()).state().firepit().ash()).isZero();
+    }
+
+    @Test
+    void takingALitPotWithAshOffDropsTheAshAsWoodAsh() {
+        fill(new FluidAmount("minecraft:water", 200));
+        service.edit(pot, device.kind(), (r, now) -> r.withState(r.state().withFirepit(r.state().firepit().withAsh(3))));
+        assertThat(conversion.toFirepit(pot)).isTrue();
+        assertThat(blocks.stateAt(pot).orElseThrow().id()).isEqualTo(PotModule.FIREPIT_ID);
+        assertThat(effects.spawned).singleElement().satisfies(st -> {
+            assertThat(items.idOf(st)).contains(PotDevice.WOOD_ASH);
+            assertThat(st.getAmount()).isEqualTo(3);
+        });
+        FirepitData after = firepit.kind().codec().decode(store.read(pot).orElseThrow()).state();
+        assertThat(after.ash()).isZero();
+        assertThat(after.lit()).isTrue();
     }
 }

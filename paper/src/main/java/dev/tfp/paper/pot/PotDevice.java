@@ -379,9 +379,8 @@ public final class PotDevice {
                     taken = takeJam(data.output(), stack);
                 }
                 if (taken.isPresent()) {
-                    if (!creative) {
-                        shrink(player, ctx.hand());
-                    }
+                    // TFC SoupOutput / JamOutput.onInteract: clickedWith.shrink(1) in every game mode (creative too)
+                    shrink(player, ctx.hand());
                     services.effects().give(player, taken.get().item());
                     return finish(ctx, record.withState(data.withOutput(taken.get().after())), true);
                 }
