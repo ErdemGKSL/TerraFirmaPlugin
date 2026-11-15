@@ -48,3 +48,4 @@ dev.tfp.paper.light.TorchModule
 dev.tfp.paper.powderkeg.PowderkegModule
 dev.tfp.paper.charcoal.CharcoalPileSupport$Module
 dev.tfp.paper.grill.GrillModule
+dev.tfp.paper.pot.PotModule

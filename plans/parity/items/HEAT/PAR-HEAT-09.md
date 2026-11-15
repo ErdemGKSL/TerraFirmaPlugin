@@ -2,7 +2,7 @@
 id: PAR-HEAT-09
 title: "Cooking pot on firepit: boiling, soups and jams, pot fluid, GUI"
 area: HEAT
-status: open
+status: done
 wave: 15
 deps: [PAR-HEAT-07, PAR-INFRA-04, PAR-INFRA-13]
 size: M
@@ -28,18 +28,17 @@ files_owned:
   - "core/src/test/java/dev/tfp/core/cooking/Pot*"
   - "core/src/main/java/dev/tfp/core/cooking/SoupMix*"
   - "core/src/test/java/dev/tfp/core/cooking/SoupMix*"
-ui: true
-in_game_steps:
-  - "tfp debug place tfp:pot[lit=true]"
-  - "fill water; add 3 vegetables; wait (tfp time add hours 1)"
-  - "take soup with a bowl"
+ui: false
+in_game_steps: []
 plan:
   - "Ceramic pot on a firepit; water filled by bucket/jug; PotRules boil counters; soup output into bowls (SoupMix), jams into jars; simple pot recipes; GUI per catalogue with progress sprites; `tfp:pot` damage on touching boiling pot (TfpDamageType)."
+  - "Deferred (PROTOCOL 6.5): loading the pot in CraftEngine (configuration/devices/pot.yml) changes DatagenTest's non-occluding fixture list (outside files_owned), and the screen art needs its own datagen step; both, with the in-game steps and the screenshot criterion, moved to PAR-HEAT-25."
+  - "Done: core/pot (PotData + codec, PotOutput, PotSim lazy boil over FirepitSim, PotMatch = TFC perfectMatchExists), paper/pot (PotDevice kind tfp:pot: TFC useItemOn order, fluid transfer, soup into bowls, jam into jars, fuel, sneak take-off with tfp:pot damage, fire-start lighting; PotRecipeBook: 145 simple + 66 jam + 3 soup recipes, selection with soup as fallback, outputs; PotConversion firepit <-> pot; PotInteractListener; PotScreens/PotScreenLink GUI with thermometer, fluid and status buttons). Tests: core PotSimTest (lazy = stepped live tick, 400 cases; split spans), PotMatchTest (against TFC's determinant), PotDataTest; paper PotContentDataMockBukkitTest (real data: recipes load, 3 vegetables -> 2 vegetable soups with SoupMix nutrition taken into bowls, boiled eggs, sneak take-off), PotScreenLayoutTest. In-game check: PAR-HEAT-25."
 tests:
   - "core: PotGoldenTest, SoupMixGoldenTest exist"
   - "paper: soup assembled into bowls"
 done_criteria:
-  - "Cooking a soup in-game yields soup items with mixed nutrition"
+  - "Deferred check tracked in PAR-HEAT-25"
 ---
 
 # PAR-HEAT-09: Cooking pot on firepit: boiling, soups and jams, pot fluid, GUI

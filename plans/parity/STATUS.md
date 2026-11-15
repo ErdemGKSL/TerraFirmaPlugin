@@ -168,7 +168,7 @@ Totals: 355 items; open 202, done 145, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-PROC-38 | Barrel rack, sideways barrel and tap pouring, and their in-game check | PROC | 14 | done |
 | PAR-CLIM-06 | Seasonal packet rewrite JMH budget and visual checklist | CLIMATE | 15 | open |
 | PAR-HEAT-08 | Grill on firepit: placement, five slots, cooking, GUI | HEAT | 15 | done |
-| PAR-HEAT-09 | Cooking pot on firepit: boiling, soups and jams, pot fluid, GUI | HEAT | 15 | open |
+| PAR-HEAT-09 | Cooking pot on firepit: boiling, soups and jams, pot fluid, GUI | HEAT | 15 | done |
 | PAR-HEAT-20 | Firepit screen art and block wiring: datagen art for tfp:gui/firepit and its thermometer, FirepitDevice opens the screen, in-game check | HEAT | 15 | open |
 | PAR-HEAT-11 | Candles, candle cakes and jack-o'-lanterns: burnout, lighting, carving | HEAT | 15 | open |
 | PAR-CLIM-21 | Snow and ice stop with the weather flag off (SnowService live step and catch-up), as TFC onTickChunk | CLIMATE | 15 | done |
@@ -193,6 +193,7 @@ Totals: 355 items; open 202, done 145, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-PHYS-03 | Landslides and gravity soils | PHYS | 17 | open |
 | PAR-WORLD-03 | Worldgen performance: JMH chunk budget, vanilla baseline and exposed-gem decision | WORLD | 17 | open |
 | PAR-WORLD-04 | TFC soil and gravel block set in generation: grass, dirt, coarse dirt, clay, peat, kaolin, mud, rock gravel | WORLD | 17 | open |
+| PAR-HEAT-25 | Pot loaded in game: configuration/devices/pot.yml, pot screen art (tfp:gui/pot, thermometer, bubbles) and the in-game soup check | HEAT | 18 | open |
 | PAR-GATHER-05 | Soil interactions: hoeing, paths, mud, rooted dirt, grass spread and rock spawning | GATHER | 18 | open |
 | PAR-GATHER-06 | Raw rock drops and mossy rock spreading | GATHER | 18 | open |
 | PAR-PHYS-05 | Explosion collapses | PHYS | 18 | open |
