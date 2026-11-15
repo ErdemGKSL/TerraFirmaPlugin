@@ -19,4 +19,7 @@ public interface GrillLink {
 
     /** TFC {@code GrillBlockEntity.isItemValid}: heatables on the grill, fuel only into slot 3. */
     boolean isItemValid(int tfcSlot, ItemStack stack);
+
+    /** Whether {@code stack} is in {@code #tfc:firepit_fuel}: TFC's shift-click sends it to the fuel slots only. */
+    boolean isFirepitFuel(ItemStack stack);
 }

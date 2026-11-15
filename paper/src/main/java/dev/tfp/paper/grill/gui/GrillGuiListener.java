@@ -28,6 +28,20 @@ public final class GrillGuiListener implements Listener {
         this.screens = Objects.requireNonNull(screens, "screens");
     }
 
+    /**
+     * Before the GUI routes a shift-click from the player inventory (LOW): marks it, so the grill slots refuse
+     * {@code #tfc:firepit_fuel} as TFC's {@code GrillContainer.moveStack} does; cleared at MONITOR.
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onShift(InventoryClickEvent e) {
+        GuiSession session = GuiService.session(e.getView().getTopInventory());
+        GrillScreens.Screen screen = session == null ? null : GrillScreens.state(session);
+        if (screen != null) {
+            screen.shiftIn = e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
+                && e.getRawSlot() >= e.getView().getTopInventory().getSize();
+        }
+    }
+
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlace(InventoryClickEvent e) {
         GuiSession session = GuiService.session(e.getView().getTopInventory());
@@ -70,6 +84,7 @@ public final class GrillGuiListener implements Listener {
         if (session == null || !GrillScreens.isGrill(session)) {
             return;
         }
+        GrillScreens.state(session).shiftIn = false;
         if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY && e.getRawSlot() >= e.getView().getTopInventory().getSize()) {
             GrillScreens.clamp(session);
         }

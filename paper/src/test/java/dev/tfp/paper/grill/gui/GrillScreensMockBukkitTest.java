@@ -77,9 +77,15 @@ class GrillScreensMockBukkitTest extends MockServerTest {
         @Override
         public boolean isItemValid(int tfcSlot, ItemStack stack) {
             if (GrillSim.isGrillSlot(tfcSlot)) {
-                return stack.getType() == Material.BEEF;
+                return stack.getType() == Material.BEEF || stack.getType() == Material.STICK;
             }
-            return tfcSlot == FirepitSim.SLOT_FUEL_INPUT && stack.getType() == Material.OAK_LOG;
+            return tfcSlot == FirepitSim.SLOT_FUEL_INPUT && isFirepitFuel(stack);
+        }
+
+        /** Logs and sticks are fuel; a stick is also heatable (a heatable fuel, as some TFC items are). */
+        @Override
+        public boolean isFirepitFuel(ItemStack stack) {
+            return stack.getType() == Material.OAK_LOG || stack.getType() == Material.STICK;
         }
     }
 
@@ -153,6 +159,38 @@ class GrillScreensMockBukkitTest extends MockServerTest {
         // two placed one at a time from the stack; the last single item is the framework's own move (not run here)
         assertThat(placed).isEqualTo(2);
         assertThat(player.getItemOnCursor().getAmount()).isEqualTo(1);
+    }
+
+    @Test
+    void aShiftClickedFuelGoesOnlyToTheFuelSlotNeverOntoTheGrill() {
+        GuiSession session = open(new FakeLink(0));
+        int raw = player.getOpenInventory().getTopInventory().getSize(); // player inventory slot 9
+        player.getOpenInventory().setItem(raw, new ItemStack(Material.STICK, 3));
+        click(raw, ClickType.SHIFT_LEFT, InventoryAction.MOVE_TO_OTHER_INVENTORY);
+        assertThat(session.getInventory().getItem(FUEL_TOP).getType()).isEqualTo(Material.STICK);
+        assertThat(session.getInventory().getItem(FUEL_TOP).getAmount()).isEqualTo(1);
+        assertThat(player.getOpenInventory().getItem(raw).getAmount()).isEqualTo(2);
+        // the fuel slot is full: TFC's moveStack does not fall back to the grill slots for a fuel item
+        click(raw, ClickType.SHIFT_LEFT, InventoryAction.MOVE_TO_OTHER_INVENTORY);
+        for (int tfc = GrillSim.SLOT_EXTRA_INPUT_START; tfc <= GrillSim.SLOT_EXTRA_INPUT_END; tfc++) {
+            ItemStack there = session.getInventory().getItem(GrillScreenLayout.chestSlot(tfc));
+            assertThat(there == null || there.isEmpty()).as("grill slot " + tfc).isTrue();
+        }
+        assertThat(player.getOpenInventory().getItem(raw).getAmount()).isEqualTo(2);
+        // by hand the same item may go on the grill (isItemValid)
+        player.setItemOnCursor(new ItemStack(Material.STICK));
+        assertThat(click(GrillScreenLayout.chestSlot(4), ClickType.LEFT, InventoryAction.PLACE_ALL).isCancelled()).isFalse();
+        // a heatable that is no fuel still shift-clicks onto the grill
+        int beef = raw + 1;
+        player.getOpenInventory().setItem(beef, new ItemStack(Material.BEEF, 1));
+        click(beef, ClickType.SHIFT_LEFT, InventoryAction.MOVE_TO_OTHER_INVENTORY);
+        assertThat(player.getOpenInventory().getItem(beef)).as("beef moved").matches(i -> i == null || i.isEmpty());
+        boolean onGrill = false;
+        for (int tfc = GrillSim.SLOT_EXTRA_INPUT_START; tfc <= GrillSim.SLOT_EXTRA_INPUT_END; tfc++) {
+            ItemStack there = session.getInventory().getItem(GrillScreenLayout.chestSlot(tfc));
+            onGrill |= there != null && there.getType() == Material.BEEF;
+        }
+        assertThat(onGrill).isTrue();
     }
 
     @Test

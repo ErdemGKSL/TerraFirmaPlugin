@@ -38,7 +38,10 @@ public interface GrillEffects extends FirepitEffects {
 
     /**
      * TFC {@code convertTo(..., FIREPIT)}: the grill becomes a firepit again, after this click (outside the device route).
+     * Only when the conversion succeeds, {@code atBlock} runs on the block's region thread, then {@code atPlayer} on
+     * {@code player}'s thread, or {@code playerGone} on the block's region thread when the player has left by then; a
+     * refused conversion (the firepit cannot be placed, the grill is gone) runs none of them, so nothing is given twice.
      * Returns false when a conversion of this block is already queued (a second click in the same tick does nothing).
      */
-    boolean toFirepit(Block block);
+    boolean toFirepit(Block block, Player player, Runnable atBlock, Runnable atPlayer, Runnable playerGone);
 }

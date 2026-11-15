@@ -48,6 +48,16 @@ class GrillSlotsTest {
     }
 
     @Test
+    void aClickFromAboveOnTheRimLandsOnTheBasePlateBelowTheLogHeight() {
+        assertThat(GrillSlots.topHitY(0.5, 0.5)).isEqualTo(11 / 16.0);
+        assertThat(GrillSlots.topHitY(2 / 16.0, 14 / 16.0)).isEqualTo(11 / 16.0);
+        assertThat(GrillSlots.topHitY(0.05, 0.5)).isEqualTo(2 / 16.0);
+        assertThat(GrillSlots.topHitY(0.5, 0.95)).isEqualTo(2 / 16.0);
+        assertThat(GrillSlots.topHitY(0.05, 0.05)).isLessThan(GrillSlots.LOG_INSERT_BELOW);
+        assertThat(GrillSlots.slotAt(0.05, GrillSlots.topHitY(0.05, 0.05), 0.05)).isEqualTo(-1);
+    }
+
+    @Test
     void renderConstants() {
         assertThat(GrillSlots.ITEM_SCALE).isEqualTo(0.3f);
         assertThat(GrillSlots.ITEM_LIFT).isEqualTo(0.003125);

@@ -390,13 +390,21 @@ public final class GrillDevice {
                     return finish(ctx, record.withState(data.withAsh(0)), true);
                 }
                 // the grill comes off: the item back, the block a firepit again (after this route), a lit grill burns
-                if (services.effects().toFirepit(block)) {
-                    services.effects().give(player, services.grillItem().get());
-                    if (data.lit()) {
-                        services.effects().burn(player, 1f);
-                        services.effects().cool(block);
-                    }
-                }
+                // the item and the burn follow only a conversion that happened (a refused one would duplicate the grill)
+                boolean lit = data.lit();
+                services.effects().toFirepit(block, player,
+                    () -> {
+                        if (lit) {
+                            services.effects().cool(block);
+                        }
+                    },
+                    () -> {
+                        services.effects().give(player, services.grillItem().get());
+                        if (lit) {
+                            services.effects().burn(player, 1f);
+                        }
+                    },
+                    () -> services.effects().spawn(block, services.grillItem().get()));
                 return DeviceResult.consume(record);
             }
             // tryInsertLog(player, stack, grill, hit.y - pos.y < 0.6)

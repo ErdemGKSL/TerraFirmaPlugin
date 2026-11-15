@@ -52,6 +52,21 @@ public final class GrillSlots {
     public static final float ITEM_SCALE = 0.3f;
     /** TFC {@code GRILL_SHAPE} top: {@code box(2, 0, 2, 14, 11, 14)}, where a click from above lands. */
     public static final double TOP = 11 / 16.0;
+    /** TFC {@code FirepitBlock.BASE_SHAPE} plate top: {@code box(0, 0, 0, 16, 2, 16)}, the rim around the grill's core. */
+    public static final double BASE_TOP = 2 / 16.0;
+    /** TFC {@code GRILL_SHAPE} core: {@code box(2, 0, 2, 14, 11, 14)} in x and z. */
+    public static final double CORE_MIN = 2 / 16.0;
+    public static final double CORE_MAX = 14 / 16.0;
+
+    /**
+     * Where a click from above at block-local {@code (x, z)} lands on TFC's grill shape: the 11 px core top, or the 2 px
+     * base plate on the outer rim (x or z outside 2..14 px).
+     */
+    public static double topHitY(double x, double z) {
+        boolean core = x >= CORE_MIN && x <= CORE_MAX && z >= CORE_MIN && z <= CORE_MAX;
+        return core ? TOP : BASE_TOP;
+    }
+
     /** TFC {@code tryInsertLog(..., hit.y - pos.y < 0.6)}: fuel goes in only on a hit below this height. */
     public static final double LOG_INSERT_BELOW = 0.6;
 

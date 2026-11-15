@@ -45,7 +45,8 @@ import org.bukkit.inventory.meta.ItemMeta;
  *
  * <p>Slots, as TFC's {@code isItemValid}: fuel goes only into the top fuel slot (TFC slot 3), heatable items into the five
  * grill slots; fuel slots 0 to 2 are filled by the cascade and can only be taken from. Shift-click from the player
- * inventory tries the top fuel slot, then the grill slots in order ({@code moveStack}). Every slot holds one item.
+ * inventory sends {@code #tfc:firepit_fuel} to the top fuel slot only and anything else to the grill slots in order
+ * ({@code moveStack}). Every slot holds one item.
  *
  * <p>Threads: every method runs on the viewer's thread ({@code Scheduler.entity}); the busy map is thread-safe.
  */
@@ -72,6 +73,8 @@ public final class GrillScreens {
         GrillSnapshot grill;
         Scheduler.TaskHandle reloader;
         boolean pending;
+        /** A shift-click from the player inventory is being routed (set and cleared by {@link GrillGuiListener}). */
+        boolean shiftIn;
 
         Screen(GrillLink link, Object key, GrillSnapshot grill) {
             this.link = link;
@@ -162,8 +165,10 @@ public final class GrillScreens {
         }
         for (int tfc : inputs) {
             int slot = GrillScreenLayout.chestSlot(tfc);
+            // GrillContainer.moveStack: a #tfc:firepit_fuel item shift-clicks into the fuel slots only, never the grill
+            boolean grillSlot = GrillSim.isGrillSlot(tfc);
             b.input(slot, (s, chestSlot, stack) -> !GuiButtons.isButton(stack) && roomFor(s, chestSlot)
-                && link.isItemValid(tfc, stack));
+                && link.isItemValid(tfc, stack) && !(grillSlot && screen.shiftIn && link.isFirepitFuel(stack)));
         }
         for (int tfc = FirepitSim.SLOT_FUEL_CONSUME; tfc < FirepitSim.SLOT_FUEL_INPUT; tfc++) {
             b.output(GrillScreenLayout.chestSlot(tfc));

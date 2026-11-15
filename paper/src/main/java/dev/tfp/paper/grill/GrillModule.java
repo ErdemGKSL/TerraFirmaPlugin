@@ -143,8 +143,9 @@ public final class GrillModule implements FeatureModule {
     }
 
     /**
-     * Where the player's click lands in {@code block}, block-local. A hit on the top face counts at TFC's grill top
-     * ({@link GrillSlots#TOP}, 11 px): the carrier's top is lower, and TFC's slot boxes sit above it (ledger divergence).
+     * Where the player's click lands in {@code block}, block-local. A hit on the top face counts at TFC's grill shape
+     * ({@link GrillSlots#topHitY}): the 11 px core top, or the 2 px base plate on the outer rim; the carrier's top is
+     * flat at another height, and TFC's slot boxes sit above it (ledger divergence).
      */
     static Optional<GrillSlots.Point> hit(Player player, Block block) {
         RayTraceResult r = player.rayTraceBlocks(REACH);
@@ -154,7 +155,7 @@ public final class GrillModule implements FeatureModule {
         double x = r.getHitPosition().getX() - block.getX();
         double y = r.getHitPosition().getY() - block.getY();
         double z = r.getHitPosition().getZ() - block.getZ();
-        return Optional.of(new GrillSlots.Point(x, r.getHitBlockFace() == BlockFace.UP ? GrillSlots.TOP : y, z));
+        return Optional.of(new GrillSlots.Point(x, r.getHitBlockFace() == BlockFace.UP ? GrillSlots.topHitY(x, z) : y, z));
     }
 
     /** The heating recipes, as the firepit uses them. */

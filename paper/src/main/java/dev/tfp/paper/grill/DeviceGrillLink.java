@@ -73,6 +73,11 @@ public final class DeviceGrillLink implements GrillLink {
         return device.isItemValid(tfcSlot, stack);
     }
 
+    @Override
+    public boolean isFirepitFuel(ItemStack stack) {
+        return device.services().firepitFuel().test(stack);
+    }
+
     private GrillSnapshot snapshot(DeviceRecord<FirepitData> record) {
         List<ItemStack> out = new ArrayList<>(GrillSim.SLOTS);
         for (int i = 0; i < GrillSim.SLOTS; i++) {

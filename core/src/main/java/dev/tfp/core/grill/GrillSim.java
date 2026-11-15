@@ -137,7 +137,8 @@ public final class GrillSim {
         List<Integer> converted = new ArrayList<>();
         Float[] tested = new Float[GRILL_SLOTS];
         while (t < toTick) {
-            boolean dead = !d.lit() && d.heat().airTicks() == 0 && d.temperature() == 0f;
+            boolean dead = !d.lit() && d.heat().airTicks() == 0 && d.temperature() == 0f
+                && d.heat().burnTemperature() == 0f;
             if (!anyHeatable || (dead && !readyNow(items, heats, t + 1, heatConfig))) {
                 // nothing heats any more: the firepit's own catch-up for the rest, the items cool lazily
                 FirepitSim.Result r = FirepitSim.advance(d, t, toTick, rest(queue, used), null, random, device, heatConfig);

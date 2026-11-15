@@ -189,12 +189,27 @@ class GrillMockBukkitTest extends MockServerTest {
             opened++;
         }
 
+        final List<Runnable[]> afterConversion = new ArrayList<>();
+
         @Override
-        public boolean toFirepit(Block block) {
+        public boolean toFirepit(Block block, Player player, Runnable atBlock, Runnable atPlayer, Runnable playerGone) {
             if (!queued.add(block)) {
                 return false;
             }
             toFirepit.add(block);
+            afterConversion.add(new Runnable[] {atBlock, atPlayer, playerGone});
+            return true;
+        }
+
+        /** The queued take-off as PaperGrillEffects runs it: the conversion, then the hand-outs only when it worked. */
+        boolean runConversion(GrillConversion conversion, Block block) {
+            queued.remove(block);
+            Runnable[] after = afterConversion.removeFirst();
+            if (!conversion.toFirepit(block)) {
+                return false;
+            }
+            after[0].run();
+            after[1].run();
             return true;
         }
     }
@@ -446,15 +461,17 @@ class GrillMockBukkitTest extends MockServerTest {
         DeviceRecord<FirepitData> before = grillRecord();
         player.setSneaking(true);
         assertThat(click(ItemStack.empty(), new GrillSlots.Point(0.05, 0.3, 0.05))).isTrue();
+        // nothing is handed out before the conversion has happened
+        assertThat(effects.given).isEmpty();
+        assertThat(effects.burns).isEmpty();
+        // a second click before the conversion runs queues nothing more
+        assertThat(click(ItemStack.empty(), new GrillSlots.Point(0.05, 0.3, 0.05))).isTrue();
+        assertThat(effects.toFirepit).hasSize(1);
+
+        assertThat(effects.runConversion(conversion, block)).isTrue();
         assertThat(effects.given).extracting(ItemStack::getType).containsExactly(Material.IRON_BARS);
         assertThat(effects.burns).containsExactly(1f);
         assertThat(effects.cooled).isEqualTo(1);
-        // a second click before the conversion runs gives nothing more
-        assertThat(click(ItemStack.empty(), new GrillSlots.Point(0.05, 0.3, 0.05))).isTrue();
-        assertThat(effects.given).hasSize(1);
-        assertThat(effects.toFirepit).hasSize(1);
-
-        assertThat(conversion.toFirepit(block)).isTrue();
         assertThat(blocks.stateAt(block).orElseThrow().id()).isEqualTo(FirepitDevice.ID);
         DeviceRecord<FirepitData> pit = firepitRecord();
         assertThat(pit.slots()).hasSize(FirepitSim.SLOTS);
@@ -464,6 +481,27 @@ class GrillMockBukkitTest extends MockServerTest {
         }
         assertThat(drops()).extracting(e -> e.getItemStack().getType()).contains(Material.BEEF);
         assertThat(effects.shown).isEmpty(); // the drawn items were removed with the grill
+    }
+
+    @Test
+    void aRefusedTakeOffKeepsTheGrillAndGivesNothing() {
+        litFirepit(3);
+        toGrill();
+        DeviceRecord<FirepitData> before = grillRecord();
+        // tfp:firepit is not a loaded custom block: CraftEngine refuses the placement
+        GrillConversion refused = new GrillConversion(service, blocks,
+            (at, state) -> !state.id().equals(FirepitDevice.ID) && place(at, state), effects);
+        player.setSneaking(true);
+        assertThat(click(ItemStack.empty(), new GrillSlots.Point(0.05, 0.3, 0.05))).isTrue();
+        assertThat(effects.runConversion(refused, block)).isFalse();
+        assertThat(blocks.stateAt(block).orElseThrow().id()).isEqualTo(GrillDevice.ID);
+        assertThat(grillRecord().slots()).isEqualTo(before.slots());
+        assertThat(effects.given).isEmpty();
+        assertThat(effects.burns).isEmpty();
+        assertThat(effects.cooled).isZero();
+        // the next take-off can be queued again
+        assertThat(click(ItemStack.empty(), new GrillSlots.Point(0.05, 0.3, 0.05))).isTrue();
+        assertThat(effects.toFirepit).hasSize(2);
     }
 
     @Test

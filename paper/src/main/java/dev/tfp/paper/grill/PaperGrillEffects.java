@@ -255,16 +255,24 @@ public final class PaperGrillEffects implements GrillEffects {
     }
 
     @Override
-    public boolean toFirepit(Block block) {
+    public boolean toFirepit(Block block, Player player, Runnable atBlock, Runnable atPlayer, Runnable playerGone) {
         Pos key = Pos.of(block);
         if (!converting.add(key)) {
             return false;
         }
         later(block, () -> {
+            boolean converted;
             try {
-                conversion.get().toFirepit(block);
+                converted = conversion.get().toFirepit(block);
             } finally {
                 converting.remove(key);
+            }
+            if (!converted) {
+                return; // refused: the grill (or what replaced it) stays, nothing is handed out
+            }
+            atBlock.run();
+            if (!player.isValid() || !scheduler.entity(player, atPlayer, () -> later(block, playerGone))) {
+                playerGone.run();
             }
         });
         return true;
