@@ -2,7 +2,7 @@
 id: PAR-HEAT-20
 title: "Firepit screen art and block wiring: datagen art for tfp:gui/firepit and its thermometer, FirepitDevice opens the screen, in-game check"
 area: HEAT
-status: open
+status: done
 wave: 15
 deps: [PAR-HEAT-07, PAR-HEAT-19]
 size: S
@@ -33,6 +33,7 @@ plan:
   - "From the PAR-HEAT-07 reviews (in-game check of the debug screen before the art existed: the title showed the literal `<image:tfp:gui/firepit...>` text drawn twice and offset left, a plain 36-slot chest, no thermometer): once the images are registered, confirm the TfpGui title (`GuiSession`, legacy `setTitle`) reaches the client in a form CraftEngine's title rewrite resolves; check for a duplicate title and the `<shift>` math (craftengine-gui-furniture) at GUI scale 2 and 3; if the tag still arrives as plain or legacy text, that is a GUI framework (PAR-INFRA-03) defect, report it there. The art must visibly cover the 25 chest slots TFC does not have (the clicks are already refused: FirepitScreensMockBukkitTest `clicksIntoTheChestSlotsTfcDoesNotHaveAreCancelled`), and the cold thermometer column shows no hover box beyond the ledger divergence. Before each capture dismiss the \"Chat messages can't be verified\" toast (it covers the top right at scale 3)."
   - "Order: do not start the in-game capture before PAR-HEAT-19 has landed. Until then datagen writes firepit.yml outside configuration/ (tools/datagen Firepit.java, OUTPUT vs LOADED_OUTPUT), CraftEngine does not load it, and `tfp debug place tfp:firepit` answers `tfp:firepit is not a loaded custom block` (PAR-HEAT-07 in-game run at 396f33a). On Folia, `FirepitScreenLink` runs on the viewer's entity thread: check the block's region is owned by the current thread (`Bukkit.isOwnedByCurrentRegion`) before snapshot or commit, and close the screen if it is not."
   - "Block: replace the stand-in screen step in `FirepitDevice`'s use handler (input/outputs by hand) with opening `FirepitScreens` over a `FirepitScreenLink` (implements `paper/firepit/gui/FirepitLink` over the device record: snapshot after catch-up, commit = TFC setAndUpdateSlots then cascadeFuelSlots, isItemValid = the device's own), keyed by block position; device changes while a screen is open go through `FirepitScreens.edit`/`reload`."
+  - "Done: datagen `firepitgui/FirepitScreenArt` (tfp:gui/firepit, tfp:gui/firepit_thermometer with an alpha-1 width marker in the empty cold frame, which the in-game run showed was needed: without it the title label sat 15 px left), `FirepitDevice` screen step -> `FirepitModule.openLater` -> `FirepitScreens` over `FirepitScreenLink`, `ScreenSync` access hook; tests datagen `FirepitScreenArtTest` 6, paper `FirepitScreenLayoutContentTest` 3, `FirepitScreenLinkMockBukkitTest` 5, `FirepitMockBukkitTest` 12 (stand-in test replaced); verification `docs/verification/PAR-HEAT-07/verdict.md` (pass at GUI scale 2 and 3)."
 tests:
   - "datagen: the firepit screen art matches FirepitScreenLayout (image ids, sizes, ascents, thermometer frames)"
   - "paper: right-clicking a firepit opens the screen; a log put in the top slot is in device slot 0 after the commit"

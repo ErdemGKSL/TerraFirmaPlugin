@@ -18,6 +18,8 @@ import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.device.DeviceService;
 import dev.tfp.paper.fire.FireStarting;
 import dev.tfp.paper.fire.FirepitFactory;
+import dev.tfp.paper.firepit.gui.FirepitScreens;
+import dev.tfp.paper.gui.GuiSession;
 import dev.tfp.paper.heat.HeatingService;
 import dev.tfp.paper.heat.ItemHeatDefinitionsCache;
 import dev.tfp.paper.heat.ItemHeatHooks;
@@ -25,14 +27,17 @@ import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
+import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tags.Tags;
 import dev.tfp.paper.weather.PrecipitationService;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.bukkit.Axis;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -45,7 +50,8 @@ import org.bukkit.inventory.ItemStack;
  * PAR-HEAT-06: the firepit. Registers the {@link FirepitDevice} kind {@code tfp:firepit}, its {@code FireLightable}
  * (a strong start lights it) and the {@link FirepitFactory} that builds one from a stick and log pile. Needs the tags,
  * device, heating and fire modules before it in the service file; the rain comes from PAR-CLIM-02's
- * {@link PrecipitationService} when it runs (never raining without it).
+ * {@link PrecipitationService} when it runs (never raining without it). PAR-HEAT-20: the block's screen step opens the
+ * firepit screen ({@link #openScreen}) and an access hook keeps an open screen in step with the device ({@link ScreenSync}).
  */
 public final class FirepitModule implements FeatureModule {
     public static final String ID = "firepit";
@@ -53,9 +59,90 @@ public final class FirepitModule implements FeatureModule {
     public static final String SOLID_TOP_FACE = "tfc:solid_top_face";
     public static final String SHOVELS = "minecraft:shovels";
 
+    private volatile AutoCloseable hook;
+
     @Override
     public String id() {
         return ID;
+    }
+
+    @Override
+    public void disable() {
+        AutoCloseable h = hook;
+        hook = null;
+        if (h != null) {
+            try {
+                h.close();
+            } catch (Exception ignored) {
+                // a map removal
+            }
+        }
+    }
+
+    /**
+     * TFC {@code serverPlayer.openMenu(firepit, pos)}: next tick on the player's thread, if the player is still online,
+     * this thread owns the block and it is still a firepit, opens {@link FirepitScreens} (PAR-HEAT-07's screen service,
+     * from {@code FirepitGuiModule}, enabled after this module) over a {@link FirepitScreenLink} keyed by the block.
+     */
+    static void openScreen(ModuleContext context, DeviceService devices, FirepitDevice device, Player player, Block block) {
+        openLater(context.scheduler(), () -> context.services().get(FirepitScreens.class),
+            context.integrations().customBlocks(), devices, device, p -> context.messages().get(p, "gui.firepit.title"),
+            player, block);
+    }
+
+    /** {@link #openScreen} over its parts (tests). */
+    static void openLater(Scheduler scheduler, Supplier<Optional<FirepitScreens>> screens, CustomBlocks blocks,
+            DeviceService devices, FirepitDevice device, Function<Player, String> title, Player player, Block block) {
+        scheduler.entityDelayed(player, 1, () -> {
+            Optional<FirepitScreens> s = screens.get();
+            if (s.isEmpty() || device == null || !player.isOnline() || !owned(scheduler, block)
+                    || !blocks.stateAt(block).map(st -> st.id().equals(FirepitDevice.ID)).orElse(false)) {
+                return;
+            }
+            FirepitScreenLink link = new FirepitScreenLink(devices, device, block, b -> owned(scheduler, b));
+            s.get().open(player, link.key(), link, title);
+        }, () -> { });
+    }
+
+    /** Folia {@code Bukkit.isOwnedByCurrentRegion(block)}; always true on Paper's main thread. */
+    static boolean owned(Scheduler scheduler, Block block) {
+        return scheduler.isOwner(block.getWorld(), block.getX() >> 4, block.getZ() >> 4);
+    }
+
+    /**
+     * Keeps an open firepit screen in step with the other writers of the slots (a log click, the ash pickup, a douse, the
+     * burn-out callback, removal): commits its copy before, reloads it after. On the viewer's thread: inline when this
+     * thread owns the viewer, otherwise the reload is queued there.
+     */
+    record ScreenSync(Supplier<Optional<FirepitScreens>> screens, Scheduler scheduler) implements DeviceService.AccessHook {
+        @Override
+        public void before(Block block) {
+            withViewer(block, false, FirepitScreens::edit);
+        }
+
+        @Override
+        public void after(Block block) {
+            withViewer(block, true, FirepitScreens::reload);
+        }
+
+        private void withViewer(Block block, boolean queue, java.util.function.BiConsumer<FirepitScreens, Object> action) {
+            Optional<FirepitScreens> s = screens.get();
+            if (s.isEmpty()) {
+                return;
+            }
+            FirepitScreenLink.Key key = FirepitScreenLink.Key.of(block);
+            Optional<GuiSession> session = s.get().viewer(key);
+            if (session.isEmpty()) {
+                return;
+            }
+            Player viewer = session.get().viewer();
+            Location at = viewer.getLocation();
+            if (scheduler.isOwner(at.getWorld(), at.getBlockX() >> 4, at.getBlockZ() >> 4)) {
+                action.accept(s.get(), key);
+            } else if (queue) {
+                scheduler.entity(viewer, () -> action.accept(s.get(), key), () -> { });
+            }
+        }
     }
 
     @Override
@@ -69,6 +156,7 @@ public final class FirepitModule implements FeatureModule {
         ItemHeatHooks.Capacities capacities = ItemHeatHooks.Capacities.byId(tags::itemId, heatDefinitions);
         PaperFirepitEffects effects = new PaperFirepitEffects(context.scheduler(), blocks,
             () -> context.integrations().blockVisuals(), devices::neighbourChanged);
+        AtomicReference<FirepitDevice> deviceRef = new AtomicReference<>();
         FirepitDevice device = new FirepitDevice(new FirepitDevice.Services(
             stack -> tags.itemId(stack).flatMap(id -> fuels.get().get(id)),
             stack -> tags.is(stack, FIREPIT_FUEL),
@@ -78,8 +166,12 @@ public final class FirepitModule implements FeatureModule {
             block -> raining(context, block),
             block -> canSurvive(block, tags),
             n -> context.integrations().customItems().create(FirepitDevice.WOOD_ASH, n).orElse(ItemStack.empty()),
-            ThreadLocalRandom::current, HeatConfig.DEFAULT, effects), devices.stacks());
+            ThreadLocalRandom::current, HeatConfig.DEFAULT, effects), devices.stacks(),
+            (player, block) -> openScreen(context, devices, deviceRef.get(), player, block));
+        deviceRef.set(device);
         devices.register(device.kind());
+        hook = devices.hook(FirepitDevice.ID, new ScreenSync(() -> context.services().get(FirepitScreens.class),
+            context.scheduler()));
         context.services().get(FireStarting.class).ifPresent(fire -> {
             fire.register(ctx -> ctx.strong() && blocks.stateAt(ctx.block()).map(s -> s.id().equals(FirepitDevice.ID)).orElse(false)
                 && device.light(ctx.block(), devices::neighbourChanged));

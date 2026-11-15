@@ -169,7 +169,7 @@ Totals: 355 items; open 202, done 145, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-CLIM-06 | Seasonal packet rewrite JMH budget and visual checklist | CLIMATE | 15 | open |
 | PAR-HEAT-08 | Grill on firepit: placement, five slots, cooking, GUI | HEAT | 15 | done |
 | PAR-HEAT-09 | Cooking pot on firepit: boiling, soups and jams, pot fluid, GUI | HEAT | 15 | done |
-| PAR-HEAT-20 | Firepit screen art and block wiring: datagen art for tfp:gui/firepit and its thermometer, FirepitDevice opens the screen, in-game check | HEAT | 15 | open |
+| PAR-HEAT-20 | Firepit screen art and block wiring: datagen art for tfp:gui/firepit and its thermometer, FirepitDevice opens the screen, in-game check | HEAT | 15 | done |
 | PAR-HEAT-11 | Candles, candle cakes and jack-o'-lanterns: burnout, lighting, carving | HEAT | 15 | open |
 | PAR-CLIM-21 | Snow and ice stop with the weather flag off (SnowService live step and catch-up), as TFC onTickChunk | CLIMATE | 15 | done |
 | PAR-HEAT-21 | Torches loaded in game: hitbox carriers, configuration/light/torch.yml, the dead torch look and the in-game burnout check | HEAT | 15 | open |

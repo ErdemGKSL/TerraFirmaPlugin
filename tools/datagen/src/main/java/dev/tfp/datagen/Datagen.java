@@ -141,6 +141,9 @@ public final class Datagen {
         if (dev.tfp.datagen.salad.SaladArt.available(tfc)) { // PAR-PROC-36: salad screen art; fixtures have no salad screen
             dev.tfp.datagen.salad.SaladArt.run(tfc, out);
         }
+        if (dev.tfp.datagen.firepitgui.FirepitScreenArt.available(tfc)) { // PAR-HEAT-20: firepit screen art and thermometer; fixtures have no firepit screen
+            dev.tfp.datagen.firepitgui.FirepitScreenArt.run(tfc, out);
+        }
         if (dev.tfp.datagen.coverage.BlockCoverage.available(tfc)) { // PAR-INFRA-49: TFC blockstate coverage gate; after every block generator and ItemCoverage; fixtures have no TFCItems
             dev.tfp.datagen.coverage.BlockCoverage.run(tfc, out);
         }

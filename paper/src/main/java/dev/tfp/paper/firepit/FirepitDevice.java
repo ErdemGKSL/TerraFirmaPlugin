@@ -59,8 +59,8 @@ import org.bukkit.inventory.ItemStack;
  * with ash gives the ash; otherwise TFC opens the firepit screen. TFC's shovel douse ({@code SHOVEL_DOUSE}) runs only on
  * a sneak click, after the block's use; CraftEngine skips device handlers on sneak + item, so here a shovel (or a water
  * bucket, our addition) douses a warm firepit on a plain click, after the log and ash branches and before the screen
- * step (a ledger divergence). Until the screen exists (PAR-HEAT-07) the screen step is a stand-in: a heatable item goes
- * into the empty input slot, an empty hand takes the outputs (then the input) out. The extinguish sound plays whenever
+ * step (a ledger divergence). The screen step opens the firepit screen ({@link Screen}, PAR-HEAT-20: {@code FirepitModule}
+ * opens {@code FirepitScreens} over a {@link FirepitScreenLink}) whatever the hand holds. The extinguish sound plays whenever
  * the block goes from lit to unlit (douse or burn-out), as TFC's {@code extinguish}.
  *
  * <p>Fire starting lights it ({@link #light}), and a fire starter on a stick and log pile builds one ({@link #build});
@@ -121,6 +121,19 @@ public final class FirepitDevice {
         }
     }
 
+    /**
+     * TFC {@code serverPlayer.openMenu(firepit, pos)}: opens the firepit screen of {@code block} for {@code player}. Called
+     * from the use handler on the block's region thread, while the device record is being changed: an implementation
+     * must open the screen later (the next tick, on the player's thread), never inline.
+     */
+    @FunctionalInterface
+    public interface Screen {
+        Screen NONE = (player, block) -> {
+        };
+
+        void open(Player player, Block block);
+    }
+
     /** A pending action for the next callback at a position. */
     private sealed interface Pending permits Light, Build {
     }
@@ -140,12 +153,19 @@ public final class FirepitDevice {
 
     private final Services services;
     private final StackCodec stacks;
+    private final Screen screen;
     private final Map<Pos, Pending> pending = new ConcurrentHashMap<>();
     private final DeviceKind<FirepitData> kind;
 
+    /** A device without a screen (tests of the other paths, the grill and pot conversions). */
     public FirepitDevice(Services services, StackCodec stacks) {
+        this(services, stacks, Screen.NONE);
+    }
+
+    public FirepitDevice(Services services, StackCodec stacks, Screen screen) {
         this.services = Objects.requireNonNull(services, "services");
         this.stacks = Objects.requireNonNull(stacks, "stacks");
+        this.screen = Objects.requireNonNull(screen, "screen");
         this.kind = DeviceKind.builder(ID, FirepitData.CODEC, FirepitData.FRESH)
             .slots(FirepitSim.SLOTS)
             .slotLimit(FirepitSim::slotLimit)
@@ -397,28 +417,10 @@ public final class FirepitDevice {
                 }
                 return finish(ctx, record, true);
             }
-            // TFC opens the firepit screen (PAR-HEAT-07); stand-in: the input and the outputs by hand
-            Slots s = new Slots(record);
-            if (!StackCodec.isEmpty(stack)) {
-                if (StackCodec.isEmpty(s.get(FirepitSim.SLOT_ITEM_INPUT)) && isItemValid(FirepitSim.SLOT_ITEM_INPUT, stack)) {
-                    ItemStack one = stack.clone();
-                    one.setAmount(1);
-                    s.set(FirepitSim.SLOT_ITEM_INPUT, one);
-                    if (!creative) {
-                        shrink(player, ctx.hand());
-                    }
-                }
-            } else {
-                for (int slot : new int[] {FirepitSim.SLOT_OUTPUT_1, FirepitSim.SLOT_OUTPUT_2, FirepitSim.SLOT_ITEM_INPUT}) {
-                    ItemStack out = s.get(slot);
-                    if (!StackCodec.isEmpty(out)) {
-                        services.effects().give(player, out);
-                        s.set(slot, ItemStack.empty());
-                        break;
-                    }
-                }
-            }
-            return finish(ctx, s.record(), true);
+            // serverPlayer.openMenu(firepit, pos): the firepit screen (PAR-HEAT-20), opened after this handler stored the
+            // record, so the screen's first snapshot sees this click's catch-up
+            screen.open(player, block);
+            return finish(ctx, record, true);
         }
 
         /** The burn-out callback, fire starting (pending light or build) and a lost floor. */

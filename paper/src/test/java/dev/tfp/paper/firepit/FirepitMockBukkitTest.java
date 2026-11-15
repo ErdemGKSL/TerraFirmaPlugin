@@ -49,8 +49,8 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
 /**
  * PAR-HEAT-06 on MockBukkit with fakes of the CraftEngine adapter and the world effects: building and lighting from a
- * stick and log pile, the fuel burn catch-up over two in-game hours against {@link FirepitRules}, cooking raw beef,
- * inserting logs, dousing with a shovel and a water bucket, the ash, the burn-out callback and the lost floor.
+ * stick and log pile, the fuel burn catch-up over two in-game hours against {@link FirepitRules}, cooking raw beef put in
+ * through the screen link (PAR-HEAT-20), the screen step of a click, inserting logs, dousing with a shovel and a water bucket, the ash, the burn-out callback and the lost floor.
  *
  * <p>Stand-ins: oak log = TFC oak logs fuel, stick = a pine log (dirty fuel), beef = raw beef (capacity 1, recipe 200 C,
  * result cooked beef), gunpowder = wood ash, iron shovel = a shovel.
@@ -153,6 +153,8 @@ class FirepitMockBukkitTest extends MockServerTest {
     private final TableCodec codec = new TableCodec();
     private final Effects effects = new Effects();
     private final AtomicLong clock = new AtomicLong(START);
+    /** The firepits whose screen the use handler opened (PAR-HEAT-20's screen step). */
+    private final List<Block> opened = new ArrayList<>();
     private boolean raining;
     private boolean floor = true;
     private DeviceService service;
@@ -200,7 +202,7 @@ class FirepitMockBukkitTest extends MockServerTest {
             s -> s.getType() == Material.IRON_SHOVEL ? FirepitEffects.Douse.SHOVEL
                 : s.getType() == Material.WATER_BUCKET ? FirepitEffects.Douse.WATER : FirepitEffects.Douse.NONE,
             b -> raining, b -> floor, n -> new ItemStack(Material.GUNPOWDER, n), () -> ash, HeatConfig.DEFAULT, effects),
-            codec);
+            codec, (p, b) -> opened.add(b));
         service.register(device.kind());
         pit = world.getBlockAt(0, 64, 0);
         player = server.addPlayer();
@@ -270,12 +272,13 @@ class FirepitMockBukkitTest extends MockServerTest {
     }
 
     @Test
-    void aLitFirepitCooksRawBeefAndTheOutputIsTakenByHand() {
+    void aLitFirepitCooksRawBeefPutInThroughTheScreen() {
         build(Material.OAK_LOG);
-        assertThat(click(new ItemStack(Material.BEEF, 3))).isTrue();
+        FirepitScreenLink link = new FirepitScreenLink(service, device, pit, b -> true);
+        List<ItemStack> slots = new ArrayList<>(link.snapshot().orElseThrow().slots());
+        slots.set(FirepitSim.SLOT_ITEM_INPUT, new ItemStack(Material.BEEF));
+        link.commit(slots);
         assertThat(slot(FirepitSim.SLOT_ITEM_INPUT).getType()).isEqualTo(Material.BEEF);
-        assertThat(player.getInventory().getItemInMainHand().getAmount()).isEqualTo(2);
-        assertThat(effects.smoke).isPositive();
 
         clock.addAndGet(201); // the device climbs 1 C per tick; beef converts on the 202nd tick after lighting
         service.catchUp(pit);
@@ -283,15 +286,33 @@ class FirepitMockBukkitTest extends MockServerTest {
         assertThat(HeatPdc.read(slot(FirepitSim.SLOT_ITEM_INPUT)).orElseThrow().temperature()).isEqualTo(201f);
 
         clock.addAndGet(1);
-        service.catchUp(pit);
-        assertThat(slot(FirepitSim.SLOT_ITEM_INPUT).getType()).isEqualTo(Material.AIR);
-        ItemStack cooked = slot(FirepitSim.SLOT_OUTPUT_1);
+        var shown = link.snapshot().orElseThrow();
+        assertThat(shown.slot(FirepitSim.SLOT_ITEM_INPUT).isEmpty()).isTrue();
+        ItemStack cooked = shown.slot(FirepitSim.SLOT_OUTPUT_1);
         assertThat(cooked.getType()).isEqualTo(Material.COOKED_BEEF);
         assertThat(HeatPdc.read(cooked).orElseThrow().temperature()).isEqualTo(202f);
+        assertThat(shown.temperature()).isEqualTo(record().state().temperature()).isPositive();
 
-        assertThat(click(ItemStack.empty())).isTrue();
-        assertThat(effects.given).extracting(ItemStack::getType).containsExactly(Material.COOKED_BEEF);
+        // the viewer takes the output out of the screen
+        slots = new ArrayList<>(shown.slots());
+        slots.set(FirepitSim.SLOT_OUTPUT_1, ItemStack.empty());
+        link.commit(slots);
         assertThat(slot(FirepitSim.SLOT_OUTPUT_1).getType()).isEqualTo(Material.AIR);
+    }
+
+    @Test
+    void theScreenStepOpensTheScreenWhateverTheHandHolds() {
+        build(Material.OAK_LOG);
+        // TFC useItemOn: no log, no ash (lit), no douse -> openMenu; a heatable item stays in hand
+        assertThat(click(new ItemStack(Material.BEEF, 3))).isTrue();
+        assertThat(click(ItemStack.empty())).isTrue();
+        assertThat(click(new ItemStack(Material.DIRT))).isTrue();
+        assertThat(opened).containsExactly(pit, pit, pit);
+        assertThat(player.getInventory().getItemInMainHand().getType()).isEqualTo(Material.DIRT);
+        assertThat(slot(FirepitSim.SLOT_ITEM_INPUT).getType()).isEqualTo(Material.AIR);
+        // a log goes in instead of opening (tryInsertLog first)
+        assertThat(click(new ItemStack(Material.OAK_LOG))).isTrue();
+        assertThat(opened).hasSize(3);
     }
 
     @Test
@@ -303,8 +324,9 @@ class FirepitMockBukkitTest extends MockServerTest {
         assertThat(slot(1).getType()).isEqualTo(Material.OAK_LOG);
         assertThat(player.getInventory().getItemInMainHand().getAmount()).isEqualTo(3);
         assertThat(effects.sounds).containsExactly(FirepitEffects.Sound.LOG, FirepitEffects.Sound.LOG);
-        // a cold item without a heat capacity is no fuel and no input: nothing moves
+        // a cold item without a heat capacity is no fuel: the screen opens, nothing moves
         assertThat(click(new ItemStack(Material.DIRT))).isTrue();
+        assertThat(opened).containsExactly(pit);
         assertThat(slot(2).getType()).isEqualTo(Material.AIR);
         assertThat(slot(FirepitSim.SLOT_ITEM_INPUT).getType()).isEqualTo(Material.AIR);
     }
@@ -339,8 +361,8 @@ class FirepitMockBukkitTest extends MockServerTest {
         clock.addAndGet(100); // cooled to 0: the shovel no longer douses
         assertThat(click(new ItemStack(Material.IRON_SHOVEL))).isTrue();
         assertThat(effects.doused).hasSize(2);
-        // the stand-in leaves a cold shovel alone: no heat capacity, so it stays in hand and the input stays empty
-        assertThat(slot(FirepitSim.SLOT_ITEM_INPUT).getType()).isEqualTo(Material.AIR);
+        // a cold firepit and a shovel: the screen opens, the shovel stays in hand
+        assertThat(opened).containsExactly(pit);
         assertThat(player.getInventory().getItemInMainHand().getType()).isEqualTo(Material.IRON_SHOVEL);
     }
 
