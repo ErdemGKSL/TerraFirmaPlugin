@@ -67,6 +67,12 @@ class CandleRulesTest {
         assertThat(CandleRules.lights(Family.CANDLE, true)).isFalse();
         assertThat(CandleRules.lights(Family.CANDLE, false)).isTrue();
         assertThat(CandleRules.lights(Family.JACK_O_LANTERN, true)).isTrue();
+        // vanilla CandleBlock.placeLiquid: water puts a lit candle out; cakes and the jack-o'-lantern hold no water
+        assertThat(CandleRules.drowned(Family.CANDLE, true, true)).isTrue();
+        assertThat(CandleRules.drowned(Family.CANDLE, false, true)).isFalse();
+        assertThat(CandleRules.drowned(Family.CANDLE, true, false)).isFalse();
+        assertThat(CandleRules.drowned(Family.CANDLE_CAKE, true, true)).isFalse();
+        assertThat(CandleRules.drowned(Family.JACK_O_LANTERN, true, true)).isFalse();
         assertThat(CandleRules.douses(Family.CANDLE, false)).isFalse();
         assertThat(CandleRules.douses(Family.JACK_O_LANTERN, false)).isTrue();
         assertThat(CandleRules.light(Family.CANDLE, 4, true)).isEqualTo(14);

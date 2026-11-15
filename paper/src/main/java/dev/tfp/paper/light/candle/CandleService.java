@@ -59,7 +59,11 @@ import org.bukkit.inventory.EquipmentSlot;
  *            otherwise {@code lit=false}, or vanilla's carved pumpkin with the same facing
  * </pre>
  *
- * Also TFC's {@code onFireStart} ({@link #lightable}), {@code onFireStop} ({@link #douse}), the candle on a fresh cake
+ * A lit candle that water entered (vanilla {@code CandleBlock.placeLiquid}, kept by TFC) takes the same path: every
+ * trigger above, plus a bucket or dispenser emptied on it ({@link #waterEntered}), finds it lit and waterlogged and it is
+ * put out with the extinguish sound, its counter kept.
+ *
+ * <p>Also TFC's {@code onFireStart} ({@link #lightable}), {@code onFireStop} ({@link #douse}), the candle on a fresh cake
  * ({@link #addCandle}) and the knife carving a pumpkin ({@link #carve}).
  */
 public final class CandleService {
@@ -157,6 +161,10 @@ public final class CandleService {
         if (cell.family() == null || !CandleDevice.lit(cell.family(), cell.state())) {
             return 0;
         }
+        if (CandleDevice.drowned(cell.family(), cell.state())) {
+            burnout(block); // vanilla CandleBlock.placeLiquid: water puts a lit candle out at once
+            return 0;
+        }
         long due = CandleRules.burnoutTick(cell.litTick(), cell.family().limit(candleTicks(), jackTicks()));
         if (due == LightSourceRules.NEVER) {
             return 0;
@@ -176,13 +184,31 @@ public final class CandleService {
             return List.of();
         }
         boolean lit = CandleDevice.lit(c.family(), c.state());
-        if (!CandleRules.burnsOut(c.family(), lit, c.litTick(), snap.now(), candleTicks, jackTicks)) {
+        if (!CandleDevice.drowned(c.family(), c.state()) && !CandleRules.burnsOut(c.family(), lit, c.litTick(), snap.now(), candleTicks, jackTicks)) {
             return List.of();
         }
         Cell next = c.family() == Family.JACK_O_LANTERN
             ? carved(c.state().properties().getOrDefault(CandleRules.FACING, "north"))
             : new Cell(c.family(), c.state().with(CandleRules.LIT, "false"), c.litTick());
         return List.of(new BlockChange<>(snap.pos(), c, next, snap.nanos()));
+    }
+
+    /** Whether a committed change put out a waterlogged candle (vanilla {@code placeLiquid}, which plays the sound). */
+    static boolean drownedOut(Cell next) {
+        return next.family() == Family.CANDLE && "true".equals(next.state().properties().get(CandleRules.WATERLOGGED));
+    }
+
+    /**
+     * Water may have entered the block at {@code block} (a bucket or a dispenser emptied there): a lit candle that is now
+     * waterlogged goes out (vanilla {@code CandleBlock.placeLiquid}). The check runs on the next tick, once the world
+     * holds the water. Region thread of the block; cheap for any other block.
+     */
+    public void waterEntered(Block block) {
+        Optional<BlockStateRef> state = blocks.stateAt(block);
+        Optional<Family> family = state.flatMap(s -> CandleRules.family(s.id()));
+        if (family.isPresent() && family.get() == Family.CANDLE && CandleDevice.lit(family.get(), state.get())) {
+            effects().burnoutIn(block, 1); // the callback sees waterlogged and queues the change
+        }
     }
 
     private static Cell carved(String facing) {
@@ -208,6 +234,9 @@ public final class CandleService {
                         burnouts.increment();
                     } else if (effects().setState(b, next.state())) {
                         burnouts.increment();
+                        if (drownedOut(next)) {
+                            effects().sound(b, CandleEffects.Sound.EXTINGUISH); // vanilla placeLiquid's extinguish
+                        }
                     }
                 }
             };

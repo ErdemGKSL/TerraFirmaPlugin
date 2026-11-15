@@ -4,7 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/blocks/TFCCandleBlock.java @ c3b4d9536 (onRandomTick, useItemOn),
+ * file: src/main/java/net/dries007/tfc/common/blocks/TFCCandleBlock.java @ c3b4d9536 (onRandomTick, useItemOn; no
+ *       placeLiquid override, so vanilla CandleBlock.placeLiquid's extinguish applies),
  *       src/main/java/net/dries007/tfc/common/blocks/TFCCandleCakeBlock.java @ c3b4d9536 (useItemOn, randomTick),
  *       src/main/java/net/dries007/tfc/common/blocks/devices/JackOLanternBlock.java @ c3b4d9536 (randomTick, extinguish),
  *       src/main/java/net/dries007/tfc/common/blocks/crop/TFCPumpkinBlock.java @ c3b4d9536 (useItemOn: the facing),
@@ -204,6 +205,15 @@ public final class CandleRules {
      */
     public static boolean lights(Family family, boolean waterlogged) {
         return family == Family.JACK_O_LANTERN || !waterlogged;
+    }
+
+    /**
+     * Vanilla {@code CandleBlock.placeLiquid} (TFC's {@code TFCCandleBlock} keeps it): water entering a lit candle sets
+     * {@code waterlogged} and puts it out ({@code AbstractCandleBlock.extinguish}, the counter kept). A lit, waterlogged
+     * candle is therefore a candle about to go out. Candle cakes and the jack-o'-lantern hold no water.
+     */
+    public static boolean drowned(Family family, boolean lit, boolean waterlogged) {
+        return family == Family.CANDLE && lit && waterlogged;
     }
 
     /** TFC {@code onFireStop}: a lit candle or candle cake is put out; a jack-o'-lantern becomes the carved pumpkin. */

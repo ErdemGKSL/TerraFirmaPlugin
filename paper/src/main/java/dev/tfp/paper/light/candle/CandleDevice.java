@@ -129,6 +129,16 @@ public final class CandleDevice {
             services.jackTicks().getAsInt());
     }
 
+    /** Vanilla {@code CandleBlock.placeLiquid}: whether {@code state} is a lit candle that water has entered. */
+    static boolean drowned(Family family, BlockStateRef state) {
+        return CandleRules.drowned(family, lit(family, state), "true".equals(state.properties().get(CandleRules.WATERLOGGED)));
+    }
+
+    /** Whether the block goes out (or back to the carved pumpkin) now: past its burn time, or a lit candle in water. */
+    boolean goesOut(Family family, BlockStateRef state, long litTick, long now) {
+        return drowned(family, state) || burnsOut(family, state, litTick, now);
+    }
+
     /** Queues the burnout callback of a block of {@code family} lit at {@code litTick}, if it can burn out. */
     void queueBurnout(Block block, Family family, long litTick, long now) {
         long due = CandleRules.burnoutTick(litTick,
@@ -165,9 +175,9 @@ public final class CandleDevice {
                 return DeviceResult.pass();
             }
             boolean lit = lit(family, ctx.state());
-            if (lit && burnsOut(family, ctx.state(), ctx.record().state().litTick(), ctx.now())) {
+            if (lit && goesOut(family, ctx.state(), ctx.record().state().litTick(), ctx.now())) {
                 services.effects().burnout(ctx.block());
-                lit = false; // TFC's random tick would have put it out by now
+                lit = false; // TFC's random tick (or vanilla placeLiquid) would have put it out by now
             }
             Player player = ctx.player();
             ItemStack main = player.getInventory().getItemInMainHand();
@@ -210,10 +220,13 @@ public final class CandleDevice {
             return true;
         }
 
-        /** A neighbour update checks the burn time (TFC's random tick would have changed the block by now). */
+        /**
+         * A neighbour update checks the burn time (TFC's random tick would have changed the block by now) and water in a
+         * lit candle (vanilla {@code placeLiquid} puts it out).
+         */
         @Override
         public DeviceResult<State> neighbourChanged(DeviceContext<State> ctx) {
-            if (burnsOut(family, ctx.state(), ctx.record().state().litTick(), ctx.now())) {
+            if (goesOut(family, ctx.state(), ctx.record().state().litTick(), ctx.now())) {
                 services.effects().burnout(ctx.block());
             }
             return DeviceResult.pass();

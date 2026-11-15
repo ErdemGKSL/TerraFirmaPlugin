@@ -21,13 +21,17 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockDispenseEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -41,6 +45,8 @@ import org.bukkit.inventory.ItemStack;
  *   <li>TFC {@code CandleBlockItem.useOn}: a candle on a cake with no bite taken becomes the candle cake.</li>
  *   <li>TFC {@code TFCPumpkinBlock.useItemOn}: a knife or shears on TFC's pumpkin carves it (a block use: skipped while
  *       sneaking with an item, as vanilla).</li>
+ *   <li>Vanilla {@code CandleBlock.placeLiquid}: a water bucket emptied (by a player or a dispenser) on a lit candle puts
+ *       it out once the water is in ({@link CandleService#waterEntered}).</li>
  * </ul>
  *
  * The torch and the candle are item uses, which vanilla runs in neither spectator nor adventure (without
@@ -125,6 +131,28 @@ public final class CandleListener implements Listener {
                 && service.addCandle(block, player, event.getHand(), id.get())) {
             event.setCancelled(true);
         }
+    }
+
+    /** A player emptied a bucket: the clicked block or the block the liquid went to may be a lit candle. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBucketEmpty(PlayerBucketEmptyEvent event) {
+        if (event.getBucket() != Material.WATER_BUCKET) {
+            return;
+        }
+        service.waterEntered(event.getBlock());
+        if (event.getBlockClicked() != null && !event.getBlockClicked().equals(event.getBlock())) {
+            service.waterEntered(event.getBlockClicked());
+        }
+    }
+
+    /** A dispenser emptied a water bucket into the block it faces. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onDispense(BlockDispenseEvent event) {
+        if (event.getItem().getType() != Material.WATER_BUCKET
+                || !(event.getBlock().getBlockData() instanceof Directional d)) {
+            return;
+        }
+        service.waterEntered(event.getBlock().getRelative(d.getFacing()));
     }
 
     /** Whether the weak start of a held torch lights {@code block} (TFC {@code onFireStart}'s branches). */

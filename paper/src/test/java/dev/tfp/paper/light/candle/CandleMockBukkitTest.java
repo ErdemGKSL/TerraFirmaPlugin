@@ -47,6 +47,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -341,6 +342,60 @@ class CandleMockBukkitTest extends MockServerTest {
         assertThat(service.lightable().light(new FireStartContext(at, BlockFace.UP, null, ItemStack.empty(),
             FireStart.Strength.STRONG))).isFalse();
         assertThat(state().properties()).containsEntry("lit", "false");
+    }
+
+    /** Vanilla CandleBlock.placeLiquid (TFC keeps it): water entering a lit candle puts it out, the counter kept. */
+    @Test
+    void aWaterBucketOnALitCandlePutsItOut() {
+        blocks.place(at, candle("tfp:candle", 3, false), true);
+        service.light(at);
+        clock.addAndGet(1_000);
+        effects.callbacks.clear();
+        blocks.place(at, candle("tfp:candle", 3, true).with("waterlogged", "true"), false); // CraftEngine waterlogs it
+        PlayerBucketEmptyEvent bucket = new PlayerBucketEmptyEvent(player, at, at, BlockFace.UP, Material.WATER_BUCKET,
+            new ItemStack(Material.WATER_BUCKET), EquipmentSlot.HAND);
+        listener(new ArrayList<>()).onBucketEmpty(bucket);
+        assertThat(effects.callbacks).containsExactly(1L); // checked on the next tick, once the water is in
+        assertThat(service.callback(at)).isZero();
+        runTasks();
+        assertThat(state()).isEqualTo(candle("tfp:candle", 3, false).with("waterlogged", "true"));
+        assertThat(effects.sounds).containsExactly(CandleEffects.Sound.EXTINGUISH);
+        assertThat(litTick()).isEqualTo(START); // extinguish keeps the counter
+        assertThat(service.burnouts()).isEqualTo(1);
+        // now unlit and waterlogged: nothing more happens, and it cannot be lit
+        assertThat(service.callback(at)).isZero();
+        assertThat(service.light(at)).isFalse();
+    }
+
+    @Test
+    void aLitWaterloggedCandleGoesOutOnAnyTrigger() {
+        // a neighbour update
+        blocks.place(at, candle("tfp:candle", 1, false), true);
+        service.light(at);
+        blocks.place(at, candle("tfp:candle", 1, true).with("waterlogged", "true"), false);
+        devices.neighbourChanged(at);
+        runTasks();
+        assertThat(state().properties()).containsEntry("lit", "false");
+
+        // a click with an empty hand: no extinguish of its own, the water already put it out
+        blocks.place(at, candle("tfp:candle", 1, true).with("waterlogged", "true"), false);
+        assertThat(devices.use(at, player, EquipmentSlot.HAND, ItemStack.empty())).isFalse();
+        runTasks();
+        assertThat(state().properties()).containsEntry("lit", "false");
+
+        // the chunk-load catch-up, well before the burn time
+        blocks.place(at, candle("tfp:candle", 1, true).with("waterlogged", "true"), false);
+        assertThat(reload()).isEmpty();
+        assertThat(state().properties()).containsEntry("lit", "false");
+        assertThat(service.burnouts()).isEqualTo(3);
+        assertThat(effects.sounds).containsExactly(CandleEffects.Sound.EXTINGUISH, CandleEffects.Sound.EXTINGUISH,
+            CandleEffects.Sound.EXTINGUISH);
+
+        // a bucket next to an unlit candle or on another block queues nothing
+        effects.callbacks.clear();
+        service.waterEntered(at);
+        service.waterEntered(world.getBlockAt(0, 64, 0));
+        assertThat(effects.callbacks).isEmpty();
     }
 
     @Test
