@@ -28,6 +28,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Location;
@@ -53,7 +54,7 @@ public final class PaperPotEffects implements PotEffects {
     private final CustomBlocks blocks;
     private final Supplier<BlockVisuals> visuals;
     private final Consumer<Block> callback;
-    private final Consumer<Block> toFirepit;
+    private final Predicate<Block> toFirepit;
     private final BiConsumer<Player, Block> screen;
     private final Map<Pos, Long> pending = new ConcurrentHashMap<>();
     private final Map<Pos, Boolean> converting = new ConcurrentHashMap<>();
@@ -68,11 +69,11 @@ public final class PaperPotEffects implements PotEffects {
 
     /**
      * @param callback  calls the device back (the device router's neighbour update)
-     * @param toFirepit the swap back to a firepit ({@link PotConversion#toFirepit})
+     * @param toFirepit the swap back to a firepit ({@link PotConversion#toFirepit}), returning whether it happened
      * @param screen    opens the pot screen for a player on their thread
      */
     public PaperPotEffects(Scheduler scheduler, CustomBlocks blocks, Supplier<BlockVisuals> visuals,
-            Consumer<Block> callback, Consumer<Block> toFirepit, BiConsumer<Player, Block> screen) {
+            Consumer<Block> callback, Predicate<Block> toFirepit, BiConsumer<Player, Block> screen) {
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.visuals = Objects.requireNonNull(visuals, "visuals");
@@ -184,18 +185,25 @@ public final class PaperPotEffects implements PotEffects {
     }
 
     @Override
-    public void toFirepit(Block block) {
+    public void toFirepit(Block block, Player player, Runnable atBlock, Runnable atPlayer, Runnable playerGone) {
         Pos key = Pos.of(block);
         if (converting.putIfAbsent(key, Boolean.TRUE) != null) {
             return;
         }
         scheduler.region(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, () -> {
+            boolean converted;
             try {
-                if (isPot(block)) {
-                    toFirepit.accept(block);
-                }
+                converted = isPot(block) && toFirepit.test(block);
             } finally {
                 converting.remove(key);
+            }
+            if (!converted) {
+                return; // refused: the pot (or what replaced it) stays, nothing is handed out
+            }
+            atBlock.run();
+            if (!player.isValid() || !scheduler.entity(player, atPlayer,
+                    () -> scheduler.region(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, playerGone))) {
+                playerGone.run();
             }
         });
     }

@@ -348,13 +348,22 @@ public final class PotDevice {
                 if (services.effects().converting(block)) {
                     return DeviceResult.consume(record); // already being taken off this tick
                 }
-                // the pot item back; the block becomes a firepit (convertTo FIREPIT)
-                services.effects().give(player, services.potItem().get());
-                services.effects().toFirepit(block);
-                if (f.lit()) {
-                    services.effects().hurt(player, BURN_DAMAGE);
-                    services.effects().sound(block, PotEffects.Sound.COOL);
-                }
+                // the pot item back; the block becomes a firepit (convertTo FIREPIT). The item, the burn and the sound
+                // follow only a conversion that happened (a refused one would duplicate the pot).
+                boolean lit = f.lit();
+                services.effects().toFirepit(block, player,
+                    () -> {
+                        if (lit) {
+                            services.effects().sound(block, PotEffects.Sound.COOL);
+                        }
+                    },
+                    () -> {
+                        services.effects().give(player, services.potItem().get());
+                        if (lit) {
+                            services.effects().hurt(player, BURN_DAMAGE);
+                        }
+                    },
+                    () -> services.effects().spawn(block, services.potItem().get()));
                 return DeviceResult.consume(record);
             }
             if (!boiling && !empty) {

@@ -40,6 +40,7 @@ import dev.tfp.paper.integration.FakeCustomBlocks;
 import dev.tfp.paper.recipe.ItemModifierHooks;
 import dev.tfp.paper.recipe.RecipeModule;
 import dev.tfp.paper.recipe.Recipes;
+import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.salad.SaladPdc;
 import dev.tfp.paper.tags.ServerTags;
 import dev.tfp.paper.tags.TagRules;
@@ -47,6 +48,7 @@ import dev.tfp.paper.tags.Tags;
 import dev.tfp.paper.testing.MockServerTest;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Proxy;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -191,8 +193,10 @@ class PotContentDataMockBukkitTest extends MockServerTest {
         }
 
         @Override
-        public void toFirepit(Block block) {
+        public void toFirepit(Block block, Player player, Runnable atBlock, Runnable atPlayer, Runnable playerGone) {
             toFirepit++;
+            atBlock.run();
+            atPlayer.run();
         }
 
         @Override
@@ -513,5 +517,71 @@ class PotContentDataMockBukkitTest extends MockServerTest {
         FirepitData after = firepit.kind().codec().decode(store.read(pot).orElseThrow()).state();
         assertThat(after.ash()).isZero();
         assertThat(after.lit()).isTrue();
+    }
+
+    /** PaperPotEffects.toFirepit: a refused conversion hands out nothing and keeps the pot; a real one, in order. */
+    @Test
+    void takingThePotOffHandsOutThePotOnlyAfterTheConversionHappened() {
+        fill(new FluidAmount("minecraft:water", 200));
+        service.edit(pot, device.kind(), (r, now) -> r.withState(r.state().withFirepit(r.state().firepit().withAsh(3))));
+        List<Runnable> region = new ArrayList<>();
+        boolean[] gone = {false};
+        Scheduler scheduler = (Scheduler) Proxy.newProxyInstance(Scheduler.class.getClassLoader(),
+            new Class<?>[] {Scheduler.class}, (proxy, method, args) -> switch (method.getName()) {
+                case "region" -> {
+                    region.add((Runnable) args[args.length - 1]);
+                    yield null;
+                }
+                case "entity" -> {
+                    if (gone[0]) {
+                        yield false; // as Folia's entity scheduler for a removed entity
+                    }
+                    ((Runnable) args[1]).run();
+                    yield true;
+                }
+                case "isOwner" -> true;
+                default -> throw new UnsupportedOperationException(method.getName());
+            });
+        PotConversion refusing = new PotConversion(service, blocks, device.kind(),
+            (at, state) -> !state.id().equals(PotModule.FIREPIT_ID) && place(at, state));
+        PotConversion[] use = {refusing};
+        PaperPotEffects real = new PaperPotEffects(scheduler, blocks, () -> null, b -> { }, b -> use[0].toFirepit(b),
+            (p, b) -> { });
+        List<String> ran = new ArrayList<>();
+        Runnable atBlock = () -> ran.add("block");
+        Runnable atPlayer = () -> ran.add("player");
+        Runnable playerGone = () -> ran.add("gone");
+
+        real.toFirepit(pot, player, atBlock, atPlayer, playerGone);
+        assertThat(real.converting(pot)).isTrue();
+        real.toFirepit(pot, player, atBlock, atPlayer, playerGone);
+        assertThat(region).as("a second click queues nothing").hasSize(1);
+        while (!region.isEmpty()) {
+            region.removeFirst().run();
+        }
+        assertThat(ran).as("refused: nothing handed out").isEmpty();
+        assertThat(blocks.stateAt(pot).orElseThrow().id()).isEqualTo(PotDevice.ID);
+        DeviceRecord<PotData> rolledBack = record();
+        assertThat(rolledBack.state().firepit().ash()).as("the refused swap restores the pot's record").isEqualTo(3);
+        assertThat(rolledBack.state().fluid()).isEqualTo(new FluidAmount("minecraft:water", 200));
+        assertThat(effects.spawned).as("no ash dropped").isEmpty();
+
+        use[0] = conversion;
+        gone[0] = true; // the player left before the region task ran
+        real.toFirepit(pot, player, atBlock, atPlayer, playerGone);
+        while (!region.isEmpty()) {
+            region.removeFirst().run();
+        }
+        assertThat(ran).as("the player left: the pot goes to the block").containsExactly("block", "gone");
+        assertThat(blocks.stateAt(pot).orElseThrow().id()).isEqualTo(PotModule.FIREPIT_ID);
+
+        assertThat(conversion.toPot(pot)).isTrue();
+        ran.clear();
+        gone[0] = false;
+        real.toFirepit(pot, player, atBlock, atPlayer, playerGone);
+        while (!region.isEmpty()) {
+            region.removeFirst().run();
+        }
+        assertThat(ran).containsExactly("block", "player");
     }
 }

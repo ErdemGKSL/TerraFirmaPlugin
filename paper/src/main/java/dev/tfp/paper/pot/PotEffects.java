@@ -52,8 +52,13 @@ public interface PotEffects {
     /** Removes the pot (it lost its floor), next tick. */
     void breakBlock(Block block);
 
-    /** TFC {@code AbstractFirepitBlockEntity.convertTo(FIREPIT)}: the pot turns back into a firepit, next tick. */
-    void toFirepit(Block block);
+    /**
+     * TFC {@code AbstractFirepitBlockEntity.convertTo(FIREPIT)}: the pot turns back into a firepit, next tick. Only when
+     * the conversion succeeds, {@code atBlock} runs on the block's region thread, then {@code atPlayer} on
+     * {@code player}'s thread, or {@code playerGone} on the block's region thread when the player has left by then; a
+     * refused conversion (the firepit cannot be placed, the pot is gone) runs none of them, so no pot is given twice.
+     */
+    void toFirepit(Block block, Player player, Runnable atBlock, Runnable atPlayer, Runnable playerGone);
 
     /** Whether a swap back to a firepit is already queued for {@code block} (a second click gives no second pot). */
     default boolean converting(Block block) {
