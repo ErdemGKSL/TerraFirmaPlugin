@@ -2,7 +2,7 @@
 id: PAR-HEAT-21
 title: "Torches loaded in game: hitbox carriers, configuration/light/torch.yml, the dead torch look and the in-game burnout check"
 area: HEAT
-status: done
+status: open
 wave: 15
 deps: [PAR-HEAT-10]
 size: S
@@ -36,6 +36,7 @@ in_game_steps:
   - "place a fresh tfp:torch, right-click it with another tfp:torch (normal and sneaking): no second torch is placed against the lit one"
   - "Required shot list (all eight): lit floor, lit wall, dead floor, dead wall, each at GUI scale 2 and at GUI scale 3"
 plan:
+  - "UNBLOCKED (unblocker, 2026-11-17, after 2 rejected repair rounds): two asks were out of this item's reach and now have their own items. (1) The side check's outline fix: no closer free carrier exists in the 59-block hitbox dump this item owns; widening the candidate dump (coral wall fans, lever, tripwire_hook, signs, banners, ...) and re-picking the dead torch carriers is follow-up PAR-HEAT-29 (wave 16, deps this item); here keep the pressed button and the dead torch outlines divergence row, and point that row at PAR-HEAT-29. (2) The client keeping 14 block light after a chunk-load burnout until a relog is PAR-HEAT-28 (TorchService/TorchDevice are outside files_owned); done_criteria now say the no-relog client refresh is a deferred check tracked there (PROTOCOL 6.5). Left for this item: the code and evidence of a42c7be stand; add the missing GUI scale 3 lit floor crop (scratchpad ui/PAR-HEAT-21/gui3-lit-floor.webp, or a new shot) so docs/verification/PAR-HEAT-21/ holds all eight required shots, update verdict.md with the deferred checks and this note, re-run ./gradlew check, then set done."
   - "Side check (manager, 2026-11-17, 24 shots from left/right/front/above of lit, dead and vanilla wall torches, facing=east, GUI 2 and 3): the dead wall torch model matches vanilla in size, tilt and position (left and right views identical in angle); the first look was camera distance. REAL FINDING: the dead wall torch selection outline is much shorter than the vanilla torch outline seen from 1.5 blocks in front (about 60 px tall over the middle of the stick versus about 170 px covering the whole torch), so its hitbox does not match the model or TFC dead_wall_torch shape (vanilla torch shape, selection = TFC shape). Fix the dead (and check the lit) wall and floor torch carrier hitbox so the selection box matches TFC tfc:dead_wall_torch / tfc:dead_torch (read the shape from the TFC class, not from this note), and add a pinned-shape test. Shots: scratchpad/ui/PAR-HEAT-21-sidecheck/*.webp; copy 3 small PNG crops of the before/after into docs/verification/PAR-HEAT-21/."
   - "REOPENED (owner report, 2026-11-17): the dead WALL torch looks wrong in docs/verification/PAR-HEAT-21 (gui2-wall-dead.webp): close up it is much larger than the lit wall torch and wide at the bottom, as if tilted the wrong way. Check with a controlled comparison: same camera distance and pitch, lit wall torch, dead wall torch and a vanilla minecraft:wall_torch side by side on the same wall, all four facings. Compare the model against TFC tfc:block/dead_wall_torch (parent minecraft:block/template_torch_wall, texture tfc:block/torch_off) and against how the rendered display/carrier applies scale, rotation (blockstate y 270/90/180/0) and tilt. Fix the rotation/scale if it differs and record the check with screenshots; if it matches vanilla, say so in the verdict with the side-by-side."
   - "UNBLOCKED (manager, 2026-11-17): files_owned widened to the whole hitbox resource and test directories (carrier-policy.json, vanilla-shapes-*.json, tfc-shapes.json and the hitbox tests) so the torch carriers can be added to the selector inputs; redo the item from the Blocked note below."
@@ -51,7 +52,9 @@ tests:
   - "datagen: GeneratedCarrierTest covers the four torch ids; TorchBlocksTest with the agreed carriers"
 done_criteria:
   - "A torch placed and `tfp time add days 4` later is dead after chunk reload (screenshot, docs/verification/PAR-HEAT-21/)"
-  - "The dead torch shows TFC's torch_off texture and gives no light; relighting with a held torch works"
+  - "The dead torch shows TFC's torch_off texture and gives no light (server light 0; F3 reads 0 block light after the client has the chunk again); relighting with a held torch works"
+  - "The client reading 0 block light at once after a chunk-load burnout, without a relog: deferred check tracked in PAR-HEAT-28"
+  - "The dead torch selection outline closer to TFC's than the pressed button: deferred check tracked in PAR-HEAT-29 (this item records the divergence)"
 ---
 
 # PAR-HEAT-21: Torches loaded in game
