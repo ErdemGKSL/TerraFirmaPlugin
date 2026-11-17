@@ -54,6 +54,9 @@ class OreOverlayServiceTest {
                     "tfp:ore/rich_malachite/marble", "tfp:ore_overlay/rich_malachite"),
             Set.of("tfp:rock/raw/granite"), Set.of());
     private OreOverlayService service;
+    private Thread testThread;
+    /** When set, a patch queued from the test thread runs to completion before the queueing call returns. */
+    private volatile boolean patchWinsRace;
 
     /** Records every packet the service sends, with the thread. */
     static final class Recorder implements OverlaySender {
@@ -120,6 +123,7 @@ class OreOverlayServiceTest {
 
     @BeforeEach
     void start() {
+        testThread = Thread.currentThread();
         CellReader reader = new CellReader() {
             @Override
             public boolean loaded(UUID w, int chunkX, int chunkZ) {
@@ -165,6 +169,17 @@ class OreOverlayServiceTest {
 
             @Override
             public void nextTick(UUID w, int chunkX, int chunkZ, Runnable task) {
+                if (patchWinsRace && Thread.currentThread() == testThread) {
+                    // a loaded machine: the region tick runs the patch (and the CPU pool finishes it) before the
+                    // caller's next statement
+                    try {
+                        owner(chunkX).submit(task).get(10, TimeUnit.SECONDS);
+                        quiesce();
+                    } catch (Exception e) {
+                        throw new AssertionError(e);
+                    }
+                    return;
+                }
                 owner(chunkX).schedule(task, 1, TimeUnit.MILLISECONDS);
             }
         };
@@ -261,6 +276,32 @@ class OreOverlayServiceTest {
         assertThat(cover.removeCount()).isEqualTo(1);
         cover.flush(sender);
         quiesce();
+        assertThat(service.sentCount(BOT)).isZero();
+        assertThat(sender.spawns).hasSize(1);
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void fastPathDecidesBeforeThePatchItQueuesCanRun() throws Exception {
+        // PAR-INFRA-59: with the patch queued before the fast path, a patch that ran first sent the face on its own and
+        // left the block change's bundle empty (the flaky blockChangeFastPathRidesWithThePacketAndThePatchAddsNothing)
+        patchWinsRace = true;
+        set(5, 10, 5, 0);
+        service.chunkSent(BOT, 0, 0, new Outbox(BOT));
+        assertThat(settle(0).faceCount()).isZero();
+        set(5, 11, 5, ExposureRule.OPEN);
+        Outbox out = new Outbox(BOT);
+        service.blockChanged(BOT, 5, 11, 5, AIR, out);
+        assertThat(service.table(WORLD, 0, 0).faceCount()).as("the patch already ran").isEqualTo(1);
+        assertThat(out.spawnCount()).as("same bundle as the block change").isEqualTo(1);
+        assertThat(sender.spawns).as("the patch agrees: nothing of its own").isEmpty();
+        out.flush(sender);
+        set(5, 11, 5, ExposureRule.SOLID);
+        Outbox cover = new Outbox(BOT);
+        service.blockChanged(BOT, 5, 11, 5, STONE, cover);
+        assertThat(cover.removeCount()).isEqualTo(1);
+        assertThat(sender.removes).isEmpty();
+        cover.flush(sender);
         assertThat(service.sentCount(BOT)).isZero();
         assertThat(sender.spawns).hasSize(1);
         assertThat(violations).isEmpty();

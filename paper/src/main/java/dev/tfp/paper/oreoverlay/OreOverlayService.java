@@ -304,8 +304,18 @@ public final class OreOverlayService {
         if (w == null) {
             return;
         }
-        // The authoritative patch first: whatever the fast path does, the table follows the world.
-        markDirty(w, x, y, z);
+        try {
+            decideFastPath(v, w, x, y, z, stateId, out);
+        } finally {
+            // The authoritative patch is queued after the fast path decided (PAR-INFRA-59): queued first, it could read
+            // the world, patch the table and send the faces on its own before the fast path looked at the table, and
+            // the outbox of this block change would stay empty. Whatever the fast path did, the table follows the world.
+            markDirty(w, x, y, z);
+        }
+    }
+
+    /** The provisional face changes of one block change, against the published tables. Netty. */
+    private void decideFastPath(Viewer v, UUID w, int x, int y, int z, int stateId, Outbox out) {
         int info = networkState.applyAsInt(stateId);
         if (info >= 0) {
             boolean occludes = (info & OreBlockSource.OCCLUDES) != 0;
