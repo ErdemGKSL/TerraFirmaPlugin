@@ -9,6 +9,7 @@ import dev.tfp.core.bucket.BucketConfig;
 import dev.tfp.core.config.TfpConfig.AutoInstall;
 import dev.tfp.core.config.TfpConfig.CatchUp;
 import dev.tfp.core.config.TfpConfig.Hud;
+import dev.tfp.core.config.TfpConfig.ItemBars;
 import dev.tfp.core.config.TfpConfig.NetherEndBlocks;
 import dev.tfp.core.config.TfpConfig.OreOverlay;
 import dev.tfp.core.config.TfpConfig.Profile;
@@ -54,7 +55,7 @@ public final class ConfigCodec {
         Reader r = new Reader();
         Map<?, ?> top = root == null ? Map.of() : root;
         r.unknown(top, "", List.of("visuals", "ore-overlay", "auto-install", "catchup", "hud",
-                BucketConfig.SECTION, Survival.SECTION));
+                BucketConfig.SECTION, Survival.SECTION, ItemBars.SECTION));
 
         Map<?, ?> v = r.section(top, "visuals");
         r.unknown(v, "visuals.", List.of("profile", "solid-reserve-warning", "use-nether-end-blocks"));
@@ -140,8 +141,14 @@ public final class ConfigCodec {
                 r.bool(sv, sp, Survival.PEACEFUL_REGEN_KEY, sd.peacefulPassiveRegeneration()),
                 r.doubleIn(sv, sp, Survival.REGEN_MODIFIER_KEY, sd.naturalRegenerationModifier(), Survival.MIN_MODIFIER,
                         Survival.MAX_MODIFIER));
+
+        // PAR-HEAT-15: TFC ClientConfig displayItemHeatBars, server-wide (NP-CLIENT-04).
+        String ip = ItemBars.SECTION + ".";
+        Map<?, ?> ib = r.section(top, ItemBars.SECTION);
+        r.unknown(ib, ip, ItemBars.KEYS);
+        ItemBars itemBars = new ItemBars(r.bool(ib, ip, ItemBars.HEAT_KEY, ItemBars.DEFAULTS.heat()));
         return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto, catchUp, hud, buckets,
-                survival), r.warnings, r.defaulted);
+                survival, itemBars), r.warnings, r.defaulted);
     }
 
     /** The tree that {@link #parse} reads back to an equal config. Keys in config.yml order. */
@@ -186,6 +193,9 @@ public final class ConfigCodec {
         survival.put(Survival.PEACEFUL_REGEN_KEY, sv.peacefulPassiveRegeneration());
         survival.put(Survival.REGEN_MODIFIER_KEY, sv.naturalRegenerationModifier());
         root.put(Survival.SECTION, survival);
+        Map<String, Object> itemBars = new LinkedHashMap<>();
+        itemBars.put(ItemBars.HEAT_KEY, c.itemBars().heat());
+        root.put(ItemBars.SECTION, itemBars);
         return root;
     }
 

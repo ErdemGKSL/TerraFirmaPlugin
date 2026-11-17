@@ -104,3 +104,9 @@ survival:
   keep-nutrition-after-death: true
   peaceful-passive-regeneration: false
   natural-regeneration-modifier: 1.0
+
+# Item bars (TFC client config). TFC sets this per player; vanilla clients have none, so one value here
+# applies to every player. Apply changes with /tfp reload config.
+# heat: If true, for items that are hot, they will show a bar on the item like a durability bar
+item-bars:
+  heat: true

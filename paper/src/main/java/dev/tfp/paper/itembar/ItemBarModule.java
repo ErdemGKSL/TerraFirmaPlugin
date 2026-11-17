@@ -5,7 +5,10 @@
  */
 package dev.tfp.paper.itembar;
 
+import dev.tfp.core.config.ConfigCodec;
+import dev.tfp.core.config.TfpConfig;
 import dev.tfp.core.heat.HeatConfig;
+import dev.tfp.paper.config.ConfigService;
 import dev.tfp.paper.config.Yamls;
 import dev.tfp.paper.heat.HeatTooltipRecipes;
 import dev.tfp.paper.heat.ItemHeatDefinitionsCache;
@@ -23,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 /**
  * PAR-HEAT-14: the item-bar layer (TFC {@code BarSystem}) with the heat bar. Publishes {@link ItemBars} (later bars
@@ -31,13 +35,14 @@ import java.util.Map;
  * service file. Off without PacketEvents (the plugin's packet layer).
  *
  * <p>The heat bar follows the server setting {@code item-bars.heat} (TFC's client option {@code displayItemHeatBars},
- * default true), read from {@code config.yml} at enable.
+ * default true), typed in {@link TfpConfig.ItemBars} and read from {@link ConfigService#current()} on every draw, so
+ * {@code /tfp reload config} applies it without a restart (PAR-HEAT-15).
  */
 public final class ItemBarModule implements FeatureModule {
     public static final String ID = "item_bar";
     /** The config section and key of the heat bar setting. */
-    public static final String SECTION = "item-bars";
-    public static final String HEAT_KEY = "heat";
+    public static final String SECTION = TfpConfig.ItemBars.SECTION;
+    public static final String HEAT_KEY = TfpConfig.ItemBars.HEAT_KEY;
 
     private volatile ItemBars bars;
 
@@ -55,22 +60,34 @@ public final class ItemBarModule implements FeatureModule {
             context.logger().info("Item bars: PacketEvents is not installed; no item bars");
             return;
         }
-        boolean heat = heatEnabled(context.config().file());
+        BooleanSupplier heat = heatSetting(context.config());
         ItemHeatDefinitionsCache definitions = context.services().require(ItemHeatDefinitionsCache.class);
         Recipes recipeService = context.services().require(Recipes.class);
         Tags tags = context.services().require(Tags.class);
         HeatTooltipRecipes recipes = new HeatTooltipRecipes(
                 id -> recipeService.index().byItem(RecipeTypes.HEATING, id),
                 () -> ItemIngredientContext.lookup(tags.snapshot()));
-        itemBars.register(HeatBars.create(() -> heat, () -> context.clock().get().playerTicks(), HeatConfig.DEFAULT,
+        itemBars.register(HeatBars.create(heat, () -> context.clock().get().playerTicks(), HeatConfig.DEFAULT,
                 definitions, HeatBars.recipes(recipes)));
         context.packets().register(new ItemBarHandler(new ItemBarRender(itemBars::registry)));
-        context.logger().info("Item bars: heat bar " + (heat ? "on" : "off (item-bars.heat: false)"));
+        context.logger().info("Item bars: heat bar " + (heat.getAsBoolean() ? "on" : "off (item-bars.heat: false)")
+                + "; follows /tfp reload config");
     }
 
     /** The bars after {@link #enable}, or null before (tests and debug). */
     public ItemBars bars() {
         return bars;
+    }
+
+    /**
+     * The live {@code item-bars.heat} setting: reads {@link ConfigService#current()} on every call, so a reload that
+     * swaps the config is seen by the next draw. True without a config service.
+     */
+    static BooleanSupplier heatSetting(ConfigService config) {
+        if (config == null) {
+            return () -> TfpConfig.ItemBars.DEFAULTS.heat();
+        }
+        return () -> config.current().itemBars().heat();
     }
 
     /** The {@code item-bars.heat} setting in the config file; true when the file, section or key is missing or bad. */
@@ -87,10 +104,6 @@ public final class ItemBarModule implements FeatureModule {
 
     /** As {@link #heatEnabled(Path)} on the loaded YAML tree. */
     static boolean heatEnabled(Map<?, ?> tree) {
-        Object section = tree.get(SECTION);
-        if (section instanceof Map<?, ?> map && map.get(HEAT_KEY) instanceof Boolean b) {
-            return b;
-        }
-        return true;
+        return ConfigCodec.parse(tree).config().itemBars().heat();
     }
 }

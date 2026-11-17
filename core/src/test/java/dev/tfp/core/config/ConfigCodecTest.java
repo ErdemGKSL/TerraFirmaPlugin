@@ -56,7 +56,7 @@ class ConfigCodecTest {
         ConfigCodec.Parsed p = ConfigCodec.parse(Map.of());
         assertThat(p.config()).isEqualTo(TfpConfig.DEFAULTS);
         assertThat(p.warnings()).isEmpty();
-        assertThat(p.defaulted()).hasSize(24).contains("survival.keep-nutrition-after-death",
+        assertThat(p.defaulted()).hasSize(25).contains("item-bars.heat", "survival.keep-nutrition-after-death",
                 "survival.peaceful-passive-regeneration", "survival.natural-regeneration-modifier",
                 "buckets.wooden-bucket-can-place-sources",
                 "buckets.metal-bucket-can-place-sources", "hud.health-display-style", "hud.disabled-experience-bar-style",
@@ -329,5 +329,37 @@ class ConfigCodecTest {
                 .contains("buckets: expected a section");
         // The section itself is known: no top-level unknown-key warning.
         assertThat(ConfigCodec.parse(Map.of("buckets", Map.of())).warnings()).isEmpty();
+    }
+
+    /** PAR-HEAT-15: TFC's displayItemHeatBars as item-bars.heat, defaulted to true, round-tripped, warned when bad. */
+    @Test
+    void itemBarKeysAreReadWrittenAndDefaulted() {
+        assertThat(TfpConfig.DEFAULTS.itemBars()).isEqualTo(new TfpConfig.ItemBars(true));
+        assertThat(ConfigCodec.toMap(TfpConfig.DEFAULTS).get("item-bars")).isEqualTo(Map.of("heat", true));
+        for (boolean heat : new boolean[] {true, false}) {
+            TfpConfig c = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS, CatchUp.DEFAULTS,
+                    TfpConfig.Hud.DEFAULTS, BucketConfig.DEFAULTS, TfpConfig.Survival.DEFAULTS, new TfpConfig.ItemBars(heat));
+            ConfigCodec.Parsed p = ConfigCodec.parse(ConfigCodec.toMap(c));
+            assertThat(p.warnings()).isEmpty();
+            assertThat(p.defaulted()).isEmpty();
+            assertThat(p.config()).isEqualTo(c);
+        }
+        // Known section: no top-level unknown-key warning; an absent key is defaulted.
+        ConfigCodec.Parsed empty = ConfigCodec.parse(Map.of("item-bars", Map.of()));
+        assertThat(empty.warnings()).isEmpty();
+        assertThat(empty.defaulted()).contains("item-bars.heat");
+        assertThat(ConfigCodec.parse(Map.of("item-bars", Map.of("heat", false))).config().itemBars().heat()).isFalse();
+        // A bad value warns and keeps TFC's default; an unknown key warns.
+        ConfigCodec.Parsed bad = ConfigCodec.parse(Map.of("item-bars", Map.of("heat", "no", "food", true)));
+        assertThat(bad.config().itemBars()).isEqualTo(TfpConfig.ItemBars.DEFAULTS);
+        assertThat(bad.warnings()).hasSize(2)
+                .anyMatch(w -> w.equals("item-bars.heat: expected true or false, got 'no'; using true"))
+                .anyMatch(w -> w.contains("unknown key 'item-bars.food'"));
+        assertThat(ConfigCodec.parse(Map.of("item-bars", false)).warnings()).singleElement().asString()
+                .contains("item-bars: expected a section");
+        // The 7-argument constructor keeps TFC's item bar default.
+        assertThat(new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS, CatchUp.DEFAULTS,
+                TfpConfig.Hud.DEFAULTS, BucketConfig.DEFAULTS, TfpConfig.Survival.DEFAULTS).itemBars())
+                .isEqualTo(TfpConfig.ItemBars.DEFAULTS);
     }
 }

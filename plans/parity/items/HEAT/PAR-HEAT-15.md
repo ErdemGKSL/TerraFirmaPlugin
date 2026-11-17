@@ -2,7 +2,7 @@
 id: PAR-HEAT-15
 title: "Item bar config key: item-bars.heat in config.yml and TfpConfig, read on /tfp reload"
 area: HEAT
-status: open
+status: done
 wave: 12
 deps: [PAR-HEAT-14]
 size: S
@@ -24,6 +24,7 @@ plan:
   - "Blocked: adding the top-level `item-bars:` section to config.yml breaks `paper/src/test/java/dev/tfp/paper/config/ConfigServiceTest.java` (`ownerFileKeepsCommentsAndGetsMissingSections` lists every section YamlDefaultsMerge appends: it needs `\"item-bars\"` after `\"survival\"`), which is not in this item's files_owned (same case as PAR-FLUID-08 -> PAR-FLUID-12). Unblock by adding that file to files_owned. The rest was implemented and green apart from that one assertion: TfpConfig.ItemBars(heat) record + 7-arg constructor, ConfigCodec parse/toMap for item-bars.heat (bad value warns, defaults true; item-bars a known section), config.yml section with TFC's comment, ItemBarModule.heatSetting(ConfigService) reading current() per call, ConfigCodecTest +1 (itemBarKeysAreReadWrittenAndDefaulted, defaulted count 24 -> 25), new ItemBarConfigTest (5 tests: shipped key, reload on/off/on, bad value, old config appended, helpers)."
   - "Current: PAR-HEAT-14's ItemBarModule reads `item-bars.heat` (TFC displayItemHeatBars, default true) straight from config.yml at enable; the key is not in the shipped config.yml, ConfigCodec reports `item-bars` as an unknown key, and /tfp reload does not re-read it."
   - "Add an `item-bars:` section with `heat: true` (comment: TFC displayItemHeatBars, server-wide per NP-CLIENT-04) to config.yml, a typed `ItemBars(boolean heat)` record to TfpConfig with ConfigCodec parsing (bad value: default with a warning), and make ItemBarModule's heat bar read `context.config().current()` on every call instead of its own file read (so /tfp reload applies it)."
+  - "Done: TfpConfig.ItemBars(heat) + 7-arg compat constructor; ConfigCodec parses/writes item-bars.heat (known section, bad value warns and defaults true); config.yml item-bars section with TFC's comment; ItemBarModule.heatSetting reads ConfigService.current() on every draw so /tfp reload config applies it. Tests: core ConfigCodecTest +1 (itemBarKeysAreReadWrittenAndDefaulted; defaulted 24 -> 25), paper ItemBarConfigTest (5: shipped key, reload on/off/on, bad value, old config appended, helpers), ConfigServiceTest added-sections list. ui: false, no in-game check."
 tests:
   - "core: ConfigCodecTest round-trips item-bars.heat, a bad value warns and defaults to true, no unknown-key warning"
   - "paper: the heat bar follows the config after a reload"

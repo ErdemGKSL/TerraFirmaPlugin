@@ -135,7 +135,7 @@ Totals: 358 items; open 205, done 145, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-DATA-16 | Pistons cannot move water sources: 1-tick piston pulses drop the water of waterlogged blocks (TFC's MC-130183 fix) | DATA | 12 | done |
 | PAR-HEAT-04 | Heating recipes on devices: the 884 heating recipes as a shared service | HEAT | 12 | done |
 | PAR-HEAT-05 | Fire starting: firestarter use-duration, flint and pyrite, StartFireEvent world rules | HEAT | 12 | done |
-| PAR-HEAT-15 | Item bar config key: item-bars.heat in config.yml and TfpConfig, read on /tfp reload | HEAT | 12 | open |
+| PAR-HEAT-15 | Item bar config key: item-bars.heat in config.yml and TfpConfig, read on /tfp reload | HEAT | 12 | done |
 | PAR-HEAT-16 | Item heat of list ingredients: metal tools and parts (item_heat parts_*) cannot be heated | HEAT | 12 | done |
 | PAR-PROC-09 | Barrel GUI, fluid level visual, rain fill, barrel rack | PROC | 12 | done |
 | PAR-PROC-34 | Composter CE block: tfc:composter hitbox rows and demands, configuration/compost, in-game check | PROC | 12 | done |

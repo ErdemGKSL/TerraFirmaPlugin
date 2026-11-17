@@ -21,14 +21,21 @@ import java.util.Optional;
  * here as their features land.
  */
 public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp, Hud hud,
-        BucketConfig buckets, Survival survival) {
+        BucketConfig buckets, Survival survival, ItemBars itemBars) {
     public static final TfpConfig DEFAULTS = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS,
-            CatchUp.DEFAULTS, Hud.DEFAULTS, BucketConfig.DEFAULTS, Survival.DEFAULTS);
+            CatchUp.DEFAULTS, Hud.DEFAULTS, BucketConfig.DEFAULTS, Survival.DEFAULTS, ItemBars.DEFAULTS);
 
     public TfpConfig {
         Objects.requireNonNull(hud, "hud");
         Objects.requireNonNull(buckets, "buckets");
         Objects.requireNonNull(survival, "survival");
+        Objects.requireNonNull(itemBars, "itemBars");
+    }
+
+    /** A config with TFC's item bar default ({@link ItemBars#DEFAULTS}). */
+    public TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp, Hud hud,
+            BucketConfig buckets, Survival survival) {
+        this(visuals, oreOverlay, autoInstall, catchUp, hud, buckets, survival, ItemBars.DEFAULTS);
     }
 
     /** A config with TFC's survival defaults ({@link Survival#DEFAULTS}). */
@@ -264,5 +271,20 @@ public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall auto
                         + naturalRegenerationModifier);
             }
         }
+    }
+
+    /**
+     * {@code item-bars.*}: TFC's item bar display option (PAR-HEAT-15). TFC keeps it per player in {@code ClientConfig};
+     * here it is one server-wide value (NOT-PARITY NP-CLIENT-04). Read again on every {@code /tfp reload config}.
+     *
+     * @param heat TFC {@code displayItemHeatBars} (true): hot items show a bar like a durability bar
+     */
+    public record ItemBars(boolean heat) {
+        public static final String SECTION = "item-bars";
+        public static final String HEAT_KEY = "heat";
+        /** The keys of the section, in config.yml order. */
+        public static final List<String> KEYS = List.of(HEAT_KEY);
+        /** TFC's {@code ClientConfig} default. */
+        public static final ItemBars DEFAULTS = new ItemBars(true);
     }
 }

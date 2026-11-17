@@ -102,7 +102,8 @@ class ConfigServiceTest {
         Files.writeString(file, owner);
         ConfigService.Outcome o = service.load();
         assertThat(o.created()).isFalse();
-        assertThat(o.added()).containsExactly("ore-overlay", "auto-install", "catchup", "hud", "buckets", "survival");
+        assertThat(o.added()).containsExactly("ore-overlay", "auto-install", "catchup", "hud", "buckets", "survival",
+                "item-bars");
         assertThat(o.warnings()).hasSize(2).anyMatch(w -> w.contains("visuals.extra"))
                 .anyMatch(w -> w.contains("config.yml visuals.profile.\"26\": level-3b was removed") && w.contains("using level-2"));
         String text = Files.readString(file);
