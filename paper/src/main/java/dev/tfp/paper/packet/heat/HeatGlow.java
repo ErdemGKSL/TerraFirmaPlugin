@@ -3,13 +3,14 @@
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  */
-package dev.tfp.paper.heat;
+package dev.tfp.paper.packet.heat;
 
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.nbt.NBTString;
 import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.heat.HeatLevel;
 import dev.tfp.core.heat.ItemHeatDefinitions;
+import dev.tfp.paper.heat.HeatGlowData;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.LongSupplier;
@@ -26,8 +27,9 @@ import java.util.function.Supplier;
  * {@code item_model} (empty when the stack had none of its own), so {@link #strip} restores exactly that when a
  * creative-mode client sends the stack back. A stack that already carries {@code custom_model_data} is left alone (that
  * component belongs to another feature). The logic works on {@link Access}, so it is testable without a running
- * PacketEvents; {@link HeatGlowHandler} adapts PacketEvents stacks. Thread-safe: reads one clock value and immutable
- * snapshots.
+ * PacketEvents; {@link HeatGlowHandler} adapts PacketEvents stacks. Both link against PacketEvents types, so they live in
+ * the packet layer (PAR-INFRA-58); {@link dev.tfp.paper.heat.HeatGlowModule} creates them only when PacketEvents is
+ * installed. Thread-safe: reads one clock value and immutable snapshots.
  */
 public final class HeatGlow {
     /** The {@code custom_data} marker: the stack's original {@code item_model} ("" for none). */
@@ -57,12 +59,12 @@ public final class HeatGlow {
     }
 
     private final HeatGlowData data;
-    private final HeatTooltipDecoration levels;
+    private final HeatLoreDecoration levels;
 
     /** @param now the current player tick */
     public HeatGlow(HeatGlowData data, LongSupplier now, HeatConfig config, Supplier<ItemHeatDefinitions> definitions) {
         this.data = Objects.requireNonNull(data, "data");
-        this.levels = new HeatTooltipDecoration(now, config, definitions, (level, locale) -> "");
+        this.levels = new HeatLoreDecoration(now, config, definitions, (level, locale) -> "");
     }
 
     /** The {@code custom_model_data} floats[0] value of a heat level. */

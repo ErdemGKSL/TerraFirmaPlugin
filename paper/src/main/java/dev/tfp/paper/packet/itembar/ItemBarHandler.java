@@ -3,20 +3,16 @@
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  */
-package dev.tfp.paper.heat;
+package dev.tfp.paper.packet.itembar;
 
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.component.ComponentType;
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
-import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemCustomModelData;
-import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemModel;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
-import com.github.retrooper.packetevents.protocol.player.Equipment;
 import com.github.retrooper.packetevents.protocol.recipe.data.MerchantOffer;
-import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCreativeInventoryAction;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityEquipment;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMerchantOffers;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetCursorItem;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetPlayerInventory;
@@ -26,29 +22,32 @@ import dev.tfp.paper.packet.PacketContext;
 import dev.tfp.paper.packet.PacketDecision;
 import dev.tfp.paper.packet.PacketHandler;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * Applies the {@link HeatGlow} to the stacks of outgoing item packets and strips it from stacks a creative-mode client
- * sends back (PAR-HEAT-01).
+ * Draws the item bars ({@link ItemBarRender}) on the stacks of outgoing item packets and strips them from stacks a
+ * creative-mode client sends back (PAR-HEAT-14).
  *
  * <p>Clientbound: {@code SET_SLOT}, {@code WINDOW_ITEMS} (with the carried item), {@code SET_CURSOR_ITEM},
- * {@code SET_PLAYER_INVENTORY}, the result items of {@code MERCHANT_OFFERS} and {@code ENTITY_EQUIPMENT} (a hot item in
- * another player's hand glows too). Serverbound: {@code CREATIVE_INVENTORY_ACTION}. Changes are made in place on the
- * packet's own stacks, so they combine with the tooltip handler on the same packet.
+ * {@code SET_PLAYER_INVENTORY} and the result items of {@code MERCHANT_OFFERS}, the paths the heat glow decorates.
+ * Entity equipment is left alone: a client draws no item bar on another entity's items. Serverbound:
+ * {@code CREATIVE_INVENTORY_ACTION}. Changes are made in place on the packet's own stacks, so they combine with the
+ * tooltip and glow handlers on the same packet. The bar is the one at the time the packet is built and follows the
+ * temperature when the stack is sent again (the tooltip refresher resends a view whose heat line changed).
  *
  * <p>Netty thread, under the {@link PacketHandler} rules. Links against PacketEvents: create it only when PacketEvents
  * is installed.
  */
-public final class HeatGlowHandler implements PacketHandler {
-    public static final String NAME = "heat-glow";
+public final class ItemBarHandler implements PacketHandler {
+    public static final String NAME = "item-bar";
 
-    private final HeatGlow glow;
+    private final ItemBarRender render;
 
-    public HeatGlowHandler(HeatGlow glow) {
-        this.glow = Objects.requireNonNull(glow, "glow");
+    public ItemBarHandler(ItemBarRender render) {
+        this.render = Objects.requireNonNull(render, "render");
     }
 
     @Override
@@ -58,8 +57,7 @@ public final class HeatGlowHandler implements PacketHandler {
 
     @Override
     public Set<String> sendTypes() {
-        return Set.of("SET_SLOT", "WINDOW_ITEMS", "SET_CURSOR_ITEM", "SET_PLAYER_INVENTORY", "MERCHANT_OFFERS",
-                "ENTITY_EQUIPMENT");
+        return Set.of("SET_SLOT", "WINDOW_ITEMS", "SET_CURSOR_ITEM", "SET_PLAYER_INVENTORY", "MERCHANT_OFFERS");
     }
 
     @Override
@@ -68,7 +66,7 @@ public final class HeatGlowHandler implements PacketHandler {
     }
 
     private boolean apply(ItemStack item) {
-        return item != null && !item.isEmpty() && glow.decorate(access(item));
+        return item != null && !item.isEmpty() && render.decorate(access(item));
     }
 
     @Override
@@ -129,16 +127,6 @@ public final class HeatGlowHandler implements PacketHandler {
                     merchant.setMerchantOffers(offers);
                 }
             }
-            case "ENTITY_EQUIPMENT" -> {
-                WrapperPlayServerEntityEquipment equipment = new WrapperPlayServerEntityEquipment(event);
-                List<Equipment> list = equipment.getEquipment();
-                for (Equipment e : list) {
-                    changed |= apply(e.getItem());
-                }
-                if (changed) {
-                    equipment.setEquipment(list);
-                }
-            }
             default -> {
                 return PacketDecision.PASS;
             }
@@ -151,16 +139,20 @@ public final class HeatGlowHandler implements PacketHandler {
         WrapperPlayClientCreativeInventoryAction action =
                 new WrapperPlayClientCreativeInventoryAction(packet.nativeEvent(PacketReceiveEvent.class));
         ItemStack item = action.getItemStack();
-        if (item == null || item.isEmpty() || !HeatGlow.strip(access(item))) {
+        if (item == null || item.isEmpty() || !ItemBarRender.strip(access(item))) {
             return PacketDecision.PASS;
         }
         action.setItemStack(item);
         return PacketDecision.MODIFIED;
     }
 
+    private static ComponentType<Integer> type(ItemBarRender.Part part) {
+        return part == ItemBarRender.Part.MAX_DAMAGE ? ComponentTypes.MAX_DAMAGE : ComponentTypes.DAMAGE;
+    }
+
     /** The view of a PacketEvents stack (the packet's copy). */
-    static HeatGlow.Access access(ItemStack item) {
-        return new HeatGlow.Access() {
+    static ItemBarRender.Access access(ItemStack item) {
+        return new ItemBarRender.Access() {
             @Override
             public NBTCompound customData() {
                 return item.getComponent(ComponentTypes.CUSTOM_DATA).orElse(null);
@@ -176,36 +168,38 @@ public final class HeatGlowHandler implements PacketHandler {
             }
 
             @Override
-            public boolean hasModelData() {
-                return item.hasComponent(ComponentTypes.CUSTOM_MODEL_DATA_LISTS)
-                        || item.hasComponent(ComponentTypes.CUSTOM_MODEL_DATA);
+            public String material() {
+                return item.getType().getName().toString();
             }
 
             @Override
-            public void modelData(Float value) {
-                if (value == null) {
-                    item.getComponents().getPatches().remove(ComponentTypes.CUSTOM_MODEL_DATA_LISTS);
-                } else {
-                    item.setComponent(ComponentTypes.CUSTOM_MODEL_DATA_LISTS,
-                            new ItemCustomModelData(List.of(value), List.of(), List.of(), List.of()));
-                }
+            public int amount() {
+                return item.getAmount();
             }
 
             @Override
-            public String itemModel() {
-                Optional<?> patch = item.getComponents().getPatches().get(ComponentTypes.ITEM_MODEL);
-                if (patch == null || patch.isEmpty()) {
+            public boolean hasOwnBar() {
+                return item.isDamaged();
+            }
+
+            @Override
+            public Integer patch(ItemBarRender.Part part) {
+                Optional<?> entry = item.getComponents().getPatches().get(type(part));
+                if (entry == null) {
                     return null;
                 }
-                return ((ItemModel) patch.get()).getModelLocation().toString();
+                return entry.isEmpty() ? ItemBarRender.REMOVED : (Integer) entry.get();
             }
 
             @Override
-            public void itemModel(String model) {
-                if (model == null) {
-                    item.getComponents().getPatches().remove(ComponentTypes.ITEM_MODEL);
+            public void patch(ItemBarRender.Part part, Integer value) {
+                Map<ComponentType<?>, Optional<?>> patches = item.getComponents().getPatches();
+                if (value == null) {
+                    patches.remove(type(part));
+                } else if (value == ItemBarRender.REMOVED) {
+                    patches.put(type(part), Optional.empty());
                 } else {
-                    item.setComponent(ComponentTypes.ITEM_MODEL, new ItemModel(new ResourceLocation(model)));
+                    patches.put(type(part), Optional.of(value));
                 }
             }
         };

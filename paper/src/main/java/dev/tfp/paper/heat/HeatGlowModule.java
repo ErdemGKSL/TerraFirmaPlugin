@@ -9,6 +9,8 @@ import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.packet.PacketLayers;
+import dev.tfp.paper.packet.heat.HeatGlow;
+import dev.tfp.paper.packet.heat.HeatGlowHandler;
 
 /**
  * PAR-HEAT-01: hot items glow by heat level on vanilla clients. Loads the datagen list of items with a heat glow

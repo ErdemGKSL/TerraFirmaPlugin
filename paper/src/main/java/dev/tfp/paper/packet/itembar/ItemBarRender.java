@@ -3,13 +3,14 @@
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  */
-package dev.tfp.paper.itembar;
+package dev.tfp.paper.packet.itembar;
 
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.nbt.NBTInt;
 import dev.tfp.core.itembar.ItemBar;
 import dev.tfp.core.itembar.ItemBarRegistry;
 import dev.tfp.core.itembar.ShownBar;
+import dev.tfp.paper.itembar.BarStack;
 import dev.tfp.paper.packet.ItemDecorationHandler;
 import dev.tfp.paper.tooltip.TooltipData;
 import dev.tfp.paper.tooltip.TooltipItem;
@@ -28,7 +29,9 @@ import java.util.function.Supplier;
  * <p>The stack's original {@code max_damage} and {@code damage} patch entries are recorded in its {@code custom_data}
  * under {@value #MARKER}, so {@link #strip} restores exactly them when a creative-mode client sends the stack back.
  * The server's stack is never changed. The logic runs on {@link Access}, so it is testable without a running
- * PacketEvents; {@link ItemBarHandler} adapts PacketEvents stacks.
+ * PacketEvents; {@link ItemBarHandler} adapts PacketEvents stacks. Both link against PacketEvents types, so they live in
+ * the packet layer (PAR-INFRA-58); {@link dev.tfp.paper.itembar.ItemBarModule} creates them only when PacketEvents is
+ * installed.
  */
 public final class ItemBarRender {
     /** The {@code custom_data} marker: a compound with the original patch entries. */
@@ -112,7 +115,7 @@ public final class ItemBarRender {
     }
 
     /** The bar the stack shows now, if any. */
-    Optional<ShownBar> shown(Access stack) {
+    public Optional<ShownBar> shown(Access stack) {
         return registry.get().shown(view(stack), stack.hasOwnBar());
     }
 

@@ -12,7 +12,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * PAR-INFRA-33: what to do with one outgoing sound packet (pure; the PacketEvents glue is {@link BlockSoundPacketHandler}).
+ * PAR-INFRA-33: what to do with one outgoing sound packet (pure; the PacketEvents glue is {@code dev.tfp.paper.packet.blocksound.BlockSoundPacketHandler}).
  * CraftEngine 26.9.2 sends two sounds of a custom block at fixed values that ignore its configuration:
  * <ul>
  *   <li>the mining loop's hit sound ({@code BukkitServerPlayer}, every 4th tick, to the miner only) at 0.5/0.5, at

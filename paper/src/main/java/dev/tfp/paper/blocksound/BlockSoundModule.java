@@ -19,10 +19,12 @@ import java.util.logging.Level;
 /**
  * PAR-INFRA-33: CraftEngine block hit and level-event break sounds at the TFC {@code SoundType}'s volume and pitch.
  * Loads {@link CeBlockSoundTable} from CraftEngine's resources folder on the I/O pool, registers
- * {@link BlockSoundTracker} and, when PacketEvents is installed, {@link BlockSoundPacketHandler}.
+ * {@link BlockSoundTracker} and, when PacketEvents is installed, {@code dev.tfp.paper.packet.blocksound.BlockSoundPacketHandler}.
  */
 public final class BlockSoundModule implements FeatureModule {
     public static final String ID = "block_sound";
+    /** The PacketEvents-linked handler, in the packet layer (PAR-INFRA-58); loaded only when PacketEvents is installed. */
+    static final String PACKET_HANDLER = "dev.tfp.paper.packet.blocksound.BlockSoundPacketHandler";
 
     @Override
     public String id() {
@@ -36,7 +38,7 @@ public final class BlockSoundModule implements FeatureModule {
         context.listen(new BlockSoundTracker(rewrite, context.integrations().customBlocks(), System::nanoTime));
         if (context.plugin().getServer().getPluginManager().getPlugin(PacketLayers.PACKETEVENTS) != null) {
             // Reflective, so that this module still loads when PacketEvents is absent.
-            context.packets().register((PacketHandler) Class.forName(getClass().getPackageName() + ".BlockSoundPacketHandler")
+            context.packets().register((PacketHandler) Class.forName(PACKET_HANDLER)
                     .getConstructor(BlockSoundRewrite.class, java.util.logging.Logger.class)
                     .newInstance(rewrite, context.logger()));
         } else {

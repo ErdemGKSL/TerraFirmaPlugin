@@ -3,11 +3,12 @@
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  */
-package dev.tfp.paper.blocksound;
+package dev.tfp.paper.packet.blocksound;
 
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSoundEffect;
+import dev.tfp.paper.blocksound.BlockSoundRewrite;
 import dev.tfp.paper.packet.PacketContext;
 import dev.tfp.paper.packet.PacketDecision;
 import dev.tfp.paper.packet.PacketHandler;
@@ -17,8 +18,9 @@ import java.util.logging.Logger;
 
 /**
  * PAR-INFRA-33: applies {@link BlockSoundRewrite} to outgoing {@code SOUND_EFFECT} packets (CraftEngine sends its block
- * sounds as positioned sound packets). Linked against PacketEvents; {@link BlockSoundModule} creates it reflectively,
- * only when PacketEvents is installed. Netty thread: reads only the rewrite's snapshots.
+ * sounds as positioned sound packets). Linked against PacketEvents, so it lives in the packet layer (PAR-INFRA-58);
+ * {@link dev.tfp.paper.blocksound.BlockSoundModule} creates it reflectively, only when PacketEvents is installed. Netty
+ * thread: reads only the rewrite's snapshots.
  */
 public final class BlockSoundPacketHandler implements PacketHandler {
     public static final String NAME = "block-sound-volume";

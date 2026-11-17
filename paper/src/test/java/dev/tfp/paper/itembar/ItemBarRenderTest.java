@@ -17,10 +17,16 @@ import dev.tfp.core.heat.ItemHeatDefinitions;
 import dev.tfp.core.itembar.HeatBar;
 import dev.tfp.core.itembar.ItemBar;
 import dev.tfp.core.itembar.ShownBar;
-import dev.tfp.paper.itembar.ItemBarRender.Part;
+import dev.tfp.paper.packet.itembar.ItemBarRender;
+import dev.tfp.paper.packet.itembar.ItemBarRender.Part;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -295,5 +301,30 @@ class ItemBarRenderTest {
         assertThat(ItemBarModule.heatEnabled(Map.of("item-bars", Map.of("heat", "no")))).as("bad value").isTrue();
         assertThat(ItemBarModule.heatEnabled(Map.of("item-bars", List.of()))).isTrue();
         assertThat(ItemBarModule.heatEnabled((java.nio.file.Path) null)).isTrue();
+    }
+
+    @Test
+    void theModuleDeclaresNoPacketEventsTypes() {
+        assertThat(packetEventsTypes(ItemBarModule.class)).isEmpty();
+        assertThat(packetEventsTypes(BarStack.class)).isEmpty();
+    }
+
+    /** PAR-INFRA-58: the names of the PacketEvents types a class declares in its own fields, methods and constructors. */
+    static List<String> packetEventsTypes(Class<?> type) {
+        List<Class<?>> used = new ArrayList<>();
+        used.add(type.getSuperclass());
+        used.addAll(List.of(type.getInterfaces()));
+        for (Field f : type.getDeclaredFields()) {
+            used.add(f.getType());
+        }
+        for (Method m : type.getDeclaredMethods()) {
+            used.add(m.getReturnType());
+            used.addAll(List.of(m.getParameterTypes()));
+        }
+        for (Constructor<?> c : type.getDeclaredConstructors()) {
+            used.addAll(List.of(c.getParameterTypes()));
+        }
+        return used.stream().filter(Objects::nonNull).map(Class::getName)
+                .filter(n -> n.startsWith("com.github.retrooper.") || n.startsWith("io.github.retrooper.")).toList();
     }
 }

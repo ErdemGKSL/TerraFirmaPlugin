@@ -16,6 +16,7 @@ import com.github.retrooper.packetevents.protocol.nbt.NBTString;
 import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.heat.HeatLevel;
 import dev.tfp.core.heat.ItemHeatDefinitions;
+import dev.tfp.paper.packet.heat.HeatGlow;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map;

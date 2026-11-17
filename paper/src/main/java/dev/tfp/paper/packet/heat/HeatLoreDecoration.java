@@ -1,0 +1,167 @@
+/*
+ * Licensed under the EUPL, Version 1.2.
+ * You may obtain a copy of the Licence at:
+ * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
+ * file: src/main/java/net/dries007/tfc/common/component/heat/HeatCapability.java @ c3b4d9536 (addTooltipInfo)
+ */
+package dev.tfp.paper.packet.heat;
+
+import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
+import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemLore;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import com.github.retrooper.packetevents.protocol.nbt.NBTInt;
+import dev.tfp.core.heat.HeatConfig;
+import dev.tfp.core.heat.HeatLevel;
+import dev.tfp.core.heat.HeatState;
+import dev.tfp.core.heat.ItemHeatDefinitions;
+import dev.tfp.paper.heat.HeatPdc;
+import dev.tfp.paper.packet.ClientItemDecoration;
+import dev.tfp.paper.tooltip.HeatDisplayStyle;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.LongSupplier;
+import java.util.function.Supplier;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
+
+/**
+ * The heat line in the item tooltip of outgoing item packets (M3-HEAT-01), in TFC's level colour and not italic
+ * (PAR-HEAT-02), computed from the packet's own copy of the
+ * stack: its {@code tfp:heat} record (see {@link HeatPdc}) in {@code custom_data.PublicBukkitValues}, its CraftEngine id
+ * and the item heat capacity. Nothing is read from the server's stack and nothing ticks: the temperature is the lazy
+ * one at the time the packet is built, so a stack shows the level it had when it was last sent.
+ *
+ * <p>The added line is recorded by a marker in the packet copy's {@code custom_data} ({@value #MARKER}, the number of
+ * lines added), so {@link #strip} removes exactly that when a creative-mode client sends the stack back
+ * ({@link dev.tfp.paper.packet.CreativeReturnHandler}). Netty thread: reads one volatile clock value and the
+ * immutable definitions snapshot.
+ *
+ * <p>Since PAR-INFRA-05 the {@code tooltip} module replaces the handler that applies this decoration, so its line is the
+ * fallback of a server without that module; the full TFC heat and metal lines are
+ * {@link dev.tfp.paper.heat.HeatTooltipLine} and {@link dev.tfp.paper.heat.HeatTooltipMeltsInto}. {@link HeatGlow}
+ * still uses {@link #level} for the item's glow.
+ *
+ * <p>This class links against PacketEvents, so it lives in the packet layer (PAR-INFRA-58); the plugin creates it
+ * through its feature-side name {@link dev.tfp.paper.heat.HeatTooltipDecoration}, only when PacketEvents is installed.
+ */
+public class HeatLoreDecoration implements ClientItemDecoration {
+    public static final String NAME = "heat-tooltip";
+    /** The {@code custom_data} marker: an int, the number of lore lines this decoration added. */
+    public static final String MARKER = "tfp:heat_lore";
+
+    private static final String VALUES = "PublicBukkitValues";
+    private static final String CE_ID = "craftengine:id";
+
+    private final LongSupplier now;
+    private final HeatConfig config;
+    private final Supplier<ItemHeatDefinitions> definitions;
+    private final BiFunction<HeatLevel, String, String> text;
+
+    /**
+     * @param now         the current player tick
+     * @param text        the tooltip text of a heat level for a client language code such as {@code tr_tr}
+     */
+    public HeatLoreDecoration(LongSupplier now, HeatConfig config, Supplier<ItemHeatDefinitions> definitions,
+            BiFunction<HeatLevel, String, String> text) {
+        this.now = now;
+        this.config = config;
+        this.definitions = definitions;
+        this.text = text;
+    }
+
+    @Override
+    public final String name() {
+        return NAME;
+    }
+
+    /** The heat level of the packet copy of a stack now, or empty when it is not heated or cannot be heated. */
+    public final Optional<HeatLevel> level(ItemStack item) {
+        return item.getComponent(ComponentTypes.CUSTOM_DATA).flatMap(this::level);
+    }
+
+    /** As {@link #level(ItemStack)} from the stack's {@code custom_data} (the NBT logic, free of the item type). */
+    public final Optional<HeatLevel> level(NBTCompound data) {
+        String id = data.getStringTagValueOrNull(CE_ID);
+        NBTCompound values = data.getCompoundTagOrNull(VALUES);
+        NBTCompound heat = values == null ? null : values.getCompoundTagOrNull(HeatPdc.KEY);
+        if (id == null || heat == null) {
+            return Optional.empty();
+        }
+        Number version = heat.getNumberTagValueOrNull("tfp:v");
+        Number temperature = heat.getNumberTagValueOrNull("tfp:temperature");
+        Number tick = heat.getNumberTagValueOrNull("tfp:tick");
+        if (version == null || version.intValue() > HeatPdc.VERSION || temperature == null || tick == null) {
+            return Optional.empty();
+        }
+        float capacity = definitions.get().heatCapacity(id);
+        if (!(capacity > 0f)) {
+            return Optional.empty();
+        }
+        float now = new HeatState(temperature.floatValue(), tick.longValue())
+                .temperatureAt(this.now.getAsLong(), capacity, config);
+        return HeatLevel.of(now);
+    }
+
+    /**
+     * Adds the heat line, in the client language {@code locale} (a code such as {@code tr_tr}), to the packet copy
+     * {@code item} when it is heated.
+     *
+     * @return true if the stack was changed
+     */
+    public final boolean decorate(ItemStack item, String locale) {
+        if (item == null || item.isEmpty()) {
+            return false;
+        }
+        Optional<HeatLevel> level = level(item);
+        if (level.isEmpty()) {
+            return false;
+        }
+        NBTCompound data = item.getComponent(ComponentTypes.CUSTOM_DATA).orElseThrow();
+        if (data.getNumberTagValueOrNull(MARKER) != null) {
+            return false; // already decorated (a packet copy that was built from a decorated one)
+        }
+        List<Component> lines = new ArrayList<>(item.getComponentOr(ComponentTypes.LORE, ItemLore.EMPTY).getLines());
+        lines.add(line(level.get(), text.apply(level.get(), locale)));
+        item.setComponent(ComponentTypes.LORE, new ItemLore(lines));
+        data.setTag(MARKER, new NBTInt(1));
+        return true;
+    }
+
+    /**
+     * The lore line of a heat level (PAR-HEAT-02): the text in TFC's colour of the level ({@code Heat}), not italic
+     * (lore is italic by default on a vanilla client; TFC's tooltip lines are upright).
+     */
+    public static Component line(HeatLevel level, String text) {
+        return Component.text(text, HeatDisplayStyle.color(level)).decoration(TextDecoration.ITALIC, false);
+    }
+
+    @Override
+    public final boolean strip(ItemStack item) {
+        if (item == null || item.isEmpty()) {
+            return false;
+        }
+        Optional<NBTCompound> data = item.getComponent(ComponentTypes.CUSTOM_DATA);
+        if (data.isEmpty()) {
+            return false;
+        }
+        Number added = data.get().getNumberTagValueOrNull(MARKER);
+        if (added == null) {
+            return false;
+        }
+        data.get().removeTag(MARKER);
+        List<Component> lines = new ArrayList<>(item.getComponentOr(ComponentTypes.LORE, ItemLore.EMPTY).getLines());
+        int n = Math.min(added.intValue(), lines.size());
+        lines.subList(lines.size() - n, lines.size()).clear();
+        if (lines.isEmpty()) {
+            item.unsetComponent(ComponentTypes.LORE);
+        } else {
+            item.setComponent(ComponentTypes.LORE, new ItemLore(lines));
+        }
+        return true;
+    }
+}

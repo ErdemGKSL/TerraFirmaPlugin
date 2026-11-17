@@ -12,6 +12,8 @@ import dev.tfp.paper.heat.ItemHeatDefinitionsCache;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.packet.PacketLayers;
+import dev.tfp.paper.packet.itembar.ItemBarHandler;
+import dev.tfp.paper.packet.itembar.ItemBarRender;
 import dev.tfp.paper.recipe.ItemIngredientContext;
 import dev.tfp.paper.recipe.RecipeTypes;
 import dev.tfp.paper.recipe.Recipes;

@@ -2,7 +2,7 @@
 id: PAR-INFRA-58
 title: "Packet-layer boundary: move the PacketEvents-typed heat glow, item bar and block sound handlers under dev.tfp.paper.packet so ArchitectureTest.onlyThePacketLayerTouchesPacketEvents passes"
 area: INFRA
-status: open
+status: done
 wave: 15
 deps: [PAR-HEAT-01, PAR-HEAT-14, PAR-INFRA-33]
 size: S
@@ -31,6 +31,7 @@ plan:
   - "Current (2026-11-17): `dist` ArchitectureTest.onlyThePacketLayerTouchesPacketEvents (PacketEvents is optional; only dev.tfp.paper.packet.. may link against com.github.retrooper / io.github.retrooper) fails with 204 violations: HeatGlowHandler(+$1), HeatGlow, HeatTooltipDecoration (paper/heat), ItemBarHandler(+$1), ItemBarRender (paper/itembar), BlockSoundPacketHandler (paper/blocksound). PAR-INFRA-50's files have none."
   - "Do: move the classes that take or return PacketEvents types into dev.tfp.paper.packet.heat / .itembar / .blocksound (or split them: the pure decision over Bukkit/core values stays in the feature package, the PacketEvents wrapper code moves under packet). The modules keep registering the handlers through the packet registry; a module class must not reference PacketEvents types itself, so a server without PacketEvents still enables the module without NoClassDefFoundError."
   - "Do not weaken or exempt the rule (PROTOCOL 5.2)."
+  - "Done: HeatGlow/HeatGlowHandler -> packet/heat, ItemBarRender/ItemBarHandler -> packet/itembar, BlockSoundPacketHandler -> packet/blocksound (loaded by name via BlockSoundModule.PACKET_HANDLER); heat lore logic in packet/heat/HeatLoreDecoration with heat/HeatTooltipDecoration as a constructor-only subclass (TfpPlugin wiring unchanged). ArchitectureTest unchanged and green; existing heat/itembar/blocksound tests green; new reflection tests (HeatTooltipDecorationTest, ItemBarRenderTest, BlockSoundModuleWiringTest) check the feature-side classes declare no PacketEvents types. ./gradlew check passes. No in-game check (ui: false, no behaviour change)."
 tests:
   - "dist: ArchitectureTest green; paper: the moved tests (HeatGlowTest, HeatTooltipDecorationTest, ItemBarRenderTest, BlockSoundRewriteTest) unchanged in behaviour"
 done_criteria:
