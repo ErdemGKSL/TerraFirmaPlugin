@@ -62,3 +62,7 @@ file location and content, a land test spot with a chunk-load wait, torches 6+ b
 baseline read the wall torch's 11), and a GUI 3 pass that repeats the burnout in the relaunched session so its readings
 are no-relog too. No code change: the light resend verified in 450cc95 is unchanged. Next in-game run pending at the
 verify stage.
+
+Re-close 2026-11-17 (after the unblock, HEAD b0fcbe6): `./gradlew check` green, no code change. The corrected
+`in_game_steps` run (GUI 2 and a no-relog GUI 3 pass, lit 14 / dead 0 for both torches) is pending at the verify stage,
+which replaces this verdict with that run.
