@@ -28,7 +28,8 @@ import org.bukkit.inventory.ItemStack;
  * TFC {@code TorchItem.useOn}: a right click with a lit torch first tries a weak fire start on the clicked block and only
  * places the torch when nothing was lit. The lit torch's own use consumes every click on it ({@link TorchDevice}), so the
  * blocks a held torch lights here are the dead torches (relit through the fire starting service, or directly without
- * it). Other weak lightables (candles, PAR-HEAT-11) are not asked yet: their click places the torch (ledger).
+ * it) and, on a sneak click that skips the block's use, the lit torches (their counter is reset). Other weak
+ * lightables (candles, PAR-HEAT-11) are not asked yet: their click places the torch (ledger).
  */
 public final class TorchListener implements Listener {
     /** The lit torch item. */
@@ -65,8 +66,15 @@ public final class TorchListener implements Listener {
             return;
         }
         Block block = event.getClickedBlock();
-        boolean dead = blocks.stateAt(block).flatMap(s -> Kind.byId(s.id())).filter(k -> !k.lit()).isPresent();
-        if (!dead) {
+        Optional<Kind> kind = blocks.stateAt(block).flatMap(s -> Kind.byId(s.id()));
+        if (kind.isEmpty()) {
+            return;
+        }
+        // A lit torch without sneaking: TFC TFCTorchBlock.useItemOn consumes the click first (TorchDevice's use here), so
+        // TorchItem.useOn never runs and the counter is not reset. Sneaking skips the block's use (vanilla), so TFC's
+        // TorchItem.useOn weak-starts the lit torch: counter reset, nothing placed. Without this CraftEngine's
+        // block_item would place the held torch against it.
+        if (kind.get().lit() && !player.isSneaking()) {
             return;
         }
         event.setCancelled(true); // TFC: startFire succeeded, so the torch is not placed
