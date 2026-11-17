@@ -2,7 +2,7 @@
 id: PAR-HEAT-23
 title: "Firepit look in game: TFC's lit and unlit models on their own carriers (axis z turned 90), and the in-game firepit check"
 area: HEAT
-status: open
+status: done
 wave: 16
 deps: [PAR-HEAT-19]
 size: S
@@ -25,6 +25,8 @@ files_owned:
   - "docs/verification/PAR-HEAT-19/**"
   - "tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/carrier-policy.json"
   - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/CarrierPolicyRecipeTest.java"
+  - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HitboxCarrierTest.java"
+  - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HitboxAllocationTest.java"
 ui: true
 in_game_steps:
   - "op Bot (the `tfp debug` tree needs op and a player sender: run the debug commands from client chat; the device readout is `/tfp debug device` while looking at the block, not `/tfp device`)"
@@ -48,6 +50,7 @@ plan:
   - "TFC draws the fuel logs (firepit_log_1..4 per fuel state) with FirepitBlockEntityRenderer; that is not part of this item: record it as a divergence (or a follow-up with an entity_renderer element) once the model look is in."
   - "Run the in-game steps above (headless client, PROTOCOL 6) and store the crops and verdict in docs/verification/PAR-HEAT-19/."
   - "Pending from PAR-HEAT-20 (PROTOCOL 6.5, its reviews of 85c731d): with the lit model in place, light a fuelled firepit in game, right-click it and capture the firepit screen opened from the lit block at GUI scale 2 and 3 with the thermometer indicator above the cold frame and hovered (heat text). The PAR-HEAT-20 runs could not light it (a firestarter set vanilla fire, a vanilla flint and steel did nothing), so the moving indicator is shown only on the debug screen (docs/verification/PAR-HEAT-07/verdict.md); store the capture there."
+  - "Done: pending.patch applied on the current tree (no drift): carrier-policy daylight_detector natural + hide nearest_free_value:power; HitboxDemands four firepit MODEL demands on daylight_detector[inverted=false,power=0|10|12|14] (hidden as 1/11/13/15); DeviceSpecs/Firepit appearances lit_x/lit_z/unlit_x/unlit_z with TFC models, z turned y 90; pins in FirepitTest, GeneratedCarrierTest, DeviceSpecParityTest, CarrierPolicyRecipeTest, HitboxCarrierTest, HitboxAllocationTest; ledger divergences (fuel logs, detector hide). ./gradlew check passes. In-game steps left to the verify stage (no Haiku agent in this run); evidence goes to docs/verification/PAR-HEAT-23/ and PAR-HEAT-19/."
 tests:
   - "datagen: the four firepit carriers are distinct MODEL assignments with TFC's models; the written appearances name them"
 done_criteria:

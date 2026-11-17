@@ -59,7 +59,8 @@ class HitboxAllocationTest {
         assertThat(forge.state()).isEqualTo("minecraft:snow[layers=7]");
         assertThat(forge.mode()).isEqualTo(Mode.MODEL);
         assertThat(forge.hideTarget()).isEqualTo("minecraft:snow[layers=8]");
-        for (String device : List.of("firepit", "grill", "pot")) {
+        // PAR-HEAT-23: the firepit draws TFC's models on four carriers of its own (GeneratedCarrierTest pins them).
+        for (String device : List.of("grill", "pot")) {
             Assignment lit = HitboxAllocation.agreed("tfp:" + device, "lit");
             assertThat(lit.mode()).isEqualTo(Mode.VANILLA);
             assertThat(lit.hideTarget()).as("a vanilla look needs no hide mapping").isNull();

@@ -116,7 +116,12 @@ class GeneratedCarrierTest {
                 "minecraft:snow[layers=7] -> minecraft:snow[layers=8]",
                 // PAR-PROC-37: the two-layer charcoal pile's carrier.
                 "minecraft:snow[layers=2] -> minecraft:snow[layers=3]",
-                "minecraft:heavy_weighted_pressure_plate[power=0] -> minecraft:heavy_weighted_pressure_plate[power=1]");
+                "minecraft:heavy_weighted_pressure_plate[power=0] -> minecraft:heavy_weighted_pressure_plate[power=1]",
+                // PAR-HEAT-23: the firepit's four daylight detector carriers.
+                "minecraft:daylight_detector[inverted=false,power=0] -> minecraft:daylight_detector[inverted=false,power=1]",
+                "minecraft:daylight_detector[inverted=false,power=10] -> minecraft:daylight_detector[inverted=false,power=11]",
+                "minecraft:daylight_detector[inverted=false,power=12] -> minecraft:daylight_detector[inverted=false,power=13]",
+                "minecraft:daylight_detector[inverted=false,power=14] -> minecraft:daylight_detector[inverted=false,power=15]");
         assertThat(problems).as("take carriers from dev.tfp.datagen.hitbox.HitboxAllocation").isEmpty();
     }
 
@@ -312,6 +317,39 @@ class GeneratedCarrierTest {
         assertThat(matches(HitboxDemands.barrelSideDemand("z", true), "z_north_unsealed_rack")).isTrue();
         assertThat(matches(HitboxDemands.barrelSideDemand("z", true), "x_east_unsealed_rack")).isFalse();
         assertThat(matches(HitboxDemands.barrelSideDemand("x", false), HitboxDemands.BARREL_SEALED)).isFalse();
+    }
+
+    @Test
+    void theFirepitCarriersArePinned() {
+        // PAR-HEAT-23: TFC's lit and unlit models per axis, each on its own daylight detector power (the only free states
+        // scoring 0.5 or more for TFC's firepit outline). TFC crafts the detector, so each carrier is hidden as the next
+        // power (its model depends only on inverted). Served last (weight -5): adding them moved no other carrier.
+        Map<String, String> expected = Map.of(
+            "lit_x", "minecraft:daylight_detector[inverted=false,power=0]",
+            "lit_z", "minecraft:daylight_detector[inverted=false,power=10]",
+            "unlit_x", "minecraft:daylight_detector[inverted=false,power=12]",
+            "unlit_z", "minecraft:daylight_detector[inverted=false,power=14]");
+        java.util.Set<String> carriers = new java.util.HashSet<>();
+        for (boolean lit : new boolean[] {true, false}) {
+            for (String axis : HitboxDemands.FIREPIT_AXES) {
+                String app = HitboxDemands.firepitAppearance(lit, axis);
+                Assignment a = HitboxAllocation.agreed(HitboxDemands.FIREPIT_ID, app);
+                assertThat(a.mode()).as(app).isEqualTo(HitboxAllocation.Mode.MODEL);
+                assertThat(a.state()).as(app).isEqualTo(expected.get(app));
+                assertThat(a.demand().look()).as(app).isEqualTo(HitboxDemands.firepitLook(lit, axis));
+                int power = Integer.parseInt(a.state().replaceAll(".*power=(\\d+)]", "$1"));
+                assertThat(a.hideTarget()).as(app)
+                    .isEqualTo("minecraft:daylight_detector[inverted=false,power=" + (power + 1) + "]");
+                carriers.add(a.state());
+            }
+        }
+        assertThat(carriers).hasSize(4);
+        assertThat(HitboxDemands.firepitLook(true, "z")).isEqualTo("tfp:block/firepit_lit@y90");
+        for (Demand d : HitboxDemands.all()) {
+            if (!d.blockId().equals(HitboxDemands.FIREPIT_ID)) {
+                assertThat(HitboxAllocation.agreed(d.blockId(), d.appearance()).state()).as(d.id()).isNotIn(carriers);
+            }
+        }
     }
 
     @Test

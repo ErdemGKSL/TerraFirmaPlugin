@@ -21,7 +21,7 @@
     "minecraft:wildflowers": {"presence": "absent", "note": "1.21.5+ only"},
     "minecraft:leaf_litter": {"presence": "absent", "note": "1.21.5+ only; replaceable"},
     "minecraft:sculk_sensor": {"presence": "absent", "note": "emits light 1"},
-    "minecraft:daylight_detector": {"presence": "absent", "note": "16x6x16; right-click inversion is server-side"},
+    "minecraft:daylight_detector": {"presence": "natural", "hide": "nearest_free_value:power", "note": "16x6x16; right-click inversion is server-side. PAR-HEAT-23: TFC crafts it (src/generated/resources/data/minecraft/recipe/daylight_detector.json) and players place it, so a model on a state needs a hide: its model depends only on inverted, so a real detector at a carrier power is sent with the nearest free power and looks the same"},
     "minecraft:campfire": {"presence": "absent", "note": "lit states make client smoke"},
     "minecraft:soul_campfire": {"presence": "absent", "note": "lit states make client smoke"},
     "minecraft:stonecutter": {"presence": "absent", "note": "16x9x16"},

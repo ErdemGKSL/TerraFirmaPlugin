@@ -89,7 +89,28 @@ class DeviceSpecParityTest {
         SortedMap<String, byte[]> files = Datagen.generate(tfc.root(), TfcCheckout.PINNED_COMMIT).tree().files();
 
         // PAR-INFRA-13: the carriers come from the hitbox carrier selector's allocation.
-        for (String device : List.of("firepit", "grill", "pot")) {
+        // PAR-HEAT-23: the firepit draws TFC's models on four carriers (lit x axis), axis z turned y 90, with hide mappings.
+        Map<String, String> hides = new java.util.TreeMap<>();
+        for (boolean lit : new boolean[] {true, false}) {
+            for (String axis : List.of("x", "z")) {
+                var a = HitboxAllocation.agreed("tfp:firepit", DeviceSpecs.firepitAppearance(lit, axis));
+                hides.put(a.state(), a.hideTarget());
+            }
+        }
+        DeviceBlockSpec firepit = DeviceSpecs.firepit("tfp:firepit", firepitProps(),
+            (lit, axis) -> DeviceAppearance.Carrier.state(
+                HitboxAllocation.agreed("tfp:firepit", DeviceSpecs.firepitAppearance(lit, axis)).state()),
+            lit -> lit ? "tfp:block/firepit_lit" : "tfp:block/firepit_unlit",
+            DeviceBlockSpec.Settings.fromTfc(tfc, "firepit"), DeviceLoot.fromTfc(tfc, "firepit"), 15, hides);
+        assertThat(firepit.stateCount()).isEqualTo(20);
+        assertThat(firepit.appearances()).hasSize(4);
+        String firepitText = text(files, PACK + "devices/firepit.yml");
+        assertThat(firepitText).isEqualTo(dev.tfp.datagen.Yaml.write(DeviceYaml.HEADER, DeviceSpecs.turnModels(
+            DeviceYaml.literal(firepit), "tfp:firepit", app -> app.endsWith("_z") ? 90 : 0)));
+        assertThat(firepitText).contains("luminance: 15", "luminance: 0", "minecraft:mineable/pickaxe",
+            "tfp:powder/wood_ash", "block_state_mappings", "'y': 90");
+
+        for (String device : List.of("grill", "pot")) {
             var lit = DeviceAppearance.Carrier.state(HitboxAllocation.agreed("tfp:" + device, "lit").state());
             var unlit = DeviceAppearance.Carrier.state(HitboxAllocation.agreed("tfp:" + device, "unlit").state());
             DeviceBlockSpec spec = DeviceSpecs.firepitFamily("tfp:" + device, firepitProps(), lit, unlit,

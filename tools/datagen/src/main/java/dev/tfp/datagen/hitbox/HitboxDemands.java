@@ -126,8 +126,8 @@ public final class HitboxDemands {
         for (String f : FACINGS) {
             d.add(new Demand("tfp:bellows", f, "tfc:bellows[facing=" + f + "]", 0, HitboxAllocation.VANILLA_LOOK, true, 1));
         }
-        // M3-HEAT-03 placeholders: the carrier's vanilla look until the firepit family's models exist.
-        for (String device : List.of("firepit", "grill", "pot")) {
+        // M3-HEAT-03 placeholders: the carrier's vanilla look until the grill's and the pot's models exist.
+        for (String device : List.of("grill", "pot")) {
             d.add(new Demand("tfp:" + device, "lit", "tfc:" + device, FIREPIT_LIT_LIGHT, HitboxAllocation.VANILLA_LOOK, true, 1));
             d.add(new Demand("tfp:" + device, "unlit", "tfc:" + device, 0, HitboxAllocation.VANILLA_LOOK, true, 1));
         }
@@ -202,7 +202,46 @@ public final class HitboxDemands {
             powderkegModel(POWDERKEG_SEALED), true, POWDERKEG_WEIGHT));
         d.add(new Demand(POWDERKEG_ID, POWDERKEG_LIT, POWDERKEG_ROW, 0,
             powderkegModel(POWDERKEG_LIT), true, POWDERKEG_WEIGHT));
+        // PAR-HEAT-23: the firepit, TFC's lit and unlit models per axis (blockstates/firepit.json turns axis z by y 90; a
+        // carrier state takes one model, so each (lit, axis) pair has its own carrier).
+        for (boolean lit : new boolean[] {true, false}) {
+            for (String axis : FIREPIT_AXES) {
+                d.add(new Demand(FIREPIT_ID, firepitAppearance(lit, axis), "tfc:firepit", lit ? FIREPIT_LIT_LIGHT : 0,
+                    firepitLook(lit, axis), true, FIREPIT_WEIGHT));
+            }
+        }
         return d;
+    }
+
+    /** PAR-HEAT-23: the firepit block and its axes (TFC {@code HORIZONTAL_AXIS}). */
+    public static final String FIREPIT_ID = "tfp:firepit";
+    public static final List<String> FIREPIT_AXES = List.of("x", "z");
+    /** PAR-HEAT-23: served after every other demand (adding the firepit models moves no carrier of another block). */
+    static final int FIREPIT_WEIGHT = -5;
+
+    /** PAR-HEAT-23: the firepit appearance of {@code lit} and {@code axis} ({@code lit_x}, {@code unlit_z}). */
+    public static String firepitAppearance(boolean lit, String axis) {
+        return (lit ? "lit" : "unlit") + "_" + axis;
+    }
+
+    /** PAR-HEAT-23: TFC's firepit model ({@code tfp:block/firepit_lit} / {@code _unlit}). */
+    public static String firepitModel(boolean lit) {
+        return lit ? "tfp:block/firepit_lit" : "tfp:block/firepit_unlit";
+    }
+
+    /** PAR-HEAT-23: TFC's blockstates/firepit.json turns the model y 90 for axis z, none for axis x. */
+    public static int firepitRotation(String axis) {
+        return switch (axis) {
+            case "x" -> 0;
+            case "z" -> 90;
+            default -> throw new IllegalArgumentException("not a horizontal axis: " + axis);
+        };
+    }
+
+    /** PAR-HEAT-23: the look key of a firepit state: the model and its turn (two turns are two looks). */
+    public static String firepitLook(boolean lit, String axis) {
+        int y = firepitRotation(axis);
+        return y == 0 ? firepitModel(lit) : firepitModel(lit) + "@y" + y;
     }
 
     /** PAR-PROC-39: TFC's model of a powderkeg appearance ({@code tfp:block/powderkeg}, {@code _sealed}, {@code _lit}). */

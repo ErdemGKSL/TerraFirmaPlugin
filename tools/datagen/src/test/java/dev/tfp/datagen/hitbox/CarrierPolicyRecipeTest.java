@@ -51,9 +51,9 @@ class CarrierPolicyRecipeTest {
      * crafted one looks right. The day a model or transparent look lands on one, the block needs a hide (natural) or the
      * demand another carrier.
      */
+    // PAR-HEAT-23: minecraft:daylight_detector left the list: TFC crafts it (lens + redstone + lumber) and the firepit's
+    // models sit on it, so its policy is natural with a hide to the nearest free power (thePoweredDetectorIsHidden).
     static final Map<String, String> ALLOWED = Map.of(
-        "minecraft:daylight_detector", "TFC recipe (lens + redstone + lumber); the firepit, bloom and ingot-pile carriers on"
-            + " it are vanilla-look today (the device look is an entity_renderer)",
         "minecraft:lightning_rod", "TFC recipe (3 c:rods/copper); the rock spike tip ranks it but rock spikes are no hitbox"
             + " demand yet");
 
@@ -213,6 +213,28 @@ class CarrierPolicyRecipeTest {
             assertThat(c.chosen().hideTarget()).as("real unpressed plates are sent pressed").isEqualTo(HEAVY + "[power=1]");
         }
     }
+
+    /** PAR-HEAT-23: the daylight detector is crafted in TFC and carries the firepit's models, so it is hidden by power. */
+    @Test
+    void thePoweredDetectorIsHidden() throws IOException {
+        VanillaCandidates v = VanillaCandidates.load();
+        assertThat(allRecipeResults()).containsKey(DETECTOR);
+        assertThat(v.policy(DETECTOR).presence()).isEqualTo(Presence.NATURAL);
+        assertThat(v.policy(DETECTOR).hide()).isEqualTo("nearest_free_value:power");
+        int models = 0;
+        for (Map.Entry<String, Result> e : HitboxAllocation.standard().entrySet()) {
+            for (Assignment a : e.getValue().assignments()) {
+                if (!a.pool() && a.carrier().block().equals(DETECTOR) && a.mode() != Mode.VANILLA) {
+                    models++;
+                    assertThat(a.hideTarget()).as(e.getKey() + ": " + a.demand().id()).startsWith(DETECTOR + "[")
+                        .isNotEqualTo(a.state());
+                }
+            }
+        }
+        assertThat(models).as("the firepit models sit on the detector").isPositive();
+    }
+
+    private static final String DETECTOR = "minecraft:daylight_detector";
 
     /** The done criterion: no non-vanilla look of any allocation sits on a crafted block without a hide mapping. */
     @Test

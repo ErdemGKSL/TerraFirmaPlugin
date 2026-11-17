@@ -262,22 +262,26 @@ class FirepitTest {
         assertThat(props.get("axis")).isEqualTo(Map.of("type", "string", "values", List.of("x", "z"), "default", "x"));
 
         Map<?, ?> appearances = (Map<?, ?>) states.get("appearances");
-        assertThat(appearances.keySet().stream().map(String::valueOf).toList()).containsExactly(Firepit.LIT_APPEARANCE, Firepit.UNLIT_APPEARANCE);
-        // PAR-INFRA-13: both appearances sit on the hitbox selector's carrier for TFC's shape, in its vanilla look.
-        String carrier = SELECTED.get(blockId);
-        assertThat(appearances.get(Firepit.LIT_APPEARANCE)).isEqualTo(Map.of("state", carrier));
-        assertThat(appearances.get(Firepit.UNLIT_APPEARANCE)).isEqualTo(Map.of("state", carrier));
-        assertThat(Firepit.carrier(blockId, Firepit.LIT_APPEARANCE)).isEqualTo(carrier);
-        assertThat(yaml).as("no placeholder campfire: lit campfires make client smoke").doesNotContain("campfire")
-            .as("a vanilla look needs no hide mapping").doesNotContain("block_state_mappings");
-
-        // PAR-INFRA-19: TFC's lightLevel(litBlockEmission(15)): 15 when lit, 0 otherwise.
         Map<?, ?> variants = (Map<?, ?>) states.get("variants");
         assertThat(variants).hasSize(2 * (smokeMax + 1) * 2);
-        assertThat(variants.get("lit=true,smoke_level=0,axis=x"))
-            .isEqualTo(Map.of("appearance", Firepit.LIT_APPEARANCE, "settings", Map.of("luminance", 15)));
-        assertThat(variants.get("lit=false," + "smoke_level=" + smokeMax + ",axis=z"))
-            .isEqualTo(Map.of("appearance", Firepit.UNLIT_APPEARANCE, "settings", Map.of("luminance", 0)));
+        assertThat(yaml).as("no placeholder campfire: lit campfires make client smoke").doesNotContain("campfire");
+        if (blockId.equals(Firepit.BLOCK_ID)) {
+            assertFirepitLook(root, appearances, variants, smokeMax);
+        } else {
+            assertThat(appearances.keySet().stream().map(String::valueOf).toList()).containsExactly(Firepit.LIT_APPEARANCE, Firepit.UNLIT_APPEARANCE);
+            // PAR-INFRA-13: both appearances sit on the hitbox selector's carrier for TFC's shape, in its vanilla look.
+            String carrier = SELECTED.get(blockId);
+            assertThat(appearances.get(Firepit.LIT_APPEARANCE)).isEqualTo(Map.of("state", carrier));
+            assertThat(appearances.get(Firepit.UNLIT_APPEARANCE)).isEqualTo(Map.of("state", carrier));
+            assertThat(Firepit.carrier(blockId, Firepit.LIT_APPEARANCE)).isEqualTo(carrier);
+            assertThat(yaml).as("a vanilla look needs no hide mapping").doesNotContain("block_state_mappings");
+
+            // PAR-INFRA-19: TFC's lightLevel(litBlockEmission(15)): 15 when lit, 0 otherwise.
+            assertThat(variants.get("lit=true,smoke_level=0,axis=x"))
+                .isEqualTo(Map.of("appearance", Firepit.LIT_APPEARANCE, "settings", Map.of("luminance", 15)));
+            assertThat(variants.get("lit=false," + "smoke_level=" + smokeMax + ",axis=z"))
+                .isEqualTo(Map.of("appearance", Firepit.UNLIT_APPEARANCE, "settings", Map.of("luminance", 0)));
+        }
 
         // PAR-INFRA-19: TFC's strength(0.4F, 0.4F), SoundType.NETHER_WART and minecraft:mineable/pickaxe.
         Map<?, ?> block = (Map<?, ?>) ((Map<?, ?>) root.get("blocks")).get(blockId);
@@ -291,6 +295,67 @@ class FirepitTest {
             "hit", "minecraft:block.stone.hit", "fall", "minecraft:block.stone.fall"));
         assertThat(yaml).as("no placeholder device settings").doesNotContain("tfp:settings/device");
         assertThat(drops(block.get("loot"))).as("TFC's loot table of " + blockId).isEqualTo(DROPS.get(blockId));
+    }
+
+    /**
+     * PAR-HEAT-23: the firepit's carriers, one daylight detector power per (lit, axis) pair, each hidden as the next power
+     * (the detector is crafted in TFC; its model depends only on inverted).
+     */
+    static final Map<String, String> FIREPIT_CARRIERS = Map.of(
+        "lit_x", "minecraft:daylight_detector[inverted=false,power=0]",
+        "lit_z", "minecraft:daylight_detector[inverted=false,power=10]",
+        "unlit_x", "minecraft:daylight_detector[inverted=false,power=12]",
+        "unlit_z", "minecraft:daylight_detector[inverted=false,power=14]");
+    static final Map<String, String> FIREPIT_HIDES = Map.of(
+        "minecraft:daylight_detector[inverted=false,power=0]", "minecraft:daylight_detector[inverted=false,power=1]",
+        "minecraft:daylight_detector[inverted=false,power=10]", "minecraft:daylight_detector[inverted=false,power=11]",
+        "minecraft:daylight_detector[inverted=false,power=12]", "minecraft:daylight_detector[inverted=false,power=13]",
+        "minecraft:daylight_detector[inverted=false,power=14]", "minecraft:daylight_detector[inverted=false,power=15]");
+
+    /**
+     * PAR-HEAT-23: four appearances, each on its own carrier with TFC's model of its lit value, axis z turned y 90 as TFC's
+     * blockstate; every variant picks the appearance of its lit and axis; the carriers' hide mappings are written.
+     */
+    static void assertFirepitLook(Map<?, ?> root, Map<?, ?> appearances, Map<?, ?> variants, int smokeMax) {
+        assertThat(appearances.keySet().stream().map(String::valueOf).toList())
+            .containsExactly("lit_x", "lit_z", "unlit_x", "unlit_z");
+        assertThat(appearances.get("lit_x")).isEqualTo(Map.of("state", FIREPIT_CARRIERS.get("lit_x"),
+            "model", "tfp:block/firepit_lit"));
+        assertThat(appearances.get("lit_z")).isEqualTo(Map.of("state", FIREPIT_CARRIERS.get("lit_z"),
+            "model", Map.of("path", "tfp:block/firepit_lit", "y", 90)));
+        assertThat(appearances.get("unlit_x")).isEqualTo(Map.of("state", FIREPIT_CARRIERS.get("unlit_x"),
+            "model", "tfp:block/firepit_unlit"));
+        assertThat(appearances.get("unlit_z")).isEqualTo(Map.of("state", FIREPIT_CARRIERS.get("unlit_z"),
+            "model", Map.of("path", "tfp:block/firepit_unlit", "y", 90)));
+        assertThat(root.get("block_state_mappings")).isEqualTo(FIREPIT_HIDES);
+        for (boolean lit : new boolean[] {true, false}) {
+            for (String axis : List.of("x", "z")) {
+                for (int smoke = 0; smoke <= smokeMax; smoke++) {
+                    assertThat(variants.get("lit=" + lit + ",smoke_level=" + smoke + ",axis=" + axis))
+                        .isEqualTo(Map.of("appearance", (lit ? "lit_" : "unlit_") + axis,
+                            "settings", Map.of("luminance", lit ? 15 : 0)));
+                }
+            }
+        }
+    }
+
+    /** PAR-HEAT-23: the selector gives the four pinned carriers in MODEL mode, the hides as pinned, no other block on them. */
+    @Test
+    void theFourFirepitCarriersAreDistinctModelCarriers() {
+        java.util.Set<String> states = new java.util.HashSet<>();
+        for (boolean lit : new boolean[] {true, false}) {
+            for (String axis : List.of("x", "z")) {
+                var a = Firepit.modelCarrier(lit, axis);
+                assertThat(a.state()).isEqualTo(FIREPIT_CARRIERS.get((lit ? "lit_" : "unlit_") + axis));
+                assertThat(a.hideTarget()).isEqualTo(FIREPIT_HIDES.get(a.state()));
+                assertThat(a.demand().look()).isEqualTo((lit ? "tfp:block/firepit_lit" : "tfp:block/firepit_unlit")
+                    + (axis.equals("z") ? "@y90" : ""));
+                states.add(a.state());
+            }
+        }
+        assertThat(states).hasSize(4);
+        assertThat(Firepit.rotation("lit_z")).isEqualTo(90);
+        assertThat(Firepit.rotation("unlit_x")).isZero();
     }
 
     /** TFC's drops of the firepit family at the pinned commit (renamed to tfp:), one pool each. */

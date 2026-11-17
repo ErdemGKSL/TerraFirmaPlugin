@@ -143,7 +143,9 @@ class HitboxCarrierTest {
         pin("tfc:powderkeg[sealed=true]", "minecraft:cactus[age=0]", 1, 2940.0 / 3136);
         // The open keg's well: a composter is the one vanilla hollow box (its well is walkable like TFC's).
         pin("tfc:powderkeg[sealed=false]", "minecraft:composter[level=0]", 0.469, 0.469);
-        pin("tfc:nest_box", "minecraft:daylight_detector[inverted=false,power=0]", 720.0 / 1536, 720.0 / 1536);
+        // PAR-HEAT-23: the crafted daylight detector is natural with a hide now (HIDE_PENALTY), so the same 16x6x16 outline
+        // of three snow layers wins (collision one layer lower).
+        pin("tfc:nest_box", "minecraft:snow[layers=3]", 720.0 / 1536, 720.0 / 1460);
         pin("tfc:ceramic/bowl", TRAPDOOR_BOTTOM, 432.0 / 768, 432.0 / 768);
         pin("tfc:crucible", "minecraft:cactus[age=0]", 0.523, 0.509);
         pin("tfc:wood/shelf[thick=false]", TRAPDOOR_TOP, 1.0 / 3, 1.0 / 3);
@@ -235,7 +237,7 @@ class HitboxCarrierTest {
         assertThat(pickle.reason()).startsWith("object ban");
         assertThat(Shape.iou(TfcShapes.load().get("tfc:nest_box").selection(),
             VanillaCandidates.load().get("1.21.11", pickle.carrier()).selection())).isCloseTo(0.833, within(EPS));
-        assertThat(nest.chosen().carrier()).isEqualTo("minecraft:daylight_detector[inverted=false,power=0]");
+        assertThat(nest.chosen().carrier()).isEqualTo("minecraft:snow[layers=3]");
         // A lit campfire and the cake are never carriers.
         assertThat(rejected(select("tfc:firepit", VersionFamily.V1_21),
             "minecraft:campfire[facing=north,lit=true,signal_fire=false,waterlogged=false]").reason()).contains("particles");
