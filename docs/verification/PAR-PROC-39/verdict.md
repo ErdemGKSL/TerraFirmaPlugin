@@ -48,3 +48,29 @@ keg from a redstone signal (flint and steel is not a TFC lighting route for the 
 | 3. The 12-slot screen lines up at GUI scale 2 and 3; the seal button toggles and locks the slots | PASS (scale 2 here; scale 3 alignment passed in the verify stage's run of 157d394, `gui3-*` screenshots, the screen code is unchanged). The seal button tooltip still shows "⚖ Very Light ⇲ Very Small" under "Unseal": the size/weight contributor does not skip `tfp:gui_button` items, tracked by PAR-INFRA-56 (ledger divergence row; `paper/.../itemsize`, outside this item's files) | `gui2-12x64-gunpowder.png`, `gui2-sealed-unseal-tooltip.png`, `gui2-sealed-locked.png` |
 
 Overall: PASS, with the button tooltip line left to PAR-INFRA-56.
+
+## Re-run 2026-11-17 (repair round after the verify stage could not finish: right click did not reach its client)
+
+- Tree: 5f1bbb3 (no code change since; the jar was built from it). Same server/client versions as above, pack applied
+  after 1x3s, Bot in creative. Run and judged by the main session.
+- Right click works in this harness with a plain `DISPLAY=:<d> xdotool click 3` while the game window has focus
+  (`xdotool getwindowfocus getwindowname` = `Minecraft 1.21.11 - Multiplayer (3rd-party Server)`) and no screen is open:
+  the keg was placed on the first click and opened on the next one. The verify stage's failure was in its client session,
+  not in the plugin; the item's steps now name the focus check and the fallbacks.
+- Steps and results:
+  1. Stone floor at y 199, `ce item give Bot tfp:powderkeg 1`, right click: keg at (1776, 200, -559), TFC's open keg
+     model, floor intact under the inset (`r3-unsealed-placed.png`).
+  2. Right click opened the 12-slot screen; 13 x 64 gunpowder given, 12 stacks shift-clicked in (`r3-gui2-12x64-gunpowder.png`).
+  3. Seal button: Unseal tooltip (`r3-gui2-sealed-unseal-tooltip.png`, size/weight line still PAR-INFRA-56). Sealed:
+     shift-click of the 13th stack, shift-click and click on keg slots, key 1 over a keg slot: `clear Bot
+     minecraft:gunpowder 0` = 64 before and after, every keg slot still 64 (`r3-gui2-sealed-locked.png`).
+  4. Escape: sealed model with lid and fuse (`r3-sealed.png`). Client relaunched with `MC_OPTIONS=guiScale:3`, right
+     click: the sealed screen at scale 3 lines up and kept its 12 x 64 across the rejoin (`r3-gui3-sealed.png`).
+  5. Bedrock east, `time query gametime` = 2910, redstone block west: lit model, lit fuse (`r3-lit-redstone.png`). 31^3
+     stone cube (29347 air cells filled = 31^3 minus floor 441, keg, bedrock, redstone). Keg gone at 2991: 81 ticks =
+     80 + the poll tick.
+  6. Crater: 3968 air cells in the cube minus the keg cell = 3967 (strength 64 simulated 3902 to 4014); reach up 7,
+     down 10, north 11; bedrock kept, redstone block gone. Section from the north in spectator (`r3-crater-section.png`,
+     bedrock visible at the centre). The first section shot showed a stale client mesh in the chunk x 1760-1775 (server
+     `execute if block` confirmed stone there); F3+A redrew it. A client render artifact after a large `fill`, not ours.
+- Verdict: all three criteria PASS again.
