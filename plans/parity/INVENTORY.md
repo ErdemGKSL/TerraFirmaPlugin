@@ -264,6 +264,11 @@ Status legend: **done** (rules, glue and visuals in game), **partial** (some lay
 | DECO | Wood workbenches (Wood.BlockType.WORKBENCH, TFCCraftingTableBlock, TFCWorkbenchContainer range rule; TFC disables minecraft:crafting_table's recipe) | not started | PAR-DECO-17 |
 | INFRA | Block coverage of TFCBlocks (every assets/tfc/blockstates id generated, owned by a named item or an NP entry; the item-side gate is PAR-PROC-19's ItemCoverage) | not started | PAR-INFRA-49 |
 | INFRA | Feature item tooltip lines (ItemListComponent and Helpers.addInventoryTooltipInfo contents, BarrelBlock/SealableDeviceBlock/CrucibleBlock item contents, EggComponent fertilized and hatch day, JavelinItem thrown damage, PanItem deposit, FlowerCuttingItem, LampBlockItem, GlassWorking steps) | not started | PAR-INFRA-50 |
+| SURV | Hunger exhaustion on the player (PlayerInfo.tick passive exhaustion on the food bar, addExhaustion x0.4 for vanilla sources, thirst per 4 exhaustion of any source) | partial | PAR-SURV-15 |
+| INFRA | Device automation sides (SidedHandler, PartialItemHandler; barrel/firePit/quern/composter/powderKeg/... EnableAutomation) for hoppers | not started | PAR-INFRA-60 |
+| HEAT | Firepit family world rules (AbstractFirepitBlockEntity gatherAndConsumeItems of thrown fuel, FirepitBlock.stepOn hot floor) | not started | PAR-HEAT-30 |
+| PROC | Barrel redstone seal (barrelEnableRedstoneSeal, SealableDeviceBlock.handleNeighborChanged) and dropped-item gathering into an open barrel | not started | PAR-PROC-42 |
+| PROC | Vanilla recipe removal policy (data/minecraft/recipe disabled tool and armour families) applied to recipes newer than TFC's 1.21.1 (copper tools/armour, spears) | partial | PAR-PROC-43 |
 
 ## Features already at parity (no open item)
 
@@ -307,4 +312,4 @@ Auditor: `NOT-PARITY.md` is the full list of what stays outside parity (design d
 | Create TFC world screen (CreateTFCWorldScreen) | client screen | bukkit.yml generator + config | PAR-WORLD-16, PAR-WORLD-22 |
 | Creative mode tabs (TFCCreativeTabs) | client creative inventory | CraftEngine item browser categories in TFC's order | PAR-DATA-15 |
 
-Counts over the item rows: done 4, impossible-on-vanilla 3, not started 95, partial 141, placeholder 13.
+Counts over the item rows: done 4, impossible-on-vanilla 3, not started 98, partial 143, placeholder 13.
