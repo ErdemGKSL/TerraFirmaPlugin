@@ -2,7 +2,7 @@
 id: PAR-HEAT-21
 title: "Torches loaded in game: hitbox carriers, configuration/light/torch.yml, the dead torch look and the in-game burnout check"
 area: HEAT
-status: blocked
+status: open
 wave: 15
 deps: [PAR-HEAT-10]
 size: S
@@ -16,7 +16,8 @@ tfc_refs:
 files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxDemands.java"
   - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/TfcShapes.java"
-  - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/GeneratedCarrierTest.java"
+  - "tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/**"
+  - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/**"
   - "tools/datagen/src/main/java/dev/tfp/datagen/light/**"
   - "tools/datagen/src/test/java/dev/tfp/datagen/light/**"
   - "content/generated/content/craftengine/tfp/configuration/light/**"
@@ -33,6 +34,7 @@ in_game_steps:
   - "place a fresh tfp:torch, right-click it with another tfp:torch (normal and sneaking): no second torch is placed against the lit one"
   - "Screenshots at GUI scale 2 and 3 of the lit and the dead torch, standing and on the wall"
 plan:
+  - "UNBLOCKED (manager, 2026-11-17): files_owned widened to the whole hitbox resource and test directories (carrier-policy.json, vanilla-shapes-*.json, tfc-shapes.json and the hitbox tests) so the torch carriers can be added to the selector inputs; redo the item from the Blocked note below."
   - "Blocked (2026-11-17): the carriers this item names are not selectable with the files it owns. The hitbox selector (HitboxAllocation.agreed, the only source GeneratedCarrierTest and HardcodedCarrierTest accept) picks only from the dumped vanilla states, and none of tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/vanilla-shapes-{1.21.4,1.21.11,26.1.2,26.3}.json nor carrier-policy.json lists minecraft:torch, minecraft:wall_torch or the unlit redstone_torch / redstone_wall_torch (grep torch: 0 hits in every hitbox resource); the TFC rows tfc:torch, tfc:wall_torch[facing=*], tfc:dead_torch, tfc:dead_wall_torch[facing=*] also need the committed tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/tfc-shapes.json regenerated from TfcShapes. Without them every torch demand falls to a hitbox-only non-torch carrier with no client flame, failing the vanilla-look criterion. Unblock (owner/manager): add to files_owned the four vanilla-shapes dumps (re-dump the four torch blocks from each server jar, scratch dumper outside the repo), tfc-shapes.json, and carrier-policy.json (torch blocks absent in TFC worlds: TFC replaces vanilla torches; redstone torches: check presence). carrier-policy.json is owned by open PAR-INFRA-51 (wave 15): run this item after it or share the file."
   - "Current: PAR-HEAT-10 ships the rules (core/light TorchRules), the runtime (paper/light: device kinds tfp:torch and tfp:wall_torch, the burnout pipeline, relight, the held torch's weak start) and the generator tools/datagen light/TorchBlocks.run(tfc, out, carriers), which is not called yet: an explicit appearance state needs a HitboxDemands entry and GeneratedCarrierTest pins the checked block ids."
   - "Add the demands: tfp:torch standing and tfp:wall_torch per facing with the vanilla look (TFC draws vanilla's torch models; the carriers are the vanilla torch and wall torch states, light 14), tfp:dead_torch and tfp:dead_wall_torch per facing with TFC's dead torch models (or hitbox-only with the tfp:render/dead_* item display when the selector has no free torch-shaped carrier, e.g. the unlit redstone torches as CraftEngine's own amethyst torch does). Add TFC's torch shapes to TfcShapes if the selector does not know them."
