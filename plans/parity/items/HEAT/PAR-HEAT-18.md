@@ -2,9 +2,9 @@
 id: PAR-HEAT-18
 title: "Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start)"
 area: HEAT
-status: open
+status: blocked
 wave: 14
-deps: [PAR-HEAT-06]
+deps: [PAR-HEAT-06, PAR-WORLD-10]
 size: S
 aliases: ["follow-up of PAR-HEAT-05 (its in_game_steps and in-game done-criterion)"]
 tfc_refs:
@@ -23,6 +23,7 @@ in_game_steps:
   - "`op Bot` once, then `execute as Bot run tfp debug block` while the bot looks at P (the `debug` node needs the admin permission and `debug block` reports on the sender player's target, so the command has to run as an opped Bot; the earlier capture's plain `tfp debug block` failed with Incorrect argument)"
   - "Screenshot at GUI scale 2: the firestarter held up (bow animation) during the use; the lit firepit in P afterwards with the log in its fuel; the sticks and log gone from the ground; the bot not burning. Crop any checkered (missing texture) block in view and name its block id."
 plan:
+  - "Blocked on PAR-WORLD-10 (2026-11-17): the pile needs a log that is a TFC fuel. `tfp:wood/log/oak` (and every TFC log) is no CraftEngine item until PAR-WORLD-10, so the only `#tfc:firepit_logs` log is vanilla `minecraft:oak_log` (via `#minecraft:logs_that_burn`), which no TFC fuel file names (`fuel/oak_logs.json` is `#tfc:oak_logs` = the tfp logs). TFC's `consumeFuel` then takes the log for no burn time and the firepit stays unlit, in TFC as here, so neither the self-test lit assert nor the in-game steps (which give `tfp:wood/log/oak`) can pass. Done now: `FireStartCase` runs every reachable check and, with the vanilla log, asserts the TFC outcome (firepit built from the pile, the log consumed by the light attempt, ash <= 1, unlit, ground clear; weak start changes nothing; flint and pyrite forced strong builds one) then reports SKIPPED with that reason; with a TFC log it asserts lit. Paper and Folia 1.21.11 runs and the verdict: docs/verification/PAR-HEAT-18/verdict.md. Once PAR-WORLD-10 is done: rerun `:itest:runSelfTest` (Paper, Folia, two starts each) expecting PASSED, then the in-game steps."
   - "UNBLOCKED (manager, 2026-11-17): dependency now done (PAR-HEAT-19 is done), files_owned unchanged; redo from the Blocked note"
   - "Blocked on PAR-HEAT-19 (2026-11-14): `tfp:firepit` is not loaded in CraftEngine (Firepit.loadedYaml is not written to content/generated/content/craftengine/tfp/configuration/devices/firepit.yml until PAR-HEAT-19), so `FirepitModule.factory().canSurvive` is false everywhere and a strong start on the pile places a fire block: neither the self-test FIREPIT asserts nor the in-game steps can pass. Done so far: `itest/.../cases/FireStartCase.java` (fire.start, as planned below) is in SelfTestSuite (SelfTestSuiteTest count 34) and skips with that reason; once PAR-HEAT-19 is done, run :itest:runSelfTest on Paper and Folia 1.21.11, then the in-game steps, and store the verdict in docs/verification/PAR-HEAT-05/."
   - "Deferred in-game check of PAR-HEAT-05 (PROTOCOL §6.5): the firepit is built through the `FirepitFactory` that PAR-HEAT-06 installs on `FireStarting` (paper/fire); before that a strong start on a stick pile places a fire block. PAR-HEAT-06 must call `services().require(FireStarting.class).firepitFactory(...)` and register a `FireLightable` that lights an unlit firepit."

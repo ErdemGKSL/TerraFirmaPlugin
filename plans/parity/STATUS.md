@@ -156,7 +156,7 @@ Totals: 358 items; open 205, done 145, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-CLIM-20 | Climate weather cycle follow-up: in-game check (local rain per player), itest weather.cycle, PrecipitationService honours the weather flag | CLIMATE | 14 | done |
 | PAR-HEAT-07 | Firepit GUI: fuel slots, input, outputs, temperature bar | HEAT | 14 | done |
 | PAR-HEAT-10 | Torches: burnout to dead torch, relight, wall torches | HEAT | 14 | done |
-| PAR-HEAT-18 | Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start) | HEAT | 14 | open |
+| PAR-HEAT-18 | Fire starting in-game verification: a firestarter lights a stick and log pile into a firepit (self-test fire.start) | HEAT | 14 | blocked |
 | PAR-HEAT-19 | Firepit loaded in game: configuration/devices/firepit.yml, TFC firepit models, self-test firepit.cook and the in-game check | HEAT | 14 | done |
 | PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | done |
 | PAR-INFRA-49 | Block coverage gate: every TFC blockstate is a loaded CE block, a family block, an owned id of a named parity item or an NP entry (reports/tfc-block-coverage.json) | INFRA | 14 | done |

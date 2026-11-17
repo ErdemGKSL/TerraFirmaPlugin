@@ -56,6 +56,12 @@ import org.bukkit.util.Vector;
  *       {@code FIREPIT} again.</li>
  * </ol>
  * The starts run without a player (the self-test server has none): the axis is X, as TFC's dispenser path.
+ *
+ * <p>Until TFC's logs exist as CraftEngine items (PAR-WORLD-10) the pile can only use vanilla's {@code minecraft:oak_log}
+ * (in {@code #tfc:firepit_logs} through {@code #minecraft:logs_that_burn}). TFC's fuel data names no vanilla log, so
+ * TFC's {@code light} ({@code consumeFuel}) takes the log out of the consume slot for no burn time (ash at 50 %) and the
+ * firepit stays unlit, as it would in TFC. The case then checks everything else (firepit built from the pile, the log
+ * consumed by the light attempt, the ground clear, unlit) and reports itself skipped with that reason.
  */
 public final class FireStartCase implements SelfTestCase {
     static final String LOG = "tfp:wood/log/oak";
@@ -99,7 +105,13 @@ public final class FireStartCase implements SelfTestCase {
                         + "configuration/devices/firepit.yml): no firepit can stand, a strong start places fire");
             }
             ItemStack log = logStack(tfp, tags);
-            return pile(tfp, fire, devices, blocks, log);
+            boolean tfcLog = log.getType() != Material.OAK_LOG; // logStack falls back to vanilla oak
+            String notes = pile(tfp, fire, devices, blocks, log, tfcLog);
+            if (!tfcLog) {
+                throw new Skip(LOG + " is no CraftEngine item yet (PAR-WORLD-10): the pile used minecraft:oak_log, which "
+                        + "has no TFC fuel entry, so the firepit is built but cannot light; checked: " + notes);
+            }
+            return notes;
         });
     }
 
@@ -117,7 +129,7 @@ public final class FireStartCase implements SelfTestCase {
     }
 
     private static String pile(TfpPlugin tfp, FireStarting fire, DeviceService devices, CustomBlocks blocks,
-                               ItemStack log) throws Exception {
+                               ItemStack log, boolean fuelLog) throws Exception {
         Scheduler s = tfp.scheduler();
         World world = Bukkit.getWorlds().getFirst();
         Location spawn = world.getSpawnLocation();
@@ -156,7 +168,7 @@ public final class FireStartCase implements SelfTestCase {
                     FireStarting.Starter.fixed(FireStart.Strength.STRONG, 1.0));
             check(strong == FireStarting.Result.FIREPIT, "strong start on the pile gave " + strong + ", not FIREPIT");
             notes.add("strong: " + OnThread.region(s, world, cx, cz, STEP,
-                    () -> assertFirepit(devices, blocks, world, x, py, z)));
+                    () -> assertFirepit(devices, blocks, world, x, py, z, fuelLog)));
 
             // 2. a fresh pile and a weak start: nothing
             OnThread.region(s, world, cx, cz, STEP, () -> blocks.remove(world.getBlockAt(x, py, z)));
@@ -184,7 +196,7 @@ public final class FireStartCase implements SelfTestCase {
                     (raining, random) -> new FireStartPlan(FireStart.Strength.STRONG, 1.0, 0f));
             check(flint == FireStarting.Result.FIREPIT, "flint and pyrite (forced strong) gave " + flint + ", not FIREPIT");
             notes.add("flint and pyrite: " + OnThread.region(s, world, cx, cz, STEP,
-                    () -> assertFirepit(devices, blocks, world, x, py, z)));
+                    () -> assertFirepit(devices, blocks, world, x, py, z, fuelLog)));
             return "pile at " + x + "," + py + "," + z + ": " + String.join("; ", notes);
         } finally {
             if (gy[0] != Integer.MIN_VALUE) {
@@ -235,9 +247,14 @@ public final class FireStartCase implements SelfTestCase {
         return OnThread.await(result, STEP, "the fire start");
     }
 
-    /** The cell holds a lit tfp:firepit with the log in a fuel slot (or burning) and the ground items are gone. */
+    /**
+     * The cell holds a tfp:firepit and the ground items are gone. With a TFC fuel log ({@code fuelLog}) it is lit with the
+     * log in a fuel slot or burning; else TFC's {@code consumeFuel} took the log for no burn time: unlit, fuel slots empty,
+     * at most 1 ash.
+     */
     @SuppressWarnings("unchecked")
-    private static String assertFirepit(DeviceService devices, CustomBlocks blocks, World world, int x, int y, int z) {
+    private static String assertFirepit(DeviceService devices, CustomBlocks blocks, World world, int x, int y, int z,
+                                        boolean fuelLog) {
         Block p = world.getBlockAt(x, y, z);
         String id = blocks.stateAt(p).map(st -> st.id()).orElse(p.getType().getKey().toString());
         check(id.equals(FirepitDevice.ID), "the pile cell holds " + id + ", not " + FirepitDevice.ID);
@@ -245,7 +262,8 @@ public final class FireStartCase implements SelfTestCase {
                 .orElseThrow(() -> new AssertionError("the firepit at " + x + "," + y + "," + z + " is no device"));
         check(i.record().isPresent(), "firepit record: " + i.problem());
         DeviceRecord<FirepitData> r = (DeviceRecord<FirepitData>) i.record().get();
-        check(r.state().lit(), "the firepit is not lit: " + r.state());
+        check(r.state().lit() == fuelLog, "the firepit is " + (r.state().lit() ? "lit" : "not lit") + " with a "
+                + (fuelLog ? "TFC" : "non-fuel vanilla") + " log: " + r.state());
         int fuel = 0;
         for (int slot = FirepitSim.SLOT_FUEL_CONSUME; slot <= FirepitSim.SLOT_FUEL_INPUT; slot++) {
             ItemBlob b = r.slot(slot);
@@ -254,10 +272,16 @@ public final class FireStartCase implements SelfTestCase {
             }
         }
         int burn = r.state().heat().burnTicks();
-        check(fuel > 0 || burn > 0, "the log is neither in a fuel slot nor burning: " + r.state());
+        if (fuelLog) {
+            check(fuel > 0 || burn > 0, "the log is neither in a fuel slot nor burning: " + r.state());
+        } else {
+            check(fuel == 0 && burn == 0 && r.state().ash() <= 1,
+                    "the non-fuel log was not consumed by the light attempt: fuel slots " + fuel + ", " + r.state());
+        }
         int left = items(world, x, y, z).size();
         check(left == 0, left + " item entities are left on the ground after the firepit was built");
-        return "lit " + FirepitDevice.ID + " (fuel slots " + fuel + ", burnTicks " + burn + "), ground clear";
+        return (fuelLog ? "lit " : "unlit ") + FirepitDevice.ID + " (fuel slots " + fuel + ", burnTicks " + burn + ", ash "
+                + r.state().ash() + "), ground clear";
     }
 
     /** TFC's scan box around the pile cell. Region thread. */
