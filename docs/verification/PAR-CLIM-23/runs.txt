@@ -1,0 +1,276 @@
+RCON transcripts of scratch drive.py (one readout = vanilla `time query day[time]` + `/tfp time add ticks 1`,
+whose reply prints the calendar date and hour; each readout adds 1 calendar tick).
+
+===== Paper 1.21.11-132, client 1.21.11, all steps
+  The difficulty did not change; it is already set to peaceful
+> tp Bot 1057.5 200 -1037.5 180 50
+  Teleported Bot to 1057.500000, 200.000000, -1037.500000
+--- baseline @ 18:47:27
+  The time is 23978
+> time query day
+  The time is 42
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 3, 1000 05:58.
+> tfp time set hour 21
+  Time set to hour 21: moved 15032 calendar ticks forward, now June 3, 1000 21:00.
+--- after /tfp time set hour 21 @ 18:47:29
+  The time is 15035
+> time query day
+  The time is 43
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 3, 1000 21:01.
+> time set day
+  Set the time to 1000
+--- after vanilla /time set day @ 18:47:31
+  The time is 1043
+> time query day
+  The time is 44
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 07:02.
+> time add 1000
+  Set the time to 2034
+--- after vanilla /time add 1000 @ 18:47:33
+  The time is 2078
+> time query day
+  The time is 44
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 08:04.
+> tfp time set hour 21
+  Time set to hour 21: moved 12931 calendar ticks forward, now June 4, 1000 21:00.
+--- before sleep (/tfp time set hour 21) @ 18:47:35
+  The time is 15036
+> time query day
+  The time is 44
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 21:01.
+> tp Bot 1057.5 200 -1037.5 180 50
+  Teleported Bot to 1057.500000, 200.000000, -1037.500000
+  t+1s SleepTimer: Bot has the following entity data: 21s
+  t+2s SleepTimer: Bot has the following entity data: 41s
+  t+3s SleepTimer: Bot has the following entity data: 61s
+  t+4s SleepTimer: Bot has the following entity data: 81s
+  t+5s SleepTimer: Bot has the following entity data: 101s
+  woke at t+5s: The time is 23001
+--- after night skip @ 18:47:44
+  The time is 23001
+> time query day
+  The time is 44
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 5, 1000 05:00.
+
+===== Paper 26.3-253, client 26.3, time.affects-all-worlds false, all steps (the bed click missed in this pass: Bot looked at the floor; the night skip is the next run)
+  The difficulty did not change; it is already set to Peaceful
+> tp Bot -271.5 200 -683.5 180 50
+  Teleported Bot to -271.500000, 200.000000, -683.500000
+--- baseline @ 19:03:04
+> time query day
+  Timeline minecraft:day is at 16218 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 2, 1000 22:12.
+> tfp time set hour 21
+  Time set to hour 21: moved 22797 calendar ticks forward, now June 3, 1000 21:00.
+--- after /tfp time set hour 21 @ 19:03:06
+> time query day
+  Timeline minecraft:day is at 15041 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 3, 1000 21:02.
+> time set day
+  Clock minecraft:overworld is already at time marker minecraft:day
+--- after vanilla /time set day @ 19:03:08
+> time query day
+  Timeline minecraft:day is at 1035 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 07:02.
+> time add 1000
+  Set minecraft:overworld to 1058035 tick(s)
+--- after vanilla /time add 1000 @ 19:03:10
+> time query day
+  Timeline minecraft:day is at 2070 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 08:04.
+> tfp time set hour 21
+  Time set to hour 21: moved 12931 calendar ticks forward, now June 4, 1000 21:00.
+--- before sleep (/tfp time set hour 21) @ 19:03:12
+> time query day
+  Timeline minecraft:day is at 15028 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 21:01.
+> tp Bot -271.5 200 -683.5 180 50
+  Teleported Bot to -271.500000, 200.000000, -683.500000
+  t+1s SleepTimer: Bot has the following entity data: 0s
+  t+2s SleepTimer: Bot has the following entity data: 0s
+  t+3s SleepTimer: Bot has the following entity data: 0s
+  t+4s SleepTimer: Bot has the following entity data: 0s
+  t+5s SleepTimer: Bot has the following entity data: 0s
+  t+6s SleepTimer: Bot has the following entity data: 0s
+  t+7s SleepTimer: Bot has the following entity data: 0s
+  t+8s SleepTimer: Bot has the following entity data: 0s
+  t+11s SleepTimer: Bot has the following entity data: 0s
+  t+16s SleepTimer: Bot has the following entity data: 0s
+  t+21s SleepTimer: Bot has the following entity data: 0s
+  t+26s SleepTimer: Bot has the following entity data: 0s
+  t+31s SleepTimer: Bot has the following entity data: 0s
+  t+36s SleepTimer: Bot has the following entity data: 0s
+--- no night skip observed @ 19:03:55
+> time query day
+  Timeline minecraft:day is at 15752 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 21:45.
+
+===== Paper 26.3-253, time.affects-all-worlds false, night skip only (first sleep pass)
+  The difficulty did not change; it is already set to Peaceful
+> tp Bot -270.5 200 -682.5 180 50
+  Teleported Bot to -270.500000, 200.000000, -682.500000
+--- baseline @ 19:05:18
+> time query day
+  Timeline minecraft:day is at 23915 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 6, 1000 05:54.
+> tfp time set hour 21
+  Time set to hour 21: moved 15098 calendar ticks forward, now June 6, 1000 21:00.
+--- before sleep (/tfp time set hour 21) @ 19:05:20
+> time query day
+  Timeline minecraft:day is at 15039 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 6, 1000 21:02.
+> tp Bot -270.5 200 -682.5 180 30
+  Teleported Bot to -270.500000, 200.000000, -682.500000
+  t+0.5s SleepTimer 11
+  t+1.0s SleepTimer 21
+  t+1.5s SleepTimer 31
+  t+2.0s SleepTimer 41
+  t+2.5s SleepTimer 51
+  t+3.0s SleepTimer 61
+  t+3.5s SleepTimer 71
+  t+4.0s SleepTimer 81
+  t+4.5s SleepTimer 91
+  t+5.0s SleepTimer 101
+  t+5.5s SleepTimer 0
+  woke at t+5.5s
+--- after night skip @ 19:05:28
+> time query day
+  Timeline minecraft:day is at 15187 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 7, 1000 05:00.
+
+===== Paper 26.3-253, time.affects-all-worlds false, night skip only (second sleep pass)
+  The difficulty did not change; it is already set to Peaceful
+> tp Bot -269.5 200 -683.5 180 50
+  Teleported Bot to -269.500000, 200.000000, -683.500000
+--- baseline @ 19:05:53
+> time query day
+  Timeline minecraft:day is at 23435 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 7, 1000 05:25.
+> tfp time set hour 21
+  Time set to hour 21: moved 15581 calendar ticks forward, now June 7, 1000 21:00.
+--- before sleep (/tfp time set hour 21) @ 19:05:55
+> time query day
+  Timeline minecraft:day is at 15043 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 7, 1000 21:02.
+> tp Bot -269.5 200 -683.5 180 30
+  Teleported Bot to -269.500000, 200.000000, -683.500000
+  t+0.5s SleepTimer 12
+  t+1.0s SleepTimer 22
+  t+1.5s SleepTimer 32
+  t+2.0s SleepTimer 42
+  t+2.5s SleepTimer 52
+  t+3.0s SleepTimer 62
+  t+3.5s SleepTimer 72
+  t+4.0s SleepTimer 82
+  t+4.5s SleepTimer 92
+  t+5.0s SleepTimer 102
+  t+5.5s SleepTimer 0
+  woke at t+5.5s
+    wake+0.0s 19:06:04 Timeline minecraft:day is at 23019 tick(s)
+    wake+0.5s 19:06:04 Timeline minecraft:day is at 23023 tick(s)
+    wake+1.0s 19:06:05 Timeline minecraft:day is at 23035 tick(s)
+    wake+1.5s 19:06:06 Timeline minecraft:day is at 23045 tick(s)
+    wake+2.0s 19:06:06 Timeline minecraft:day is at 23052 tick(s)
+    wake+2.5s 19:06:07 Timeline minecraft:day is at 23062 tick(s)
+    wake+3.0s 19:06:07 Timeline minecraft:day is at 23069 tick(s)
+    wake+3.5s 19:06:08 Timeline minecraft:day is at 23079 tick(s)
+    wake+4.0s 19:06:08 Timeline minecraft:day is at 23085 tick(s)
+    wake+4.5s 19:06:09 Timeline minecraft:day is at 23095 tick(s)
+    wake+5.0s 19:06:09 Timeline minecraft:day is at 23102 tick(s)
+    wake+5.5s 19:06:10 Timeline minecraft:day is at 23113 tick(s)
+    wake+6.0s 19:06:10 Timeline minecraft:day is at 23120 tick(s)
+    wake+6.5s 19:06:11 Timeline minecraft:day is at 23130 tick(s)
+--- after night skip @ 19:06:11
+> time query day
+  Timeline minecraft:day is at 23136 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now June 8, 1000 05:08.
+
+===== Paper 26.3-253, time.affects-all-worlds true, all steps
+  The difficulty did not change; it is already set to Peaceful
+> tp Bot -266.5 200 -686.5 180 50
+  Teleported Bot to -266.500000, 200.000000, -686.500000
+--- baseline @ 19:08:30
+> time query day
+  Timeline minecraft:day is at 23593 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now July 2, 1000 05:35.
+> tfp time set hour 21
+  Time set to hour 21: moved 15415 calendar ticks forward, now July 2, 1000 21:00.
+--- after /tfp time set hour 21 @ 19:08:32
+> time query day
+  Timeline minecraft:day is at 15027 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now July 2, 1000 21:01.
+> time set day
+  Clock minecraft:overworld is already at time marker minecraft:day
+--- after vanilla /time set day @ 19:08:34
+> time query day
+  Timeline minecraft:day is at 1043 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now July 3, 1000 07:01.
+> time add 1000
+  Set minecraft:overworld to 1226033 tick(s)
+--- after vanilla /time add 1000 @ 19:08:36
+> time query day
+  Timeline minecraft:day is at 2077 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now July 3, 1000 08:04.
+> tfp time set hour 21
+  Time set to hour 21: moved 12933 calendar ticks forward, now July 3, 1000 21:00.
+--- before sleep (/tfp time set hour 21) @ 19:08:38
+> time query day
+  Timeline minecraft:day is at 15037 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now July 3, 1000 21:02.
+> tp Bot -266.5 200 -686.5 180 30
+  Teleported Bot to -266.500000, 200.000000, -686.500000
+  t+0.5s SleepTimer 11
+  t+1.0s SleepTimer 21
+  t+1.5s SleepTimer 31
+  t+2.0s SleepTimer 41
+  t+2.5s SleepTimer 51
+  t+3.0s SleepTimer 61
+  t+3.5s SleepTimer 71
+  t+4.0s SleepTimer 82
+  t+4.5s SleepTimer 92
+  t+5.0s SleepTimer 102
+  t+5.5s SleepTimer 0
+  woke at t+5.5s
+    wake+0.0s 19:08:47 Timeline minecraft:day is at 15185 tick(s)
+    wake+0.5s 19:08:47 Timeline minecraft:day is at 23021 tick(s)
+    wake+1.0s 19:08:48 Timeline minecraft:day is at 23035 tick(s)
+    wake+1.5s 19:08:48 Timeline minecraft:day is at 23042 tick(s)
+    wake+2.0s 19:08:49 Timeline minecraft:day is at 23052 tick(s)
+    wake+2.5s 19:08:49 Timeline minecraft:day is at 23059 tick(s)
+    wake+3.0s 19:08:50 Timeline minecraft:day is at 23069 tick(s)
+    wake+3.5s 19:08:50 Timeline minecraft:day is at 23076 tick(s)
+    wake+4.0s 19:08:51 Timeline minecraft:day is at 23086 tick(s)
+    wake+4.5s 19:08:51 Timeline minecraft:day is at 23092 tick(s)
+    wake+5.0s 19:08:52 Timeline minecraft:day is at 23102 tick(s)
+    wake+5.5s 19:08:52 Timeline minecraft:day is at 23109 tick(s)
+    wake+6.0s 19:08:53 Timeline minecraft:day is at 23119 tick(s)
+    wake+6.5s 19:08:53 Timeline minecraft:day is at 23126 tick(s)
+--- after night skip @ 19:08:54
+> time query day
+  Timeline minecraft:day is at 23136 tick(s)
+> tfp time add ticks 1
+  Added 1 ticks: moved 1 calendar ticks forward, now July 4, 1000 05:07.
+

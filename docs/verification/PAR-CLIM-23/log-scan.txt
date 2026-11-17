@@ -1,0 +1,33 @@
+===== 1.21.11 manual run (p121.log): Paper version 1.21.11-132-ver/1.21.11@c5eb079 (2026-05-11T11:43:09Z) (Implementing API version 1.21.11-R0.1-SNAPSHOT)
+lines matching NoSuchMethodError|NoClassDefFoundError|Could not pass event|Calendar: : 0
+WARN/ERROR lines (count, startup banners dropped):
+  1 x WARN]: 
+  1 x WARN]: [BetterHud] This build is dev version - be careful to use it!
+  1 x WARN]: [CraftEngine] Cannot find intentionally_empty in sound template
+
+===== 26.3 manual run, affects-all-worlds false (p263.false.log): Paper version 26.3-253-main@63e41db (2026-11-15T17:14:05Z) (Implementing API version 26.3.build.253-stable)
+lines matching NoSuchMethodError|NoClassDefFoundError|Could not pass event|Calendar: : 0
+WARN/ERROR lines (count, startup banners dropped):
+  1 x WARN]: 
+  1 x WARN]: [BetterHud] This build is dev version - be careful to use it!
+  1 x WARN]: [CraftEngine] Cannot find intentionally_empty in sound template
+
+===== 26.3 manual run, affects-all-worlds true (p263.true.log): Paper version 26.3-253-main@63e41db (2026-11-15T17:14:05Z) (Implementing API version 26.3.build.253-stable)
+lines matching NoSuchMethodError|NoClassDefFoundError|Could not pass event|Calendar: : 0
+WARN/ERROR lines (count, startup banners dropped):
+  1 x WARN]: 
+  1 x WARN]: [BetterHud] This build is dev version - be careful to use it!
+
+===== 1.21.11 self-test run (p121.itest.log): Paper version 1.21.11-132-ver/1.21.11@c5eb079 (2026-05-11T11:43:09Z) (Implementing API version 1.21.11-R0.1-SNAPSHOT)
+lines matching NoSuchMethodError|NoClassDefFoundError|Could not pass event|Calendar: : 0
+WARN/ERROR lines (count, startup banners dropped):
+  1 x WARN]: 
+  1 x WARN]: [BetterHud] This build is dev version - be careful to use it!
+
+===== 26.3 self-test run (p263.itest.log): Paper version 26.3-253-main@63e41db (2026-11-15T17:14:05Z) (Implementing API version 26.3.build.253-stable)
+lines matching NoSuchMethodError|NoClassDefFoundError|Could not pass event|Calendar: : 1
+  [19:10:40 INFO]: [TerraFirmaPluginSelfTest] [selftest] ERROR calendar.sleep_skip: night skip moves the calendar to 5 am, daylight rule held (PAR-CLIM-16): java.lang.NoClassDefFoundError: org/bukkit/ev
+WARN/ERROR lines (count, startup banners dropped):
+  1 x WARN]: 
+  1 x WARN]: [BetterHud] This build is dev version - be careful to use it!
+
