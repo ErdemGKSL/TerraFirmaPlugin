@@ -2,7 +2,7 @@
 id: PAR-CLIM-13
 title: "TFC time command completion: `/tfp time set` dayLength, monthLength, rain and clear, and the calendar tick rate"
 area: CLIMATE
-status: blocked
+status: open
 wave: 14
 deps: [PAR-CLIM-01, PAR-CLIM-12]
 size: S
@@ -19,9 +19,16 @@ files_owned:
   - "core/src/test/java/dev/tfp/core/calendar/CalendarRate*"
   - "paper/src/main/java/dev/tfp/paper/calendar/TimeRate*.java"
   - "paper/src/test/java/dev/tfp/paper/calendar/TimeRate*"
+  - "core/src/main/java/dev/tfp/core/calendar/CalendarState.java"
+  - "core/src/main/java/dev/tfp/core/calendar/CalendarCodec.java"
+  - "paper/src/main/java/dev/tfp/paper/calendar/CalendarService.java"
+  - "paper/src/main/java/dev/tfp/paper/calendar/CalendarModule.java"
+  - "paper/src/main/java/dev/tfp/paper/TfpPlugin.java"
+  - "paper/src/test/java/dev/tfp/paper/boot/BootstrapTest.java"
 ui: false
 in_game_steps: []
 plan:
+  - "UNBLOCKED (manager, 2026-11-17): files_owned widened to core/src/main/java/dev/tfp/core/calendar/CalendarState.java, core/src/main/java/dev/tfp/core/calendar/CalendarCodec.java, paper/src/main/java/dev/tfp/paper/calendar/CalendarService.java, paper/src/main/java/dev/tfp/paper/calendar/CalendarModule.java, paper/src/main/java/dev/tfp/paper/TfpPlugin.java, paper/src/test/java/dev/tfp/paper/boot/BootstrapTest.java; redo from the Blocked note"
   - "BLOCKED (2026-11-14) on files outside files_owned: the rate and month-length changes need (1) core/src/main/java/dev/tfp/core/calendar/CalendarState.java (no way to change dayLengthMinutes, and the invariant dayLengthMinutes >= 1 cannot hold TFC's disabled rate 0), (2) core/src/main/java/dev/tfp/core/calendar/CalendarCodec.java (persist the disabled rate; new layout version), (3) paper/src/main/java/dev/tfp/paper/calendar/CalendarService.java (state is private and only skip(Delta) moves it forward; set dayLength/monthLength need an update(UnaryOperator<CalendarState>) that publishes and saves, and monthLength can move the tick backward), (4) the /tfp time handler: TfpCommands.Handler gets new methods implemented in paper/src/main/java/dev/tfp/paper/TfpPlugin.java (or paper/src/main/java/dev/tfp/paper/calendar/CalendarModule.java), and (5) paper/src/test/java/dev/tfp/paper/boot/BootstrapTest.java /tfp time tree (its hub line covers only /tfp debug children). Unblock: add these five paths to files_owned (edits limited to the rate/month-length API and the new literals)."
   - "Current (audit 2026-11-08): `/tfp time` has set day/noon/night/midnight/hour and add years/months/days/hours/ticks; TFC's `set dayLength <minutes>|default|realtime|disabled`, `set monthLength <days>|default|realtime`, `set rain` and `set clear` are missing (ledger row says not implemented), and the calendar has no tick rate (TFC ServerCalendar.setCalendarTickRate: calendar ticks per player tick = 20 / minutes, 0 when disabled)."
   - "core/calendar: port the calendar tick rate (persisted with the calendar, applied to calendar-tick advance only, player ticks unchanged, as TFC) and the four literals with TFC's arguments, limits (monthLength 1..1000) and reply keys (tfc.commands.time.set_day_length, set_day_length_disabled, set_month_length, add_time)."
