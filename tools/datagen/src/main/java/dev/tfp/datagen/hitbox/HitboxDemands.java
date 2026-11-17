@@ -103,6 +103,17 @@ public final class HitboxDemands {
     /** PAR-HEAT-21: served after every other demand (adding the torches moves no carrier of another block). */
     static final int TORCH_WEIGHT = -3;
 
+    /**
+     * PAR-PROC-39: the powderkeg block and its three looks (TFC's blockstate: {@code powderkeg} unsealed, lit or not;
+     * {@code powderkeg_sealed}; {@code powderkeg_lit} sealed and lit).
+     */
+    public static final String POWDERKEG_ID = "tfp:powderkeg";
+    public static final String POWDERKEG_UNSEALED = "unsealed";
+    public static final String POWDERKEG_SEALED = "sealed";
+    public static final String POWDERKEG_LIT = "lit";
+    /** PAR-PROC-39: served after every other demand (adding the keg moves no carrier of another block). */
+    static final int POWDERKEG_WEIGHT = -4;
+
     private HitboxDemands() {
     }
 
@@ -178,7 +189,26 @@ public final class HitboxDemands {
             d.add(new Demand(DEAD_WALL_TORCH_ID, f, "tfc:dead_wall_torch[facing=" + f + "]", 0, deadTorchLook(f), true,
                 TORCH_WEIGHT));
         }
+        // PAR-PROC-39: the powderkeg, TFC's two outlines (SHAPE sealed, SHAPE_UNSEALED hollow) and three models. A lit
+        // unsealed keg (lit by another explosion) draws TFC's unsealed model, so it is the unsealed appearance; the lit look
+        // is sealed only, on the sealed row.
+        d.add(new Demand(POWDERKEG_ID, POWDERKEG_UNSEALED, "tfc:powderkeg[sealed=false]", 0,
+            powderkegModel(POWDERKEG_UNSEALED), true, POWDERKEG_WEIGHT));
+        d.add(new Demand(POWDERKEG_ID, POWDERKEG_SEALED, "tfc:powderkeg[sealed=true]", 0,
+            powderkegModel(POWDERKEG_SEALED), true, POWDERKEG_WEIGHT));
+        d.add(new Demand(POWDERKEG_ID, POWDERKEG_LIT, "tfc:powderkeg[sealed=true]", 0,
+            powderkegModel(POWDERKEG_LIT), true, POWDERKEG_WEIGHT));
         return d;
+    }
+
+    /** PAR-PROC-39: TFC's model of a powderkeg appearance ({@code tfp:block/powderkeg}, {@code _sealed}, {@code _lit}). */
+    public static String powderkegModel(String appearance) {
+        return switch (appearance) {
+            case POWDERKEG_UNSEALED -> "tfp:block/powderkeg";
+            case POWDERKEG_SEALED -> "tfp:block/powderkeg_sealed";
+            case POWDERKEG_LIT -> "tfp:block/powderkeg_lit";
+            default -> throw new IllegalArgumentException("not a powderkeg appearance: " + appearance);
+        };
     }
 
     /**

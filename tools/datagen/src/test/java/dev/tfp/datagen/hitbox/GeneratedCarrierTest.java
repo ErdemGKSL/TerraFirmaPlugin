@@ -99,15 +99,16 @@ class GeneratedCarrierTest {
         // log pile (32 leaves pool states) and the charcoal pile (7 explicit states, layer 8 from the solid pool).
         // PAR-PROC-38: 16 side appearances per barrel (4 facings x seal x rack) and the barrel rack's one.
         // PAR-HEAT-21: the torch, the wall torch (4 facings), the dead torch and the dead wall torch (4 facings).
-        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10);
+        // PAR-PROC-39: the powderkeg (unsealed, sealed, lit).
+        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3);
         assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1);
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
             List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern",
                 "tfp:scraping", HitboxDemands.COMPOSTER_ID, HitboxDemands.LOG_PILE_ID, HitboxDemands.CHARCOAL_PILE_ID,
                 HitboxDemands.BARREL_RACK_ID, HitboxDemands.TORCH_ID, HitboxDemands.WALL_TORCH_ID,
-                HitboxDemands.DEAD_TORCH_ID, HitboxDemands.DEAD_WALL_TORCH_ID));
+                HitboxDemands.DEAD_TORCH_ID, HitboxDemands.DEAD_WALL_TORCH_ID, HitboxDemands.POWDERKEG_ID));
         HitboxDemands.BARREL_WOODS.forEach(w -> expected.add(HitboxDemands.barrelId(w)));
-        assertThat(expected).hasSize(35);
+        assertThat(expected).hasSize(36);
         assertThat(checkedIds).as("block ids whose explicit appearance states were checked")
             .containsExactlyElementsOf(expected);
         assertThat(mappings).as("generator block_state_mappings")
@@ -311,6 +312,37 @@ class GeneratedCarrierTest {
         assertThat(matches(HitboxDemands.barrelSideDemand("z", true), "z_north_unsealed_rack")).isTrue();
         assertThat(matches(HitboxDemands.barrelSideDemand("z", true), "x_east_unsealed_rack")).isFalse();
         assertThat(matches(HitboxDemands.barrelSideDemand("x", false), HitboxDemands.BARREL_SEALED)).isFalse();
+    }
+
+    @Test
+    void thePowderkegCarriersArePinned() {
+        // PAR-PROC-39: TFC's two outlines (tfc:powderkeg[sealed=true] SHAPE 14x16x14, sealed=false the hollow
+        // SHAPE_UNSEALED) and three models. Sealed and lit each take a free cactus age with TFC's model (one look per
+        // carrier); the hollow outline's best carrier with a model scores too low, so it is a composter state drawn empty
+        // (the look is an item display). Served last (weight -4): adding the keg moved no other block's carrier.
+        Map<String, TfcShapes.Row> rows = TfcShapes.load();
+        assertThat(rows).containsKeys("tfc:powderkeg[sealed=true]", "tfc:powderkeg[sealed=false]");
+        Assignment unsealed = HitboxAllocation.agreed(HitboxDemands.POWDERKEG_ID, HitboxDemands.POWDERKEG_UNSEALED);
+        Assignment sealed = HitboxAllocation.agreed(HitboxDemands.POWDERKEG_ID, HitboxDemands.POWDERKEG_SEALED);
+        Assignment lit = HitboxAllocation.agreed(HitboxDemands.POWDERKEG_ID, HitboxDemands.POWDERKEG_LIT);
+        assertThat(unsealed.demand().tfcKey()).isEqualTo("tfc:powderkeg[sealed=false]");
+        assertThat(sealed.demand().tfcKey()).isEqualTo("tfc:powderkeg[sealed=true]");
+        assertThat(lit.demand().tfcKey()).isEqualTo("tfc:powderkeg[sealed=true]");
+        assertThat(unsealed.mode()).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
+        assertThat(unsealed.state()).isEqualTo("minecraft:composter[level=1]");
+        assertThat(sealed.mode()).isEqualTo(HitboxAllocation.Mode.MODEL);
+        assertThat(sealed.state()).isEqualTo("minecraft:cactus[age=12]");
+        assertThat(lit.mode()).isEqualTo(HitboxAllocation.Mode.MODEL);
+        assertThat(lit.state()).isEqualTo("minecraft:cactus[age=11]");
+        assertThat(List.of(unsealed, sealed, lit)).extracting(Assignment::hideTarget).containsOnlyNulls();
+        assertThat(HitboxDemands.powderkegModel(HitboxDemands.POWDERKEG_LIT)).isEqualTo("tfp:block/powderkeg_lit");
+        // the keg's carriers are no other block's
+        for (Demand d : HitboxDemands.all()) {
+            if (!d.blockId().equals(HitboxDemands.POWDERKEG_ID)) {
+                assertThat(HitboxAllocation.agreed(d.blockId(), d.appearance()).state()).as(d.id())
+                    .isNotIn(unsealed.state(), sealed.state(), lit.state());
+            }
+        }
     }
 
     @Test

@@ -2,7 +2,7 @@
 id: PAR-PROC-39
 title: "Powderkeg CE block: tfc:powderkeg hitbox demands, configuration/powderkeg, in-game explosion check"
 area: PROC
-status: open
+status: done
 wave: 15
 deps: [PAR-PROC-18, PAR-INFRA-13]
 size: M
@@ -37,6 +37,7 @@ plan:
   - "Hitbox: tfc-shapes.json already has tfc:powderkeg[sealed=true|false] (PAR-INFRA-13; report: sealed cactus, unsealed composter[level=0] hitbox-only). Add the demands for tfp:powderkeg (unsealed, sealed, lit: TFC's three models; lit is sealed-only in practice but any combination can occur after an explosion lights an unsealed keg) and pin tfp:powderkeg in GeneratedCarrierTest."
   - "Block entry: datagen powderkeg/PowderkegBlock writes configuration/powderkeg/powderkeg.yml through DeviceBlockSpec + DeviceYaml.templated: the tfp:device behaviour, the properties sealed and lit (PowderkegDevice.SEALED / LIT, default false; the device writes both), TFC's strength / sound / tool from TFCBlocks, the loot (the keg itself, survives_explosion), the block item, TFC's models (powderkeg, powderkeg_sealed, powderkeg_lit with the animated powderkeg_outside_lit texture) and textures, block.tfp.powderkeg in every TFC locale. Add a run line to Datagen.java and the section to CeYamlCheck if new."
   - "In-game check (PROTOCOL 6): run the steps with the bot; store docs/verification/PAR-PROC-18/."
+  - "Done: HitboxDemands adds tfp:powderkeg unsealed/sealed/lit (weight -4, served last: sealed cactus[age=12] and lit cactus[age=11] with TFC's models, unsealed composter[level=1] hitbox-only with the model as an item display); datagen powderkeg/PowderkegBlock writes configuration/powderkeg/powderkeg.yml (sealed, lit; TFC's strength, wood sounds, axe, self loot, block item, three models + animated lit texture, block.tfp.powderkeg in every TFC locale) and its Datagen run line. Tests: datagen PowderkegBlockTest 4, GeneratedCarrierTest.thePowderkegCarriersArePinned (+ tfp:powderkeg in the pinned id set). Ledger feature row and an unsealed-carrier divergence row. In-game screenshot check left to the verify stage (evidence: docs/verification/PAR-PROC-39/)."
 tests:
   - "datagen: PowderkegBlockTest (properties sealed/lit, carriers from the allocation, TFC's models and loot)"
 ---

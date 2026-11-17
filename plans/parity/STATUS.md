@@ -176,7 +176,7 @@ Totals: 381 items; open 207, done 166, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-HEAT-22 | Dropped torches (go out in water, light leaves, thatch, log piles and pit kilns) and the torchTicks config key | HEAT | 15 | blocked |
 | PAR-INFRA-51 | Held snow layer ghost on snow-layer carriers: the client predicts snow[n+1] on the forge, quern handstone, grill and piles | INFRA | 15 | blocked |
 | PAR-CLIM-22 | Vanilla /time and the night skip on 26.x: CalendarModule.onTimeSkip throws NoSuchMethodError on TimeSkipEvent.getSkipReason() | CLIMATE | 15 | done |
-| PAR-PROC-39 | Powderkeg CE block: tfc:powderkeg hitbox demands, configuration/powderkeg, in-game explosion check | PROC | 15 | open |
+| PAR-PROC-39 | Powderkeg CE block: tfc:powderkeg hitbox demands, configuration/powderkeg, in-game explosion check | PROC | 15 | done |
 | PAR-PROC-40 | Charcoal sneak click adds two layers: ignore Paper's re-fired RIGHT_CLICK_BLOCK of the same click | PROC | 15 | done |
 | PAR-INFRA-55 | Installer: rebuild the CraftEngine pack on the restart that applies a raised serverside-blocks (the first-install pack misses the blocks that could not allocate) | INFRA | 15 | done |
 | PAR-INFRA-58 | Packet-layer boundary: move the PacketEvents-typed heat glow, item bar and block sound handlers under dev.tfp.paper.packet so ArchitectureTest.onlyThePacketLayerTouchesPacketEvents passes | INFRA | 15 | done |
