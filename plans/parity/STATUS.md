@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 356 items; open 203, done 145, blocked 8; waves 1..56 (wave 0 = already done).
+Totals: 357 items; open 204, done 145, blocked 8; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -179,6 +179,7 @@ Totals: 356 items; open 203, done 145, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-PROC-39 | Powderkeg CE block: tfc:powderkeg hitbox demands, configuration/powderkeg, in-game explosion check | PROC | 15 | open |
 | PAR-PROC-40 | Charcoal sneak click adds two layers: ignore Paper's re-fired RIGHT_CLICK_BLOCK of the same click | PROC | 15 | open |
 | PAR-INFRA-55 | Installer: rebuild the CraftEngine pack on the restart that applies a raised serverside-blocks (the first-install pack misses the blocks that could not allocate) | INFRA | 15 | open |
+| PAR-INFRA-58 | Packet-layer boundary: move the PacketEvents-typed heat glow, item bar and block sound handlers under dev.tfp.paper.packet so ArchitectureTest.onlyThePacketLayerTouchesPacketEvents passes | INFRA | 15 | open |
 | PAR-PROC-41 | Sealed barrel item keeps its contents: breaking a sealed barrel drops the barrel with its items and fluid (TFC BarrelComponent), placing it restores them | PROC | 15 | open |
 | PAR-HEAT-23 | Firepit look in game: TFC's lit and unlit models on their own carriers (axis z turned 90), and the in-game firepit check | HEAT | 16 | open |
 | PAR-CLIM-14 | Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute | CLIMATE | 16 | open |
