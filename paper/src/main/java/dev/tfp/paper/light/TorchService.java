@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,7 +60,10 @@ import org.bukkit.block.Block;
  * PAR-HEAT-28: after the apply step swaps a torch, the chunk's light is sent again to the players tracking it once the
  * server's light engine settled ({@link LightRefresh}, one resend per changed chunk and refresh window). A torch that
  * burns out while its chunk loads can otherwise be committed around the chunk packet, and the client kept the lit
- * torch's block light 14 in the dead torch until a relog.
+ * torch's block light 14 in the dead torch until a relog. "Settled" is read, not assumed ({@link LightProbe}): right
+ * after a chunk load the server's light engine (Moonrise, off the tick thread) was seen still holding 14 in the dead
+ * torch more than 10 ticks after the swap (2026-11-17, Paper 1.21.11), so a resend after a fixed delay sent the stale
+ * light again.
  *
  * <p>Also TFC's {@code onFireStart} ({@link #lightable}: a lit torch resets its counter, a dead one becomes lit) and
  * {@code onFireStop} ({@link #douse}).
@@ -120,12 +124,47 @@ public final class TorchService {
     }
 
     /**
-     * Server ticks between a burnout's apply step and the chunk's light resend: the light engine propagates the removed
+     * PAR-HEAT-28: whether the server's light engine has removed the dead torch's former light at {@code pos}. Called on
+     * the chunk's region thread while a resend waits.
+     */
+    @FunctionalInterface
+    public interface LightProbe {
+        boolean settled(World world, BlockPos pos);
+
+        /**
+         * Paper: the server block light at the position is below the lit torch's {@link #LIT_BLOCK_LIGHT} (the removed
+         * source left only light from neighbours, at most one less). An unloaded chunk, or a server implementation
+         * without light access, counts as settled.
+         */
+        LightProbe PAPER = (world, pos) -> {
+            if (!world.isChunkLoaded(pos.chunkX(), pos.chunkZ())) {
+                return true;
+            }
+            try {
+                return world.getBlockAt(pos.x(), pos.y(), pos.z()).getLightFromBlocks() < LIT_BLOCK_LIGHT;
+            } catch (RuntimeException e) {
+                return true;
+            }
+        };
+    }
+
+    /** The lit torch's block light (TFC {@code TFCTorchBlock}: vanilla torch, 14). */
+    public static final int LIT_BLOCK_LIGHT = 14;
+    /**
+     * Server ticks between a burnout's apply step and the first light check: the light engine propagates the removed
      * source after the tick that set the block, so the resend waits for it.
      */
     public static final int REFRESH_DELAY_TICKS = 5;
-    /** A queued resend older than this (10 s) counts as dropped. */
-    static final long REFRESH_STALE_NANOS = 10_000_000_000L;
+    /** Ticks between two light checks while the engine still holds the lit light ({@link LightProbe}). */
+    public static final int REFRESH_POLL_TICKS = 5;
+    /** The last check: the resend goes out this many ticks after the apply step even if the light never settled. */
+    public static final int REFRESH_MAX_TICKS = 400;
+    /** A queued resend older than this (60 s, longer than {@link #REFRESH_MAX_TICKS}) counts as dropped. */
+    static final long REFRESH_STALE_NANOS = 60_000_000_000L;
+
+    /** A chunk's queued resend: when it was queued and the burnt-out positions it waits for. */
+    private record Pending(long queued, Set<BlockPos> positions) {
+    }
 
     /** The snapshot one decision reads: the cell and the calendar tick it was taken at. */
     record Snap(BlockPos pos, Cell cell, long now, long nanos) {
@@ -147,7 +186,8 @@ public final class TorchService {
      * second burnout there joins the first resend. An entry older than {@link #REFRESH_STALE_NANOS} (its task was dropped
      * with an unloaded region) no longer holds a new resend back.
      */
-    private final Map<UUID, Map<Long, Long>> refreshing = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<Long, Pending>> refreshing = new ConcurrentHashMap<>();
+    private final LightProbe lightProbe;
     private final LongAdder lightRefreshes = new LongAdder();
 
     /**
@@ -163,6 +203,14 @@ public final class TorchService {
     public TorchService(CustomBlocks blocks, DeviceService devices, TorchDevice device, LongSupplier calendar,
             IntSupplier torchTicks, Function<World, RegionExecutor> regions, Executor workers, CommitBudget budget,
             LightRefresh lightRefresh) {
+        this(blocks, devices, device, calendar, torchTicks, regions, workers, budget, lightRefresh, LightProbe.PAPER);
+    }
+
+    /** As above, with the light check that holds the resend back until the server's light engine settled. */
+    public TorchService(CustomBlocks blocks, DeviceService devices, TorchDevice device, LongSupplier calendar,
+            IntSupplier torchTicks, Function<World, RegionExecutor> regions, Executor workers, CommitBudget budget,
+            LightRefresh lightRefresh, LightProbe lightProbe) {
+        this.lightProbe = Objects.requireNonNull(lightProbe, "lightProbe");
         this.lightRefresh = Objects.requireNonNull(lightRefresh, "lightRefresh");
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.devices = Objects.requireNonNull(devices, "devices");
@@ -270,33 +318,55 @@ public final class TorchService {
 
     /**
      * PAR-HEAT-28: queues the light resend of the chunk holding {@code pos} after a burnout there, once per chunk while
-     * one is pending. Region thread of the chunk (the commit queue's apply step).
+     * one is pending (a later burnout in the chunk joins it). The resend waits {@link #REFRESH_DELAY_TICKS}, then checks
+     * every {@link #REFRESH_POLL_TICKS} until the light at every joined position settled ({@link LightProbe}), at most
+     * until {@link #REFRESH_MAX_TICKS}. Region thread of the chunk (the commit queue's apply step).
      */
     void queueLightRefresh(World world, BlockPos pos) {
         int cx = pos.chunkX();
         int cz = pos.chunkZ();
-        Map<Long, Long> pending = refreshing.computeIfAbsent(world.getUID(), id -> new ConcurrentHashMap<>());
+        Map<Long, Pending> pending = refreshing.computeIfAbsent(world.getUID(), id -> new ConcurrentHashMap<>());
         long key = chunkKey(cx, cz);
         long queued = System.nanoTime();
-        boolean[] fresh = {false};
+        Pending[] fresh = {null};
         pending.compute(key, (k, at) -> {
-            if (at != null && queued - at < REFRESH_STALE_NANOS) {
+            if (at != null && queued - at.queued() < REFRESH_STALE_NANOS) {
+                at.positions().add(pos);
                 return at;
             }
-            fresh[0] = true;
-            return queued;
+            Set<BlockPos> positions = ConcurrentHashMap.newKeySet();
+            positions.add(pos);
+            fresh[0] = new Pending(queued, positions);
+            return fresh[0];
         });
-        if (!fresh[0]) {
+        if (fresh[0] == null) {
             return;
         }
+        Pending mine = fresh[0];
         RegionExecutor region = regions.apply(world);
         Runnable send = () -> {
-            pending.remove(key, queued);
+            pending.remove(key, mine);
             lightRefreshes.increment();
             lightRefresh.refresh(world, cx, cz);
         };
-        Runnable chain = send;
-        for (int i = 1; i < REFRESH_DELAY_TICKS; i++) {
+        after(region, cx, cz, REFRESH_DELAY_TICKS, () -> check(world, region, cx, cz, mine, REFRESH_DELAY_TICKS, send));
+    }
+
+    /** One light check of a pending resend, {@code waited} ticks after the apply step. Region thread of the chunk. */
+    private void check(World world, RegionExecutor region, int cx, int cz, Pending pending, int waited, Runnable send) {
+        boolean settled = pending.positions().stream().allMatch(p -> lightProbe.settled(world, p));
+        if (settled || waited >= REFRESH_MAX_TICKS) {
+            send.run();
+            return;
+        }
+        int next = Math.min(REFRESH_POLL_TICKS, REFRESH_MAX_TICKS - waited);
+        after(region, cx, cz, next, () -> check(world, region, cx, cz, pending, waited + next, send));
+    }
+
+    /** Runs {@code task} on the chunk's region {@code ticks} ticks from now (at least one). */
+    private static void after(RegionExecutor region, int cx, int cz, int ticks, Runnable task) {
+        Runnable chain = task;
+        for (int i = 1; i < ticks; i++) {
             Runnable next = chain;
             chain = () -> region.runNextTick(cx, cz, next);
         }

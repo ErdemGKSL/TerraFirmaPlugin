@@ -28,6 +28,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
@@ -46,7 +47,9 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 /**
  * PAR-HEAT-28: a torch that burns out while its chunk loads requests the light resend of the chunk holding the changed
  * position, {@link TorchService#REFRESH_DELAY_TICKS} after the apply step (so the client loses the lit torch's block light
- * 14 without a relog); one resend per chunk and change, none for a torch still burning or for a player's douse.
+ * 14 without a relog); one resend per chunk and change, none for a torch still burning or for a player's douse. The
+ * resend waits while the server's light engine still holds the lit light at a changed position ({@link
+ * TorchService.LightProbe}), at most {@link TorchService#REFRESH_MAX_TICKS}.
  */
 class TorchLightRefreshTest extends MockServerTest {
     static final long START = 10_000;
@@ -119,6 +122,8 @@ class TorchLightRefreshTest extends MockServerTest {
 
     private final AtomicLong clock = new AtomicLong(START);
     private final List<Refresh> refreshes = new ArrayList<>();
+    /** Positions where the fake light engine still holds the lit torch's light. */
+    private final Set<BlockPos> unsettled = ConcurrentHashMap.newKeySet();
     private TorchService service;
     private DeviceService devices;
     private World world;
@@ -154,7 +159,8 @@ class TorchLightRefreshTest extends MockServerTest {
         device.kinds().forEach(devices::register);
         service = new TorchService(blocks, devices, device, clock::get, () -> LightSourceRules.DEFAULT_TORCH_TICKS,
             w -> regions, Runnable::run, new CommitBudget(1_000_000_000L, System::nanoTime),
-            (w, cx, cz) -> refreshes.add(new Refresh(w.getName(), cx, cz, tick)));
+            (w, cx, cz) -> refreshes.add(new Refresh(w.getName(), cx, cz, tick)),
+            (w, p) -> !unsettled.contains(p));
         player = server.addPlayer();
         player.teleport(new Location(world, 4.5, 64, 4.5));
         player.setGameMode(GameMode.SURVIVAL);
@@ -244,6 +250,49 @@ class TorchLightRefreshTest extends MockServerTest {
         ticks(TorchService.REFRESH_DELAY_TICKS + 3);
         assertThat(blocks.stateAt(floor).orElseThrow().id()).isEqualTo("tfp:dead_torch");
         assertThat(refreshes).isEmpty();
+    }
+
+    @Test
+    void theResendWaitsUntilTheLightEngineRemovedTheLitLight() {
+        Block floor = placeLit(2, 3, BlockStateRef.of("tfp:torch"));
+        unsettled.add(pos(floor));
+        clock.addAndGet(4L * DAY);
+        service.chunkLoaded(floor.getChunk(), List.of(pos(floor)));
+        tick();
+        assertThat(blocks.stateAt(floor).orElseThrow().id()).isEqualTo("tfp:dead_torch");
+        ticks(TorchService.REFRESH_DELAY_TICKS + 3 * TorchService.REFRESH_POLL_TICKS);
+        assertThat(refreshes).isEmpty(); // the engine still holds 14: a resend now would send the stale light again
+        unsettled.clear();
+        long settledAt = tick;
+        ticks(TorchService.REFRESH_POLL_TICKS + 1);
+        assertThat(refreshes).hasSize(1);
+        assertThat(refreshes.get(0).tick()).isBetween(settledAt, settledAt + TorchService.REFRESH_POLL_TICKS);
+        ticks(40);
+        assertThat(refreshes).hasSize(1);
+    }
+
+    @Test
+    void aLaterBurnoutInThePendingChunkJoinsItsWaitAndTheResendGoesOutAtTheCap() {
+        Block floor = placeLit(2, 3, BlockStateRef.of("tfp:torch"));
+        Block wall = placeLit(5, 7, BlockStateRef.of("tfp:wall_torch").with("facing", "east"));
+        unsettled.add(pos(wall)); // the wall torch's light never settles here
+        clock.addAndGet(4L * DAY);
+        service.chunkLoaded(floor.getChunk(), List.of(pos(floor)));
+        tick();
+        ticks(2);
+        service.chunkLoaded(wall.getChunk(), List.of(pos(wall))); // joins the floor torch's pending resend
+        ticks(TorchService.REFRESH_DELAY_TICKS + 2);
+        assertThat(blocks.stateAt(wall).orElseThrow().id()).isEqualTo("tfp:dead_wall_torch");
+        assertThat(refreshes).isEmpty(); // waits for the joined wall torch too
+        ticks(TorchService.REFRESH_MAX_TICKS);
+        assertThat(refreshes).containsExactly(new Refresh("torch-light", 0, 0, TorchService.REFRESH_MAX_TICKS));
+    }
+
+    @Test
+    void thePaperProbeCountsAnUnloadedChunkAsSettled() {
+        assertThat(TorchService.LightProbe.PAPER.settled(world, new BlockPos(40 * 16, 64, 40 * 16))).isTrue();
+        assertThatCode(() -> TorchService.LightProbe.PAPER.settled(world, new BlockPos(2, 64, 3)))
+            .doesNotThrowAnyException();
     }
 
     @Test
