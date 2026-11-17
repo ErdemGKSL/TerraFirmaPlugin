@@ -1,6 +1,6 @@
 {
   "version": "1.21.4",
-  "dumped": "scratch dump (kept outside the repo) on the Paper 1.21.4 server jar, Mojang-mapped: BlockState.getShape and getCollisionShape with EmptyBlockGetter, BlockPos.ZERO and CollisionContext.empty(); pixels; walls: lone posts only; flags: canOcclude, canBeReplaced, EntityBlock, fluid state, hasOffsetFunction",
+  "dumped": "scratch dump (kept outside the repo) on the Paper 1.21.4 server jar, Mojang-mapped: BlockState.getShape and getCollisionShape with EmptyBlockGetter, BlockPos.ZERO and CollisionContext.empty(); pixels; walls: lone posts only; flags: canOcclude, canBeReplaced, EntityBlock, fluid state, hasOffsetFunction; PAR-HEAT-21 appended the torch, wall_torch, redstone_torch and redstone_wall_torch states, dumped the same way",
   "columns": ["state", "selection", "collision", "light", "flags"],
   "states": [
     ["minecraft:oak_leaves[distance=1,persistent=true,waterlogged=true]", [[0,0,0,16,16,16]], [[0,0,0,16,16,16]], 0, ["fluid"]],
@@ -912,6 +912,21 @@
     ["minecraft:pale_moss_carpet[bottom=false,east=tall,north=tall,south=low,west=tall]", [[0,0,0,1,16,16],[1,0,0,16,16,1],[1,0,15,16,10,16],[15,0,1,16,16,15],[15,10,15,16,16,16]], [], 0, ["occludes"]],
     ["minecraft:pale_moss_carpet[bottom=false,east=tall,north=tall,south=tall,west=none]", [[0,0,0,16,16,1],[0,0,15,16,16,16],[15,0,1,16,16,15]], [], 0, ["occludes"]],
     ["minecraft:pale_moss_carpet[bottom=false,east=tall,north=tall,south=tall,west=low]", [[0,0,0,1,10,16],[1,0,0,16,16,1],[1,0,15,16,16,16],[15,0,1,16,16,15],[0,10,0,1,16,1],[0,10,15,1,16,16]], [], 0, ["occludes"]],
-    ["minecraft:pale_moss_carpet[bottom=false,east=tall,north=tall,south=tall,west=tall]", [[0,0,0,1,16,16],[1,0,0,16,16,1],[1,0,15,16,16,16],[15,0,1,16,16,15]], [], 0, ["occludes"]]
+    ["minecraft:pale_moss_carpet[bottom=false,east=tall,north=tall,south=tall,west=tall]", [[0,0,0,1,16,16],[1,0,0,16,16,1],[1,0,15,16,16,16],[15,0,1,16,16,15]], [], 0, ["occludes"]],
+    ["minecraft:torch", [[6,0,6,10,10,10]], [], 14, []],
+    ["minecraft:wall_torch[facing=north]", [[5.5,3,11,10.5,13,16]], [], 14, []],
+    ["minecraft:wall_torch[facing=south]", [[5.5,3,0,10.5,13,5]], [], 14, []],
+    ["minecraft:wall_torch[facing=west]", [[11,3,5.5,16,13,10.5]], [], 14, []],
+    ["minecraft:wall_torch[facing=east]", [[0,3,5.5,5,13,10.5]], [], 14, []],
+    ["minecraft:redstone_torch[lit=true]", [[6,0,6,10,10,10]], [], 7, []],
+    ["minecraft:redstone_torch[lit=false]", [[6,0,6,10,10,10]], [], 0, []],
+    ["minecraft:redstone_wall_torch[facing=north,lit=true]", [[5.5,3,11,10.5,13,16]], [], 7, []],
+    ["minecraft:redstone_wall_torch[facing=north,lit=false]", [[5.5,3,11,10.5,13,16]], [], 0, []],
+    ["minecraft:redstone_wall_torch[facing=south,lit=true]", [[5.5,3,0,10.5,13,5]], [], 7, []],
+    ["minecraft:redstone_wall_torch[facing=south,lit=false]", [[5.5,3,0,10.5,13,5]], [], 0, []],
+    ["minecraft:redstone_wall_torch[facing=west,lit=true]", [[11,3,5.5,16,13,10.5]], [], 7, []],
+    ["minecraft:redstone_wall_torch[facing=west,lit=false]", [[11,3,5.5,16,13,10.5]], [], 0, []],
+    ["minecraft:redstone_wall_torch[facing=east,lit=true]", [[0,3,5.5,5,13,10.5]], [], 7, []],
+    ["minecraft:redstone_wall_torch[facing=east,lit=false]", [[0,3,5.5,5,13,10.5]], [], 0, []]
   ]
 }

@@ -88,6 +88,21 @@ public final class HitboxDemands {
         TfcShapes.logPileKey("z", 5), TfcShapes.logPileKey("z", 6),
         "tfc:charcoal_pile[layers=3]", "tfc:charcoal_pile[layers=4]");
 
+    /**
+     * PAR-HEAT-21: TFC's torch blocks ({@code light/TorchBlocks}). The lit ones draw vanilla's torch on vanilla's torch
+     * states (light 14, the same as TFC's: no other demand can take them); the dead ones TFC's dead torch models.
+     */
+    public static final String TORCH_ID = "tfp:torch";
+    public static final String WALL_TORCH_ID = "tfp:wall_torch";
+    public static final String DEAD_TORCH_ID = "tfp:dead_torch";
+    public static final String DEAD_WALL_TORCH_ID = "tfp:dead_wall_torch";
+    /** PAR-HEAT-21: the appearance of a standing torch; a wall torch's appearance is its facing. */
+    public static final String TORCH_STANDING = "standing";
+    /** PAR-HEAT-21: TFC {@code lightLevel(state -> 14)} on the lit torches. */
+    public static final int TORCH_LIGHT = 14;
+    /** PAR-HEAT-21: served after every other demand (adding the torches moves no carrier of another block). */
+    static final int TORCH_WEIGHT = -3;
+
     private HitboxDemands() {
     }
 
@@ -152,7 +167,41 @@ public final class HitboxDemands {
             d.add(new Demand(CHARCOAL_PILE_ID, charcoalPileAppearance(layers), charcoalDemandKey(layers), 0,
                 charcoalPileModel(layers), true, CHARCOAL_WEIGHT));
         }
+        // PAR-HEAT-21: the torches. The lit ones keep vanilla's torch look (TFC's blockstates draw minecraft:block/torch and
+        // wall_torch); the dead ones carry TFC's dead torch models (the wall model turned by TFC's blockstate y) or, with no
+        // free carrier of light 0 in their outline, go hitbox-only with the model as an item display (TorchBlocks).
+        d.add(new Demand(TORCH_ID, TORCH_STANDING, "tfc:torch", TORCH_LIGHT, HitboxAllocation.VANILLA_LOOK, true, TORCH_WEIGHT));
+        d.add(new Demand(DEAD_TORCH_ID, TORCH_STANDING, "tfc:dead_torch", 0, deadTorchLook(null), true, TORCH_WEIGHT));
+        for (String f : FACINGS) {
+            d.add(new Demand(WALL_TORCH_ID, f, "tfc:wall_torch[facing=" + f + "]", TORCH_LIGHT, HitboxAllocation.VANILLA_LOOK,
+                true, TORCH_WEIGHT));
+            d.add(new Demand(DEAD_WALL_TORCH_ID, f, "tfc:dead_wall_torch[facing=" + f + "]", 0, deadTorchLook(f), true,
+                TORCH_WEIGHT));
+        }
         return d;
+    }
+
+    /**
+     * PAR-HEAT-21: the look key of a dead torch: TFC's {@code dead_torch} model, or {@code dead_wall_torch} turned by
+     * TFC's blockstate y of {@code facing} (east 0, south 90, west 180, north 270; two turns are two looks).
+     */
+    public static String deadTorchLook(String facing) {
+        if (facing == null) {
+            return "tfp:block/dead_torch";
+        }
+        int y = wallTorchY(facing);
+        return y == 0 ? "tfp:block/dead_wall_torch" : "tfp:block/dead_wall_torch@y" + y;
+    }
+
+    /** PAR-HEAT-21: TFC's {@code dead_wall_torch} / {@code wall_torch} blockstate y of {@code facing}. */
+    public static int wallTorchY(String facing) {
+        return switch (facing) {
+            case "east" -> 0;
+            case "south" -> 90;
+            case "west" -> 180;
+            case "north" -> 270;
+            default -> throw new IllegalArgumentException("not a horizontal facing: " + facing);
+        };
     }
 
     /** PAR-PROC-34: the composter appearance of {@code type} at {@code stage} (TFC's model name; stage 0 is empty). */

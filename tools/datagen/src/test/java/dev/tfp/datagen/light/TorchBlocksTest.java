@@ -20,9 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 
 /**
- * PAR-HEAT-10: the torch entries on the real checkout, with stand-in carriers (the selector's choice comes with
- * PAR-HEAT-21): the lit torches on their vanilla look, the dead standing torch with our model, the dead wall torch
- * hitbox-only with an item display.
+ * PAR-HEAT-10: the torch entries on the real checkout, with stand-in carriers: the lit torches on their vanilla look, the
+ * dead standing torch with our model, the dead wall torch hitbox-only with an item display. PAR-HEAT-21: the same looks
+ * on the selector's carriers ({@link TorchBlocks#selected}), which Datagen passes.
  */
 class TorchBlocksTest {
     static final String LIT = "lit-carrier";
@@ -150,6 +150,29 @@ class TorchBlocksTest {
         assertThat(text("data/tfp/loot_table/blocks/dead_wall_torch.json")).isEqualTo(dead);
         String en = text("craftengine/tfp/resourcepack/assets/tfp_torch/lang/en_us.json");
         assertThat(en).contains("\"block.tfp.torch\": \"Torch\"").contains("\"block.tfp.dead_torch\": \"Burnt Out Torch\"");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void theSelectorsCarriersKeepTheseLooks() {
+        assertThat(TorchBlocks.selected(TorchBlocks.TORCH, TorchBlocks.STANDING))
+            .isEqualTo(new TorchBlocks.Carrier("minecraft:torch", TorchBlocks.Look.VANILLA));
+        assertThat(TorchBlocks.selected(TorchBlocks.DEAD_TORCH, TorchBlocks.STANDING).look()).isEqualTo(TorchBlocks.Look.MODEL);
+        for (String f : TorchBlocks.FACINGS) {
+            assertThat(TorchBlocks.selected(TorchBlocks.WALL_TORCH, f))
+                .isEqualTo(new TorchBlocks.Carrier("minecraft:wall_torch[facing=" + f + "]", TorchBlocks.Look.VANILLA));
+            assertThat(TorchBlocks.selected(TorchBlocks.DEAD_WALL_TORCH, f).look()).isEqualTo(TorchBlocks.Look.RENDERED);
+        }
+        Map<String, Object> yaml = TorchBlocks.yaml(TorchBlocks::selected);
+        Map<String, Object> blocks = map(yaml, "blocks");
+        assertThat(map(blocks.get(TorchBlocks.TORCH), "state")).containsExactly(Map.entry("state", "minecraft:torch"));
+        assertThat(map(blocks.get(TorchBlocks.DEAD_TORCH), "state")).containsEntry("model", "tfp:block/dead_torch");
+        Map<String, Object> dead = map(map(blocks.get(TorchBlocks.DEAD_WALL_TORCH), "states"), "appearances");
+        assertThat(map(dead, "west")).containsEntry("state", "minecraft:oak_button[face=wall,facing=west,powered=true]")
+            .containsEntry("transparent", true)
+            .containsEntry("entity_renderer", List.of(Map.of("item", "tfp:render/dead_wall_torch", "rotation", "0,0,0")));
+        assertThat(map(yaml, "items")).containsKey("tfp:render/dead_wall_torch").doesNotContainKey("tfp:render/dead_torch");
+        assertThat(TorchBlocks.blockstateY("south")).isEqualTo(90);
     }
 
     private static String text(String path) {

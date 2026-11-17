@@ -135,6 +135,9 @@ public final class Datagen {
         if (dev.tfp.datagen.charcoal.CharcoalBlocks.available(tfc)) { // PAR-PROC-37: tfp:log_pile, tfp:burning_log_pile, tfp:charcoal_pile entries, models, textures; fixtures have no log pile
             dev.tfp.datagen.charcoal.CharcoalBlocks.run(tfc, out);
         }
+        if (dev.tfp.datagen.light.TorchBlocks.available(tfc)) { // PAR-HEAT-21: tfp:torch, wall, dead torch entries on the selector's carriers, models, texture, loot, names; fixtures have no torches
+            dev.tfp.datagen.light.TorchBlocks.run(tfc, out, dev.tfp.datagen.light.TorchBlocks::selected);
+        }
         if (dev.tfp.datagen.powderkeg.PowderkegScreenArt.available(tfc)) { // PAR-PROC-18: powderkeg screen art; fixtures have no powderkeg screen
             dev.tfp.datagen.powderkeg.PowderkegScreenArt.run(tfc, out);
         }

@@ -11,6 +11,8 @@
  *       src/main/java/net/dries007/tfc/common/blocks/devices/TFCComposterBlock.java @ c3b4d9536 (SHAPES: the well per stage),
  *       src/main/java/net/dries007/tfc/common/blocks/devices/LogPileBlock.java @ c3b4d9536 (SHAPES_BY_DIR_BY_COUNT,
  *       BASED_SHAPES_BY_DIR_BY_COUNT, getShapeByDirByCount),
+ *       src/main/java/net/dries007/tfc/common/blocks/{TFCTorchBlock,TFCWallTorchBlock,DeadTorchBlock,DeadWallTorchBlock}.java
+ *       @ c3b4d9536 (vanilla TorchBlock / WallTorchBlock outlines, noCollission in TFCBlocks),
  *       the getShape / getCollisionShape choices of the block classes named in SPECS @ c3b4d9536
  */
 package dev.tfp.datagen.hitbox;
@@ -306,7 +308,45 @@ public final class TfcShapes {
                     List.of("class BurningLogPileBlock extends Block"), List.of("getShape(", "getCollisionShape")));
             }
         }
+        // PAR-HEAT-21: the four torch blocks extend vanilla TorchBlock / WallTorchBlock with no shape override, and
+        // TFCBlocks registers each noCollission(): the outline is vanilla's (ported, TORCH_SHAPE / WALL_TORCH_SHAPES), no
+        // collision. The dead torches share the lit ones' outlines.
+        for (String[] t : TORCH_CLASSES) {
+            boolean wall = t[0].contains("wall");
+            List<String> files = List.of(B + t[1] + ".java", blocks);
+            List<String> needles = List.of("public class " + t[1] + " extends " + (wall ? "WallTorchBlock" : "TorchBlock"),
+                t[0].toUpperCase(java.util.Locale.ROOT) + " = registerNoItem(\"" + t[0] + "\", () -> new " + t[1]
+                    + "(ExtendedProperties.of().noCollission()");
+            List<String> absent = List.of("getShape(", "getCollisionShape", "getVisualShape");
+            if (!wall) {
+                s.add(new Spec("tfc:" + t[0], "torch", Kind.OBJECT, files, null, null, needles, absent,
+                    x -> new Shape[] {TORCH_SHAPE, Shape.EMPTY}));
+                continue;
+            }
+            for (String f : WALL_TORCH_SHAPES.keySet()) {
+                s.add(new Spec("tfc:" + t[0] + "[facing=" + f + "]", "wall_torch", Kind.OBJECT, files, null, null, needles,
+                    absent, x -> new Shape[] {WALL_TORCH_SHAPES.get(f), Shape.EMPTY}));
+            }
+        }
         return s;
+    }
+
+    /** PAR-HEAT-21: TFC's torch blocks (registry path, class), in TFCBlocks order. */
+    static final List<String[]> TORCH_CLASSES = List.of(new String[] {"torch", "TFCTorchBlock"},
+        new String[] {"wall_torch", "TFCWallTorchBlock"}, new String[] {"dead_torch", "DeadTorchBlock"},
+        new String[] {"dead_wall_torch", "DeadWallTorchBlock"});
+    /** Vanilla 1.21.1 {@code BaseTorchBlock.AABB} ({@code Block.box(6, 0, 6, 10, 10, 10)}). */
+    static final Shape TORCH_SHAPE = Shape.box(6, 0, 6, 10, 10, 10);
+    /** Vanilla 1.21.1 {@code WallTorchBlock.AABBS}: the 5 x 10 x 5 stick against the wall behind {@code facing}. */
+    static final Map<String, Shape> WALL_TORCH_SHAPES = wallTorchShapes();
+
+    private static Map<String, Shape> wallTorchShapes() {
+        Map<String, Shape> m = new LinkedHashMap<>();
+        m.put("north", Shape.box(5.5, 3, 11, 10.5, 13, 16));
+        m.put("east", Shape.box(0, 3, 5.5, 5, 13, 10.5));
+        m.put("south", Shape.box(5.5, 3, 0, 10.5, 13, 5));
+        m.put("west", Shape.box(11, 3, 5.5, 16, 13, 10.5));
+        return java.util.Collections.unmodifiableMap(m);
     }
 
     static final List<String> LOG_PILE_NEEDLES = List.of(

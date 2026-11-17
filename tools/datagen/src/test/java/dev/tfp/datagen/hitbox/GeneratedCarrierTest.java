@@ -98,14 +98,16 @@ class GeneratedCarrierTest {
         // PAR-PROC-37: the log pile (32 appearances: 24 explicit states, counts 13..16 of both axes on pools), the burning
         // log pile (32 leaves pool states) and the charcoal pile (7 explicit states, layer 8 from the solid pool).
         // PAR-PROC-38: 16 side appearances per barrel (4 facings x seal x rack) and the barrel rack's one.
-        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1);
+        // PAR-HEAT-21: the torch, the wall torch (4 facings), the dead torch and the dead wall torch (4 facings).
+        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10);
         assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1);
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
             List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern",
                 "tfp:scraping", HitboxDemands.COMPOSTER_ID, HitboxDemands.LOG_PILE_ID, HitboxDemands.CHARCOAL_PILE_ID,
-                HitboxDemands.BARREL_RACK_ID));
+                HitboxDemands.BARREL_RACK_ID, HitboxDemands.TORCH_ID, HitboxDemands.WALL_TORCH_ID,
+                HitboxDemands.DEAD_TORCH_ID, HitboxDemands.DEAD_WALL_TORCH_ID));
         HitboxDemands.BARREL_WOODS.forEach(w -> expected.add(HitboxDemands.barrelId(w)));
-        assertThat(expected).hasSize(31);
+        assertThat(expected).hasSize(35);
         assertThat(checkedIds).as("block ids whose explicit appearance states were checked")
             .containsExactlyElementsOf(expected);
         assertThat(mappings).as("generator block_state_mappings")
@@ -410,9 +412,11 @@ class GeneratedCarrierTest {
     }
 
     private static Demand demand(String id, String appearance) {
-        return HitboxDemands.all().stream()
-            .filter(d -> d.blockId().equals(id) && matches(d.appearance(), appearance))
-            .findFirst().orElse(null);
+        List<Demand> mine = HitboxDemands.all().stream().filter(d -> d.blockId().equals(id)).toList();
+        if (appearance.isEmpty() && mine.size() == 1) {
+            return mine.getFirst(); // PAR-HEAT-21: a block with one state: entry (the standing torches) has one demand
+        }
+        return mine.stream().filter(d -> matches(d.appearance(), appearance)).findFirst().orElse(null);
     }
 
     private static void check(String path, String id, String appearance, String state, List<String> problems) {

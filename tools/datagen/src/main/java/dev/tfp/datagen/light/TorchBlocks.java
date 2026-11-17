@@ -28,6 +28,8 @@ import dev.tfp.datagen.TfcCheckout;
 import dev.tfp.datagen.Yaml;
 import dev.tfp.datagen.device.DeviceSound;
 import dev.tfp.datagen.device.DeviceYaml;
+import dev.tfp.datagen.hitbox.HitboxAllocation;
+import dev.tfp.datagen.hitbox.HitboxDemands;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,22 +55,23 @@ import java.util.Objects;
  *       otherwise (TFC {@code StandingAndWallBlockItem}, CraftEngine {@code wall_block_item} then {@code block_item}).</li>
  * </ul>
  *
- * The carriers come in as arguments ({@link Carriers}): the hitbox carrier selector chooses them (PAR-INFRA-13). Wiring
- * this generator into {@code Datagen} needs the torch demands in {@code hitbox/HitboxDemands} and the ids in
- * {@code GeneratedCarrierTest}, which PAR-HEAT-21 owns.
+ * The carriers come in as arguments ({@link Carriers}): {@code Datagen} passes {@link #selected}, the hitbox carrier
+ * selector's choice for the torch demands of {@code hitbox/HitboxDemands} (PAR-HEAT-21): the lit torches on vanilla's
+ * torch and wall torch states (light 14, vanilla look), the dead standing torch with TFC's model on a free 6x6x6 state
+ * of light 0, the dead wall torch hitbox-only on the pressed wall buttons with TFC's model as an item display.
  */
 public final class TorchBlocks {
-    public static final String TORCH = "tfp:torch";
-    public static final String WALL_TORCH = "tfp:wall_torch";
-    public static final String DEAD_TORCH = "tfp:dead_torch";
-    public static final String DEAD_WALL_TORCH = "tfp:dead_wall_torch";
+    public static final String TORCH = HitboxDemands.TORCH_ID;
+    public static final String WALL_TORCH = HitboxDemands.WALL_TORCH_ID;
+    public static final String DEAD_TORCH = HitboxDemands.DEAD_TORCH_ID;
+    public static final String DEAD_WALL_TORCH = HitboxDemands.DEAD_WALL_TORCH_ID;
     public static final List<String> BLOCKS = List.of(TORCH, WALL_TORCH, DEAD_TORCH, DEAD_WALL_TORCH);
     /** The appearance of a standing torch. */
-    public static final String STANDING = "standing";
+    public static final String STANDING = HitboxDemands.TORCH_STANDING;
     /** The wall facings in TFC's blockstate order; the appearance of a wall torch is its facing. */
-    public static final List<String> FACINGS = List.of("north", "east", "south", "west");
+    public static final List<String> FACINGS = HitboxDemands.FACINGS;
     /** TFC {@code lightLevel(state -> 14)} on the lit torches. */
-    public static final int LIGHT = 14;
+    public static final int LIGHT = HitboxDemands.TORCH_LIGHT;
     /** TFC {@code torchTicks} default. */
     public static final int TORCH_TICKS = 86_400;
 
@@ -103,6 +106,32 @@ public final class TorchBlocks {
     }
 
     private TorchBlocks() {
+    }
+
+    /**
+     * PAR-HEAT-21: the selector's carrier of {@code appearance} of {@code blockId} ({@link HitboxAllocation#agreed} of
+     * the torch demands): vanilla mode keeps the carrier's look, model mode draws {@link #model}, hitbox-only mode the
+     * item display. A carrier needing a hide mapping or a CE pool is refused (this generator writes neither).
+     */
+    public static Carrier selected(String blockId, String appearance) {
+        HitboxAllocation.Assignment a = HitboxAllocation.agreed(blockId, appearance);
+        if (a.hideTarget() != null || a.pool()) {
+            throw new DatagenException("the torch carrier " + a.state() + " of " + blockId + "#" + appearance
+                + " needs a hide mapping or is a pool; TorchBlocks writes neither");
+        }
+        Look look = switch (a.mode()) {
+            case VANILLA -> Look.VANILLA;
+            case MODEL -> Look.MODEL;
+            case HITBOX_ONLY -> Look.RENDERED;
+            case POOL -> throw new DatagenException("pool carrier for " + blockId);
+        };
+        String expected = blockId.equals(DEAD_TORCH) ? HitboxDemands.deadTorchLook(null)
+            : blockId.equals(DEAD_WALL_TORCH) ? HitboxDemands.deadTorchLook(appearance) : HitboxAllocation.VANILLA_LOOK;
+        if (!a.demand().look().equals(expected)) {
+            throw new DatagenException("the torch demand " + a.demand().id() + " asks for " + a.demand().look()
+                + ", TorchBlocks draws " + expected);
+        }
+        return new Carrier(a.state(), look);
     }
 
     /** True when the checkout has the torches (the small fixtures do not). */
@@ -206,13 +235,7 @@ public final class TorchBlocks {
 
     /** TFC's wall torch blockstate rotation of {@code facing} (east 0, south 90, west 180, north 270). */
     static int blockstateY(String facing) {
-        return switch (facing) {
-            case "east" -> 0;
-            case "south" -> 90;
-            case "west" -> 180;
-            case "north" -> 270;
-            default -> throw new DatagenException("not a horizontal facing: " + facing);
-        };
+        return HitboxDemands.wallTorchY(facing);
     }
 
     private static Map<String, Object> settings(boolean lit) {
@@ -291,6 +314,7 @@ public final class TorchBlocks {
         block.put("behavior", behaviours(lit, true));
         Map<String, Object> facing = new LinkedHashMap<>();
         facing.put("type", "horizontal_direction");
+        facing.put("values", FACINGS); // explicit, so the state count of Report.countCeStates sees the four facings
         facing.put("default", "north");
         Map<String, Object> appearances = new LinkedHashMap<>();
         Map<String, Object> variants = new LinkedHashMap<>();
