@@ -1293,6 +1293,26 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
         return out;
     }
 
+    /** PAR-CLIM-13: TFC's dayLength, monthLength, rain and clear. */
+    private dev.tfp.paper.calendar.TimeRateCommands timeRate() {
+        return new dev.tfp.paper.calendar.TimeRateCommands(() -> calendar, scheduler, getServer()::isGlobalTickThread);
+    }
+
+    @Override
+    public CompletableFuture<Reply> setDayLength(int minutes) {
+        return timeRate().setDayLength(minutes);
+    }
+
+    @Override
+    public CompletableFuture<Reply> setMonthLength(int days) {
+        return timeRate().setMonthLength(days);
+    }
+
+    @Override
+    public CompletableFuture<Reply> skipToWeather(org.bukkit.Location at, boolean rain) {
+        return timeRate().skipToWeather(at, rain);
+    }
+
     @Override
     public CompletableFuture<Reply> debugPackets() {
         List<String> lines = new ArrayList<>();

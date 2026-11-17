@@ -218,6 +218,23 @@ class BootstrapTest {
             return call("skipTime " + key + " " + label + " " + ticks,
                     Reply.ok(key, label, String.valueOf(ticks), "June 1, 1000 12:00"));
         }
+
+        @Override
+        public CompletableFuture<Reply> setDayLength(int minutes) {
+            return call("setDayLength " + minutes, minutes == 0 ? Reply.ok("time.set.day_length_disabled")
+                    : Reply.ok("time.set.day_length", String.valueOf(minutes)));
+        }
+
+        @Override
+        public CompletableFuture<Reply> setMonthLength(int days) {
+            return call("setMonthLength " + days, Reply.ok("time.set.month_length", String.valueOf(days), "June 1, 1000 06:00"));
+        }
+
+        @Override
+        public CompletableFuture<Reply> skipToWeather(org.bukkit.Location at, boolean rain) {
+            return call("skipToWeather " + at + " " + rain, Reply.ok("time.set.done", rain ? "rain" : "clear", "3000",
+                    "June 1, 1000 09:00"));
+        }
     }
 
     static CommandDispatcher<CommandSourceStack> dispatcher(TfpCommands.Handler handler) {
@@ -272,7 +289,12 @@ class BootstrapTest {
         CommandNode<CommandSourceStack> tfp = d.getRoot().getChild("tfp");
         assertThat(children(tfp)).containsExactlyInAnyOrder("version", "reload", "debug", "time");
         assertThat(children(tfp.getChild("time"))).containsExactlyInAnyOrder("set", "add");
-        assertThat(children(tfp.getChild("time").getChild("set"))).containsExactlyInAnyOrder("day", "noon", "night", "midnight", "hour");
+        assertThat(children(tfp.getChild("time").getChild("set"))).containsExactlyInAnyOrder("day", "noon", "night", "midnight", "hour",
+                "dayLength", "monthLength", "rain", "clear"); // PAR-CLIM-13
+        assertThat(children(tfp.getChild("time").getChild("set").getChild("dayLength")))
+                .containsExactlyInAnyOrder("vanilla", "default", "disabled", "realtime", "minutes");
+        assertThat(children(tfp.getChild("time").getChild("set").getChild("monthLength")))
+                .containsExactlyInAnyOrder("default", "realtime", "days");
         assertThat(children(tfp.getChild("time").getChild("add"))).containsExactlyInAnyOrder("years", "months", "days", "hours", "ticks");
         assertThat(children(tfp.getChild("reload"))).containsExactlyInAnyOrder("config", "data", "content");
         assertThat(children(tfp.getChild("debug"))).containsExactlyInAnyOrder("block", "chunk", "snowtime", "worldgen", "player", "thirst", "hunger", "heat", "warm", "place", "packets",
@@ -449,6 +471,49 @@ class BootstrapTest {
         assertThatThrownBy(() -> d.execute("tfp time add weeks 1", Fakes.source(ADMIN, out)))
                 .isInstanceOf(CommandSyntaxException.class);
         assertThat(h.calls).hasSize(6);
+    }
+
+    /** A source whose location is unknown (the console form the handler resolves to the calendar world's spawn). */
+    private static CommandSourceStack noLocation(CommandSourceStack source) {
+        return (CommandSourceStack) java.lang.reflect.Proxy.newProxyInstance(BootstrapTest.class.getClassLoader(),
+                new Class<?>[] {CommandSourceStack.class}, (p, m, a) -> m.getName().equals("getLocation") ? null
+                        : m.invoke(source, a));
+    }
+
+    /**
+     * PAR-CLIM-13: TFC's {@code set dayLength vanilla|default|disabled|realtime|<minutes>}, {@code set monthLength
+     * default|realtime|<1..1000>} and {@code set rain|clear}: admin only, TFC's values and limits, TFC's reply texts.
+     */
+    @Test
+    void timeRateCommands() throws CommandSyntaxException {
+        FakeHandler h = new FakeHandler();
+        CommandDispatcher<CommandSourceStack> d = dispatcher(h);
+        List<String> out = new ArrayList<>();
+        for (String c : List.of("dayLength vanilla", "dayLength default", "dayLength disabled", "dayLength realtime",
+                "dayLength 7", "monthLength default", "monthLength realtime", "monthLength 1000", "rain", "clear")) {
+            d.execute("tfp time set " + c, noLocation(Fakes.source(ADMIN, out)));
+        }
+        assertThat(h.calls).containsExactly("setDayLength 20", "setDayLength 24", "setDayLength 0", "setDayLength 1440",
+                "setDayLength 7", "setMonthLength 8", "setMonthLength 30", "setMonthLength 1000",
+                "skipToWeather null true", "skipToWeather null false");
+        assertThat(out).containsExactly(
+                "Day length has been set to 20 minutes/day",
+                "Day length has been set to 24 minutes/day",
+                "Daylight cycle has been disabled",
+                "Day length has been set to 1440 minutes/day",
+                "Day length has been set to 7 minutes/day",
+                "Month length has been set to 8 days/month, now June 1, 1000 06:00.",
+                "Month length has been set to 30 days/month, now June 1, 1000 06:00.",
+                "Month length has been set to 1000 days/month, now June 1, 1000 06:00.",
+                "Time set to rain: moved 3000 calendar ticks forward, now June 1, 1000 09:00.",
+                "Time set to clear: moved 3000 calendar ticks forward, now June 1, 1000 09:00.");
+        for (String bad : List.of("dayLength 0", "dayLength -1", "monthLength 0", "monthLength 1001", "dayLength fast")) {
+            assertThatThrownBy(() -> d.execute("tfp time set " + bad, Fakes.source(ADMIN, out)))
+                    .as(bad).isInstanceOf(CommandSyntaxException.class);
+        }
+        assertThatThrownBy(() -> d.execute("tfp time set dayLength 24", Fakes.source(Set.of(TfpCommands.PERMISSION), out)))
+                .isInstanceOf(CommandSyntaxException.class);
+        assertThat(h.calls).hasSize(10);
     }
 
     /** M1-SVC-05: {@code /tfp debug showcase <family>} reaches the handler for players only; families are suggested. */

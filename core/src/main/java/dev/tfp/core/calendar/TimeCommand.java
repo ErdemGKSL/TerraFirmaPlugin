@@ -5,6 +5,7 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/commands/TimeCommand.java @ c3b4d9536
+ * Also: src/main/java/net/dries007/tfc/util/tracker/WeatherHelpers.java @ c3b4d9536 (isPrecipitating)
  */
 package dev.tfp.core.calendar;
 
@@ -31,7 +32,76 @@ public final class TimeCommand {
     /** TFC {@code set midnight}: fraction 0. */
     public static final int MIDNIGHT_TICKS_OF_DAY = 0;
 
+    /** TFC {@code monthLength <days>}: {@code IntegerArgumentType.integer(1, 1000)}. */
+    public static final int MIN_MONTH_LENGTH = 1;
+    /** TFC {@code monthLength <days>} upper bound. */
+    public static final int MAX_MONTH_LENGTH = 1000;
+    /** TFC {@code monthLength default}: {@code Calendar.DEFAULT_MONTH_LENGTH}. */
+    public static final int DEFAULT_MONTH_LENGTH = 8;
+    /** TFC {@code monthLength realtime}. */
+    public static final int REALTIME_MONTH_LENGTH = 30;
+    /** TFC {@code setTimeFromWeather}: the search step in calendar ticks. */
+    public static final int WEATHER_SEARCH_STEP = 1_000;
+    /** TFC {@code setTimeFromWeather}: the search stops before this offset. */
+    public static final int WEATHER_SEARCH_LIMIT = 400_000;
+
     private TimeCommand() {
+    }
+
+    /** The rain intensity at a calendar tick (TFC {@code ClimateModel.getRain}: negative when no rain covers it). */
+    @FunctionalInterface
+    public interface RainIntensity {
+        float at(long calendarTicks);
+    }
+
+    /**
+     * PAR-CLIM-13, TFC {@code set monthLength <days>}: checks TFC's argument range.
+     *
+     * @throws IllegalArgumentException outside {@value #MIN_MONTH_LENGTH}..{@value #MAX_MONTH_LENGTH}
+     */
+    public static int checkMonthLength(int days) {
+        if (days < MIN_MONTH_LENGTH || days > MAX_MONTH_LENGTH) {
+            throw new IllegalArgumentException("monthLength out of " + MIN_MONTH_LENGTH + ".." + MAX_MONTH_LENGTH + ": " + days);
+        }
+        return days;
+    }
+
+    /**
+     * PAR-CLIM-13, TFC {@code set dayLength <minutes>}: checks TFC's argument ({@code integer(1)}) or the
+     * {@link CalendarRate#DISABLED} literal.
+     */
+    public static int checkDayLength(int minutes) {
+        if (minutes < 0) {
+            throw new IllegalArgumentException("dayLength < 0: " + minutes);
+        }
+        return minutes;
+    }
+
+    /**
+     * PAR-CLIM-13, TFC {@code setTimeFromWeather}: from {@code calendarTicks}, the first offset in steps of
+     * {@value #WEATHER_SEARCH_STEP} below {@value #WEATHER_SEARCH_LIMIT} where the precipitation state
+     * ({@code isPrecipitating(getRain(t + offset), rainfall)}) equals {@code rain}. The rainfall is the sender's instant
+     * rainfall at the current time and stays fixed during the search, as in TFC.
+     *
+     * @return the calendar ticks to skip (0 when the wanted state holds now), or -1 when none was found (TFC then
+     *     changes nothing)
+     */
+    public static long weatherSkip(boolean rain, long calendarTicks, float rainfall, RainIntensity intensity) {
+        for (int tick = 0; tick < WEATHER_SEARCH_LIMIT; tick += WEATHER_SEARCH_STEP) {
+            if (isPrecipitating(intensity.at(calendarTicks + tick), rainfall) == rain) {
+                return tick;
+            }
+        }
+        return -1L;
+    }
+
+    /**
+     * TFC {@code WeatherHelpers.isPrecipitating}, through the public precipitation decision (rain or snow both count; the
+     * temperature only picks between them).
+     */
+    static boolean isPrecipitating(float rainIntensity, float rainfall) {
+        return dev.tfp.core.weather.PrecipitationType.decide(1f, rainfall, rainIntensity, true)
+            != dev.tfp.core.weather.PrecipitationType.NONE;
     }
 
     /** How many calendar ticks a command moves the calendar forward, from the current state. */

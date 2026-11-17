@@ -2,7 +2,7 @@
 id: PAR-CLIM-13
 title: "TFC time command completion: `/tfp time set` dayLength, monthLength, rain and clear, and the calendar tick rate"
 area: CLIMATE
-status: open
+status: done
 wave: 14
 deps: [PAR-CLIM-01, PAR-CLIM-12]
 size: S
@@ -35,6 +35,7 @@ plan:
   - "`set rain|clear`: TFC's search: from the current calendar tick, step 1,000 ticks up to 400,000 and skip forward to the first tick where `isPrecipitating(getRain(t), instantRainfall(pos))` equals the wanted state, using PAR-CLIM-12's cycle and the sender's position; nothing found = no change, as TFC."
   - "Wire the literals into the existing `/tfp time` tree (shared hub `boot/TfpCommands.java` only by adding lines, or the calendar FeatureModule); update the BootstrapTest command tree only through its listed hub line."
   - "Ledger: close the '/time set dayLength ...' divergence row; feature row update for the calendar."
+  - "Done: /tfp time set dayLength vanilla|default|disabled|realtime|<minutes>, monthLength default|realtime|<1..1000>, rain, clear (core TimeCommand.weatherSkip, CalendarRate, CalendarState.withDayLength with disabled = day length 0, CalendarCodec v2; paper TimeRateCommands + CalendarService.update, literals added to TfpCommands' /tfp time tree, handler in TfpPlugin; daylight rule held off at rate 0). Tests: CalendarRateTest 6, TimeCommandRateTest 5, TimeRateCommandsTest 6, BootstrapTest.timeRateCommands; ./gradlew check passes. Ledger calendar row and divergence row updated. ui: false, no in-game check."
 tests:
   - "core: TimeCommandTest cases for every new literal (rate arithmetic 20 / minutes, disabled = 0, month length clamp) and a CalendarRate golden against TFC ServerCalendar"
   - "core: rain/clear search golden on a fixed seed and rainfall vs a TFC scratch export"

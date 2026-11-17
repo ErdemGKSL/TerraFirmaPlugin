@@ -13,13 +13,18 @@ import dev.tfp.core.persist.VersionedCodec;
  * is not stored: it is recomputed from the online players on every advance, so a loaded state starts
  * arrested. Version 1 fields: {@code playerTicks}, {@code calendarTicks}, {@code partial},
  * {@code dayLength}, {@code daysInMonth}.
+ *
+ * <p>Version 2 (PAR-CLIM-13): the same fields; {@code dayLength} may now be 0 (TFC's disabled calendar tick rate,
+ * {@link CalendarState#DISABLED_DAY_LENGTH}). The version moved so that an older plugin keeps a disabled calendar
+ * untouched (newer data) instead of discarding it as unreadable. Version 1 data needs no change.
  */
 public final class CalendarCodec {
     /** The current layout version. */
-    public static final int VERSION = 1;
+    public static final int VERSION = 2;
 
     /** The codec. Immutable and thread-safe. */
     public static final VersionedCodec<CalendarState> CODEC = VersionedCodec.<CalendarState>builder("calendar", VERSION)
+            .migrate(1, data -> { }) // v1 -> v2: same layout, dayLength 0 newly allowed
             .build((s, out) -> out.putLong("playerTicks", s.playerTicks())
                             .putLong("calendarTicks", s.calendarTicks())
                             .putLong("partial", s.partialNumerator())

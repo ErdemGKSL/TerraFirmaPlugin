@@ -24,9 +24,14 @@ import dev.tfp.core.clock.GlobalClockHolder;
  *
  * @param playerTicks      TFC {@code getTicks()}: player ticks since the world was created, while running
  * @param calendarTicks    TFC {@code getCalendarTicks()}: the in-game date/time, from January 1, 1000
+ * <p><b>Disabled rate</b> (PAR-CLIM-13, TFC {@code /time set dayLength disabled}, {@code calendarTickRate = 0}):
+ * {@link #DISABLED_DAY_LENGTH} ({@code dayLengthMinutes == 0}). Player ticks still advance; calendar ticks do not, and a
+ * skip moves no player ticks (TFC {@code skipForwardBy}).
+ *
  * @param partialNumerator fractional calendar progress, in units of 1/{@code dayLengthMinutes} calendar ticks,
- *                         always in {@code [0, dayLengthMinutes)}
- * @param dayLengthMinutes the configured in-game day length in minutes (TFC {@code defaultCalendarDayLength}, default 24)
+ *                         always in {@code [0, dayLengthMinutes)} (0 while the rate is disabled)
+ * @param dayLengthMinutes the in-game day length in minutes (TFC {@code 20 / calendarTickRate}; new worlds take
+ *                         {@code defaultCalendarDayLength}, default 24), or {@link #DISABLED_DAY_LENGTH}
  * @param daysInMonth     the configured month length in days (TFC {@code defaultMonthLength}, default 8)
  * @param running         false while the calendar is arrested (TFC: no players online and the time-stop option on)
  */
@@ -34,6 +39,8 @@ public record CalendarState(long playerTicks, long calendarTicks, long partialNu
                             int daysInMonth, boolean running) {
     /** TFC {@code defaultCalendarDayLength}. */
     public static final int DEFAULT_DAY_LENGTH_MINUTES = 24;
+    /** PAR-CLIM-13: the day length that stands for TFC's disabled calendar tick rate (0 calendar ticks per tick). */
+    public static final int DISABLED_DAY_LENGTH = 0;
     /** TFC {@code defaultCalendarStartDay}: days after January 1, 1000 (40 = June 1 with 8-day months). */
     public static final int DEFAULT_START_DAY = 5 * ClockSnapshot.DEFAULT_DAYS_IN_MONTH;
 
@@ -42,15 +49,36 @@ public record CalendarState(long playerTicks, long calendarTicks, long partialNu
             throw new IllegalArgumentException("playerTicks < 0: " + playerTicks);
         }
         CalendarTicks.checkNonNegative(calendarTicks);
-        if (dayLengthMinutes < 1) {
-            throw new IllegalArgumentException("dayLengthMinutes < 1: " + dayLengthMinutes);
+        if (dayLengthMinutes < 0) {
+            throw new IllegalArgumentException("dayLengthMinutes < 0: " + dayLengthMinutes);
         }
         if (daysInMonth < 1) {
             throw new IllegalArgumentException("daysInMonth < 1: " + daysInMonth);
         }
-        if (partialNumerator < 0 || partialNumerator >= dayLengthMinutes) {
-            throw new IllegalArgumentException("partialNumerator out of [0, " + dayLengthMinutes + "): " + partialNumerator);
+        if (partialNumerator < 0 || partialNumerator >= Math.max(1, dayLengthMinutes)) {
+            throw new IllegalArgumentException("partialNumerator out of [0, " + Math.max(1, dayLengthMinutes) + "): "
+                + partialNumerator);
         }
+    }
+
+    /** PAR-CLIM-13: whether the calendar tick rate is TFC's disabled rate 0. */
+    public boolean rateDisabled() {
+        return dayLengthMinutes == DISABLED_DAY_LENGTH;
+    }
+
+    /**
+     * PAR-CLIM-13, TFC {@code ServerCalendar.setCalendarTickRate(20 / minutes)}: the same state at another day length,
+     * {@link #DISABLED_DAY_LENGTH} for TFC's rate 0. The fraction of a calendar tick already accumulated is kept (TFC keeps
+     * {@code calendarPartialTick}), rescaled to the new denominator and rounded down; at or from the disabled rate it
+     * is dropped (less than one calendar tick).
+     */
+    public CalendarState withDayLength(int minutes) {
+        if (minutes < 0) {
+            throw new IllegalArgumentException("dayLengthMinutes < 0: " + minutes);
+        }
+        long partial = minutes == DISABLED_DAY_LENGTH || rateDisabled() ? 0L
+            : partialNumerator * minutes / dayLengthMinutes;
+        return new CalendarState(playerTicks, calendarTicks, partial, minutes, daysInMonth, running);
     }
 
     /**
@@ -90,6 +118,9 @@ public record CalendarState(long playerTicks, long calendarTicks, long partialNu
         if (!running || ticks == 0) {
             return this;
         }
+        if (rateDisabled()) {
+            return new CalendarState(Math.addExact(playerTicks, ticks), calendarTicks, 0L, dayLengthMinutes, daysInMonth, true);
+        }
         long total = Math.addExact(partialNumerator, Math.multiplyExact((long) CalendarTicks.PLAYER_TICKS_PER_SECOND, ticks));
         return new CalendarState(
             Math.addExact(playerTicks, ticks),
@@ -112,6 +143,7 @@ public record CalendarState(long playerTicks, long calendarTicks, long partialNu
         if (ticks < 0) {
             throw new IllegalArgumentException("ticks < 0: " + ticks);
         }
+        // Disabled rate (dayLength 0): no player ticks, as TFC's "calendarTickRate == 0 ? 0" branch.
         long player = Math.addExact(playerTicks,
             Math.multiplyExact(ticks, (long) dayLengthMinutes) / CalendarTicks.PLAYER_TICKS_PER_SECOND);
         return new CalendarState(
@@ -133,6 +165,9 @@ public record CalendarState(long playerTicks, long calendarTicks, long partialNu
         if (offsetTicks < 0) {
             throw new IllegalArgumentException("offsetTicks < 0: " + offsetTicks);
         }
+        if (rateDisabled()) {
+            return calendarTicks;
+        }
         long total = Math.addExact(partialNumerator, Math.multiplyExact((long) CalendarTicks.PLAYER_TICKS_PER_SECOND, offsetTicks));
         return Math.addExact(calendarTicks, total / dayLengthMinutes);
     }
@@ -144,6 +179,9 @@ public record CalendarState(long playerTicks, long calendarTicks, long partialNu
     public long calendarTicksFor(long playerTick) {
         if (playerTick < 0) {
             throw new IllegalArgumentException("playerTick < 0: " + playerTick);
+        }
+        if (rateDisabled()) {
+            return 0L;
         }
         return Math.multiplyExact((long) CalendarTicks.PLAYER_TICKS_PER_SECOND, playerTick) / dayLengthMinutes;
     }

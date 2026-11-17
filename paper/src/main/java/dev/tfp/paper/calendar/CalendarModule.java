@@ -115,7 +115,7 @@ public final class CalendarModule implements FeatureModule, Listener {
         this.messages = messages;
         this.logger = logger;
         this.onGlobalThread = onGlobalThread;
-        service.onChange(sync::apply);
+        service.onChange(st -> sync.apply(forDaylight(st)));
     }
 
     @Override
@@ -143,9 +143,18 @@ public final class CalendarModule implements FeatureModule, Listener {
         }
         sync = s;
         service = cal;
-        cal.onChange(s::apply);
+        cal.onChange(st -> s.apply(forDaylight(st)));
         ctx.listen(this);
         listenForClockSkips(ctx);
+    }
+
+    /**
+     * PAR-CLIM-13: with TFC's disabled calendar tick rate ({@code /tfp time set dayLength disabled}) the calendar runs
+     * but its time stands still, so the daylight rule is held off as if it were arrested (the sun stops, TFC's "daylight
+     * cycle has been disabled").
+     */
+    static CalendarState forDaylight(CalendarState st) {
+        return st.rateDisabled() && st.running() ? st.withRunning(false) : st;
     }
 
     /** PAR-CLIM-22: on the 26.x API, also handle the world-less {@code ClockTimeSkipEvent} ({@link #onClockTimeSkip}). */

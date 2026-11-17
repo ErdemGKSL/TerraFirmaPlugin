@@ -57,6 +57,8 @@ import org.bukkit.entity.Player;
  * /tfp debug animal info       the TFC animal you look at: stored record, age, scale, model (players)
  * /tfp time set day|noon|night|midnight|hour &lt;0-24&gt;   next time of day (tfp.admin, TFC TimeCommand)
  * /tfp time add years|months|days|hours &lt;n&gt; | ticks &lt;n&gt;   skip forward (tfp.admin)
+ * /tfp time set dayLength vanilla|default|disabled|realtime|&lt;minutes&gt;, monthLength default|realtime|&lt;1-1000&gt;,
+ *     rain, clear   TFC's rate, month length and weather search (tfp.admin, PAR-CLIM-13)
  * /tfp debug &lt;literal&gt;      added by a feature module ({@link dev.tfp.paper.module.DebugTree}, PAR-INFRA-01)
  * </pre>
  *
@@ -175,6 +177,21 @@ public final class TfpCommands {
          * is {@code key} with the label, the ticks moved and the new date.
          */
         CompletableFuture<Reply> skipTime(String key, String label, TimeCommand.Delta delta);
+
+        /** PAR-CLIM-13, TFC {@code /time set dayLength}: the day length in minutes, 0 for TFC's disabled rate. */
+        default CompletableFuture<Reply> setDayLength(int minutes) {
+            return CompletableFuture.completedFuture(Reply.error("command.not_enabled"));
+        }
+
+        /** PAR-CLIM-13, TFC {@code /time set monthLength}: days per month, 1..1000. */
+        default CompletableFuture<Reply> setMonthLength(int days) {
+            return CompletableFuture.completedFuture(Reply.error("command.not_enabled"));
+        }
+
+        /** PAR-CLIM-13, TFC {@code /time set rain|clear}: skip to the sender's next rain or clear sky ({@code at} may be null). */
+        default CompletableFuture<Reply> skipToWeather(org.bukkit.Location at, boolean rain) {
+            return CompletableFuture.completedFuture(Reply.error("command.not_enabled"));
+        }
     }
 
     private TfpCommands() {
@@ -330,6 +347,28 @@ public final class TfpCommands {
                 .then(Commands.literal("time")
                         .requires(s -> s.getSender().hasPermission(ADMIN_PERMISSION))
                         .then(Commands.literal("set")
+                                // PAR-CLIM-13: TFC's dayLength, monthLength, rain and clear
+                                .then(Commands.literal("dayLength")
+                                        .then(Commands.literal("vanilla").executes(dayLength(handler, messages, 20)))
+                                        .then(Commands.literal("default").executes(dayLength(handler, messages, 24)))
+                                        .then(Commands.literal("disabled").executes(dayLength(handler, messages, 0)))
+                                        .then(Commands.literal("realtime").executes(dayLength(handler, messages, 24 * 60)))
+                                        .then(Commands.argument("minutes", IntegerArgumentType.integer(1))
+                                                .executes(run(handler, messages, (h, ctx) ->
+                                                        h.setDayLength(IntegerArgumentType.getInteger(ctx, "minutes"))))))
+                                .then(Commands.literal("monthLength")
+                                        .then(Commands.literal("default").executes(monthLength(handler, messages,
+                                                TimeCommand.DEFAULT_MONTH_LENGTH)))
+                                        .then(Commands.literal("realtime").executes(monthLength(handler, messages,
+                                                TimeCommand.REALTIME_MONTH_LENGTH)))
+                                        .then(Commands.argument("days", IntegerArgumentType.integer(
+                                                        TimeCommand.MIN_MONTH_LENGTH, TimeCommand.MAX_MONTH_LENGTH))
+                                                .executes(run(handler, messages, (h, ctx) ->
+                                                        h.setMonthLength(IntegerArgumentType.getInteger(ctx, "days"))))))
+                                .then(Commands.literal("rain").executes(run(handler, messages, (h, ctx) ->
+                                        h.skipToWeather(ctx.getSource().getLocation(), true))))
+                                .then(Commands.literal("clear").executes(run(handler, messages, (h, ctx) ->
+                                        h.skipToWeather(ctx.getSource().getLocation(), false))))
                                 .then(Commands.literal("day").executes(timeSet(handler, messages, "day",
                                         TimeCommand.DAY_TICKS_OF_DAY)))
                                 .then(Commands.literal("noon").executes(timeSet(handler, messages, "noon",
@@ -368,6 +407,16 @@ public final class TfpCommands {
             int ticksOfDay) {
         return run(handler, messages, (h, ctx) -> h.skipTime("time.set.done", label,
                 TimeCommand.setTimeOfDay(ticksOfDay)));
+    }
+
+    /** PAR-CLIM-13: {@code set dayLength <literal>}. */
+    private static Command<CommandSourceStack> dayLength(Supplier<Handler> handler, Messages messages, int minutes) {
+        return run(handler, messages, (h, ctx) -> h.setDayLength(minutes));
+    }
+
+    /** PAR-CLIM-13: {@code set monthLength <literal>}. */
+    private static Command<CommandSourceStack> monthLength(Supplier<Handler> handler, Messages messages, int days) {
+        return run(handler, messages, (h, ctx) -> h.setMonthLength(days));
     }
 
     /** {@code add <unit> <n>}: a literal {@code unit} with an integer argument {@code name} of at least 1. */

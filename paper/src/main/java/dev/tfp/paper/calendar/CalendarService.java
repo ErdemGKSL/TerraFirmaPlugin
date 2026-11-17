@@ -201,6 +201,25 @@ public final class CalendarService {
         return new Skipped(ticks, next);
     }
 
+    /**
+     * PAR-CLIM-13: replaces the state with {@code change} of it (TFC {@code setCalendarTickRate}, {@code setMonthLength}),
+     * which may move the calendar backward. Publishes and saves at once. Global thread only.
+     *
+     * @return the new state, or null before the first load
+     */
+    public CalendarState update(java.util.function.UnaryOperator<CalendarState> change) {
+        CalendarState s = state;
+        if (s == null) {
+            return null;
+        }
+        CalendarState next = java.util.Objects.requireNonNull(change.apply(s), "changed state");
+        state = next;
+        next.publishTo(clock);
+        changed(next);
+        save();
+        return next;
+    }
+
     /** Whether the calendar runs now: a player online, the time stop off, or the self-test override. */
     boolean isRunning() {
         return runWhenEmpty || !config.enableTimeStopWhenServerEmpty() || playersOnline.getAsBoolean();
