@@ -55,7 +55,12 @@ import org.bukkit.block.Block;
  *            (relit, broken, replaced); otherwise the dead kind is placed with the same facing
  * </pre>
  *
- * Also TFC's {@code onFireStart} ({@link #lightable}: a lit torch resets its counter, a dead one becomes lit) and
+ * PAR-HEAT-28: after the apply step swaps a torch, the chunk's light is sent again to the players tracking it once the
+ * server's light engine settled ({@link LightRefresh}, one resend per changed chunk and refresh window). A torch that
+ * burns out while its chunk loads can otherwise be committed around the chunk packet, and the client kept the lit
+ * torch's block light 14 in the dead torch until a relog.
+ *
+ * <p>Also TFC's {@code onFireStart} ({@link #lightable}: a lit torch resets its counter, a dead one becomes lit) and
  * {@code onFireStop} ({@link #douse}).
  */
 public final class TorchService {
@@ -78,6 +83,41 @@ public final class TorchService {
         }
     }
 
+    /**
+     * PAR-HEAT-28: sends the light of one chunk again to the players tracking it. Called on the chunk's region thread,
+     * {@link #REFRESH_DELAY_TICKS} after a burnout was applied there.
+     */
+    @FunctionalInterface
+    public interface LightRefresh {
+        void refresh(World world, int chunkX, int chunkZ);
+
+        /**
+         * Paper: {@link World#refreshChunk} (the chunk with its light, to every player seeing it); nothing when no player
+         * sees the chunk. The resend is cosmetic: a server implementation that fails it (a test server without chunk
+         * resends) leaves the light as the engine sent it instead of failing the region task.
+         */
+        LightRefresh PAPER = (world, chunkX, chunkZ) -> {
+            if (!world.isChunkLoaded(chunkX, chunkZ)) {
+                return;
+            }
+            try {
+                if (!world.getPlayersSeeingChunk(chunkX, chunkZ).isEmpty()) {
+                    world.refreshChunk(chunkX, chunkZ);
+                }
+            } catch (RuntimeException e) {
+                // no resend on this server implementation: the client keeps the light it was sent
+            }
+        };
+    }
+
+    /**
+     * Server ticks between a burnout's apply step and the chunk's light resend: the light engine propagates the removed
+     * source after the tick that set the block, so the resend waits for it.
+     */
+    public static final int REFRESH_DELAY_TICKS = 5;
+    /** A queued resend older than this (10 s) counts as dropped. */
+    static final long REFRESH_STALE_NANOS = 10_000_000_000L;
+
     /** The snapshot one decision reads: the cell and the calendar tick it was taken at. */
     record Snap(BlockPos pos, Cell cell, long now, long nanos) {
     }
@@ -92,6 +132,14 @@ public final class TorchService {
     private final CommitBudget budget;
     private final Map<UUID, AsyncDecisionPipeline<Cell, Snap>> pipelines = new ConcurrentHashMap<>();
     private final LongAdder burnouts = new LongAdder();
+    private final LightRefresh lightRefresh;
+    /**
+     * Chunks with a light resend queued, per world ({@code chunkKey} to the {@link System#nanoTime} it was queued at); a
+     * second burnout there joins the first resend. An entry older than {@link #REFRESH_STALE_NANOS} (its task was dropped
+     * with an unloaded region) no longer holds a new resend back.
+     */
+    private final Map<UUID, Map<Long, Long>> refreshing = new ConcurrentHashMap<>();
+    private final LongAdder lightRefreshes = new LongAdder();
 
     /**
      * @param calendar   the player-tick calendar the counters are stamped with (any thread)
@@ -99,6 +147,14 @@ public final class TorchService {
      */
     public TorchService(CustomBlocks blocks, DeviceService devices, TorchDevice device, LongSupplier calendar,
             IntSupplier torchTicks, Function<World, RegionExecutor> regions, Executor workers, CommitBudget budget) {
+        this(blocks, devices, device, calendar, torchTicks, regions, workers, budget, LightRefresh.PAPER);
+    }
+
+    /** As above, with the light resend after a burnout ({@link LightRefresh#PAPER} on a server). */
+    public TorchService(CustomBlocks blocks, DeviceService devices, TorchDevice device, LongSupplier calendar,
+            IntSupplier torchTicks, Function<World, RegionExecutor> regions, Executor workers, CommitBudget budget,
+            LightRefresh lightRefresh) {
+        this.lightRefresh = Objects.requireNonNull(lightRefresh, "lightRefresh");
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.devices = Objects.requireNonNull(devices, "devices");
         this.device = Objects.requireNonNull(device, "device");
@@ -193,6 +249,7 @@ public final class TorchService {
                     Block b = world.getBlockAt(pos.x(), pos.y(), pos.z());
                     if (blocks.place(b, next.state(), true)) {
                         burnouts.increment();
+                        queueLightRefresh(world, pos);
                     }
                 }
             };
@@ -200,6 +257,45 @@ public final class TorchService {
                 (pos, nanos) -> CompletableFuture.completedFuture(new Snap(pos, access.read(pos), calendar.getAsLong(), nanos)),
                 snap -> decide(snap, torchTicks.getAsInt()));
         });
+    }
+
+    /**
+     * PAR-HEAT-28: queues the light resend of the chunk holding {@code pos} after a burnout there, once per chunk while
+     * one is pending. Region thread of the chunk (the commit queue's apply step).
+     */
+    void queueLightRefresh(World world, BlockPos pos) {
+        int cx = pos.chunkX();
+        int cz = pos.chunkZ();
+        Map<Long, Long> pending = refreshing.computeIfAbsent(world.getUID(), id -> new ConcurrentHashMap<>());
+        long key = chunkKey(cx, cz);
+        long queued = System.nanoTime();
+        boolean[] fresh = {false};
+        pending.compute(key, (k, at) -> {
+            if (at != null && queued - at < REFRESH_STALE_NANOS) {
+                return at;
+            }
+            fresh[0] = true;
+            return queued;
+        });
+        if (!fresh[0]) {
+            return;
+        }
+        RegionExecutor region = regions.apply(world);
+        Runnable send = () -> {
+            pending.remove(key, queued);
+            lightRefreshes.increment();
+            lightRefresh.refresh(world, cx, cz);
+        };
+        Runnable chain = send;
+        for (int i = 1; i < REFRESH_DELAY_TICKS; i++) {
+            Runnable next = chain;
+            chain = () -> region.runNextTick(cx, cz, next);
+        }
+        region.runNextTick(cx, cz, chain);
+    }
+
+    private static long chunkKey(int x, int z) {
+        return ((long) x << 32) | (z & 0xFFFFFFFFL);
     }
 
     /** The torch at {@code block} as a {@link Cell}. Region thread. */
@@ -275,6 +371,11 @@ public final class TorchService {
     /** Torches swapped for dead ones by the pipeline. */
     public long burnouts() {
         return burnouts.sum();
+    }
+
+    /** PAR-HEAT-28: chunk light resends sent after burnouts. */
+    public long lightRefreshes() {
+        return lightRefreshes.sum();
     }
 
     /** True when no decision is running and no change is queued in any world. Racy; poll it. */

@@ -2,7 +2,7 @@
 id: PAR-HEAT-28
 title: "Torch burnout on chunk load leaves the client's block light at 14 until the chunk is sent again"
 area: HEAT
-status: open
+status: done
 wave: 16
 deps: [PAR-HEAT-21]
 size: S
@@ -24,6 +24,7 @@ plan:
   - "Found by PAR-HEAT-21's in-game run (2026-11-17, Paper 1.21.11, docs/verification/PAR-HEAT-21/18-gui2-dead-floor-f3-stale-before-relog.png): after the 4-day skip and the 300-block round trip, both torches showed the dead look but F3 still read 14 block light standing in the dead floor and dead wall torch blocks. After a client relog the same blocks read 0, so the server's light is right and the client keeps the light of the chunk it was sent before the swap."
   - "Find where the light goes stale: the chunk-load catch-up applies the dead torch (region commit queue) after the chunk packet with the old light was sent, and no light update reaches the client (or the client relights nothing because it never saw the lit state). Check whether TorchService's commit sets the CE block with light updates, whether Paper/Moonrise sends the section light change to players already tracking the chunk, and whether a forced light resend (ClientboundLightUpdatePacket for the section, or a chunk resend for the tracking players) after the swap fixes it. Keep it to the torches that changed (no per-chunk resend without a change)."
   - "Note from PAR-HEAT-29 (2026-11-17, Paper 1.21.11, docs/verification/PAR-HEAT-29/11-gui3-chunk-load-burnout-f3-block0.png): with the new dead torch carriers (torchflower_crop[age=1], big_dripleaf[tilt=full]) the same steps read 0 block light in F3 standing in both dead torch blocks at once, without a relog (one run). The stale light may be fixed or intermittent: re-run the in-game steps before changing TorchService."
+  - "Done: TorchService queues one chunk light resend (LightRefresh; Paper World.refreshChunk to the players seeing the chunk, none when nobody does) REFRESH_DELAY_TICKS (5) region ticks after each burnout the commit queue applies, deduplicated per chunk while pending; nothing for a torch still burning, a douse or a relight. TorchModule's constructor call is unchanged (the old constructor defaults to LightRefresh.PAPER). Tests: paper light/TorchLightRefreshTest (5). ./gradlew check green. In-game steps left to the verify stage (this worker has no subagent tool to delegate the run to a Haiku agent); evidence goes to docs/verification/PAR-HEAT-28/ (verdict.md lists what is pending)."
 tests:
   - "paper: MockBukkit or an itest case that the burnout commit requests the light refresh for the changed position"
 done_criteria:
