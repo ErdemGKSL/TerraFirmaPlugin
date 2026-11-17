@@ -174,7 +174,7 @@ Totals: 357 items; open 204, done 145, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-CLIM-21 | Snow and ice stop with the weather flag off (SnowService live step and catch-up), as TFC onTickChunk | CLIMATE | 15 | done |
 | PAR-HEAT-21 | Torches loaded in game: hitbox carriers, configuration/light/torch.yml, the dead torch look and the in-game burnout check | HEAT | 15 | | open |
 | PAR-HEAT-22 | Dropped torches (go out in water, light leaves, thatch, log piles and pit kilns) and the torchTicks config key | HEAT | 15 | blocked |
-| PAR-INFRA-51 | Held snow layer ghost on snow-layer carriers: the client predicts snow[n+1] on the forge, quern handstone, grill and piles | INFRA | 15 | open |
+| PAR-INFRA-51 | Held snow layer ghost on snow-layer carriers: the client predicts snow[n+1] on the forge, quern handstone, grill and piles | INFRA | 15 | blocked |
 | PAR-CLIM-22 | Vanilla /time and the night skip on 26.x: CalendarModule.onTimeSkip throws NoSuchMethodError on TimeSkipEvent.getSkipReason() | CLIMATE | 15 | done |
 | PAR-PROC-39 | Powderkeg CE block: tfc:powderkeg hitbox demands, configuration/powderkeg, in-game explosion check | PROC | 15 | open |
 | PAR-PROC-40 | Charcoal sneak click adds two layers: ignore Paper's re-fired RIGHT_CLICK_BLOCK of the same click | PROC | 15 | open |

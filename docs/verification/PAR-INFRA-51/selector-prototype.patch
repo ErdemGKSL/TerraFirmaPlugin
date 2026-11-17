@@ -1,0 +1,142 @@
+diff --git a/tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxCarrier.java b/tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxCarrier.java
+index 42ab381..9494f98 100644
+--- a/tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxCarrier.java
++++ b/tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxCarrier.java
+@@ -117,10 +117,19 @@ public final class HitboxCarrier {
+     public record Unusable(String shapeClass, String carrier, String family, String failedCheck, String date, String verification) {
+     }
+ 
++    /**
++     * One client prediction (PAR-INFRA-51): a vanilla item use the client applies to {@code source} before the server
++     * answers, drawing {@code result} for 50-200 ms. A source is a carrier only for {@code allowedClasses}; when the
++     * source block occurs naturally its results are restricted the same way (real snow predicts the next layer count).
++     */
++    public record Prediction(String source, String result, String trigger, Set<String> allowedClasses) {
++    }
++
+     /** The inputs of the selector (the committed tables by default; tests swap the unusable rows). */
+-    public record Context(VanillaCandidates vanilla, Map<String, List<OverrideEntry>> overrides, List<Unusable> unusable) {
++    public record Context(VanillaCandidates vanilla, Map<String, List<OverrideEntry>> overrides, List<Unusable> unusable,
++            List<Prediction> predictions) {
+         public Context withUnusable(List<Unusable> rows) {
+-            return new Context(vanilla, overrides, List.copyOf(rows));
++            return new Context(vanilla, overrides, List.copyOf(rows), predictions);
+         }
+ 
+         boolean isUnusable(String shapeClass, String carrier, VersionFamily family) {
+@@ -137,8 +146,10 @@ public final class HitboxCarrier {
+     /** The committed policy, overrides and unusable rows (cached). */
+     public static synchronized Context standardContext() {
+         if (standard == null) {
+-            standard = new Context(VanillaCandidates.load(), overrides(VanillaCandidates.resource("class-overrides.json")),
+-                unusable(VanillaCandidates.resource("unusable.json")));
++            VanillaCandidates v = VanillaCandidates.load();
++            standard = new Context(v, overrides(VanillaCandidates.resource("class-overrides.json")),
++                unusable(VanillaCandidates.resource("unusable.json")),
++                predictions(VanillaCandidates.resource(VanillaCandidates.POLICY), v));
+         }
+         return standard;
+     }
+@@ -167,6 +178,74 @@ public final class HitboxCarrier {
+         return List.copyOf(out);
+     }
+ 
++    /**
++     * The {@code client_predictions} of carrier-policy.json, expanded: a {@code count} rule ({@code block}, property,
++     * {@code max}) yields {@code n -> n+1} for every n below max; a {@code source}/{@code result} rule yields itself.
++     */
++    static List<Prediction> predictions(String policyText, VanillaCandidates v) {
++        JsonObject root = Json.parse(policyText, VanillaCandidates.POLICY).getAsJsonObject();
++        if (!root.has("client_predictions")) {
++            return List.of();
++        }
++        List<Prediction> out = new ArrayList<>();
++        for (JsonElement x : root.getAsJsonObject("client_predictions").getAsJsonArray("rules")) {
++            JsonObject o = x.getAsJsonObject();
++            Set<String> allowed = new java.util.TreeSet<>();
++            o.getAsJsonArray("allowed_classes").forEach(c -> allowed.add(c.getAsString()));
++            String trigger = o.get("trigger").getAsString();
++            if (o.has("count")) {
++                String block = o.get("block").getAsString();
++                String prop = o.get("count").getAsString();
++                int max = o.get("max").getAsInt();
++                for (String state : v.allStates()) {
++                    if (!state.startsWith(block + "[")) {
++                        continue;
++                    }
++                    Map<String, String> p = props(state);
++                    int n = Integer.parseInt(p.get(prop));
++                    if (n < max) {
++                        p.put(prop, Integer.toString(n + 1));
++                        out.add(new Prediction(state, withProps(state, p), trigger, Set.copyOf(allowed)));
++                    }
++                }
++            } else {
++                out.add(new Prediction(o.get("source").getAsString(), o.get("result").getAsString(), trigger,
++                    Set.copyOf(allowed)));
++            }
++        }
++        return List.copyOf(out);
++    }
++
++    /**
++     * Why {@code state} may not carry {@code shapeClass} under a client prediction, or null: a source outside the rule's
++     * classes; a result of a natural source outside them; a source whose result another look holds, or a result whose
++     * source another look holds ({@code free} false), so one carrier never flashes as another.
++     */
++    static String predictionRejection(Context ctx, String shapeClass, String state, Predicate<String> free) {
++        for (Prediction p : ctx.predictions()) {
++            boolean allowed = p.allowedClasses().contains(shapeClass);
++            if (p.source().equals(state)) {
++                if (!allowed) {
++                    return "client prediction: " + p.trigger() + " turns it into " + p.result();
++                }
++                if (!free.test(p.result())) {
++                    return "client prediction: " + p.trigger() + " turns it into " + p.result() + ", another carrier";
++                }
++            }
++            if (p.result().equals(state)) {
++                String block = p.source().contains("[") ? p.source().substring(0, p.source().indexOf('[')) : p.source();
++                BlockPolicy bp = ctx.vanilla().policy(block);
++                if (!allowed && bp != null && bp.presence() == Presence.NATURAL) {
++                    return "client prediction: real " + p.source() + " turns into it (" + p.trigger() + ")";
++                }
++                if (!free.test(p.source())) {
++                    return "client prediction: " + p.trigger() + " turns carrier " + p.source() + " into it";
++                }
++            }
++        }
++        return null;
++    }
++
+     /** The best carrier for {@code tfc} in {@code family}, with no budget (every state free). */
+     public static Choice select(TfcState tfc, Profile profile, VersionFamily family) {
+         return select(tfc, profile, family, standardContext(), s -> true);
+@@ -186,6 +265,9 @@ public final class HitboxCarrier {
+         Set<String> all = v.allStates();
+         for (String state : all) {
+             String reason = filter(tfc, family, v, state);
++            if (reason == null) {
++                reason = predictionRejection(ctx, row.shapeClass(), state, free);
++            }
+             if (reason != null) {
+                 rejected.add(new Rejected(state, reason, rawScore(tfc, family, v, state)));
+                 continue;
+diff --git a/tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/carrier-policy.json b/tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/carrier-policy.json
+index be6a43f..4915aef 100644
+--- a/tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/carrier-policy.json
++++ b/tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/carrier-policy.json
+@@ -73,6 +73,13 @@
+       "minecraft:amethyst_cluster"],
+     "reason": "owner: reads as a group of separate pieces; allowed only for ground pieces"
+   },
++  "client_predictions": {
++    "about": "PAR-INFRA-51: vanilla item uses the client applies before the server answers (it draws the result for 50-200 ms, then the server's resend restores the block). A source state is a carrier only for allowed_classes; a result of a natural source (real snow) likewise; and no source and its result may carry two different looks. Applied to every family so one generated output serves both.",
++    "rules": [
++      {"block": "minecraft:snow", "count": "layers", "max": 8, "trigger": "a held snow layer (SnowLayerBlock.canBeReplaced: same item, layers < 8)", "allowed_classes": ["layer_pile"]},
++      {"source": "minecraft:dirt_path", "result": "minecraft:farmland[moisture=0]", "trigger": "a hoe tills it (HoeItem; the 26.x client predicts the till, 1.21.x does not)", "allowed_classes": []}
++    ]
++  },
+   "pools": {
+     "solid": {"occludes": true, "note": "CE auto_state solid pool (VisualAllocator's full-cube pass)"},
+     "leaves": {"occludes": false, "note": "CE auto_state leaves pool (see-through full cubes)"}
