@@ -57,8 +57,9 @@ import java.util.Objects;
  *
  * The carriers come in as arguments ({@link Carriers}): {@code Datagen} passes {@link #selected}, the hitbox carrier
  * selector's choice for the torch demands of {@code hitbox/HitboxDemands} (PAR-HEAT-21): the lit torches on vanilla's
- * torch and wall torch states (light 14, vanilla look), the dead standing torch with TFC's model on a free 6x6x6 state
- * of light 0, the dead wall torch hitbox-only on the pressed wall buttons with TFC's model as an item display.
+ * torch and wall torch states (light 14, vanilla look) and the dead ones with TFC's models on free states of light 0
+ * (PAR-HEAT-29: torchflower_crop[age=1] standing, big_dripleaf[tilt=full] on the wall, turned by TFC's blockstate y). The
+ * hitbox-only look (TFC's model as an item display) stays for a carrier the selector serves in that mode.
  */
 public final class TorchBlocks {
     public static final String TORCH = HitboxDemands.TORCH_ID;

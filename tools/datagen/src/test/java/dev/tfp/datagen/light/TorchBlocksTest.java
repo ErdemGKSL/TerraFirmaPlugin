@@ -22,7 +22,9 @@ import org.yaml.snakeyaml.Yaml;
 /**
  * PAR-HEAT-10: the torch entries on the real checkout, with stand-in carriers: the lit torches on their vanilla look, the
  * dead standing torch with our model, the dead wall torch hitbox-only with an item display. PAR-HEAT-21: the same looks
- * on the selector's carriers ({@link TorchBlocks#selected}), which Datagen passes.
+ * on the selector's carriers ({@link TorchBlocks#selected}), which Datagen passes. PAR-HEAT-29: the selector now draws
+ * the dead wall torch model on big_dripleaf[tilt=full] and the dead standing torch on torchflower_crop[age=1]; the
+ * stand-ins keep the item-display path covered.
  */
 class TorchBlocksTest {
     static final String LIT = "lit-carrier";
@@ -165,17 +167,26 @@ class TorchBlocksTest {
         for (String f : TorchBlocks.FACINGS) {
             assertThat(TorchBlocks.selected(TorchBlocks.WALL_TORCH, f))
                 .isEqualTo(new TorchBlocks.Carrier("minecraft:wall_torch[facing=" + f + "]", TorchBlocks.Look.VANILLA));
-            assertThat(TorchBlocks.selected(TorchBlocks.DEAD_WALL_TORCH, f).look()).isEqualTo(TorchBlocks.Look.RENDERED);
+            // PAR-HEAT-29: TFC's model on the fully tilted big dripleaf of the same facing (no item display)
+            assertThat(TorchBlocks.selected(TorchBlocks.DEAD_WALL_TORCH, f)).isEqualTo(new TorchBlocks.Carrier(
+                "minecraft:big_dripleaf[facing=" + f + ",tilt=full,waterlogged=false]", TorchBlocks.Look.MODEL));
         }
         Map<String, Object> yaml = TorchBlocks.yaml(TorchBlocks::selected);
         Map<String, Object> blocks = map(yaml, "blocks");
         assertThat(map(blocks.get(TorchBlocks.TORCH), "state")).containsExactly(Map.entry("state", "minecraft:torch"));
-        assertThat(map(blocks.get(TorchBlocks.DEAD_TORCH), "state")).containsEntry("model", "tfp:block/dead_torch");
+        assertThat(map(blocks.get(TorchBlocks.DEAD_TORCH), "state")).containsEntry("model", "tfp:block/dead_torch")
+            .containsEntry("state", "minecraft:torchflower_crop[age=1]");
         Map<String, Object> dead = map(map(blocks.get(TorchBlocks.DEAD_WALL_TORCH), "states"), "appearances");
-        assertThat(map(dead, "west")).containsEntry("state", "minecraft:oak_button[face=wall,facing=west,powered=true]")
-            .containsEntry("transparent", true)
-            .containsEntry("entity_renderer", List.of(Map.of("item", "tfp:render/dead_wall_torch", "rotation", "0,0,0")));
-        assertThat(map(yaml, "items")).containsKey("tfp:render/dead_wall_torch").doesNotContainKey("tfp:render/dead_torch");
+        // TFC's dead_wall_torch blockstate: east y 0, south 90, west 180, north 270 (the model faces east)
+        assertThat(map(dead, "east")).containsExactly(Map.entry("state", "minecraft:big_dripleaf[facing=east,tilt=full,waterlogged=false]"),
+            Map.entry("model", "tfp:block/dead_wall_torch"));
+        for (Map.Entry<String, Integer> e : Map.of("south", 90, "west", 180, "north", 270).entrySet()) {
+            assertThat(map(dead, e.getKey())).as(e.getKey())
+                .containsEntry("state", "minecraft:big_dripleaf[facing=" + e.getKey() + ",tilt=full,waterlogged=false]")
+                .containsEntry("model", Map.of("path", "tfp:block/dead_wall_torch", "y", e.getValue()))
+                .doesNotContainKeys("transparent", "entity_renderer");
+        }
+        assertThat(map(yaml, "items")).doesNotContainKeys("tfp:render/dead_wall_torch", "tfp:render/dead_torch");
         assertThat(TorchBlocks.blockstateY("south")).isEqualTo(90);
         // blockstate y turns clockwise, CraftEngine's yaw counterclockwise: north/south swap against (y + 180)
         assertThat(TorchBlocks.renderYaw(TorchBlocks.blockstateY("north"))).isEqualTo(270);

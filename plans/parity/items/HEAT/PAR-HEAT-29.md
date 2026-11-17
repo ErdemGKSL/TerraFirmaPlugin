@@ -2,7 +2,7 @@
 id: PAR-HEAT-29
 title: "Dead torch outlines closer to TFC: widen the hitbox candidate dump to every small no-collision vanilla block and re-pick the dead torch carriers"
 area: HEAT
-status: open
+status: done
 wave: 16
 deps: [PAR-HEAT-21]
 size: M
@@ -35,6 +35,7 @@ plan:
   - "Re-dump (scratch dumper outside the repo, each Paper jar 1.21.4, 1.21.11, 26.1.2, 26.3) and add to carrier-policy.json with a reasoned presence every no-collision, no-light wall or floor block with a small outline, at least: the ten coral wall fans and coral fans (live and dead, waterlogged both ways; the live ones die out of water by a scheduled tick), lever, tripwire_hook, the wall signs and wall hanging signs, wall banners, vine, glow_lichen (light), cocoa (collision: reference), sculk_vein, hanging_roots, dead_bush, the small flowers. Check TFC's presence of each in /opt/tfc (recipes disabled or replaced, worldgen) before marking it absent; rough IoU against the TFC dead wall torch: lever wall about 0.69 (player-placed in TFC unless its recipe is disabled), tripwire_hook wall about 0.40, a dead coral wall fan about 0.29, the pressed button 0.08."
   - "Let HitboxAllocation pick again (weights unchanged unless needed; addingTheTorchesMovesNoOtherCarrier must stay true or the moved carriers are re-pinned in their own tests) and keep noFreeCarrierHasACloserDeadTorchOutline as the guard over the wider dump. If the new carrier is not a button, check the render yaw of the dead wall torch item display in TorchBlocks for its facing convention and its client prediction on right-click (coral fans and signs predict nothing; a sign opens no editor when the click is consumed)."
   - "carrier-policy.json is also touched by PAR-INFRA-51 (blocked): edit only the new rows and the PAR-HEAT-21 rows, keep theirs on rebase. Regenerate content (./gradlew :tools:datagen:generateContent -Ptfc.checkout=/opt/tfc), update the ledger's dead torch outlines divergence row with the new outline and IoU."
+  - "Done (2026-11-17): owner idea spiked first on Paper 1.21.11 (spike CE pack on soul_torch / soul_wall_torch, luminance 0, TFC models): F3 block light 0 in the carrier, but the client draws the soul flame and smoke particles whatever the model (TorchBlock/WallTorchBlock.animateTick, same bytecode in 26.3) and lit the tunnel walls around it: rejected, copper torch and minecraft:torch likewise. Widened dump (scratch dumper on the 1.21.4, 1.21.11, 26.1.2, 26.3 Paper jars; reproduces the old rows exactly) adds every state of soul/copper torches, lever, tripwire hook, cocoa, vine, glow lichen, sculk vein, hanging roots, dead bush, small flowers, coral fans and wall fans, wall signs, wall hanging signs, wall banners, big dripleaf, its stem and the torchflower crop, each with a reasoned policy (new usable blocks only_class torch/wall_torch). Selector result: tfp:dead_torch on torchflower_crop[age=1] (6x10x6, score 0.67, was red_mushroom 0.53), tfp:dead_wall_torch with TFC model on big_dripleaf[facing,tilt=full,waterlogged=false] (6x13x6 by the wall, 0.55, was the pressed button hitbox-only 0.39); the wall lever (0.73) is crafted in TFC. Tests: hitbox TorchCarrierTest 6 (new theDumpHoldsTheWidenedCandidates, guard over the wider dump), TorchBlocksTest updated; check passes. In game 1.21.11: outlines vs vanilla references front/left/right GUI 2 and 3, chunk-load burnout after 4 days, F3 0 block light at once, tunnel passable, relight, no flicker on neighbour change, break, relog; Paper 26.3 loads the content with no issue, 26.3 client blocked by GLX here (pending with PAR-INFRA-23). Evidence docs/verification/PAR-HEAT-29/. Ledger: dead torch outlines divergence row rewritten."
 tests:
   - "datagen: TorchCarrierTest over the wider dump (chosen carrier light 0, no collision, best IoU among free states); VanillaCandidatesTest and CarrierPolicyRecipeTest/CarrierPolicyWorldgenTest pass with the new blocks; TorchBlocksTest pins the yaw for the new carrier"
 done_criteria:
@@ -43,7 +44,5 @@ done_criteria:
 ---
 
 # PAR-HEAT-29: Dead torch outlines closer to TFC
-
-> Claimed: agent-af1032a2 (session_018kkWhFt2SBQHZwsVQ8uVdY), 2026-11-17
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
