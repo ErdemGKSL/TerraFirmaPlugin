@@ -24,18 +24,22 @@ import org.bukkit.inventory.ItemStack;
 /**
  * The server side of {@link TorchEffects}. The burnout callback is one delayed region task per torch: a newer request
  * replaces the queued one (the old task fires and does nothing); a task dropped by a chunk unload is replaced by the
- * chunk-load catch-up ({@link TorchService#chunkLoaded}).
+ * chunk-load catch-up ({@link TorchService#chunkLoaded}). A forward calendar skip re-queues them all ({@link #recheckAll}).
  */
 public final class PaperTorchEffects implements TorchEffects {
     private final Scheduler scheduler;
     private final Supplier<TorchService> service;
-    private final Map<Pos, Long> pending = new ConcurrentHashMap<>();
+    private final Map<Pos, Pending> pending = new ConcurrentHashMap<>();
     private final AtomicLong sequence = new AtomicLong();
 
     private record Pos(UUID world, int x, int y, int z) {
         static Pos of(Block b) {
             return new Pos(b.getWorld().getUID(), b.getX(), b.getY(), b.getZ());
         }
+    }
+
+    /** A queued burnout callback: its request id and the torch block. */
+    private record Pending(long id, Block block) {
     }
 
     /** @param service the torch service (set after this is built: the device and the service need each other) */
@@ -56,9 +60,10 @@ public final class PaperTorchEffects implements TorchEffects {
     public void burnoutIn(Block block, long ticks) {
         Pos key = Pos.of(block);
         long id = sequence.incrementAndGet();
-        pending.put(key, id);
+        Pending entry = new Pending(id, block);
+        pending.put(key, entry);
         scheduler.regionDelayed(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, Math.max(1L, ticks), () -> {
-            if (!pending.remove(key, id)) {
+            if (!pending.remove(key, entry)) {
                 return;
             }
             TorchService s = service.get();
@@ -70,6 +75,27 @@ public final class PaperTorchEffects implements TorchEffects {
                 burnoutIn(block, wait);
             }
         });
+    }
+
+    /**
+     * PAR-HEAT-22: after a forward calendar skip, every torch with a queued callback is checked again on the next tick of
+     * its region (its callback is re-queued one tick out, replacing the old one), so a torch the skip burnt out swaps at
+     * once instead of at its old server-tick deadline. Any thread.
+     *
+     * @return the torches re-queued
+     */
+    public int recheckAll() {
+        int n = 0;
+        for (Pending p : pending.values().toArray(Pending[]::new)) {
+            burnoutIn(p.block(), 1);
+            n++;
+        }
+        return n;
+    }
+
+    /** Torches with a queued burnout callback (tests, debug). */
+    int pendingCount() {
+        return pending.size();
     }
 
     @Override

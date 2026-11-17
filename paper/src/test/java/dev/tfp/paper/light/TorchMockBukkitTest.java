@@ -395,6 +395,55 @@ class TorchMockBukkitTest extends MockServerTest {
         assertThat(stick.isCancelled()).isFalse();
     }
 
+    /** PAR-HEAT-22: a forward calendar skip past the burn time swaps a loaded torch at once, without a click or reload. */
+    @Test
+    void aForwardCalendarSkipSwapsALoadedTorch() {
+        LightTestScheduler sched = new LightTestScheduler();
+        PaperTorchEffects server = new PaperTorchEffects(sched, () -> service);
+        place(BlockStateRef.of("tfp:torch"));
+        server.burnoutIn(at, effects.callbacks.getLast()); // the device's queueBurnout on a server: 86,401 server ticks
+        assertThat(server.pendingCount()).isEqualTo(1);
+        CalendarSkipWatch watch = new CalendarSkipWatch(clock::get, server::recheckAll);
+        assertThat(watch.observe()).isFalse(); // first observation: the baseline
+        clock.addAndGet(CalendarSkipWatch.PERIOD_TICKS);
+        assertThat(watch.observe()).isFalse(); // the calendar moved as the server did
+
+        // a one-day skip: re-checked, still burning, re-armed with the exact rest
+        clock.addAndGet(DAY);
+        assertThat(watch.observe()).isTrue();
+        assertThat(sched.delayed.getLast().delay()).isEqualTo(1);
+        sched.tick(); // the old callback was replaced and does nothing; the new one re-arms
+        runTasks();
+        assertThat(state().id()).isEqualTo("tfp:torch");
+        assertThat(sched.delayed).singleElement()
+            .satisfies(d -> assertThat(d.delay()).isEqualTo(86_401L - DAY - CalendarSkipWatch.PERIOD_TICKS));
+
+        // a four-day skip: past the burn time, the torch is dead on the next tick of its region
+        clock.addAndGet(4L * DAY);
+        assertThat(watch.observe()).isTrue();
+        sched.tick();
+        runTasks();
+        assertThat(state()).isEqualTo(BlockStateRef.of("tfp:dead_torch"));
+        assertThat(server.pendingCount()).isZero();
+        assertThat(server.recheckAll()).isZero();
+    }
+
+    @Test
+    void aCalendarThatStandsStillOrMovesBackIsNoSkip() {
+        AtomicLong cal = new AtomicLong(1_000);
+        int[] skips = {0};
+        CalendarSkipWatch watch = new CalendarSkipWatch(cal::get, () -> skips[0]++);
+        watch.observe();
+        assertThat(watch.observe()).isFalse(); // no players online: the calendar stands still
+        cal.addAndGet(-500);
+        assertThat(watch.observe()).isFalse();
+        cal.addAndGet(CalendarSkipWatch.SKIP_THRESHOLD);
+        assertThat(watch.observe()).isFalse(); // at the threshold: not a skip
+        cal.addAndGet(CalendarSkipWatch.SKIP_THRESHOLD + 1);
+        assertThat(watch.observe()).isTrue();
+        assertThat(skips[0]).isEqualTo(1);
+    }
+
     @Test
     void theModuleComesAfterItsDependenciesInTheServiceFile() throws IOException {
         Path file = Path.of("src/main/resources/META-INF/services/dev.tfp.paper.module.FeatureModule");
@@ -402,7 +451,7 @@ class TorchMockBukkitTest extends MockServerTest {
         int torch = lines.indexOf(TorchModule.class.getName());
         assertThat(torch).isPositive();
         for (String dep : List.of("dev.tfp.paper.tags.TagsModule", "dev.tfp.paper.device.DeviceModule",
-                "dev.tfp.paper.catchup.CatchUpModule", "dev.tfp.paper.fire.FireModule")) {
+                "dev.tfp.paper.catchup.CatchUpModule", "dev.tfp.paper.fire.FireModule", "dev.tfp.paper.loot.LootModule")) {
             assertThat(lines.indexOf(dep)).as(dep).isBetween(0, torch - 1);
         }
     }
