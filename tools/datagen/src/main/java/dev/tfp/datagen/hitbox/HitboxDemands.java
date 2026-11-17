@@ -111,6 +111,8 @@ public final class HitboxDemands {
     public static final String POWDERKEG_UNSEALED = "unsealed";
     public static final String POWDERKEG_SEALED = "sealed";
     public static final String POWDERKEG_LIT = "lit";
+    /** PAR-PROC-39: the TFC outline row every powderkeg appearance takes (TFC {@code SHAPE}, the sealed keg). */
+    public static final String POWDERKEG_ROW = "tfc:powderkeg[sealed=true]";
     /** PAR-PROC-39: served after every other demand (adding the keg moves no carrier of another block). */
     static final int POWDERKEG_WEIGHT = -4;
 
@@ -189,14 +191,16 @@ public final class HitboxDemands {
             d.add(new Demand(DEAD_WALL_TORCH_ID, f, "tfc:dead_wall_torch[facing=" + f + "]", 0, deadTorchLook(f), true,
                 TORCH_WEIGHT));
         }
-        // PAR-PROC-39: the powderkeg, TFC's two outlines (SHAPE sealed, SHAPE_UNSEALED hollow) and three models. A lit
-        // unsealed keg (lit by another explosion) draws TFC's unsealed model, so it is the unsealed appearance; the lit look
-        // is sealed only, on the sealed row.
-        d.add(new Demand(POWDERKEG_ID, POWDERKEG_UNSEALED, "tfc:powderkeg[sealed=false]", 0,
+        // PAR-PROC-39: the powderkeg, TFC's three models. A lit unsealed keg (lit by another explosion) draws TFC's
+        // unsealed model, so it is the unsealed appearance; the lit look is sealed only. Every appearance takes TFC's
+        // sealed outline (SHAPE): the hollow SHAPE_UNSEALED row's only carrier, a composter level, has a full 16x16 bottom
+        // plate that culls the top face of the block below, so the floor showed through the keg's 1 px inset in game
+        // (PAR-PROC-39 verify); on the sealed row the open keg draws its model on its own cactus age.
+        d.add(new Demand(POWDERKEG_ID, POWDERKEG_UNSEALED, POWDERKEG_ROW, 0,
             powderkegModel(POWDERKEG_UNSEALED), true, POWDERKEG_WEIGHT));
-        d.add(new Demand(POWDERKEG_ID, POWDERKEG_SEALED, "tfc:powderkeg[sealed=true]", 0,
+        d.add(new Demand(POWDERKEG_ID, POWDERKEG_SEALED, POWDERKEG_ROW, 0,
             powderkegModel(POWDERKEG_SEALED), true, POWDERKEG_WEIGHT));
-        d.add(new Demand(POWDERKEG_ID, POWDERKEG_LIT, "tfc:powderkeg[sealed=true]", 0,
+        d.add(new Demand(POWDERKEG_ID, POWDERKEG_LIT, POWDERKEG_ROW, 0,
             powderkegModel(POWDERKEG_LIT), true, POWDERKEG_WEIGHT));
         return d;
     }

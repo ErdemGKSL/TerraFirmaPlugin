@@ -316,23 +316,23 @@ class GeneratedCarrierTest {
 
     @Test
     void thePowderkegCarriersArePinned() {
-        // PAR-PROC-39: TFC's two outlines (tfc:powderkeg[sealed=true] SHAPE 14x16x14, sealed=false the hollow
-        // SHAPE_UNSEALED) and three models. Sealed and lit each take a free cactus age with TFC's model (one look per
-        // carrier); the hollow outline's best carrier with a model scores too low, so it is a composter state drawn empty
-        // (the look is an item display). Served last (weight -4): adding the keg moved no other block's carrier.
+        // PAR-PROC-39: TFC's three models, all on TFC's sealed outline (tfc:powderkeg[sealed=true] SHAPE 14x16x14). The
+        // hollow sealed=false row's carrier was a composter level drawn empty, whose full bottom plate culled the floor's
+        // top face (the world showed through the keg's 1 px inset in game), so no appearance takes that row. Each
+        // appearance takes its own free cactus age with TFC's model (one look per carrier). Served last (weight -4):
+        // adding the keg moved no other block's carrier.
         Map<String, TfcShapes.Row> rows = TfcShapes.load();
-        assertThat(rows).containsKeys("tfc:powderkeg[sealed=true]", "tfc:powderkeg[sealed=false]");
+        assertThat(rows).containsKeys(HitboxDemands.POWDERKEG_ROW, "tfc:powderkeg[sealed=false]");
         Assignment unsealed = HitboxAllocation.agreed(HitboxDemands.POWDERKEG_ID, HitboxDemands.POWDERKEG_UNSEALED);
         Assignment sealed = HitboxAllocation.agreed(HitboxDemands.POWDERKEG_ID, HitboxDemands.POWDERKEG_SEALED);
         Assignment lit = HitboxAllocation.agreed(HitboxDemands.POWDERKEG_ID, HitboxDemands.POWDERKEG_LIT);
-        assertThat(unsealed.demand().tfcKey()).isEqualTo("tfc:powderkeg[sealed=false]");
-        assertThat(sealed.demand().tfcKey()).isEqualTo("tfc:powderkeg[sealed=true]");
-        assertThat(lit.demand().tfcKey()).isEqualTo("tfc:powderkeg[sealed=true]");
-        assertThat(unsealed.mode()).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
-        assertThat(unsealed.state()).isEqualTo("minecraft:composter[level=1]");
-        assertThat(sealed.mode()).isEqualTo(HitboxAllocation.Mode.MODEL);
+        for (Assignment a : List.of(unsealed, sealed, lit)) {
+            assertThat(a.demand().tfcKey()).as(a.demand().id()).isEqualTo("tfc:powderkeg[sealed=true]");
+            assertThat(a.mode()).as(a.demand().id()).isEqualTo(HitboxAllocation.Mode.MODEL);
+            assertThat(a.state()).as(a.demand().id()).startsWith("minecraft:cactus[");
+        }
+        assertThat(unsealed.state()).isEqualTo("minecraft:cactus[age=13]");
         assertThat(sealed.state()).isEqualTo("minecraft:cactus[age=12]");
-        assertThat(lit.mode()).isEqualTo(HitboxAllocation.Mode.MODEL);
         assertThat(lit.state()).isEqualTo("minecraft:cactus[age=11]");
         assertThat(List.of(unsealed, sealed, lit)).extracting(Assignment::hideTarget).containsOnlyNulls();
         assertThat(HitboxDemands.powderkegModel(HitboxDemands.POWDERKEG_LIT)).isEqualTo("tfp:block/powderkeg_lit");

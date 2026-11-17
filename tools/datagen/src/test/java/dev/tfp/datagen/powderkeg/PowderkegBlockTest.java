@@ -60,7 +60,11 @@ class PowderkegBlockTest {
     void propertiesSealedAndLitWithTfcsSettingsAndLoot() {
         assertThat(states).isEqualTo(4);
         Map<String, Object> b = block();
-        assertThat(b.get("template")).isEqualTo("tfp:block/device_rendered");
+        // every appearance draws TFC's model on its carrier (no item display), so the plain device template
+        boolean rendered = PowderkegBlock.APPEARANCES.stream()
+            .anyMatch(n -> HitboxAllocation.agreed(PowderkegBlock.ID, n).mode() == HitboxAllocation.Mode.HITBOX_ONLY);
+        assertThat(rendered).isFalse();
+        assertThat(b.get("template")).isEqualTo("tfp:block/device");
         Map<String, Object> args = (Map<String, Object>) b.get("arguments");
         // TFCBlocks: strength(2.5f), SoundType.WOOD; generated mineable/axe.json
         assertThat(args.get("device_hardness")).isEqualTo(2.5);

@@ -49,9 +49,9 @@ import java.util.regex.Pattern;
  *   <li>Three appearances, as TFC's blockstate draws them: {@code unsealed} (TFC's {@code powderkeg} model, also for a lit
  *       unsealed keg), {@code sealed} ({@code powderkeg_sealed}) and {@code lit} ({@code powderkeg_lit}, sealed and lit,
  *       with the animated {@code powderkeg_outside_lit} texture). Each takes the carrier the hitbox selector picks for TFC's
- *       outline ({@code tfc:powderkeg[sealed=false|true]}). A carrier the selector serves with our model draws it; a
- *       hitbox-only carrier (the hollow unsealed outline: no free carrier with a model scores high enough) is drawn empty
- *       and the model is an {@code entity_renderer} item display ({@code tfp:render/powderkeg/<appearance>}).</li>
+ *       sealed outline ({@code HitboxDemands.POWDERKEG_ROW}; the hollow unsealed row's composter carrier culled the floor
+ *       under the keg). A carrier the selector serves with our model draws it; a hitbox-only carrier would be drawn empty
+ *       with the model as an {@code entity_renderer} item display ({@code tfp:render/powderkeg/<appearance>}).</li>
  *   <li>The {@code tfp:device} behaviour, TFC's settings (strength 2.5, wood sounds, the axe tag), the loot (the keg
  *       itself under survives_explosion: both of TFC's alternatives drop it; the sealed branch's contents copy is a ledger
  *       divergence of PAR-PROC-18) and the block item with TFC's item model (without its {@code tfc:sealed} override).</li>
