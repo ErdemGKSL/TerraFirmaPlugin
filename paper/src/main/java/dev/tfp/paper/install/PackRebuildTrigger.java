@@ -154,7 +154,10 @@ public final class PackRebuildTrigger {
                 || !requested.compareAndSet(false, true)) {
             return;
         }
-        PackBuild.Fingerprint built = install.packFingerprint();
+        // PAR-INFRA-55: CraftEngine allocates the blocks a raised serverside-blocks makes room for only after the
+        // restart, so this build is not recorded and the next start rebuilds once more.
+        boolean afterRestart = Installer.blocksChangeAfterRestart(install);
+        PackBuild.Fingerprint built = afterRestart ? null : install.packFingerprint();
         String reason = install.packPlan().reason();
         log.info("Rebuilding the CraftEngine resource pack" + (reason.isEmpty() ? "" : " (" + reason + ")") + ".");
         rebuildWithHudMerge().whenComplete((ok, err) -> {
@@ -165,6 +168,10 @@ public final class PackRebuildTrigger {
                 log.warning("CraftEngine reported a failed reload; players keep the old pack. Fix the errors and run /ce reload all");
             } else {
                 log.info("CraftEngine resource pack rebuilt.");
+                if (afterRestart) {
+                    log.info("CraftEngine's " + Installer.SERVERSIDE_BLOCKS_KEY + " was raised and applies after the restart: "
+                            + "the next start rebuilds the pack again with every TFC block.");
+                }
                 if (built != null) {
                     io.execute(() -> {
                         try {

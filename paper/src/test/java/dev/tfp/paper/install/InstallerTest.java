@@ -490,6 +490,72 @@ class InstallerTest {
         assertThat(startServer(run(L1), ce)).isZero();
     }
 
+    /**
+     * PAR-INFRA-55 (PAR-PROC-37 re-run): the priming start raises serverside-blocks, but CraftEngine read the old value
+     * before our onLoad, so its pack lacks the blocks that could not allocate. The restart rebuilds once even though our
+     * content did not change; a start after that rebuilds nothing.
+     */
+    @Test
+    void raisingServersideBlocksMakesTheNextStartRebuildOnce() throws IOException {
+        shipAllocation(L1);
+        FakePackRebuilder ce = new FakePackRebuilder();
+        java.util.function.Supplier<Installer.Result> start = () -> Installer.run(new Installer.Inputs(AutoInstall.DEFAULTS,
+                plugins, stateDir(), content, "1.0", ALL, 3000, L1), LOG);
+
+        Installer.Result priming = start.get();
+        assertThat(Installer.blocksChangeAfterRestart(priming)).isTrue();
+        assertThat(Files.readString(plugins.resolve("CraftEngine/config.yml"))).contains("serverside-blocks: 4000");
+        assertThat(priming.status().restartRequired()).isTrue();
+        assertThat(startServer(priming, ce)).isEqualTo(1);
+        assertThat(Installer.readPackRecord(stateDir())).isEmpty(); // that build is not recorded
+        assertThat(stateDir().resolve(Installer.REBUILD_AFTER_RESTART_FILE)).isRegularFile();
+
+        Installer.Result restart = start.get();
+        assertThat(Installer.blocksChangeAfterRestart(restart)).isFalse();
+        assertThat(restart.status().restartRequired()).isFalse();
+        assertThat(restart.status().packRebuild()).isTrue();
+        assertThat(restart.packPlan().reason()).contains("serverside-blocks was raised at the previous start");
+        assertThat(startServer(restart, ce)).isEqualTo(1);
+        assertThat(Installer.readPackRecord(stateDir())).contains(restart.packFingerprint());
+        assertThat(stateDir().resolve(Installer.REBUILD_AFTER_RESTART_FILE)).doesNotExist();
+
+        Installer.Result normal = start.get();
+        assertThat(normal.packPlan().rebuild()).isFalse();
+        assertThat(normal.status().packRebuild()).isFalse();
+        assertThat(startServer(normal, ce)).isZero();
+        assertThat(ce.requests()).isEqualTo(2);
+    }
+
+    /** PAR-INFRA-55: content unchanged, record present, a start whose serverside-blocks already fits asks for nothing. */
+    @Test
+    void aStartThatRaisesNothingAsksForNoExtraRebuild() throws IOException {
+        shipAllocation(L1);
+        FakePackRebuilder ce = new FakePackRebuilder();
+        assertThat(startServer(run(L1), ce)).isEqualTo(1);
+        Installer.Result again = run(L1);
+        assertThat(Installer.blocksChangeAfterRestart(again)).isFalse();
+        assertThat(again.packPlan().rebuild()).isFalse();
+        assertThat(stateDir().resolve(Installer.REBUILD_AFTER_RESTART_FILE)).doesNotExist();
+        assertThat(startServer(again, ce)).isZero();
+    }
+
+    /** PAR-INFRA-55: the marker survives a failed rebuild after the restart, so the start after that tries again. */
+    @Test
+    void failedRebuildAfterTheRaisingStartIsRetried() throws IOException {
+        shipAllocation(L1);
+        FakePackRebuilder ce = new FakePackRebuilder();
+        java.util.function.Supplier<Installer.Result> start = () -> Installer.run(new Installer.Inputs(AutoInstall.DEFAULTS,
+                plugins, stateDir(), content, "1.0", ALL, 3000, L1), LOG);
+        assertThat(startServer(start.get(), ce)).isEqualTo(1);
+        ce.succeeding(false);
+        assertThat(startServer(start.get(), ce)).isEqualTo(1);
+        ce.succeeding(true);
+        Installer.Result third = start.get();
+        assertThat(third.packPlan().reason()).contains("serverside-blocks");
+        assertThat(startServer(third, ce)).isEqualTo(1);
+        assertThat(startServer(start.get(), ce)).isZero();
+    }
+
     @Test
     void missingAllocationIsReportedAndDegrades() throws IOException {
         Installer.Result r = run(L2);

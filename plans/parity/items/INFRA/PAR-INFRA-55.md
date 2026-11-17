@@ -2,7 +2,7 @@
 id: PAR-INFRA-55
 title: "Installer: rebuild the CraftEngine pack on the restart that applies a raised serverside-blocks (the first-install pack misses the blocks that could not allocate)"
 area: INFRA
-status: open
+status: done
 wave: 15
 deps: [PAR-INFRA-54]
 size: S
@@ -20,6 +20,7 @@ in_game_steps:
 plan:
   - "Seen 2026-11-14 (PAR-PROC-37 re-run): the priming start builds the CraftEngine pack while serverside-blocks is still 2000, so CraftEngine refuses tfp:log_pile, tfp:burning_log_pile and tfp:charcoal_pile ('Cannot allocate enough real block states') and their blockstates and models are missing from the pack. The restart allocates them, but our content fingerprint did not change, so the installer asks for no rebuild and CraftEngine serves the cached first-start pack: a one-log pile shows a vanilla iron trapdoor until `ce reload all`. Any first install on a server whose serverside-blocks must grow hits this."
   - "Fix: when the installer raises serverside-blocks (or any other setting that only takes effect after a restart and changes which blocks CraftEngine loads), record that the next start must rebuild the pack (e.g. clear the last-build fingerprint PackBuild keeps, or fold the applied serverside-blocks value into the fingerprint), so the restart rebuilds once."
+  - "Done: Installer writes install/pack-rebuild-after-restart.txt when its edit raises CraftEngine block.serverside-blocks; PackRebuildTrigger does not record that start's build; the next start plans one rebuild from the marker (content unchanged) and recordPackBuilt removes it. Tests: InstallerTest +3 (raise -> one rebuild on restart -> none after; no raise -> none; failed rebuild retried), ./gradlew check green. In-game steps left to the verify stage (evidence: docs/verification/PAR-INFRA-55/)."
 tests:
   - "paper: InstallerTest (a start that raises serverside-blocks makes the next start ask for one rebuild; a start that changes nothing asks for none)"
 done_criteria:

@@ -50,6 +50,16 @@ public final class Installer {
     static final String GLUE_DIR = "glue/";
     /** The allocation files installed into the CraftEngine pack (the suppression list stays in the jar). */
     public static final List<String> VISUAL_FILES = List.of("visual_templates.yml", "visual_mappings.yml");
+    /**
+     * PAR-INFRA-55: the CraftEngine setting that decides which of our blocks CraftEngine can allocate. It is read before
+     * our {@code onLoad}, so the start that raises it builds a pack without the blocks that did not fit.
+     */
+    public static final String SERVERSIDE_BLOCKS_KEY = "block.serverside-blocks";
+    /**
+     * PAR-INFRA-55: written (in the state folder) by the start that raised {@link #SERVERSIDE_BLOCKS_KEY}; while it
+     * exists every start rebuilds the pack, and {@link #recordPackBuilt} removes it.
+     */
+    public static final String REBUILD_AFTER_RESTART_FILE = "pack-rebuild-after-restart.txt";
 
     /**
      * @param pluginsDir     the server's {@code plugins/} folder
@@ -149,11 +159,55 @@ public final class Installer {
             failures.add("config edits failed: " + e);
         }
 
+        if (ce != null) {
+            plan = rebuildAfterRestart(in.stateDir(), edits, plan, log);
+        }
         // A changed CE file always changes the fingerprint, so the plan covers ce.changed() too.
         InstallStatus status = InstallStatus.decide(edits, ceInstalled, plan.rebuild(), failures);
         Result result = new Result(status, ce, bh, skipped, edits, plan, fingerprint);
         logResult(result, log);
         return result;
+    }
+
+    /**
+     * True if this run raised {@link #SERVERSIDE_BLOCKS_KEY}: CraftEngine applies it only at the next start, so this
+     * run's pack lacks the blocks that could not allocate and its build must not be recorded ({@link PackRebuildTrigger}).
+     */
+    public static boolean blocksChangeAfterRestart(Result r) {
+        return r != null && raisedServersideBlocks(r.edits());
+    }
+
+    private static boolean raisedServersideBlocks(List<EditResult> edits) {
+        return edits.stream().anyMatch(e -> e.outcome() == ConfigEdit.Outcome.APPLIED
+                && e.edit().target() == ConfigEdit.Target.CRAFTENGINE_CONFIG
+                && e.edit().key().equals(SERVERSIDE_BLOCKS_KEY));
+    }
+
+    /**
+     * PAR-INFRA-55. A start that raises {@link #SERVERSIDE_BLOCKS_KEY} leaves {@value #REBUILD_AFTER_RESTART_FILE};
+     * a later start that finds it rebuilds the pack even when our content did not change (the marker is removed
+     * once that rebuild is recorded). The raising start itself keeps its own plan.
+     */
+    static PackBuild.Plan rebuildAfterRestart(Path stateDir, List<EditResult> edits, PackBuild.Plan plan, Logger log) {
+        Path marker = stateDir.resolve(REBUILD_AFTER_RESTART_FILE);
+        if (raisedServersideBlocks(edits)) {
+            String change = edits.stream().filter(e -> e.edit().key().equals(SERVERSIDE_BLOCKS_KEY)).findFirst()
+                    .map(e -> e.before() + " -> " + e.after()).orElse("");
+            try {
+                AtomicFiles.write(marker, ("CraftEngine " + SERVERSIDE_BLOCKS_KEY + " raised " + change
+                        + ": the next start rebuilds the CraftEngine pack\n").getBytes(StandardCharsets.UTF_8));
+            } catch (IOException | RuntimeException e) {
+                log.log(Level.WARNING, "Cannot record that the next start must rebuild the CraftEngine pack;"
+                        + " after the restart run /ce reload all", e);
+            }
+            return plan;
+        }
+        if (!Files.exists(marker)) {
+            return plan;
+        }
+        String why = "CraftEngine " + SERVERSIDE_BLOCKS_KEY + " was raised at the previous start, so its pack missed the"
+                + " blocks that could not allocate then";
+        return new PackBuild.Plan(true, plan.migrateWorldData(), plan.rebuild() ? plan.reason() + "; " + why : why);
     }
 
     /** True if every edit of {@code target} in {@code r} is still {@link ConfigEdit.Outcome#FILE_MISSING} (pending). */
@@ -265,9 +319,13 @@ public final class Installer {
         }
     }
 
-    /** Records that a CraftEngine rebuild delivered {@code fingerprint}. Blocking I/O: io executor. */
+    /**
+     * Records that a CraftEngine rebuild delivered {@code fingerprint} and clears {@value #REBUILD_AFTER_RESTART_FILE}.
+     * Blocking I/O: io executor.
+     */
     public static void recordPackBuilt(Path stateDir, PackBuild.Fingerprint fingerprint) throws IOException {
         AtomicFiles.write(stateDir.resolve(PackBuild.RECORD_FILE), fingerprint.toJson().getBytes(StandardCharsets.UTF_8));
+        Files.deleteIfExists(stateDir.resolve(REBUILD_AFTER_RESTART_FILE));
     }
 
     private static ContentInstaller.Report installTree(Inputs in, String sourceRel, Path target, String label,
