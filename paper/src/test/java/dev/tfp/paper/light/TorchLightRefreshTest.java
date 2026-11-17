@@ -46,7 +46,7 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
 /**
  * PAR-HEAT-28: a torch that burns out while its chunk loads requests the light resend of the chunk holding the changed
- * position, {@link TorchService#REFRESH_DELAY_TICKS} after the apply step (so the client loses the lit torch's block light
+ * position and of the neighbour chunks its light reached, {@link TorchService#REFRESH_DELAY_TICKS} after the apply step (so the client loses the lit torch's block light
  * 14 without a relog); one resend per chunk and change, none for a torch still burning or for a player's douse. The
  * resend waits while the server's light engine still holds the lit light at a changed position ({@link
  * TorchService.LightProbe}), at most {@link TorchService#REFRESH_MAX_TICKS}.
@@ -194,6 +194,15 @@ class TorchLightRefreshTest extends MockServerTest {
         return new BlockPos(b.getX(), b.getY(), b.getZ());
     }
 
+    /** The resends of one chunk. */
+    private List<Refresh> in(int chunkX, int chunkZ) {
+        return refreshes.stream().filter(r -> r.chunkX() == chunkX && r.chunkZ() == chunkZ).toList();
+    }
+
+    private static String chunk(long key) {
+        return (int) (key >> 32) + "," + (int) key;
+    }
+
     @Test
     void chunkLoadBurnoutRequestsTheLightResendOfItsChunkAfterTheDelay() {
         Block floor = placeLit(2, 3, BlockStateRef.of("tfp:torch"));
@@ -206,11 +215,14 @@ class TorchLightRefreshTest extends MockServerTest {
         ticks(TorchService.REFRESH_DELAY_TICKS - 1);
         assertThat(refreshes).isEmpty(); // not before the light engine settled
         ticks(2);
-        assertThat(refreshes)
+        assertThat(in(0, 0))
             .containsExactly(new Refresh("torch-light", 0, 0, applied + TorchService.REFRESH_DELAY_TICKS));
-        assertThat(service.lightRefreshes()).isEqualTo(1);
+        // (2, 3) lit the chunks west (3 blocks), north (4), south (13) and north-west (7) too; east is 14 away
+        assertThat(refreshes).extracting(r -> r.chunkX() + "," + r.chunkZ())
+            .containsExactlyInAnyOrder("0,0", "-1,0", "0,-1", "0,1", "-1,-1");
+        assertThat(service.lightRefreshes()).isEqualTo(5);
         ticks(20);
-        assertThat(refreshes).hasSize(1); // once per change
+        assertThat(refreshes).hasSize(5); // once per chunk and change
     }
 
     @Test
@@ -224,13 +236,16 @@ class TorchLightRefreshTest extends MockServerTest {
         ticks(TorchService.REFRESH_DELAY_TICKS + 3);
         assertThat(blocks.stateAt(wall).orElseThrow())
             .isEqualTo(BlockStateRef.of("tfp:dead_wall_torch").with("facing", "east"));
-        assertThat(refreshes).extracting(r -> r.chunkX() + "," + r.chunkZ()).containsExactlyInAnyOrder("0,0", "1,0");
+        assertThat(refreshes).extracting(r -> r.chunkX() + "," + r.chunkZ()).contains("0,0", "1,0")
+            .doesNotHaveDuplicates(); // the three torches' light overlaps: one resend per chunk
         // a later burnout in the same chunk gets a resend of its own
         Block late = placeLit(3, 3, BlockStateRef.of("tfp:torch"));
         clock.addAndGet(4L * DAY);
         service.chunkLoaded(late.getChunk(), List.of(pos(late)));
         ticks(TorchService.REFRESH_DELAY_TICKS + 3);
-        assertThat(refreshes).hasSize(3);
+        assertThat(in(0, 0)).hasSize(2);
+        assertThat(in(1, 0)).hasSize(2); // (3, 3) is 13 blocks from chunk 1,0: 16 - 3 = 13, reached
+        assertThat(in(2, 0)).isEmpty();
     }
 
     @Test
@@ -265,10 +280,11 @@ class TorchLightRefreshTest extends MockServerTest {
         unsettled.clear();
         long settledAt = tick;
         ticks(TorchService.REFRESH_POLL_TICKS + 1);
-        assertThat(refreshes).hasSize(1);
-        assertThat(refreshes.get(0).tick()).isBetween(settledAt, settledAt + TorchService.REFRESH_POLL_TICKS);
+        assertThat(in(0, 0)).hasSize(1);
+        assertThat(in(0, 0).get(0).tick()).isBetween(settledAt, settledAt + TorchService.REFRESH_POLL_TICKS);
+        int sent = refreshes.size();
         ticks(40);
-        assertThat(refreshes).hasSize(1);
+        assertThat(refreshes).hasSize(sent);
     }
 
     @Test
@@ -283,9 +299,53 @@ class TorchLightRefreshTest extends MockServerTest {
         service.chunkLoaded(wall.getChunk(), List.of(pos(wall))); // joins the floor torch's pending resend
         ticks(TorchService.REFRESH_DELAY_TICKS + 2);
         assertThat(blocks.stateAt(wall).orElseThrow().id()).isEqualTo("tfp:dead_wall_torch");
-        assertThat(refreshes).isEmpty(); // waits for the joined wall torch too
+        assertThat(in(0, 0)).isEmpty(); // waits for the joined wall torch too
         ticks(TorchService.REFRESH_MAX_TICKS);
-        assertThat(refreshes).containsExactly(new Refresh("torch-light", 0, 0, TorchService.REFRESH_MAX_TICKS));
+        assertThat(in(0, 0)).containsExactly(new Refresh("torch-light", 0, 0, TorchService.REFRESH_MAX_TICKS));
+    }
+
+    @Test
+    void theReachIsTheOwnChunkAndTheNeighboursTheLitLightGotTo() {
+        assertThat(TorchService.chunksInReach(new BlockPos(8, 64, 8))).extracting(TorchLightRefreshTest::chunk)
+            .containsExactly("0,0", "-1,0", "0,-1", "0,1", "1,0"); // 9 and 8 blocks to the edges; corners 17 and 16
+        assertThat(TorchService.chunksInReach(new BlockPos(-1, 64, 15))).extracting(TorchLightRefreshTest::chunk)
+            .containsExactly("-1,0", "-1,1", "0,0", "0,1"); // the corner of four chunks
+        assertThat(TorchService.chunksInReach(new BlockPos(18 * 16 + 6, 70, -16 + 2)))
+            .extracting(TorchLightRefreshTest::chunk)
+            .containsExactly("18,-1", "17,-2", "17,-1", "18,-2", "19,-2", "19,-1"); // 19,-2: 10 + 3 = 13, reached
+    }
+
+    /**
+     * The in-game failure on 946ba98 (GUI 2): a floor torch and a wall torch 9 blocks apart in two chunks. The floor
+     * torch's chunk was resent while the server still held the wall torch's light (14 - 9 = 5) in the floor cell, and the
+     * client kept 5 there. The floor chunk now waits for the wall torch's light too, and is resent again after a burnout
+     * whose light reached it, even when its own resend already went out.
+     */
+    @Test
+    void aNeighbourTorchsBurnoutHoldsAndRepeatsTheResendOfTheChunkItsLightReached() {
+        Block floor = placeLit(12, 4, BlockStateRef.of("tfp:torch"));
+        Block wall = placeLit(21, 4, BlockStateRef.of("tfp:wall_torch").with("facing", "east"));
+        unsettled.add(pos(wall));
+        clock.addAndGet(4L * DAY);
+        service.chunkLoaded(floor.getChunk(), List.of(pos(floor)));
+        service.chunkLoaded(wall.getChunk(), List.of(pos(wall)));
+        ticks(TorchService.REFRESH_DELAY_TICKS + 3 * TorchService.REFRESH_POLL_TICKS);
+        assertThat(blocks.stateAt(floor).orElseThrow().id()).isEqualTo("tfp:dead_torch");
+        assertThat(blocks.stateAt(wall).orElseThrow().id()).isEqualTo("tfp:dead_wall_torch");
+        assertThat(in(0, 0)).isEmpty(); // the floor's own light settled, the wall torch's 5 in it did not
+        assertThat(in(1, 0)).isEmpty();
+        unsettled.clear();
+        ticks(TorchService.REFRESH_POLL_TICKS + 1);
+        assertThat(in(0, 0)).hasSize(1);
+        assertThat(in(1, 0)).hasSize(1);
+
+        // the wall torch is relit and burns out after the floor chunk's resend went out: the floor chunk is sent again
+        assertThat(service.light(wall)).isTrue();
+        clock.addAndGet(4L * DAY);
+        service.chunkLoaded(wall.getChunk(), List.of(pos(wall)));
+        ticks(TorchService.REFRESH_DELAY_TICKS + 3);
+        assertThat(in(0, 0)).hasSize(2);
+        assertThat(in(1, 0)).hasSize(2);
     }
 
     @Test

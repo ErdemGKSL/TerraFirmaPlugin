@@ -57,8 +57,9 @@ import org.bukkit.block.Block;
  *            (relit, broken, replaced); otherwise the dead kind is placed with the same facing
  * </pre>
  *
- * PAR-HEAT-28: after the apply step swaps a torch, the chunk's light is sent again to the players tracking it once the
- * server's light engine settled ({@link LightRefresh}, one resend per changed chunk and refresh window). A torch that
+ * PAR-HEAT-28: after the apply step swaps a torch, the light of its chunk and of the neighbour chunks its light reached
+ * is sent again to the players tracking them once the server's light engine settled ({@link LightRefresh}, one resend
+ * per changed chunk and refresh window). A torch that
  * burns out while its chunk loads can otherwise be committed around the chunk packet, and the client kept the lit
  * torch's block light 14 in the dead torch until a relog. "Settled" is read, not assumed ({@link LightProbe}): right
  * after a chunk load the server's light engine (Moonrise, off the tick thread) was seen still holding 14 in the dead
@@ -90,7 +91,7 @@ public final class TorchService {
 
     /**
      * PAR-HEAT-28: sends the light of one chunk again to the players tracking it. Called on the chunk's region thread,
-     * {@link #REFRESH_DELAY_TICKS} after a burnout was applied there.
+     * at least {@link #REFRESH_DELAY_TICKS} after a burnout whose light reached the chunk was applied.
      */
     @FunctionalInterface
     public interface LightRefresh {
@@ -134,7 +135,8 @@ public final class TorchService {
         /**
          * Paper: the server block light at the position is below the lit torch's {@link #LIT_BLOCK_LIGHT} (the removed
          * source left only light from neighbours, at most one less). An unloaded chunk, or a server implementation
-         * without light access, counts as settled.
+         * without light access (also a position another Folia region owns, read for a neighbour chunk's wait),
+         * counts as settled.
          */
         LightProbe PAPER = (world, pos) -> {
             if (!world.isChunkLoaded(pos.chunkX(), pos.chunkZ())) {
@@ -317,14 +319,49 @@ public final class TorchService {
     }
 
     /**
-     * PAR-HEAT-28: queues the light resend of the chunk holding {@code pos} after a burnout there, once per chunk while
-     * one is pending (a later burnout in the chunk joins it). The resend waits {@link #REFRESH_DELAY_TICKS}, then checks
-     * every {@link #REFRESH_POLL_TICKS} until the light at every joined position settled ({@link LightProbe}), at most
-     * until {@link #REFRESH_MAX_TICKS}. Region thread of the chunk (the commit queue's apply step).
+     * PAR-HEAT-28: queues the light resend of every chunk the burnt-out torch at {@code pos} lit ({@link #chunksInReach}:
+     * its own chunk and the neighbours its light 14 reached), once per chunk while one is pending (a later burnout whose
+     * light reached the chunk joins it). Each chunk's resend waits {@link #REFRESH_DELAY_TICKS}, then checks every
+     * {@link #REFRESH_POLL_TICKS} until the light at every joined position settled ({@link LightProbe}), at most until
+     * {@link #REFRESH_MAX_TICKS}. The neighbours matter: a floor torch's chunk sent before the light of a dead wall torch 9
+     * blocks away in the next chunk was removed kept that torch's light 5 on the client (2026-11-17, Paper 1.21.11).
+     * Region thread of {@code pos} (the commit queue's apply step); each chunk's checks run on that chunk's region.
      */
     void queueLightRefresh(World world, BlockPos pos) {
+        for (long key : chunksInReach(pos)) {
+            queueChunkRefresh(world, (int) (key >> 32), (int) key, pos);
+        }
+    }
+
+    /**
+     * The chunks (as {@code chunkKey}s, own chunk first) holding a cell the lit torch at {@code pos} gave block light:
+     * those whose nearest column is at most {@code LIT_BLOCK_LIGHT - 1} blocks away (taxicab, as light spreads).
+     */
+    static List<Long> chunksInReach(BlockPos pos) {
+        int reach = LIT_BLOCK_LIGHT - 1;
         int cx = pos.chunkX();
         int cz = pos.chunkZ();
+        List<Long> out = new ArrayList<>();
+        out.add(chunkKey(cx, cz));
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                if (dx == 0 && dz == 0) {
+                    continue;
+                }
+                int nx = cx + dx;
+                int nz = cz + dz;
+                int distX = Math.max(0, Math.max((nx << 4) - pos.x(), pos.x() - ((nx << 4) + 15)));
+                int distZ = Math.max(0, Math.max((nz << 4) - pos.z(), pos.z() - ((nz << 4) + 15)));
+                if (distX + distZ <= reach) {
+                    out.add(chunkKey(nx, nz));
+                }
+            }
+        }
+        return out;
+    }
+
+    /** {@link #queueLightRefresh} for one chunk. */
+    private void queueChunkRefresh(World world, int cx, int cz, BlockPos pos) {
         Map<Long, Pending> pending = refreshing.computeIfAbsent(world.getUID(), id -> new ConcurrentHashMap<>());
         long key = chunkKey(cx, cz);
         long queued = System.nanoTime();

@@ -5,7 +5,7 @@
   from that tree (`:dist:shadowJar`).
 - Server / client: Paper 1.21.11 build 132, CraftEngine/BetterModel/BetterHud from the run-paper cache, headless vanilla
   1.21.11 client, bot `Bot`, fresh TFC world (`TFP_WORLD=1`, primed and restarted per `docs/testing/headless.md`).
-- Unit evidence: `paper/src/test/java/dev/tfp/paper/light/TorchLightRefreshTest.java` (8 tests). `./gradlew check`
+- Unit evidence: `paper/src/test/java/dev/tfp/paper/light/TorchLightRefreshTest.java` (10 tests since round 5). `./gradlew check`
   green on this tree.
 - Run and judged by the main session (no Haiku agent tool in this worker); every frame below was looked at.
 - Verdict: **pass** (after a fix: the stale 14 reproduced on `6381fb6`, see "Before the fix").
@@ -37,7 +37,23 @@ ticks later (viewers=1), and the server block light in the dead torch cell: **14
 again. Fix: `TorchService.LightProbe` holds the resend until the server block light at every burnt-out position of the
 chunk is below 14 (checked every 5 ticks, at most 400 ticks), then resends.
 
-## Results with the fix
+## Round 5: verify run on `946ba98` failed one cell (two-chunk pair)
+
+Verify stage, 2026-11-17, Paper 1.21.11 build 132, headless 1.21.11 client, `/hud turn off`, steps as written. Pair 1
+(GUI 2): floor torch in chunk 18,-1, wall torch in chunk 19,-1, 9 blocks apart. Lit 14 / 14; after the 4-day skip and
+the round trip the wall cell read 0 with no relog, the **floor cell read 5** (still 5 about 10 s later, 0 after a
+relog). Pair 2 (GUI 3, both torches in chunk 20,-1) read 14 / 14 lit and 0 / 0 dead with no relog. Full frames (lossless
+WebP): session scratchpad `ui/PAR-HEAT-28/g2-01..06`, `g3-01..04`.
+
+Cause: 5 = 14 - 9, the wall torch's light in the floor cell. The floor chunk's resend waited only for the floor torch's
+own cell, so it went out while the server still held the neighbour torch's light there, and the wall chunk's later
+resend covers only the wall chunk. Fix: each burnout resends its own chunk and every neighbour chunk its light reached
+(`TorchService.chunksInReach`), each chunk waiting until every burnout whose light reached it settled
+(`TorchLightRefreshTest.aNeighbourTorchsBurnoutHoldsAndRepeatsTheResendOfTheChunkItsLightReached`). The re-run must
+show a two-chunk pair (torches in neighbouring chunks, under 13 blocks apart) reading 0 in both dead cells with no
+relog. The round 4 table below is from the earlier site (torches 20+ blocks apart, so they did not light each other).
+
+## Results with the fix (round 4)
 
 | criterion | GUI | torch (cell) | lit | dead after one skip + round trip, no relog | evidence |
 |---|---|---|---|---|---|
