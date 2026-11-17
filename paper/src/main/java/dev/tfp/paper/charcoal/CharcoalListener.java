@@ -16,8 +16,11 @@ package dev.tfp.paper.charcoal;
 import dev.tfp.core.charcoal.CharcoalPile;
 import dev.tfp.paper.device.StackCodec;
 import dev.tfp.paper.integration.BlockStateRef;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -31,6 +34,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
@@ -49,12 +54,20 @@ import org.bukkit.inventory.ItemStack;
  *
  * Runs on the event's thread, which owns the player; a click whose blocks that thread does not own is left alone. Adventure
  * and spectator players cannot build ({@code player.mayBuild()}); creative players keep their item.
+ *
+ * <p>One click, one use (PAR-PROC-40): after a use-item-on the server answered without a client-side change, the vanilla
+ * client also sends a use-item packet, and CraftBukkit's {@code handleUseItem} ray-traces again and fires a second
+ * {@code RIGHT_CLICK_BLOCK} when the new hit (the pile just placed) differs from the remembered one. A right click of the
+ * same hand in the same server tick (the player's {@code getTicksLived()}) as a handled click is therefore denied, so
+ * neither this listener nor CraftEngine nor vanilla act on it.
  */
 public final class CharcoalListener implements Listener {
     private final CharcoalPitDevice device;
     private final CharcoalPitDevice.Services services;
     private final Predicate<Block> owns;
     private final Predicate<String> deviceKind;
+    /** Per player: the tick and hand of the last handled click ({@link #clickKey}). */
+    private final Map<UUID, Long> handledClick = new ConcurrentHashMap<>();
 
     /**
      * @param owns whether the current thread owns a block's region
@@ -70,8 +83,16 @@ public final class CharcoalListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = false)
     public void onInteract(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() == null
-                || event.useItemInHand() == Event.Result.DENY) {
+        Action action = event.getAction();
+        if (event.getHand() == null || (action != Action.RIGHT_CLICK_BLOCK && action != Action.RIGHT_CLICK_AIR)) {
+            return;
+        }
+        if (repeatedClick(event.getPlayer(), event.getHand())) {
+            event.setUseInteractedBlock(Event.Result.DENY);
+            event.setUseItemInHand(Event.Result.DENY);
+            return;
+        }
+        if (action != Action.RIGHT_CLICK_BLOCK || event.useItemInHand() == Event.Result.DENY) {
             return;
         }
         Block clicked = event.getClickedBlock();
@@ -89,9 +110,32 @@ public final class CharcoalListener implements Listener {
             ? charcoal(event.getPlayer(), event.getHand(), clicked, event.getBlockFace(), item)
             : log(event.getPlayer(), event.getHand(), clicked, event.getBlockFace(), item);
         if (handled) {
+            handledClick.put(event.getPlayer().getUniqueId(), clickKey(event.getPlayer(), event.getHand()));
             event.setUseInteractedBlock(Event.Result.DENY);
             event.setUseItemInHand(Event.Result.DENY);
         }
+    }
+
+    /** Whether this right click repeats a click of the same hand this listener handled in the same server tick. */
+    boolean repeatedClick(Player player, EquipmentSlot hand) {
+        Long last = handledClick.get(player.getUniqueId());
+        return last != null && last == clickKey(player, hand);
+    }
+
+    /** The player's tick (ticks lived) and the hand, in one value. */
+    private static long clickKey(Player player, EquipmentSlot hand) {
+        return ((long) player.getTicksLived() << 1) | (hand == EquipmentSlot.OFF_HAND ? 1 : 0);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onQuit(PlayerQuitEvent event) {
+        handledClick.remove(event.getPlayer().getUniqueId());
+    }
+
+    /** A respawned player counts its ticks from zero again: a stale memory must not swallow a later click. */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onRespawn(PlayerRespawnEvent event) {
+        handledClick.remove(event.getPlayer().getUniqueId());
     }
 
     /**

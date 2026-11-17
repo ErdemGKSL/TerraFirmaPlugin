@@ -177,7 +177,7 @@ Totals: 358 items; open 205, done 145, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-INFRA-51 | Held snow layer ghost on snow-layer carriers: the client predicts snow[n+1] on the forge, quern handstone, grill and piles | INFRA | 15 | blocked |
 | PAR-CLIM-22 | Vanilla /time and the night skip on 26.x: CalendarModule.onTimeSkip throws NoSuchMethodError on TimeSkipEvent.getSkipReason() | CLIMATE | 15 | done |
 | PAR-PROC-39 | Powderkeg CE block: tfc:powderkeg hitbox demands, configuration/powderkeg, in-game explosion check | PROC | 15 | open |
-| PAR-PROC-40 | Charcoal sneak click adds two layers: ignore Paper's re-fired RIGHT_CLICK_BLOCK of the same click | PROC | 15 | open |
+| PAR-PROC-40 | Charcoal sneak click adds two layers: ignore Paper's re-fired RIGHT_CLICK_BLOCK of the same click | PROC | 15 | done |
 | PAR-INFRA-55 | Installer: rebuild the CraftEngine pack on the restart that applies a raised serverside-blocks (the first-install pack misses the blocks that could not allocate) | INFRA | 15 | done |
 | PAR-INFRA-58 | Packet-layer boundary: move the PacketEvents-typed heat glow, item bar and block sound handlers under dev.tfp.paper.packet so ArchitectureTest.onlyThePacketLayerTouchesPacketEvents passes | INFRA | 15 | done |
 | PAR-PROC-41 | Sealed barrel item keeps its contents: breaking a sealed barrel drops the barrel with its items and fluid (TFC BarrelComponent), placing it restores them | PROC | 15 | blocked |
