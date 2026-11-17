@@ -43,3 +43,9 @@ the cause. The unit tests cover the resend request. Lossless WebP of every frame
 
 Note for the next torch run: the F3 light line needs `config/debug-profile.json` in the client game dir, format
 `{"custom":{"minecraft:light_levels":"alwaysOn"}}` (camelCase values `alwaysOn`, `inOverlay`, `never`).
+
+Repair round (2026-11-17): reviewer points addressed. The evidence above (committed in 450cc95) satisfies the screenshot
+criterion; the item's Done line now cites it. PAR-HEAT-29's "re-run before changing TorchService" was not done before
+35ab107, so whether the stale light still reproduced without the resend is unknown (recorded as a caveat). Code change in
+the repair: `LightRefresh.PAPER` logs the first failed resend (one warning with the exception) instead of
+swallowing it silently; the light behaviour verified above is unchanged.

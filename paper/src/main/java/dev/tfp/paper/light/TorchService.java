@@ -34,6 +34,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
@@ -91,10 +92,13 @@ public final class TorchService {
     public interface LightRefresh {
         void refresh(World world, int chunkX, int chunkZ);
 
+        /** Set once the unsupported-resend warning was logged. */
+        AtomicBoolean UNSUPPORTED_WARNED = new AtomicBoolean();
+
         /**
          * Paper: {@link World#refreshChunk} (the chunk with its light, to every player seeing it); nothing when no player
-         * sees the chunk. The resend is cosmetic: a server implementation that fails it (a test server without chunk
-         * resends) leaves the light as the engine sent it instead of failing the region task.
+         * sees the chunk. The resend is cosmetic: a server implementation without it (a test server whose
+         * calls throw) logs one warning with the exception and leaves the light as the engine sent it instead of failing the region task.
          */
         LightRefresh PAPER = (world, chunkX, chunkZ) -> {
             if (!world.isChunkLoaded(chunkX, chunkZ)) {
@@ -105,7 +109,12 @@ public final class TorchService {
                     world.refreshChunk(chunkX, chunkZ);
                 }
             } catch (RuntimeException e) {
-                // no resend on this server implementation: the client keeps the light it was sent
+                // no resend on this server implementation: the client keeps the light it was sent (warned once)
+                if (UNSUPPORTED_WARNED.compareAndSet(false, true)) {
+                    org.bukkit.Bukkit.getLogger().warning(
+                            "[tfp] torch light resend unsupported on this server (" + e + "); a torch that burns out"
+                                    + " on chunk load may keep stale client light until the chunk is resent");
+                }
             }
         };
     }
