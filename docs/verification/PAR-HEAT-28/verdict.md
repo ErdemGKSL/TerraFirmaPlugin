@@ -1,73 +1,73 @@
 # PAR-HEAT-28 verification
 
-- Date: 2026-11-17 (round 4; replaces all earlier PAR-HEAT-28 evidence).
-- Code under test: `6381fb6` plus this item's commit (the `TorchService.LightProbe` wait before the resend). Jar built
-  from that tree (`:dist:shadowJar`).
+- Date: 2026-11-17 (run "t6"; replaces all earlier PAR-HEAT-28 evidence, including the rejected round 3 and round 4 crops).
+- Code under test: `54dd05f` (the `TorchService.LightProbe` wait plus the neighbour-chunk resend, `chunksInReach`). Jar
+  built from that tree (`:dist:shadowJar`).
 - Server / client: Paper 1.21.11 build 132, CraftEngine/BetterModel/BetterHud from the run-paper cache, headless vanilla
-  1.21.11 client, bot `Bot`, fresh TFC world (`TFP_WORLD=1`, primed and restarted per `docs/testing/headless.md`).
-- Unit evidence: `paper/src/test/java/dev/tfp/paper/light/TorchLightRefreshTest.java` (10 tests since round 5). `./gradlew check`
-  green on this tree.
-- Run and judged by the main session (no Haiku agent tool in this worker); every frame below was looked at.
-- Verdict: **pass** (after a fix: the stale 14 reproduced on `6381fb6`, see "Before the fix").
+  1.21.11 client, bot `Bot`.
+- Unit evidence: `paper/src/test/java/dev/tfp/paper/light/TorchLightRefreshTest.java` (10 tests, including the two-chunk
+  pair). `./gradlew check` green on this tree.
+- Every frame was looked at and judged by the main session.
+- Verdict: **pass**. Both two-chunk pairs read 14 block light lit and 0 dead in every torch cell, at once and with no relog.
 
-## Setup
+## Setup and steps
 
 `debug-profile.json` in the client game dir (`light_levels`, `looking_at_block`, `player_position` = `alwaysOn`), so F3
-shows `Client Light: N (S sky, B block)`. `/hud turn off` typed by the bot (as op) after every join and after every
-`gamemode survival`, so the BetterHud panel does not cover the F3 lines; dates are read from the `tfp time add` replies.
-Test site next to spawn (land, not ocean): stone floor `fill 1478 66 -2392 1512 70 -2362 stone`, air above, a 3-high
-stone wall at z -2370..-2362. `weather clear 1000000`, `gamemode survival Bot`, `tfp debug thirst Bot 100`,
+shows `Client Light: N (S sky, B block)`. `weather clear 1000000`, `gamemode survival Bot`, `tfp debug thirst Bot 100`,
 `tfp debug hunger Bot 20`, `ce item give Bot tfp:torch 2` per pair.
 
-Every torch was placed by the bot (right click) into the cell it stands in: floor torches looking straight down, wall
-torches looking at the wall (pitch 55) from the cell in front of it, so each reading is the F3 light of the torch's own
-cell (the right-column `Block:` line equals the torch position in every crop).
+- GUI 2 session (`guiScale:2`): floor torch at 14 91 6 (chunk 0,0), wall torch at 17 91 1 (chunk 1,0), 8 blocks apart
+  (taxicab), so each torch's light reaches the other's chunk: the case that failed on `946ba98` (floor cell read 5).
+- GUI 3 session (relaunched with `guiScale:3`): fresh floor torch at 31 91 6 (chunk 1,0), wall torch at 35 91 1
+  (chunk 2,0), again 8 blocks apart across a chunk border, and 17+ blocks from the first pair.
+- Step 4 as written: `gamemode creative Bot`, tp 1800 blocks away, `forceload` removed, wait until `execute if loaded`
+  fails for the torch chunks, one `tfp time add days 4` while unloaded, tp back into the floor torch cell, wait 8 s,
+  `gamemode survival Bot` (the chat line "Your game mode has been updated to Survival Mode" is in the dead frames), then F3
+  in each cell. No relog between the lit and the dead reading of a session.
 
-Step 4 as written: `gamemode creative Bot`, tp 300+ blocks east (x 1800), wait until `execute if loaded` fails for both
-torches (10-11 s), one `tfp time add days 4` while unloaded, tp back into the floor torch cell, wait 8 s,
-`gamemode survival Bot`, then F3 in each cell. No relog between the lit and the dead reading of a pair.
+## Results
 
-## Before the fix (stale 14 reproduced on `6381fb6`)
+Each F3 crop stacks the left column (`Client Light`, `Targeted Block`) over the right column (`XYZ`, `Block`, `Chunk`);
+the `Block` line is the torch cell the bot stands in. GUI 2 crops are scaled 2x (nearest).
 
-First pair (floor 1484 71 -2382, wall 1494 71 -2371, GUI 2, June 1 -> June 5): both dead torches read **14 block light**
-standing in their cells after the round trip, also 15 s later (`11-…`, `12-…`). After a client relog the wall cell read
-0, so the server was right and the client kept stale light. A debug build logged the burnout (viewers=1), the resend 5
-ticks later (viewers=1), and the server block light in the dead torch cell: **14 at +1, +2, +5, +10 ticks**, 0 from
-+20 (the server was busy with chunk loads; +10 to +20 took 8 s). So the old fixed 5-tick resend sent the stale light
-again. Fix: `TorchService.LightProbe` holds the resend until the server block light at every burnt-out position of the
-chunk is below 14 (checked every 5 ticks, at most 400 ticks), then resends.
-
-## Round 5: verify run on `946ba98` failed one cell (two-chunk pair)
-
-Verify stage, 2026-11-17, Paper 1.21.11 build 132, headless 1.21.11 client, `/hud turn off`, steps as written. Pair 1
-(GUI 2): floor torch in chunk 18,-1, wall torch in chunk 19,-1, 9 blocks apart. Lit 14 / 14; after the 4-day skip and
-the round trip the wall cell read 0 with no relog, the **floor cell read 5** (still 5 about 10 s later, 0 after a
-relog). Pair 2 (GUI 3, both torches in chunk 20,-1) read 14 / 14 lit and 0 / 0 dead with no relog. Full frames (lossless
-WebP): session scratchpad `ui/PAR-HEAT-28/g2-01..06`, `g3-01..04`.
-
-Cause: 5 = 14 - 9, the wall torch's light in the floor cell. The floor chunk's resend waited only for the floor torch's
-own cell, so it went out while the server still held the neighbour torch's light there, and the wall chunk's later
-resend covers only the wall chunk. Fix: each burnout resends its own chunk and every neighbour chunk its light reached
-(`TorchService.chunksInReach`), each chunk waiting until every burnout whose light reached it settled
-(`TorchLightRefreshTest.aNeighbourTorchsBurnoutHoldsAndRepeatsTheResendOfTheChunkItsLightReached`). The re-run must
-show a two-chunk pair (torches in neighbouring chunks, under 13 blocks apart) reading 0 in both dead cells with no
-relog. The round 4 table below is from the earlier site (torches 20+ blocks apart, so they did not light each other).
-
-## Results with the fix (round 4)
-
-| criterion | GUI | torch (cell) | lit | dead after one skip + round trip, no relog | evidence |
+| criterion | GUI | cell | lit (date) | dead after one skip + round trip, no relog (date) | evidence |
 |---|---|---|---|---|---|
-| floor torch reads 0 at once, no relog | 2 | floor 1480 71 -2386 | `15 sky, 14 block`, targets `minecraft:torch` | `15 sky, 0 block`, targets `torchflower_crop[age=1]` (dead carrier), August 1 | `01-gui2-lit-floor-f3-block14.png`, `03-gui2-dead-floor-f3-block0-no-relog.png` |
-| wall torch reads 0 at once, no relog | 2 | wall 1486 71 -2371 (facing north) | `15 sky, 14 block`, targets `minecraft:wall_torch` | `15 sky, 0 block`, targets `big_dripleaf[tilt=full]` (dead wall carrier), August 1 | `02-gui2-lit-wall-f3-block14.png`, `04-gui2-dead-wall-f3-block0-no-relog.png` |
-| floor torch reads 0 at once, no relog | 3 | floor 1500 71 -2380 | `15 sky, 14 block`, targets `minecraft:torch` | `15 sky, 0 block`, targets `torchflower_crop[age=1]`, August 6 | `06-gui3-lit-floor-f3-block14.png`, `08-gui3-dead-floor-f3-block0-no-relog.png` |
-| wall torch reads 0 at once, no relog | 3 | wall 1511 71 -2371 (facing north) | `14 sky, 14 block`, targets `minecraft:wall_torch` | `14 sky, 0 block`, targets `big_dripleaf[tilt=full]`, August 6 | `07-gui3-lit-wall-f3-block14.png`, `09-gui3-dead-wall-f3-block0-no-relog.png` |
-| dead torches look dead | 2 / 3 | both cells of each pair | | charred stick on the wall (left) and on the floor (right) | `05-gui2-dead-wall-and-floor-torch-view.png`, `10-gui3-dead-wall-and-floor-torch-view.png` |
+| floor torch reads 0 at once, no relog | 2 | floor 14 91 6, chunk 0 | `15 sky, 14 block` (June 1) | `15 sky, 0 block` (June 5) | `01-gui2-lit-floor-f3-block14.png`, `03-gui2-dead-floor-f3-block0-no-relog.png` |
+| wall torch reads 0 at once, no relog | 2 | wall 17 91 1, chunk 1 | `15 sky, 14 block` (June 1) | `15 sky, 0 block` (June 5) | `02-gui2-lit-wall-f3-block14.png`, `04-gui2-dead-wall-f3-block0-no-relog.png` |
+| floor torch reads 0 at once, no relog | 3 | floor 31 91 6, chunk 1 | `15 sky, 14 block` (June 5) | `15 sky, 0 block` (July 1) | `06-gui3-lit-floor-f3-block14.png`, `08-gui3-dead-floor-f3-block0-no-relog.png` |
+| wall torch reads 0 at once, no relog | 3 | wall 35 91 1, chunk 2 | `15 sky, 14 block` (June 5) | `15 sky, 0 block` (July 1) | `07-gui3-lit-wall-f3-block14.png`, `09-gui3-dead-wall-f3-block0-no-relog.png` |
+| dead torch looks dead | 2 / 3 | dead wall torch seen from the dead floor cell | | charred stick on the wall | `05-gui2-dead-wall-torch-view.png`, `10-gui3-dead-wall-torch-view.png` |
 
-The torches of a pair are 20-21 blocks apart (Manhattan), the GUI 3 pair 20+ blocks from the GUI 2 pair, so no torch adds
-light to another's reading. The GUI 3 pair was placed fresh after the relaunch with `guiScale:3`; its lit and dead
-readings come from that one session. The GUI 2 lit and dead readings come from one session too. Each crop stacks the F3
-left column (`Client Light`, `Targeted Block` and the block state) over the right column's `XYZ` / `Block` lines.
-Rain in `05`/`10` is the plugin's weather cycle. Lossless WebP full frames: session scratchpad `ui/PAR-HEAT-28/r4-*.webp`.
+The GUI 2 floor reading of 14 is the floor torch's own light: the wall torch is 8 blocks away and would give about 6
+there. The neighbour torch's light is gone in both dead cells of both pairs (0, not 14 - 8 = 6), which is what the
+`chunksInReach` resend fixes.
+
+The stale 14 (and the stale neighbour 5 of `946ba98`) did not reproduce with the resend in place. PAR-HEAT-29 already
+read 0 once without it, so the stale light is intermittent; the stale 14 did reproduce on `6381fb6` before the
+`LightProbe` wait, and the stale 5 on `946ba98` before the neighbour resend. The resend is kept as a guard (one chunk
+resend per affected chunk, only with viewers).
+
+## Deviations from the steps
+
+1. The BetterHud date/temperature panel overlaps the first F3 line (`/hud turn off` in this setup is not BetterHud's
+   command and did not hide it). The light values (`15 sky, 14 block` / `15 sky, 0 block`) stay readable in every crop and
+   the date is read from the HUD panel itself.
+2. The test site is a stone platform at y 90 above terrain at heights 81-91, not built on land. Chunk unload and load
+   behaved normally (forceload removed, 1800-block tp away, `execute if loaded` failed before the skip).
+3. `Targeted Block` points at the stone behind or below the torch cell, not at the torch carrier; the `Block` line shows
+   the bot stands in the torch cell, which is what the steps ask for.
+4. Full frame `t6-g2-01-lit-floor.webp` (session scratchpad) is mislabeled (a GUI 3 frame of 35 91 1 on July 1) and is
+   not used; the GUI 2 lit floor evidence is `t6-g2-01-lit-floor-b.webp`.
+
+Lossless WebP full frames: session scratchpad `ui/PAR-HEAT-28/t6-*.webp`.
+
+## History
+
+- `6381fb6`: both dead torches read 14 after the round trip (server engine still held 14 ten ticks after the swap); fixed
+  by the `LightProbe` wait.
+- `946ba98`: two-chunk pair, dead floor cell read 5 (the neighbour wall torch's light) until a relog; fixed by
+  `chunksInReach` in `54dd05f`, verified above.
 
 Fidelity: TFC (`TFCTorchBlock` / `DeadTorchBlock`) needs no resend because the NeoForge client relights on the block
-change; the plugin-side resend is a platform workaround with no gameplay effect, so no divergence row.
+change; the resend is a client-sync workaround with no gameplay effect. The Folia limit of the light probe is a
+Divergences row in `docs/porting/ledger.md`.
