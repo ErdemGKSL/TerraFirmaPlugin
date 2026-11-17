@@ -85,7 +85,7 @@ Plan mentions of a GUI or a device with no specific screen. These get no row in 
 | `M6-DECO-01` (chests) | Chests and trapped chests are named as blocks; no GUI word. | `RestrictedChestContainer` extends vanilla `ChestMenu`; no TFC screen | Vanilla chest screen, or a textured one? |
 
 TFC screens that no plan item names (not in section 1):
-- `FireboxScreen`, `FireboxContainer` (opened by `FireboxBlock`).
+- `FireboxScreen`, `FireboxContainer` (opened by `FireboxBlock`). Built by PAR-HEAT-12: TFC's `firebox.png` re-laid out by datagen `firebox/FireboxScreenArt` for a 5-row chest (16 slots on chest columns 3-6, thermometer sprite and 52-frame indicator, the status line as the tooltip of chest row 4); layout `core/firebox/FireboxScreenLayout`, screen `paper/firebox/FireboxScreens`.
 - `SaladScreen`, `SaladContainer`.
 - `CreateTFCWorldScreen`: world creation, not gameplay. Excluded from the counts.
 

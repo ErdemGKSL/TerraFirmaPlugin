@@ -51,3 +51,4 @@ dev.tfp.paper.grill.GrillModule
 dev.tfp.paper.pot.PotModule
 dev.tfp.paper.light.candle.CandleModule
 dev.tfp.paper.tooltip.feature.FeatureTooltipModule
+dev.tfp.paper.firebox.FireboxModule

@@ -144,6 +144,9 @@ public final class Datagen {
         if (dev.tfp.datagen.powderkeg.PowderkegBlock.available(tfc)) { // PAR-PROC-39: tfp:powderkeg entry on the selector's carriers, models, textures, names; fixtures have no powderkeg
             dev.tfp.datagen.powderkeg.PowderkegBlock.run(tfc, out);
         }
+        if (dev.tfp.datagen.firebox.FireboxScreenArt.available(tfc)) { // PAR-HEAT-12: firebox screen art; fixtures have no firebox screen
+            dev.tfp.datagen.firebox.FireboxScreenArt.run(tfc, out);
+        }
         if (dev.tfp.datagen.salad.SaladArt.available(tfc)) { // PAR-PROC-36: salad screen art; fixtures have no salad screen
             dev.tfp.datagen.salad.SaladArt.run(tfc, out);
         }
