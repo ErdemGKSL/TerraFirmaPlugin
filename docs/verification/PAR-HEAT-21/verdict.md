@@ -32,7 +32,7 @@ torches so Bot can stand in the torch block for the F3 light reading. The weathe
 | The wall one still faces the wall (the repair) | pass: from the same camera the dead wall torch is exactly where the lit one was, bottom at the pillar face, top leaning out; all four facings | `00-gui2-wall-side-lit-vs-dead` (north and east facings, lit left, dead right), `19-gui2-south-west-facings-lit-vs-dead`, `20-gui2-east-facing-lit-vs-dead`, `21-gui2-vanilla-wall-torch-reference` (a real `minecraft:wall_torch[facing=south]` set by command) |
 | Dead torches give no light (F3) | pass after a client relog: `0 block` in the dead floor and dead wall torch blocks. Before the relog the client still read 14 (`18-...-stale-before-relog`): the server's light is right, the client kept the light of the chunk sent before the swap. Follow-up PAR-HEAT-28 | `11-gui2-dead-floor-f3`, `12-gui2-dead-wall-f3`, `14-gui3-dead-floor-f3`, `15-gui3-dead-wall-f3`, `18-gui2-dead-floor-f3-stale-before-relog` |
 | Held torch on the dead floor and dead wall torch relights each; the held torch is not placed | pass: both lit again, the wall one on the first click at pitch 3 (the outline is on the wall face where the model is now), held count stays 4 | `16-gui3-relit-side` |
-| Fresh torch, then right click and sneak right click on it with a torch: no second torch | pass: count 4 -> 3 for the placement, stays 3 after both clicks, one torch on the floor | `17-gui3-fresh-torch` |
+| Fresh torch, then right click and sneak right click on it with a torch: no second torch | FAIL (re-run 2026-11-17 on c872b23): the normal click places nothing (count stays 2), the sneak click places a second torch in front of the lit one (count 2 -> 1). The first run's pass (count 4 -> 3 -> 3) is withdrawn: `TorchListener` has no sneak path, so that click most likely did not send the sneak. Fix needs `TorchListener` (outside files_owned): item blocked | `17-gui3-fresh-torch`; re-run frames `t3-no-second-torch-normal.webp`, `t3-no-second-torch-sneak.webp` in the session scratchpad `ui/PAR-HEAT-21/` |
 | Shot list (lit floor, lit wall, dead floor, dead wall x GUI 2 and 3) | pass: all eight are in this folder. GUI 2: lit floor `01`, lit wall `02`, dead floor `07`, dead wall `08`. GUI 3: lit floor `22`, lit wall `23`, dead floor `24`, dead wall `25` (added 2026-11-17 from the same session's frames `gui3-{lit,dead}-{floor,wall}.webp`; HUD at scale 3, June 1 lit / June 5 dead). Lossless WebP of every frame in the session scratchpad `ui/PAR-HEAT-21/` | `01`, `02`, `07`, `08`, `22`-`25` |
 
 ## Side check: dead wall torch outline
@@ -52,4 +52,12 @@ pins TFC's shapes and this claim; the ledger's "dead torch outlines" divergence 
   candidate dump: coral wall fans, lever, tripwire hook, signs, banners, ...). This item keeps the pressed button and the
   ledger's "dead torch outlines" divergence row, which now points at PAR-HEAT-29.
 
-Verdict: pass for every criterion this item owns; the two deferred checks above are tracked in PAR-HEAT-28 and PAR-HEAT-29.
+## Re-run 2026-11-17 (HEAD c872b23, Paper 1.21.11 headless, pack applied)
+
+Pass: lit floor and wall with flame; relit dead floor (held count unchanged); stick on the lit floor torch (sticks 2 -> 1,
+torches 1 -> 2); `tfp time add days 4` kills both; held torch on the dead wall torch relights it, nothing placed; all eight
+required shots at GUI scale 2 and 3. Fail: the sneak click with a held torch on a lit torch places a second torch.
+F3 block light was not captured in this run (the F3 profile showed no light level); the earlier readings above stand.
+
+Verdict: FAIL on the sneak-click step (item blocked on `TorchListener`, see the item's first plan line); every other
+criterion passes; the two deferred checks above are tracked in PAR-HEAT-28 and PAR-HEAT-29.
