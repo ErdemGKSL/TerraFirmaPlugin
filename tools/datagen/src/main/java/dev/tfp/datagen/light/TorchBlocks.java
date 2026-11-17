@@ -238,6 +238,16 @@ public final class TorchBlocks {
         return HitboxDemands.wallTorchY(facing);
     }
 
+    /**
+     * The entity_renderer yaw of a block model turned by blockstate {@code y}. A block model shown by an item display
+     * needs a half turn (see ComposterBlock.RENDER_ROTATION), and CraftEngine's "x,y,z" rotation is a quaternion about +Y
+     * (counterclockwise seen from above) while a blockstate y turns clockwise, so the yaw is (180 - y) mod 360:
+     * east 180, south 90, west 0, north 270.
+     */
+    static int renderYaw(int blockstateY) {
+        return Math.floorMod(180 - blockstateY, 360);
+    }
+
     private static Map<String, Object> settings(boolean lit) {
         Map<String, Object> s = new LinkedHashMap<>();
         s.put("hardness", java.math.BigDecimal.ZERO);
@@ -291,8 +301,7 @@ public final class TorchBlocks {
                 a.put("transparent", true);
                 Map<String, Object> r = new LinkedHashMap<>();
                 r.put("item", renderItem(block));
-                // a block model shown by an item display needs the half turn (see ComposterBlock.RENDER_ROTATION)
-                r.put("rotation", "0," + (((facingY == null ? 0 : facingY) + 180) % 360) + ",0");
+                r.put("rotation", "0," + renderYaw(facingY == null ? 0 : facingY) + ",0");
                 a.put("entity_renderer", List.of(r));
             }
             default -> throw new IllegalStateException(c.look().name());

@@ -111,7 +111,11 @@ class TorchBlocksTest {
         assertThat(map(apps, "east")).containsEntry("transparent", true)
             .containsEntry("entity_renderer", List.of(Map.of("item", "tfp:render/dead_wall_torch", "rotation", "0,180,0")));
         assertThat(map(apps, "north").get("entity_renderer"))
+            .isEqualTo(List.of(Map.of("item", "tfp:render/dead_wall_torch", "rotation", "0,270,0")));
+        assertThat(map(apps, "south").get("entity_renderer"))
             .isEqualTo(List.of(Map.of("item", "tfp:render/dead_wall_torch", "rotation", "0,90,0")));
+        assertThat(map(apps, "west").get("entity_renderer"))
+            .isEqualTo(List.of(Map.of("item", "tfp:render/dead_wall_torch", "rotation", "0,0,0")));
         Map<String, Object> lit = map(map(block(TorchBlocks.WALL_TORCH), "states"), "appearances");
         assertThat(map(lit, "south")).containsExactly(Map.entry("state", LIT + "/south"));
         Map<String, Object> items = map(root(), "items");
@@ -173,6 +177,11 @@ class TorchBlocksTest {
             .containsEntry("entity_renderer", List.of(Map.of("item", "tfp:render/dead_wall_torch", "rotation", "0,0,0")));
         assertThat(map(yaml, "items")).containsKey("tfp:render/dead_wall_torch").doesNotContainKey("tfp:render/dead_torch");
         assertThat(TorchBlocks.blockstateY("south")).isEqualTo(90);
+        // blockstate y turns clockwise, CraftEngine's yaw counterclockwise: north/south swap against (y + 180)
+        assertThat(TorchBlocks.renderYaw(TorchBlocks.blockstateY("north"))).isEqualTo(270);
+        assertThat(TorchBlocks.renderYaw(TorchBlocks.blockstateY("south"))).isEqualTo(90);
+        assertThat(TorchBlocks.renderYaw(TorchBlocks.blockstateY("east"))).isEqualTo(180);
+        assertThat(TorchBlocks.renderYaw(TorchBlocks.blockstateY("west"))).isEqualTo(0);
     }
 
     private static String text(String path) {

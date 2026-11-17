@@ -91,6 +91,47 @@ class TorchCarrierTest {
         }
     }
 
+    /**
+     * The 2026-11-17 side check: the dead wall torch outline (pressed button, 6x4x1) is much smaller than TFC's. Pin TFC's
+     * shapes (TFC TorchBlock / WallTorchBlock via vanilla: box(6,0,6,10,10,10) and, facing north, box(5.5,3,11,10.5,13,16),
+     * no collision) and prove that every dumped state with a closer outline is ruled out for a dead torch: it emits light,
+     * has a collision box (TFC's torches have none: a box at the wall blocks one-wide tunnels), is crafted or placed by
+     * players in TFC, or makes client particles. So the button stays until a vanilla version adds a free unlit torch shape.
+     */
+    @Test
+    void noFreeCarrierHasACloserDeadTorchOutline() {
+        VanillaCandidates v = VanillaCandidates.load();
+        Map<String, TfcShapes.Row> rows = TfcShapes.load();
+        assertThat(rows.get("tfc:dead_torch").selection()).isEqualTo(Shape.box(6, 0, 6, 10, 10, 10));
+        assertThat(rows.get("tfc:dead_wall_torch[facing=north]").selection()).isEqualTo(Shape.box(5.5, 3, 11, 10.5, 13, 16));
+        for (String f : HitboxDemands.FACINGS) {
+            assertThat(rows.get("tfc:dead_wall_torch[facing=" + f + "]").collision().isEmpty()).isTrue();
+        }
+        for (String version : v.versions()) {
+            for (String appearance : List.of(HitboxDemands.TORCH_STANDING, "north", "east", "south", "west")) {
+                boolean standing = appearance.equals(HitboxDemands.TORCH_STANDING);
+                String id = standing ? HitboxDemands.DEAD_TORCH_ID : HitboxDemands.DEAD_WALL_TORCH_ID;
+                Shape tfc = rows.get(standing ? "tfc:dead_torch" : "tfc:dead_wall_torch[facing=" + appearance + "]").selection();
+                VanillaCandidates.VState chosen = v.get(version, HitboxAllocation.agreed(id, appearance).state());
+                assertThat(chosen.light()).isZero();
+                assertThat(chosen.collision().isEmpty()).as(version + " " + chosen.state()).isTrue();
+                double chosenIou = Shape.iou(tfc, chosen.selection());
+                for (String s : v.allStates()) {
+                    VanillaCandidates.VState c = v.get(version, s);
+                    if (c == null || Shape.iou(tfc, c.selection()) <= chosenIou) {
+                        continue;
+                    }
+                    VanillaCandidates.BlockPolicy p = v.policy(c.block());
+                    boolean ruledOut = c.light() > 0 || !c.collision().isEmpty() || v.hardBan(c.block()) != null
+                        || v.litParticles(c.block()) || v.excludedState(s) != null || c.flag("fluid")
+                        || (p != null && p.presence() != Presence.ABSENT);
+                    assertThat(ruledOut).as(version + " " + appearance + ": " + s + " outlines the dead torch better than "
+                        + chosen.state() + " and is free").isTrue();
+                }
+            }
+        }
+    }
+
     @Test
     void addingTheTorchesMovesNoOtherCarrier() {
         List<Demand> all = HitboxDemands.all();
