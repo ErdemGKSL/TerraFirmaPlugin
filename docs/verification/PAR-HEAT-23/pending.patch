@@ -1,0 +1,610 @@
+diff --git a/docs/porting/ledger.md b/docs/porting/ledger.md
+index bdf24d3..58ec981 100644
+--- a/docs/porting/ledger.md
++++ b/docs/porting/ledger.md
+@@ -56,7 +56,7 @@ Status values: `not started` → `rules` (core logic + tests) → `playable` (wo
+ | Survival | Health and damage (PAR-SURV-05): TFC's `onLivingHurt` on every living entity's damage event (forging bonus, physical type from the damage type tags, the attacker's weapon tags and entity tags, the target's `entity_damage_resistance` and worn `item_damage_resistance` from the exported data, `e^(-0.01 x resistance)`, then the player's nutrition health modifier) and TFC's passive regeneration in place of vanilla's | playable | `ForgeEventHandler.java` (`onLivingHurt`, `naturalRegeneration` off), `util/PhysicalDamageType.java`, `util/PhysicalDamage.java`, `util/data/{EntityDamageResistance,ItemDamageResistance}.java`, `common/player/PlayerInfo.java` (regeneration), data `entity_damage_resistance/`, `item_damage_resistance/`, tags `deals_*_damage`, `damage_type/is_*` | `core/src/test/java/dev/tfp/core/health/IncomingDamageTest.java` (7, on the exported data), `HealthGoldenTest` unchanged; `paper/src/test/java/dev/tfp/paper/health/PhysicalDamageListenerTest.java` (9, MockBukkit: zombie on a steel chestplate, crush vs pierce, target entity resistance, other-region attacker, kill command, regeneration, regeneration exhaustion) | `paper/health/HealthModule`; `/tfp debug damage` toggles a log line per hit (type, resistance, factor). The forging bonus is a `WeaponDamageBonus` service (1 until PAR-METAL provides it). Vanilla HP is the stored health, so no extra state is persisted |
+ | Heat | Fuels & fire starting (PAR-HEAT-05: firestarter, flint and pyrite, `StartFireEvent` world rules) | playable | `util/data/Fuel.java`, `common/component/heat/HeatCapability.java` (`consumeFuelForTicks`), `util/events/StartFireEvent.java` (`startFire`), `common/items/{Firestarter,FlintAndPyrite}Item.java`, `ForgeEventHandler.java` (`onFireStart`, TNT branch), `TFCItems.java` (FIRESTARTER, FLINT_AND_PYRITE), `assets/tfc/sounds.json` (`item.firestarter.use`), data `fuel/` (50 files), tags `firepit_{sticks,kindling,logs}` | `core/src/test/java/dev/tfp/core/fuel/**` (`FuelTableGoldenTest`, `FuelBurnGoldenTest`, `FireStartGoldenTest` unchanged, `FireStartPlanTest` 4: draw order, rain chances, plan resolve, TFC's item scan with the four-log cap), `paper/src/test/java/dev/tfp/paper/fire/FireStartingMockBukkitTest` (12: the finished use is a cancelled consume that costs durability and calls the `FireLightable` SPI with a strong start; lightable order; no target; creative costs nothing; break cooldown; other consumables untouched; fluid gate; three sticks + a log through the `FirepitFactory`; failed roll, no-firepit starter and unsurvivable spot; flint and pyrite weak/strong; TNT on a weak start; facing axis; the generated item data), `CraftingRecipesTest` (`tfp:crafting/firestarter` emitted) | Typed `Fuel` table keyed by data file id (ingredients are data glue, not core). `FuelBurn.consume` is the lazy burn rule; fuel slots hold one item each. `FireStart.resolve` is the `startFire` decision with the random draws as inputs; `FireStartPlan` draws them (decide async). Paper `fire/FireStarting` (service): owner region reads the rain gate above the target, the worker pool draws the plan, the owner region applies (fluid, `FireLightable`s in order, `FirepitPile` scan of TFC's item box and the `FirepitFactory` PAR-HEAT-06 installs, else the vanilla fire tail behind `BlockIgniteEvent`); built-in TNT lightable. Datagen `fire/FireStarterItems`: `tfp:firestarter` (durability 8, `minecraft:consumable` 3.6 s, bow animation, TFC's ten firestarter oggs as `tfp_fire:item.firestarter.use`) and `tfp:flint_and_pyrite` (durability 128) in `configuration/fire_starters.yml`; their workbench recipes are now emitted. TFC defines both chances under the one key `fireStarterChance`; the second define replaces the first, so both items ship with 0.25 and this port uses 0.25 for both (`FireStartPlan`). Open: the firepit itself (PAR-HEAT-06 registers its `FirepitFactory` and lightable); the in-game check is PAR-HEAT-18 (self-test `fire.start`, `itest/.../cases/FireStartCase`: strong start with base 1.0 builds a lit `tfp:firepit` with the log as fuel and clears the ground items, a weak start changes nothing, flint and pyrite with a forced strong plan builds one too; it is in the suite; with `tfp:firepit` loaded (PAR-HEAT-19) it runs on Paper and Folia 1.21.11, but until TFC's logs are CraftEngine items (PAR-WORLD-10) the pile can only hold `minecraft:oak_log`, which has no TFC fuel entry, so TFC's `consumeFuel` eats it unlit: the case asserts that outcome and reports SKIPPED, and PAR-HEAT-18 is blocked on PAR-WORLD-10, `docs/verification/PAR-HEAT-18/verdict.md`); other devices register their lightables in their own items |
+ | Heat | Firepit, grill, pot (fuel burn and device heat, grill item cooking, pot boil counters) | rules | `common/blockentities/AbstractFirepitBlockEntity.java` (`serverTick` burn and temperature part, `consumeFuel`, `extinguish`, `onCalendarUpdate`), `FirepitBlockEntity.java` and `GrillBlockEntity.java` (`handleCooking`), `PotBlockEntity.java` (`handleCooking`, `isBoiling`, `PRE_BOIL_TIME`), `common/component/heat/HeatCapability.java` (`adjustDeviceTemp`, `targetDeviceTemp`, `adjustTempTowards`), `common/recipes/PotRecipe.java` (`isHotEnough`), `HeatingRecipe.java` (`isValidTemperature`) | `core/src/test/java/dev/tfp/core/cooking/` (`FirepitGoldenTest` 392 rows, `GrillGoldenTest` 252 + 81 cook rows, `PotGoldenTest` 594 rows; `CookingLazyVsSteppedTest`: seeded random firepit, grill and pot windows against the stepped rules, window composition) | `core/cooking/FirepitState` (burn ticks, burn temperature, device temperature, air), `FirepitRules` (`step` = one live tick, `advance` = lazy: the air phase stepped, the rest closed form per fuel segment), `GrillRules` (lazy item heating against a constant grill temperature, `ticksToCook`), `PotRules` (pre-boil and boil counters, the finish tick). Oracle: a float32 Python mirror of TFC's per-tick code (`resources/dev/tfp/core/cooking/*.txt`). Not yet: the block entities, the placed blocks, the CraftEngine visuals and GUIs, the containers and the gather of dropped items, dirtiness and ash, the firepit's `light` path and the Paper glue | M3-HEAT-03 (block entities, placed blocks, visuals, containers, server self-test) |
+-| Heat | Firepit block (PAR-HEAT-06): device kind `tfp:firepit` (7 slots: fuel 0..3, input 4, outputs 5/6, TFC limits and `isItemValid`), lazy `serverTick` replay (burn x2 in rain or with bellows air, `consumeFuel` with 50% ash and dirtiness from purity, smoke level every 20 ticks, `extinguish`, device temperature, `handleCooking` through `HeatingService`), `light` from strong fire starts, the stick+log `FirepitFactory`, shovel / water bucket douse, `tryInsertLog`, ash pickup, ash drop on removal, lost floor | rules + glue | `common/blocks/devices/FirepitBlock.java` (`useItemOn`, `tryInsertLog`, state), `BottomSupportedDeviceBlock.java` (`canSurvive`, `updateShape`), `common/blockentities/AbstractFirepitBlockEntity.java` (`serverTick`, `updateSmokeLevel`, `consumeFuel`, `extinguish`, `light`, `intakeAir`, `addAsh`, `cascadeFuelSlots`, `ejectInventory`, `isItemValid`, `getSlotStackLimit`), `FirepitBlockEntity.java` (`handleCooking`, `mergeOutputStack`), `HeatCapability.java` (`addTemp`), `ForgeEventHandler.java` (`onFireStart`, `onFireStop`), `InteractionManager.java` (`SHOVEL_DOUSE`), `util/data/Fuel.java`, `util/events/StartFireEvent.java` (placing the firepit) | `core/src/test/java/dev/tfp/core/firepit/FirepitSimTest` (13: light, non-fuel light, lazy equals tick-by-tick with rain and air and cooking, burn and temperature equal `FirepitRules.advance` over 2000 ticks, oak firepit cooks raw beef on tick 202 (hand-traced from TFC: device +1 C/tick, beef capacity 1, step 2.8, cooling 0.8, recipe 200 C tested before the tick), recipe-less and unheatable inputs, burn-out and cool-down, rain, smoke, ash cap and seeded draws, extinguish and air cap, codec, slot limits), `paper/src/test/java/dev/tfp/paper/firepit/FirepitMockBukkitTest` (11: build and light, fuel burn catch-up over 2 in-game hours equals `FirepitRules` then the cascade, raw beef cooked and taken by hand, log insertion, ash pickup then shovel and water bucket douse of a warm firepit (a shovel on a cold one does nothing and stays in hand), creative, rain, burn-out callback, light, lost floor, ash drop), `tools/datagen` `FirepitTest#loadedEntryCallsTheDeviceTemplateWithTheSameStates` | `core/firepit` (`FirepitSim`, `FirepitData`, `FirepitFuels`), `paper/firepit` (`FirepitDevice`, `FirepitEffects`, `PaperFirepitEffects`, `FirepitModule`), datagen `Firepit.loadedYaml`. PAR-HEAT-19: datagen writes the loaded entry `configuration/devices/firepit.yml` (template `tfp:block/device`, so CraftEngine registers `tfp:firepit` once; the literal `devices/firepit.yml` stays outside `configuration/`), copies TFC's `firepit_lit` / `firepit_unlit` models and their textures (`Firepit.models` from the blockstate, through `AssetPipeline`), self-test `firepit.cook` (`itest/.../FirepitCookCase`: placed, stick bundle + raw beef put in, lit by a strong `FireStarting.start`, +1000 ticks, cooked beef in output slot 5 and the input empty), datagen `FirepitTest` (+3: only the loaded entry in `configuration/`, models = blockstate variants, real-checkout model copy) and `DatagenTest` (`non_occluding` = `tfp:firepit`). The look is still the carrier's vanilla daylight detector: the models need carriers of their own (PAR-HEAT-23, which also holds the in-game check). Open: PAR-HEAT-23 (model look, in-game check), PAR-HEAT-08/09 (grill and pot conversion) |
++| Heat | Firepit block (PAR-HEAT-06): device kind `tfp:firepit` (7 slots: fuel 0..3, input 4, outputs 5/6, TFC limits and `isItemValid`), lazy `serverTick` replay (burn x2 in rain or with bellows air, `consumeFuel` with 50% ash and dirtiness from purity, smoke level every 20 ticks, `extinguish`, device temperature, `handleCooking` through `HeatingService`), `light` from strong fire starts, the stick+log `FirepitFactory`, shovel / water bucket douse, `tryInsertLog`, ash pickup, ash drop on removal, lost floor | rules + glue | `common/blocks/devices/FirepitBlock.java` (`useItemOn`, `tryInsertLog`, state), `BottomSupportedDeviceBlock.java` (`canSurvive`, `updateShape`), `common/blockentities/AbstractFirepitBlockEntity.java` (`serverTick`, `updateSmokeLevel`, `consumeFuel`, `extinguish`, `light`, `intakeAir`, `addAsh`, `cascadeFuelSlots`, `ejectInventory`, `isItemValid`, `getSlotStackLimit`), `FirepitBlockEntity.java` (`handleCooking`, `mergeOutputStack`), `HeatCapability.java` (`addTemp`), `ForgeEventHandler.java` (`onFireStart`, `onFireStop`), `InteractionManager.java` (`SHOVEL_DOUSE`), `util/data/Fuel.java`, `util/events/StartFireEvent.java` (placing the firepit) | `core/src/test/java/dev/tfp/core/firepit/FirepitSimTest` (13: light, non-fuel light, lazy equals tick-by-tick with rain and air and cooking, burn and temperature equal `FirepitRules.advance` over 2000 ticks, oak firepit cooks raw beef on tick 202 (hand-traced from TFC: device +1 C/tick, beef capacity 1, step 2.8, cooling 0.8, recipe 200 C tested before the tick), recipe-less and unheatable inputs, burn-out and cool-down, rain, smoke, ash cap and seeded draws, extinguish and air cap, codec, slot limits), `paper/src/test/java/dev/tfp/paper/firepit/FirepitMockBukkitTest` (11: build and light, fuel burn catch-up over 2 in-game hours equals `FirepitRules` then the cascade, raw beef cooked and taken by hand, log insertion, ash pickup then shovel and water bucket douse of a warm firepit (a shovel on a cold one does nothing and stays in hand), creative, rain, burn-out callback, light, lost floor, ash drop), `tools/datagen` `FirepitTest#loadedEntryCallsTheDeviceTemplateWithTheSameStates` | `core/firepit` (`FirepitSim`, `FirepitData`, `FirepitFuels`), `paper/firepit` (`FirepitDevice`, `FirepitEffects`, `PaperFirepitEffects`, `FirepitModule`), datagen `Firepit.loadedYaml`. PAR-HEAT-19: datagen writes the loaded entry `configuration/devices/firepit.yml` (template `tfp:block/device`, so CraftEngine registers `tfp:firepit` once; the literal `devices/firepit.yml` stays outside `configuration/`), copies TFC's `firepit_lit` / `firepit_unlit` models and their textures (`Firepit.models` from the blockstate, through `AssetPipeline`), self-test `firepit.cook` (`itest/.../FirepitCookCase`: placed, stick bundle + raw beef put in, lit by a strong `FireStarting.start`, +1000 ticks, cooked beef in output slot 5 and the input empty), datagen `FirepitTest` (+3: only the loaded entry in `configuration/`, models = blockstate variants, real-checkout model copy) and `DatagenTest` (`non_occluding` = `tfp:firepit`). PAR-HEAT-23: the firepit draws TFC's models: four appearances `lit_x`, `lit_z`, `unlit_x`, `unlit_z` (`DeviceSpecs.firepit`), each on its own MODEL hitbox carrier (`daylight_detector[inverted=false,power=0|10|12|14]`, `HitboxDemands` weight -5 so no other carrier moved) with `tfp:block/firepit_lit` / `_unlit`, axis z as `model: {path, y: 90}` (TFC's blockstate, `DeviceSpecs.turnModels`), and the carriers hidden as the next power (`block_state_mappings`; the carrier policy marks the crafted detector `natural` with `nearest_free_value:power`); tests `FirepitTest` (+1, the look checked in every firepit entry test), `GeneratedCarrierTest.theFirepitCarriersArePinned` and the mapping set, `DeviceSpecParityTest` (firepit spec), `CarrierPolicyRecipeTest.thePoweredDetectorIsHidden`. In-game check: `docs/verification/PAR-HEAT-19/` (verify stage). Open: TFC's fuel logs (divergence), PAR-HEAT-08/09 (grill and pot conversion) |
+ | Heat | Cooking pot (PAR-HEAT-09): device kind `tfp:pot` (9 slots, one item each: fuel 0..3, ingredients 4..8; a 1000 mB tank), lazy `serverTick` replay (the firepit part through `FirepitSim`, then `handleCooking` with each tick's temperature: `isBoiling`, the 100-tick pre-boil, the boil, the output on the next tick, the counters reset when the boil stops), TFC's 214 pot recipes (145 `tfc:pot`, 66 `tfc:pot_jam`, 3 `tfc:pot_soup`) matched as `PotRecipe.matches` (fluid, then `perfectMatchExists` over the non-empty inputs), the soup only as fallback; outputs: simple (item providers onto the inputs, `uses_all_fluid` / `favorNewFluidStack`, the fluid kept when `#tfc:usable_in_pot`), soup (`SoupMix`, `tfp:food/<nutrient>_soup`, the `tfp:dynamic_food` and ingredients PDC, creation date), jam (unsealed and sealed jars); `useItemOn` in TFC's order (sneak + empty hand: the ash, else the pot item back and the block a firepit again with `tfp:pot` damage 1 when lit; fluid containers fill / drain; a soup bowl takes a serving (stored as its bowl, returned on eating), an empty jar or a jar with a lid a jam; fuel into the first empty fuel slot; else the screen), a ceramic pot on a firepit turns it into a pot (`convertTo`: fuel and heat carried, the other items dropped, the old device's ash dropped as wood ash by its removal), strong fire starts light it; the pot screen (`PotScreens`: fuel and input slots, inputs locked once the recipe has started, thermometer, fluid and status buttons) | playable (block not loaded yet: PAR-HEAT-25) | `common/blocks/devices/PotBlock.java` (`useItemOn`), `common/blockentities/PotBlockEntity.java` (`handleCooking`, `isBoiling`, `hasRecipeStarted`, `PotInventory`), `common/blockentities/AbstractFirepitBlockEntity.java` (`serverTick`, `convertTo`, `copyFrom`, `ejectMainInventory`), `common/recipes/PotRecipe.java`, `SimplePotRecipe.java`, `SoupPotRecipe.java`, `JamPotRecipe.java`, `outputs/PotOutput.java`, `util/Helpers.java` (`perfectMatchExists`), `common/container/PotContainer.java`, `client/screen/PotScreen.java`, `common/blocks/devices/FirepitBlock.java` (the pot item branch) | `core/src/test/java/dev/tfp/core/pot/PotSimTest.java` (400 random cases: the lazy replay equals a literal transcription of TFC's live tick stepped one tick at a time; split spans), `PotMatchTest.java` (every matrix up to 3x3 and 20 000 random 4x4/5x5 ones against TFC's symbolic determinant), `PotDataTest.java`; `paper/src/test/java/dev/tfp/paper/pot/PotContentDataMockBukkitTest.java` (real datagen output: the 214 recipes decode; carrot, potato, cabbage in water boil into 2 vegetable soups with SoupMix's food, taken out by two bowls; boiled eggs; sneak take-off), `gui/PotScreenLayoutTest.java`; the existing `cooking/PotGoldenTest`, `SoupMixGoldenTest` | `core/pot/` (`PotData`, `PotOutput`, `PotSim`, `PotMatch`), `paper/pot/` (`PotDevice`, `PotRecipeBook`, `PotRecipeView`, `PotConversion`, `PotInteractListener`, `PotScreenLink`, `PaperPotEffects`, `PotModule`, `gui/`). In game: PAR-HEAT-25 (configuration/devices/pot.yml, screen art, screenshot check) |
+ | Heat | Firepit screen (PAR-HEAT-07): TFC's `FirepitScreen` / `FirepitContainer` as a 4-row chest on the GUI framework: four fuel slots (fuel goes only into the top one, TFC `isItemValid`; the cascade fills the lower ones), the input (heatable items only), two outputs, one item per slot except the outputs (`getSlotStackLimit`), shift-click into the top fuel slot then the input (`moveStack`), the 52-frame thermometer overlay at TFC's `76 - min(51, temp)` and the temperature tooltip in the heat tooltip style; `/tfp debug firepitgui [temperature]` opens it over a demo firepit. PAR-HEAT-20: the art (datagen `firepitgui/FirepitScreenArt`: TFC's `fire_pit.png` re-laid out on the chest, the 52-frame thermometer strip with a width marker in the empty frame) and the block opens the screen (`FirepitDevice` screen step -> `FirepitModule.openLater` next tick on the viewer's thread -> `FirepitScreens.open` over `FirepitScreenLink`, keyed by block position; `ScreenSync` access hook commits before and reloads after the other writers) | visual-complete | `client/screen/FirepitScreen.java` (`renderBg`, `renderTooltip`, `imageHeight + 20`), `common/container/FirepitContainer.java` (`addContainerSlots`, `moveStack`), `common/blockentities/AbstractFirepitBlockEntity.java` (`isItemValid`, `getSlotStackLimit`, `cascadeFuelSlots`, `setAndUpdateSlots`), `textures/gui/fire_pit.png`, `common/blocks/devices/FirepitBlock.java` (`useItemOn` -> `openMenu`) | paper `firepit/gui/FirepitScreensMockBukkitTest` 11 (layout on the chest grid; slot predicates: fuel only in the top fuel slot, heatables only in the input, nothing in fuel slots 0..2, outputs or the thermometer; clicks into the 25 chest slots TFC does not have are cancelled; a stack placed puts one in and keeps the rest on the cursor, then the commit cascades it to fuel slot 0; shift-click one item in and the rest back; thermometer frame and tooltip follow the temperature; reload shows cooked outputs; one viewer and the close commit; gone firepit; demo link; cascade); PAR-HEAT-20: datagen `firepitgui/FirepitScreenArtTest` 6 (YAML, frames pixel-exact under the chest slots, player inventory, uncovered slots plain, arrows, thermometer frames and width markers), paper `firepit/gui/FirepitScreenLayoutContentTest` 3 (generated images vs `FirepitScreenLayout`), `firepit/FirepitScreenLinkMockBukkitTest` 5 (right-click opens the screen next tick; a log in the top slot is in device slot 0 after the commit; a log clicked onto the block shows in the open screen; off-region and gone answer empty; the screen closes when the firepit is gone), `FirepitMockBukkitTest` +1 (the screen step opens whatever the hand holds); in game `docs/verification/PAR-HEAT-07/` | `paper/firepit/gui/`: `FirepitScreens` (service, `FirepitGuiModule`), `FirepitGuiListener`, `FirepitLink` (the device's side, PAR-HEAT-20), `FirepitSnapshot`, `FirepitSlotRules` (service), `FirepitScreenLayout`, `DemoFirepitLink`. The images `tfp:gui/firepit` and `tfp:gui/firepit_thermometer` come from datagen `firepitgui/FirepitScreenArt` (`configuration/firepit_gui.yml`); the block side is `paper/firepit/FirepitScreenLink` and `FirepitModule` |
+ | Heat | Grill on a firepit (PAR-HEAT-08): device kind `tfp:grill` (TFC's firepit with five one-item grill slots 4..8 in place of the input and outputs), the wrought iron grill used on a firepit converts it (`convertTo`: fuel slots, burn ticks, air, burn temperature and temperature kept, `lit` / `smoke_level` / `axis` copied; the old input, outputs and ash drop) and a sneaking empty hand takes it off again (grill item back, 1 `tfp:grill` damage + cool sound when lit), lazy cooking of each grill item (`handleCooking`: `addTemp` then the recipe on the heated temperature, the result in the same slot with `tfp:wood_grilled`), TFC's `useItemOn` order with the slot picked by where the click lands, the five items drawn on top, the grill screen (fuel column, five grill slots, thermometer) | rules + glue | `common/blocks/devices/GrillBlock.java` (`useItemOn`, `getSlotForSelection`, `SLOT_RENDER_SHAPES`, `SLOT_CENTERS`), `common/blockentities/GrillBlockEntity.java` (`handleCooking`, `isItemValid`, `getSlotStackLimit`), `AbstractFirepitBlockEntity.java` (`convertTo`, `copyFrom`, `ejectMainInventory`, `ejectInventory`), `FirepitBlock.java` (`useItemOn` grill branch, `tryInsertLog`), `client/render/blockentity/GrillBlockEntityRenderer.java`, `client/screen/GrillScreen.java`, `common/container/GrillContainer.java`, `common/TFCDamageTypes.java` (`grill`), `ForgeEventHandler.java` (`onFireStart`) | `core/src/test/java/dev/tfp/core/grill/` (`GrillSimTest` 7: empty grill = `FirepitSim`, heating leaves the firepit unchanged and split windows equal one, raw beef converts on tick 200 after lighting (tested after addTemp, TFC's grill order), at a steady 728 C the cook tick is `GrillRules.ticksToCook` +-1 for 16 capacity x recipe rows, a hot item converts on a cold grill, `converted` = TFC `copyFrom`; `GrillSlotsTest` 3), `core/.../cooking/GrillGoldenTest` (unchanged), `paper/src/test/java/dev/tfp/paper/grill/GrillMockBukkitTest` (11: conversion keeps the fuel state and drops the rest, refused conversion leaves the firepit, beef cooks with the trait and shows on top, sneak extract vs the screen, fuel below 0.6, a lit grill taken off burns and turns back into a firepit with its fuel, ash then douse, the grill item listener, strong light, the screen link, `isItemValid`), `paper/.../grill/gui/GrillScreensMockBukkitTest` (3), `tools/datagen` `GrillTest#loadedEntryCallsTheDeviceTemplateWithTheSameStatesAndLoot` | `core/grill` (`GrillSim`, `GrillSlots`), `paper/grill` (`GrillDevice`, `GrillConversion`, `GrillListener`, `GrillEffects`, `PaperGrillEffects`, `DeviceGrillLink`, `GrillModule`; `gui/GrillScreens`, `GrillScreenLayout`, `GrillSnapshot`, `GrillLink`, `GrillGuiListener`), datagen `Grill.loadedYaml`. Not in game yet: CraftEngine loads `tfp:grill` once PAR-HEAT-24 writes `configuration/devices/grill.yml` (it changes DatagenTest's fixture), with TFC's grill models, the `tfp:gui/grill` art and the in-game check; until then the conversion finds no grill block to place and the firepit stays a firepit |
+@@ -467,8 +467,8 @@ Status values: `not started` → `rules` (core logic + tests) → `playable` (wo
+ | TFC blocks have their own `VoxelShape`s for the outline (`getShape`) and the collision (`getCollisionShape`) | Every CE block shows the outline and collision of one vanilla state, picked by the hitbox carrier selector (PAR-INFRA-13) for the closest match; the per-block selection and collision IoU, quality and mode are in `reports/hitbox-carriers-<family>.md`. The client draws the outline from its own copy of the vanilla shapes, so the family is scored on its worst version (1.21.4 / 26.1.2) | Vanilla clients know only vanilla shapes | Yes, per block, from the report (a residual below 1 in either IoU is a divergence of that block) |
+ | TFC's floating plants, flowerbeds and shell groundcover are TFC blocks with their own shapes, so no TFC block shares a vanilla block with them | PAR-INFRA-42: our worldgen places vanilla placeholders (`paper/worldgen/{PlantBlocks,GroundcoverBlocks,TfcTerrain}`), so the hitbox carrier policy treats them as in the world: `minecraft:lily_pad` (floating plants) is `reserved` (one state, no hide target: never a carrier), `minecraft:sea_pickle` (clam, mollusk, mussel, sea pickles) and `minecraft:pink_petals` (flowerbeds) are `natural` with a one-hop hide to the nearest free `pickles` / `flower_amount`. PAR-INFRA-43 settled the rest (next row): the button placeholder states are excluded and `mud` is `reserved`; `CarrierPolicyWorldgenTest` fails if any absent block is a worldgen material whose placed states are not all excluded, or if any allocation draws a non-vanilla look on a placed block without a hide. The scraping demand moved from `lily_pad` (0.545) to `heavy_weighted_pressure_plate[power=0]` (0.459, transparent, shared with the placed-item carrier) | A carrier drawn with another model or transparent is drawn so on every real instance of that state, so a placeholder carrier would turn every floating plant into an invisible hitbox | Yes, when worldgen places CE blocks instead of the placeholders |
+ | TFC's loose rocks, sticks and small ore are TFC groundcover blocks and its 8-layer charcoal pile is a TFC block, so none of them shares a vanilla block with a generated surface | PAR-INFRA-43: our worldgen still places `stone_button` (loose rocks) and `oak_button` (sticks) on the floor in the default facing (`TfcTerrain.placeholderData`: face=floor, facing=north) and `mud` (mud surface). The carrier policy lists `stone_button`/`oak_button[face=floor,facing=north,powered=false|true]` in `excluded_states` (a click powers a placeholder), so the small ground pieces keep the button shape on the other floor facings (`oak_button[face=floor,facing=east]` pinned for `tfc:rock/loose[count=1]`, `tfc:ore/small`, `tfc:groundcover[shape=small]`); `mud` is `reserved` (one state, no hide target), so `tfc:charcoal_pile[layers=8]` moves from the exact `mud` (score 1.000) to `snow[layers=8]` (IoU 1/1, hide to `snow[layers=7]`, score 0.970). `CarrierPolicyWorldgenTest` has no allow-list any more and also checks every pinned selector carrier | A model on a placed placeholder state would draw every generated loose rock, stick or mud surface with the carrier's look | Yes, when worldgen places CE blocks instead of the placeholders (then the button north states and mud can be freed) |
+-| TFC crafts the vanilla heavy weighted pressure plate from two `c:ingots/wrought_iron` (@ c3b4d9536, `src/generated/resources/data/minecraft/recipe/heavy_weighted_pressure_plate.json`) and keeps vanilla's gold-plate recipe (2 `minecraft:gold_ingot`); real plates look unpressed at power 0 | PAR-INFRA-44: the hitbox carrier policy marks `minecraft:heavy_weighted_pressure_plate` `natural` with the hide `nearest_free_value:power`, so the carriers that share `heavy_weighted_pressure_plate[power=0]` (transparent `tfp:scraping#base`, the placed-item owner rule in `class-overrides.json`, `tfc:charcoal_pile[layers=1]`, `tfc:rock/loose[count=2]`, groundcover flat/twig, `pixel_high` on 1.21) keep it and real heavy plates at power 0 are sent to the client as power 1: an unpressed crafted plate is drawn pressed (14 x 0.5 x 14 instead of 14 x 1 x 14, 0.5 px lower), never empty. Pressed plates (power 1-15) and every server-side behaviour (redstone output, comparators) are unchanged. `minecraft:light_weighted_pressure_plate` is `player` (vanilla gold comes from the Nether, so with the Nether on players craft and place it), so it is never a carrier. `CarrierPolicyRecipeTest` fails when an `absent` block is the result of an active recipe in TFC's recipe tree or our exported data (or a listed kept vanilla recipe) without an allow-list reason, and when any allocation draws a non-vanilla look on a crafted block without a hide; `daylight_detector` (TFC lens recipe) and `lightning_rod` (copper rods) stay absent on the allow-list only while their carriers keep the vanilla look | A transparent or model look on `heavy_weighted_pressure_plate[power=0]` is drawn on every real plate in that state, and power 0 is the plate's only unpressed state, so the hide must show a pressed plate. Moving the carriers to the light plate needs the owner's `class-overrides.json` and still breaks with the Nether on | Yes: if the 0.5 px pressed look of idle heavy plates matters, replace placed vanilla heavy plates by a CE block that draws the plate (option b of the item); when a rock spike or a daylight-detector demand gets a non-vanilla look, give that block a hide |
+-| TFC's firepit is a 16x2x16 plate plus a 12x4x12 core (6 px), the grill's core reaches 11 px, the pot's 14 px; selection = collision | The firepit sits on `daylight_detector[inverted=false,power=0]` (16x6x16, IoU 0.71 / 0.71), the grill on `snow[layers=5]` (16x10 outline, 16x8 collision: 0.62 / 0.56), the pot on `cactus[age=0]` (14x16x14, collision 14x15x14: 0.65 / 0.69). Until their models exist the look is the carrier's vanilla look (placeholder; it replaces the lit campfire, whose client smoke the selector bans). A vanilla-look carrier needs no hide mapping (real snow keeps its look) | Best vanilla shapes for TFC's plate + core; no vanilla block has it | Yes: with the firepit family models (firepit: PAR-HEAT-23, which needs four model carriers since this one is shared by the three blocks; grill: PAR-HEAT-24; pot: PAR-HEAT-09); the grill then needs `snow[layers=5]` hidden (real 5-layer snow drawn as 6) |
++| TFC crafts the vanilla heavy weighted pressure plate from two `c:ingots/wrought_iron` (@ c3b4d9536, `src/generated/resources/data/minecraft/recipe/heavy_weighted_pressure_plate.json`) and keeps vanilla's gold-plate recipe (2 `minecraft:gold_ingot`); real plates look unpressed at power 0 | PAR-INFRA-44: the hitbox carrier policy marks `minecraft:heavy_weighted_pressure_plate` `natural` with the hide `nearest_free_value:power`, so the carriers that share `heavy_weighted_pressure_plate[power=0]` (transparent `tfp:scraping#base`, the placed-item owner rule in `class-overrides.json`, `tfc:charcoal_pile[layers=1]`, `tfc:rock/loose[count=2]`, groundcover flat/twig, `pixel_high` on 1.21) keep it and real heavy plates at power 0 are sent to the client as power 1: an unpressed crafted plate is drawn pressed (14 x 0.5 x 14 instead of 14 x 1 x 14, 0.5 px lower), never empty. Pressed plates (power 1-15) and every server-side behaviour (redstone output, comparators) are unchanged. `minecraft:light_weighted_pressure_plate` is `player` (vanilla gold comes from the Nether, so with the Nether on players craft and place it), so it is never a carrier. `CarrierPolicyRecipeTest` fails when an `absent` block is the result of an active recipe in TFC's recipe tree or our exported data (or a listed kept vanilla recipe) without an allow-list reason, and when any allocation draws a non-vanilla look on a crafted block without a hide; `lightning_rod` (copper rods) stays absent on the allow-list only while its carriers keep the vanilla look; `daylight_detector` (TFC lens recipe) is `natural` with `nearest_free_value:power` since PAR-HEAT-23 | A transparent or model look on `heavy_weighted_pressure_plate[power=0]` is drawn on every real plate in that state, and power 0 is the plate's only unpressed state, so the hide must show a pressed plate. Moving the carriers to the light plate needs the owner's `class-overrides.json` and still breaks with the Nether on | Yes: if the 0.5 px pressed look of idle heavy plates matters, replace placed vanilla heavy plates by a CE block that draws the plate (option b of the item); when a rock spike or a daylight-detector demand gets a non-vanilla look, give that block a hide |
++| TFC's firepit is a 16x2x16 plate plus a 12x4x12 core (6 px), the grill's core reaches 11 px, the pot's 14 px; selection = collision | The firepit sits on `daylight_detector[inverted=false,power=0]` (16x6x16, IoU 0.71 / 0.71), the grill on `snow[layers=5]` (16x10 outline, 16x8 collision: 0.62 / 0.56), the pot on `cactus[age=0]` (14x16x14, collision 14x15x14: 0.65 / 0.69). Until their models exist the look is the carrier's vanilla look (placeholder; it replaces the lit campfire, whose client smoke the selector bans); PAR-HEAT-23 moved the firepit to four model carriers of its own (detector powers 0, 10, 12, 14). A vanilla-look carrier needs no hide mapping (real snow keeps its look) | Best vanilla shapes for TFC's plate + core; no vanilla block has it | Yes: with the firepit family models (firepit: PAR-HEAT-23, which needs four model carriers since this one is shared by the three blocks; grill: PAR-HEAT-24; pot: PAR-HEAT-09); the grill then needs `snow[layers=5]` hidden (real 5-layer snow drawn as 6) |
+ | TFC's bellows outline is a 16x16x2 front, a 12x12x12 middle and a 16x16x2 back plate (its block entity moves the back) | `tfp:bellows` (every facing) sits on `minecraft:dirt_path` (16x15x16, IoU 0.69 / 0.69) with the dirt path's vanilla look as a placeholder, replacing the smoker; the outline does not follow the pumping. Client residual: `dirt_path` is tillable, so a held hoe plays the till sound client-side, and on 26.x PAR-INFRA-23 saw the client flash a composter for 2 frames (100 ms) (see the client-prediction row, revisit PAR-INFRA-51); the server keeps the block and resends it | The best non-occluding fit (an opaque full cube would x-ray its neighbours under the bellows model); no vanilla state has the recessed middle | Yes: with the bellows model and renderer (PAR-HEAT-12) |
+ | TFC's quern collision is a 10 px base and a 13.76 px handstone (x/z 3..13); its outline (FULL_SHAPE) also has the handle from 13.76 to 16.24 px, with the 6..10 input slot cut out | `tfp:quern` sits on hitbox carriers picked by PAR-INFRA-13: without the handstone `stonecutter` (a player stands 9 px high, 1 px lower than TFC), with the handstone `snow[layers=6]` (10 px: 3.76 px lower than TFC over the handstone footprint, equal to TFC's 10 px over the base rim); the `snow[layers=6]` outline stops at 12 px, so the handstone top and the handle are outside it and are not walked on. Measured in PAR-INFRA-23 on 1.21.11 and 26.3 | No vanilla state has the base plus the raised handstone; these are the closest non-occluding fits from the carrier report | Only for the collision height, if a closer carrier appears |
+ | TFC's grill has no snow-layer interaction | The grill's placeholder carrier `snow[layers=5]` is in VANILLA mode with no hide mapping, so a player holding a vanilla snow layer may see the client predict a sixth layer on the grill until the server resends the block (PAR-INFRA-23 showed it on the forge and quern: next row) | Vanilla clients predict snow-layer stacking from the carrier state | Yes: PAR-HEAT-24 switches the grill to MODEL mode with `snow[layers=5]` hidden; the held-snow fix and the grill's recheck are PAR-INFRA-51 |
+@@ -637,7 +637,8 @@ Status values: `not started` → `rules` (core logic + tests) → `playable` (wo
+ | TFC's firepit ticks every server tick while loaded (`serverTick`), and on a calendar gap (`onCalendarUpdate`) only burns fuel at 1x, then extinguishes and cools the input instantly | PAR-HEAT-06: no ticking; every access (click, catch-up on chunk load, neighbour or burn-out callback) replays TFC's live tick for each calendar tick since the last update (`FirepitSim.advance`, at most the fuel burn time plus the cool-down), so loaded and unloaded time give the same result and cooking continues over the gap; the 20-tick smoke/dirtiness period is phased on calendar ticks (`floorMod(t, 20)`) where TFC uses `level.getGameTime() % 20`, a phase difference only | Lazy calendar evaluation (CLAUDE.md); one rule for both cases is the live one players see | No |
+ | TFC reads `level.isRainingAt(pos)` every tick | PAR-HEAT-06: the rain is sampled at each callback (click, neighbour, burn-out callback, fire start) and held until the next one | No ticking per block; the burn-out callback re-samples while the chunk is loaded | Yes, if a weather-change hook to lit firepits is wanted |
+ | TFC's rain does not put a firepit out: it burns the fuel twice as fast and lowers the target by 300 C; dousing is a shovel (`SHOVEL_DOUSE`) or a splash water potion (`DouseFireEvent`) | PAR-HEAT-06: the same rain rule and the shovel douse (one damage, temperature above 0 C; the click it fires on is the next row); in addition a water bucket used on a warm firepit douses it and becomes an empty bucket (the item asked for water extinguishing); splash potions are PAR-HEAT-13. PAR-HEAT-08: the grill has the same shovel and water bucket douse | A plain water bucket is the vanilla-client equivalent of pouring water; TFC opens the screen on that click | Yes, drop the bucket douse if servers want TFC's exact click |
+-| TFC's firepit draws `firepit_lit` / `firepit_unlit` (turned y 90 for axis z) plus the fuel logs (`FirepitBlockEntityRenderer`) | PAR-HEAT-19: `tfp:firepit` is loaded and works, but every state still shows the carrier's vanilla look (`daylight_detector[inverted=false,power=0]`, shared with the grill and the pot, so it cannot take TFC's model); TFC's two models are in the pack, unused. Self-test `firepit.cook` fuels with a stick bundle, since the TFC logs are not CraftEngine items yet and a vanilla oak log is no TFC fuel | The model look needs four MODEL hitbox demands (lit x axis), outside PAR-HEAT-19 | Yes: PAR-HEAT-23 |
++| TFC's firepit draws `firepit_lit` / `firepit_unlit` (turned y 90 for axis z) plus the fuel logs (`FirepitBlockEntityRenderer`) | PAR-HEAT-23: the lit and unlit models are drawn on their own daylight detector carriers, axis z turned y 90, as TFC; the fuel logs in slots 0-3 (`firepit_log_1..4`) are not drawn, so a fuelled firepit looks like an empty one of the same lit state. Self-test `firepit.cook` fuels with a stick bundle, since the TFC logs are not CraftEngine items yet and a vanilla oak log is no TFC fuel | The logs follow the inventory, so they need an `entity_renderer` element per fuel count (a fuel-count block property or a device display), outside PAR-HEAT-23's files | Yes: a fuel-log display with the firepit device displays |
++| TFC crafts the vanilla daylight detector (`src/generated/resources/data/minecraft/recipe/daylight_detector.json`); real detectors look the same at every power | PAR-HEAT-23: the hitbox carrier policy marks `minecraft:daylight_detector` `natural` with the hide `nearest_free_value:power`: the firepit's carriers `power=0, 10, 12, 14` (inverted=false) are sent to clients as `power=1, 11, 13, 15`. The detector's model depends only on `inverted`, so a placed detector looks unchanged; only its client-side power value differs (nothing on the client draws it) | The only free states scoring 0.5+ for TFC's firepit outline are detector powers (snow[layers=3] is a hide target, the unlit campfires carry log and charcoal piles); a model on a crafted block needs a hide | No |
+ | TFC douses a firepit with a shovel only on a sneak right click: `SHOVEL_DOUSE` runs in `ForgeEventHandler.onUseItemOnBlock` phase `ITEM_AFTER_BLOCK`, after `FirepitBlock.useItemOn`, which always consumes a plain click (log insert, ash pickup when unlit, otherwise the screen) | PAR-HEAT-06: a shovel (and the water bucket) douses on a plain right click, checked after the log insert and the ash pickup, so an unlit firepit with ash still gives the ash; the screen step (stand-in) comes after the douse. PAR-HEAT-08: the grill douses on a plain click too, after its slot insert (a heatable metal shovel aimed at an empty grill slot goes onto the grill, as TFC's plain click; TFC douses a grill only on a sneak click) and its log insert, before the screen | CraftEngine skips device handlers on sneak + item (`DeviceHandler`), so a sneak-only douse cannot reach the device | Yes, through a sneak listener the device router allows |
+ | TFC opens the firepit screen on a right click that is no douse, log or ash pickup, in the same tick | PAR-HEAT-20: the block opens the screen one tick later, on the viewer's thread (the use handler runs while the device record is being written); the stand-in of PAR-HEAT-06 (input and outputs by hand) is gone. The screen commit cascades the fuel slots at once (`FirepitScreenLink`); TFC sets `needsSlotUpdate` and cascades at the end of the next `serverTick`, after `consumeFuel` and `handleCooking`. The only visible case: a lit firepit at `burnTicks` 0 with fuel only in the top slot goes out in TFC on that tick (`consumeFuel` reads slot 0 before the cascade), here it burns the cascaded fuel | Folia: the screen and its link run on the viewer's thread, the handler on the block's region; a lazy device has no next tick to defer the cascade to | No |
+ | TFC's GUI buttons and the firepit thermometer show only their own tooltip (`FirepitScreen.renderTooltip`: `heatTooltipStyle.formatColored(temperature)`, no item lines) | PAR-HEAT-07 / PAR-HEAT-20: the thermometer column and every other GUI button slot (`GuiButtons.icon`: pot, grill, barrel, powderkeg, knapping, player tabs) is a stand-in item, and the tooltip layer adds TFC's size/weight line (`ItemSizeTooltipContributor`) under the name, so the hover shows e.g. "Very Hot\*\*\*" and "⚖ Very Light ⇲ Very Small" | A vanilla client draws a tooltip only from an item in a slot; the size/weight contributor does not yet skip button items (`tfp:gui_button` PDC marker), outside the GUI items' files | Yes: PAR-INFRA-56 |
+diff --git a/tools/datagen/src/main/java/dev/tfp/datagen/Firepit.java b/tools/datagen/src/main/java/dev/tfp/datagen/Firepit.java
+index 8b13053..bea9d44 100644
+--- a/tools/datagen/src/main/java/dev/tfp/datagen/Firepit.java
++++ b/tools/datagen/src/main/java/dev/tfp/datagen/Firepit.java
+@@ -7,7 +7,7 @@
+  * file: src/main/java/net/dries007/tfc/common/blocks/devices/FirepitBlock.java @ c3b4d9536 (createBlockStateDefinition,
+  *       registerDefaultState, the LIT / AXIS / SMOKE_LEVEL properties),
+  *       src/main/java/net/dries007/tfc/common/blocks/TFCBlockStateProperties.java @ c3b4d9536 (SMOKE_LEVEL range),
+- *       src/main/resources/assets/tfc/blockstates/firepit.json @ c3b4d9536 (the lit x axis variants),
++ *       src/main/resources/assets/tfc/blockstates/firepit.json @ c3b4d9536 (the lit x axis variants, axis z turned y 90),
+  *       src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java @ c3b4d9536 (strength, sound, lightLevel(litBlockEmission(15))),
+  *       src/main/resources/data/tfc/loot_table/blocks/firepit.json @ c3b4d9536 (the drops)
+  */
+@@ -22,6 +22,7 @@ import dev.tfp.datagen.device.DeviceProperty;
+ import dev.tfp.datagen.device.DeviceSpecs;
+ import dev.tfp.datagen.device.DeviceYaml;
+ import dev.tfp.datagen.hitbox.HitboxAllocation;
++import dev.tfp.datagen.hitbox.HitboxDemands;
+ import java.util.ArrayList;
+ import java.util.LinkedHashMap;
+ import java.util.List;
+@@ -47,16 +48,20 @@ import java.util.regex.Pattern;
+  * type, which also has {@code y} and would double the state count with states TFC never has. Whether CraftEngine's
+  * hardcoded rotation behaviour for the name {@code axis} accepts a string property is not verified yet.
+  *
+- * <p><b>Carrier.</b> Each of the two appearances ({@code lit}, {@code unlit}) sits on the vanilla state the hitbox carrier
+- * selector picks for TFC's shape (PAR-INFRA-13, {@link #carrier}): for the firepit {@code daylight_detector} (16x6x16
+- * against TFC's 2 px plate plus a 12x4x12 core, IoU 0.71). There is no model of our own yet, so the look is the carrier's
+- * vanilla look, a placeholder until the firepit family's models exist (M3-HEAT-03 open items).
++ * <p><b>Carrier.</b> PAR-HEAT-23: one appearance per (lit, axis) pair ({@code lit_x}, {@code lit_z}, {@code unlit_x},
++ * {@code unlit_z}), each on its own MODEL carrier from the hitbox selector ({@link #modelCarrier}: four powers of
++ * {@code daylight_detector}, 16x6x16 against TFC's 2 px plate plus a 12x4x12 core, IoU 0.71) drawn with TFC's
++ * {@code firepit_lit} / {@code firepit_unlit} model; the axis-z pair turns it y 90 as TFC's blockstate does
++ * ({@code model: {path, y: 90}}, {@link DeviceSpecs#turnModels}). TFC crafts the daylight detector, so each carrier hides
++ * real detectors at its power as the nearest free power ({@code block_state_mappings}; the detector's model depends only
++ * on {@code inverted}, so they look the same). The grill and the pot still take the vanilla look of their carriers
++ * ({@link #spec}).
+  *
+- * <p><b>Spec.</b> The entry is a {@link DeviceBlockSpec} built by {@link DeviceSpecs#firepitFamily} and written by
+- * {@link DeviceYaml#writeLiteral} (PAR-INFRA-19), with TFC's settings ({@link DeviceBlockSpec.Settings#fromTfc}: strength
++ * <p><b>Spec.</b> The entry is a {@link DeviceBlockSpec} built by {@link DeviceSpecs#firepit} and written through
++ * {@link DeviceYaml#literal} (PAR-INFRA-19; PAR-HEAT-23 adds the axis-z turn), with TFC's settings ({@link DeviceBlockSpec.Settings#fromTfc}: strength
+  * 0.4/0.4, nether wart sounds, pickaxe), TFC's loot ({@link DeviceLoot#fromTfc}: wood ash) and TFC's lit light
+  * ({@code lightLevel(litBlockEmission(15))}, read by {@link #litLight}: 15 when lit, 0 otherwise). The grill and the pot
+- * are written the same way ({@link #spec}).
++ * are written through {@link DeviceSpecs#firepitFamily} ({@link #spec}).
+  *
+  * <p><b>Outputs.</b> {@code craftengine/tfp/devices/firepit.yml} is the literal spec without the behaviour, outside
+  * {@code configuration/}, so CraftEngine does not load it (the firepit-family fixture {@code DeviceSpecParityTest}
+@@ -65,9 +70,8 @@ import java.util.regex.Pattern;
+  * routes to the firepit device kind ({@code paper/firepit}); {@link #run} writes it (PAR-HEAT-19).
+  *
+  * <p><b>Models.</b> TFC's {@code firepit_lit} and {@code firepit_unlit} block models (the variants of the TFC blockstate,
+- * {@link #models}) are copied into the pack by {@link AssetPipeline}. Drawing them on the carriers needs a carrier per
+- * (lit, axis) pair in MODEL mode from the hitbox selector (the firepit, grill and pot now share one vanilla-look
+- * {@code daylight_detector} state, which can carry only one model); that is PAR-HEAT-23.
++ * {@link #models}) are copied into the pack by {@link AssetPipeline} and drawn on the carriers above. TFC's fuel logs
++ * ({@code FirepitBlockEntityRenderer}) are not drawn (ledger divergence).
+  */
+ final class Firepit {
+     static final String SOURCE = "src/main/java/net/dries007/tfc/common/blocks/devices/FirepitBlock.java";
+@@ -104,9 +108,9 @@ final class Firepit {
+         List<DeviceProperty> props = props(tfc);
+         List<Map<String, String>> states = DeviceBlockSpec.combinations(props);
+         checkAgainstTfc(tfc, states);
+-        DeviceBlockSpec spec = spec(tfc, BLOCK_ID, props);
+-        out.put(OUTPUT, DeviceYaml.writeLiteral(spec));
+-        out.put(LOADED_OUTPUT, DeviceYaml.writeTemplated(loaded(spec))); // PAR-HEAT-19: the entry CraftEngine loads
++        DeviceBlockSpec spec = firepitSpec(tfc, props);
++        out.put(OUTPUT, literalYaml(spec));
++        out.put(LOADED_OUTPUT, templatedYaml(loaded(spec))); // PAR-HEAT-19: the entry CraftEngine loads
+         return states.size();
+     }
+ 
+@@ -115,7 +119,52 @@ final class Firepit {
+      * Everything else (states, carriers, TFC's settings, loot and lit light) is the spec's.
+      */
+     static String loadedYaml(TfcCheckout tfc) {
+-        return DeviceYaml.writeTemplated(loaded(spec(tfc, BLOCK_ID, props(tfc))));
++        return templatedYaml(loaded(firepitSpec(tfc, props(tfc))));
++    }
++
++    /** PAR-HEAT-23: the literal entry with the axis-z models turned y 90 (TFC's blockstate). */
++    static String literalYaml(DeviceBlockSpec spec) {
++        return Yaml.write(DeviceYaml.HEADER, DeviceSpecs.turnModels(DeviceYaml.literal(spec), spec.id(), Firepit::rotation));
++    }
++
++    /** PAR-HEAT-23: the templated entry with the axis-z models turned y 90 (TFC's blockstate). */
++    static String templatedYaml(DeviceBlockSpec spec) {
++        return Yaml.write(DeviceYaml.HEADER, DeviceSpecs.turnModels(DeviceYaml.templated(spec), spec.id(), Firepit::rotation));
++    }
++
++    /** PAR-HEAT-23: the blockstate y of a firepit appearance ({@code <lit|unlit>_<axis>}). */
++    static int rotation(String appearance) {
++        return HitboxDemands.firepitRotation(appearance.substring(appearance.lastIndexOf('_') + 1));
++    }
++
++    /**
++     * PAR-HEAT-23: the firepit drawn with TFC's models: four appearances ({@code lit_x}, {@code lit_z}, {@code unlit_x},
++     * {@code unlit_z}), each on the MODEL carrier the hitbox selector agreed on, with the carriers' hide mappings (real
++     * daylight detectors at a carrier power are sent with the nearest free power), and TFC's settings, loot and lit light.
++     */
++    static DeviceBlockSpec firepitSpec(TfcCheckout tfc, List<DeviceProperty> props) {
++        Map<String, String> hides = new TreeMap<>();
++        for (boolean lit : new boolean[] {true, false}) {
++            for (String axis : HitboxDemands.FIREPIT_AXES) {
++                HitboxAllocation.Assignment a = modelCarrier(lit, axis);
++                if (a.hideTarget() != null) {
++                    hides.put(a.state(), a.hideTarget());
++                }
++            }
++        }
++        return DeviceSpecs.firepit(BLOCK_ID, props, (lit, axis) -> DeviceAppearance.Carrier.state(modelCarrier(lit, axis).state()),
++            HitboxDemands::firepitModel, DeviceBlockSpec.Settings.fromTfc(tfc, "firepit"), DeviceLoot.fromTfc(tfc, "firepit"),
++            litLight(tfc, "firepit"), hides);
++    }
++
++    /** PAR-HEAT-23: the carrier of the firepit's (lit, axis) appearance; must be MODEL mode with TFC's model. */
++    static HitboxAllocation.Assignment modelCarrier(boolean lit, String axis) {
++        HitboxAllocation.Assignment a = HitboxAllocation.agreed(BLOCK_ID, HitboxDemands.firepitAppearance(lit, axis));
++        if (a.mode() != HitboxAllocation.Mode.MODEL) {
++            throw new DatagenException(BLOCK_ID + "#" + HitboxDemands.firepitAppearance(lit, axis) + ": the carrier is "
++                + a.mode() + ", the firepit draws TFC's model on it");
++        }
++        return a;
+     }
+ 
+     static DeviceBlockSpec loaded(DeviceBlockSpec spec) {
+@@ -376,7 +425,8 @@ final class Firepit {
+     }
+ 
+     /**
+-     * The spec of the firepit-family block {@code blockId} ({@code tfp:firepit}, {@code tfp:grill}, {@code tfp:pot}): the
++     * The vanilla-look spec of a firepit-family block {@code blockId} ({@code tfp:grill}, {@code tfp:pot}; the firepit itself
++     * is {@link #firepitSpec}): the
+      * given properties, the carriers the hitbox selector chose (vanilla look: placeholders), and TFC's settings, loot and
+      * lit light of the TFC block of the same name.
+      */
+diff --git a/tools/datagen/src/main/java/dev/tfp/datagen/device/DeviceSpecs.java b/tools/datagen/src/main/java/dev/tfp/datagen/device/DeviceSpecs.java
+index 72cfe21..2621ad4 100644
+--- a/tools/datagen/src/main/java/dev/tfp/datagen/device/DeviceSpecs.java
++++ b/tools/datagen/src/main/java/dev/tfp/datagen/device/DeviceSpecs.java
+@@ -55,6 +55,68 @@ public final class DeviceSpecs {
+             .build();
+     }
+ 
++    /** PAR-HEAT-23: the firepit's axis property (TFC {@code HORIZONTAL_AXIS}). */
++    public static final String AXIS = "axis";
++
++    /** PAR-HEAT-23: the firepit appearance of a lit value and an axis ({@code lit_x}, {@code unlit_z}). */
++    public static String firepitAppearance(boolean lit, String axis) {
++        return (lit ? LIT : UNLIT) + "_" + axis;
++    }
++
++    /**
++     * PAR-HEAT-23: the firepit, drawn with TFC's models: one appearance per (lit, axis) pair ({@link #firepitAppearance}),
++     * each on its own carrier ({@code carrier}) with {@code model} of the lit value (the turn of axis z is written by
++     * {@link #turnModels}: CraftEngine takes one model per explicit state and cannot turn it per variant). The given
++     * properties must contain {@code lit} (boolean) and {@code axis}; {@code litLight} as {@link #firepitFamily};
++     * {@code stateMappings}: the carriers' hide mappings.
++     */
++    public static DeviceBlockSpec firepit(String id, List<DeviceProperty> props,
++            java.util.function.BiFunction<Boolean, String, DeviceAppearance.Carrier> carrier,
++            java.util.function.Function<Boolean, String> model, DeviceBlockSpec.Settings settings, DeviceLoot loot,
++            int litLight, Map<String, String> stateMappings) {
++        if (props.stream().noneMatch(p -> p.name().equals(LIT) && p.kind() == DeviceProperty.Kind.BOOLEAN)) {
++            throw new DatagenException(id + ": a firepit-family block needs the boolean property lit");
++        }
++        DeviceProperty axis = props.stream().filter(p -> p.name().equals(AXIS)).findFirst()
++            .orElseThrow(() -> new DatagenException(id + ": the firepit needs the property axis"));
++        DeviceBlockSpec.Builder b = DeviceBlockSpec.builder(id).properties(props);
++        for (boolean lit : new boolean[] {true, false}) {
++            for (String a : axis.values()) {
++                b.appearance(DeviceAppearance.modelled(firepitAppearance(lit, a), carrier.apply(lit, a), model.apply(lit)));
++            }
++        }
++        b.everyState(s -> firepitAppearance("true".equals(s.get(LIT)), s.get(AXIS)),
++                s -> "true".equals(s.get(LIT)) ? litLight : 0)
++            .settings(settings)
++            .loot(loot);
++        stateMappings.forEach(b::stateMapping);
++        return b.build();
++    }
++
++    /**
++     * PAR-HEAT-23: turns the model of every appearance of block {@code id} in a written device map ({@link DeviceYaml#literal}
++     * or {@link DeviceYaml#templated}) by the blockstate {@code y} that {@code yByAppearance} gives (0: unchanged), as
++     * CraftEngine's {@code model: {path, y}}. Returns {@code root}.
++     */
++    @SuppressWarnings("unchecked")
++    public static Map<String, Object> turnModels(Map<String, Object> root, String id,
++            java.util.function.ToIntFunction<String> yByAppearance) {
++        Map<String, Object> block = (Map<String, Object>) ((Map<String, Object>) root.get("blocks")).get(id);
++        Map<String, Object> states = (Map<String, Object>) block.get("states");
++        Map<String, Object> appearances = (Map<String, Object>) states.get("appearances");
++        for (Map.Entry<String, Object> e : appearances.entrySet()) {
++            Map<String, Object> app = (Map<String, Object>) e.getValue();
++            int y = yByAppearance.applyAsInt(e.getKey());
++            if (y != 0 && app.get("model") instanceof String model) {
++                Map<String, Object> turned = new java.util.LinkedHashMap<>();
++                turned.put("path", model);
++                turned.put("y", y);
++                app.put("model", turned);
++            }
++        }
++        return root;
++    }
++
+     /**
+      * The charcoal forge: one appearance {@code heat_N} per level of {@code heat}, every one on {@code carrier} with the
+      * cold level's model (one vanilla state carries one model); each lit level adds a display of its own TFC model
+diff --git a/tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxDemands.java b/tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxDemands.java
+index 4aa37b5..fe230d9 100644
+--- a/tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxDemands.java
++++ b/tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxDemands.java
+@@ -126,8 +126,8 @@ public final class HitboxDemands {
+         for (String f : FACINGS) {
+             d.add(new Demand("tfp:bellows", f, "tfc:bellows[facing=" + f + "]", 0, HitboxAllocation.VANILLA_LOOK, true, 1));
+         }
+-        // M3-HEAT-03 placeholders: the carrier's vanilla look until the firepit family's models exist.
+-        for (String device : List.of("firepit", "grill", "pot")) {
++        // M3-HEAT-03 placeholders: the carrier's vanilla look until the grill's and the pot's models exist.
++        for (String device : List.of("grill", "pot")) {
+             d.add(new Demand("tfp:" + device, "lit", "tfc:" + device, FIREPIT_LIT_LIGHT, HitboxAllocation.VANILLA_LOOK, true, 1));
+             d.add(new Demand("tfp:" + device, "unlit", "tfc:" + device, 0, HitboxAllocation.VANILLA_LOOK, true, 1));
+         }
+@@ -202,9 +202,48 @@ public final class HitboxDemands {
+             powderkegModel(POWDERKEG_SEALED), true, POWDERKEG_WEIGHT));
+         d.add(new Demand(POWDERKEG_ID, POWDERKEG_LIT, POWDERKEG_ROW, 0,
+             powderkegModel(POWDERKEG_LIT), true, POWDERKEG_WEIGHT));
++        // PAR-HEAT-23: the firepit, TFC's lit and unlit models per axis (blockstates/firepit.json turns axis z by y 90; a
++        // carrier state takes one model, so each (lit, axis) pair has its own carrier).
++        for (boolean lit : new boolean[] {true, false}) {
++            for (String axis : FIREPIT_AXES) {
++                d.add(new Demand(FIREPIT_ID, firepitAppearance(lit, axis), "tfc:firepit", lit ? FIREPIT_LIT_LIGHT : 0,
++                    firepitLook(lit, axis), true, FIREPIT_WEIGHT));
++            }
++        }
+         return d;
+     }
+ 
++    /** PAR-HEAT-23: the firepit block and its axes (TFC {@code HORIZONTAL_AXIS}). */
++    public static final String FIREPIT_ID = "tfp:firepit";
++    public static final List<String> FIREPIT_AXES = List.of("x", "z");
++    /** PAR-HEAT-23: served after every other demand (adding the firepit models moves no carrier of another block). */
++    static final int FIREPIT_WEIGHT = -5;
++
++    /** PAR-HEAT-23: the firepit appearance of {@code lit} and {@code axis} ({@code lit_x}, {@code unlit_z}). */
++    public static String firepitAppearance(boolean lit, String axis) {
++        return (lit ? "lit" : "unlit") + "_" + axis;
++    }
++
++    /** PAR-HEAT-23: TFC's firepit model ({@code tfp:block/firepit_lit} / {@code _unlit}). */
++    public static String firepitModel(boolean lit) {
++        return lit ? "tfp:block/firepit_lit" : "tfp:block/firepit_unlit";
++    }
++
++    /** PAR-HEAT-23: TFC's blockstates/firepit.json turns the model y 90 for axis z, none for axis x. */
++    public static int firepitRotation(String axis) {
++        return switch (axis) {
++            case "x" -> 0;
++            case "z" -> 90;
++            default -> throw new IllegalArgumentException("not a horizontal axis: " + axis);
++        };
++    }
++
++    /** PAR-HEAT-23: the look key of a firepit state: the model and its turn (two turns are two looks). */
++    public static String firepitLook(boolean lit, String axis) {
++        int y = firepitRotation(axis);
++        return y == 0 ? firepitModel(lit) : firepitModel(lit) + "@y" + y;
++    }
++
+     /** PAR-PROC-39: TFC's model of a powderkeg appearance ({@code tfp:block/powderkeg}, {@code _sealed}, {@code _lit}). */
+     public static String powderkegModel(String appearance) {
+         return switch (appearance) {
+diff --git a/tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/carrier-policy.json b/tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/carrier-policy.json
+index 835ae9e..7491947 100644
+--- a/tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/carrier-policy.json
++++ b/tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/carrier-policy.json
+@@ -21,7 +21,7 @@
+     "minecraft:wildflowers": {"presence": "absent", "note": "1.21.5+ only"},
+     "minecraft:leaf_litter": {"presence": "absent", "note": "1.21.5+ only; replaceable"},
+     "minecraft:sculk_sensor": {"presence": "absent", "note": "emits light 1"},
+-    "minecraft:daylight_detector": {"presence": "absent", "note": "16x6x16; right-click inversion is server-side"},
++    "minecraft:daylight_detector": {"presence": "natural", "hide": "nearest_free_value:power", "note": "16x6x16; right-click inversion is server-side. PAR-HEAT-23: TFC crafts it (src/generated/resources/data/minecraft/recipe/daylight_detector.json) and players place it, so a model on a state needs a hide: its model depends only on inverted, so a real detector at a carrier power is sent with the nearest free power and looks the same"},
+     "minecraft:campfire": {"presence": "absent", "note": "lit states make client smoke"},
+     "minecraft:soul_campfire": {"presence": "absent", "note": "lit states make client smoke"},
+     "minecraft:stonecutter": {"presence": "absent", "note": "16x9x16"},
+diff --git a/tools/datagen/src/test/java/dev/tfp/datagen/FirepitTest.java b/tools/datagen/src/test/java/dev/tfp/datagen/FirepitTest.java
+index 53526e6..42ec3d8 100644
+--- a/tools/datagen/src/test/java/dev/tfp/datagen/FirepitTest.java
++++ b/tools/datagen/src/test/java/dev/tfp/datagen/FirepitTest.java
+@@ -262,22 +262,26 @@ class FirepitTest {
+         assertThat(props.get("axis")).isEqualTo(Map.of("type", "string", "values", List.of("x", "z"), "default", "x"));
+ 
+         Map<?, ?> appearances = (Map<?, ?>) states.get("appearances");
+-        assertThat(appearances.keySet().stream().map(String::valueOf).toList()).containsExactly(Firepit.LIT_APPEARANCE, Firepit.UNLIT_APPEARANCE);
+-        // PAR-INFRA-13: both appearances sit on the hitbox selector's carrier for TFC's shape, in its vanilla look.
+-        String carrier = SELECTED.get(blockId);
+-        assertThat(appearances.get(Firepit.LIT_APPEARANCE)).isEqualTo(Map.of("state", carrier));
+-        assertThat(appearances.get(Firepit.UNLIT_APPEARANCE)).isEqualTo(Map.of("state", carrier));
+-        assertThat(Firepit.carrier(blockId, Firepit.LIT_APPEARANCE)).isEqualTo(carrier);
+-        assertThat(yaml).as("no placeholder campfire: lit campfires make client smoke").doesNotContain("campfire")
+-            .as("a vanilla look needs no hide mapping").doesNotContain("block_state_mappings");
+-
+-        // PAR-INFRA-19: TFC's lightLevel(litBlockEmission(15)): 15 when lit, 0 otherwise.
+         Map<?, ?> variants = (Map<?, ?>) states.get("variants");
+         assertThat(variants).hasSize(2 * (smokeMax + 1) * 2);
+-        assertThat(variants.get("lit=true,smoke_level=0,axis=x"))
+-            .isEqualTo(Map.of("appearance", Firepit.LIT_APPEARANCE, "settings", Map.of("luminance", 15)));
+-        assertThat(variants.get("lit=false," + "smoke_level=" + smokeMax + ",axis=z"))
+-            .isEqualTo(Map.of("appearance", Firepit.UNLIT_APPEARANCE, "settings", Map.of("luminance", 0)));
++        assertThat(yaml).as("no placeholder campfire: lit campfires make client smoke").doesNotContain("campfire");
++        if (blockId.equals(Firepit.BLOCK_ID)) {
++            assertFirepitLook(root, appearances, variants, smokeMax);
++        } else {
++            assertThat(appearances.keySet().stream().map(String::valueOf).toList()).containsExactly(Firepit.LIT_APPEARANCE, Firepit.UNLIT_APPEARANCE);
++            // PAR-INFRA-13: both appearances sit on the hitbox selector's carrier for TFC's shape, in its vanilla look.
++            String carrier = SELECTED.get(blockId);
++            assertThat(appearances.get(Firepit.LIT_APPEARANCE)).isEqualTo(Map.of("state", carrier));
++            assertThat(appearances.get(Firepit.UNLIT_APPEARANCE)).isEqualTo(Map.of("state", carrier));
++            assertThat(Firepit.carrier(blockId, Firepit.LIT_APPEARANCE)).isEqualTo(carrier);
++            assertThat(yaml).as("a vanilla look needs no hide mapping").doesNotContain("block_state_mappings");
++
++            // PAR-INFRA-19: TFC's lightLevel(litBlockEmission(15)): 15 when lit, 0 otherwise.
++            assertThat(variants.get("lit=true,smoke_level=0,axis=x"))
++                .isEqualTo(Map.of("appearance", Firepit.LIT_APPEARANCE, "settings", Map.of("luminance", 15)));
++            assertThat(variants.get("lit=false," + "smoke_level=" + smokeMax + ",axis=z"))
++                .isEqualTo(Map.of("appearance", Firepit.UNLIT_APPEARANCE, "settings", Map.of("luminance", 0)));
++        }
+ 
+         // PAR-INFRA-19: TFC's strength(0.4F, 0.4F), SoundType.NETHER_WART and minecraft:mineable/pickaxe.
+         Map<?, ?> block = (Map<?, ?>) ((Map<?, ?>) root.get("blocks")).get(blockId);
+@@ -293,6 +297,67 @@ class FirepitTest {
+         assertThat(drops(block.get("loot"))).as("TFC's loot table of " + blockId).isEqualTo(DROPS.get(blockId));
+     }
+ 
++    /**
++     * PAR-HEAT-23: the firepit's carriers, one daylight detector power per (lit, axis) pair, each hidden as the next power
++     * (the detector is crafted in TFC; its model depends only on inverted).
++     */
++    static final Map<String, String> FIREPIT_CARRIERS = Map.of(
++        "lit_x", "minecraft:daylight_detector[inverted=false,power=0]",
++        "lit_z", "minecraft:daylight_detector[inverted=false,power=10]",
++        "unlit_x", "minecraft:daylight_detector[inverted=false,power=12]",
++        "unlit_z", "minecraft:daylight_detector[inverted=false,power=14]");
++    static final Map<String, String> FIREPIT_HIDES = Map.of(
++        "minecraft:daylight_detector[inverted=false,power=0]", "minecraft:daylight_detector[inverted=false,power=1]",
++        "minecraft:daylight_detector[inverted=false,power=10]", "minecraft:daylight_detector[inverted=false,power=11]",
++        "minecraft:daylight_detector[inverted=false,power=12]", "minecraft:daylight_detector[inverted=false,power=13]",
++        "minecraft:daylight_detector[inverted=false,power=14]", "minecraft:daylight_detector[inverted=false,power=15]");
++
++    /**
++     * PAR-HEAT-23: four appearances, each on its own carrier with TFC's model of its lit value, axis z turned y 90 as TFC's
++     * blockstate; every variant picks the appearance of its lit and axis; the carriers' hide mappings are written.
++     */
++    static void assertFirepitLook(Map<?, ?> root, Map<?, ?> appearances, Map<?, ?> variants, int smokeMax) {
++        assertThat(appearances.keySet().stream().map(String::valueOf).toList())
++            .containsExactly("lit_x", "lit_z", "unlit_x", "unlit_z");
++        assertThat(appearances.get("lit_x")).isEqualTo(Map.of("state", FIREPIT_CARRIERS.get("lit_x"),
++            "model", "tfp:block/firepit_lit"));
++        assertThat(appearances.get("lit_z")).isEqualTo(Map.of("state", FIREPIT_CARRIERS.get("lit_z"),
++            "model", Map.of("path", "tfp:block/firepit_lit", "y", 90)));
++        assertThat(appearances.get("unlit_x")).isEqualTo(Map.of("state", FIREPIT_CARRIERS.get("unlit_x"),
++            "model", "tfp:block/firepit_unlit"));
++        assertThat(appearances.get("unlit_z")).isEqualTo(Map.of("state", FIREPIT_CARRIERS.get("unlit_z"),
++            "model", Map.of("path", "tfp:block/firepit_unlit", "y", 90)));
++        assertThat(root.get("block_state_mappings")).isEqualTo(FIREPIT_HIDES);
++        for (boolean lit : new boolean[] {true, false}) {
++            for (String axis : List.of("x", "z")) {
++                for (int smoke = 0; smoke <= smokeMax; smoke++) {
++                    assertThat(variants.get("lit=" + lit + ",smoke_level=" + smoke + ",axis=" + axis))
++                        .isEqualTo(Map.of("appearance", (lit ? "lit_" : "unlit_") + axis,
++                            "settings", Map.of("luminance", lit ? 15 : 0)));
++                }
++            }
++        }
++    }
++
++    /** PAR-HEAT-23: the selector gives the four pinned carriers in MODEL mode, the hides as pinned, no other block on them. */
++    @Test
++    void theFourFirepitCarriersAreDistinctModelCarriers() {
++        java.util.Set<String> states = new java.util.HashSet<>();
++        for (boolean lit : new boolean[] {true, false}) {
++            for (String axis : List.of("x", "z")) {
++                var a = Firepit.modelCarrier(lit, axis);
++                assertThat(a.state()).isEqualTo(FIREPIT_CARRIERS.get((lit ? "lit_" : "unlit_") + axis));
++                assertThat(a.hideTarget()).isEqualTo(FIREPIT_HIDES.get(a.state()));
++                assertThat(a.demand().look()).isEqualTo((lit ? "tfp:block/firepit_lit" : "tfp:block/firepit_unlit")
++                    + (axis.equals("z") ? "@y90" : ""));
++                states.add(a.state());
++            }
++        }
++        assertThat(states).hasSize(4);
++        assertThat(Firepit.rotation("lit_z")).isEqualTo(90);
++        assertThat(Firepit.rotation("unlit_x")).isZero();
++    }
++
+     /** TFC's drops of the firepit family at the pinned commit (renamed to tfp:), one pool each. */
+     static final Map<String, List<String>> DROPS = Map.of(
+         Firepit.BLOCK_ID, List.of("tfp:powder/wood_ash"),
+diff --git a/tools/datagen/src/test/java/dev/tfp/datagen/device/DeviceSpecParityTest.java b/tools/datagen/src/test/java/dev/tfp/datagen/device/DeviceSpecParityTest.java
+index 64f7bd0..e672226 100644
+--- a/tools/datagen/src/test/java/dev/tfp/datagen/device/DeviceSpecParityTest.java
++++ b/tools/datagen/src/test/java/dev/tfp/datagen/device/DeviceSpecParityTest.java
+@@ -89,7 +89,28 @@ class DeviceSpecParityTest {
+         SortedMap<String, byte[]> files = Datagen.generate(tfc.root(), TfcCheckout.PINNED_COMMIT).tree().files();
+ 
+         // PAR-INFRA-13: the carriers come from the hitbox carrier selector's allocation.
+-        for (String device : List.of("firepit", "grill", "pot")) {
++        // PAR-HEAT-23: the firepit draws TFC's models on four carriers (lit x axis), axis z turned y 90, with hide mappings.
++        Map<String, String> hides = new java.util.TreeMap<>();
++        for (boolean lit : new boolean[] {true, false}) {
++            for (String axis : List.of("x", "z")) {
++                var a = HitboxAllocation.agreed("tfp:firepit", DeviceSpecs.firepitAppearance(lit, axis));
++                hides.put(a.state(), a.hideTarget());
++            }
++        }
++        DeviceBlockSpec firepit = DeviceSpecs.firepit("tfp:firepit", firepitProps(),
++            (lit, axis) -> DeviceAppearance.Carrier.state(
++                HitboxAllocation.agreed("tfp:firepit", DeviceSpecs.firepitAppearance(lit, axis)).state()),
++            lit -> lit ? "tfp:block/firepit_lit" : "tfp:block/firepit_unlit",
++            DeviceBlockSpec.Settings.fromTfc(tfc, "firepit"), DeviceLoot.fromTfc(tfc, "firepit"), 15, hides);
++        assertThat(firepit.stateCount()).isEqualTo(20);
++        assertThat(firepit.appearances()).hasSize(4);
++        String firepitText = text(files, PACK + "devices/firepit.yml");
++        assertThat(firepitText).isEqualTo(dev.tfp.datagen.Yaml.write(DeviceYaml.HEADER, DeviceSpecs.turnModels(
++            DeviceYaml.literal(firepit), "tfp:firepit", app -> app.endsWith("_z") ? 90 : 0)));
++        assertThat(firepitText).contains("luminance: 15", "luminance: 0", "minecraft:mineable/pickaxe",
++            "tfp:powder/wood_ash", "block_state_mappings", "'y': 90");
++
++        for (String device : List.of("grill", "pot")) {
+             var lit = DeviceAppearance.Carrier.state(HitboxAllocation.agreed("tfp:" + device, "lit").state());
+             var unlit = DeviceAppearance.Carrier.state(HitboxAllocation.agreed("tfp:" + device, "unlit").state());
+             DeviceBlockSpec spec = DeviceSpecs.firepitFamily("tfp:" + device, firepitProps(), lit, unlit,
+diff --git a/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/CarrierPolicyRecipeTest.java b/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/CarrierPolicyRecipeTest.java
+index cb5a01a..0ece8ab 100644
+--- a/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/CarrierPolicyRecipeTest.java
++++ b/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/CarrierPolicyRecipeTest.java
+@@ -51,9 +51,9 @@ class CarrierPolicyRecipeTest {
+      * crafted one looks right. The day a model or transparent look lands on one, the block needs a hide (natural) or the
+      * demand another carrier.
+      */
++    // PAR-HEAT-23: minecraft:daylight_detector left the list: TFC crafts it (lens + redstone + lumber) and the firepit's
++    // models sit on it, so its policy is natural with a hide to the nearest free power (thePoweredDetectorIsHidden).
+     static final Map<String, String> ALLOWED = Map.of(
+-        "minecraft:daylight_detector", "TFC recipe (lens + redstone + lumber); the firepit, bloom and ingot-pile carriers on"
+-            + " it are vanilla-look today (the device look is an entity_renderer)",
+         "minecraft:lightning_rod", "TFC recipe (3 c:rods/copper); the rock spike tip ranks it but rock spikes are no hitbox"
+             + " demand yet");
+ 
+@@ -214,6 +214,28 @@ class CarrierPolicyRecipeTest {
+         }
+     }
+ 
++    /** PAR-HEAT-23: the daylight detector is crafted in TFC and carries the firepit's models, so it is hidden by power. */
++    @Test
++    void thePoweredDetectorIsHidden() throws IOException {
++        VanillaCandidates v = VanillaCandidates.load();
++        assertThat(allRecipeResults()).containsKey(DETECTOR);
++        assertThat(v.policy(DETECTOR).presence()).isEqualTo(Presence.NATURAL);
++        assertThat(v.policy(DETECTOR).hide()).isEqualTo("nearest_free_value:power");
++        int models = 0;
++        for (Map.Entry<String, Result> e : HitboxAllocation.standard().entrySet()) {
++            for (Assignment a : e.getValue().assignments()) {
++                if (!a.pool() && a.carrier().block().equals(DETECTOR) && a.mode() != Mode.VANILLA) {
++                    models++;
++                    assertThat(a.hideTarget()).as(e.getKey() + ": " + a.demand().id()).startsWith(DETECTOR + "[")
++                        .isNotEqualTo(a.state());
++                }
++            }
++        }
++        assertThat(models).as("the firepit models sit on the detector").isPositive();
++    }
++
++    private static final String DETECTOR = "minecraft:daylight_detector";
++
+     /** The done criterion: no non-vanilla look of any allocation sits on a crafted block without a hide mapping. */
+     @Test
+     void noNonVanillaLookOnACraftedBlockWithoutAHide() throws IOException {
+diff --git a/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/GeneratedCarrierTest.java b/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/GeneratedCarrierTest.java
+index 37ab8b6..13b127e 100644
+--- a/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/GeneratedCarrierTest.java
++++ b/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/GeneratedCarrierTest.java
+@@ -116,7 +116,12 @@ class GeneratedCarrierTest {
+                 "minecraft:snow[layers=7] -> minecraft:snow[layers=8]",
+                 // PAR-PROC-37: the two-layer charcoal pile's carrier.
+                 "minecraft:snow[layers=2] -> minecraft:snow[layers=3]",
+-                "minecraft:heavy_weighted_pressure_plate[power=0] -> minecraft:heavy_weighted_pressure_plate[power=1]");
++                "minecraft:heavy_weighted_pressure_plate[power=0] -> minecraft:heavy_weighted_pressure_plate[power=1]",
++                // PAR-HEAT-23: the firepit's four daylight detector carriers.
++                "minecraft:daylight_detector[inverted=false,power=0] -> minecraft:daylight_detector[inverted=false,power=1]",
++                "minecraft:daylight_detector[inverted=false,power=10] -> minecraft:daylight_detector[inverted=false,power=11]",
++                "minecraft:daylight_detector[inverted=false,power=12] -> minecraft:daylight_detector[inverted=false,power=13]",
++                "minecraft:daylight_detector[inverted=false,power=14] -> minecraft:daylight_detector[inverted=false,power=15]");
+         assertThat(problems).as("take carriers from dev.tfp.datagen.hitbox.HitboxAllocation").isEmpty();
+     }
+ 
+@@ -314,6 +319,39 @@ class GeneratedCarrierTest {
+         assertThat(matches(HitboxDemands.barrelSideDemand("x", false), HitboxDemands.BARREL_SEALED)).isFalse();
+     }
+ 
++    @Test
++    void theFirepitCarriersArePinned() {
++        // PAR-HEAT-23: TFC's lit and unlit models per axis, each on its own daylight detector power (the only free states
++        // scoring 0.5 or more for TFC's firepit outline). TFC crafts the detector, so each carrier is hidden as the next
++        // power (its model depends only on inverted). Served last (weight -5): adding them moved no other carrier.
++        Map<String, String> expected = Map.of(
++            "lit_x", "minecraft:daylight_detector[inverted=false,power=0]",
++            "lit_z", "minecraft:daylight_detector[inverted=false,power=10]",
++            "unlit_x", "minecraft:daylight_detector[inverted=false,power=12]",
++            "unlit_z", "minecraft:daylight_detector[inverted=false,power=14]");
++        java.util.Set<String> carriers = new java.util.HashSet<>();
++        for (boolean lit : new boolean[] {true, false}) {
++            for (String axis : HitboxDemands.FIREPIT_AXES) {
++                String app = HitboxDemands.firepitAppearance(lit, axis);
++                Assignment a = HitboxAllocation.agreed(HitboxDemands.FIREPIT_ID, app);
++                assertThat(a.mode()).as(app).isEqualTo(HitboxAllocation.Mode.MODEL);
++                assertThat(a.state()).as(app).isEqualTo(expected.get(app));
++                assertThat(a.demand().look()).as(app).isEqualTo(HitboxDemands.firepitLook(lit, axis));
++                int power = Integer.parseInt(a.state().replaceAll(".*power=(\\d+)]", "$1"));
++                assertThat(a.hideTarget()).as(app)
++                    .isEqualTo("minecraft:daylight_detector[inverted=false,power=" + (power + 1) + "]");
++                carriers.add(a.state());
++            }
++        }
++        assertThat(carriers).hasSize(4);
++        assertThat(HitboxDemands.firepitLook(true, "z")).isEqualTo("tfp:block/firepit_lit@y90");
++        for (Demand d : HitboxDemands.all()) {
++            if (!d.blockId().equals(HitboxDemands.FIREPIT_ID)) {
++                assertThat(HitboxAllocation.agreed(d.blockId(), d.appearance()).state()).as(d.id()).isNotIn(carriers);
++            }
++        }
++    }
++
+     @Test
+     void thePowderkegCarriersArePinned() {
+         // PAR-PROC-39: TFC's three models, all on TFC's sealed outline (tfc:powderkeg[sealed=true] SHAPE 14x16x14). The
+diff --git a/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HitboxAllocationTest.java b/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HitboxAllocationTest.java
+index 9864c31..8cfc26f 100644
+--- a/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HitboxAllocationTest.java
++++ b/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HitboxAllocationTest.java
+@@ -59,7 +59,8 @@ class HitboxAllocationTest {
+         assertThat(forge.state()).isEqualTo("minecraft:snow[layers=7]");
+         assertThat(forge.mode()).isEqualTo(Mode.MODEL);
+         assertThat(forge.hideTarget()).isEqualTo("minecraft:snow[layers=8]");
+-        for (String device : List.of("firepit", "grill", "pot")) {
++        // PAR-HEAT-23: the firepit draws TFC's models on four carriers of its own (GeneratedCarrierTest pins them).
++        for (String device : List.of("grill", "pot")) {
+             Assignment lit = HitboxAllocation.agreed("tfp:" + device, "lit");
+             assertThat(lit.mode()).isEqualTo(Mode.VANILLA);
+             assertThat(lit.hideTarget()).as("a vanilla look needs no hide mapping").isNull();
+diff --git a/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HitboxCarrierTest.java b/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HitboxCarrierTest.java
+index 4022835..952f08a 100644
+--- a/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HitboxCarrierTest.java
++++ b/tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HitboxCarrierTest.java
+@@ -143,7 +143,9 @@ class HitboxCarrierTest {
+         pin("tfc:powderkeg[sealed=true]", "minecraft:cactus[age=0]", 1, 2940.0 / 3136);
+         // The open keg's well: a composter is the one vanilla hollow box (its well is walkable like TFC's).
+         pin("tfc:powderkeg[sealed=false]", "minecraft:composter[level=0]", 0.469, 0.469);
+-        pin("tfc:nest_box", "minecraft:daylight_detector[inverted=false,power=0]", 720.0 / 1536, 720.0 / 1536);
++        // PAR-HEAT-23: the crafted daylight detector is natural with a hide now (HIDE_PENALTY), so the same 16x6x16 outline
++        // of three snow layers wins (collision one layer lower).
++        pin("tfc:nest_box", "minecraft:snow[layers=3]", 720.0 / 1536, 720.0 / 1460);
+         pin("tfc:ceramic/bowl", TRAPDOOR_BOTTOM, 432.0 / 768, 432.0 / 768);
+         pin("tfc:crucible", "minecraft:cactus[age=0]", 0.523, 0.509);
+         pin("tfc:wood/shelf[thick=false]", TRAPDOOR_TOP, 1.0 / 3, 1.0 / 3);
+@@ -235,7 +237,7 @@ class HitboxCarrierTest {
+         assertThat(pickle.reason()).startsWith("object ban");
+         assertThat(Shape.iou(TfcShapes.load().get("tfc:nest_box").selection(),
+             VanillaCandidates.load().get("1.21.11", pickle.carrier()).selection())).isCloseTo(0.833, within(EPS));
+-        assertThat(nest.chosen().carrier()).isEqualTo("minecraft:daylight_detector[inverted=false,power=0]");
++        assertThat(nest.chosen().carrier()).isEqualTo("minecraft:snow[layers=3]");
+         // A lit campfire and the cake are never carriers.
+         assertThat(rejected(select("tfc:firepit", VersionFamily.V1_21),
+             "minecraft:campfire[facing=north,lit=true,signal_fire=false,waterlogged=false]").reason()).contains("particles");
