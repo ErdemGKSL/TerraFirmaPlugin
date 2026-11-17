@@ -45,7 +45,7 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 /**
  * PAR-PROC-40: one sneak click with charcoal or a log is one use. The vanilla client follows a use-item-on the server
  * answered without a client change with a use-item packet; CraftBukkit ray-traces again, hits the pile just placed and
- * fires a second {@code RIGHT_CLICK_BLOCK} of the same hand in the same tick. These tests fire both events of one click
+ * fires a second {@code RIGHT_CLICK_BLOCK} in the same tick, and the client then tries the off hand too. These tests fire both events of one click
  * through {@link CharcoalListener#onInteract} and expect one layer (one log) and one item used, while a click in the next
  * tick still adds one.
  */
@@ -267,16 +267,60 @@ class CharcoalListenerClickTest extends MockServerTest {
         assertThat(held()).isEqualTo(3);
     }
 
+    /**
+     * TFC's charcoal handler returns a consumed result, so its client never tries the off hand after a successful main-hand
+     * use. Our vanilla client saw no change and sends the off-hand use-item-on and use-item in the same tick; they hit the
+     * new pile and must be denied too.
+     */
     @Test
-    void theOtherHandInTheSameTickIsItsOwnClick() {
+    void theOffHandInTheSameTickIsPartOfTheSameClick() {
         hold(Material.CHARCOAL, 4);
-        click(floor, Action.RIGHT_CLICK_BLOCK);
         player.getInventory().setItem(EquipmentSlot.OFF_HAND, new ItemStack(Material.CHARCOAL, 4));
-        PlayerInteractEvent off = new PlayerInteractEvent(player, Action.RIGHT_CLICK_BLOCK,
-            player.getInventory().getItem(EquipmentSlot.OFF_HAND), pile, BlockFace.UP, EquipmentSlot.OFF_HAND);
-        listener.onInteract(off);
+        oneClick(floor);
+        PlayerInteractEvent off = offHand(pile, Action.RIGHT_CLICK_BLOCK);
+        PlayerInteractEvent offAir = offHand(null, Action.RIGHT_CLICK_AIR);
+        assertThat(blocks.stateAt(pile)).contains(CharcoalPitDevice.charcoalPile(1));
+        assertThat(held()).isEqualTo(3);
+        assertThat(player.getInventory().getItem(EquipmentSlot.OFF_HAND).getAmount()).isEqualTo(4);
+        assertThat(off.useInteractedBlock()).isEqualTo(Event.Result.DENY);
+        assertThat(off.useItemInHand()).isEqualTo(Event.Result.DENY);
+        assertThat(offAir.useItemInHand()).isEqualTo(Event.Result.DENY);
+    }
+
+    /** A log in both hands: one click, one log, also on an existing pile. */
+    @Test
+    void aLogInBothHandsUsesOneLogPerClick() {
+        hold(Material.OAK_LOG, 8);
+        player.getInventory().setItem(EquipmentSlot.OFF_HAND, new ItemStack(Material.OAK_LOG, 8));
+        for (int n = 1; n <= 2; n++) {
+            oneClick(n == 1 ? floor : pile);
+            offHand(pile, Action.RIGHT_CLICK_BLOCK);
+            assertThat(logs(pile)).as("click " + n).isEqualTo(n);
+            assertThat(held()).isEqualTo(8 - n);
+            assertThat(player.getInventory().getItem(EquipmentSlot.OFF_HAND).getAmount()).isEqualTo(8);
+            nextTick();
+        }
+    }
+
+    /** An off-hand click in a later tick, with the main hand empty, is its own click. */
+    @Test
+    void anOffHandClickInTheNextTickAddsALayer() {
+        hold(Material.CHARCOAL, 4);
+        oneClick(floor);
+        nextTick();
+        player.getInventory().setItem(EquipmentSlot.HAND, null);
+        player.getInventory().setItem(EquipmentSlot.OFF_HAND, new ItemStack(Material.CHARCOAL, 4));
+        offHand(pile, Action.RIGHT_CLICK_BLOCK);
         assertThat(blocks.stateAt(pile)).contains(CharcoalPitDevice.charcoalPile(2));
         assertThat(player.getInventory().getItem(EquipmentSlot.OFF_HAND).getAmount()).isEqualTo(3);
+    }
+
+    private PlayerInteractEvent offHand(Block clicked, Action action) {
+        PlayerInteractEvent e = new PlayerInteractEvent(player, action, player.getInventory().getItem(EquipmentSlot.OFF_HAND),
+            clicked, clicked == null ? BlockFace.SELF : BlockFace.UP, EquipmentSlot.OFF_HAND);
+        listener.onInteract(e);
+        effects.flush();
+        return e;
     }
 
     @Test

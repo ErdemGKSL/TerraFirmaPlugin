@@ -57,16 +57,17 @@ import org.bukkit.inventory.ItemStack;
  *
  * <p>One click, one use (PAR-PROC-40): after a use-item-on the server answered without a client-side change, the vanilla
  * client also sends a use-item packet, and CraftBukkit's {@code handleUseItem} ray-traces again and fires a second
- * {@code RIGHT_CLICK_BLOCK} when the new hit (the pile just placed) differs from the remembered one. A right click of the
- * same hand in the same server tick (the player's {@code getTicksLived()}) as a handled click is therefore denied, so
- * neither this listener nor CraftEngine nor vanilla act on it.
+ * {@code RIGHT_CLICK_BLOCK} when the new hit (the pile just placed) differs from the remembered one. The client also tries
+ * the off hand in that tick, because it saw no change; TFC's handler returns a consumed result, so its client never does.
+ * Any right click (either hand, block or air) in the same server tick (the player's {@code getTicksLived()}) as a handled
+ * click is therefore denied, so neither this listener nor CraftEngine nor vanilla act on it.
  */
 public final class CharcoalListener implements Listener {
     private final CharcoalPitDevice device;
     private final CharcoalPitDevice.Services services;
     private final Predicate<Block> owns;
     private final Predicate<String> deviceKind;
-    /** Per player: the tick and hand of the last handled click ({@link #clickKey}). */
+    /** Per player: the tick (ticks lived) of the last handled click. */
     private final Map<UUID, Long> handledClick = new ConcurrentHashMap<>();
 
     /**
@@ -87,7 +88,7 @@ public final class CharcoalListener implements Listener {
         if (event.getHand() == null || (action != Action.RIGHT_CLICK_BLOCK && action != Action.RIGHT_CLICK_AIR)) {
             return;
         }
-        if (repeatedClick(event.getPlayer(), event.getHand())) {
+        if (repeatedClick(event.getPlayer())) {
             event.setUseInteractedBlock(Event.Result.DENY);
             event.setUseItemInHand(Event.Result.DENY);
             return;
@@ -110,21 +111,16 @@ public final class CharcoalListener implements Listener {
             ? charcoal(event.getPlayer(), event.getHand(), clicked, event.getBlockFace(), item)
             : log(event.getPlayer(), event.getHand(), clicked, event.getBlockFace(), item);
         if (handled) {
-            handledClick.put(event.getPlayer().getUniqueId(), clickKey(event.getPlayer(), event.getHand()));
+            handledClick.put(event.getPlayer().getUniqueId(), (long) event.getPlayer().getTicksLived());
             event.setUseInteractedBlock(Event.Result.DENY);
             event.setUseItemInHand(Event.Result.DENY);
         }
     }
 
-    /** Whether this right click repeats a click of the same hand this listener handled in the same server tick. */
-    boolean repeatedClick(Player player, EquipmentSlot hand) {
+    /** Whether this right click (either hand) belongs to a click this listener handled in the same server tick. */
+    boolean repeatedClick(Player player) {
         Long last = handledClick.get(player.getUniqueId());
-        return last != null && last == clickKey(player, hand);
-    }
-
-    /** The player's tick (ticks lived) and the hand, in one value. */
-    private static long clickKey(Player player, EquipmentSlot hand) {
-        return ((long) player.getTicksLived() << 1) | (hand == EquipmentSlot.OFF_HAND ? 1 : 0);
+        return last != null && last == player.getTicksLived();
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
