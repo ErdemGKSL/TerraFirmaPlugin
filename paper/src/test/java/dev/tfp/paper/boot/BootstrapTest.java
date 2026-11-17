@@ -288,7 +288,8 @@ class BootstrapTest {
                 "barrelgui",
                 "firepitgui",
                 "barrel",
-                "damage");
+                "damage",
+                "egg");
         assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
         assertThat(tfp.getChild("debug").getChild("showcase").getCommand()).as("showcase needs a family").isNull();
         assertThat(children(tfp.getChild("debug").getChild("player"))).containsExactly("name");

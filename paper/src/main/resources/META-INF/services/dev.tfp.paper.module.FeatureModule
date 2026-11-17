@@ -50,3 +50,4 @@ dev.tfp.paper.charcoal.CharcoalPileSupport$Module
 dev.tfp.paper.grill.GrillModule
 dev.tfp.paper.pot.PotModule
 dev.tfp.paper.light.candle.CandleModule
+dev.tfp.paper.tooltip.feature.FeatureTooltipModule

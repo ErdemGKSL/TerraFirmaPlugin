@@ -160,7 +160,7 @@ Totals: 356 items; open 203, done 145, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-HEAT-19 | Firepit loaded in game: configuration/devices/firepit.yml, TFC firepit models, self-test firepit.cook and the in-game check | HEAT | 14 | done |
 | PAR-INFRA-23 | Hitbox carrier in-game verification: outlines, stand heights and client prediction of every carrier class | INFRA | 14 | done |
 | PAR-INFRA-49 | Block coverage gate: every TFC blockstate is a loaded CE block, a family block, an owned id of a named parity item or an NP entry (reports/tfc-block-coverage.json) | INFRA | 14 | done |
-| PAR-INFRA-50 | Feature item tooltips no item owns: item-list contents of sealed device items, crucible contents, fertilized egg and hatch day, javelin thrown damage, pan deposit, flower cutting, lamp fluid, glass batch steps | INFRA | 14 | open |
+| PAR-INFRA-50 | Feature item tooltips no item owns: item-list contents of sealed device items, crucible contents, fertilized egg and hatch day, javelin thrown damage, pan deposit, flower cutting, lamp fluid, glass batch steps | INFRA | 14 | done |
 | PAR-INFRA-54 | Datagen summary counts CraftEngine block states (ce_states) and the hitbox report lists hide mappings sorted | INFRA | 14 | done |
 | PAR-PROC-18 | Powderkeg | PROC | 14 | done |
 | PAR-PROC-36 | Salad completion: salad screen art, eating and tooltip read the salad's own food data, in-game check | PROC | 14 | done |
@@ -179,6 +179,7 @@ Totals: 356 items; open 203, done 145, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-PROC-39 | Powderkeg CE block: tfc:powderkeg hitbox demands, configuration/powderkeg, in-game explosion check | PROC | 15 | open |
 | PAR-PROC-40 | Charcoal sneak click adds two layers: ignore Paper's re-fired RIGHT_CLICK_BLOCK of the same click | PROC | 15 | open |
 | PAR-INFRA-55 | Installer: rebuild the CraftEngine pack on the restart that applies a raised serverside-blocks (the first-install pack misses the blocks that could not allocate) | INFRA | 15 | open |
+| PAR-PROC-41 | Sealed barrel item keeps its contents: breaking a sealed barrel drops the barrel with its items and fluid (TFC BarrelComponent), placing it restores them | PROC | 15 | open |
 | PAR-HEAT-23 | Firepit look in game: TFC's lit and unlit models on their own carriers (axis z turned 90), and the in-game firepit check | HEAT | 16 | open |
 | PAR-CLIM-14 | Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute | CLIMATE | 16 | open |
 | PAR-CLIM-23 | Verify vanilla /time and the night skip move the calendar in game on Paper 26.3 and 1.21.11 (PAR-CLIM-22 server logs) | CLIMATE | 16 | open |
@@ -189,6 +190,7 @@ Totals: 356 items; open 203, done 145, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-WORLD-01 | Rendered region and river maps compared with TFC | WORLD | 16 | open |
 | PAR-WORLD-02 | Bukkit biome binding and climate call sites on the real chunk data | WORLD | 16 | open |
 | PAR-INFRA-56 | GUI button tooltips without the size/weight line: ItemSizeTooltipContributor skips items with the tfp:gui_button marker (firepit thermometer, pot, grill, barrel, powderkeg, knapping, tabs) | INFRA | 16 | open |
+| PAR-INFRA-57 | Item-list tooltip summary: ContentsPdc writes tfp:view so sealed vessel, powderkeg, crucible and barrel items show their contents lines; deferred in-game barrel contents check of PAR-INFRA-50 | INFRA | 16 | open |
 | PAR-HEAT-24 | Grill loaded in game: configuration/devices/grill.yml, TFC grill models, the grill screen art and the in-game grill check | HEAT | 17 | open |
 | PAR-INFRA-36 | Verify falling ores keep their face overlays in game (collapse and falling rich ore) | INFRA | 17 | open |
 | PAR-PHYS-02 | Collapse runner: mining triggers collapses decided async, applied as falling blocks | PHYS | 17 | open |
