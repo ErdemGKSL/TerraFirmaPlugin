@@ -41,11 +41,24 @@ already saw 0 in one run before this fix, so the stale light may be intermittent
 the cause. The unit tests cover the resend request. Lossless WebP of every frame is in the session scratchpad
 `ui/PAR-HEAT-28/`.
 
-Note for the next torch run: the F3 light line needs `config/debug-profile.json` in the client game dir, format
-`{"custom":{"minecraft:light_levels":"alwaysOn"}}` (camelCase values `alwaysOn`, `inOverlay`, `never`).
+Note for the next torch run: the F3 light line needs `debug-profile.json` directly in the client game dir (the
+`--gameDir` of `session.sh`, next to `options.txt`; **not** `config/`), written before the client starts, format
+`{"custom":{"minecraft:light_levels":"alwaysOn"}}` (camelCase values `alwaysOn`, `inOverlay`, `never`). Checked in the
+1.21.11 client jar: the Minecraft constructor builds the debug-profile loader with the game directory, which opens
+`new File(gameDir, "debug-profile.json")`; a file under `config/` is never read. (The earlier wording of this note said
+`config/`; that was wrong and is why the 2026-11-17 re-run on b84781e showed no `Client Light` line.)
 
 Repair round (2026-11-17): reviewer points addressed. The evidence above (committed in 450cc95) satisfies the screenshot
 criterion; the item's Done line now cites it. PAR-HEAT-29's "re-run before changing TorchService" was not done before
 35ab107, so whether the stale light still reproduced without the resend is unknown (recorded as a caveat). Code change in
 the repair: `LightRefresh.PAPER` logs the first failed resend (one warning with the exception) instead of
 swallowing it silently; the light behaviour verified above is unchanged.
+
+Re-run on b84781e (2026-11-17, verify stage): `./gradlew check` green; in-game criterion **not measured**. The tester put
+the profile under `config/debug-profile.json` (following the wrong note above), so F3 had no `Client Light` line; the
+post-trip wall torch did render dead with no relog. The spawn area was ocean (kicks, drowning, falls after teleports to
+unloaded chunks). Repair (this commit): the note above is corrected, and the item's `in_game_steps` now name the exact
+file location and content, a land test spot with a chunk-load wait, torches 6+ blocks apart (the first run's floor
+baseline read the wall torch's 11), and a GUI 3 pass that repeats the burnout in the relaunched session so its readings
+are no-relog too. No code change: the light resend verified in 450cc95 is unchanged. Next in-game run pending at the
+verify stage.
