@@ -33,7 +33,7 @@ torches so Bot can stand in the torch block for the F3 light reading. The weathe
 | Dead torches give no light (F3) | pass after a client relog: `0 block` in the dead floor and dead wall torch blocks. Before the relog the client still read 14 (`18-...-stale-before-relog`): the server's light is right, the client kept the light of the chunk sent before the swap. Follow-up PAR-HEAT-28 | `11-gui2-dead-floor-f3`, `12-gui2-dead-wall-f3`, `14-gui3-dead-floor-f3`, `15-gui3-dead-wall-f3`, `18-gui2-dead-floor-f3-stale-before-relog` |
 | Held torch on the dead floor and dead wall torch relights each; the held torch is not placed | pass: both lit again, the wall one on the first click at pitch 3 (the outline is on the wall face where the model is now), held count stays 4 | `16-gui3-relit-side` |
 | Fresh torch, then right click and sneak right click on it with a torch: no second torch | pass: count 4 -> 3 for the placement, stays 3 after both clicks, one torch on the floor | `17-gui3-fresh-torch` |
-| Shot list (lit floor, lit wall, dead floor, dead wall x GUI 2 and 3) | pass; lossless WebP of every frame in the session scratchpad `ui/PAR-HEAT-21/` | crops above |
+| Shot list (lit floor, lit wall, dead floor, dead wall x GUI 2 and 3) | pass: all eight are in this folder. GUI 2: lit floor `01`, lit wall `02`, dead floor `07`, dead wall `08`. GUI 3: lit floor `22`, lit wall `23`, dead floor `24`, dead wall `25` (added 2026-11-17 from the same session's frames `gui3-{lit,dead}-{floor,wall}.webp`; HUD at scale 3, June 1 lit / June 5 dead). Lossless WebP of every frame in the session scratchpad `ui/PAR-HEAT-21/` | `01`, `02`, `07`, `08`, `22`-`25` |
 
 ## Side check: dead wall torch outline
 
@@ -43,4 +43,13 @@ emits light, has a collision box (TFC's torches have none, and a box at the wall
 dead torches) or is placed by players in TFC (unlit redstone torches). `TorchCarrierTest.noFreeCarrierHasACloserDeadTorchOutline`
 pins TFC's shapes and this claim; the ledger's "dead torch outlines" divergence row records it.
 
-Verdict: pass, with the stale client light after a chunk-load burnout recorded as PAR-HEAT-28.
+## Deferred checks (PROTOCOL 6.5, unblocker 2026-11-17)
+
+- The client reading 0 block light at once after a chunk-load burnout, without a relog: deferred check tracked in
+  PAR-HEAT-28 (`TorchService` / `TorchDevice` are outside this item's files). Here the server light is 0 and the client
+  reads 0 after the chunk is sent again (`11`, `12`, `14`, `15`).
+- A dead torch selection outline closer to TFC's than the pressed button: deferred check tracked in PAR-HEAT-29 (wider
+  candidate dump: coral wall fans, lever, tripwire hook, signs, banners, ...). This item keeps the pressed button and the
+  ledger's "dead torch outlines" divergence row, which now points at PAR-HEAT-29.
+
+Verdict: pass for every criterion this item owns; the two deferred checks above are tracked in PAR-HEAT-28 and PAR-HEAT-29.
