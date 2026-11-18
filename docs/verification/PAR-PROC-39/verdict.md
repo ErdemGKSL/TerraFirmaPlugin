@@ -74,3 +74,25 @@ Overall: PASS, with the button tooltip line left to PAR-INFRA-56.
      bedrock visible at the centre). The first section shot showed a stale client mesh in the chunk x 1760-1775 (server
      `execute if block` confirmed stone there); F3+A redrew it. A client render artifact after a large `fill`, not ours.
 - Verdict: all three criteria PASS again.
+
+## Re-run 2026-11-18 (after PAR-INFRA-56: GUI buttons without the size/weight line)
+
+- Tree: a1a0d65 (includes PAR-INFRA-56 4136b34; no PAR-PROC-39 code change). Jar built from it after
+  `generateContent`. Paper 1.21.11, client 1.21.11 under Xvfb, pack applied after 1x3s, Bot in creative (spectator for
+  the crater shot). Run and judged by the main session (no Haiku agent tool in this session). Input: `xdotool click 3`
+  with the Minecraft window focused, as in the first in_game_step.
+- Steps and results:
+  1. Stone floor at y 199, `ce item give Bot tfp:powderkeg 1`, right click: keg at (3152, 200, -2130), TFC's open keg
+     model, the floor intact under the inset (`r4-placed.png`).
+  2. Right click opened the 12-slot screen; 13 x 64 gunpowder, 12 stacks shift-clicked in (`r4-filled.png`, scale 2).
+  3. Seal button: the tooltip is only "Seal" before and only "Unseal" after pressing it, no "⚖ ... ⇲ ..." line
+     (`r4-unseal-tooltip.png`, scale 2; `r4-g3-unseal.png`, scale 3 after a relaunch with `guiScale:3`, second keg at
+     (3152, 200, -2160)). Sealed: shift-click of the 13th stack, shift-click and click on keg slots, key 1 over a keg
+     slot: `clear Bot minecraft:gunpowder 0` = 64 before and after, every keg slot still 64 (`r4-locked.png`).
+  4. Escape: sealed model (`r4-sealed.png`). Bedrock east, `time query gametime` = 2436, redstone block west: lit model,
+     lit fuse (`r4-lit.png`). 31^3 stone cube filled (29163 cells = 31^3 minus the 25x25 floor, keg, bedrock, redstone).
+     Keg gone at 2517: 81 ticks = 80 + the poll tick.
+  5. Crater: 3910 air cells in the cube minus the keg cell = 3909 (strength 64 simulated 3900 to 4014; strength 48 would
+     be about 2050); reach up 12, down 7, north 8, south 11; bedrock kept (`execute if block` passed). South half cut
+     away, F3+A, section from the south in spectator (`r4-crater.png`).
+- Verdict: all three criteria PASS; criterion 3 now with TFC's plain Seal / Unseal tooltip at GUI scale 2 and 3.
