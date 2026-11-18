@@ -182,7 +182,7 @@ Totals: 381 items; open 207, done 166, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-INFRA-58 | Packet-layer boundary: move the PacketEvents-typed heat glow, item bar and block sound handlers under dev.tfp.paper.packet so ArchitectureTest.onlyThePacketLayerTouchesPacketEvents passes | INFRA | 15 | done |
 | PAR-PROC-41 | Sealed barrel item keeps its contents: breaking a sealed barrel drops the barrel with its items and fluid (TFC BarrelComponent), placing it restores them | PROC | 15 | blocked |
 | PAR-HEAT-23 | Firepit look in game: TFC's lit and unlit models on their own carriers (axis z turned 90), and the in-game firepit check | HEAT | 16 | done |
-| PAR-HEAT-28 | Torch burnout on chunk load leaves the client's block light at 14 until the chunk is sent again | HEAT | 16 | open |
+| PAR-HEAT-28 | Torch burnout on chunk load leaves the client's block light at 14 until the chunk is sent again | HEAT | 16 | done |
 | PAR-HEAT-29 | Dead torch outlines closer to TFC: widen the hitbox candidate dump to every small no-collision vanilla block and re-pick the dead torch carriers | HEAT | 16 | done |
 | PAR-CLIM-14 | Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute | CLIMATE | 16 | open |
 | PAR-CLIM-23 | Verify vanilla /time and the night skip move the calendar in game on Paper 26.3 and 1.21.11 (PAR-CLIM-22 server logs) | CLIMATE | 16 | done |

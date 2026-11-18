@@ -1,5 +1,13 @@
 # PAR-HEAT-28 verification
 
+> Status 2026-11-18 (round 7): the evidence below (t6 on `54dd05f`) was rejected by the unblocker for its procedure
+> (BetterHud panel over the first F3 line because `/hud turn off` was sent from the console, Targeted Block on stone, no
+> dead floor torch view). No code change in round 7; `./gradlew check` green on `a1a0d65`. The re-run with the corrected
+> `in_game_steps` (the bot types `/hud turn off` itself after each join, stone platform over a dry land column, both dead
+> torch views, a fresh GUI 3 pair in the relaunched session) is left to the verify stage, which replaces this file and the
+> crops. It must show 14 lit and 0 dead with no relog in all four cells; if the stale 14 or a neighbour 5 reproduces, the
+> fix belongs in `TorchService` (files_owned).
+
 - Date: 2026-11-17 (run "t6"; replaces all earlier PAR-HEAT-28 evidence, including the rejected round 3 and round 4 crops).
 - Code under test: `54dd05f` (the `TorchService.LightProbe` wait plus the neighbour-chunk resend, `chunksInReach`). Jar
   built from that tree (`:dist:shadowJar`).
