@@ -162,7 +162,9 @@ class SeasonalBiomeRemapTest {
         // A temperate chunk (15 C) whose rainfall falls through the autumn: October (about 134 mm) and November (about
         // 105 mm) both fall in the 75 to 150 mm rainfall band, so late autumn keeps October's band. That band's colour
         // is the yellow of the colormap at its centre (#ead159 at 12 C), where the even bands gave dark green. The
-        // variant is t1r2 in all four months (February and March too: 105 and 135 mm).
+        // variant is t1r2 in October, February and March (105 and 135 mm). PAR-CLIM-05 repair: the chunk is a TFC
+        // dry-season climate (15 C, variance 0.6, minimum rain 60 mm), whose leaves turn at 0.876 of the year, so
+        // November is dormant and shows the driest rainfall band: t1r3, the yellowest band.
         ChunkClimate dryAutumn = new ChunkClimate(LATE_AUTUMN_TEMPERATURE, LATE_AUTUMN_RAINFALL, LATE_AUTUMN_VARIANCE, 0f);
         SeasonalBiomeRemap.Terrain terrain = new SeasonalBiomeRemap.Terrain() {
             @Override
@@ -175,17 +177,20 @@ class SeasonalBiomeRemapTest {
                 return (x, z) -> dryAutumn;
             }
         };
-        for (Month month : new Month[] {Month.OCTOBER, Month.NOVEMBER, Month.FEBRUARY, Month.MARCH}) {
+        for (Month month : new Month[] {Month.OCTOBER, Month.FEBRUARY, Month.MARCH}) {
             int variant = SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, 0, 70, LATE_AUTUMN_Z, month, DAYS);
             assertThat(SeasonalBiomeRemap.variantIdOf(variant)).as(month.name()).isEqualTo("tfp:seasonal/plains/t1r2");
         }
+        int november = SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, 0, 70, LATE_AUTUMN_Z, Month.NOVEMBER, DAYS);
+        assertThat(SeasonalBiomeRemap.variantIdOf(november)).isEqualTo("tfp:seasonal/plains/t1r3");
     }
 
     @Test
     void juneAndOctoberShowDifferentBandsAtATemperateSite() {
         // PAR-CLIM-05: a temperate site (10 C average, 186 mm, no rainfall variance) in the northern hemisphere. The
         // 64-index temperature bands of the first layout put June and October in the same band; the 32-index sample
-        // points give October a colder band than June, with the same rainfall band, so the colormap colour changes.
+        // points give October a colder band than June. The repair: October is in TFC's autumn leaf window (0.742 to
+        // 0.909 of the year at 10 C) and June is not, so October also shows the driest rainfall band, the straw yellow.
         ChunkClimate temperate = new ChunkClimate(10f, 186f, 0f, 0f);
         SeasonalBiomeRemap.Terrain terrain = new SeasonalBiomeRemap.Terrain() {
             @Override
@@ -205,7 +210,9 @@ class SeasonalBiomeRemapTest {
         float octoberT = CLIMATE.instantTemperature(new BlockPos(x, y, z), temperate,
             SeasonalBiomeRemap.sampleTick(Month.OCTOBER, DAYS), DAYS);
         assertThat(juneT).as("June is warmer than October").isGreaterThan(octoberT);
-        assertThat(june / SeasonalColour.TEMPERATURE_BANDS).isEqualTo(october / SeasonalColour.TEMPERATURE_BANDS);
+        assertThat(june / SeasonalColour.TEMPERATURE_BANDS).as("June keeps its groundwater band").isEqualTo(1);
+        assertThat(october / SeasonalColour.TEMPERATURE_BANDS).as("October is in the driest rainfall band")
+            .isEqualTo(SeasonalColour.RAINFALL_BANDS - 1);
         assertThat(october % SeasonalColour.TEMPERATURE_BANDS).as("June %s C, October %s C", juneT, octoberT)
             .isGreaterThan(june % SeasonalColour.TEMPERATURE_BANDS);
         assertThat(SeasonalColour.centreTemperatureIndex(october)).isGreaterThan(SeasonalColour.centreTemperatureIndex(june));
@@ -219,7 +226,28 @@ class SeasonalBiomeRemapTest {
             float t = CLIMATE.instantTemperature(new BlockPos(x, y, z), WET_SEASONAL, tick, DAYS);
             float g = CLIMATE.instantGroundwater(WET_SEASONAL, tick, DAYS);
             assertThat(SeasonalBiomeRemap.variantIndexAt(TERRAIN, CLIMATE, x, y, z, phase, DAYS))
-                .isEqualTo(SeasonalBiomeRemap.variantIndex(TfcBiomes.PLAINS, SeasonalColour.band(t, g)));
+                .isEqualTo(SeasonalBiomeRemap.variantIndex(TfcBiomes.PLAINS,
+                    SeasonalColour.band(t, g, SeasonalBiomeRemap.dormant(CLIMATE, WET_SEASONAL, z, tick, DAYS))));
+        }
+    }
+
+    @Test
+    void dormantWindowFollowsTheHemisphereAndSkipsEvergreenClimates() {
+        // WET_SEASONAL averages 12 C: TFC's winter-controlled leaves, autumn from 0.743 of the year to spring at 0.093.
+        long june = SeasonalBiomeRemap.sampleTick(Month.JUNE, DAYS);
+        long october = SeasonalBiomeRemap.sampleTick(Month.OCTOBER, DAYS);
+        int north = 768;
+        int south = north + (int) (2 * CLIMATE.hemisphereScale());
+        assertThat(dev.tfp.core.climate.Solar.inNorthernHemisphere(north, CLIMATE.hemisphereScale())).isTrue();
+        assertThat(dev.tfp.core.climate.Solar.inNorthernHemisphere(south, CLIMATE.hemisphereScale())).isFalse();
+        assertThat(SeasonalBiomeRemap.dormant(CLIMATE, WET_SEASONAL, north, june, DAYS)).isFalse();
+        assertThat(SeasonalBiomeRemap.dormant(CLIMATE, WET_SEASONAL, north, october, DAYS)).isTrue();
+        assertThat(SeasonalBiomeRemap.dormant(CLIMATE, WET_SEASONAL, south, june, DAYS)).isTrue();
+        assertThat(SeasonalBiomeRemap.dormant(CLIMATE, WET_SEASONAL, south, october, DAYS)).isFalse();
+        ChunkClimate evergreen = new ChunkClimate(20f, 300f, 0.1f, 40f);
+        for (Month m : Month.values()) {
+            assertThat(SeasonalBiomeRemap.dormant(CLIMATE, evergreen, north, SeasonalBiomeRemap.sampleTick(m, DAYS), DAYS))
+                .as(m.name()).isFalse();
         }
     }
 

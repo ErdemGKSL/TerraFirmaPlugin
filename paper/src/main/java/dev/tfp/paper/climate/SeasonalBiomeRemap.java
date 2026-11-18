@@ -10,6 +10,7 @@ import dev.tfp.core.calendar.Month;
 import dev.tfp.core.climate.ChunkClimate;
 import dev.tfp.core.climate.OverworldClimate;
 import dev.tfp.core.climate.SeasonalColour;
+import dev.tfp.core.climate.Solar;
 import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.core.worldgen.biome.TfcBiomes;
@@ -34,6 +35,11 @@ import java.util.Optional;
  * phase does not add datapack biomes: a variant is a colour band, and the phase only moves the sampled climate between
  * bands, so the variant set stays {@link #VARIANT_COUNT}. The southern hemisphere gets its opposite colour from the
  * climate model's latitude term, not from the month name.
+ *
+ * <p>PAR-CLIM-05 repair: the phase also decides whether a column's grass is dormant ({@link SeasonalColour#dormant},
+ * TFC's autumn and winter leaf window for the column's climate and hemisphere); a dormant column shows
+ * {@link SeasonalColour#dormantBand}, the driest rainfall band (straw yellow), so October grass is yellower than June's. Still no new
+ * variants.
  */
 public final class SeasonalBiomeRemap {
     /** Number of variant indices: one per TFC biome and colour band. */
@@ -133,7 +139,7 @@ public final class SeasonalBiomeRemap {
     /**
      * The variant index for a block position in a colour phase (the pure remap). The biome comes from the terrain at the
      * column, the band from the instant temperature at the position and the instant groundwater of its column at the
-     * phase's {@linkplain #sampleTick sample tick}.
+     * phase's {@linkplain #sampleTick sample tick}, shifted when the column is {@linkplain #dormant dormant} then.
      */
     public static int variantIndexAt(Terrain terrain, OverworldClimate climate, int x, int y, int z, Month phase,
             int daysInMonth) {
@@ -142,7 +148,15 @@ public final class SeasonalBiomeRemap {
         long tick = sampleTick(phase, daysInMonth);
         float groundwater = climate.instantGroundwater(chunk, tick, daysInMonth);
         float temperature = climate.instantTemperature(new BlockPos(x, y, z), chunk, tick, daysInMonth);
-        return variantIndex(biome, SeasonalColour.band(temperature, groundwater));
+        return variantIndex(biome, SeasonalColour.band(temperature, groundwater, dormant(climate, chunk, z, tick, daysInMonth)));
+    }
+
+    /**
+     * Whether the column at {@code z} with climate {@code chunk} is dormant at the sample tick ({@link SeasonalColour#dormant}).
+     */
+    static boolean dormant(OverworldClimate climate, ChunkClimate chunk, int z, long tick, int daysInMonth) {
+        return SeasonalColour.dormant(chunk.averageSeaLevelTemperature(), chunk.averageRainfall(), chunk.rainfallVariance(),
+                Solar.inNorthernHemisphere(z, climate.hemisphereScale()), (float) CalendarTicks.fractionOfYear(tick, daysInMonth));
     }
 
     /**
@@ -170,13 +184,14 @@ public final class SeasonalBiomeRemap {
                 base[column] = (byte) baseIndex(biome);
                 ChunkClimate chunk = inputs.at(bx + 2, bz + 2);
                 float groundwater = climate.instantGroundwater(chunk, tick, daysInMonth);
+                boolean dormant = dormant(climate, chunk, bz + 2, tick, daysInMonth);
                 for (int cy = 0; cy < cellsY; cy++) {
                     float t = climate.instantTemperature(new BlockPos(bx + 2, minY + (cy << 2) + 2, bz + 2), chunk, tick,
                             daysInMonth);
                     int section = cy >> 2;
                     int cell = ((cy & 3) << 4) | column;
                     variants[section * SeasonalChunkTable.CELLS_PER_SECTION + cell] =
-                            (short) variantIndex(biome, SeasonalColour.band(t, groundwater));
+                            (short) variantIndex(biome, SeasonalColour.band(t, groundwater, dormant));
                 }
             }
         }

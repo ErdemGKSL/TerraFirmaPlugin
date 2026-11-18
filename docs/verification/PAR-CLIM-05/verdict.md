@@ -1,65 +1,70 @@
 # PAR-CLIM-05 verdict: seasonal grass tint band resolution
 
-Date: 2026-11-18. Server/client: Paper 1.21.11 headless (in-game run pending, see below).
+Date: 2026-11-18 (repair round). Base commit 5915734 plus the repair change (this commit). Server: Paper
+1.21.11-132, CraftEngine 26.9.2, BetterModel, BetterHud, PacketEvents (headless recipe, `docs/testing/headless.md`);
+client: vanilla 1.21.11 under Xvfb, pack applied.
 
 ## Decision (owner decision delegated to the manager)
 
-Choice: **(a) more temperature bands**, in its cheapest form.
+The first round chose **(a) more temperature bands** (7 x 4 = 28 variants per biome). The verify stage then measured
+October's grass about 10 degrees greener than June's (hue 98 to 110), because TFC's grass colormap alone gets greener as
+it cools at a fixed groundwater. The criterion asks for October warmer and yellower, so the repair adds **(c) a
+month/phase-based shift** on top of (a), with no new variants:
+
+- `SeasonalColour.dormant(averageTemperature, averageRainfall, rainfallVariance, northern, fractionOfYear)` ports the
+  autumn and winter window of TFC's leaves (`TFCColors.getSeasonalFoliageColor`): winter-controlled climates (average at
+  or below 12 C, southern hemisphere half a year off), dry-season climates (above 12.5 C, variance beyond 0.4, minimum
+  rain at most 120 mm), evergreen otherwise. TFC's per-block hash jitter is left out (the phase is a whole month).
+- In that window a non-freezing band shows `SeasonalColour.dormantBand`: the same temperature band in the **driest**
+  rainfall band, the straw yellow of TFC's grass colormap (hue about 45 degrees in every non-freezing temperature band).
+  A first try with "one rainfall band drier" failed in game: the fresh world's (-768, 768) has a dry June (`t1r2`,
+  already yellow) and a wet October (about 270 mm, `r0`), so October still came out greener than June. The driest band
+  does not depend on the groundwater swing.
+- Freezing bands (snow) and evergreen climates keep TFC's plain colormap colour.
 
 | Option | Cost | Result |
 |---|---|---|
-| (a) more temperature bands | +12 variants per biome (16 to 28), 2,000 to 3,500 datapack biomes | June and October at the tint site get different bands; colour still follows TFC's colormap |
-| (b) grass-only colour view | A second palette or a per-block tint the vanilla client does not have (grass tint is per biome); would need block-state or resource-pack tricks per grass block | Not cheaper; breaks the "client tints by biome" decision |
-| (c) month/phase-based bands | 12 variants per biome if the colour were the month only, but then the colour no longer follows the site's climate (a tropical and a polar chunk would share October's colour); 12 x 16 = 192 per biome if kept per climate | Either loses TFC's climate colour or is 12 times the registry |
-
-Layout (`core/climate/SeasonalColour`): seven temperature sample points every 32 colormap indices (32, 64, ..., 224, about
-6.3 C apart) instead of four bands of 64. The four first sample points keep their index and their variant names
-`t0..t3`; the new ones are the half steps `t0h`, `t1h`, `t2h`. Band edges lie half-way between sample points except the
-edge between `t1h` and `t2`, which is TFC's 0 C index (153), so all bands from `t2` on are at or below 0 C
-(`SeasonalColour.isFreezing`, for the client snow look later). Rainfall bands unchanged (edges 128, 179, 217).
+| (a) more temperature bands (kept) | 16 to 28 variants per biome | June and October differ, but October is greener (TFC's grass colormap) |
+| (b) grass-only colour view | per-block tint the vanilla client does not have | not cheaper |
+| (c) month/phase-based shift (added) | 0 variants; one pure check per chunk column in the async remap | October in the straw band wherever TFC's leaves turn |
 
 ## Budget
 
-| | Before | After | Limit |
+| | Before PAR-CLIM-05 | Now | Limit |
 |---|---|---|---|
 | Variants per TFC biome | 16 | 28 | about 32 (2x) |
 | Seasonal variant biomes | 2,000 | 3,500 (1.75x) | about 4,000 |
-| Server biome registry from our datapack (variants + 125 base) | 2,125 | 3,625 | |
-| Client biome registry (with vanilla's biomes) | about 2,190 | about 3,690 | 4,096 keeps the 12-bit global palette |
-| Variant JSON on disk (apparent size) | about 0.9 MB | 1.5 MB | |
-| Chunk remap | async on the CPU pool | unchanged (band lookup is a loop over 7 edges) | must stay async |
-
-## Expected colours at the tint site (-768, 63, 768)
-
-Readings recorded in `plans/gaps.md` and `docs/porting/tint-investigation.md`: June 14.5 C, October 5.1 C, 186 mm
-groundwater in both months (groundwater index 161, rainfall band 1).
-
-| Month | TFC colormap at the reading | Old band (colour) | New band (colour) |
-|---|---|---|---|
-| June, 14.5 C (index 80) | `#97b355` | `t1r1` `#70a353` | `t1r1` `#70a353` |
-| October, 5.1 C (index 127) | `#689f54` | `t1r1` `#70a353` | `t1hr1` `#609c54` |
-
-So June and October now differ, and they differ in TFC's direction: TFC's grass colormap goes from yellow-green to a
-darker, less red green as the temperature falls at a fixed groundwater (R 151 to 104), and ours goes from `#70a353`
-to `#609c54` (R 112 to 96, G 163 to 156). **Note on the criterion text:** the item's parenthetical "(October
-warmer/yellower)" is not what TFC does at this site. TFC's grass colormap has no autumn tone (only the leaves have an
-autumn colormap, `foliage_fall.png`); its yellow is the warm and dry corner. October is yellower than June only where
-the October groundwater is clearly lower than June's (for example the dry site of `SeasonalBiomeRemapTest`
-`dryAutumnStaysYellowThroughLateAutumn`, `#ead159` at index 96 and 197 vs `#c8c359` at 128 and 197 shows that a colder
-reading is less yellow at any fixed groundwater). This implementation follows TFC's colormap; the verify stage should
-judge "the TFC direction" against the TFC colormap colour at the site's own readings (`/tfp debug chunk -768 768` from
-the console, or the climate HUD), which the table above gives for the recorded readings.
-
-## Tests
-
-- `core/src/test/java/dev/tfp/core/climate/SeasonalColourTest.java`: 12 tests (band edges per index, the 0 C edge,
-  June/October at the tint site in different bands, sample points inside their bands, stable names).
-- `paper/src/test/java/dev/tfp/paper/climate/SeasonalBiomeRemapTest.java`: 14 tests, new
-  `juneAndOctoberShowDifferentBandsAtATemperateSite` (same rainfall band, October colder band).
-- `tools/datagen` `DatagenTest` (unchanged) still holds: 28 files per biome, `t2r3` centred on index 160 and 236.
+| Client biome registry (with vanilla's) | about 2,190 | about 3,690 | 4,096 (12-bit global palette) |
+| Chunk remap | async on the CPU pool | async; plus `SeasonalColour.dormant` once per 4x4 column (16 per chunk, pure float math) | must stay async |
 
 ## In-game check
 
-Pending: the verify stage runs the item's `in_game_steps` (June then October at (-768, 63, 768), `advance_weather false`,
-noon) with a Haiku agent and adds the screenshot crops here. Pass when the October grass differs from June and matches
-the TFC colormap direction at the site's readings (see the note above).
+Steps: `gamerule advance_weather false`, `weather clear`, test room (`spikes/client/testroom.sh`, barrier roof, noon,
+same camera) at the item's site (-768, 64, 768) and at a second, wetter site (1500, 70, 0); June shot; `tfp time add
+months 4`; wait 15 s for the resend (`/tfp debug packets`: `phase=OCTOBER`, resent chunks); October shot from the same
+spot. Both months at noon, clear sky (testroom.sh sets noon, which advances the calendar by one day, so the shots are
+June 4/6 and October 7/8, 1003). Measured: mean RGB of the floor strip x 0-360, y 580-650 of the 1280x720 frame.
+
+| Site | June | October | Direction |
+|---|---|---|---|
+| A (-768, 768), dry June | (141, 122, 51), hue 47.6, R/G 1.15 | (141, 118, 51), hue 45.1, R/G 1.19 | slightly warmer/yellower (June already near the straw band: dry summer, `t1r2`) |
+| B (1500, 0), wet | (49, 87, 47), hue 116.8, R/G 0.56 | (146, 123, 52), hue 45.1, R/G 1.19 | clearly warmer/yellower: green to straw |
+
+Evidence: `site-a-june-vs-october.png`, `site-b-june-vs-october.png` (HUD date strip + floor, June left, October
+right). Full frames as lossless WebP were handed to the user outside the repo.
+
+## Verdict
+
+- Controlled screenshots at the same site and light, June vs October, October warmer/yellower: **PASS** at both sites
+  (lower hue, higher R/G in October; site B green to straw, site A from yellow-olive to straw).
+- The colour change follows the chunk resend at the month change (phase OCTOBER, resent chunks), so the remap works.
+
+## Tests
+
+- `core/.../SeasonalColourTest.java`: 15 (band edges, 0 C edge, dormant band, TFC's leaf window by hand-worked golden
+  values in both hemispheres and the dry-season branch, October yellower than June at a 186 mm site and at a dry-summer
+  site).
+- `paper/.../SeasonalBiomeRemapTest.java`: 15 (October in the driest band at a temperate site, November dormant at the
+  dry-autumn chunk, the dormant window follows the hemisphere and skips evergreen climates, the remap equals the band of
+  the sampled climate with the dormant flag).
+- `./gradlew check` green.

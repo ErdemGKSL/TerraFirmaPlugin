@@ -5,7 +5,8 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/client/TFCColors.java @ c3b4d9536 (getClimateColor and the grass, foliage and
- * water lookups; the colormap index arithmetic only, the colours come from the colormap PNGs in tools/datagen).
+ * water lookups; the colormap index arithmetic only, the colours come from the colormap PNGs in tools/datagen; the
+ * autumn and winter window of getSeasonalFoliageColor for the dormant shift).
  */
 package dev.tfp.core.climate;
 
@@ -29,9 +30,13 @@ package dev.tfp.core.climate;
  * below 0 C, where TFC shows snow ({@link #isFreezing}). 7 x 4 = 28 variants per biome is 1.75 times the first 16, and
  * the client's biome registry stays below 4,096 entries (a 12-bit global palette).
  *
- * <p>The season is not an input of the band. TFC's grass and foliage colours take no season: the season is in the
- * instant temperature and groundwater the calendar gives at the time. The season is the trigger for resending chunks
- * (M2-SEA-01 step 4), not part of the colour.
+ * <p>PAR-CLIM-05 repair (owner criterion: October grass warmer and yellower than June at the same site): TFC's grass
+ * colormap alone goes the other way, a colder reading at a fixed groundwater is a darker, bluer green. So the season is
+ * an input of the band through the <b>dormant shift</b> (option (c), month/phase-based, no new variants): in the months
+ * where TFC's leaves show their autumn or winter colour ({@link #dormant}, the window of TFC's
+ * {@code getSeasonalFoliageColor}), a non-freezing band moves to the driest rainfall band ({@link #dormantBand}), the
+ * straw yellow of TFC's grass colormap. At a site with 186 mm June {@code t1r1} {@code #70a353} becomes October
+ * {@code t1hr3} {@code #fad259}. Evergreen climates (TFC's evergreen leaves) and snowy bands keep the plain band.
  */
 public final class SeasonalColour {
     /** Temperature bands (colormap x axis). */
@@ -117,6 +122,81 @@ public final class SeasonalColour {
         int t = temperatureBand(temperatureIndex(temperature));
         int r = rainfallBand(rainfallIndex(groundwater));
         return r * TEMPERATURE_BANDS + t;
+    }
+
+    /**
+     * The band of a position with the season: {@link #band(float, float)}, moved to the driest rainfall band by
+     * {@link #dormantBand} when {@code dormant}.
+     */
+    public static int band(float temperature, float groundwater, boolean dormant) {
+        int band = band(temperature, groundwater);
+        return dormant ? dormantBand(band) : band;
+    }
+
+    /**
+     * The band dormant grass shows instead of {@code band}: the same temperature band in the driest rainfall band, the
+     * straw yellow of TFC's grass colormap (hue about 45 degrees in every non-freezing temperature band). The driest band
+     * rather than one step drier, because a site's groundwater swings by more than a band over the year: a site with a
+     * dry summer and a wet autumn (rainfall variance) would otherwise show a greener October than June. A freezing band
+     * ({@link #isFreezing}) stays: grass under snow does not yellow.
+     */
+    public static int dormantBand(int band) {
+        checkBand(band);
+        if (isFreezing(band)) {
+            return band;
+        }
+        return (RAINFALL_BANDS - 1) * TEMPERATURE_BANDS + band % TEMPERATURE_BANDS;
+    }
+
+    /**
+     * Whether the grass of a column is dormant (shows its autumn and winter tone) at {@code fractionOfYear}: the window
+     * in which TFC's {@code TFCColors.getSeasonalFoliageColor} shows the autumn or the winter leaf colour, i.e. not the
+     * spring/summer colour. TFC's branches: a winter-controlled climate (average sea-level temperature at most 12 C) has
+     * {@code x = 1.25 * max(t, -20) + 7.6} and the southern hemisphere a half-year offset; a dry-season climate
+     * (above 12.5 C, rainfall variance beyond 0.4 and minimum rainfall at most 120 mm) has
+     * {@code x = -0.2604 * (0.4 - |v|) * (120 - minRain) + 24.05} and a half-year offset for a negative variance;
+     * anything else is evergreen (never dormant). With {@code a = x^3 / 4096 - x^2 / 256}, autumn starts at
+     * {@code (a + 8.5) / 12} and spring at {@code 1 - (a + 10.5) / 12}. TFC's per-block hash jitter is left out (the
+     * phase is a whole month).
+     *
+     * @param averageTemperature the column's annual average sea-level temperature, degrees Celsius
+     * @param averageRainfall    the column's annual average rainfall, mm
+     * @param rainfallVariance   the column's rainfall variance in [-1, 1]
+     * @param northern           whether the column is in a northern hemisphere band
+     * @param fractionOfYear     the calendar's fraction of the year, 0 at January 1
+     */
+    public static boolean dormant(float averageTemperature, float averageRainfall, float rainfallVariance, boolean northern,
+            float fractionOfYear) {
+        float temp = averageTemperature;
+        float rainVarAbs = Math.abs(rainfallVariance);
+        if (temp > 12f && rainVarAbs < 0.4f) {
+            return false;
+        }
+        final float x;
+        float seasonOffset = 0;
+        if (temp <= 12f) {
+            x = 1.25f * Math.max(temp, -20f) + 7.6f;
+            if (!northern) {
+                seasonOffset = 0.5f;
+            }
+        } else {
+            final float minRain = averageRainfall * (1 - rainVarAbs);
+            if (rainVarAbs > 0.4f && temp > 12.5f && minRain <= 120) {
+                if (rainfallVariance < 0) {
+                    seasonOffset = 0.5f;
+                }
+                x = -.2604f * (0.4f - rainVarAbs) * (120f - minRain) + 18.75f + 5.3f;
+            } else {
+                return false;
+            }
+        }
+        final float cubedTerm = x * x * x / 4096;
+        final float squaredTerm = x * x / 256;
+        final float timeOfYear = (1 + fractionOfYear + seasonOffset) % 1;
+        final float autumnStart = (cubedTerm - squaredTerm + 8.5f) / 12f;
+        final float autumnEnd = (cubedTerm - squaredTerm + 10.5f) / 12f;
+        final float springStart = 1f - autumnEnd;
+        return timeOfYear > autumnStart || timeOfYear <= springStart;
     }
 
     /** The temperature index the colour of {@code band} is read at, for the colormap lookup in the datagen. */

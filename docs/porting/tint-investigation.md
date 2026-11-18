@@ -132,3 +132,14 @@ The tint site's readings now fall in different bands: June 14.5 C (index 80) is 
 (index 127) is `t1hr1` `#609c54`. That is TFC's direction: the grass colormap at the exact readings is `#97b355` and
 `#689f54`, so TFC's October grass is greener and less red than June's at this site, not yellower. Budget, the option
 comparison and the in-game check: `docs/verification/PAR-CLIM-05/verdict.md`.
+
+## Repair (PAR-CLIM-05, 2026-11-18): October yellower than June
+
+The verify stage measured the first decision in game: October's grass moved about 10 degrees toward green (hue 98 to
+110), which is TFC's grass colormap but not the item's criterion (October warmer and yellower). Added option (c) on top
+of the 28 bands, with no new variants: `SeasonalColour.dormant` ports the autumn and winter window of TFC's leaves
+(`TFCColors.getSeasonalFoliageColor`: winter-controlled at or below 12 C, dry-season above 12.5 C, evergreen otherwise),
+and inside it a non-freezing band shows the driest rainfall band (`SeasonalColour.dormantBand`). At a 186 mm site June
+stays `t1r1` `#70a353` (hue 98) and October becomes `t1hr3` `#fad259` (hue 45). A one-band-drier shift was tried first
+and failed in game: the fresh world's (-768, 768) has a dry June (94 mm, `t1r2` yellow) and a wet October (270 mm), so
+October stayed greener than June; the driest band does not depend on the groundwater swing. Divergence row in the ledger.

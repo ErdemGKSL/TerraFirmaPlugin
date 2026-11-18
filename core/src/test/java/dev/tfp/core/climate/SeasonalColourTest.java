@@ -182,6 +182,68 @@ class SeasonalColourTest {
     }
 
     @Test
+    void dormantBandIsTheDriestRainfallBandExceptFreezing() {
+        int t1r1 = SeasonalColour.band(14.5f, 186f);
+        assertThat(SeasonalColour.variantName(SeasonalColour.dormantBand(t1r1))).isEqualTo("t1r3");
+        assertThat(SeasonalColour.variantName(SeasonalColour.band(5.1f, 186f, true))).isEqualTo("t1hr3");
+        assertThat(SeasonalColour.variantName(SeasonalColour.band(5.1f, 400f, true))).isEqualTo("t1hr3");
+        assertThat(SeasonalColour.band(5.1f, 186f, false)).isEqualTo(SeasonalColour.band(5.1f, 186f));
+        int t1r3 = SeasonalColour.band(14.5f, 10f);
+        assertThat(SeasonalColour.variantName(t1r3)).isEqualTo("t1r3");
+        assertThat(SeasonalColour.dormantBand(t1r3)).isEqualTo(t1r3);
+        int freezing = SeasonalColour.band(-5f, 186f);
+        assertThat(SeasonalColour.isFreezing(freezing)).isTrue();
+        assertThat(SeasonalColour.dormantBand(freezing)).isEqualTo(freezing);
+        for (int band = 0; band < SeasonalColour.BAND_COUNT; band++) {
+            int d = SeasonalColour.dormantBand(band);
+            assertThat(SeasonalColour.centreTemperatureIndex(d)).isEqualTo(SeasonalColour.centreTemperatureIndex(band));
+            assertThat(SeasonalColour.centreRainfallIndex(d)).isGreaterThanOrEqualTo(SeasonalColour.centreRainfallIndex(band));
+        }
+        assertThatThrownBy(() -> SeasonalColour.dormantBand(28)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void dormantWindowIsTfcsAutumnAndWinterLeafWindow() {
+        // TFC getSeasonalFoliageColor, worked by hand. 7 C (about the tint site's average): x = 16.35,
+        // a = x^3/4096 - x^2/256 = 0.0230, autumn from (a + 8.5)/12 = 0.7102, spring from 1 - (a + 10.5)/12 = 0.1231.
+        assertThat(SeasonalColour.dormant(7f, 186f, 0f, true, 0.70f)).isFalse();
+        assertThat(SeasonalColour.dormant(7f, 186f, 0f, true, 0.72f)).isTrue(); // mid September
+        assertThat(SeasonalColour.dormant(7f, 186f, 0f, true, 0.80f)).isTrue(); // mid October
+        assertThat(SeasonalColour.dormant(7f, 186f, 0f, true, 0.46f)).isFalse(); // mid June
+        assertThat(SeasonalColour.dormant(7f, 186f, 0f, true, 0.05f)).isTrue(); // January, winter
+        assertThat(SeasonalColour.dormant(7f, 186f, 0f, true, 0.13f)).isFalse(); // spring has begun
+        // the southern hemisphere is half a year off: its June is dormant, its October not
+        assertThat(SeasonalColour.dormant(7f, 186f, 0f, false, 0.46f)).isTrue();
+        assertThat(SeasonalColour.dormant(7f, 186f, 0f, false, 0.80f)).isFalse();
+        // evergreen: warm and steady rainfall, or warm with a wet minimum
+        assertThat(SeasonalColour.dormant(20f, 300f, 0.1f, true, 0.80f)).isFalse();
+        assertThat(SeasonalColour.dormant(20f, 300f, 0.5f, true, 0.95f)).isFalse(); // minimum rain 150 > 120
+        // dry season: 15 C, 150 mm, variance 0.6 (minimum 60 mm): x = 27.175, autumn from 0.8761; a negative variance
+        // moves it half a year
+        assertThat(SeasonalColour.dormant(15f, 150f, 0.6f, true, 0.87f)).isFalse();
+        assertThat(SeasonalColour.dormant(15f, 150f, 0.6f, true, 0.88f)).isTrue();
+        assertThat(SeasonalColour.dormant(15f, 150f, -0.6f, true, 0.38f)).isTrue();
+        assertThat(SeasonalColour.dormant(15f, 150f, -0.6f, true, 0.88f)).isFalse();
+    }
+
+    @Test
+    void octoberAtTheTintSiteIsYellowerThanJune() {
+        // the repair's criterion in colormap terms: June t1r1 is read at (96, 153), October t1hr3 at (128, 236). In
+        // TFC's grass.png those are #70a353 (hue 98) and #fad259 (hue 45): October is redder and yellower.
+        int june = SeasonalColour.band(14.5f, 186f, SeasonalColour.dormant(7f, 186f, 0f, true, 0.46f));
+        int october = SeasonalColour.band(5.1f, 186f, SeasonalColour.dormant(7f, 186f, 0f, true, 0.80f));
+        assertThat(SeasonalColour.variantName(june)).isEqualTo("t1r1");
+        assertThat(SeasonalColour.variantName(october)).isEqualTo("t1hr3");
+        assertThat(SeasonalColour.centreRainfallIndex(june)).isEqualTo(153);
+        assertThat(SeasonalColour.centreRainfallIndex(october)).isEqualTo(236);
+        // a dry-summer site (June 94 mm, October 270 mm, the 2026-11-18 in-game site): June t1r2, October still t1hr3
+        int dryJune = SeasonalColour.band(13.4f, 94f, SeasonalColour.dormant(6.4f, 186f, 0.3f, true, 0.46f));
+        int wetOctober = SeasonalColour.band(5.3f, 270f, SeasonalColour.dormant(6.4f, 186f, 0.3f, true, 0.80f));
+        assertThat(SeasonalColour.variantName(dryJune)).isEqualTo("t1r2");
+        assertThat(SeasonalColour.variantName(wetOctober)).isEqualTo("t1hr3");
+    }
+
+    @Test
     void bandOutOfRangeIsRejected() {
         assertThatThrownBy(() -> SeasonalColour.variantName(28)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> SeasonalColour.centreTemperatureIndex(-1)).isInstanceOf(IllegalArgumentException.class);
