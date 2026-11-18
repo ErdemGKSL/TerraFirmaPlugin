@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 381 items; open 207, done 166, blocked 8; waves 1..56 (wave 0 = already done).
+Totals: 382 items; open 208, done 166, blocked 8; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -215,6 +215,7 @@ Totals: 381 items; open 207, done 166, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-HEAT-30 | Firepit, grill and pot world rules: fuel thrown on top is gathered, a lit firepit burns entities standing on it (hot floor) | HEAT | 18 | open |
 | PAR-INFRA-60 | Device automation: hoppers, droppers and pipes insert into and pull from CE device blocks by side (TFC SidedHandler, *EnableAutomation), wired for the done devices | INFRA | 18 | open |
 | PAR-PROC-42 | Barrel world rules: redstone seals and unseals (barrelEnableRedstoneSeal), items dropped into an open upright barrel are gathered | PROC | 18 | open |
+| PAR-INFRA-62 | Flaky CaseRunnerTest.aSkipThrownAtRunTimeIsASkipWithItsReason: the async-skip case times out after 200 ms under a loaded full ./gradlew check | INFRA | 18 | open |
 | PAR-PROC-43 | Vanilla recipes newer than TFC's 1.21.1 follow TFC's removal policy: copper tools and armour, spears and other post-1.21.1 tool/armour recipes disabled | PROC | 18 | open |
 | PAR-TOOL-01 | Stone tools: rock tool heads and tools as CE items, crafting from knapped heads | TOOL | 19 | open |
 | PAR-TOOL-03 | In-game verification of metal tools and armour | TOOL | 19 | open |
