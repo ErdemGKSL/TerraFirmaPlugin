@@ -160,7 +160,9 @@ public final class SeasonalBiomeHandler implements PacketHandler {
         }
         int[] base = new int[SeasonalBiomeRemap.BASE_COUNT];
         for (int i = 0; i < base.length; i++) {
-            base[i] = idOf(registry, SeasonalBiomeRemap.baseIdOf(i), version);
+            int id = idOf(registry, SeasonalBiomeRemap.baseIdOf(i), version);
+            // no tfp: base biome on the server: the terrain sends its vanilla stand-in (PAR-WORLD-02)
+            base[i] = id >= 0 ? id : idOf(registry, SeasonalBiomeRemap.fallbackIdOf(i), version);
         }
         int[] variants = new int[SeasonalBiomeRemap.VARIANT_COUNT];
         for (int i = 0; i < variants.length; i++) {

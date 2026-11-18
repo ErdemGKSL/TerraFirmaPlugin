@@ -78,10 +78,20 @@ class SeasonalBiomeRemapTest {
     }
 
     @Test
-    void baseIndexIsTheServerPlaceholder() {
-        assertThat(SeasonalBiomeRemap.baseIdOf(SeasonalBiomeRemap.baseIndex(TfcBiomes.PLAINS))).isEqualTo("minecraft:plains");
-        assertThat(SeasonalBiomeRemap.baseIdOf(SeasonalBiomeRemap.baseIndex(TfcBiomes.OCEAN)))
+    void baseIndexIsTheTfcBiomeAndItsDatapackBaseBiome() {
+        // PAR-WORLD-02: the server sends tfp:<name>, one base biome per TFC biome; the vanilla stand-in is only the fallback
+        assertThat(SeasonalBiomeRemap.BASE_COUNT).isEqualTo(TfcBiomes.COUNT);
+        assertThat(SeasonalBiomeRemap.baseIdOf(SeasonalBiomeRemap.baseIndex(TfcBiomes.PLAINS))).isEqualTo("tfp:plains");
+        assertThat(SeasonalBiomeRemap.baseIdOf(SeasonalBiomeRemap.baseIndex(TfcBiomes.DEEP_OCEAN))).isEqualTo("tfp:deep_ocean");
+        assertThat(SeasonalBiomeRemap.fallbackIdOf(SeasonalBiomeRemap.baseIndex(TfcBiomes.OCEAN)))
             .isEqualTo("minecraft:" + BiomeKeys.vanillaKey(TfcBiomes.OCEAN));
+        for (int id = 0; id < TfcBiomes.COUNT; id++) {
+            assertThat(SeasonalBiomeRemap.baseIndex(id)).isEqualTo(id);
+            // the base biome and its seasonal variants share the biome path
+            assertThat(SeasonalBiomeRemap.variantIdOf(SeasonalBiomeRemap.variantIndex(id, 0)))
+                .startsWith("tfp:seasonal/" + SeasonalBiomeRemap.baseIdOf(id).substring("tfp:".length()) + "/");
+        }
+        assertThatThrownBy(() -> SeasonalBiomeRemap.baseIndex(TfcBiomes.COUNT)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

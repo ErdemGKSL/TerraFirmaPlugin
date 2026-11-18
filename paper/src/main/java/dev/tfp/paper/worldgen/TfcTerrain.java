@@ -94,6 +94,8 @@ final class TfcTerrain {
     private final Noise2D shoreTide;
     private final Biome[] biomes;
     private final List<Biome> biomeList;
+    /** How many TFC biomes stand in a vanilla fallback because the registry lacks their datapack base biome. */
+    private final int fallbackBiomes;
     private final BlockData bedrock = Material.BEDROCK.createBlockData();
     private final BlockData water = Material.WATER.createBlockData();
     private final BlockData air = Material.AIR.createBlockData();
@@ -136,7 +138,8 @@ final class TfcTerrain {
         final BiomeLayers layers = new BiomeLayers(regions, stream);
         this.shoreTide = SurfaceNoise.shoreTide(seed);
         this.aquiferFork = PositionalRandom.fork(new XoroshiroRandomSource(seed));
-        this.biomes = vanillaBiomes();
+        this.biomes = resolveBiomes(key -> Registry.BIOME.get(key));
+        this.fallbackBiomes = countFallbacks(biomes);
         this.biomeList = Arrays.stream(biomes).distinct().toList();
         this.ores = new OreVeins(seed, OreVeinResources.fromJar(TfcTerrain.class.getClassLoader()), ROCK_IDS);
         this.paletteIds = paletteIds(ores);
@@ -235,12 +238,17 @@ final class TfcTerrain {
         return chunks.generate(chunkX, chunkZ);
     }
 
-    /** The biome of a block column, as a vanilla biome. Any thread. */
+    /** The biome of a block column: the TFC biome's datapack base biome ({@code tfp:<name>}). Any thread. */
     Biome biomeAt(int x, int z) {
         return biomes[biomeId(x, z)];
     }
 
-    /** The distinct vanilla biomes this terrain can return. */
+    /** How many TFC biomes use the vanilla fallback (0 when the bootstrap datapack is loaded). */
+    int fallbackBiomes() {
+        return fallbackBiomes;
+    }
+
+    /** The distinct biomes this terrain can return. */
     List<Biome> biomeList() {
         return biomeList;
     }
@@ -811,18 +819,35 @@ final class TfcTerrain {
         return out;
     }
 
-    private static Biome[] vanillaBiomes() {
-        Map<String, Biome> byKey = new HashMap<>();
-        for (String key : BiomeKeys.VANILLA) {
-            Biome biome = Registry.BIOME.get(NamespacedKey.minecraft(key));
-            if (biome == null) {
-                throw new IllegalStateException("vanilla biome missing from the registry: " + key);
+    /** How many entries of {@link #resolveBiomes} are not our datapack base biomes. */
+    @SuppressWarnings("deprecation")
+    static int countFallbacks(Biome[] biomes) {
+        int n = 0;
+        for (Biome biome : biomes) {
+            if (!BiomeKeys.NAMESPACE.equals(biome.getKey().getNamespace())) {
+                n++;
             }
-            byKey.put(key, biome);
         }
+        return n;
+    }
+
+    /**
+     * The biome of every TFC biome id: its datapack base biome ({@link BiomeKeys#baseId}), or the vanilla fallback
+     * ({@link BiomeKeys#vanillaKey}) when the registry lacks it.
+     */
+    @SuppressWarnings("deprecation")
+    static Biome[] resolveBiomes(java.util.function.Function<NamespacedKey, Biome> registry) {
         Biome[] out = new Biome[TfcBiomes.COUNT];
         for (int id = 0; id < out.length; id++) {
-            out[id] = byKey.get(BiomeKeys.vanillaKey(id));
+            Biome base = registry.apply(new NamespacedKey(BiomeKeys.NAMESPACE, BiomeKeys.basePath(id)));
+            if (base == null) {
+                String key = BiomeKeys.vanillaKey(id);
+                base = registry.apply(NamespacedKey.minecraft(key));
+                if (base == null) {
+                    throw new IllegalStateException("vanilla biome missing from the registry: " + key);
+                }
+            }
+            out[id] = base;
         }
         return out;
     }

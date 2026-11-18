@@ -29,6 +29,12 @@ import javax.imageio.ImageIO;
  * <p>Output: {@code datapack/tfp_seasonal_biomes/data/tfp/worldgen/biome/seasonal/<biome>/t<T>r<R>.json}, with the
  * biome ids of {@link SeasonalColour#variantId}.
  *
+ * <p>PAR-WORLD-02: next to the variants, one <b>base biome</b> per TFC biome,
+ * {@code datapack/tfp_seasonal_biomes/data/tfp/worldgen/biome/<biome>.json} ({@code tfp:<biome>}). The Bukkit
+ * {@code BiomeProvider} returns these, so F3 and the server name the TFC biome. A base biome keeps the TFC biome's climate,
+ * effects and its {@code minecraft:} spawners (the monsters; TFC's own animals and fish are ours to spawn); features and
+ * carvers are empty because our generator places everything itself and the server has no {@code tfc:} features.
+ *
  * <p>The colour phases (one per calendar month, {@code SeasonalBiomeRemap.PHASE_COUNT} in {@code paper}) add no
  * variants: a variant is a colour band, and a phase only chooses which band a chunk cell shows by sampling the climate at
  * its month. So the set stays one variant per biome and band for any number of phases.
@@ -59,6 +65,8 @@ final class SeasonalBiomes {
             String name = file.substring(BIOMES.length(), file.length() - ".json".length());
             JsonObject tfcBiome = Json.parse(tfc.readString(file), file).getAsJsonObject();
             JsonObject effects = tfcBiome.getAsJsonObject("effects");
+            out.put(OUT + "data/" + SeasonalColour.NAMESPACE + "/worldgen/biome/" + name + ".json",
+                Json.write(base(tfcBiome, effects)));
             for (int band = 0; band < SeasonalColour.BAND_COUNT; band++) {
                 int t = SeasonalColour.centreTemperatureIndex(band);
                 int r = SeasonalColour.centreRainfallIndex(band);
@@ -69,6 +77,46 @@ final class SeasonalBiomes {
         }
         out.put(OUT + "pack.mcmeta", Datapacks.packMcmeta("TerraFirmaPlugin seasonal colour biome variants (generated)"));
         return biomes;
+    }
+
+    /**
+     * The base biome of a TFC biome (PAR-WORLD-02): its climate and effects, no features or carvers, and only the spawner
+     * entries and spawn costs of {@code minecraft:} entities (a {@code tfc:} entity does not exist on the server).
+     */
+    static JsonObject base(JsonObject tfcBiome, JsonObject tfcEffects) {
+        JsonObject b = variant(tfcBiome, tfcEffects, 0, 0, 0);
+        b.add("effects", tfcEffects.deepCopy());
+        JsonObject spawners = new JsonObject();
+        JsonObject tfcSpawners = tfcBiome.getAsJsonObject("spawners");
+        if (tfcSpawners != null) {
+            for (var category : tfcSpawners.entrySet()) {
+                JsonArray kept = new JsonArray();
+                for (var entry : category.getValue().getAsJsonArray()) {
+                    if (isVanilla(entry.getAsJsonObject().get("type").getAsString())) {
+                        kept.add(entry.deepCopy());
+                    }
+                }
+                if (!kept.isEmpty()) {
+                    spawners.add(category.getKey(), kept);
+                }
+            }
+        }
+        b.add("spawners", spawners);
+        JsonObject costs = new JsonObject();
+        JsonObject tfcCosts = tfcBiome.getAsJsonObject("spawn_costs");
+        if (tfcCosts != null) {
+            for (var cost : tfcCosts.entrySet()) {
+                if (isVanilla(cost.getKey())) {
+                    costs.add(cost.getKey(), cost.getValue().deepCopy());
+                }
+            }
+        }
+        b.add("spawn_costs", costs);
+        return b;
+    }
+
+    private static boolean isVanilla(String entityId) {
+        return entityId.startsWith("minecraft:") || entityId.indexOf(':') < 0;
     }
 
     /** One variant: the TFC biome's climate and sky/fog colours, the band's grass, foliage and water colours. */

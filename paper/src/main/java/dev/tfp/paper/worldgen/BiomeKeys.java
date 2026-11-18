@@ -8,15 +8,28 @@ package dev.tfp.paper.worldgen;
 import dev.tfp.core.worldgen.biome.TfcBiomes;
 import dev.tfp.core.worldgen.region.Units;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.IntBinaryOperator;
+import java.util.stream.IntStream;
 
 /**
- * Placeholder biome mapping for the Bukkit {@code BiomeProvider} (M2-GEN-07). The TFC biome ids of {@link TfcBiomes} map to
- * a vanilla biome by a coarse rule, because the TFC biomes are not datapack biomes yet. The seasonal variants of M2-SEA-02
- * replace this on the client. A documented divergence in the ledger.
+ * The biomes of the Bukkit {@code BiomeProvider} (M2-GEN-07, PAR-WORLD-02). Every TFC biome id of {@link TfcBiomes} is a
+ * datapack base biome {@code tfp:<name>} (datagen {@code SeasonalBiomes}, in the bootstrap datapack), so F3 and the server
+ * name the TFC biome. The seasonal colour variants ({@code tfp:seasonal/<name>/t<T>r<R>}) are only sent to clients by the
+ * packet layer.
+ *
+ * <p>The vanilla mapping ({@link #VANILLA}, {@link #vanillaKey}) is only the fallback for a server whose registry lacks the
+ * datapack (the bootstrap datapack not enabled yet): the terrain then stands in a coarse vanilla biome and logs it.
  */
 public final class BiomeKeys {
-    /** The vanilla biome keys this mapping can return. */
+    /** Our datapack namespace of the base biomes. */
+    public static final String NAMESPACE = "tfp";
+
+    /** The base biome paths by TFC biome id: the TFC name in lower case ({@code plains}, {@code deep_ocean}, ...). */
+    public static final List<String> BASE = IntStream.range(0, TfcBiomes.COUNT)
+        .mapToObj(id -> TfcBiomes.name(id).toLowerCase(Locale.ROOT)).toList();
+
+    /** The vanilla biome keys the fallback mapping can return. */
     public static final List<String> VANILLA = List.of(
         "plains", "windswept_hills", "desert", "badlands", "snowy_plains", "ocean", "deep_ocean", "river");
 
@@ -24,7 +37,29 @@ public final class BiomeKeys {
 
     /**
      * @param tfcId a TFC biome id, {@code 0 <= tfcId < TfcBiomes.COUNT}
-     * @return the vanilla biome key that stands in for it
+     * @return the path of its datapack base biome, e.g. {@code plains}
+     * @throws IllegalArgumentException for an id outside the TFC range
+     */
+    public static String basePath(int tfcId) {
+        if (tfcId < 0 || tfcId >= TfcBiomes.COUNT) {
+            throw new IllegalArgumentException("TFC biome id out of range: " + tfcId);
+        }
+        return BASE.get(tfcId);
+    }
+
+    /** The registry id of a TFC biome's base biome, e.g. {@code tfp:plains}. */
+    public static String baseId(int tfcId) {
+        return NAMESPACE + ":" + basePath(tfcId);
+    }
+
+    /** The registry id of a TFC biome's vanilla fallback, e.g. {@code minecraft:plains}. */
+    public static String fallbackId(int tfcId) {
+        return "minecraft:" + vanillaKey(tfcId);
+    }
+
+    /**
+     * @param tfcId a TFC biome id, {@code 0 <= tfcId < TfcBiomes.COUNT}
+     * @return the vanilla biome key that stands in for it when the datapack base biome is missing
      * @throws IllegalArgumentException for an id outside the TFC range
      */
     public static String vanillaKey(int tfcId) {

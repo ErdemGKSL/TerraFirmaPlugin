@@ -191,7 +191,7 @@ Totals: 381 items; open 207, done 166, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-INFRA-52 | Grill and pot block sounds in game: NETHER_WART hit 0.25/0.5 and one break 1.0/0.8 per player on 1.21.11 and 26.x | INFRA | 16 | blocked |
 | PAR-PHYS-01 | TFC falling blocks: canFallThrough, landing, damage | PHYS | 16 | done |
 | PAR-WORLD-01 | Rendered region and river maps compared with TFC | WORLD | 16 | done |
-| PAR-WORLD-02 | Bukkit biome binding and climate call sites on the real chunk data | WORLD | 16 | open |
+| PAR-WORLD-02 | Bukkit biome binding and climate call sites on the real chunk data | WORLD | 16 | done |
 | PAR-INFRA-56 | GUI button tooltips without the size/weight line: ItemSizeTooltipContributor skips items with the tfp:gui_button marker (firepit thermometer, pot, grill, barrel, powderkeg, knapping, tabs) | INFRA | 16 | done |
 | PAR-INFRA-57 | Item-list tooltip summary: ContentsPdc writes tfp:view so sealed vessel, powderkeg, crucible and barrel items show their contents lines; deferred in-game barrel contents check of PAR-INFRA-50 | INFRA | 16 | open |
 | PAR-INFRA-59 | Flaky OreOverlayServiceTest.blockChangeFastPathRidesWithThePacketAndThePatchAddsNothing: the fast path sometimes sends no spawn under a loaded full ./gradlew check | INFRA | 16 | done |

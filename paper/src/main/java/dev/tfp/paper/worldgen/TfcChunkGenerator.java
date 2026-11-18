@@ -111,6 +111,11 @@ public final class TfcChunkGenerator extends ChunkGenerator {
                 built = terrain;
                 if (built == null) {
                     built = new TfcTerrain(seed.orElseGet(worldSeed));
+                    if (built.fallbackBiomes() > 0) {
+                        log.warning("TFC biomes: " + built.fallbackBiomes() + " of " + dev.tfp.core.worldgen.biome.TfcBiomes.COUNT
+                            + " tfp: base biomes are missing from the registry (bootstrap datapack tfp_seasonal_biomes not"
+                            + " enabled?); those columns use a vanilla stand-in biome");
+                    }
                     terrain = built;
                 }
             }
@@ -295,7 +300,7 @@ public final class TfcChunkGenerator extends ChunkGenerator {
         return false;
     }
 
-    /** The biome lookup of the terrain: the vanilla placeholder of each TFC biome (see {@link BiomeKeys}). */
+    /** The biome lookup of the terrain: the datapack base biome {@code tfp:<name>} of each TFC biome (see {@link BiomeKeys}). */
     static final class TfcBiomeProvider extends BiomeProvider {
         private final TfcTerrain terrain;
 

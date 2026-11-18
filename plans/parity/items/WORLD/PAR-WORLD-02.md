@@ -2,7 +2,7 @@
 id: PAR-WORLD-02
 title: "Bukkit biome binding and climate call sites on the real chunk data"
 area: WORLD
-status: open
+status: done
 wave: 16
 deps: []
 size: M
@@ -12,6 +12,11 @@ tfc_refs:
   - "src/main/java/net/dries007/tfc/world/biome/TFCBiomes.java"
 files_owned:
   - "tools/datagen/src/test/java/dev/tfp/datagen/SeasonalBiomes*"
+  - "tools/datagen/src/main/java/dev/tfp/datagen/SeasonalBiomes.java"
+  - "paper/src/main/java/dev/tfp/paper/climate/SeasonalBiomeRemap.java"
+  - "paper/src/main/java/dev/tfp/paper/packet/SeasonalBiomeHandler.java"
+  - "paper/src/main/java/dev/tfp/paper/worldgen/TfcTerrain.java"
+  - "paper/src/test/java/dev/tfp/paper/climate/SeasonalBiomeRemap*"
   - "content/generated/content/**"
   - "paper/src/main/java/dev/tfp/paper/worldgen/BiomeKeys.java"
   - "paper/src/main/java/dev/tfp/paper/worldgen/TfcChunkGenerator.java"
@@ -28,6 +33,7 @@ plan:
   - "Replace remaining `ChunkClimate.NEUTRAL` call sites with the chunk data climate."
   - "Bind TFC biome ids to the datapack base biomes in BiomeProvider (not vanilla placeholders); keep seasonal variants for the packet layer only."
   - "Server check: F3 biome name is the TFC biome."
+  - "Done: datagen SeasonalBiomes.base writes 125 base biomes tfp:<biome> into the bootstrap datapack (TFC climate and effects, no features/carvers, minecraft: monster spawners only); BiomeKeys.BASE/baseId; TfcTerrain.resolveBiomes binds every TFC biome id to tfp:<biome> (vanilla stand-in + one warning only when the registry lacks it); SeasonalBiomeRemap base index = TFC biome id (BASE_COUNT 125), SeasonalBiomeHandler resolves tfp:<biome> then the vanilla fallback; vanilla-placeholder divergence row replaced. Tests: SeasonalBiomesBaseTest 2, TfcChunkGeneratorBiomeTest 3, ChunkClimateCallSitesTest 2 (NEUTRAL grep), SeasonalBiomeRemapTest updated; ./gradlew check green. files_owned lists the paths the manager's UNBLOCKED line granted. In-game check (F3 vs tfp debug chunk at 3 sites) left to the verify stage, evidence goes to docs/verification/PAR-WORLD-02/."
 tests:
   - "paper: no NEUTRAL call site (grep test)"
   - "itest: worldgen.terrain_generates still green"

@@ -22,9 +22,10 @@ import java.util.Optional;
  * CPU executor and never touches the world.
  *
  * <p>The packet rewrite (M2-SEA-02) works on <b>indices</b>, not strings: a variant is
- * {@code tfcBiome * BAND_COUNT + band} in {@code [0, VARIANT_COUNT)}, and a server-side base biome (the vanilla placeholder
- * of {@link BiomeKeys}) is its index in {@link BiomeKeys#VANILLA}. The packet thread maps both to the client's network ids
- * once per user ({@code SeasonalBiomeHandler}).
+ * {@code tfcBiome * BAND_COUNT + band} in {@code [0, VARIANT_COUNT)}, and a server-side base biome (the datapack base
+ * biome {@code tfp:<name>} of {@link BiomeKeys}, PAR-WORLD-02) is its TFC biome id. The packet thread maps both to the
+ * client's network ids once per user ({@code SeasonalBiomeHandler}), falling back to the vanilla stand-in biome
+ * ({@link #fallbackIdOf}) when the registry lacks the base biome.
  *
  * <p>The colour phase is the calendar month ({@value #PHASE_COUNT} phases a year). The climate of a phase is sampled
  * at one fixed instant: the middle day of the month at noon, in the first calendar year. So a chunk shows one colour per
@@ -39,20 +40,12 @@ public final class SeasonalBiomeRemap {
     public static final int VARIANT_COUNT = TfcBiomes.COUNT * SeasonalColour.BAND_COUNT;
     /** Number of colour phases a year: one per calendar month. */
     public static final int PHASE_COUNT = Month.values().length;
-    /** Number of base (vanilla placeholder) indices. */
-    public static final int BASE_COUNT = BiomeKeys.VANILLA.size();
-
-    private static final byte[] BASE_OF_BIOME = new byte[TfcBiomes.COUNT];
-
-    static {
-        for (int id = 0; id < TfcBiomes.COUNT; id++) {
-            BASE_OF_BIOME[id] = (byte) BiomeKeys.VANILLA.indexOf(BiomeKeys.vanillaKey(id));
-        }
-    }
+    /** Number of base indices: one datapack base biome per TFC biome. */
+    public static final int BASE_COUNT = TfcBiomes.COUNT;
 
     /** The TFC world as the remap needs it. Implementations must be thread-safe and pure (computed from the seed). */
     public interface Terrain {
-        /** The TFC biome id at a block column (as the {@code BiomeProvider} returns it, before the vanilla placeholder). */
+        /** The TFC biome id at a block column (the {@code BiomeProvider} returns its base biome {@code tfp:<name>}). */
         int biomeId(int blockX, int blockZ);
 
         /** The climate inputs of one chunk, per block column (the chunk data is built once per call). */
@@ -111,14 +104,25 @@ public final class SeasonalBiomeRemap {
                 variantIndex % SeasonalColour.BAND_COUNT);
     }
 
-    /** The base index (into {@link BiomeKeys#VANILLA}) of a TFC biome's server-side placeholder. */
+    /** The base index of a TFC biome's server-side base biome: the TFC biome id itself. */
     public static int baseIndex(int tfcBiome) {
-        return BASE_OF_BIOME[tfcBiome];
+        if (tfcBiome < 0 || tfcBiome >= BASE_COUNT) {
+            throw new IllegalArgumentException("TFC biome id out of range: " + tfcBiome);
+        }
+        return tfcBiome;
     }
 
-    /** The registry id of a base index, e.g. {@code minecraft:plains}. */
+    /** The registry id of a base index, e.g. {@code tfp:plains}. */
     public static String baseIdOf(int baseIndex) {
-        return "minecraft:" + BiomeKeys.VANILLA.get(baseIndex);
+        return BiomeKeys.baseId(baseIndex);
+    }
+
+    /**
+     * The registry id the server sends for a base index when its datapack base biome is missing (the terrain's vanilla
+     * stand-in), e.g. {@code minecraft:plains}.
+     */
+    public static String fallbackIdOf(int baseIndex) {
+        return BiomeKeys.fallbackId(baseIndex);
     }
 
     /** Our datapack path of a TFC biome: its TFC name in lower case ({@code plains}, {@code shore}, ...). */
@@ -163,7 +167,7 @@ public final class SeasonalBiomeRemap {
                 int bz = (chunkZ << 4) + (qz << 2);
                 int biome = sanitize(terrain.biomeId(bx, bz));
                 int column = (qz << 2) | qx;
-                base[column] = BASE_OF_BIOME[biome];
+                base[column] = (byte) baseIndex(biome);
                 ChunkClimate chunk = inputs.at(bx + 2, bz + 2);
                 float groundwater = climate.instantGroundwater(chunk, tick, daysInMonth);
                 for (int cy = 0; cy < cellsY; cy++) {
