@@ -249,6 +249,26 @@ class FallingBlocksMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void lastLandingsReadTheLandedStateWithoutChangingIt() {
+        spawn(70);
+        runUntilSettled();
+        world.getBlockAt(1, 60, 0).setType(Material.STONE); // a neighbour changing does not matter
+        assertThat(falling.recent()).singleElement().satisfies(l -> {
+            assertThat(falling.stateNow(l)).isEqualTo(GRAVEL_STATE);
+            assertThat(FallingModule.line(l, falling.stateNow(l)))
+                    .isEqualTo("falling 0 60 0: PLACE_AT carried " + GRAVEL + ", now " + GRAVEL);
+        });
+        assertThat(custom.stateAt(world.getBlockAt(0, 60, 0))).as("reading left it in place").contains(GRAVEL_STATE);
+        for (int i = 0; i < FallingBlocks.RECENT + 2; i++) {
+            spawn(70 + i);
+            runUntilSettled();
+        }
+        assertThat(falling.recent()).hasSize(FallingBlocks.RECENT);
+        assertThat(falling.recent().getFirst().block().getY())
+                .as("newest first: the last one stacked on top").isGreaterThan(falling.recent().getLast().block().getY());
+    }
+
+    @Test
     void fallTurnsAnExistingBlockIntoAFallingOne() {
         Block block = world.getBlockAt(0, 65, 0);
         block.setType(Material.GRAVEL);

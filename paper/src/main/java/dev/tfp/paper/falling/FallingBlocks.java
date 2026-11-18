@@ -12,7 +12,9 @@ import dev.tfp.core.falling.FallRules;
 import dev.tfp.core.falling.Landing;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.scheduler.Scheduler;
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,6 +66,8 @@ public final class FallingBlocks {
     private static final double HALF_WIDTH = 0.49;
     private static final double HEIGHT = 0.98;
     private static final double EPS = 1.0e-7;
+    /** How many landings {@link #recent()} keeps. */
+    public static final int RECENT = 8;
 
     /** One landing that ended a fall, for later features (landslide tracking, rock spikes shattering). */
     public record Landed(Block block, BlockStateRef state, Landing landing) {
@@ -94,6 +98,8 @@ public final class FallingBlocks {
     private final LongAdder broken = new LongAdder();
     private final LongAdder placed = new LongAdder();
     private final LongAdder dropped = new LongAdder();
+    /** The last {@link #RECENT} landings, newest first (for {@code /tfp debug fall last}); guarded by itself. */
+    private final Deque<Landed> recent = new ArrayDeque<>();
 
     public FallingBlocks(FallWorld world, Scheduler scheduler) {
         this.world = world;
@@ -333,6 +339,12 @@ public final class FallingBlocks {
         falls.remove(entity.getUniqueId());
         entity.remove();
         Landed landed = new Landed(where, fall.state, landing);
+        synchronized (recent) {
+            recent.addFirst(landed);
+            while (recent.size() > RECENT) {
+                recent.removeLast();
+            }
+        }
         for (Consumer<Landed> hook : hooks) {
             hook.accept(landed);
         }
@@ -382,6 +394,21 @@ public final class FallingBlocks {
 
     public long dropped() {
         return dropped.sum();
+    }
+
+    /** The last {@link #RECENT} falls that ended, newest first. Any thread. */
+    public List<Landed> recent() {
+        synchronized (recent) {
+            return List.copyOf(recent);
+        }
+    }
+
+    /**
+     * What is at a landing's block now, in our vocabulary (custom state first), read without changing anything. Owner
+     * thread of the block. For {@code /tfp debug fall last}: a landed CE gravel reads {@code tfp:rock/gravel/...}.
+     */
+    public BlockStateRef stateNow(Landed landed) {
+        return world.stateAt(landed.block());
     }
 
     /** Falling blocks being tracked now. */
