@@ -16,16 +16,18 @@ files_owned:
   - "docs/verification/PAR-PROC-44/**"
 ui: true
 in_game_steps:
-  - "op Bot first (the debug commands need it). tfp debug place tfp:wood/barrel/oak; look at its top from 2-3 blocks"
+  - "op Bot first (the debug commands need it), then gamemode survival Bot (the bucket criteria are survival criteria; spikes/client/testroom.sh leaves Bot in creative, where TFC and vanilla keep the held bucket unchanged). tfp debug place tfp:wood/barrel/oak; look at its top from 2-3 blocks"
   - "give 5 minecraft:water_bucket; right-click the barrel 5 times with a water bucket selected (one at a time); tfp debug barrel: 5000 mB minecraft:water; the hotbar holds 5 empty buckets; no water block next to the barrel (screenshot the block)"
   - "right-click the barrel with an empty hand: the barrel screen opens from the block; screenshot the GUI (the tank half full) at GUI scale 2 and 3"
   - "close; screenshot the placed barrel from above at an angle: the tinted fluid surface at half height"
   - "right-click once with an empty bucket: the hand holds a water bucket, the tank reads 4000 mB, no water placed in the world"
-  - "rain: tfp debug barrel fill 0, then tfp debug barrel rain on (the barrel under open sky); wait 400 ticks (20 s); tfp debug barrel: +100 mB minecraft:water (+-4 mB for the tick phase); tfp debug barrel rain off"
+  - "rain: tfp debug barrel fill 0, then tfp debug barrel rain true (the barrel under open sky); wait 400 ticks (20 s); tfp debug barrel: +100 mB minecraft:water (+-4 mB for the tick phase); tfp debug barrel rain false"
+  - "creative check: gamemode creative Bot; give 1 minecraft:water_bucket; right-click the barrel once with it: the barrel gains 1000 mB and the hand still holds the water bucket (TFC FluidHelpers.with skips setItemInHand in creative); gamemode survival Bot"
 plan:
   - "Run PAR-PROC-35's in-game steps (copied above) on Paper 1.21.11 with the headless client (docs/testing/headless.md, CraftEngine self-host on 127.0.0.1) through a Haiku agent; Opus judges each shot against PAR-PROC-35's criteria. Write verdict.md in docs/verification/PAR-PROC-44/ and copy the crops into docs/verification/PAR-PROC-35/ so that item's evidence path resolves."
   - "A failure is fixed through a follow-up item owning the failing files (paper/barrel/**); do not reopen PAR-PROC-35 unless one of its criteria fails."
   - "Done: in-game run at fd00cbb on Paper 1.21.11 + client 1.21.11 (GUI scale 2 and 3): 5 water buckets -> 5000 mB, 5 empty buckets, no world water; screen from the block with the half tank; surface plane at y 0.5078; empty bucket -> 4000 mB; forced rain 115 mB over 460 ticks. All five checks pass. Evidence and verdict.md in docs/verification/PAR-PROC-44/, crops copied to docs/verification/PAR-PROC-35/. Note: the debug rain switch is `rain true|false`, not `on|off`. No tests (in-game check only)."
+  - "Repair 2026-11-18: the verify run's two bucket fails (buckets not returned, empty bucket kept) came from Bot being in creative (testroom.sh), where TFC's FluidHelpers.with leaves the held stack alone and BarrelDevice.updateHand does the same: correct creative behaviour, no code defect. Steps now set survival first, add a creative check and use rain true|false. Verdict section 'Repair round' and 06-repair-creative-hotbar.png in docs/verification/PAR-PROC-44/."
 tests:
   - "none (in-game check only)"
 done_criteria:

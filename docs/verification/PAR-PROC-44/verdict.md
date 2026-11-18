@@ -51,3 +51,31 @@ shot). HEAD `fd00cbb` (no code change in this item).
   switch (10535) were not credited (115 mB stayed 115). That is the recorded both-ends divergence of `BarrelRain`
   (ledger), here caused by the debug switch, not a new defect.
 - The crops were also copied to `docs/verification/PAR-PROC-35/` so that item's evidence path resolves.
+
+## Repair round 2026-11-18 (review of `be5fa6f`)
+
+A second run by the verify stage (Paper 1.21.11, client 1.21.11, GUI scale 2 and 3) reported two fails: after five
+water-bucket clicks the barrel held 5000 mB (plus rain) but the hotbar still held five water buckets and no empty bucket,
+and an empty-bucket click took 1000 mB out while the hand kept the empty bucket.
+
+Diagnosis (no code defect): that run put Bot in **creative**. It built its site with `spikes/client/testroom.sh`, which runs
+`gamemode creative Bot`; its shots show no health or hunger bars (`06-repair-creative-hotbar.png`: five water buckets, no
+vanilla or TFC bars above the hotbar), which only happens in creative or spectator. In creative TFC does not touch the held
+stack: `FluidHelpers.with(player, hand)` skips `player.setItemInHand` when `player.isCreative()`, and a single held bucket
+gives no extra container (`updateContainerItem`, count 1). `BarrelDevice.updateHand` ports exactly that (no hand change in
+creative for a single item), the same as vanilla's creative bucket. So both observations are the correct creative
+behaviour (PROTOCOL section 4 rule 7: game modes behave as in TFC and vanilla), and the survival run above, with Bot in
+survival, passed both criteria (`01-five-buckets.png`, `04-bucket-out.png`).
+
+The criteria are survival criteria. The item's `in_game_steps` now set `gamemode survival Bot` before the bucket steps, add
+one creative check (a water bucket stays a water bucket, the barrel still gains 1000 mB), and use the real rain switch
+`rain true|false` instead of `on|off`. The other three checks of that run passed (screen from the block with the half tank
+at scale 2 and 3; surface plane inside the barrel; forced rain 150 mB over 600 ticks, 1 mB per 4 ticks).
+
+| Criterion | Result after the repair review |
+|---|---|
+| Five water buckets: 5000 mB, five empty buckets, no world water (survival) | **Pass** (survival run; the creative run is correct creative behaviour) |
+| GUI from the block with the half tank, scale 2 and 3 | **Pass** (both runs) |
+| Surface at half height | **Pass** (entity translation 0.5078, `03-surface.png`) |
+| Empty bucket takes 1000 mB back, water bucket in hand (survival) | **Pass** (survival run; creative keeps the empty bucket, as TFC) |
+| Rain 100 mB per 400 ticks | **Pass** (both runs) |
