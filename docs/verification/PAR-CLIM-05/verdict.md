@@ -53,6 +53,29 @@ June 4/6 and October 7/8, 1003). Measured: mean RGB of the floor strip x 0-360, 
 Evidence: `site-a-june-vs-october.png`, `site-b-june-vs-october.png` (HUD date strip + floor, June left, October
 right). Full frames as lossless WebP were handed to the user outside the repo.
 
+### Re-run of the item's own steps (second repair round, HEAD a840cd9)
+
+The verify stage's run produced only dark frames (stars, night light) at the site: its shots were taken on bare terrain
+(a snow-covered slope) before the client had the day time, so nothing could be judged. Re-run here on a fresh world
+(Paper 1.21.11, client 1.21.11 under Xvfb, pack applied 3 s after the join), exactly the item's steps:
+`gamerule advance_weather false`, `weather clear`, `spikes/client/testroom.sh` at (-768, 64, 768) (the world starts on
+June 1, so no month step was needed), `tfp time set noon` (June 1, 1000 12:00, vanilla day time 6001), wait 20 s for
+the chunks to render, shot; `tfp time add months 4`, `tfp time set noon` (October 2, 1000 12:00, day time 6001),
+`weather clear`, 15 s wait for the resend, same camera, shot. `tfp debug chunk -768 768`: June 15.2 C / 205.8 mm,
+October 6.5 C / 249.9 mm. Both frames are full daylight (blue sky, no stars). October was also shot after a rejoin at
+GUI scale 2 and 3 (`MC_OPTIONS="guiScale:2"`, `"guiScale:3"`): same floor colour, HUD date strip scales correctly.
+
+| Shot | Floor strip mean RGB | Hue | R/G |
+|---|---|---|---|
+| June 1, noon | (82, 100, 48) | 81.0 | 0.82 |
+| October 2, noon | (141, 118, 51) | 45.1 | 1.19 |
+| October, GUI scale 2 | (140, 118, 51) | 45.1 | 1.19 |
+| October, GUI scale 3 | (141, 118, 51) | 45.1 | 1.19 |
+
+Evidence: `rerun-june-vs-october.png` (left half of each 1280x720 frame, June left, October right). Full frames as
+lossless WebP were handed to the user outside the repo. Result: green in June, straw yellow in October, at the same
+site, camera and light: **PASS**.
+
 ## Verdict
 
 - Controlled screenshots at the same site and light, June vs October, October warmer/yellower: **PASS** at both sites
