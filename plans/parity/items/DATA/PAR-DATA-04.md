@@ -2,7 +2,7 @@
 id: PAR-DATA-04
 title: "Field guide: decide the form and convert the book"
 area: DATA
-status: blocked
+status: open
 wave: 35
 deps: []
 size: M
@@ -24,6 +24,7 @@ ui: true
 in_game_steps:
   - "ce item give Bot tfp:field_guide; right-click; screenshot"
 plan:
+  - "OWNER DECISION (2026-11-18, delegated to the manager: decide without asking): take the recommendation: vanilla written books per category (works on every client, no art) plus a web export; no textured GUI book. Record the form in the ledger and ARCHITECTURE.md/PRD.md open-question line in the same change."
   - "BLOCKED: PRD open question on the form (textured GUI book, written book, web guide). Recommendation for the owner: vanilla written books per category (works on every client, no art) + a web export."
   - "After the decision: convert pages (text, crafting/knapping/heating recipe pages as text tables), the book item, open via item use."
 tests:

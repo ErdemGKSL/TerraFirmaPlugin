@@ -150,7 +150,7 @@ Totals: 382 items; open 207, done 166, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-14 | Salads | PROC | 13 | done |
 | PAR-INFRA-48 | NeighbourRunnerTest flake: chainOfTenPlacementsConvergesWithOneCommitPerChangedBlock sees 14 provisional writes instead of 10 | INFRA | 13 | done |
 | PAR-PROC-35 | Barrel wiring: the block opens the barrel screen, buckets reach the tank, fluid surface visual, lazy rain fill, in-game check (rack and tap: PAR-PROC-38) | PROC | 13 | done |
-| PAR-CLIM-05 | Seasonal grass tint: decide band resolution and make the colour change visible | CLIMATE | 14 | blocked |
+| PAR-CLIM-05 | Seasonal grass tint: decide band resolution and make the colour change visible | CLIMATE | 14 | open |
 | PAR-CLIM-13 | TFC time command completion: `/tfp time set` dayLength, monthLength, rain and clear, and the calendar tick rate | CLIMATE | 14 | done |
 | PAR-CLIM-19 | Snow catch-up in-game verification: snow piles on plants, ice on a pool and the July melt from one room | CLIMATE | 14 | open |
 | PAR-CLIM-20 | Climate weather cycle follow-up: in-game check (local rain per player), itest weather.cycle, PrecipitationService honours the weather flag | CLIMATE | 14 | done |
@@ -305,7 +305,7 @@ Totals: 382 items; open 207, done 166, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-13 | Channels and mold tables: pouring flow | METAL | 34 | open |
 | PAR-HEAT-32 | Firebox kiln and heat consumers: placed items heat in an insulated chamber, the crucible above heats (self-test), hot floor, comparator | HEAT | 34 | open |
 | PAR-DATA-03 | Advancement criteria wiring across features | DATA | 35 | open |
-| PAR-DATA-04 | Field guide: decide the form and convert the book | DATA | 35 | blocked |
+| PAR-DATA-04 | Field guide: decide the form and convert the book | DATA | 35 | open |
 | PAR-HEAT-13 | Fire behaviour: fire arrows, dousing, fire spread limits | HEAT | 35 | open |
 | PAR-METAL-14 | Bloomery multiblock and bloom | METAL | 35 | open |
 | PAR-DATA-05 | Localisation: Paper lang loading, all TFC locales, plugin strings | DATA | 36 | open |
