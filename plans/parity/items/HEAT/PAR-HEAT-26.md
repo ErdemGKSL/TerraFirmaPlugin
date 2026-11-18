@@ -2,7 +2,7 @@
 id: PAR-HEAT-26
 title: "Candles loaded in game: hitbox carriers, configuration/light/candle/candle.yml and the in-game candle burnout check"
 area: HEAT
-status: blocked
+status: open
 wave: 16
 deps: [PAR-HEAT-11, PAR-HEAT-21]
 size: S
@@ -13,6 +13,7 @@ tfc_refs:
   - "src/main/resources/assets/tfc/blockstates/jack_o_lantern.json"
   - "src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java"
 files_owned:
+  - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/**"
   - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxDemands.java"
   - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/TfcShapes.java"
   - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/GeneratedCarrierTest.java"
@@ -34,6 +35,7 @@ in_game_steps:
   - "light a vanilla carved pumpkin with the firestarter: it becomes tfp:jack_o_lantern facing the same way (light 15); tfp time add days 5 (jackOLanternTicks 108,000 = 4.5 days), reload the chunk: it is a carved pumpkin again"
   - "Screenshots at GUI scale 2 and 3 of the lit and the burnt-out candles and of the jack-o'-lantern"
 plan:
+  - "UNBLOCKED (manager, 2026-11-18): files_owned widened to the hitbox resource, main and test directories (tfc-shapes.json, TfcShapes, vanilla-shapes-*.json, carrier-policy.json and the hitbox tests) as the BLOCKED line asks: add the TFC rows for tfc:candle[candles=N], candle_cake and jack_o_lantern, re-dump the 16 dyed candles, 17 cakes and jack_o_lantern into vanilla-shapes, add the policy rows, then redo the item. These files are shared: edit only your own rows and pins, keep others on rebase."
   - "BLOCKED (2026-11-18): the carriers cannot be selected with the files this item owns. HitboxAllocation.agreed (the only carrier source GeneratedCarrierTest and HardcodedCarrierTest accept) needs (1) TFC rows in the committed tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/tfc-shapes.json (TfcState.of throws 'has no row' for tfc:candle[candles=N], tfc:candle_cake, tfc:jack_o_lantern[facing=*]; TfcShapesTest requires the json to equal TfcShapes.generate, so adding the candle specs to TfcShapes.java alone fails ./gradlew check) and (2) the vanilla carriers in vanilla-shapes-{1.21.4,1.21.11,26.1.2,26.3}.json: only minecraft:candle (16 states) is dumped; the 16 dyed candles, the 17 candle cakes and minecraft:jack_o_lantern are absent (grep: 0 hits), so the 16 dyed candles (128 distinct candles x lit looks) and the cakes have no carrier at all and the allocation overflows. (3) carrier-policy.json needs presence rows for the dyed candles, candle cakes and jack_o_lantern (minecraft:candle is already absent). Blocking files: tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/** (tfc-shapes.json, vanilla-shapes-*.json, carrier-policy.json; done items PAR-HEAT-21/29 own them, open PAR-INFRA-53 only unusable.json, blocked PAR-INFRA-51 carrier-policy.json) and a carrier test under tools/datagen/src/test/java/dev/tfp/datagen/hitbox/ (like TorchCarrierTest). Unblock: add tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/** and tools/datagen/src/test/java/dev/tfp/datagen/hitbox/** to files_owned (re-dump the dyed candles, candle cakes and jack_o_lantern from each server jar with a scratch dumper outside the repo, as PAR-HEAT-21 did for the torches), then redo the plan below. No code changed in this round."
   - "Current: PAR-HEAT-11 ships the rules and runtime (paper/light/candle: device kinds tfp:candle, tfp:candle_cake (each with its dyed sub-ids) and tfp:jack_o_lantern, lazy burnout pipeline, lighting through FireStarting, extinguish, douse, the candle on a cake, the knife carving, the held torch's weak start) and the generator tools/datagen light/candle/CandleBlocks.run(tfc, out, carriers), which is not called yet: an explicit appearance state needs a HitboxDemands entry and GeneratedCarrierTest pins the checked block ids."
   - "Add the demands: the 17 candles per candles/lit/waterlogged (TFC draws vanilla's candle models; the natural carriers are vanilla's own candle states of the same colour, which never occur in a TFC world; candle shapes in TfcShapes if the selector does not know them), the 17 candle cakes per lit (vanilla's candle cake states), the jack-o'-lantern per facing (vanilla's jack_o_lantern states, light 15)."
