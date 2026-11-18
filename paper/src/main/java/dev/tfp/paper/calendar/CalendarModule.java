@@ -57,7 +57,10 @@ import io.papermc.paper.event.world.WorldGameRuleChangeEvent;
  *       thread, reading the published clock). When vanilla skips the night ({@link TimeSkipEvent} {@code NIGHT_SKIP},
  *       fired because the daylight rule is on while the calendar runs), the calendar skips to the next 5 am through
  *       {@link CalendarService#skip} (TFC {@code skipForwardBy}: calendar ticks plus the matching player ticks), and the
- *       event's amount is set so vanilla lands on the calendar's new day time.</li>
+ *       event's amount is set so vanilla lands on the calendar's new day time. The amount is measured from the world time
+ *       read before the skip, and the event's world is held there until vanilla applies it (PAR-CLIM-25): 26.x
+ *       {@code /time set <marker>} adds it to the time read before the event and fails with "already at time marker"
+ *       on 0, 1.21.11 adds it to the time read after.</li>
  *   <li><b>Vanilla {@code /time}.</b> A {@code COMMAND} skip moves the calendar forward the same way (backward sets go to
  *       the next same time of day), so the world and the calendar never part. TFC replaces {@code /time} instead.</li>
  *   <li><b>Daylight rule.</b> TFC disables {@code /gamerule doDaylightCycle}; a change of the rule that we did not make
@@ -300,11 +303,18 @@ public final class CalendarModule implements FeatureModule, Listener {
             delta = st -> calendarSkip;
         }
         if (onGlobalThread.getAsBoolean()) {
+            long before = world.getFullTime();
             CalendarService.Skipped moved = cal.skip(delta);
             if (moved == null) {
                 return; // not loaded yet: vanilla's skip stands, the first sync will hold the world to the calendar
             }
-            setSkipAmount.accept(SleepSkip.vanillaDayTime(moved.state().calendarTicks()) - world.getFullTime());
+            // PAR-CLIM-25: the skip's DaylightSync already moved the world. Put the event's world back to the time
+            // vanilla read, so the amount is non-zero (26.x /time set <marker> fails on 0) and lands on the calendar
+            // whether vanilla adds it to the time read before the event (26.x) or after it (1.21.11).
+            if (world.getFullTime() != before) {
+                world.setFullTime(before);
+            }
+            setSkipAmount.accept(SleepSkip.vanillaDayTime(moved.state().calendarTicks()) - before);
             return;
         }
         ClockSnapshot now = clock.get();

@@ -134,6 +134,7 @@ class CalendarModuleMockBukkitTest extends MockServerTest {
         assertThat(clock.get().calendarTicks()).isEqualTo(wake); // published: the HUD date follows
         // vanilla adds the amount to its day time after the event: it must land on the calendar
         assertThat(world.getFullTime() + event.getSkipAmount()).isEqualTo(SleepSkip.vanillaDayTime(wake));
+        assertThat(world.getFullTime()).isEqualTo(NINE_PM + 18_000); // held where vanilla read it (PAR-CLIM-25)
         assertThat(event.isCancelled()).isFalse(); // vanilla still wakes the players
     }
 
@@ -162,6 +163,34 @@ class CalendarModuleMockBukkitTest extends MockServerTest {
         assertThat(service.state().calendarTicks()).isEqualTo(NINE_PM + 1_000 + 22_000);
         assertThat(world.getFullTime() + back.getSkipAmount())
                 .isEqualTo(SleepSkip.vanillaDayTime(service.state().calendarTicks()));
+    }
+
+    /**
+     * PAR-CLIM-25: 26.x {@code /time set day} fires the skip with {@code target - current}, then sets
+     * {@code current + amount} with {@code current} read before the event and fails ("already at time marker") on an
+     * amount of 0; 1.21.11 adds the amount to the time read after the event. Both must land on the calendar.
+     */
+    @Test
+    void timeSetMarkerKeepsARealAmountForBothVanillaFamilies() {
+        loadAt(NINE_PM);
+        long current = world.getFullTime(); // what vanilla reads before the event
+        assertThat(current).isEqualTo(NINE_PM + 18_000);
+        long target = current - current % 24_000 + 24_000 + 1_000; // the next "day" marker (1000)
+        TimeSkipEvent day = new TimeSkipEvent(world, TimeSkipEvent.SkipReason.COMMAND, target - current);
+        server.getPluginManager().callEvent(day);
+
+        long sevenAm = 41L * 24_000 + 7_000; // June 2, 07:00
+        assertThat(service.state().calendarTicks()).isEqualTo(sevenAm);
+        assertThat(clock.get().calendarTicks()).isEqualTo(sevenAm);
+        assertThat(day.getSkipAmount()).isEqualTo(10_000).isNotZero();
+        // 26.x: current (read before the event) + amount
+        assertThat(current + day.getSkipAmount()).isEqualTo(SleepSkip.vanillaDayTime(sevenAm));
+        // 1.21.11: the time read after the event + amount
+        assertThat(world.getFullTime() + day.getSkipAmount()).isEqualTo(SleepSkip.vanillaDayTime(sevenAm));
+        world.setFullTime(world.getFullTime() + day.getSkipAmount()); // vanilla applies it
+        service.tick(); // the next sync finds the world where the calendar is (16 calendar ticks later)
+        assertThat(world.getFullTime()).isEqualTo(SleepSkip.vanillaDayTime(service.state().calendarTicks()));
+        assertThat(service.state().calendarTicks()).isEqualTo(sevenAm + 16);
     }
 
     @Test

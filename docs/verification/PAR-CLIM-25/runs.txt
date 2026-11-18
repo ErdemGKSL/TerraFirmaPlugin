@@ -1,0 +1,57 @@
+== Paper 26.3, affects-all-worlds false
+-- tfp time set hour 21: Time set to hour 21: moved 14917 calendar ticks forward, now June 1, 1000 21:00.
+   before: Timeline minecraft:day is at 15001 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 1, 1000 21:00.
+-- time set day: Set minecraft:overworld to time marker minecraft:day
+   after:  Timeline minecraft:day is at 999 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 2, 1000 06:59.
+-- tfp time set hour 21: Time set to hour 21: moved 13984 calendar ticks forward, now June 2, 1000 21:00.
+   before: Timeline minecraft:day is at 15002 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 2, 1000 21:00.
+-- time set noon: Set minecraft:overworld to time marker minecraft:noon
+   after:  Timeline minecraft:day is at 6002 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 3, 1000 12:00.
+-- tfp time set hour 21: Time set to hour 21: moved 9000 calendar ticks forward, now June 3, 1000 21:00.
+   before: Timeline minecraft:day is at 15001 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 3, 1000 21:00.
+-- time set night: Set minecraft:overworld to time marker minecraft:night
+   after:  Timeline minecraft:day is at 13000 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 19:00.
+-- tfp time set hour 21: Time set to hour 21: moved 2000 calendar ticks forward, now June 4, 1000 21:00.
+   before: Timeline minecraft:day is at 15002 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 21:01.
+-- time set midnight: Set minecraft:overworld to time marker minecraft:midnight
+   after:  Timeline minecraft:day is at 17999 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 5, 1000 00:00.
+-- time add 1000: Set minecraft:overworld to 1075000 tick(s)
+   after:  Timeline minecraft:day is at 19001 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 5, 1000 01:00.
+== Paper 26.3, affects-all-worlds true
+-- tfp time set hour 21: Time set to hour 21: moved 14900 calendar ticks forward, now June 1, 1000 21:00.
+   before: Timeline minecraft:day is at 15001 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 1, 1000 21:00.
+-- time set day: Set minecraft:overworld to time marker minecraft:day
+   after:  Timeline minecraft:day is at 1001 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 2, 1000 07:00.
+-- tfp time set hour 21: Time set to hour 21: moved 13999 calendar ticks forward, now June 2, 1000 21:00.
+   before: Timeline minecraft:day is at 15000 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 2, 1000 21:00.
+-- time set noon: Set minecraft:overworld to time marker minecraft:noon
+   after:  Timeline minecraft:day is at 6001 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 3, 1000 12:00.
+-- tfp time set hour 21: Time set to hour 21: moved 8999 calendar ticks forward, now June 3, 1000 21:00.
+   before: Timeline minecraft:day is at 15000 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 3, 1000 21:00.
+-- time set night: Set minecraft:overworld to time marker minecraft:night
+   after:  Timeline minecraft:day is at 13001 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 19:00.
+-- tfp time set hour 21: Time set to hour 21: moved 1983 calendar ticks forward, now June 4, 1000 21:00.
+   before: Timeline minecraft:day is at 15000 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 21:00.
+-- time set midnight: Set minecraft:overworld to time marker minecraft:midnight
+   after:  Timeline minecraft:day is at 18001 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 5, 1000 00:00.
+-- time add 1000: Set minecraft:overworld to 1075001 tick(s)
+   after:  Timeline minecraft:day is at 19001 tick(s) | Added 1 ticks: moved 1 calendar ticks forward, now June 5, 1000 01:00.
+== Paper 1.21.11
+-- tfp time set hour 21: Time set to hour 21: moved 14884 calendar ticks forward, now June 1, 1000 21:00.
+   before: The time is 15003 | Added 1 ticks: moved 1 calendar ticks forward, now June 1, 1000 21:00.
+-- time set day: Set the time to 1000
+   after:  The time is 1004 | Added 1 ticks: moved 1 calendar ticks forward, now June 2, 1000 07:00.
+-- tfp time set hour 21: Time set to hour 21: moved 14000 calendar ticks forward, now June 2, 1000 21:00.
+   before: The time is 15001 | Added 1 ticks: moved 1 calendar ticks forward, now June 2, 1000 21:00.
+-- time set noon: Set the time to 6000
+   after:  The time is 6001 | Added 1 ticks: moved 1 calendar ticks forward, now June 3, 1000 12:00.
+-- tfp time set hour 21: Time set to hour 21: moved 9000 calendar ticks forward, now June 3, 1000 21:00.
+   before: The time is 15000 | Added 1 ticks: moved 1 calendar ticks forward, now June 3, 1000 21:01.
+-- time set night: Set the time to 13000
+   after:  The time is 13000 | Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 19:00.
+-- tfp time set hour 21: Time set to hour 21: moved 2000 calendar ticks forward, now June 4, 1000 21:00.
+   before: The time is 15001 | Added 1 ticks: moved 1 calendar ticks forward, now June 4, 1000 21:00.
+-- time set midnight: Set the time to 18000
+   after:  The time is 18004 | Added 1 ticks: moved 1 calendar ticks forward, now June 5, 1000 00:00.
+-- time add 1000: Set the time to 19001
+   after:  The time is 19002 | Added 1 ticks: moved 1 calendar ticks forward, now June 5, 1000 01:00.
