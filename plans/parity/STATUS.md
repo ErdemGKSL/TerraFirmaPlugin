@@ -205,7 +205,7 @@ Totals: 381 items; open 207, done 166, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-PROC-44 | Barrel wiring in-game verification: GUI from the block, five buckets in and one out, half-tank surface, lazy rain fill (the checks PAR-PROC-35 closed without) | PROC | 17 | open |
 | PAR-SURV-15 | TFC exhaustion on Paper: passive hunger drain on the vanilla food bar, vanilla action exhaustion x0.4, thirst lost on every 4 exhaustion | SURV | 17 | open |
 | PAR-SURV-16 | Food items and food tooltip in-game verification: the checks PAR-SURV-01 and PAR-SURV-02 closed without (sampled gives, TFC tooltip lines) | SURV | 17 | open |
-| PAR-CLIM-24 | Self-test calendar.sleep_skip on 26.x: build the NIGHT_SKIP event without TimeSkipEvent$SkipReason (NoClassDefFoundError on Paper 26.3) | CLIMATE | 17 | open |
+| PAR-CLIM-24 | Self-test calendar.sleep_skip on 26.x: build the NIGHT_SKIP event without TimeSkipEvent$SkipReason (NoClassDefFoundError on Paper 26.3) | CLIMATE | 17 | done |
 | PAR-CLIM-25 | Vanilla /time set <marker> on 26.x answers "already at time marker" although the time and the calendar moved (skip amount 0 after DaylightSync) | CLIMATE | 17 | open |
 | PAR-HEAT-25 | Pot loaded in game: configuration/devices/pot.yml, pot screen art (tfp:gui/pot, thermometer, bubbles) and the in-game soup check | HEAT | 18 | open |
 | PAR-GATHER-05 | Soil interactions: hoeing, paths, mud, rooted dirt, grass spread and rock spawning | GATHER | 18 | open |

@@ -18,6 +18,10 @@ import dev.tfp.paper.calendar.CalendarService;
 import dev.tfp.paper.calendar.DaylightSync;
 import dev.tfp.paper.scheduler.Scheduler;
 import io.papermc.paper.event.world.WorldGameRuleChangeEvent;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -133,7 +137,7 @@ public final class CalendarSleepSkipCase implements SelfTestCase {
         }
 
         int slept = SleepSkip.calendarTicksSlept(before.calendarTicks());
-        TimeSkipEvent event = new TimeSkipEvent(world, TimeSkipEvent.SkipReason.NIGHT_SKIP,
+        TimeSkipEvent event = nightSkip(world,
                 24_000L - Math.floorMod(world.getFullTime(), 24_000L)); // vanilla's own amount: to the next dawn
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) {
@@ -170,6 +174,105 @@ public final class CalendarSleepSkipCase implements SelfTestCase {
         return "9 pm at calendar " + before.calendarTicks() + " (world " + expectedDayTime + "); NIGHT_SKIP slept "
                 + slept + " calendar / " + playerDelta + " player ticks to " + after.calendarTicks()
                 + " (5 am), vanilla lands at " + landing;
+    }
+
+    /**
+     * The {@code TimeSkipEvent} constructor and its {@code NIGHT_SKIP} constant, found once by reflection (PAR-CLIM-24).
+     * The reason enum is {@code TimeSkipEvent$SkipReason} on 1.21.x and {@code ClockTimeSkipEvent$SkipReason} on 26.x,
+     * so naming either in bytecode breaks the other API. Accepted shapes: {@code (World, <reason>, long)} (1.21.x) and
+     * {@code (World, <other>..., <reason>, long)} where each other parameter is the return type of a public no-argument
+     * {@link World} getter, read from the event's world ({@code WorldClock} from {@code getDefaultClock()} on 26.3).
+     * {@code CTOR} is {@code null} when this server has no such constructor.
+     */
+    private static final class NightSkip {
+        static final Constructor<TimeSkipEvent> CTOR;
+        static final Object REASON;
+        /** Per constructor parameter between the world and the reason: the World getter that supplies it. */
+        static final Method[] EXTRA;
+
+        static {
+            Constructor<TimeSkipEvent> ctor = null;
+            Object reason = null;
+            Method[] extra = null;
+            for (Constructor<?> c : TimeSkipEvent.class.getConstructors()) {
+                Class<?>[] p = c.getParameterTypes();
+                int n = p.length;
+                if (n < 3 || p[0] != World.class || !p[n - 2].isEnum() || p[n - 1] != long.class) {
+                    continue;
+                }
+                Object constant = enumConstant(p[n - 2], "NIGHT_SKIP");
+                Method[] getters = new Method[n - 3];
+                boolean ok = constant != null;
+                for (int i = 0; ok && i < getters.length; i++) {
+                    getters[i] = worldGetter(p[i + 1]);
+                    ok = getters[i] != null;
+                }
+                if (ok) {
+                    @SuppressWarnings("unchecked")
+                    Constructor<TimeSkipEvent> typed = (Constructor<TimeSkipEvent>) c;
+                    ctor = typed;
+                    reason = constant;
+                    extra = getters;
+                    break;
+                }
+            }
+            CTOR = ctor;
+            REASON = reason;
+            EXTRA = extra;
+        }
+
+        /** A public no-argument World getter returning exactly {@code type}; a {@code getDefault*} one wins. */
+        private static Method worldGetter(Class<?> type) {
+            Method found = null;
+            for (Method m : World.class.getMethods()) {
+                if (m.getParameterCount() == 0 && m.getReturnType() == type && !Modifier.isStatic(m.getModifiers())
+                        && (found == null || m.getName().startsWith("getDefault"))) {
+                    found = m;
+                }
+            }
+            return found;
+        }
+
+        private static Object enumConstant(Class<?> type, String name) {
+            for (Object constant : type.getEnumConstants()) {
+                if (((Enum<?>) constant).name().equals(name)) {
+                    return constant;
+                }
+            }
+            return null;
+        }
+    }
+
+    /**
+     * A {@code NIGHT_SKIP} {@link TimeSkipEvent} for {@code world} and {@code amount}, built without naming the reason
+     * enum; skips the case when this API has no constructor of a shape {@link NightSkip} accepts.
+     */
+    static TimeSkipEvent nightSkip(World world, long amount) {
+        if (NightSkip.CTOR == null) {
+            throw new SelfTestCase.Skip("no TimeSkipEvent(World, ..., <reason with NIGHT_SKIP>, long) constructor on "
+                    + "this server API");
+        }
+        try {
+            Object[] args = new Object[NightSkip.EXTRA.length + 3];
+            args[0] = world;
+            for (int i = 0; i < NightSkip.EXTRA.length; i++) {
+                args[i + 1] = NightSkip.EXTRA[i].invoke(world);
+            }
+            args[args.length - 2] = NightSkip.REASON;
+            args[args.length - 1] = amount;
+            return NightSkip.CTOR.newInstance(args);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException r) {
+                throw r;
+            }
+            if (cause instanceof Error err) {
+                throw err;
+            }
+            throw new IllegalStateException("TimeSkipEvent constructor failed", cause);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("TimeSkipEvent constructor not callable", e);
+        }
     }
 
     /** Global thread: dispatches {@code /gamerule <rule> false} from the console and checks it was cancelled. */
