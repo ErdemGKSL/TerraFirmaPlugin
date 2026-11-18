@@ -104,11 +104,15 @@ class FirepitMockBukkitTest extends MockServerTest {
         final List<ItemStack> spawned = new ArrayList<>();
         final List<Long> callbacks = new ArrayList<>();
         final List<Douse> doused = new ArrayList<>();
+        final List<BlockStateRef> shown = new ArrayList<>();
+        /** PAR-HEAT-33: when set, the burn-out callbacks also go to the production watch. */
+        PaperFirepitEffects.BurnOutWatch watch;
         int smoke;
         boolean broken;
 
         @Override
         public void show(Block block, BlockStateRef state) {
+            shown.add(state);
             world.place(block, state, false);
         }
 
@@ -140,6 +144,9 @@ class FirepitMockBukkitTest extends MockServerTest {
         @Override
         public void callbackIn(Block block, long ticks) {
             callbacks.add(ticks);
+            if (watch != null) {
+                watch.callbackIn(block, ticks);
+            }
         }
 
         @Override
@@ -397,6 +404,86 @@ class FirepitMockBukkitTest extends MockServerTest {
         assertThat(record().state().lit()).isFalse();
         assertThat(blocks.stateAt(pit).orElseThrow().properties()).containsEntry("lit", "false");
         assertThat(effects.sounds).as("TFC extinguish sound on burn-out").containsExactly(FirepitEffects.Sound.EXTINGUISH);
+    }
+
+    /** PAR-HEAT-33: the production watch of the burn-out callback over a test scheduler and this test's clock. */
+    private SweepScheduler watched() {
+        SweepScheduler scheduler = new SweepScheduler();
+        effects.watch = new PaperFirepitEffects.BurnOutWatch(scheduler, clock::get, service::neighbourChanged);
+        effects.watch.start();
+        pit.getChunk().load();
+        return scheduler;
+    }
+
+    @Test
+    void aCalendarJumpPastTheFuelShowsTheUnlitStateWithoutAClick() {
+        SweepScheduler scheduler = watched();
+        build(Material.STICK);
+        assertThat(blocks.stateAt(pit).orElseThrow().properties()).containsEntry("lit", "true");
+        assertThat(effects.watch.size()).isOne();
+        int shownBefore = effects.shown.size();
+
+        scheduler.tick(); // the clock has not moved: nothing is due
+        assertThat(effects.shown).hasSize(shownBefore);
+
+        clock.addAndGet(PINE.duration() + 1000L); // /tfp time add: no server ticks pass, the queued task stays queued
+        scheduler.tick();
+        assertThat(effects.shown).hasSize(shownBefore + 1);
+        assertThat(effects.shown.getLast().properties()).containsEntry("lit", "false").containsEntry("smoke_level", "0");
+        assertThat(blocks.stateAt(pit).orElseThrow().properties()).containsEntry("lit", "false");
+        assertThat(record().state().lit()).isFalse();
+        assertThat(effects.sounds).containsExactly(FirepitEffects.Sound.EXTINGUISH);
+        assertThat(effects.watch.size()).isZero();
+
+        // the server-tick task fires later and does nothing: each watch fires once
+        scheduler.runDelayed();
+        scheduler.tick();
+        assertThat(effects.shown).hasSize(shownBefore + 1);
+        assertThat(effects.sounds).hasSize(1);
+    }
+
+    @Test
+    void aSweepBeforeTheBurnOutLeavesTheFirepitLit() {
+        SweepScheduler scheduler = watched();
+        build(Material.OAK_LOG);
+        clock.addAndGet(OAK.duration() / 2); // a jump that does not burn the fuel out
+        scheduler.tick();
+        assertThat(record().state().lit()).isTrue();
+        assertThat(blocks.stateAt(pit).orElseThrow().properties()).containsEntry("lit", "true");
+        assertThat(effects.watch.size()).as("still waiting for the burn-out").isOne();
+    }
+
+    @Test
+    void theServerTickCallbackStillTurnsItUnlitWhenTheCalendarRunsNormally() {
+        SweepScheduler scheduler = watched();
+        build(Material.STICK);
+        clock.addAndGet(PINE.duration());
+        scheduler.runDelayed();
+        scheduler.runRegion();
+        assertThat(blocks.stateAt(pit).orElseThrow().properties()).containsEntry("lit", "false");
+        assertThat(effects.watch.size()).isZero();
+        scheduler.tick();
+        assertThat(effects.sounds).containsExactly(FirepitEffects.Sound.EXTINGUISH);
+    }
+
+    @Test
+    void aDouseLeavesTheShownSmokeLevelEqualToTheRecord() {
+        build(Material.STICK, Material.STICK, Material.STICK); // pine: dirty fuel, the smoke rises
+        clock.addAndGet(400);
+        service.catchUp(pit);
+        assertThat(record().state().smokeLevel()).as("smoky before the douse").isPositive();
+        service.neighbourChanged(pit); // a callback shows the smoky state
+        assertThat(blocks.stateAt(pit).orElseThrow().properties().get("smoke_level")).isNotEqualTo("0");
+
+        assertThat(click(new ItemStack(Material.WATER_BUCKET))).isTrue();
+        assertThat(record().state().lit()).isFalse();
+        assertThat(record().state().smokeLevel()).isZero();
+        assertThat(blocks.stateAt(pit).orElseThrow().properties()).containsEntry("lit", "false")
+            .containsEntry("smoke_level", "0");
+        // the next catch-up keeps them equal
+        clock.addAndGet(100);
+        service.catchUp(pit);
+        assertThat(record().state().smokeLevel()).isZero();
     }
 
     @Test

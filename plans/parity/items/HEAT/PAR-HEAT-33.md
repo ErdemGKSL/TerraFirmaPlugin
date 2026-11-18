@@ -2,7 +2,7 @@
 id: PAR-HEAT-33
 title: "Firepit block state follows calendar jumps: the lit look turns off when a time skip burns the fuel out, smoke level in step after a douse"
 area: HEAT
-status: open
+status: done
 wave: 17
 deps: [PAR-HEAT-23]
 size: S
@@ -24,6 +24,7 @@ in_game_steps:
 plan:
   - "Found in the PAR-HEAT-23 run (docs/verification/PAR-HEAT-23/verdict.md): the burn-out callback (`FirepitEffects.callbackIn`) is queued in server ticks, so a calendar jump (`/tfp time add`, and TFC's sleep skip) that burns the fuel out leaves the lit model up until the next click or chunk load; the click then extinguishes and the empty hand takes the ash first. Also after a douse the record had smokeLevel 0 while the block state kept smoke_level=1."
   - "Fix: on a calendar jump (the calendar's skip event or the device service's catch-up hook) re-run `neighbourChanged` for loaded lit firepits so the block state follows the record, decide async, apply sync; keep smoke_level in the block state equal to the record after every finish."
+  - "Done: PaperFirepitEffects.BurnOutWatch (burn-out due in server ticks and on the device clock, global sweep every 20 ticks fires the ones a calendar jump passed, on the region), FirepitModule starts/cancels the sweep, FirepitDevice.finish sets an unlit firepit's smoke level from its dirtiness; FirepitMockBukkitTest +4 (16); 2 ledger divergences; follow-up PAR-HEAT-34 (grill and pot); in-game check left to the verify stage, evidence path docs/verification/PAR-HEAT-33/."
 tests:
   - "MockBukkit: a lit firepit record with one bundle, the calendar advanced by 1000 ticks, the effects receive show(unlit) without an interaction"
   - "MockBukkit: douse leaves the shown state at smoke_level 0"

@@ -60,6 +60,8 @@ public final class FirepitModule implements FeatureModule {
     public static final String SHOVELS = "minecraft:shovels";
 
     private volatile AutoCloseable hook;
+    /** PAR-HEAT-33: the calendar-jump sweep of the burn-out callbacks. */
+    private volatile Scheduler.TaskHandle sweep;
 
     @Override
     public String id() {
@@ -68,6 +70,11 @@ public final class FirepitModule implements FeatureModule {
 
     @Override
     public void disable() {
+        Scheduler.TaskHandle s = sweep;
+        sweep = null;
+        if (s != null) {
+            s.cancel();
+        }
         AutoCloseable h = hook;
         hook = null;
         if (h != null) {
@@ -155,7 +162,9 @@ public final class FirepitModule implements FeatureModule {
         Supplier<FirepitFuels> fuels = fuels(() -> context.registryService().registries());
         ItemHeatHooks.Capacities capacities = ItemHeatHooks.Capacities.byId(tags::itemId, heatDefinitions);
         PaperFirepitEffects effects = new PaperFirepitEffects(context.scheduler(), blocks,
-            () -> context.integrations().blockVisuals(), devices::neighbourChanged);
+            () -> context.integrations().blockVisuals(), () -> context.clock().get().playerTicks(),
+            devices::neighbourChanged);
+        sweep = effects.start();
         AtomicReference<FirepitDevice> deviceRef = new AtomicReference<>();
         FirepitDevice device = new FirepitDevice(new FirepitDevice.Services(
             stack -> tags.itemId(stack).flatMap(id -> fuels.get().get(id)),

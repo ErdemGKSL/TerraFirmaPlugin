@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -37,15 +38,14 @@ import org.bukkit.inventory.ItemStack;
  * The server side of {@link FirepitEffects}. TFC's smoke is a client particle that ticks on its own; ours is one burst of
  * vanilla {@link Particle#CAMPFIRE_COSY_SMOKE} / {@link Particle#SMOKE} on an interaction only (ledger). The burn-out
  * callback is one delayed region task per firepit: a newer request replaces the queued one (the old task fires and does
- * nothing), and a task dropped by a chunk unload is not replaced until the next callback.
+ * nothing), and a task dropped by a chunk unload is not replaced until the next callback. A calendar jump past the
+ * burn-out fires the callback within a second through {@link BurnOutWatch} (PAR-HEAT-33).
  */
 public final class PaperFirepitEffects implements FirepitEffects {
     private final Scheduler scheduler;
     private final CustomBlocks blocks;
     private final Supplier<BlockVisuals> visuals;
-    private final Consumer<Block> callback;
-    private final Map<Pos, Long> pending = new ConcurrentHashMap<>();
-    private final AtomicLong sequence = new AtomicLong();
+    private final BurnOutWatch watch;
 
     private record Pos(UUID world, int x, int y, int z) {
         static Pos of(Block b) {
@@ -53,13 +53,97 @@ public final class PaperFirepitEffects implements FirepitEffects {
         }
     }
 
-    /** @param callback calls the device back (the device router's neighbour update) */
+    /**
+     * Effects whose burn-out callback runs in server ticks only (no calendar-jump sweep; the grill's firepit effects).
+     *
+     * @param callback calls the device back (the device router's neighbour update)
+     */
     public PaperFirepitEffects(Scheduler scheduler, CustomBlocks blocks, Supplier<BlockVisuals> visuals,
+            Consumer<Block> callback) {
+        this(scheduler, blocks, visuals, () -> 0L, callback);
+    }
+
+    /**
+     * @param clock    the device clock (the calendar's player ticks, the clock of {@code FirepitSim.ticksUntilOut})
+     * @param callback calls the device back (the device router's neighbour update)
+     */
+    public PaperFirepitEffects(Scheduler scheduler, CustomBlocks blocks, Supplier<BlockVisuals> visuals, LongSupplier clock,
             Consumer<Block> callback) {
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.visuals = Objects.requireNonNull(visuals, "visuals");
-        this.callback = Objects.requireNonNull(callback, "callback");
+        this.watch = new BurnOutWatch(scheduler, clock, callback);
+    }
+
+    /**
+     * PAR-HEAT-33: the burn-out callback of each lit, loaded firepit, due both in server ticks and on the device clock.
+     * The server-tick task turns the block unlit on time while the calendar runs normally; a calendar jump
+     * ({@code /tfp time add}, the sleep skip, vanilla {@code /time}) moves the clock past the burn-out without server
+     * ticks, so a sweep on the global thread every {@value #SWEEP_PERIOD} ticks compares each watch's due tick with the
+     * clock (the decision: a read of a small map) and queues the callback on the firepit's region (the apply), where the
+     * device catches up and its {@code finish} shows the unlit state. Each watch fires once, by whichever path comes
+     * first; a newer request for the same firepit replaces it. A watch whose chunk unloaded is dropped when it comes due
+     * (the catch-up on chunk load takes over).
+     */
+    public static final class BurnOutWatch {
+        /** Server ticks between two sweeps (one calendar step). */
+        public static final long SWEEP_PERIOD = 20;
+
+        private record Watch(long id, Block block, long due) {
+        }
+
+        private final Scheduler scheduler;
+        private final LongSupplier clock;
+        private final Consumer<Block> callback;
+        private final Map<Pos, Watch> pending = new ConcurrentHashMap<>();
+        private final AtomicLong sequence = new AtomicLong();
+
+        public BurnOutWatch(Scheduler scheduler, LongSupplier clock, Consumer<Block> callback) {
+            this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
+            this.clock = Objects.requireNonNull(clock, "clock");
+            this.callback = Objects.requireNonNull(callback, "callback");
+        }
+
+        /** Region thread of the block: the callback in {@code ticks} (server ticks and device clock ticks alike). */
+        public void callbackIn(Block block, long ticks) {
+            long delay = Math.max(1, ticks);
+            Pos key = Pos.of(block);
+            Watch w = new Watch(sequence.incrementAndGet(), block, clock.getAsLong() + delay);
+            pending.put(key, w);
+            scheduler.regionDelayed(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, delay, () -> fire(key, w));
+        }
+
+        public Scheduler.TaskHandle start() {
+            return scheduler.globalRepeating(SWEEP_PERIOD, SWEEP_PERIOD, this::sweep);
+        }
+
+        /** Global thread: queues every watch the clock has passed on its region. */
+        public void sweep() {
+            long now = clock.getAsLong();
+            for (Map.Entry<Pos, Watch> e : pending.entrySet()) {
+                Watch w = e.getValue();
+                if (w.due() <= now) {
+                    Block b = w.block();
+                    Pos key = e.getKey();
+                    scheduler.region(b.getWorld(), b.getX() >> 4, b.getZ() >> 4, () -> fire(key, w));
+                }
+            }
+        }
+
+        /** The number of watches waiting. */
+        public int size() {
+            return pending.size();
+        }
+
+        private void fire(Pos key, Watch w) {
+            if (!pending.remove(key, w)) {
+                return;
+            }
+            Block b = w.block();
+            if (b.getWorld().isChunkLoaded(b.getX() >> 4, b.getZ() >> 4)) {
+                callback.accept(b);
+            }
+        }
     }
 
     @Override
@@ -135,14 +219,12 @@ public final class PaperFirepitEffects implements FirepitEffects {
 
     @Override
     public void callbackIn(Block block, long ticks) {
-        Pos key = Pos.of(block);
-        long id = sequence.incrementAndGet();
-        pending.put(key, id);
-        scheduler.regionDelayed(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, Math.max(1, ticks), () -> {
-            if (pending.remove(key, id)) {
-                callback.accept(block);
-            }
-        });
+        watch.callbackIn(block, ticks);
+    }
+
+    /** Starts the calendar-jump sweep of {@link BurnOutWatch}; the handle stops it. */
+    public Scheduler.TaskHandle start() {
+        return watch.start();
     }
 
     @Override

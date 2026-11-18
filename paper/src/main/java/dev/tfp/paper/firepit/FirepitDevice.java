@@ -472,6 +472,14 @@ public final class FirepitDevice {
                 boolean consumed) {
             Block block = ctx.block();
             FirepitData data = record.state();
+            if (!data.lit() && data.smokeLevel() != FirepitSim.smokeLevel(data.dirtiness())) {
+                // PAR-HEAT-33: TFC's extinguish zeroes the dirtiness and its next updateSmokeLevel (at most one smoke
+                // period later) sets SMOKE_LEVEL to match; an unlit firepit has nothing else to change it, so it is set
+                // here at once and the block state and the record agree after every finish (ledger divergence)
+                data = new FirepitData(data.heat(), false, FirepitSim.smokeLevel(data.dirtiness()), data.dirtiness(),
+                    data.ash(), data.lastMaxBurnTicks(), data.raining());
+                record = record.withState(data);
+            }
             String axis = ctx.state().properties().getOrDefault(AXIS, "x");
             BlockStateRef wanted = state(data, axis);
             if ("true".equals(ctx.state().properties().get(LIT)) && !data.lit()) {
