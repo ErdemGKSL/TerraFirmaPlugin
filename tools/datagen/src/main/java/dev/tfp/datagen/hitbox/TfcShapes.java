@@ -13,6 +13,8 @@
  *       BASED_SHAPES_BY_DIR_BY_COUNT, getShapeByDirByCount),
  *       src/main/java/net/dries007/tfc/common/blocks/{TFCTorchBlock,TFCWallTorchBlock,DeadTorchBlock,DeadWallTorchBlock}.java
  *       @ c3b4d9536 (vanilla TorchBlock / WallTorchBlock outlines, noCollission in TFCBlocks),
+ *       src/main/java/net/dries007/tfc/common/blocks/{TFCCandleBlock,TFCCandleCakeBlock}.java and
+ *       devices/JackOLanternBlock.java @ c3b4d9536 (vanilla CandleBlock outlines; the candle cake SHAPE; a full cube),
  *       the getShape / getCollisionShape choices of the block classes named in SPECS @ c3b4d9536
  */
 package dev.tfp.datagen.hitbox;
@@ -328,8 +330,47 @@ public final class TfcShapes {
                     absent, x -> new Shape[] {WALL_TORCH_SHAPES.get(f), Shape.EMPTY}));
             }
         }
+        // PAR-HEAT-26: the candles extend vanilla CandleBlock with no shape override (the outline and collision are
+        // vanilla's per count, ported: CANDLE_SHAPES); one row per state so the selector keeps lit and waterlogged (the
+        // dyed candles are the same class and share these rows). The candle cake's SHAPE is its own (cake + candle, collision
+        // the same); the jack-o'-lantern extends CarvedPumpkinBlock (a full cube) with no override.
+        List<String> candleFiles = List.of(B + "TFCCandleBlock.java", blocks);
+        List<String> candleNeedles = List.of("public class TFCCandleBlock extends CandleBlock",
+            "CANDLE = register(\"candle\", () -> new TFCCandleBlock(ExtendedProperties.of(Blocks.CANDLE)");
+        for (int n = 1; n <= 4; n++) {
+            final Shape shape = CANDLE_SHAPES.get(n - 1);
+            for (String lit : List.of("false", "true")) {
+                for (String wet : List.of("false", "true")) {
+                    s.add(new Spec(candleKey(n, Boolean.parseBoolean(lit), Boolean.parseBoolean(wet)), "candle", Kind.OBJECT,
+                        candleFiles, null, null, candleNeedles, List.of("getShape(", "getCollisionShape"),
+                        x -> new Shape[] {shape, shape}));
+                }
+            }
+        }
+        for (String lit : List.of("false", "true")) {
+            s.add(Spec.of("tfc:candle_cake[lit=" + lit + "]", "candle_cake", Kind.OBJECT, List.of(B + "TFCCandleCakeBlock.java"),
+                "SHAPE", "same", List.of("protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, "
+                    + "CollisionContext context)\n    {\n        return SHAPE;"), List.of("getCollisionShape")));
+        }
+        for (String f : List.of("north", "east", "south", "west")) {
+            s.add(Spec.of("tfc:jack_o_lantern[facing=" + f + "]", "jack_o_lantern", Kind.CUBE,
+                List.of(D + "JackOLanternBlock.java"), "Shapes.block()", "same",
+                List.of("public class JackOLanternBlock extends CarvedPumpkinBlock"), List.of("getShape(", "getCollisionShape")));
+        }
         return s;
     }
+
+    /** PAR-HEAT-26: the tfc-shapes row of a TFC candle state (every colour shares it). */
+    public static String candleKey(int candles, boolean lit, boolean waterlogged) {
+        return "tfc:candle[candles=" + candles + ",lit=" + lit + ",waterlogged=" + waterlogged + "]";
+    }
+
+    /**
+     * Vanilla 1.21.1 {@code CandleBlock.ONE_AABB} .. {@code FOUR_AABB} ({@code Block.box(7, 0, 7, 9, 6, 9)},
+     * {@code (5, 0, 6, 11, 6, 9)}, {@code (5, 0, 6, 10, 6, 11)}, {@code (5, 0, 5, 11, 6, 10)}), by candle count.
+     */
+    static final List<Shape> CANDLE_SHAPES = List.of(Shape.box(7, 0, 7, 9, 6, 9), Shape.box(5, 0, 6, 11, 6, 9),
+        Shape.box(5, 0, 6, 10, 6, 11), Shape.box(5, 0, 5, 11, 6, 10));
 
     /** PAR-HEAT-21: TFC's torch blocks (registry path, class), in TFCBlocks order. */
     static final List<String[]> TORCH_CLASSES = List.of(new String[] {"torch", "TFCTorchBlock"},

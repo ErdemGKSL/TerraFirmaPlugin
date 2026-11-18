@@ -34,7 +34,8 @@ import java.util.Map;
  *   <li>fall ({@code LivingEntity.playBlockFallSound}): {@code v * 0.5}, {@code p * 0.75}</li>
  * </ul>
  *
- * <p>The {@code SoundType} volume and pitch: vanilla {@code STONE}, {@code WOOD} and {@code NETHER_WART} are (1.0, 1.0),
+ * <p>The {@code SoundType} volume and pitch: vanilla {@code STONE}, {@code WOOD}, {@code NETHER_WART}, {@code CANDLE} and
+ * {@code WOOL} (PAR-HEAT-26) are (1.0, 1.0),
  * {@code METAL} is (1.0, 1.5) (read from the 26.3 client's {@code SoundType.<clinit>}); TFC's {@code TFCSounds.registerBlock}
  * types are (1.0, 1.0).
  *
@@ -48,10 +49,19 @@ import java.util.Map;
 public record RenderedSound(BigDecimal volume, BigDecimal pitch) {
     public static final RenderedSound UNIT = new RenderedSound(BigDecimal.ONE, BigDecimal.ONE);
     public static final RenderedSound METAL = new RenderedSound(BigDecimal.ONE, new BigDecimal("1.5"));
+    /** PAR-HEAT-26: vanilla {@code SoundType.CANDLE} (1.0, 1.0): the TFC candles' sound set. */
+    public static final DeviceSound CANDLE = vanillaGroup("candle");
+    /** PAR-HEAT-26: vanilla {@code SoundType.WOOL} (1.0, 1.0): the TFC candle cakes' sound set. */
+    public static final DeviceSound WOOL = vanillaGroup("wool");
     private static final Map<DeviceSound, RenderedSound> VANILLA = Map.of(DeviceSound.STONE, UNIT, DeviceSound.WOOD, UNIT,
-        DeviceSound.NETHER_WART, UNIT, DeviceSound.METAL, METAL);
+        DeviceSound.NETHER_WART, UNIT, DeviceSound.METAL, METAL, CANDLE, UNIT, WOOL, UNIT);
     private static final BigDecimal TWO = BigDecimal.valueOf(2);
     private static final BigDecimal EIGHT = BigDecimal.valueOf(8);
+
+    private static DeviceSound vanillaGroup(String name) {
+        String p = "minecraft:block." + name + ".";
+        return new DeviceSound(p + "break", p + "step", p + "place", p + "hit", p + "fall");
+    }
 
     /** The {@code SoundType} volume and pitch of a device sound set; TFC's own types are (1.0, 1.0). */
     public static RenderedSound of(DeviceSound sound) {

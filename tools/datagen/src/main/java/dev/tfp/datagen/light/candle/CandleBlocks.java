@@ -27,6 +27,9 @@ import dev.tfp.datagen.TfcCheckout;
 import dev.tfp.datagen.Yaml;
 import dev.tfp.datagen.device.DeviceSound;
 import dev.tfp.datagen.device.DeviceYaml;
+import dev.tfp.datagen.hitbox.HitboxAllocation;
+import dev.tfp.datagen.hitbox.HitboxDemands;
+import dev.tfp.datagen.rendered.RenderedSound;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -49,29 +52,29 @@ import java.util.Objects;
  *       candle cake (push reaction destroy), the dyed ones do not. No item (TFC {@code registerNoItem}).</li>
  *   <li>Jack-o'-lantern: {@code facing}; strength 1.0, wood sounds, light 15.</li>
  *   <li>Loot: TFC's tables shipped for the loot runtime. No CraftEngine {@code loot:}.</li>
- *   <li>Looks: TFC draws vanilla's models for all of them. The carriers come in as arguments ({@link Carriers}): the
- *       hitbox carrier selector chooses them; a carrier with {@link Look#MODEL} gets TFC's blockstate model.</li>
+ *   <li>Looks: TFC draws vanilla's models for all of them. The carriers come in as arguments ({@link Carriers}):
+ *       {@code Datagen} passes {@link #selected} (PAR-HEAT-26), the hitbox selector's choice for the demands of
+ *       {@code hitbox/HitboxDemands}: each block's vanilla twin state of the same properties with its vanilla look
+ *       ({@code minecraft:red_candle[...]}, {@code minecraft:candle_cake[lit=...]}, {@code minecraft:jack_o_lantern[facing=...]});
+ *       a carrier with {@link Look#MODEL} would get TFC's blockstate model.</li>
+ *   <li>Sounds: vanilla {@code SoundType.CANDLE} and {@code WOOL} through {@link RenderedSound} (both 1.0/1.0, plain ids).</li>
  * </ul>
- *
- * Wiring this generator into {@code Datagen} needs the demands in {@code hitbox/HitboxDemands} and the ids in
- * {@code GeneratedCarrierTest}, which PAR-HEAT-26 owns.
  */
 public final class CandleBlocks {
-    public static final String CANDLE = "tfp:candle";
-    public static final String CANDLE_CAKE = "tfp:candle_cake";
-    public static final String JACK_O_LANTERN = "tfp:jack_o_lantern";
+    public static final String CANDLE = HitboxDemands.CANDLE_ID;
+    public static final String CANDLE_CAKE = HitboxDemands.CANDLE_CAKE_ID;
+    public static final String JACK_O_LANTERN = HitboxDemands.JACK_O_LANTERN_ID;
     /** Vanilla {@code DyeColor} order (TFC {@code Helpers.mapOf(DyeColor.class, ...)}). */
-    public static final List<String> COLORS = List.of("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink",
-        "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");
-    public static final List<String> FACINGS = List.of("north", "east", "south", "west");
+    public static final List<String> COLORS = HitboxDemands.CANDLE_COLORS;
+    public static final List<String> FACINGS = HitboxDemands.FACINGS;
     /** TFC {@code candleTicks} default. */
     public static final int CANDLE_TICKS = 288_000;
     /** TFC {@code jackOLanternTicks} default. */
     public static final int JACK_O_LANTERN_TICKS = 108_000;
     /** TFC candle cake {@code litBlockEmission(3)}. */
-    public static final int CANDLE_CAKE_LIGHT = 3;
+    public static final int CANDLE_CAKE_LIGHT = HitboxDemands.CANDLE_CAKE_LIGHT;
     /** TFC {@code alwaysLit()}. */
-    public static final int JACK_O_LANTERN_LIGHT = 15;
+    public static final int JACK_O_LANTERN_LIGHT = HitboxDemands.JACK_O_LANTERN_LIGHT;
 
     static final String BLOCKS_SRC = "src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java";
     static final String CONFIG_SRC = "src/main/java/net/dries007/tfc/config/ServerConfig.java";
@@ -105,6 +108,27 @@ public final class CandleBlocks {
     }
 
     private CandleBlocks() {
+    }
+
+    /**
+     * PAR-HEAT-26: the hitbox selector's carrier of {@code appearance} ({@code hitbox/HitboxDemands}): the vanilla twin's
+     * state of the same properties ({@code tfp:candle/red#candles=2,lit=true,waterlogged=false} on
+     * {@code minecraft:red_candle[candles=2,lit=true,waterlogged=false]}, a jack-o'-lantern facing on
+     * {@code minecraft:jack_o_lantern[facing=...]}), drawn with its vanilla look. Anything else fails.
+     */
+    public static Carrier selected(String blockId, String appearance) {
+        HitboxAllocation.Assignment a = HitboxAllocation.agreed(blockId, appearance);
+        String twin = HitboxDemands.twin(blockId);
+        if (twin == null) {
+            throw new DatagenException(blockId + " has no vanilla twin in HitboxDemands");
+        }
+        String expected = twin + "[" + (blockId.equals(JACK_O_LANTERN) ? "facing=" + appearance : appearance) + "]";
+        if (a.mode() != HitboxAllocation.Mode.VANILLA || a.hideTarget() != null || a.pool() || !a.state().equals(expected)) {
+            throw new DatagenException("the candle carrier of " + blockId + "#" + appearance + " is " + a.state() + " ("
+                + a.mode() + (a.hideTarget() == null ? "" : ", hidden as " + a.hideTarget()) + "); CandleBlocks draws "
+                + expected + " with its vanilla look");
+        }
+        return new Carrier(a.state(), Look.VANILLA);
     }
 
     /** Every candle block id: the plain one, then the dyed ones. */
@@ -275,23 +299,10 @@ public final class CandleBlocks {
         return b;
     }
 
-    /**
-     * Vanilla {@code SoundType.CANDLE}, {@code WOOL} and {@code WOOD}: all (1.0, 1.0), so the plain ids, whose CraftEngine
-     * defaults play exactly that ({@link DeviceSound#plainIds}).
-     */
-    static Map<String, Object> vanilla(String group) {
-        String p = "minecraft:block." + group + ".";
-        Map<String, Object> m = new LinkedHashMap<>();
-        for (String e : List.of("break", "step", "place", "hit", "fall")) {
-            m.put(e, p + e);
-        }
-        return m;
-    }
-
     private static Map<String, Object> candle(TfcCheckout tfc, String id, Carriers carriers) {
         Map<String, JsonObject> tfcVariants = variants(tfc, id);
         Map<String, Object> block = new LinkedHashMap<>();
-        block.put("settings", settings("0.1", vanilla("candle"), id));
+        block.put("settings", settings("0.1", RenderedSound.CANDLE.yaml(), id));
         Map<String, Object> stack = new LinkedHashMap<>();
         stack.put("type", "stackable_block");
         stack.put("property", "candles");
@@ -335,7 +346,7 @@ public final class CandleBlocks {
     private static Map<String, Object> candleCake(TfcCheckout tfc, String id, Carriers carriers) {
         Map<String, JsonObject> tfcVariants = variants(tfc, id);
         Map<String, Object> block = new LinkedHashMap<>();
-        Map<String, Object> s = settings("0.5", vanilla("wool"), null);
+        Map<String, Object> s = settings("0.5", RenderedSound.WOOL.yaml(), null);
         if (!id.equals(CANDLE_CAKE)) {
             s.put("push_reaction", "normal"); // TFC: ExtendedProperties.of(MapColor.SAND), no copy of the candle cake
         }
@@ -371,6 +382,7 @@ public final class CandleBlocks {
         block.put("behavior", List.of(Map.of("type", "tfp:device")));
         Map<String, Object> facing = new LinkedHashMap<>();
         facing.put("type", "horizontal_direction");
+        facing.put("values", FACINGS); // as torch.yml: the state count (Report.countCeStates) reads the values
         facing.put("default", "north");
         Map<String, Object> appearances = new LinkedHashMap<>();
         Map<String, Object> variants = new LinkedHashMap<>();

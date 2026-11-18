@@ -100,15 +100,19 @@ class GeneratedCarrierTest {
         // PAR-PROC-38: 16 side appearances per barrel (4 facings x seal x rack) and the barrel rack's one.
         // PAR-HEAT-21: the torch, the wall torch (4 facings), the dead torch and the dead wall torch (4 facings).
         // PAR-PROC-39: the powderkeg (unsealed, sealed, lit).
-        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3);
+        // PAR-HEAT-26: 17 candles x 16 states, 17 candle cakes x 2, the jack-o'-lantern's 4 facings (35 ids).
+        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3 + 17 * 16 + 17 * 2 + 4);
         assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1);
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
             List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern",
                 "tfp:scraping", HitboxDemands.COMPOSTER_ID, HitboxDemands.LOG_PILE_ID, HitboxDemands.CHARCOAL_PILE_ID,
                 HitboxDemands.BARREL_RACK_ID, HitboxDemands.TORCH_ID, HitboxDemands.WALL_TORCH_ID,
-                HitboxDemands.DEAD_TORCH_ID, HitboxDemands.DEAD_WALL_TORCH_ID, HitboxDemands.POWDERKEG_ID));
+                HitboxDemands.DEAD_TORCH_ID, HitboxDemands.DEAD_WALL_TORCH_ID, HitboxDemands.POWDERKEG_ID,
+                HitboxDemands.JACK_O_LANTERN_ID));
         HitboxDemands.BARREL_WOODS.forEach(w -> expected.add(HitboxDemands.barrelId(w)));
-        assertThat(expected).hasSize(36);
+        expected.addAll(HitboxDemands.candleIds(HitboxDemands.CANDLE_ID));
+        expected.addAll(HitboxDemands.candleIds(HitboxDemands.CANDLE_CAKE_ID));
+        assertThat(expected).hasSize(36 + 35);
         assertThat(checkedIds).as("block ids whose explicit appearance states were checked")
             .containsExactlyElementsOf(expected);
         assertThat(mappings).as("generator block_state_mappings")

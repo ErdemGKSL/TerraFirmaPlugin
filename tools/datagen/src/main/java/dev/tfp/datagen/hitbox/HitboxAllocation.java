@@ -116,7 +116,7 @@ public final class HitboxAllocation {
             if (byId.containsKey(d.id())) {
                 throw new DatagenException("duplicate hitbox demand " + d.id());
             }
-            TfcState tfc = TfcState.of(d.tfcKey()).withLight(d.light());
+            TfcState tfc = TfcState.of(d.tfcKey()).withLight(d.light()).withTwin(HitboxDemands.twin(d.blockId()));
             boolean model = !d.look().equals(VANILLA_LOOK) && !d.look().equals(TRANSPARENT);
             Choice choice = HitboxCarrier.select(tfc, profile, family, ctx, s -> free(s, d.look(), model, taken, hide));
             Mode mode;

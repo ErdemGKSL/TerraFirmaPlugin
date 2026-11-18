@@ -187,7 +187,7 @@ Totals: 381 items; open 207, done 166, blocked 8; waves 1..56 (wave 0 = already 
 | PAR-CLIM-14 | Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute | CLIMATE | 16 | open |
 | PAR-CLIM-23 | Verify vanilla /time and the night skip move the calendar in game on Paper 26.3 and 1.21.11 (PAR-CLIM-22 server logs) | CLIMATE | 16 | done |
 | PAR-HEAT-12 | Firebox, stove and stove pot | HEAT | 16 | done |
-| PAR-HEAT-26 | Candles loaded in game: hitbox carriers, configuration/light/candle/candle.yml and the in-game candle burnout check | HEAT | 16 | open |
+| PAR-HEAT-26 | Candles loaded in game: hitbox carriers, configuration/light/candle/candle.yml and the in-game candle burnout check | HEAT | 16 | done |
 | PAR-INFRA-52 | Grill and pot block sounds in game: NETHER_WART hit 0.25/0.5 and one break 1.0/0.8 per player on 1.21.11 and 26.x | INFRA | 16 | blocked |
 | PAR-PHYS-01 | TFC falling blocks: canFallThrough, landing, damage | PHYS | 16 | done |
 | PAR-WORLD-01 | Rendered region and river maps compared with TFC | WORLD | 16 | done |

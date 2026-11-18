@@ -397,7 +397,10 @@ collision boxes by voxel IoU (0.6 selection + 0.4 collision) times a shape-quali
 client-behaviour blocks, light/water/particles, more connected pieces than TFC's shape, low bounding-box fill, off-centre
 outlines, and an owner ban list of multi-piece-looking blocks such as sea pickles, candles and turtle eggs for object
 classes). Classes may carry an owner-ordered carrier list with fallbacks (large vessel: heavy_core, then a lone cobblestone
-wall post); a fallback taken or any residual mismatch gets a ledger divergence. Placed items always use a pressure-plate
+wall post); a fallback taken or any residual mismatch gets a ledger divergence. A TFC block that reuses a vanilla block's
+own models and client behaviour (the candles, candle cakes and jack-o'-lantern, PAR-HEAT-26) names that block as its
+twin: it takes only the twin's state of the same properties, with the vanilla look, and skips the particle, object-ban
+and light filters. Placed items always use a pressure-plate
 state. Rare blocks may use a hitbox-only carrier (shared empty model) with the look from `entity_renderer`.
 
 Implemented (PAR-INFRA-13): the data lives in `tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/`.

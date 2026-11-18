@@ -138,6 +138,9 @@ public final class Datagen {
         if (dev.tfp.datagen.light.TorchBlocks.available(tfc)) { // PAR-HEAT-21: tfp:torch, wall, dead torch entries on the selector's carriers, models, texture, loot, names; fixtures have no torches
             dev.tfp.datagen.light.TorchBlocks.run(tfc, out, dev.tfp.datagen.light.TorchBlocks::selected);
         }
+        if (dev.tfp.datagen.light.candle.CandleBlocks.available(tfc)) { // PAR-HEAT-26: tfp:candle*, candle_cake*, jack_o_lantern on their vanilla twins, item models, loot, names; fixtures have no candles
+            dev.tfp.datagen.light.candle.CandleBlocks.run(tfc, out, dev.tfp.datagen.light.candle.CandleBlocks::selected);
+        }
         if (dev.tfp.datagen.powderkeg.PowderkegScreenArt.available(tfc)) { // PAR-PROC-18: powderkeg screen art; fixtures have no powderkeg screen
             dev.tfp.datagen.powderkeg.PowderkegScreenArt.run(tfc, out);
         }

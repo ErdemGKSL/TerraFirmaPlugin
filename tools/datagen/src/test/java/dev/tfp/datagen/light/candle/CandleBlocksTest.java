@@ -20,8 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 
 /**
- * PAR-HEAT-11: the candle entries on the real checkout, with stand-in carriers (the selector's choice comes with
- * PAR-HEAT-26): candles on their vanilla look, candle cakes and the jack-o'-lantern with TFC's (vanilla) model.
+ * PAR-HEAT-11: the candle entries on the real checkout, with stand-in carriers: candles on their vanilla look, candle
+ * cakes and the jack-o'-lantern with TFC's (vanilla) model. PAR-HEAT-26: and with the selector's carriers (the twins).
  */
 class CandleBlocksTest {
     private static OutputTree out;
@@ -119,6 +119,31 @@ class CandleBlocksTest {
         String en = text("craftengine/tfp/resourcepack/assets/tfp_candle/lang/en_us.json");
         assertThat(en).contains("\"block.tfp.candle.red\": \"Red Candle\"").contains("\"block.tfp.jack_o_lantern\"")
             .contains("\"block.tfp.candle_cake\": \"Candle Cake\"");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void withTheSelectorsCarriersEveryAppearanceIsItsVanillaTwinsState() {
+        // PAR-HEAT-26: Datagen passes CandleBlocks::selected; every appearance names the twin's state, no model.
+        TfcCheckout tfc = TfcCheckout.open(Path.of(System.getProperty("tfc.checkout", "/opt/tfc")), TfcCheckout.PINNED_COMMIT);
+        OutputTree real = new OutputTree();
+        CandleBlocks.run(tfc, real, CandleBlocks::selected);
+        Map<String, Object> blocks = (Map<String, Object>) new Yaml()
+            .<Map<String, Object>>load(new String(real.get(CandleBlocks.OUTPUT), StandardCharsets.UTF_8)).get("blocks");
+        int checked = 0;
+        for (String id : CandleBlocks.blocks()) {
+            Map<String, Object> apps = map(map(blocks.get(id), "states"), "appearances");
+            for (Map.Entry<String, Object> a : apps.entrySet()) {
+                String props = id.equals(CandleBlocks.JACK_O_LANTERN) ? "facing=" + a.getKey() : a.getKey();
+                assertThat((Map<String, Object>) a.getValue()).as(id + "#" + a.getKey())
+                    .containsExactly(Map.entry("state", dev.tfp.datagen.hitbox.HitboxDemands.twin(id) + "[" + props + "]"));
+                checked++;
+            }
+        }
+        assertThat(checked).isEqualTo(17 * 16 + 17 * 2 + 4);
+        assertThat(map(map(map(blocks.get("tfp:candle/red"), "states"), "appearances"), "candles=3,lit=true,waterlogged=true"))
+            .containsEntry("state", "minecraft:red_candle[candles=3,lit=true,waterlogged=true]");
+        assertThat(map(map(blocks.get("tfp:candle_cake"), "settings"), "sounds")).containsEntry("hit", "minecraft:block.wool.hit");
     }
 
     private static String text(String path) {

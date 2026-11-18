@@ -4,7 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java @ c3b4d9536 (litBlockEmission(15) of the firepit family)
+ * file: src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java @ c3b4d9536 (litBlockEmission(15) of the firepit family;
+ *       PAR-HEAT-26: the candle cakes' litBlockEmission(3), the jack-o'-lantern's alwaysLit(), DyeColor order of DYED_CANDLE),
+ *       src/main/java/net/dries007/tfc/common/blocks/TFCCandleBlock.java @ c3b4d9536 (LIGHTING_SCALE)
  */
 package dev.tfp.datagen.hitbox;
 
@@ -210,7 +212,84 @@ public final class HitboxDemands {
                     firepitLook(lit, axis), true, FIREPIT_WEIGHT));
             }
         }
+        // PAR-HEAT-26: the candles (per count, lit, waterlogged), the candle cakes (per lit) and the jack-o'-lantern (per
+        // facing). TFC draws vanilla's own models for all of them, so each takes its vanilla twin's state of the same
+        // properties with the vanilla look (twin): the client's flame and smoke particles and its extinguish prediction are
+        // vanilla's candle code, which TFC's TFCCandleBlock / TFCCandleCakeBlock inherit.
+        for (String id : candleIds(CANDLE_ID)) {
+            for (int n = 1; n <= 4; n++) {
+                for (boolean lit : new boolean[] {false, true}) {
+                    for (boolean wet : new boolean[] {false, true}) {
+                        d.add(new Demand(id, candleAppearance(n, lit, wet), TfcShapes.candleKey(n, lit, wet),
+                            lit ? candleLight(n) : 0, HitboxAllocation.VANILLA_LOOK, true, CANDLE_WEIGHT));
+                    }
+                }
+            }
+        }
+        for (String id : candleIds(CANDLE_CAKE_ID)) {
+            for (boolean lit : new boolean[] {false, true}) {
+                d.add(new Demand(id, "lit=" + lit, "tfc:candle_cake[lit=" + lit + "]", lit ? CANDLE_CAKE_LIGHT : 0,
+                    HitboxAllocation.VANILLA_LOOK, true, CANDLE_WEIGHT));
+            }
+        }
+        for (String f : FACINGS) {
+            d.add(new Demand(JACK_O_LANTERN_ID, f, "tfc:jack_o_lantern[facing=" + f + "]", JACK_O_LANTERN_LIGHT,
+                HitboxAllocation.VANILLA_LOOK, true, CANDLE_WEIGHT));
+        }
         return d;
+    }
+
+    /** PAR-HEAT-26: TFC's candle, candle cake and jack-o'-lantern block ids (light/candle/CandleBlocks writes them). */
+    public static final String CANDLE_ID = "tfp:candle";
+    public static final String CANDLE_CAKE_ID = "tfp:candle_cake";
+    public static final String JACK_O_LANTERN_ID = "tfp:jack_o_lantern";
+    /** PAR-HEAT-26: vanilla {@code DyeColor} order (TFC {@code Helpers.mapOf(DyeColor.class, ...)}). */
+    public static final List<String> CANDLE_COLORS = List.of("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink",
+        "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");
+    /** PAR-HEAT-26: TFC candle cake {@code litBlockEmission(3)}. */
+    public static final int CANDLE_CAKE_LIGHT = 3;
+    /** PAR-HEAT-26: TFC jack-o'-lantern {@code alwaysLit()}. */
+    public static final int JACK_O_LANTERN_LIGHT = 15;
+    /** PAR-HEAT-26: served after every other demand (only the twins' states serve these, so nothing else moves). */
+    static final int CANDLE_WEIGHT = -6;
+
+    /** PAR-HEAT-26: {@code base} and its dyed ids ({@code base/<colour>}), plain first. */
+    public static List<String> candleIds(String base) {
+        List<String> ids = new ArrayList<>();
+        ids.add(base);
+        CANDLE_COLORS.forEach(c -> ids.add(base + "/" + c));
+        return List.copyOf(ids);
+    }
+
+    /** PAR-HEAT-26: TFC {@code TFCCandleBlock.LIGHTING_SCALE} while lit: {@code 3 * candles + 2}. */
+    public static int candleLight(int candles) {
+        return 3 * candles + 2;
+    }
+
+    /** PAR-HEAT-26: a candle appearance ({@code candles=2,lit=true,waterlogged=false}). */
+    public static String candleAppearance(int candles, boolean lit, boolean waterlogged) {
+        return "candles=" + candles + ",lit=" + lit + ",waterlogged=" + waterlogged;
+    }
+
+    /**
+     * PAR-HEAT-26: the vanilla block whose own states and look serve {@code blockId} ({@code tfp:candle/red} to
+     * {@code minecraft:red_candle}, {@code tfp:candle_cake} to {@code minecraft:candle_cake}), or null for every other
+     * block ({@link HitboxCarrier.TfcState#twin}).
+     */
+    public static String twin(String blockId) {
+        if (blockId.equals(JACK_O_LANTERN_ID)) {
+            return "minecraft:jack_o_lantern";
+        }
+        for (String base : List.of(CANDLE_ID, CANDLE_CAKE_ID)) {
+            String name = base.substring(base.indexOf(':') + 1);
+            if (blockId.equals(base)) {
+                return "minecraft:" + name;
+            }
+            if (blockId.startsWith(base + "/") && CANDLE_COLORS.contains(blockId.substring(base.length() + 1))) {
+                return "minecraft:" + blockId.substring(base.length() + 1) + "_" + name;
+            }
+        }
+        return null;
     }
 
     /** PAR-HEAT-23: the firepit block and its axes (TFC {@code HORIZONTAL_AXIS}). */

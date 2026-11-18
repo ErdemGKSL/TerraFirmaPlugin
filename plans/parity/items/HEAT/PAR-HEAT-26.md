@@ -2,7 +2,7 @@
 id: PAR-HEAT-26
 title: "Candles loaded in game: hitbox carriers, configuration/light/candle/candle.yml and the in-game candle burnout check"
 area: HEAT
-status: open
+status: done
 wave: 16
 deps: [PAR-HEAT-11, PAR-HEAT-21]
 size: S
@@ -14,6 +14,8 @@ tfc_refs:
   - "src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java"
 files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/**"
+  - "tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/**"
+  - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/**"
   - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxDemands.java"
   - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/TfcShapes.java"
   - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/GeneratedCarrierTest.java"
@@ -43,6 +45,7 @@ plan:
   - "CandleBlocks writes plain vanilla candle and wool sound ids because RenderedSound has no entry for SoundType.CANDLE and WOOL (both 1.0/1.0); add them there so the hit-sound packet rewrite reads them."
   - "The candle cakes have no settings.item (pick block): TFC cloneItem(Blocks.CAKE) means tfp:cake, which only exists with PAR-DECO-12; add it then (PAR-HEAT-27)."
   - "Check in game: CraftEngine's stackable_block adds a candle with the same item (vanilla CandleBlock.canBeReplaced), waterlogging a candle (hardcoded waterlogged behaviour) and that a waterlogged candle cannot be lit; that cancelling PlayerInteractEvent in CandleListener stops CraftEngine placing a held tfp:torch on a candle; that the extinguish click's state write (block data without physics) keeps the CraftEngine block entity and its counter; the candle cake top-click height (CandleModule.hitHeight ray trace). Water on a lit candle (vanilla CandleBlock.placeLiquid, kept by TFC): PAR-HEAT-11's CandleListener re-checks the block a tick after PlayerBucketEmptyEvent / BlockDispenseEvent, so check that CraftEngine's waterlogging of the candle fires those events (if it does not, the candle goes out only at its next click, neighbour update or chunk load: record it). The smoke particles of the extinguish come from the vanilla client's own prediction on the carrier: include them in the visual check. TFC's candle cakes give comparator output 14 (CakeBlock FULL_CAKE_SIGNAL) and are not pathfindable: check both on the chosen carriers and record a divergence if a carrier differs."
+  - "Done (2026-11-18): files_owned now also lists the hitbox resource and test directories the UNBLOCKED line grants (the manager's edit had added main/java/hitbox/** only). Dumped the 16 dyed candles, 17 candle cakes and jack_o_lantern from the Paper 1.21.4, 1.21.11, 26.1.2 and 26.3 server jars (scratch dumper outside the repo; the existing rows re-checked equal) into the four vanilla-shapes tables, policy rows absent + only_class candle / candle_cake / jack_o_lantern, TfcShapes rows tfc:candle[candles,lit,waterlogged] (vanilla CandleBlock outlines, ported), tfc:candle_cake[lit] (SHAPE), tfc:jack_o_lantern[facing] (full cube). New selector notion: a vanilla twin (HitboxDemands.twin, TfcState.twin): a candle, candle cake or jack demand takes only its twin block's states with the vanilla look and skips the particle, object-ban and light filters; TfcState.of reads waterlogged=true from the row. 310 demands (weight -6, nothing else moves). CandleBlocks.selected wired in Datagen (configuration/light/candle/candle.yml); candle and wool sound sets via RenderedSound.CANDLE/WOOL; the jack facing lists its values (state count). Tests: hitbox/CandleCarrierTest (5), CandleBlocksTest (+1), GeneratedCarrierTest (35 ids). ./gradlew check green. Ledger: row updated, 3 divergences (client light 3n vs TFC 3n+2, cake comparator/pathfinding, predicted cake bite). In-game steps not run here (no agent tool in this worker): left to the verify stage, docs/verification/PAR-HEAT-26/verdict.md lists what it must show; screenshots go to docs/verification/PAR-HEAT-11/."
 tests:
   - "datagen: GeneratedCarrierTest covers the 35 candle ids; CandleBlocksTest with the agreed carriers"
 done_criteria:

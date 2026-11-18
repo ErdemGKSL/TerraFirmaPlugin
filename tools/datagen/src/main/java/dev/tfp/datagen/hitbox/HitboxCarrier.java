@@ -43,7 +43,8 @@ import java.util.function.Predicate;
  * heavy_core and cobblestone_wall belong to the large vessel's override), the hard-ban list, lit states of blocks with client
  * particles, the owner's object ban list for every class except ground pieces, light-emitting states unless TFC emits
  * the same light, waterlogged states unless TFC's state is waterlogged, random-offset states, natural states with no
- * free hide target, and the geometric quality filter ({@link #geometricRejection}).
+ * free hide target, and the geometric quality filter ({@link #geometricRejection}). A state with a vanilla twin
+ * ({@link TfcState#twin}, PAR-HEAT-26) takes only the twin's states and skips the particle, object-ban and light filters.
  *
  * <p><b>Ties</b>: the vanilla block of the same name as TFC's (farmland on farmland), more shared property values
  * (a facing kept), the same occlusion (an opaque full cube on the solid pool, a see-through one on the leaves pool), a CE
@@ -69,18 +70,36 @@ public final class HitboxCarrier {
     public static final double MIN_FILL_FACTOR = 0.6;
     public static final double MIN_PART_IOU = 0.5;
 
-    /** The TFC side of a selection: its shape row, the light it emits and whether it is waterlogged. */
-    public record TfcState(Row row, int light, boolean waterlogged) {
+    /**
+     * The TFC side of a selection: its shape row, the light it emits, whether it is waterlogged (a row key with
+     * {@code waterlogged=true}) and its vanilla twin, or null.
+     *
+     * <p>PAR-HEAT-26: a <b>twin</b> is the vanilla block whose own models, light and client particles TFC's block reuses
+     * (TFC's candles extend vanilla {@code CandleBlock} and their blockstates draw {@code minecraft:block/<colour>_candle_*};
+     * the candle cakes and the jack-o'-lantern likewise). A demand with a twin takes only states of that block, with its
+     * vanilla look: the lit-particle, object-ban and light filters are skipped for it (the flame and smoke are wanted; TFC
+     * candles emit {@code 3 * candles + 2}, vanilla's {@code 3 * candles}, a ledger divergence of the client's light).
+     */
+    public record TfcState(Row row, int light, boolean waterlogged, String twin) {
+        public TfcState(Row row, int light, boolean waterlogged) {
+            this(row, light, waterlogged, null);
+        }
+
         public static TfcState of(String key) {
             Row r = TfcShapes.load().get(key);
             if (r == null) {
                 throw new DatagenException("hitbox/tfc-shapes.json has no row " + key);
             }
-            return new TfcState(r, 0, false);
+            return new TfcState(r, 0, "true".equals(r.properties().get("waterlogged")), null);
         }
 
         public TfcState withLight(int l) {
-            return new TfcState(row, l, waterlogged);
+            return new TfcState(row, l, waterlogged, twin);
+        }
+
+        /** PAR-HEAT-26: the same state served only by {@code block}'s own states ({@code minecraft:red_candle}). */
+        public TfcState withTwin(String block) {
+            return new TfcState(row, light, waterlogged, block);
         }
     }
 
@@ -185,6 +204,9 @@ public final class HitboxCarrier {
         List<Rejected> rejected = new ArrayList<>();
         Set<String> all = v.allStates();
         for (String state : all) {
+            if (tfc.twin() != null && !state.equals(tfc.twin()) && !state.startsWith(tfc.twin() + "[")) {
+                continue; // PAR-HEAT-26: a twin demand looks at its twin only (no rejection list of every other state)
+            }
             String reason = filter(tfc, family, v, state);
             if (reason != null) {
                 rejected.add(new Rejected(state, reason, rawScore(tfc, family, v, state)));
@@ -227,10 +249,13 @@ public final class HitboxCarrier {
         if (!v.inFamily(state, family)) {
             return "not in every " + family.id() + " version";
         }
+        String block = state.substring(0, state.contains("[") ? state.indexOf('[') : state.length());
+        if (tfc.twin() != null && !block.equals(tfc.twin())) {
+            return "not the twin " + tfc.twin() + " (TFC draws that vanilla block)";
+        }
         if (v.isPool(state)) {
             return null;
         }
-        String block = state.substring(0, state.contains("[") ? state.indexOf('[') : state.length());
         String ban = v.hardBan(block);
         if (ban != null) {
             return "banned: " + ban;
@@ -246,19 +271,23 @@ public final class HitboxCarrier {
         if (excluded != null) {
             return "excluded: " + excluded;
         }
-        if (v.litParticles(block) && state.contains("lit=true")) {
+        boolean twin = tfc.twin() != null;
+        if (!twin && v.litParticles(block) && state.contains("lit=true")) {
             return "lit: client particles";
         }
-        if (tfc.row().kind() != Kind.GROUND && v.objectBanned(block)) {
+        if (!twin && tfc.row().kind() != Kind.GROUND && v.objectBanned(block)) {
             return "object ban: " + v.objectBanReason();
         }
         for (String version : family.researchedVersions()) {
             VState s = v.get(version, state);
-            if (s.light() != 0 && s.light() != tfc.light()) {
+            if (!twin && s.light() != 0 && s.light() != tfc.light()) {
                 return "emits light " + s.light() + " (TFC " + tfc.light() + ")";
             }
             if (s.flag("fluid") && !tfc.waterlogged()) {
                 return "waterlogged (TFC is not)";
+            }
+            if (twin && !s.flag("fluid") && tfc.waterlogged()) {
+                return "dry (TFC is waterlogged; the twin's own waterlogged state draws the water)";
             }
             if (s.flag("random_offset")) {
                 return "random offset: the outline moves per position";
