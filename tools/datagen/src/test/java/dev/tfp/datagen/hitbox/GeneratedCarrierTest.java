@@ -357,6 +357,34 @@ class GeneratedCarrierTest {
     }
 
     @Test
+    void theGrillCarrierIsPinned() {
+        // PAR-HEAT-24: no free state scores 0.5 or more for TFC's grill outline with a model (snow[layers=5], the old
+        // vanilla-look carrier, has no free hide target), so the four (lit, axis) appearances share the best free
+        // hitbox-only carrier, an unlit soul campfire (absent from TFC worlds: no hide mapping), drawn empty under the
+        // item displays of the merged models. Served last (weight -7): it moved no other carrier.
+        String carrier = "minecraft:soul_campfire[facing=west,lit=false,signal_fire=false,waterlogged=false]";
+        for (boolean lit : new boolean[] {true, false}) {
+            for (String axis : HitboxDemands.FIREPIT_AXES) {
+                Assignment a = HitboxAllocation.agreed(HitboxDemands.GRILL_ID, HitboxDemands.firepitAppearance(lit, axis));
+                assertThat(a.mode()).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
+                assertThat(a.state()).isEqualTo(carrier);
+                assertThat(a.hideTarget()).isNull();
+            }
+        }
+        // The old vanilla-look carrier stays reserved, so the snow-layer carriers of the other blocks did not move.
+        Assignment reserved = HitboxAllocation.agreed(HitboxDemands.GRILL_ID, HitboxDemands.GRILL_RESERVED);
+        assertThat(reserved.state()).isEqualTo("minecraft:snow[layers=5]");
+        assertThat(reserved.mode()).isEqualTo(HitboxAllocation.Mode.VANILLA);
+        for (Demand d : HitboxDemands.all()) {
+            if (!d.blockId().equals(HitboxDemands.GRILL_ID)) {
+                Assignment a = HitboxAllocation.agreed(d.blockId(), d.appearance());
+                assertThat(a.state()).as(d.id()).isNotEqualTo(reserved.state());
+                assertThat(a.state().equals(carrier) && a.mode() != HitboxAllocation.Mode.HITBOX_ONLY).as(d.id()).isFalse();
+            }
+        }
+    }
+
+    @Test
     void thePowderkegCarriersArePinned() {
         // PAR-PROC-39: TFC's three models, all on TFC's sealed outline (tfc:powderkeg[sealed=true] SHAPE 14x16x14). The
         // hollow sealed=false row's carrier was a composter level drawn empty, whose full bottom plate culled the floor's

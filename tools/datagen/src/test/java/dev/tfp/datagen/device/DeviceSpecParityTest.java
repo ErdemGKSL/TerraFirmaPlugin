@@ -110,7 +110,22 @@ class DeviceSpecParityTest {
         assertThat(firepitText).contains("luminance: 15", "luminance: 0", "minecraft:mineable/pickaxe",
             "tfp:powder/wood_ash", "block_state_mappings", "'y': 90");
 
-        for (String device : List.of("grill", "pot")) {
+        // PAR-HEAT-24: the grill, item displays of its two merged models over one empty carrier, axis z turned 90.
+        DeviceBlockSpec grill = DeviceSpecs.firepitRendered("tfp:grill", firepitProps(),
+            (lit, axis) -> DeviceAppearance.Carrier.state(
+                HitboxAllocation.agreed("tfp:grill", DeviceSpecs.firepitAppearance(lit, axis)).state()),
+            lit -> lit ? "tfp:render/grill_lit" : "tfp:render/grill_unlit",
+            lit -> lit ? "tfp:block/grill_lit" : "tfp:block/grill_unlit",
+            axis -> axis.equals("z") ? "0,90,0" : "0,180,0",
+            DeviceBlockSpec.Settings.fromTfc(tfc, "grill"), DeviceLoot.fromTfc(tfc, "grill"), 15, Map.of());
+        assertThat(grill.stateCount()).isEqualTo(20);
+        assertThat(grill.strategies()).containsExactly(DeviceAppearance.Strategy.ENTITY_RENDERER);
+        String grillText = text(files, PACK + "devices/grill.yml");
+        assertThat(grillText).isEqualTo(DeviceYaml.writeLiteral(grill));
+        assertThat(grillText).contains("luminance: 15", "luminance: 0", "minecraft:mineable/pickaxe",
+            "tfp:powder/wood_ash", "tfp:wrought_iron_grill", "transparent: true");
+
+        for (String device : List.of("pot")) {
             var lit = DeviceAppearance.Carrier.state(HitboxAllocation.agreed("tfp:" + device, "lit").state());
             var unlit = DeviceAppearance.Carrier.state(HitboxAllocation.agreed("tfp:" + device, "unlit").state());
             DeviceBlockSpec spec = DeviceSpecs.firepitFamily("tfp:" + device, firepitProps(), lit, unlit,

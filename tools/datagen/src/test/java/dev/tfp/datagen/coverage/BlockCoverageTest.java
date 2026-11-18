@@ -71,7 +71,7 @@ class BlockCoverageTest {
         assertThat(blocks.size()).isEqualTo(ids.size());
         assertThat(blocks.get("tfc:quern").getAsString()).startsWith("ce:configuration/");
         assertThat(blocks.get("tfc:firepit").getAsString()).isEqualTo("ce:configuration/devices/firepit.yml");
-        assertThat(blocks.get("tfc:grill").getAsString()).isEqualTo("family:devices/grill.yml");
+        assertThat(blocks.get("tfc:grill").getAsString()).isEqualTo("ce:configuration/devices/grill.yml"); // PAR-HEAT-24
         assertThat(blocks.get("tfc:wood/planks/oak_stairs").getAsString()).isEqualTo("family:families/wood.yml");
         assertThat(blocks.get("tfc:wood/workbench/oak").getAsString()).isEqualTo("PAR-DECO-17");
         assertThat(blocks.get("tfc:fluid/river_water").getAsString()).isEqualTo("np:NP-FLUID-01");

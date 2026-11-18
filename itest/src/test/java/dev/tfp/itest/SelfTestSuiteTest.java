@@ -46,6 +46,7 @@ class SelfTestSuiteTest {
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("heat.cook_meat")); // PAR-HEAT-17
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("weather.cycle")); // PAR-CLIM-20
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("firepit.cook")); // PAR-HEAT-19
-        assertThat(cases).hasSize(35);
+        assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("grill.cook")); // PAR-HEAT-24
+        assertThat(cases).hasSize(36);
     }
 }

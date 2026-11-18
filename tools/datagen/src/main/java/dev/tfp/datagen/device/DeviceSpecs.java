@@ -94,6 +94,41 @@ public final class DeviceSpecs {
     }
 
     /**
+     * PAR-HEAT-24: a firepit-family block drawn by display entities (the grill): one appearance per (lit, axis) pair
+     * ({@link #firepitAppearance}), each on its carrier ({@code carrier}) drawn empty, with one item display of the
+     * display-only item of its lit value ({@code renderItem}, showing {@code model} of the lit value) turned by
+     * {@code rotation} of its axis ({@code "x,y,z"} degrees). Properties, {@code litLight} and {@code stateMappings} as
+     * {@link #firepit}.
+     */
+    public static DeviceBlockSpec firepitRendered(String id, List<DeviceProperty> props,
+            java.util.function.BiFunction<Boolean, String, DeviceAppearance.Carrier> carrier,
+            java.util.function.Function<Boolean, String> renderItem, java.util.function.Function<Boolean, String> model,
+            UnaryOperator<String> rotation, DeviceBlockSpec.Settings settings, DeviceLoot loot, int litLight,
+            Map<String, String> stateMappings) {
+        if (props.stream().noneMatch(p -> p.name().equals(LIT) && p.kind() == DeviceProperty.Kind.BOOLEAN)) {
+            throw new DatagenException(id + ": a firepit-family block needs the boolean property lit");
+        }
+        DeviceProperty axis = props.stream().filter(p -> p.name().equals(AXIS)).findFirst()
+            .orElseThrow(() -> new DatagenException(id + ": the firepit needs the property axis"));
+        DeviceBlockSpec.Builder b = DeviceBlockSpec.builder(id).properties(props);
+        for (boolean lit : new boolean[] {true, false}) {
+            b.renderItem(renderItem.apply(lit), model.apply(lit));
+        }
+        for (boolean lit : new boolean[] {true, false}) {
+            for (String a : axis.values()) {
+                b.appearance(DeviceAppearance.rendered(firepitAppearance(lit, a), carrier.apply(lit, a),
+                    List.of(DeviceAppearance.Renderer.item(renderItem.apply(lit)).rotated(rotation.apply(a)))));
+            }
+        }
+        b.everyState(s -> firepitAppearance("true".equals(s.get(LIT)), s.get(AXIS)),
+                s -> "true".equals(s.get(LIT)) ? litLight : 0)
+            .settings(settings)
+            .loot(loot);
+        stateMappings.forEach(b::stateMapping);
+        return b.build();
+    }
+
+    /**
      * PAR-HEAT-23: turns the model of every appearance of block {@code id} in a written device map ({@link DeviceYaml#literal}
      * or {@link DeviceYaml#templated}) by the blockstate {@code y} that {@code yByAppearance} gives (0: unchanged), as
      * CraftEngine's {@code model: {path, y}}. Returns {@code root}.

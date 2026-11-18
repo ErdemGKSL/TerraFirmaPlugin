@@ -2,7 +2,7 @@
 id: PAR-HEAT-24
 title: "Grill loaded in game: configuration/devices/grill.yml, TFC grill models, the grill screen art and the in-game grill check"
 area: HEAT
-status: open
+status: done
 wave: 17
 deps: [PAR-HEAT-08, PAR-HEAT-19, PAR-HEAT-23]
 size: S
@@ -14,6 +14,9 @@ tfc_refs:
   - "src/main/java/net/dries007/tfc/client/screen/GrillScreen.java"
   - "src/main/java/net/dries007/tfc/client/render/blockentity/GrillBlockEntityRenderer.java"
 files_owned:
+  - "tools/datagen/src/test/java/dev/tfp/datagen/coverage/BlockCoverageTest.java"
+  - "itest/src/test/java/dev/tfp/itest/SelfTestSuiteTest.java"
+  - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HitboxAllocationTest.java"
   - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HitboxCarrierTest.java"
   - "itest/src/main/java/dev/tfp/itest/SelfTestSuite.java"
   - "docs/verification/PAR-HEAT-24/**"
@@ -44,6 +47,7 @@ plan:
   - "Look: TFC's grill.json is a multipart (firepit_grill per axis + the firepit's lit part). Switch the grill's two VANILLA_LOOK demands to model demands (lit x axis) with `snow[layers=5]` hidden (ledger: held-snow ghost, PAR-INFRA-51), after PAR-HEAT-23 has done the same for the firepit; copy firepit_grill and its textures through AssetPipeline."
   - "Screen art: a datagen generator (grillgui/) writes `tfp:gui/grill` from TFC's fire_pit_grill.png re-laid out on the 4-row chest of `paper/grill/gui/GrillScreenLayout` (grill row moved up 4 px to chest row 0); the thermometer reuses the firepit strip (PAR-HEAT-20)."
   - "Self-test `grill.cook` (GrillCookCase + its SelfTestSuite line): a lit firepit converted by GrillConversion.toGrill keeps its fuel; raw beef in slot 4 cooks to cooked beef carrying tfp:wood_grilled after the calendar moves 1000 ticks. Run on Paper and Folia 1.21.11."
+  - "Done: pending.patch applied (Grill.run writes configuration/devices/grill.yml, grillgui/GrillScreenArt tfp:gui/grill + GrillScreenArtTest, itest GrillCookCase + SelfTestSuite line, BlockCoverageTest/SelfTestSuiteTest/DatagenTest flips). Model look: no free state scores 0.5+ for the grill outline with a model (snow[layers=5] has no free hide target), so the grill is hitbox-only on an unlit soul campfire and draws TFC's multipart merged per lit value (tfp:block/grill_lit/_unlit) as entity_renderer item displays turned per axis (DeviceSpecs.firepitRendered); snow[layers=5] stays reserved by a no-appearance grill demand so no other carrier moved. Tests: GrillTest (+mergedModelsAreTheGrillOverTheFire), GeneratedCarrierTest#theGrillCarrierIsPinned, DeviceSpecParityTest, HitboxAllocationTest; ./gradlew check green. Ledger: grill row playable, carrier/model/screen divergences. In-game screenshot check left to the verify stage (docs/verification/PAR-HEAT-24/): check the axis-z turn of the display and the 7 px outline."
 tests:
   - "datagen: GrillTest loaded entry written; DatagenTest non_occluding"
   - "itest: `grill.cook` on Paper and Folia"

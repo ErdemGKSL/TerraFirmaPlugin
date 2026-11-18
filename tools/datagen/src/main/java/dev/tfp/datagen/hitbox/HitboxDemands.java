@@ -128,11 +128,13 @@ public final class HitboxDemands {
         for (String f : FACINGS) {
             d.add(new Demand("tfp:bellows", f, "tfc:bellows[facing=" + f + "]", 0, HitboxAllocation.VANILLA_LOOK, true, 1));
         }
-        // M3-HEAT-03 placeholders: the carrier's vanilla look until the grill's and the pot's models exist.
-        for (String device : List.of("grill", "pot")) {
-            d.add(new Demand("tfp:" + device, "lit", "tfc:" + device, FIREPIT_LIT_LIGHT, HitboxAllocation.VANILLA_LOOK, true, 1));
-            d.add(new Demand("tfp:" + device, "unlit", "tfc:" + device, 0, HitboxAllocation.VANILLA_LOOK, true, 1));
-        }
+        // M3-HEAT-03 placeholder: the carrier's vanilla look until the pot's models exist (the grill's: PAR-HEAT-24, below).
+        d.add(new Demand("tfp:pot", "lit", "tfc:pot", FIREPIT_LIT_LIGHT, HitboxAllocation.VANILLA_LOOK, true, 1));
+        d.add(new Demand("tfp:pot", "unlit", "tfc:pot", 0, HitboxAllocation.VANILLA_LOOK, true, 1));
+        // PAR-HEAT-24: the grill's old vanilla-look carrier stays reserved (no appearance uses it), so moving the grill to
+        // its own carrier (below) moves no carrier of another block: freed, snow[layers=5] would go to the quern and shift
+        // the snow-layer hide mappings. Released when PAR-INFRA-51 settles the snow-layer carriers.
+        d.add(new Demand(GRILL_ID, GRILL_RESERVED, "tfc:grill", 0, HitboxAllocation.VANILLA_LOOK, true, 1));
         // PAR-PROC-04: the quern, TFC's two outlines (base only; base + handstone + handle), each with the base model.
         d.add(new Demand("tfp:quern", QUERN_BASE, "tfc:quern[has_handstone=false]", 0, QUERN_MODEL, true, 1));
         d.add(new Demand("tfp:quern", QUERN_HANDSTONE, "tfc:quern[has_handstone=true]", 0, QUERN_MODEL, true, 1));
@@ -210,6 +212,16 @@ public final class HitboxDemands {
             for (String axis : FIREPIT_AXES) {
                 d.add(new Demand(FIREPIT_ID, firepitAppearance(lit, axis), "tfc:firepit", lit ? FIREPIT_LIT_LIGHT : 0,
                     firepitLook(lit, axis), true, FIREPIT_WEIGHT));
+            }
+        }
+        // PAR-HEAT-24: the grill, TFC's multipart (firepit_grill over firepit_lit_low or firepit_unlit) merged into one
+        // model per lit value. No free state scores 0.5 or more for TFC's grill outline with a model of its own (snow
+        // layers 5 has no free hide target), so every (lit, axis) appearance is hitbox-only on one carrier and the merged
+        // model is an item display turned per axis (Grill).
+        for (boolean lit : new boolean[] {true, false}) {
+            for (String axis : FIREPIT_AXES) {
+                d.add(new Demand(GRILL_ID, firepitAppearance(lit, axis), "tfc:grill", lit ? FIREPIT_LIT_LIGHT : 0,
+                    HitboxAllocation.TRANSPARENT, true, GRILL_WEIGHT));
             }
         }
         // PAR-HEAT-26: the candles (per count, lit, waterlogged), the candle cakes (per lit) and the jack-o'-lantern (per
@@ -321,6 +333,18 @@ public final class HitboxDemands {
     public static String firepitLook(boolean lit, String axis) {
         int y = firepitRotation(axis);
         return y == 0 ? firepitModel(lit) : firepitModel(lit) + "@y" + y;
+    }
+
+    /** PAR-HEAT-24: the grill block. */
+    public static final String GRILL_ID = "tfp:grill";
+    /** PAR-HEAT-24: the demand that keeps the grill's old carrier {@code snow[layers=5]} reserved; no appearance. */
+    public static final String GRILL_RESERVED = "reserved";
+    /** PAR-HEAT-24: served after every other demand (adding the grill models moves no carrier of another block). */
+    static final int GRILL_WEIGHT = -7;
+
+    /** PAR-HEAT-24: the grill's merged model ({@code tfp:block/grill_lit} / {@code _unlit}). */
+    public static String grillModel(boolean lit) {
+        return lit ? "tfp:block/grill_lit" : "tfp:block/grill_unlit";
     }
 
     /** PAR-PROC-39: TFC's model of a powderkeg appearance ({@code tfp:block/powderkeg}, {@code _sealed}, {@code _lit}). */
