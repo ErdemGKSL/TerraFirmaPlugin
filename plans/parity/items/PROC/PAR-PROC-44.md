@@ -2,7 +2,7 @@
 id: PAR-PROC-44
 title: "Barrel wiring in-game verification: GUI from the block, five buckets in and one out, half-tank surface, lazy rain fill (the checks PAR-PROC-35 closed without)"
 area: PROC
-status: open
+status: done
 wave: 17
 deps: [PAR-PROC-35, PAR-PROC-38]
 size: S
@@ -25,6 +25,7 @@ in_game_steps:
 plan:
   - "Run PAR-PROC-35's in-game steps (copied above) on Paper 1.21.11 with the headless client (docs/testing/headless.md, CraftEngine self-host on 127.0.0.1) through a Haiku agent; Opus judges each shot against PAR-PROC-35's criteria. Write verdict.md in docs/verification/PAR-PROC-44/ and copy the crops into docs/verification/PAR-PROC-35/ so that item's evidence path resolves."
   - "A failure is fixed through a follow-up item owning the failing files (paper/barrel/**); do not reopen PAR-PROC-35 unless one of its criteria fails."
+  - "Done: in-game run at fd00cbb on Paper 1.21.11 + client 1.21.11 (GUI scale 2 and 3): 5 water buckets -> 5000 mB, 5 empty buckets, no world water; screen from the block with the half tank; surface plane at y 0.5078; empty bucket -> 4000 mB; forced rain 115 mB over 460 ticks. All five checks pass. Evidence and verdict.md in docs/verification/PAR-PROC-44/, crops copied to docs/verification/PAR-PROC-35/. Note: the debug rain switch is `rain true|false`, not `on|off`. No tests (in-game check only)."
 tests:
   - "none (in-game check only)"
 done_criteria:

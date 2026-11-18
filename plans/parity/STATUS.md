@@ -202,7 +202,7 @@ Totals: 382 items; open 207, done 166, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PHYS-03 | Landslides and gravity soils | PHYS | 17 | open |
 | PAR-WORLD-03 | Worldgen performance: JMH chunk budget, vanilla baseline and exposed-gem decision | WORLD | 17 | open |
 | PAR-WORLD-04 | TFC soil and gravel block set in generation: grass, dirt, coarse dirt, clay, peat, kaolin, mud, rock gravel | WORLD | 17 | open |
-| PAR-PROC-44 | Barrel wiring in-game verification: GUI from the block, five buckets in and one out, half-tank surface, lazy rain fill (the checks PAR-PROC-35 closed without) | PROC | 17 | open |
+| PAR-PROC-44 | Barrel wiring in-game verification: GUI from the block, five buckets in and one out, half-tank surface, lazy rain fill (the checks PAR-PROC-35 closed without) | PROC | 17 | done |
 | PAR-SURV-15 | TFC exhaustion on Paper: passive hunger drain on the vanilla food bar, vanilla action exhaustion x0.4, thirst lost on every 4 exhaustion | SURV | 17 | open |
 | PAR-SURV-16 | Food items and food tooltip in-game verification: the checks PAR-SURV-01 and PAR-SURV-02 closed without (sampled gives, TFC tooltip lines) | SURV | 17 | open |
 | PAR-CLIM-24 | Self-test calendar.sleep_skip on 26.x: build the NIGHT_SKIP event without TimeSkipEvent$SkipReason (NoClassDefFoundError on Paper 26.3) | CLIMATE | 17 | done |
