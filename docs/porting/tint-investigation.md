@@ -122,3 +122,13 @@ Comparison with the TFC colormap at the exact readings (`grass.png`, TFC index a
 Conclusion: MISMATCH for June; close to October (within 8 per channel). The server colour is the band-centre colour, not the colour at the reading. Each temperature band spans 64 colormap indices (about 12.5 C) and the rainfall bands span 38 to 128 indices, so one band colour cannot follow the colormap within a band. The stored value is correct for its band, so the mismatch is quantisation, not a wrong colormap lookup. The 46.6 vs 49.3 difference in the fresh-world averages therefore cannot come from the grass band (both months use `t1r1`); it is lighting or shading.
 
 Next step (not done here): either use a finer temperature band near the reading (for example 16 or 32 bands for the grass colour) or accept the quantisation and record it as a divergence in `docs/porting/ledger.md`.
+
+## Decision (PAR-CLIM-05, 2026-11-18)
+
+Option (a), more temperature bands: 7 temperature sample points every 32 colormap indices (`t0`, `t0h`, `t1`, `t1h`, `t2`,
+`t2h`, `t3`; the first layout's `t0..t3` keep their index 32, 96, 160, 224 and their name), edges half-way between
+samples except the edge at TFC's 0 C index 153. 28 variants per biome, 3,500 datapack biomes (1.75 times the 2,000).
+The tint site's readings now fall in different bands: June 14.5 C (index 80) is `t1r1` `#70a353`, October 5.1 C
+(index 127) is `t1hr1` `#609c54`. That is TFC's direction: the grass colormap at the exact readings is `#97b355` and
+`#689f54`, so TFC's October grass is greener and less red than June's at this site, not yellower. Budget, the option
+comparison and the in-game check: `docs/verification/PAR-CLIM-05/verdict.md`.

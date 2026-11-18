@@ -47,7 +47,7 @@ class SeasonalBiomeRemapTest {
 
     @Test
     void mapsAnInstantClimateToItsBandVariant() {
-        // 0 C and 0 mm: temperature band 2, groundwater band 3 (see SeasonalColourTest)
+        // 0 C and 0 mm: temperature band 4 (t2), groundwater band 3 (see SeasonalColourTest)
         assertThat(SeasonalBiomeRemap.variantId("plains", 0f, 0f)).contains("tfp:seasonal/plains/t2r3");
         assertThat(SeasonalBiomeRemap.variantId("plains", 30f, 500f)).contains("tfp:seasonal/plains/t0r0");
     }
@@ -70,7 +70,7 @@ class SeasonalBiomeRemapTest {
         for (int i = 0; i < SeasonalBiomeRemap.VARIANT_COUNT; i++) {
             ids.add(SeasonalBiomeRemap.variantIdOf(i));
         }
-        assertThat(ids).hasSize(2_000);
+        assertThat(ids).hasSize(3_500);
         int index = SeasonalBiomeRemap.variantIndex(TfcBiomes.PLAINS, 7);
         assertThat(SeasonalBiomeRemap.variantIdOf(index)).isEqualTo(SeasonalColour.variantId("plains", 7));
         assertThatThrownBy(() -> SeasonalBiomeRemap.variantIndex(TfcBiomes.COUNT, 0)).isInstanceOf(IllegalArgumentException.class);
@@ -138,8 +138,8 @@ class SeasonalBiomeRemapTest {
     @Test
     void phasesDoNotGrowTheVariantRegistry() {
         assertThat(SeasonalBiomeRemap.PHASE_COUNT).isEqualTo(12);
-        // a variant is a colour band of a biome; the phase only picks which band, so the datapack stays 125 x 16
-        assertThat(SeasonalBiomeRemap.VARIANT_COUNT).isEqualTo(TfcBiomes.COUNT * SeasonalColour.BAND_COUNT).isEqualTo(2_000);
+        // a variant is a colour band of a biome; the phase only picks which band, so the datapack stays 125 x 28 (PAR-CLIM-05)
+        assertThat(SeasonalBiomeRemap.VARIANT_COUNT).isEqualTo(TfcBiomes.COUNT * SeasonalColour.BAND_COUNT).isEqualTo(3_500);
         // the table stores variant indices as short, and the client's global palette stays at 12 bits with vanilla's biomes
         assertThat(SeasonalBiomeRemap.VARIANT_COUNT).isLessThan(Short.MAX_VALUE);
         assertThat(SeasonalBiomeRemap.VARIANT_COUNT + 128).isLessThanOrEqualTo(1 << 12);
@@ -154,7 +154,7 @@ class SeasonalBiomeRemapTest {
                 }
             }
         }
-        assertThat(ids).allMatch(id -> id.matches("tfp:seasonal/(plains|ocean)/t[0-3]r[0-3]"));
+        assertThat(ids).allMatch(id -> id.matches("tfp:seasonal/(plains|ocean)/t[0-3]h?r[0-3]"));
     }
 
     @Test
@@ -179,6 +179,36 @@ class SeasonalBiomeRemapTest {
             int variant = SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, 0, 70, LATE_AUTUMN_Z, month, DAYS);
             assertThat(SeasonalBiomeRemap.variantIdOf(variant)).as(month.name()).isEqualTo("tfp:seasonal/plains/t1r2");
         }
+    }
+
+    @Test
+    void juneAndOctoberShowDifferentBandsAtATemperateSite() {
+        // PAR-CLIM-05: a temperate site (10 C average, 186 mm, no rainfall variance) in the northern hemisphere. The
+        // 64-index temperature bands of the first layout put June and October in the same band; the 32-index sample
+        // points give October a colder band than June, with the same rainfall band, so the colormap colour changes.
+        ChunkClimate temperate = new ChunkClimate(10f, 186f, 0f, 0f);
+        SeasonalBiomeRemap.Terrain terrain = new SeasonalBiomeRemap.Terrain() {
+            @Override
+            public int biomeId(int blockX, int blockZ) {
+                return TfcBiomes.PLAINS;
+            }
+
+            @Override
+            public SeasonalBiomeRemap.ChunkInputs climates(int chunkX, int chunkZ) {
+                return (x, z) -> temperate;
+            }
+        };
+        int x = -768, y = 64, z = 768;
+        int june = SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, x, y, z, Month.JUNE, DAYS) % SeasonalColour.BAND_COUNT;
+        int october = SeasonalBiomeRemap.variantIndexAt(terrain, CLIMATE, x, y, z, Month.OCTOBER, DAYS) % SeasonalColour.BAND_COUNT;
+        float juneT = CLIMATE.instantTemperature(new BlockPos(x, y, z), temperate, SeasonalBiomeRemap.sampleTick(Month.JUNE, DAYS), DAYS);
+        float octoberT = CLIMATE.instantTemperature(new BlockPos(x, y, z), temperate,
+            SeasonalBiomeRemap.sampleTick(Month.OCTOBER, DAYS), DAYS);
+        assertThat(juneT).as("June is warmer than October").isGreaterThan(octoberT);
+        assertThat(june / SeasonalColour.TEMPERATURE_BANDS).isEqualTo(october / SeasonalColour.TEMPERATURE_BANDS);
+        assertThat(october % SeasonalColour.TEMPERATURE_BANDS).as("June %s C, October %s C", juneT, octoberT)
+            .isGreaterThan(june % SeasonalColour.TEMPERATURE_BANDS);
+        assertThat(SeasonalColour.centreTemperatureIndex(october)).isGreaterThan(SeasonalColour.centreTemperatureIndex(june));
     }
 
     @Test

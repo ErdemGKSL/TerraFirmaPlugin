@@ -10,28 +10,41 @@
 package dev.tfp.core.climate;
 
 /**
- * M2-SEA-01: the colour band of a position, from TFC's colormap lookup.
+ * M2-SEA-01 / PAR-CLIM-05: the colour band of a position, from TFC's colormap lookup.
  *
  * <p>TFC looks up grass, foliage and water colours in a 256 x 256 colormap: the temperature index runs along x
  * (warm to the left, index 0 at +30 C) and the groundwater index along y (wet at the top, index 0 at 500 mm and
  * more). The client shows the colour of the position's current climate, so a colour changes over the year as the
- * instant temperature and groundwater change. Our client sees biome ids, not colours, so the 256 indices are grouped
- * into {@value #BANDS_PER_AXIS} x {@value #BANDS_PER_AXIS} bands (datapack biome variant per band, built by
- * {@code tools/datagen}). The temperature axis has equal bands of 64 indices; the groundwater (rainfall) axis has
- * uneven bands whose edges follow the colour map's change (see {@link #RAINFALL_BAND_START}). The band colour is the
- * colormap at the band's centre index.
+ * instant temperature and groundwater change. Our client sees biome ids, not colours, so the 256 x 256 indices are
+ * grouped into {@value #TEMPERATURE_BANDS} temperature bands x {@value #RAINFALL_BANDS} rainfall bands (one datapack
+ * biome variant per band, built by {@code tools/datagen}). The band colour is the colormap at the band's sample index.
+ *
+ * <p>PAR-CLIM-05 (owner decision delegated to the manager, 2026-11-18): option (a), more temperature bands. The first
+ * layout had four temperature bands of 64 indices (about 12.5 C each), so 14.5 C (June) and 5.1 C (October) at one
+ * site fell into the same band and showed the same colour. The temperature axis now has seven sample points, every 32
+ * indices from 32 to 224 (about 6.3 C apart): the four first ones keep their index and their variant name
+ * {@code t0..t3}, and three new ones sit half-way between them ({@code t0h}, {@code t1h}, {@code t2h}). A band holds
+ * the indices nearest its sample point, except the edge between {@code t1h} (index 128) and {@code t2} (index 160),
+ * which is at index {@value #FREEZING_INDEX}: TFC's temperature index of 0 C. So every band from {@code t2} on is at or
+ * below 0 C, where TFC shows snow ({@link #isFreezing}). 7 x 4 = 28 variants per biome is 1.75 times the first 16, and
+ * the client's biome registry stays below 4,096 entries (a 12-bit global palette).
  *
  * <p>The season is not an input of the band. TFC's grass and foliage colours take no season: the season is in the
  * instant temperature and groundwater the calendar gives at the time. The season is the trigger for resending chunks
  * (M2-SEA-01 step 4), not part of the colour.
  */
 public final class SeasonalColour {
-    /** Bands along each colormap axis. */
-    public static final int BANDS_PER_AXIS = 4;
+    /** Temperature bands (colormap x axis). */
+    public static final int TEMPERATURE_BANDS = 7;
+    /** Rainfall (groundwater) bands (colormap y axis). */
+    public static final int RAINFALL_BANDS = 4;
     /** Number of bands: one datapack biome variant per TFC biome and band. */
-    public static final int BAND_COUNT = BANDS_PER_AXIS * BANDS_PER_AXIS;
-    /** Colormap indices per temperature band (the temperature axis is even; rainfall bands are not, see below). */
-    public static final int INDICES_PER_BAND = 256 / BANDS_PER_AXIS;
+    public static final int BAND_COUNT = TEMPERATURE_BANDS * RAINFALL_BANDS;
+    /**
+     * TFC's temperature index of 0 C: {@code 255 - (int) (20 * 255 / 50)}. An index at or above it is a temperature
+     * below about 0.2 C (index 153 holds 0 to 0.19 C, index 154 starts below 0 C).
+     */
+    public static final int FREEZING_INDEX = 153;
 
     /** Datapack namespace of the variants (our namespace). */
     public static final String NAMESPACE = "tfp";
@@ -39,6 +52,19 @@ public final class SeasonalColour {
     public static final String VARIANT_FOLDER = "seasonal/";
 
     private static final int MAX_INDEX = 255;
+
+    /**
+     * The first temperature index of each temperature band, warm first; band {@code t} covers
+     * {@code [TEMPERATURE_BAND_START[t], TEMPERATURE_BAND_START[t + 1])}, the last one to 255. The edges lie half-way
+     * between the sample points of {@link #TEMPERATURE_SAMPLE}, except the edge at {@link #FREEZING_INDEX}.
+     */
+    private static final int[] TEMPERATURE_BAND_START = {0, 48, 80, 112, FREEZING_INDEX, 176, 208};
+    /** The temperature index each band's colour is read at: every 32 indices, 23.7 C down to -14.1 C. */
+    private static final int[] TEMPERATURE_SAMPLE = {32, 64, 96, 128, 160, 192, 224};
+    /** The variant name part of each temperature band: the first layout's {@code t0..t3}, and the half steps. */
+    private static final String[] TEMPERATURE_NAME = {"t0", "t0h", "t1", "t1h", "t2", "t2h", "t3"};
+    /** The first temperature band at or below 0 C. */
+    private static final int FIRST_FREEZING_BAND = 4;
 
     /**
      * The first groundwater (rainfall) colormap index of each rainfall band, wet first; band {@code r} covers indices
@@ -70,32 +96,33 @@ public final class SeasonalColour {
         return MAX_INDEX - clamp((int) (groundwater * 255f / 500f));
     }
 
+    /** The temperature band of a temperature index: the band {@code t} whose range holds it. Band 0 is the warmest. */
+    public static int temperatureBand(int temperatureIndex) {
+        return bandOf(TEMPERATURE_BAND_START, temperatureIndex);
+    }
+
     /**
      * The rainfall band of a groundwater index: the band {@code r} whose range of {@link #RAINFALL_BAND_START} holds
      * {@code rainfallIndex}. Band 0 is the wettest (index 0 is 500 mm).
      */
     public static int rainfallBand(int rainfallIndex) {
-        int r = 0;
-        while (r + 1 < BANDS_PER_AXIS && rainfallIndex >= RAINFALL_BAND_START[r + 1]) {
-            r++;
-        }
-        return r;
+        return bandOf(RAINFALL_BAND_START, rainfallIndex);
     }
 
     /**
-     * The band of a position: {@code rainfallBand * BANDS_PER_AXIS + temperatureBand}, in {@code [0, BAND_COUNT)}.
+     * The band of a position: {@code rainfallBand * TEMPERATURE_BANDS + temperatureBand}, in {@code [0, BAND_COUNT)}.
      * Band 0 is the hot and wet corner, band {@code BAND_COUNT - 1} the cold and dry one.
      */
     public static int band(float temperature, float groundwater) {
-        int t = temperatureIndex(temperature) / INDICES_PER_BAND;
+        int t = temperatureBand(temperatureIndex(temperature));
         int r = rainfallBand(rainfallIndex(groundwater));
-        return r * BANDS_PER_AXIS + t;
+        return r * TEMPERATURE_BANDS + t;
     }
 
-    /** The temperature index at the centre of {@code band}, for the colormap lookup in the datagen. */
+    /** The temperature index the colour of {@code band} is read at, for the colormap lookup in the datagen. */
     public static int centreTemperatureIndex(int band) {
         checkBand(band);
-        return (band % BANDS_PER_AXIS) * INDICES_PER_BAND + INDICES_PER_BAND / 2;
+        return TEMPERATURE_SAMPLE[band % TEMPERATURE_BANDS];
     }
 
     /**
@@ -105,16 +132,28 @@ public final class SeasonalColour {
      */
     public static int centreRainfallIndex(int band) {
         checkBand(band);
-        int r = band / BANDS_PER_AXIS;
+        int r = band / TEMPERATURE_BANDS;
         int first = RAINFALL_BAND_START[r];
-        int last = (r + 1 < BANDS_PER_AXIS ? RAINFALL_BAND_START[r + 1] : MAX_INDEX + 1) - 1;
+        int last = (r + 1 < RAINFALL_BANDS ? RAINFALL_BAND_START[r + 1] : MAX_INDEX + 1) - 1;
         return (first + last) / 2;
     }
 
-    /** The variant name of {@code band} within its biome: {@code t<temperature band>r<rainfall band>}. */
+    /**
+     * Whether every temperature of {@code band} is at or below about 0 C (temperature index {@value #FREEZING_INDEX}
+     * or more), where TFC's {@code WeatherHelpers.getPrecipitationAt} shows snow instead of rain.
+     */
+    public static boolean isFreezing(int band) {
+        checkBand(band);
+        return band % TEMPERATURE_BANDS >= FIRST_FREEZING_BAND;
+    }
+
+    /**
+     * The variant name of {@code band} within its biome: {@code <temperature part>r<rainfall band>}, e.g. {@code t1r2}
+     * or {@code t1hr2} (the half step between {@code t1} and {@code t2}).
+     */
     public static String variantName(int band) {
         checkBand(band);
-        return "t" + (band % BANDS_PER_AXIS) + "r" + (band / BANDS_PER_AXIS);
+        return TEMPERATURE_NAME[band % TEMPERATURE_BANDS] + "r" + (band / TEMPERATURE_BANDS);
     }
 
     /** The datapack biome path of {@code biomePath}'s variant in {@code band}: {@code seasonal/<biome>/<variant>}. */
@@ -125,6 +164,14 @@ public final class SeasonalColour {
     /** The full datapack biome id of {@code biomePath}'s variant in {@code band}: {@code tfp:seasonal/<biome>/<variant>}. */
     public static String variantId(String biomePath, int band) {
         return NAMESPACE + ":" + variantPath(biomePath, band);
+    }
+
+    private static int bandOf(int[] starts, int index) {
+        int b = 0;
+        while (b + 1 < starts.length && index >= starts[b + 1]) {
+            b++;
+        }
+        return b;
     }
 
     private static int clamp(int index) {

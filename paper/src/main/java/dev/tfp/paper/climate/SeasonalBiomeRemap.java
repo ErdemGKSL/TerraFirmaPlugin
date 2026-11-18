@@ -98,7 +98,7 @@ public final class SeasonalBiomeRemap {
         return tfcBiome * SeasonalColour.BAND_COUNT + band;
     }
 
-    /** The datapack biome id of a variant index: {@code tfp:seasonal/<biome>/t<T>r<R>}. */
+    /** The datapack biome id of a variant index: {@code tfp:seasonal/<biome>/<variant>} ({@link SeasonalColour#variantName}). */
     public static String variantIdOf(int variantIndex) {
         return SeasonalColour.variantId(biomePath(variantIndex / SeasonalColour.BAND_COUNT),
                 variantIndex % SeasonalColour.BAND_COUNT);

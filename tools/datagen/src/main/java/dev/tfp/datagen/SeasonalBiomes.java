@@ -26,8 +26,9 @@ import javax.imageio.ImageIO;
  * the chunk packet remap (M2-SEA-01 step 3) and are never used to generate terrain, and the server must not reference
  * {@code tfc:} features it does not have.
  *
- * <p>Output: {@code datapack/tfp_seasonal_biomes/data/tfp/worldgen/biome/seasonal/<biome>/t<T>r<R>.json}, with the
- * biome ids of {@link SeasonalColour#variantId}.
+ * <p>Output: {@code datapack/tfp_seasonal_biomes/data/tfp/worldgen/biome/seasonal/<biome>/<variant>.json}, with the
+ * biome ids of {@link SeasonalColour#variantId}. PAR-CLIM-05: 28 variants per biome (7 temperature x 4 rainfall bands,
+ * {@link SeasonalColour#variantName}), 3,500 in all.
  *
  * <p>PAR-WORLD-02: next to the variants, one <b>base biome</b> per TFC biome,
  * {@code datapack/tfp_seasonal_biomes/data/tfp/worldgen/biome/<biome>.json} ({@code tfp:<biome>}). The Bukkit

@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 382 items; open 207, done 166, blocked 9; waves 1..56 (wave 0 = already done).
+Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -150,7 +150,7 @@ Totals: 382 items; open 207, done 166, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-14 | Salads | PROC | 13 | done |
 | PAR-INFRA-48 | NeighbourRunnerTest flake: chainOfTenPlacementsConvergesWithOneCommitPerChangedBlock sees 14 provisional writes instead of 10 | INFRA | 13 | done |
 | PAR-PROC-35 | Barrel wiring: the block opens the barrel screen, buckets reach the tank, fluid surface visual, lazy rain fill, in-game check (rack and tap: PAR-PROC-38) | PROC | 13 | done |
-| PAR-CLIM-05 | Seasonal grass tint: decide band resolution and make the colour change visible | CLIMATE | 14 | open |
+| PAR-CLIM-05 | Seasonal grass tint: decide band resolution and make the colour change visible | CLIMATE | 14 | done |
 | PAR-CLIM-13 | TFC time command completion: `/tfp time set` dayLength, monthLength, rain and clear, and the calendar tick rate | CLIMATE | 14 | done |
 | PAR-CLIM-19 | Snow catch-up in-game verification: snow piles on plants, ice on a pool and the July melt from one room | CLIMATE | 14 | open |
 | PAR-CLIM-20 | Climate weather cycle follow-up: in-game check (local rain per player), itest weather.cycle, PrecipitationService honours the weather flag | CLIMATE | 14 | done |
@@ -181,6 +181,7 @@ Totals: 382 items; open 207, done 166, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-INFRA-55 | Installer: rebuild the CraftEngine pack on the restart that applies a raised serverside-blocks (the first-install pack misses the blocks that could not allocate) | INFRA | 15 | done |
 | PAR-INFRA-58 | Packet-layer boundary: move the PacketEvents-typed heat glow, item bar and block sound handlers under dev.tfp.paper.packet so ArchitectureTest.onlyThePacketLayerTouchesPacketEvents passes | INFRA | 15 | done |
 | PAR-PROC-41 | Sealed barrel item keeps its contents: breaking a sealed barrel drops the barrel with its items and fluid (TFC BarrelComponent), placing it restores them | PROC | 15 | blocked |
+| PAR-CLIM-26 | Client snow look: freezing seasonal variants carry a below-0.15 biome temperature | CLIMATE | 15 | open |
 | PAR-HEAT-23 | Firepit look in game: TFC's lit and unlit models on their own carriers (axis z turned 90), and the in-game firepit check | HEAT | 16 | done |
 | PAR-HEAT-28 | Torch burnout on chunk load leaves the client's block light at 14 until the chunk is sent again | HEAT | 16 | done |
 | PAR-HEAT-29 | Dead torch outlines closer to TFC: widen the hitbox candidate dump to every small no-collision vanilla block and re-pick the dead torch carriers | HEAT | 16 | done |
