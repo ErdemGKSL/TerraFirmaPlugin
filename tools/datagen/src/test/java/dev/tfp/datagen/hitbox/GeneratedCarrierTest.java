@@ -121,11 +121,8 @@ class GeneratedCarrierTest {
                 // PAR-PROC-37: the two-layer charcoal pile's carrier.
                 "minecraft:snow[layers=2] -> minecraft:snow[layers=3]",
                 "minecraft:heavy_weighted_pressure_plate[power=0] -> minecraft:heavy_weighted_pressure_plate[power=1]",
-                // PAR-HEAT-23: the firepit's four daylight detector carriers.
-                "minecraft:daylight_detector[inverted=false,power=0] -> minecraft:daylight_detector[inverted=false,power=1]",
-                "minecraft:daylight_detector[inverted=false,power=10] -> minecraft:daylight_detector[inverted=false,power=11]",
-                "minecraft:daylight_detector[inverted=false,power=12] -> minecraft:daylight_detector[inverted=false,power=13]",
-                "minecraft:daylight_detector[inverted=false,power=14] -> minecraft:daylight_detector[inverted=false,power=15]");
+                // PAR-HEAT-35: the firepit's one daylight detector carrier (PAR-HEAT-23 took four).
+                "minecraft:daylight_detector[inverted=false,power=0] -> minecraft:daylight_detector[inverted=false,power=1]");
         assertThat(problems).as("take carriers from dev.tfp.datagen.hitbox.HitboxAllocation").isEmpty();
     }
 
@@ -325,30 +322,31 @@ class GeneratedCarrierTest {
 
     @Test
     void theFirepitCarriersArePinned() {
-        // PAR-HEAT-23: TFC's lit and unlit models per axis, each on its own daylight detector power (the only free states
-        // scoring 0.5 or more for TFC's firepit outline). TFC crafts the detector, so each carrier is hidden as the next
-        // power (its model depends only on inverted). Served last (weight -5): adding them moved no other carrier.
-        Map<String, String> expected = Map.of(
-            "lit_x", "minecraft:daylight_detector[inverted=false,power=0]",
-            "lit_z", "minecraft:daylight_detector[inverted=false,power=10]",
-            "unlit_x", "minecraft:daylight_detector[inverted=false,power=12]",
-            "unlit_z", "minecraft:daylight_detector[inverted=false,power=14]");
+        // PAR-HEAT-35 (owner decision 2026-11-18; PAR-HEAT-23 took four powers, one model each): the four (lit, axis)
+        // appearances share one hitbox-only daylight detector state (the best free state for TFC's firepit outline),
+        // drawn empty; TFC's models are item displays. TFC crafts the detector, so the carrier is hidden as the next power
+        // (its model depends only on inverted). Served after the others (weight -5): it moves no other carrier.
+        String expected = "minecraft:daylight_detector[inverted=false,power=0]";
         java.util.Set<String> carriers = new java.util.HashSet<>();
         for (boolean lit : new boolean[] {true, false}) {
             for (String axis : HitboxDemands.FIREPIT_AXES) {
                 String app = HitboxDemands.firepitAppearance(lit, axis);
                 Assignment a = HitboxAllocation.agreed(HitboxDemands.FIREPIT_ID, app);
-                assertThat(a.mode()).as(app).isEqualTo(HitboxAllocation.Mode.MODEL);
-                assertThat(a.state()).as(app).isEqualTo(expected.get(app));
-                assertThat(a.demand().look()).as(app).isEqualTo(HitboxDemands.firepitLook(lit, axis));
-                int power = Integer.parseInt(a.state().replaceAll(".*power=(\\d+)]", "$1"));
-                assertThat(a.hideTarget()).as(app)
-                    .isEqualTo("minecraft:daylight_detector[inverted=false,power=" + (power + 1) + "]");
+                assertThat(a.mode()).as(app).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
+                assertThat(a.state()).as(app).isEqualTo(expected);
+                assertThat(a.demand().look()).as(app).isEqualTo(HitboxAllocation.TRANSPARENT);
+                assertThat(a.hideTarget()).as(app).isEqualTo("minecraft:daylight_detector[inverted=false,power=1]");
                 carriers.add(a.state());
             }
         }
-        assertThat(carriers).hasSize(4);
-        assertThat(HitboxDemands.firepitLook(true, "z")).isEqualTo("tfp:block/firepit_lit@y90");
+        assertThat(carriers).hasSize(1);
+        // The three powers PAR-HEAT-23 took are free again: no demand of any block sits on them.
+        for (Demand d : HitboxDemands.all()) {
+            for (int power : new int[] {10, 12, 14}) {
+                assertThat(HitboxAllocation.agreed(d.blockId(), d.appearance()).state()).as(d.id())
+                    .isNotEqualTo("minecraft:daylight_detector[inverted=false,power=" + power + "]");
+            }
+        }
         for (Demand d : HitboxDemands.all()) {
             if (!d.blockId().equals(HitboxDemands.FIREPIT_ID)) {
                 assertThat(HitboxAllocation.agreed(d.blockId(), d.appearance()).state()).as(d.id()).isNotIn(carriers);

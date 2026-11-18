@@ -184,7 +184,7 @@ Totals: 382 items; open 207, done 166, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-HEAT-23 | Firepit look in game: TFC's lit and unlit models on their own carriers (axis z turned 90), and the in-game firepit check | HEAT | 16 | done |
 | PAR-HEAT-28 | Torch burnout on chunk load leaves the client's block light at 14 until the chunk is sent again | HEAT | 16 | done |
 | PAR-HEAT-29 | Dead torch outlines closer to TFC: widen the hitbox candidate dump to every small no-collision vanilla block and re-pick the dead torch carriers | HEAT | 16 | done |
-| PAR-HEAT-35 | Firepit drawn by entity_renderer item displays on one hidden daylight detector hitbox carrier (instead of four model carrier states) | HEAT | 16 | open |
+| PAR-HEAT-35 | Firepit drawn by entity_renderer item displays on one hidden daylight detector hitbox carrier (instead of four model carrier states) | HEAT | 16 | done |
 | PAR-CLIM-14 | Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute | CLIMATE | 16 | open |
 | PAR-CLIM-23 | Verify vanilla /time and the night skip move the calendar in game on Paper 26.3 and 1.21.11 (PAR-CLIM-22 server logs) | CLIMATE | 16 | done |
 | PAR-HEAT-12 | Firebox, stove and stove pot | HEAT | 16 | done |
@@ -208,6 +208,7 @@ Totals: 382 items; open 207, done 166, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-SURV-16 | Food items and food tooltip in-game verification: the checks PAR-SURV-01 and PAR-SURV-02 closed without (sampled gives, TFC tooltip lines) | SURV | 17 | open |
 | PAR-CLIM-24 | Self-test calendar.sleep_skip on 26.x: build the NIGHT_SKIP event without TimeSkipEvent$SkipReason (NoClassDefFoundError on Paper 26.3) | CLIMATE | 17 | done |
 | PAR-CLIM-25 | Vanilla /time set <marker> on 26.x answers "already at time marker" although the time and the calendar moved (skip amount 0 after DaylightSync) | CLIMATE | 17 | done |
+| PAR-HEAT-36 | Firepit carrier culls the top face of the block below: the floor shows through the gaps of TFC's firepit model | HEAT | 17 | open |
 | PAR-HEAT-25 | Pot loaded in game: configuration/devices/pot.yml, pot screen art (tfp:gui/pot, thermometer, bubbles) and the in-game soup check | HEAT | 18 | open |
 | PAR-GATHER-05 | Soil interactions: hoeing, paths, mud, rooted dirt, grass spread and rock spawning | GATHER | 18 | open |
 | PAR-GATHER-06 | Raw rock drops and mossy rock spreading | GATHER | 18 | open |

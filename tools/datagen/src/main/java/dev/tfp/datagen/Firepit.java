@@ -48,17 +48,18 @@ import java.util.regex.Pattern;
  * type, which also has {@code y} and would double the state count with states TFC never has. Whether CraftEngine's
  * hardcoded rotation behaviour for the name {@code axis} accepts a string property is not verified yet.
  *
- * <p><b>Carrier.</b> PAR-HEAT-23: one appearance per (lit, axis) pair ({@code lit_x}, {@code lit_z}, {@code unlit_x},
- * {@code unlit_z}), each on its own MODEL carrier from the hitbox selector ({@link #modelCarrier}: four powers of
- * {@code daylight_detector}, 16x6x16 against TFC's 2 px plate plus a 12x4x12 core, IoU 0.71) drawn with TFC's
- * {@code firepit_lit} / {@code firepit_unlit} model; the axis-z pair turns it y 90 as TFC's blockstate does
- * ({@code model: {path, y: 90}}, {@link DeviceSpecs#turnModels}). TFC crafts the daylight detector, so each carrier hides
- * real detectors at its power as the nearest free power ({@code block_state_mappings}; the detector's model depends only
- * on {@code inverted}, so they look the same). The grill and the pot still take the vanilla look of their carriers
- * ({@link #spec}).
+ * <p><b>Carrier.</b> PAR-HEAT-35 (owner decision 2026-11-18; PAR-HEAT-23 drew TFC's models on four detector states):
+ * one appearance per (lit, axis) pair ({@code lit_x}, {@code lit_z}, {@code unlit_x}, {@code unlit_z}), all on ONE
+ * hitbox-only carrier from the hitbox selector ({@link #carrier}: {@code daylight_detector[inverted=false,power=0]},
+ * 16x6x16 against TFC's 2 px plate plus a 12x4x12 core, IoU 0.71) drawn empty ({@code transparent: true}). The look is an
+ * {@code entity_renderer} item display of the display-only item of the lit value ({@link #renderItem}: TFC's
+ * {@code firepit_lit} / {@code firepit_unlit} model) turned per axis ({@link #renderRotation}, as TFC's blockstate turns
+ * axis z by y 90), exactly as the grill's; a state change (lighting, burn-out, douse) morphs the display. TFC crafts the
+ * daylight detector, so the carrier hides real detectors at its power as the nearest free power
+ * ({@code block_state_mappings}; the detector's model depends only on {@code inverted}, so they look the same).
  *
- * <p><b>Spec.</b> The entry is a {@link DeviceBlockSpec} built by {@link DeviceSpecs#firepit} and written through
- * {@link DeviceYaml#literal} (PAR-INFRA-19; PAR-HEAT-23 adds the axis-z turn), with TFC's settings ({@link DeviceBlockSpec.Settings#fromTfc}: strength
+ * <p><b>Spec.</b> The entry is a {@link DeviceBlockSpec} built by {@link DeviceSpecs#firepitRendered} and written through
+ * {@link DeviceYaml#literal} (PAR-INFRA-19), with TFC's settings ({@link DeviceBlockSpec.Settings#fromTfc}: strength
  * 0.4/0.4, nether wart sounds, pickaxe), TFC's loot ({@link DeviceLoot#fromTfc}: wood ash) and TFC's lit light
  * ({@code lightLevel(litBlockEmission(15))}, read by {@link #litLight}: 15 when lit, 0 otherwise). The grill and the pot
  * are written through {@link DeviceSpecs#firepitFamily} ({@link #spec}).
@@ -66,11 +67,11 @@ import java.util.regex.Pattern;
  * <p><b>Outputs.</b> {@code craftengine/tfp/devices/firepit.yml} is the literal spec without the behaviour, outside
  * {@code configuration/}, so CraftEngine does not load it (the firepit-family fixture {@code DeviceSpecParityTest}
  * checks). {@link #loadedYaml} is the entry CraftEngine is to load at {@link #LOADED_OUTPUT} (PAR-HEAT-06): the same spec
- * through the device template {@code tfp:block/device}, which adds the {@code tfp:device} behaviour, so the placed block
+ * through the device template {@code tfp:block/device_rendered}, which adds the {@code tfp:device} behaviour, so the placed block
  * routes to the firepit device kind ({@code paper/firepit}); {@link #run} writes it (PAR-HEAT-19).
  *
  * <p><b>Models.</b> TFC's {@code firepit_lit} and {@code firepit_unlit} block models (the variants of the TFC blockstate,
- * {@link #models}) are copied into the pack by {@link AssetPipeline} and drawn on the carriers above. TFC's fuel logs
+ * {@link #models}) are copied into the pack by {@link AssetPipeline} and drawn by the render items above. TFC's fuel logs
  * ({@code FirepitBlockEntityRenderer}) are not drawn (ledger divergence).
  */
 final class Firepit {
@@ -109,8 +110,8 @@ final class Firepit {
         List<Map<String, String>> states = DeviceBlockSpec.combinations(props);
         checkAgainstTfc(tfc, states);
         DeviceBlockSpec spec = firepitSpec(tfc, props);
-        out.put(OUTPUT, literalYaml(spec));
-        out.put(LOADED_OUTPUT, templatedYaml(loaded(spec))); // PAR-HEAT-19: the entry CraftEngine loads
+        out.put(OUTPUT, DeviceYaml.writeLiteral(spec));
+        out.put(LOADED_OUTPUT, DeviceYaml.writeTemplated(loaded(spec))); // PAR-HEAT-19: the entry CraftEngine loads
         return states.size();
     }
 
@@ -119,50 +120,61 @@ final class Firepit {
      * Everything else (states, carriers, TFC's settings, loot and lit light) is the spec's.
      */
     static String loadedYaml(TfcCheckout tfc) {
-        return templatedYaml(loaded(firepitSpec(tfc, props(tfc))));
-    }
-
-    /** PAR-HEAT-23: the literal entry with the axis-z models turned y 90 (TFC's blockstate). */
-    static String literalYaml(DeviceBlockSpec spec) {
-        return Yaml.write(DeviceYaml.HEADER, DeviceSpecs.turnModels(DeviceYaml.literal(spec), spec.id(), Firepit::rotation));
-    }
-
-    /** PAR-HEAT-23: the templated entry with the axis-z models turned y 90 (TFC's blockstate). */
-    static String templatedYaml(DeviceBlockSpec spec) {
-        return Yaml.write(DeviceYaml.HEADER, DeviceSpecs.turnModels(DeviceYaml.templated(spec), spec.id(), Firepit::rotation));
-    }
-
-    /** PAR-HEAT-23: the blockstate y of a firepit appearance ({@code <lit|unlit>_<axis>}). */
-    static int rotation(String appearance) {
-        return HitboxDemands.firepitRotation(appearance.substring(appearance.lastIndexOf('_') + 1));
+        return DeviceYaml.writeTemplated(loaded(firepitSpec(tfc, props(tfc))));
     }
 
     /**
-     * PAR-HEAT-23: the firepit drawn with TFC's models: four appearances ({@code lit_x}, {@code lit_z}, {@code unlit_x},
-     * {@code unlit_z}), each on the MODEL carrier the hitbox selector agreed on, with the carriers' hide mappings (real
-     * daylight detectors at a carrier power are sent with the nearest free power), and TFC's settings, loot and lit light.
+     * PAR-HEAT-35: the firepit drawn by display entities: four appearances ({@code lit_x}, {@code lit_z}, {@code unlit_x},
+     * {@code unlit_z}), all on the one hitbox-only carrier the hitbox selector agreed on (drawn empty), with its hide
+     * mapping (real daylight detectors at the carrier power are sent with the nearest free power), one item display of
+     * TFC's model of the lit value ({@link #renderItem}) turned per axis ({@link #renderRotation}), and TFC's settings, loot
+     * and lit light.
      */
     static DeviceBlockSpec firepitSpec(TfcCheckout tfc, List<DeviceProperty> props) {
         Map<String, String> hides = new TreeMap<>();
         for (boolean lit : new boolean[] {true, false}) {
             for (String axis : HitboxDemands.FIREPIT_AXES) {
-                HitboxAllocation.Assignment a = modelCarrier(lit, axis);
+                HitboxAllocation.Assignment a = carrier(lit, axis);
                 if (a.hideTarget() != null) {
                     hides.put(a.state(), a.hideTarget());
                 }
             }
         }
-        return DeviceSpecs.firepit(BLOCK_ID, props, (lit, axis) -> DeviceAppearance.Carrier.state(modelCarrier(lit, axis).state()),
-            HitboxDemands::firepitModel, DeviceBlockSpec.Settings.fromTfc(tfc, "firepit"), DeviceLoot.fromTfc(tfc, "firepit"),
-            litLight(tfc, "firepit"), hides);
+        return DeviceSpecs.firepitRendered(BLOCK_ID, props,
+            (lit, axis) -> DeviceAppearance.Carrier.state(carrier(lit, axis).state()), Firepit::renderItem,
+            HitboxDemands::firepitModel, Firepit::renderRotation, DeviceBlockSpec.Settings.fromTfc(tfc, "firepit"),
+            DeviceLoot.fromTfc(tfc, "firepit"), litLight(tfc, "firepit"), hides);
     }
 
-    /** PAR-HEAT-23: the carrier of the firepit's (lit, axis) appearance; must be MODEL mode with TFC's model. */
-    static HitboxAllocation.Assignment modelCarrier(boolean lit, String axis) {
-        HitboxAllocation.Assignment a = HitboxAllocation.agreed(BLOCK_ID, HitboxDemands.firepitAppearance(lit, axis));
-        if (a.mode() != HitboxAllocation.Mode.MODEL) {
-            throw new DatagenException(BLOCK_ID + "#" + HitboxDemands.firepitAppearance(lit, axis) + ": the carrier is "
-                + a.mode() + ", the firepit draws TFC's model on it");
+    /** PAR-HEAT-35: the display-only item of TFC's model of a lit value ({@code tfp:render/firepit_lit}). */
+    static String renderItem(boolean lit) {
+        String model = HitboxDemands.firepitModel(lit);
+        return Json.TO_NS + ":render/" + model.substring(model.indexOf(":block/") + ":block/".length());
+    }
+
+    /**
+     * PAR-HEAT-35: the display turn of an axis, as the grill's ({@link Grill#renderRotation}): the item display draws an
+     * item model a half turn about y against the same model as a block, and TFC's firepit.json turns axis z by y 90.
+     */
+    static String renderRotation(String axis) {
+        return "0," + (180 - HitboxDemands.firepitRotation(axis)) + ",0";
+    }
+
+    /**
+     * PAR-HEAT-35: the carrier of the firepit's (lit, axis) appearance; must be hitbox-only (the look is the display), and
+     * all four appearances share it.
+     */
+    static HitboxAllocation.Assignment carrier(boolean lit, String axis) {
+        String app = HitboxDemands.firepitAppearance(lit, axis);
+        HitboxAllocation.Assignment a = HitboxAllocation.agreed(BLOCK_ID, app);
+        if (a.mode() != HitboxAllocation.Mode.HITBOX_ONLY) {
+            throw new DatagenException(BLOCK_ID + "#" + app + ": the carrier is " + a.mode()
+                + ", the firepit draws TFC's model as an item display over an empty carrier");
+        }
+        String shared = HitboxAllocation.agreed(BLOCK_ID,
+            HitboxDemands.firepitAppearance(true, HitboxDemands.FIREPIT_AXES.get(0))).state();
+        if (!a.state().equals(shared)) {
+            throw new DatagenException(BLOCK_ID + "#" + app + ": carrier " + a.state() + " is not the shared carrier " + shared);
         }
         return a;
     }

@@ -64,41 +64,12 @@ public final class DeviceSpecs {
     }
 
     /**
-     * PAR-HEAT-23: the firepit, drawn with TFC's models: one appearance per (lit, axis) pair ({@link #firepitAppearance}),
-     * each on its own carrier ({@code carrier}) with {@code model} of the lit value (the turn of axis z is written by
-     * {@link #turnModels}: CraftEngine takes one model per explicit state and cannot turn it per variant). The given
-     * properties must contain {@code lit} (boolean) and {@code axis}; {@code litLight} as {@link #firepitFamily};
-     * {@code stateMappings}: the carriers' hide mappings.
-     */
-    public static DeviceBlockSpec firepit(String id, List<DeviceProperty> props,
-            java.util.function.BiFunction<Boolean, String, DeviceAppearance.Carrier> carrier,
-            java.util.function.Function<Boolean, String> model, DeviceBlockSpec.Settings settings, DeviceLoot loot,
-            int litLight, Map<String, String> stateMappings) {
-        if (props.stream().noneMatch(p -> p.name().equals(LIT) && p.kind() == DeviceProperty.Kind.BOOLEAN)) {
-            throw new DatagenException(id + ": a firepit-family block needs the boolean property lit");
-        }
-        DeviceProperty axis = props.stream().filter(p -> p.name().equals(AXIS)).findFirst()
-            .orElseThrow(() -> new DatagenException(id + ": the firepit needs the property axis"));
-        DeviceBlockSpec.Builder b = DeviceBlockSpec.builder(id).properties(props);
-        for (boolean lit : new boolean[] {true, false}) {
-            for (String a : axis.values()) {
-                b.appearance(DeviceAppearance.modelled(firepitAppearance(lit, a), carrier.apply(lit, a), model.apply(lit)));
-            }
-        }
-        b.everyState(s -> firepitAppearance("true".equals(s.get(LIT)), s.get(AXIS)),
-                s -> "true".equals(s.get(LIT)) ? litLight : 0)
-            .settings(settings)
-            .loot(loot);
-        stateMappings.forEach(b::stateMapping);
-        return b.build();
-    }
-
-    /**
-     * PAR-HEAT-24: a firepit-family block drawn by display entities (the grill): one appearance per (lit, axis) pair
-     * ({@link #firepitAppearance}), each on its carrier ({@code carrier}) drawn empty, with one item display of the
-     * display-only item of its lit value ({@code renderItem}, showing {@code model} of the lit value) turned by
-     * {@code rotation} of its axis ({@code "x,y,z"} degrees). Properties, {@code litLight} and {@code stateMappings} as
-     * {@link #firepit}.
+     * PAR-HEAT-24: a firepit-family block drawn by display entities (the grill; the firepit since PAR-HEAT-35): one
+     * appearance per (lit, axis) pair ({@link #firepitAppearance}), each on its carrier ({@code carrier}) drawn empty, with
+     * one item display of the display-only item of its lit value ({@code renderItem}, showing {@code model} of the lit
+     * value) turned by {@code rotation} of its axis ({@code "x,y,z"} degrees). The given properties must contain
+     * {@code lit} (boolean) and {@code axis}; {@code litLight} as {@link #firepitFamily}; {@code stateMappings}: the
+     * carrier's hide mappings.
      */
     public static DeviceBlockSpec firepitRendered(String id, List<DeviceProperty> props,
             java.util.function.BiFunction<Boolean, String, DeviceAppearance.Carrier> carrier,
@@ -126,30 +97,6 @@ public final class DeviceSpecs {
             .loot(loot);
         stateMappings.forEach(b::stateMapping);
         return b.build();
-    }
-
-    /**
-     * PAR-HEAT-23: turns the model of every appearance of block {@code id} in a written device map ({@link DeviceYaml#literal}
-     * or {@link DeviceYaml#templated}) by the blockstate {@code y} that {@code yByAppearance} gives (0: unchanged), as
-     * CraftEngine's {@code model: {path, y}}. Returns {@code root}.
-     */
-    @SuppressWarnings("unchecked")
-    public static Map<String, Object> turnModels(Map<String, Object> root, String id,
-            java.util.function.ToIntFunction<String> yByAppearance) {
-        Map<String, Object> block = (Map<String, Object>) ((Map<String, Object>) root.get("blocks")).get(id);
-        Map<String, Object> states = (Map<String, Object>) block.get("states");
-        Map<String, Object> appearances = (Map<String, Object>) states.get("appearances");
-        for (Map.Entry<String, Object> e : appearances.entrySet()) {
-            Map<String, Object> app = (Map<String, Object>) e.getValue();
-            int y = yByAppearance.applyAsInt(e.getKey());
-            if (y != 0 && app.get("model") instanceof String model) {
-                Map<String, Object> turned = new java.util.LinkedHashMap<>();
-                turned.put("path", model);
-                turned.put("y", y);
-                app.put("model", turned);
-            }
-        }
-        return root;
     }
 
     /**

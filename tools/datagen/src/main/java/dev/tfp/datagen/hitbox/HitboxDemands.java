@@ -206,12 +206,13 @@ public final class HitboxDemands {
             powderkegModel(POWDERKEG_SEALED), true, POWDERKEG_WEIGHT));
         d.add(new Demand(POWDERKEG_ID, POWDERKEG_LIT, POWDERKEG_ROW, 0,
             powderkegModel(POWDERKEG_LIT), true, POWDERKEG_WEIGHT));
-        // PAR-HEAT-23: the firepit, TFC's lit and unlit models per axis (blockstates/firepit.json turns axis z by y 90; a
-        // carrier state takes one model, so each (lit, axis) pair has its own carrier).
+        // PAR-HEAT-35 (owner decision 2026-11-18, was PAR-HEAT-23's four model carriers): every (lit, axis) appearance of
+        // the firepit is hitbox-only on one shared carrier, drawn empty; TFC's lit or unlit model is an item display
+        // turned per axis (Firepit), as the grill's.
         for (boolean lit : new boolean[] {true, false}) {
             for (String axis : FIREPIT_AXES) {
                 d.add(new Demand(FIREPIT_ID, firepitAppearance(lit, axis), "tfc:firepit", lit ? FIREPIT_LIT_LIGHT : 0,
-                    firepitLook(lit, axis), true, FIREPIT_WEIGHT));
+                    HitboxAllocation.TRANSPARENT, true, FIREPIT_WEIGHT));
             }
         }
         // PAR-HEAT-24: the grill, TFC's multipart (firepit_grill over firepit_lit_low or firepit_unlit) merged into one
@@ -327,12 +328,6 @@ public final class HitboxDemands {
             case "z" -> 90;
             default -> throw new IllegalArgumentException("not a horizontal axis: " + axis);
         };
-    }
-
-    /** PAR-HEAT-23: the look key of a firepit state: the model and its turn (two turns are two looks). */
-    public static String firepitLook(boolean lit, String axis) {
-        int y = firepitRotation(axis);
-        return y == 0 ? firepitModel(lit) : firepitModel(lit) + "@y" + y;
     }
 
     /** PAR-HEAT-24: the grill block. */
