@@ -197,7 +197,7 @@ Totals: 382 items; open 207, done 166, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-INFRA-59 | Flaky OreOverlayServiceTest.blockChangeFastPathRidesWithThePacketAndThePatchAddsNothing: the fast path sometimes sends no spawn under a loaded full ./gradlew check | INFRA | 16 | done |
 | PAR-HEAT-24 | Grill loaded in game: configuration/devices/grill.yml, TFC grill models, the grill screen art and the in-game grill check | HEAT | 17 | open |
 | PAR-HEAT-33 | Firepit block state follows calendar jumps: the lit look turns off when a time skip burns the fuel out, smoke level in step after a douse | HEAT | 17 | done |
-| PAR-INFRA-36 | Verify falling ores keep their face overlays in game (collapse and falling rich ore) | INFRA | 17 | open |
+| PAR-INFRA-36 | Verify falling ores keep their face overlays in game (collapse and falling rich ore) | INFRA | 17 | blocked |
 | PAR-PHYS-02 | Collapse runner: mining triggers collapses decided async, applied as falling blocks | PHYS | 17 | open |
 | PAR-PHYS-03 | Landslides and gravity soils | PHYS | 17 | open |
 | PAR-WORLD-03 | Worldgen performance: JMH chunk budget, vanilla baseline and exposed-gem decision | WORLD | 17 | open |

@@ -2,7 +2,7 @@
 id: PAR-INFRA-36
 title: "Verify falling ores keep their face overlays in game (collapse and falling rich ore)"
 area: INFRA
-status: open
+status: blocked
 wave: 17
 deps: [PAR-INFRA-16, PAR-PHYS-01]
 size: S
@@ -20,6 +20,7 @@ in_game_steps:
   - "Make the rich ore fall with PAR-PHYS-01's trigger (remove its support or `tfp debug collapse <pos>`); record 10 frames 100 ms apart during the fall: the falling block shows the overlay on every visible face, no face is missing or doubled, no overlay stays at the start position"
   - "After landing: the block is the TFC collapse result (rich -> normal ore, `recipe/collapse/ore`), its exposed faces show the normal-grade overlay; `tfp debug oreoverlay stats` (console: all viewers) shows no leftover entity (entities = exposed faces in range)"
 plan:
+  - "Blocked (2026-11-18): needs PAR-PHYS-02 (open). The steps need the collapse path: the rich -> normal grade change of recipe/collapse/ore and a collapse trigger (`tfp debug collapse` or mining under unsupported rock) only arrive with PAR-PHYS-02 (paper/.../collapse/**, not in files_owned). PAR-PHYS-01 alone offers `tfp debug fall <x> <y> <z> <state>`, which lands the carried state unchanged, so criterion 'lands as the right grade' cannot be checked. Unblock: add PAR-PHYS-02 to deps and rerun the in_game_steps once it is done."
   - "Current: PAR-INFRA-16 attaches six rider overlays to any falling block entity whose block data is a CraftEngine ore state (EntitySpawnEvent registration, riders sent after the entity's SPAWN_ENTITY, removed with its REMOVE_ENTITIES; seat 0.98 above the base). No falling ores exist until PAR-PHYS-01, so the check moved here (PROTOCOL 6.5). PAR-INFRA-16 does not depend on this item."
   - "Run the in_game_steps (cheap-model agent where available); the main session judges every frame."
 tests:
