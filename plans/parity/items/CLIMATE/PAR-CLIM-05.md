@@ -2,7 +2,7 @@
 id: PAR-CLIM-05
 title: "Seasonal grass tint: decide band resolution and make the colour change visible"
 area: CLIMATE
-status: done
+status: open
 wave: 14
 deps: []
 size: M
@@ -20,11 +20,12 @@ files_owned:
   - "docs/porting/tint-investigation.md"
 ui: true
 in_game_steps:
-  - "gamerule advance_weather false"
-  - "weather clear"
-  - "tfp time add months <n> until June; tfp time set noon; screenshot grass at (-768, 63, 768)"
-  - "tfp time add months 4 (October); tfp time set noon; wait 10 s for the resend; screenshot the same view"
+  - "Server: one Paper 1.21.11 server only (stop any other test server first), started by spikes/client/server.sh with its default -Xmx3G (do NOT pass EXTRA_JVM=-Xmx2G: the third verify run OOM'd in worldgen at 2G and crashed, leaving dark frames); view-distance 6 and simulation-distance 6 in server.properties. Client joins as Bot, CraftEngine pack applied"
+  - "gamerule advance_weather false; weather clear; `tfp debug chunk -768 768` (note temperature and groundwater)"
+  - "spikes/client/testroom.sh <rcon-port> -768 64 768 (snow-free grass floor, barrier roof, Bot looking at the floor); bring the calendar to June (`tfp time add months <n>`, a fresh world starts on June 1); tfp time set noon; wait 20 s; check `time query daytime` is about 6000 and the frame shows a blue sky (no stars) before the shot; screenshot (June)"
+  - "tfp time add months 4 (October); tfp time set noon; weather clear; wait 15 s for the resend (`tfp debug packets` shows phase=OCTOBER); re-run testroom.sh if snow lies on the floor; check daylight as above; screenshot the same view (October); repeat October at GUI scale 2 and 3. Measure the mean RGB of the same floor strip in both frames (hue and R/G)"
 plan:
+  - "UNBLOCKED (unblocker, 2026-11-18): rejected after 2 repair rounds, but no files_owned limit or missing dep: the code (28 bands + dormant shift) and both main-session runs pass (verdict.md: June hue 81.0 R/G 0.82, October hue 45.1 R/G 1.19 at (-768, 64, 768)). Every failed verify run broke on the procedure: the second got dark frames (shots on bare snowy terrain before the day time reached the client), the third ran the server with -Xmx2G, OOM'd in worldgen (crash 'Chunk system error', BiomeWeights) and again shot only dark frames (mean RGB about 12, 11, 11). in_game_steps now pin the server heap (server.sh default 3G, one server only, view distance 6), the test room at the site and a daylight check before each shot. Remaining work: rerun the steps once, add the crops and result to docs/verification/PAR-CLIM-05/verdict.md and set done; no code change expected."
   - "OWNER DECISION (2026-11-18, delegated to the manager: decide without asking): pick the cheapest of (a) more temperature bands, (b) a grass-only colour view, (c) month/phase-based bands that makes October grass warmer and yellower than June at the same site in the TFC direction; hard limits: keep the seasonal biome registry at no more than about twice the present variant count and keep the chunk remap async. Record the choice, the budget numbers and the evidence (June vs October screenshots at the same site and light) in docs/verification/PAR-CLIM-05/verdict.md and the ledger."
   - "BLOCKED on an owner decision (plans/gaps.md 'tasarım kararı'): 14.5 C and 5.1 C fall in the same band t1r1, so June and October look identical. Options: (a) more temperature bands (budget risk: 125 biomes x N), (b) a grass-only colour view, (c) month/phase-based bands."
   - "After the decision: change SeasonalBiomes + SeasonalColour to the new banding, keep the datapack under the registry budget, regenerate, re-run the controlled June/October comparison at (-768, 768) with `advance_weather false`."
