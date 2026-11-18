@@ -61,7 +61,9 @@ import org.bukkit.inventory.ItemStack;
  * left in the slots and the burn; raw beef goes into grill slot 4 ({@link DeviceService#edit}: the self-test server has
  * no player to click), the calendar moves {@value #SKIP_TICKS} ticks, the device is caught up, and slot 4 must hold one
  * cooked beef carrying {@code tfp:wood_grilled}. The firepit cooks the beef about 200 ticks after lighting; the second
- * bundle keeps the grill burning past that.
+ * bundle keeps the grill burning past that. The skip stays well under 900 ticks: the fire climbs about 1 C a tick to
+ * 900 C, and cooked meat left on the grill at 900 C burns away (TFC's {@code burn_meat} heating recipe, no output), as
+ * the in-game check saw after a one-hour skip.
  */
 public final class GrillCookCase implements SelfTestCase {
     static final String STICK_BUNDLE = FirepitCookCase.STICK_BUNDLE;
@@ -69,7 +71,7 @@ public final class GrillCookCase implements SelfTestCase {
     static final String COOKED_BEEF = FirepitCookCase.COOKED_BEEF;
     /** Chunks east of spawn: away from firepit.cook (56), device.roundtrip (48) and ce.block_roundtrip (40). */
     static final int CHUNK_OFFSET = 60;
-    static final int SKIP_TICKS = 1_000;
+    static final int SKIP_TICKS = 500;
     private static final Duration STEP = Duration.ofSeconds(20);
 
     @Override
