@@ -200,7 +200,7 @@ Totals: 382 items; open 207, done 166, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-HEAT-33 | Firepit block state follows calendar jumps: the lit look turns off when a time skip burns the fuel out, smoke level in step after a douse | HEAT | 17 | done |
 | PAR-INFRA-36 | Verify falling ores keep their face overlays in game (collapse and falling rich ore) | INFRA | 17 | blocked |
 | PAR-PHYS-02 | Collapse runner: mining triggers collapses decided async, applied as falling blocks | PHYS | 17 | open |
-| PAR-PHYS-03 | Landslides and gravity soils | PHYS | 17 | open |
+| PAR-PHYS-03 | Landslides and gravity soils | PHYS | 17 | done |
 | PAR-WORLD-03 | Worldgen performance: JMH chunk budget, vanilla baseline and exposed-gem decision | WORLD | 17 | open |
 | PAR-WORLD-04 | TFC soil and gravel block set in generation: grass, dirt, coarse dirt, clay, peat, kaolin, mud, rock gravel | WORLD | 17 | open |
 | PAR-PROC-44 | Barrel wiring in-game verification: GUI from the block, five buckets in and one out, half-tank surface, lazy rain fill (the checks PAR-PROC-35 closed without) | PROC | 17 | done |
