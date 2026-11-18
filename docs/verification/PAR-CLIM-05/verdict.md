@@ -76,6 +76,14 @@ Evidence: `rerun-june-vs-october.png` (left half of each 1280x720 frame, June le
 lossless WebP were handed to the user outside the repo. Result: green in June, straw yellow in October, at the same
 site, camera and light: **PASS**.
 
+### Unblock round (2026-11-18, HEAD b986dfe)
+
+The third verify run failed on the procedure only (server at -Xmx2G, OOM in worldgen, dark frames). The item's
+`in_game_steps` now pin the server heap (spikes/client/server.sh default 3 GB, one server, view and simulation distance
+6), the test room at (-768, 64, 768) and a daylight check (`time query daytime` about 6000, blue sky) before each shot.
+No code change; `./gradlew check` green. The re-run above (main session, same steps, daylight confirmed) stands as the
+evidence; the verify stage repeats the pinned steps.
+
 ## Verdict
 
 - Controlled screenshots at the same site and light, June vs October, October warmer/yellower: **PASS** at both sites

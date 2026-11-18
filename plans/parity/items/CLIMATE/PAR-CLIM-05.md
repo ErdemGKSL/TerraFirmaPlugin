@@ -2,7 +2,7 @@
 id: PAR-CLIM-05
 title: "Seasonal grass tint: decide band resolution and make the colour change visible"
 area: CLIMATE
-status: open
+status: done
 wave: 14
 deps: []
 size: M
@@ -35,6 +35,7 @@ plan:
   - "Repair (2026-11-18, verify stage: October measured greener, hue 98 to 110): added option (c) on top of (a), no new variants: SeasonalColour.dormant ports TFC's autumn/winter leaf window (getSeasonalFoliageColor: winter-controlled <= 12 C with hemisphere offset, dry-season, evergreen otherwise) and dormantBand moves a non-freezing band to the driest rainfall band (straw yellow). One-band-drier was tried first and failed in game at a dry-June/wet-October site. Ledger divergence row updated."
   - "Done (repair): dormant shift in SeasonalColour + SeasonalBiomeRemap; SeasonalColourTest 15, SeasonalBiomeRemapTest 15; ./gradlew check green; in game at (-768, 64, 768) and (1500, 70, 0), noon, clear, test room: October hue 45 vs June 47.6 and 116.8, R/G 1.19 vs 1.15 and 0.56: PASS; docs/verification/PAR-CLIM-05/verdict.md and two crops."
   - "Done (repair 2, 2026-11-18): verify stage got only dark frames (shots on bare snowy terrain before the day time reached the client). No code change; re-ran the item's steps on a fresh world with the test room at (-768, 64, 768), tfp time set noon, daylight confirmed: June hue 81.0 R/G 0.82 to October hue 45.1 R/G 1.19, same at GUI scale 2 and 3; ./gradlew check green; verdict.md re-run section and rerun-june-vs-october.png."
+  - "Done (2026-11-18, after unblock): no code change; ./gradlew check green on HEAD b986dfe (SeasonalColourTest 15, SeasonalBiomeRemapTest 15, DatagenTest); in-game evidence from the main-session runs (June hue 81.0 R/G 0.82 to October hue 45.1 R/G 1.19 at (-768, 64, 768), GUI scale 2 and 3) in docs/verification/PAR-CLIM-05/verdict.md; the pinned in_game_steps (3 GB heap, one server, test room, daylight check) are re-run by the verify stage."
 tests:
   - "core: SeasonalColourTest per band edges"
   - "paper: SeasonalBiomeRemapTest phases"
