@@ -92,13 +92,13 @@ public final class BarrelWorldListener implements Listener {
                 handle[0].cancel();
                 return;
             }
-            gather(item);
+            boolean moved = gather(item);
             boolean still = item.getLocation().getX() == last[0] && item.getLocation().getY() == last[1]
                 && item.getLocation().getZ() == last[2];
             last[0] = item.getLocation().getX();
             last[1] = item.getLocation().getY();
             last[2] = item.getLocation().getZ();
-            if (!still) {
+            if (!still || moved) {
                 rested.set(0);
             } else if (rested.incrementAndGet() >= REST_CHECKS) {
                 handle[0].cancel();
