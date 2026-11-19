@@ -31,6 +31,8 @@ done_criteria:
 
 # PAR-WORLD-10: Wood blocks: logs, wood, stripped, leaves, saplings as CE blocks
 
+> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-19
+
 > Claimed: deco-tool session (blocks PAR-DECO-01), 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
