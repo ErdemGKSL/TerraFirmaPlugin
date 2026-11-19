@@ -80,3 +80,4 @@ dev.tfp.paper.logging.FellingModule
 dev.tfp.paper.fruittree.FruitTreeModule
 dev.tfp.paper.alloy.AlloyModule
 dev.tfp.paper.anvil.AnvilModule
+dev.tfp.paper.leaves.LeavesModule
