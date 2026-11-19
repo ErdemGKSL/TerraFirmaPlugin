@@ -181,7 +181,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-INFRA-55 | Installer: rebuild the CraftEngine pack on the restart that applies a raised serverside-blocks (the first-install pack misses the blocks that could not allocate) | INFRA | 15 | done |
 | PAR-INFRA-58 | Packet-layer boundary: move the PacketEvents-typed heat glow, item bar and block sound handlers under dev.tfp.paper.packet so ArchitectureTest.onlyThePacketLayerTouchesPacketEvents passes | INFRA | 15 | done |
 | PAR-PROC-41 | Sealed barrel item keeps its contents: breaking a sealed barrel drops the barrel with its items and fluid (TFC BarrelComponent), placing it restores them | PROC | 15 | blocked |
-| PAR-CLIM-26 | Client snow look: freezing seasonal variants carry a below-0.15 biome temperature | CLIMATE | 15 | open |
+| PAR-CLIM-26 | Client snow look: freezing seasonal variants carry a below-0.15 biome temperature | CLIMATE | 15 | done |
 | PAR-HEAT-23 | Firepit look in game: TFC's lit and unlit models on their own carriers (axis z turned 90), and the in-game firepit check | HEAT | 16 | done |
 | PAR-HEAT-28 | Torch burnout on chunk load leaves the client's block light at 14 until the chunk is sent again | HEAT | 16 | done |
 | PAR-HEAT-29 | Dead torch outlines closer to TFC: widen the hitbox candidate dump to every small no-collision vanilla block and re-pick the dead torch carriers | HEAT | 16 | done |

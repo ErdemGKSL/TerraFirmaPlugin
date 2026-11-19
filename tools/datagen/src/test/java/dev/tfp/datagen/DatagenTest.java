@@ -148,8 +148,18 @@ class DatagenTest {
         assertThat(e.get("sky_color").getAsInt()).isEqualTo(8709887);
         assertThat(e.get("fog_color").getAsInt()).isEqualTo(12638463);
         assertThat(e.get("water_fog_color").getAsInt()).isEqualTo(329011);
-        assertThat(v.get("temperature").getAsFloat()).isEqualTo(0.8f);
+        // PAR-CLIM-26: t2 is a freezing band, so the client draws snow (temperature below 0.15)
+        assertThat(v.get("temperature").getAsFloat()).isEqualTo(SeasonalBiomes.SNOW_TEMPERATURE).isLessThan(0.15f);
         assertThat(v.get("has_precipitation").getAsBoolean()).isTrue();
+        // every other band keeps the TFC biome's temperature (0.8 in the fixture); the base biome keeps it too
+        for (int band = 0; band < SeasonalColour.BAND_COUNT; band++) {
+            JsonObject o = JsonParser.parseString(text(files, base + SeasonalColour.variantName(band) + ".json")).getAsJsonObject();
+            float expected = SeasonalColour.isFreezing(band) ? SeasonalBiomes.SNOW_TEMPERATURE : 0.8f;
+            assertThat(o.get("temperature").getAsFloat()).as("band %d", band).isEqualTo(expected);
+        }
+        JsonObject baseBiome = JsonParser.parseString(text(files,
+            "datapack/tfp_seasonal_biomes/data/tfp/worldgen/biome/plains.json")).getAsJsonObject();
+        assertThat(baseBiome.get("temperature").getAsFloat()).isEqualTo(0.8f);
         // features and spawners are empty: the variant is a palette id, never a generator
         assertThat(v.getAsJsonArray("features")).hasSize(SeasonalBiomes.FEATURE_STEPS);
         assertThat(v.getAsJsonObject("spawners").size()).isZero();

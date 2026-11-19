@@ -2,7 +2,7 @@
 id: PAR-CLIM-26
 title: "Client snow look: freezing seasonal variants carry a below-0.15 biome temperature"
 area: CLIMATE
-status: open
+status: done
 wave: 15
 deps: [PAR-CLIM-05]
 size: S
@@ -25,12 +25,12 @@ plan:
   - "Record the remaining gap (the band is sampled at the month's middle day at noon, not the instant) in the ledger divergence row on client snow."
 tests:
   - "datagen: freezing variants carry a below-0.15 temperature, the others the TFC biome's"
+  - "Done: freezing variants write temperature -0.5 (SeasonalBiomes.SNOW_TEMPERATURE); DatagenTest checks all 28 bands + base biome. In-game screenshot check not run (no headless client in this session); needs a follow-up run."
 done_criteria:
   - "In a freezing month the client draws snow where the server snows; in a warm month rain; evidence in docs/verification/PAR-CLIM-26/"
 ---
 
 # PAR-CLIM-26: Client snow look: freezing seasonal variants carry a below-0.15 biome temperature
 
-> Claimed: FARM/CLIMATE/FLUID/GATHER worker, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

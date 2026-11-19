@@ -52,6 +52,9 @@ final class SeasonalBiomes {
     private SeasonalBiomes() {
     }
 
+    /** Biome temperature of freezing variants: snow at every height on the vanilla client. */
+    static final float SNOW_TEMPERATURE = -0.5f;
+
     /** Writes the variants and returns how many biomes were written. */
     static int write(TfcCheckout tfc, OutputTree out) {
         BufferedImage grass = colormap(tfc, "grass");
@@ -72,7 +75,8 @@ final class SeasonalBiomes {
                 int t = SeasonalColour.centreTemperatureIndex(band);
                 int r = SeasonalColour.centreRainfallIndex(band);
                 out.put(OUT + "data/" + SeasonalColour.NAMESPACE + "/worldgen/biome/" + SeasonalColour.variantPath(name, band) + ".json",
-                    Json.write(variant(tfcBiome, effects, colourAt(grass, t, r), colourAt(foliage, t, r), colourAt(water, t, r))));
+                    Json.write(variant(tfcBiome, effects, colourAt(grass, t, r), colourAt(foliage, t, r), colourAt(water, t, r),
+                        SeasonalColour.isFreezing(band))));
             }
             biomes++;
         }
@@ -122,9 +126,21 @@ final class SeasonalBiomes {
 
     /** One variant: the TFC biome's climate and sky/fog colours, the band's grass, foliage and water colours. */
     static JsonObject variant(JsonObject tfcBiome, JsonObject tfcEffects, int grass, int foliage, int water) {
+        return variant(tfcBiome, tfcEffects, grass, foliage, water, false);
+    }
+
+    /**
+     * PAR-CLIM-26: a freezing band (at or below TFC's 0 C) carries {@link #SNOW_TEMPERATURE}, below vanilla's 0.15 snow
+     * threshold, so the client draws snow instead of rain; the other bands keep the TFC biome's temperature.
+     */
+    static JsonObject variant(JsonObject tfcBiome, JsonObject tfcEffects, int grass, int foliage, int water, boolean freezing) {
         JsonObject b = new JsonObject();
         b.add("has_precipitation", tfcBiome.get("has_precipitation"));
-        b.add("temperature", tfcBiome.get("temperature"));
+        if (freezing) {
+            b.addProperty("temperature", SNOW_TEMPERATURE);
+        } else {
+            b.add("temperature", tfcBiome.get("temperature"));
+        }
         b.add("downfall", tfcBiome.get("downfall"));
         JsonObject e = new JsonObject();
         e.add("fog_color", tfcEffects.get("fog_color"));
