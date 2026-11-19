@@ -2,7 +2,7 @@
 id: PAR-POT-04
 title: "Small vessel: inventory, melting contents into metal, pouring"
 area: POTTERY
-status: open
+status: done
 wave: 24
 deps: [PAR-INFRA-04, PAR-INFRA-03, PAR-POT-02]
 size: M
@@ -26,6 +26,7 @@ in_game_steps:
   - "hover"
 plan:
   - "Right-click a fired vessel opens the 4-slot GUI (catalogue `m3-pot-02-small-vessel`); contents stored with PAR-INFRA-04; heating the vessel (in a firepit/forge) melts contents via VesselState into a fluid alloy; sneak right-click with a mold in offhand pours (MoldLikeAlloy screen PAR-POT-05)."
+  - "Done: paper/vessel (VesselItems, VesselScreens, VesselListener, VesselTooltipContributor, VesselModule); 9 MockBukkit tests (insert limits, hot vessel, melt, copy round trip and lazy cooling, alloy cap, screen, tooltip, ids) + BootstrapTest list; in-game check docs/verification/PAR-POT-04/ (melt to Copper 125 mB, tooltip, screen). Follow-ups: PAR-POT-10 (screen art), PAR-POT-11 (item_heat for fired pottery)."
 tests:
   - "core: VesselGoldenTest exists"
   - "paper: MockBukkit insert size limits"
@@ -34,7 +35,5 @@ done_criteria:
 ---
 
 # PAR-POT-04: Small vessel: inventory, melting contents into metal, pouring
-
-> Claimed: pottery-metal worker, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

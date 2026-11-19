@@ -68,3 +68,4 @@ dev.tfp.paper.berry.BerryModule
 dev.tfp.paper.instrument.InstrumentModule
 dev.tfp.paper.weather.WeatherBlocksModule
 dev.tfp.paper.lightning.LightningModule
+dev.tfp.paper.vessel.VesselModule
