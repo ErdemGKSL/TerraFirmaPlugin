@@ -32,7 +32,9 @@ public record Groundcover(int x, int y, int z, Kind kind, String block, int coun
         MOLLUSK,
         MUSSEL,
         SEAWEED,
-        STICK
+        STICK,
+        /** {@code tfp:groundcover/guano}: on stone above the tide (PAR-WORLD-09). */
+        GUANO
     }
 
     public Groundcover {

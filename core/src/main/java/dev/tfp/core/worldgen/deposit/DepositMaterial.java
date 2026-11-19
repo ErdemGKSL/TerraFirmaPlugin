@@ -19,5 +19,7 @@ public enum DepositMaterial {
     /** {@code tfc:grass/<soil>}. */
     GRASS,
     /** {@code tfc:mud/<soil>}. */
-    MUD
+    MUD,
+    /** {@code #tfc:powder_snow_replaceable}: snow block, packed ice and blue ice (PAR-WORLD-09). */
+    SNOW
 }

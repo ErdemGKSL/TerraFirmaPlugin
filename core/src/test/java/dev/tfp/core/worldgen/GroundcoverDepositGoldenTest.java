@@ -9,10 +9,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.tfp.core.worldgen.deposit.DepositKind;
 import dev.tfp.core.worldgen.deposit.Deposits;
+import dev.tfp.core.worldgen.deposit.MollisolDiscs;
+import dev.tfp.core.worldgen.deposit.PowderSnow;
 import dev.tfp.core.worldgen.deposit.SoilDisc;
+import dev.tfp.core.worldgen.groundcover.Boulders;
 import dev.tfp.core.worldgen.groundcover.Groundcover;
 import dev.tfp.core.worldgen.groundcover.LooseRocks;
 import dev.tfp.core.worldgen.groundcover.ShoreGroundcover;
+import dev.tfp.core.worldgen.groundcover.UndergroundLooseRocks;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -47,7 +51,7 @@ class GroundcoverDepositGoldenTest {
     static final Map<String, Integer> TFC_FILE_COUNTS = Map.of("loose_rock", 3, "boulder", 6, "groundcover", 7,
         "ore_deposit", 8, "soil_disc", 6, "vein_indicator", 12);
 
-    /** The TFC kind name of each {@link Groundcover.Kind}. Guano is a TFC kind with no Java kind. */
+    /** The TFC kind name of each {@link Groundcover.Kind}. */
     static final Map<Groundcover.Kind, String> GROUNDCOVER_KINDS = Map.of(
         Groundcover.Kind.LOOSE_ROCK, "loose_rock",
         Groundcover.Kind.MOSSY_LOOSE_ROCK, "mossy_loose_rock",
@@ -57,18 +61,23 @@ class GroundcoverDepositGoldenTest {
         Groundcover.Kind.MOLLUSK, "mollusk",
         Groundcover.Kind.MUSSEL, "mussel",
         Groundcover.Kind.SEAWEED, "seaweed",
-        Groundcover.Kind.STICK, "stick");
+        Groundcover.Kind.STICK, "stick",
+        Groundcover.Kind.GUANO, "guano");
 
-    /** The TFC kind name of each {@link DepositKind}, from the {@code with} blocks of the soil discs. */
+    /** The TFC kind name of each disc {@link DepositKind}, from the {@code with} blocks of the soil discs ("other": rooted dirt). */
     static final Map<DepositKind, String> DEPOSIT_KINDS = Map.of(
         DepositKind.ORE_DEPOSIT, "deposit",
         DepositKind.CLAY, "clay",
         DepositKind.CLAY_GRASS, "clay_grass",
         DepositKind.PEAT, "peat",
-        DepositKind.PEAT_GRASS, "peat_grass");
+        DepositKind.PEAT_GRASS, "peat_grass",
+        DepositKind.ROOTED_DIRT, "other");
 
-    /** The TFC kinds that no Java kind covers: the only one is guano, whose shore patch is an open gap. */
-    static final Set<String> TFC_KINDS_WITHOUT_JAVA = Set.of("guano");
+    /** The kinds that no soil disc writes: powder snow and mollisol are features of their own (PAR-WORLD-09). */
+    static final Set<DepositKind> NON_DISC_KINDS = EnumSet.of(DepositKind.POWDER_SNOW, DepositKind.MOLLISOL);
+
+    /** The TFC kinds that no Java kind covers (PAR-WORLD-09: none). */
+    static final Set<String> TFC_KINDS_WITHOUT_JAVA = Set.of();
 
     private static final String PREFIX = "tfc:";
 
@@ -141,7 +150,9 @@ class GroundcoverDepositGoldenTest {
 
     @Test
     void depositKindsMatchTfcNames() throws IOException {
-        assertThat(DEPOSIT_KINDS.keySet()).isEqualTo(EnumSet.allOf(DepositKind.class));
+        final Set<DepositKind> discKinds = EnumSet.allOf(DepositKind.class);
+        discKinds.removeAll(NON_DISC_KINDS);
+        assertThat(DEPOSIT_KINDS.keySet()).isEqualTo(discKinds);
         final Set<String> covered = new TreeSet<>();
         for (Deposits.Feature feature : Deposits.FEATURES) {
             covered.addAll(split(row(feature.feature()).get("with_kinds")));
@@ -158,6 +169,14 @@ class GroundcoverDepositGoldenTest {
             covered.add(patch.feature());
         }
         for (Deposits.Feature feature : Deposits.FEATURES) {
+            covered.add(feature.feature());
+        }
+        // PAR-WORLD-09
+        covered.add(UndergroundLooseRocks.FEATURE);
+        covered.add(ShoreGroundcover.GUANO.feature());
+        covered.add(PowderSnow.FEATURE);
+        covered.add(MollisolDiscs.FEATURE);
+        for (Boulders.Feature feature : Boulders.FEATURES) {
             covered.add(feature.feature());
         }
         // The vein indicators: VeinIndicators places the small ore of every vein's indicator (the cave indicators are open,

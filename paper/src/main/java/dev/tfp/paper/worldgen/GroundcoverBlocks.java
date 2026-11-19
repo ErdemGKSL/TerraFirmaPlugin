@@ -6,15 +6,18 @@
 package dev.tfp.paper.worldgen;
 
 import dev.tfp.core.worldgen.deposit.DepositBlock;
+import dev.tfp.core.worldgen.groundcover.Boulders;
 import dev.tfp.core.worldgen.groundcover.Groundcover;
 import java.util.List;
+import java.util.Locale;
 import org.bukkit.Material;
 
 /**
- * The blocks of the groundcover and deposits (M2-GEN-11). None of these blocks exists in the CraftEngine content yet (loose
- * rocks and small ores are items only, there are no deposit, groundcover or peat blocks, and the clay blocks are per soil
- * variant, which the vanilla dirt they replace does not carry), so each kind gets a vanilla placeholder (ledger). The
- * placement rule is pure: {@link #write} applies the decisions of one chunk through a {@link Target}.
+ * The blocks of the groundcover, deposits and boulders (M2-GEN-11, PAR-WORLD-09). Each decision has its CraftEngine block id
+ * ({@link #ceId}); until those CE blocks exist (loose rocks and small ores are items only, there are no deposit, groundcover
+ * or peat blocks, and the clay blocks are per soil variant, which the vanilla dirt they replace does not carry) the terrain
+ * writes a vanilla placeholder (ledger). The boulders are rock blocks that exist ({@code tfp:rock/raw|cobble|mossy_cobble}).
+ * The placement rule is pure: {@link #write} applies the decisions of one chunk through a {@link Target}.
  */
 final class GroundcoverBlocks {
     private GroundcoverBlocks() {}
@@ -28,10 +31,31 @@ final class GroundcoverBlocks {
             case STICK -> Material.OAK_BUTTON;
             case CLAM, MOLLUSK, MUSSEL -> Material.SEA_PICKLE;
             case SEAWEED -> waterlogged ? Material.SEAGRASS : Material.BROWN_CARPET;
+            case GUANO -> Material.LIGHT_GRAY_CARPET;
         };
     }
 
-    /** The vanilla placeholder of a deposit block: a raw metal block per native metal, clay for clay, mud and moss for peat. */
+    /**
+     * The CraftEngine block state of a groundcover decision: its block id, with the {@code count} of a loose rock
+     * ({@code tfp:rock/loose/granite[count=2]}).
+     */
+    static String ceId(Groundcover cover) {
+        return switch (cover.kind()) {
+            case LOOSE_ROCK, MOSSY_LOOSE_ROCK -> cover.block() + "[count=" + cover.count() + "]";
+            default -> cover.block();
+        };
+    }
+
+    /** The CraftEngine block of a boulder piece: {@code tfp:rock/<raw|cobble|mossy_cobble>/<rock>}. */
+    static String ceId(Boulders.Block block, List<String> rockNames) {
+        return "tfp:rock/" + block.material().name().toLowerCase(Locale.ROOT) + "/" + rockNames.get(block.rock());
+    }
+
+    /**
+     * The vanilla placeholder of a deposit block: a raw metal block per native metal, clay for clay, mud and moss for peat,
+     * vanilla rooted dirt and powder snow; null for {@link dev.tfp.core.worldgen.deposit.DepositKind#MOLLISOL}, which changes
+     * only the soil variant that the placeholder terrain does not show (the writer keeps the block there).
+     */
     static Material placeholder(DepositBlock block) {
         return switch (block.kind()) {
             case ORE_DEPOSIT -> switch (block.mineral()) {
@@ -44,7 +68,33 @@ final class GroundcoverBlocks {
             case CLAY, CLAY_GRASS -> Material.CLAY;
             case PEAT -> Material.PACKED_MUD;
             case PEAT_GRASS -> Material.MOSS_BLOCK;
+            case ROOTED_DIRT -> Material.ROOTED_DIRT;
+            case POWDER_SNOW -> Material.POWDER_SNOW;
+            case MOLLISOL -> null;
         };
+    }
+
+    /** The blocks of the generating chunk, by local x and z, for the boulders. */
+    interface BoulderTarget {
+        void place(int localX, int y, int localZ, Boulders.Block block);
+    }
+
+    /**
+     * Writes the boulder blocks of one chunk in order, over whatever is there ({@code Feature.setBlock}); a block outside the
+     * chunk or its heights is skipped.
+     *
+     * @return the number of blocks written
+     */
+    static int writeBoulders(List<Boulders.Block> blocks, int chunkX, int chunkZ, int minY, int maxY, BoulderTarget target) {
+        int written = 0;
+        for (Boulders.Block b : blocks) {
+            if (!b.inChunk(chunkX, chunkZ) || b.y() < minY || b.y() >= maxY) {
+                continue;
+            }
+            target.place(b.x() & 15, b.y(), b.z() & 15, b);
+            written++;
+        }
+        return written;
     }
 
     /** The blocks of the generating chunk, by local x and z. */

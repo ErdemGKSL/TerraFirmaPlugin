@@ -232,7 +232,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-TOOL-02 | Tool mechanics on Paper: TFC mining speed, durability rules, forging efficiency | TOOL | 20 | done |
 | PAR-TOOL-04 | Swords, maces, macuahuitl: attack damage per TFC tier | TOOL | 20 | done |
 | PAR-WORLD-07 | Aquifer barrier noise and the grass rule under carved surfaces | WORLD | 20 | done |
-| PAR-WORLD-09 | Groundcover, loose rocks, deposits and boulders as CE blocks in generation | WORLD | 20 | open |
+| PAR-WORLD-09 | Groundcover, loose rocks, deposits and boulders as CE blocks in generation | WORLD | 20 | done |
 | PAR-WORLD-19 | Ore overlay S1 rerun on a world with caves: census, exposed-vein reference screenshots, GPU client cost | WORLD | 20 | open |
 | PAR-WORLD-28 | Wire the cave and canyon tunnel masks into the terrain fill, and the in-game cave check | WORLD | 20 | done |
 | PAR-WORLD-29 | Wire the aquifer barrier noise and the fluid support rule into the terrain fill, and the floating-fluid scan | WORLD | 21 | done |
@@ -242,6 +242,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-12 | Panning | PROC | 21 | open |
 | PAR-WORLD-10 | Wood blocks: logs, wood, stripped, leaves, saplings as CE blocks | WORLD | 21 | done |
 | PAR-WORLD-24 | Noise and noodle caves: TFC's density caves (cave cheese, cave layer, spaghetti, pillars, noodles) in the terrain fill, and the surface over carved blocks | WORLD | 21 | open |
+| PAR-WORLD-31 | Groundcover CE blocks: loose rocks, small ores, groundcover types and deposits (datagen, hitbox demands, visuals) | WORLD | 21 | open |
 | PAR-GATHER-03 | Tree felling: the whole tree falls when the trunk is cut with an axe | GATHER | 22 | done |
 | PAR-GATHER-04 | Leaves: slow decay, movement slowdown, fallen leaves; plant movement slowdown | GATHER | 22 | done |
 | PAR-GATHER-07 | Item placement interactions: vanilla stick, bone, feather, flint, rotten flesh and salt place as TFC groundcover; a snow item over plants places a snow pile | GATHER | 22 | open |
@@ -252,6 +253,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-INFRA-29 | Loot delegation check: loose rocks and leaves drop by their TFC tables in the self-test | INFRA | 22 | open |
 | PAR-WORLD-26 | Amethyst geodes: tfc:geode (hardened basalt shell, quartzite layers, amethyst ore) in the vein step | WORLD | 22 | open |
 | PAR-WORLD-30 | Vein step wiring: biome vein passes, kaolin disc, projected, near-lava and rock-writing veins in TfcTerrain | WORLD | 22 | open |
+| PAR-WORLD-32 | Wire groundcover, boulders, cave loose rocks and the new soil features into TfcTerrain with CE blocks, and the in-game groundcover check | WORLD | 22 | open |
 | PAR-POT-02 | Unfired and fired pottery items, clay knapping outputs | POTTERY | 23 | done |
 | PAR-TOOL-05 | Javelins: throwing, damage, pickup, javelin AI for skeletons | TOOL | 23 | done |
 | PAR-TOOL-06 | Knife, scythe and hoe area behaviours; remaining tool items (saw, chisel, propick, tuyere, shears heads) | TOOL | 23 | done |

@@ -51,6 +51,23 @@ public interface GroundView {
     /** The high tide level of the column (TFC's {@code BiomeNoise.shoreTideLevelNoise}), absolute y. */
     double tideLevel(int x, int z);
 
+    /**
+     * The forest density ({@code ForestType.getDensity}, 0 to 4) of the column's chunk data, or -1 when the view does not know
+     * it. A feature that filters on the forest does not place where it is unknown (PAR-WORLD-09).
+     */
+    default int forestDensity(int x, int z) {
+        return -1;
+    }
+
+    /**
+     * Whether the column's highest non-air block (below {@link #worldSurface}) is in TFC's
+     * {@code #tfc:creeping_stone_plantable_on} (stones, smooth stones, cobblestones, sandstones), the ground of guano. False
+     * when the view does not know the block (PAR-WORLD-09).
+     */
+    default boolean topBlockStone(int x, int z) {
+        return false;
+    }
+
     /** Whether a position at or above the ocean floor holds water (the water between the floor and the sea level). */
     default boolean water(int x, int y, int z) {
         return y >= oceanFloor(x, z) && y < worldSurface(x, z);

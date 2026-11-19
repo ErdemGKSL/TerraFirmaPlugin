@@ -6,8 +6,9 @@
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/world/feature/IfThenFeature.java @ c3b4d9536 (the disc of the clay feature), with the
  * data of src/main/resources/data/tfc/worldgen/configured_feature/ and placed_feature/ for
- * {native_copper,native_gold,native_silver,cassiterite}_{deposit,deep_deposit}, clay_disc, clay_disc_with_indicator and
- * peat_disc, the tags data/tfc/tags/worldgen/placed_feature/feature/{ore_deposits,soil_discs}.json and in_biome/soil_discs/*.json
+ * {native_copper,native_gold,native_silver,cassiterite}_{deposit,deep_deposit}, clay_disc, clay_disc_with_indicator,
+ * water_clay_disc, water_clay_disc_with_indicator, peat_disc and rooted_dirt, src/main/java/net/dries007/tfc/world/placement/
+ * NearFluidPlacement.java and ClimatePlacement.java (the forest bounds), the tags data/tfc/tags/worldgen/placed_feature/feature/{ore_deposits,soil_discs}.json and in_biome/soil_discs/*.json
  * (order and biomes), and the vanilla 1.21 steps they name (rarity_filter, in_square, heightmap, height_range uniform).
  */
 package dev.tfp.core.worldgen.deposit;
@@ -26,12 +27,13 @@ import java.util.Set;
 
 /**
  * TFC's deposits: the ore deposits of rivers and lakes (gravel with native copper, gold, silver or cassiterite, in the floor
- * gravel or, deeper, in the raw rock) and the soil discs of the land (clay and peat). Each is a {@code tfc:soil_disc} behind a
+ * gravel or, deeper, in the raw rock) and the soil discs of the land (clay, peat, rooted dirt). Each is a {@code tfc:soil_disc} behind a
  * rarity filter, an {@code in_square} origin, a height (a heightmap or a uniform range) and, for the soil discs, a climate
- * filter. Pure and thread-safe; {@link #chunk} decides the replaced blocks of one chunk.
+ * filter, a forest filter or a fresh-water scan ({@code tfc:near_fluid}, the water clay disc). Powder snow
+ * ({@link PowderSnow}) and the mollisol discs ({@link MollisolDiscs}) end the soil discs tag. Pure and thread-safe;
+ * {@link #chunk} decides the replaced blocks of one chunk.
  *
- * <p>Not ported (ledger): the water clay disc (it needs {@code tfc:near_fluid}), the rooted dirt and mollisol discs (they need
- * the forest), powder snow, and the clay indicator plants of the clay disc (M2-GEN-13).
+ * <p>Not ported (ledger): the clay indicator plants of the clay discs (plants).
  */
 public final class Deposits {
     /** How a feature's origin gets its y. */
@@ -55,9 +57,15 @@ public final class Deposits {
      * @param maxY    the uniform range's highest y, inclusive
      * @param climate the climate filter after the height, or null
      * @param biomes  the biome names whose tag lists the feature
+     * @param nearWater the {@code tfc:near_fluid} radius for {@code minecraft:water} after the height, or -1 for none
      */
     public record Feature(String feature, SoilDisc disc, int rarity, Anchor anchor, int minY, int maxY, ClimateFilter climate,
-                          Set<String> biomes) {}
+                          Set<String> biomes, int nearWater) {
+        public Feature(String feature, SoilDisc disc, int rarity, Anchor anchor, int minY, int maxY, ClimateFilter climate,
+                       Set<String> biomes) {
+            this(feature, disc, rarity, anchor, minY, maxY, climate, biomes, -1);
+        }
+    }
 
     /** The biomes of {@code #tfc:feature/ore_deposits}: the river and lake biomes. */
     static final Set<String> ORE_DEPOSIT_BIOMES = Set.of("lake", "meltwater_lake", "oceanic_mountain_lake", "rift_lake", "river",
@@ -70,7 +78,7 @@ public final class Deposits {
         "mud_flats", "ocean", "ocean_atolls", "ocean_reef", "ocean_ridge", "old_shield_volcano_shore", "rocky_shores", "salt_flats",
         "shield_volcano_shore", "shore", "subglacial_lake", "tidal_flats");
 
-    private static final Set<String> SOIL_DISC_BIOMES = soilDiscBiomes();
+    static final Set<String> SOIL_DISC_BIOMES = soilDiscBiomes();
 
     /** The features, in TFC's order: the ore deposits tag, then the soil discs tag (the order of the river tag). */
     public static final List<Feature> FEATURES = features();
@@ -82,18 +90,24 @@ public final class Deposits {
     }
 
     private final FeatureRandom[] randoms;
+    private final PowderSnow powderSnow;
+    private final MollisolDiscs mollisol;
 
     public Deposits(long levelSeed) {
         this.randoms = new FeatureRandom[FEATURES.size()];
         for (int i = 0; i < randoms.length; i++) {
             randoms[i] = new FeatureRandom(levelSeed, FEATURES.get(i).feature());
         }
+        this.powderSnow = new PowderSnow(levelSeed);
+        this.mollisol = new MollisolDiscs(levelSeed);
     }
 
     /**
      * The blocks the discs replace inside chunk {@code (chunkX, chunkZ)}: the discs of the 3 x 3 chunks around it (the largest
      * radius is 10), in feature order then chunk order (x outer). A chunk places a feature when the biome at its centre lists
-     * it (ledger). A position replaced by an earlier disc is no longer replaceable.
+     * it (ledger). A position replaced by an earlier disc is no longer replaceable. Then the powder snow and the mollisol discs
+     * (PAR-WORLD-09), the last two of the soil discs tag: powder snow replaces only snow and ice, which no disc touches, so
+     * running it after rooted dirt gives TFC's result; mollisol, last in the tag, also recolours the earlier discs' soils.
      *
      * @param materials the terrain's material at a position of the chunk; asked only inside it
      */
@@ -113,7 +127,7 @@ public final class Deposits {
                         if (x >> 4 != chunkX || z >> 4 != chunkZ) {
                             return;
                         }
-                        final long key = ((long) x & 0x3FFFFFFL) << 38 | ((long) z & 0x3FFFFFFL) << 12 | ((long) y & 0xFFFL);
+                        final long key = key(x, y, z);
                         if (replaced.contains(key)) {
                             return;
                         }
@@ -127,7 +141,14 @@ public final class Deposits {
                 }
             }
         }
+        powderSnow.chunk(chunkX, chunkZ, view, materials, replaced, out);
+        mollisol.chunk(chunkX, chunkZ, view, materials, out);
         return out;
+    }
+
+    /** The key of a position in the replaced set. */
+    static long key(int x, int y, int z) {
+        return ((long) x & 0x3FFFFFFL) << 38 | ((long) z & 0x3FFFFFFL) << 12 | ((long) y & 0xFFFL);
     }
 
     /** Whether a feature is in the feature list of a biome. */
@@ -137,7 +158,9 @@ public final class Deposits {
 
     /**
      * One chunk's feature with TFC's draws in TFC's order: the rarity float, {@code in_square} (x, then z), the height (no draw
-     * for a heightmap, one {@code nextInt} for a uniform range), the climate filter at the origin, then the disc.
+     * for a heightmap, one {@code nextInt} for a uniform range), the climate filter at the origin (with the forest density of
+     * the origin's chunk when it bounds the forest; an unknown density fails it), the {@code tfc:near_fluid} scan (no draws),
+     * then the disc.
      *
      * @param visitor gets every position of the disc whose integrity float passed, inside the chunk or not
      * @return whether the placement passed and the disc was drawn
@@ -158,11 +181,34 @@ public final class Deposits {
         if (feature.anchor() != Anchor.UNIFORM && y <= view.minY()) {
             return false;
         }
-        if (feature.climate() != null && !feature.climate().isValid(view, x, y, z, random)) {
+        if (feature.climate() != null) {
+            final int forest = feature.climate().hasForestBounds() ? view.forestDensity(x, z) : -1;
+            if (feature.climate().hasForestBounds() && forest < 0 || !feature.climate().isValid(view, x, y, z, random, forest)) {
+                return false;
+            }
+        }
+        if (feature.nearWater() >= 0 && !nearWater(view, x, y, z, feature.nearWater())) {
             return false;
         }
         feature.disc().shape(random, x, y, z, visitor);
         return true;
+    }
+
+    /**
+     * {@code NearFluidPlacement} with {@code fluids: [minecraft:water]}: fresh water (TFC's salt water is another fluid) in the
+     * square of the radius, from the origin's y down by the radius, read from the terrain heights ({@link GroundView#water}).
+     */
+    static boolean nearWater(GroundView view, int x, int y, int z, int radius) {
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                for (int dy = 0; dy >= -radius; dy--) {
+                    if (view.water(x + dx, y + dy, z + dz) && !view.saltWater(x + dx, z + dz)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private static List<Feature> features() {
@@ -181,11 +227,22 @@ public final class Deposits {
             20, Anchor.WORLD_SURFACE, 0, 0,
             new ClimateFilter(Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, 175f, Float.POSITIVE_INFINITY, -1f, 1f, false, -64, 320, false, false),
             SOIL_DISC_BIOMES));
+        // water_clay_disc: no integrity (the codec default 1), dirt and grass of every soil; no climate, near water within 4
+        out.add(new Feature("tfc:water_clay_disc_with_indicator",
+            new SoilDisc(2, 3, 2, 1f, Map.of(DepositMaterial.DIRT, DepositKind.CLAY, DepositMaterial.GRASS, DepositKind.CLAY_GRASS), null),
+            10, Anchor.WORLD_SURFACE, 0, 0, null, SOIL_DISC_BIOMES, 4));
         out.add(new Feature("tfc:peat_disc",
             new SoilDisc(5, 9, 7, 1f, Map.of(DepositMaterial.DIRT, DepositKind.PEAT, DepositMaterial.GRASS, DepositKind.PEAT_GRASS,
                 DepositMaterial.MUD, DepositKind.PEAT), null),
             40, Anchor.WORLD_SURFACE, 0, 0,
             new ClimateFilter(12f, Float.POSITIVE_INFINITY, 350f, Float.POSITIVE_INFINITY, -1f, 1f, false, -64, 320, false, false),
+            SOIL_DISC_BIOMES));
+        // rooted_dirt: fuzzy with the default infinite temperature bounds, so TFC's fuzzy test compares against NaN and never
+        // passes (reproduced as is: Java float arithmetic gives the same NaN)
+        out.add(new Feature("tfc:rooted_dirt",
+            new SoilDisc(4, 6, 2, 0.8f, Map.of(DepositMaterial.DIRT, DepositKind.ROOTED_DIRT, DepositMaterial.GRASS, DepositKind.ROOTED_DIRT), null),
+            4, Anchor.WORLD_SURFACE, 0, 0,
+            new ClimateFilter(Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, 100f, 350f, -1f, 1f, false, 3, 4, -64, 320, true, false),
             SOIL_DISC_BIOMES));
         return List.copyOf(out);
     }

@@ -16,5 +16,14 @@ public enum DepositKind {
     /** {@code tfc:peat}. */
     PEAT,
     /** {@code tfc:peat_grass}. */
-    PEAT_GRASS
+    PEAT_GRASS,
+    /** {@code tfc:rooted_dirt/<soil>}: the soil variant of the dirt or grass it replaces (PAR-WORLD-09). */
+    ROOTED_DIRT,
+    /** {@code minecraft:powder_snow} ({@link PowderSnow}, PAR-WORLD-09). */
+    POWDER_SNOW,
+    /**
+     * The same soil block in the mollisol variant, when its soil is entisol, aridisol or oxisol ({@link MollisolDiscs},
+     * PAR-WORLD-09). The terrain does not carry the soil variant, so the writer resolves it.
+     */
+    MOLLISOL
 }

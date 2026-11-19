@@ -9,7 +9,10 @@
  * src/main/resources/data/tfc/worldgen/{configured_feature,placed_feature}/{driftwood,clam,mollusk,mussel,seaweed,sticks_shore}{,_patch}.json,
  * the tag data/tfc/tags/worldgen/placed_feature/feature/shore_decorations.json (order) and the biomes whose
  * in_biome/surface_decoration tag lists it, and the vanilla 1.21 steps they name (rarity_filter, in_square, random_patch,
- * heightmap OCEAN_FLOOR_WG, block_predicate_filter).
+ * heightmap OCEAN_FLOOR_WG, block_predicate_filter); the guano patch from
+ * src/main/resources/data/tfc/worldgen/{configured_feature,placed_feature}/guano{,_patch}.json with
+ * src/main/java/net/dries007/tfc/common/blocks/GroundcoverBlock.java (canSurvive) and
+ * src/generated/resources/data/tfc/tags/block/creeping_stone_plantable_on.json.
  */
 package dev.tfp.core.worldgen.groundcover;
 
@@ -27,7 +30,8 @@ import java.util.function.Consumer;
  * {@code in_square} origin and a climate filter, with each try on the ocean floor and filtered by its block predicate and
  * tide band. Only the shore biomes decorate with them. Pure and thread-safe.
  *
- * <p>Not ported: guano (it needs the {@code creeping_stone_plantable_on} tag of the block below, ledger).
+ * <p>Guano ({@link #GUANO}, last in the tag) is a patch of its own shape: each try on the world surface, on stone
+ * ({@link GroundView#topBlockStone}) 2 to 32 blocks above the tide.
  */
 public final class ShoreGroundcover {
     /** What the block at the try position must be. */
@@ -77,6 +81,10 @@ public final class ShoreGroundcover {
             ClimateFilter.of(-50, 50, 50, 500), Target.AIR_OR_FLUID, 1, 10)
     );
 
+    /** {@code tfc:guano_patch}: rarity 4, a climate filter, 25 tries spreading 6, the last entry of the tag. */
+    public static final Patch GUANO = new Patch("tfc:guano_patch", Groundcover.Kind.GUANO, "tfp:groundcover/guano", 4, 25, 6,
+        ClimateFilter.of(-30, 10, 100, 500), Target.AIR_OR_FLUID, 2, 32);
+
     /** The biomes whose surface decoration tag lists {@code #tfc:feature/shore_decorations}. */
     static final Set<String> BIOME_NAMES = Set.of("coastal_dunes", "embayments", "guano_island", "ice_sheet_shore",
         "old_shield_volcano_shore", "rocky_shores", "sea_stacks", "setback_cliffs", "shield_volcano_shore", "shore",
@@ -87,10 +95,11 @@ public final class ShoreGroundcover {
     private final FeatureRandom[] randoms;
 
     public ShoreGroundcover(long levelSeed) {
-        this.randoms = new FeatureRandom[PATCHES.size()];
-        for (int i = 0; i < randoms.length; i++) {
+        this.randoms = new FeatureRandom[PATCHES.size() + 1];
+        for (int i = 0; i < PATCHES.size(); i++) {
             randoms[i] = new FeatureRandom(levelSeed, PATCHES.get(i).feature());
         }
+        randoms[PATCHES.size()] = new FeatureRandom(levelSeed, GUANO.feature());
     }
 
     /** Whether a biome is decorated with the shore groundcover. */
@@ -99,11 +108,12 @@ public final class ShoreGroundcover {
     }
 
     /**
-     * The shore groundcover inside chunk {@code (chunkX, chunkZ)}, in tag order, then chunk order. A chunk decorates when the
+     * The shore groundcover inside chunk {@code (chunkX, chunkZ)}, in tag order (guano last), then chunk order. A chunk decorates when the
      * biome at its centre is a shore biome (ledger).
      */
     public void place(int chunkX, int chunkZ, GroundView view, List<Groundcover> out) {
-        for (int p = 0; p < PATCHES.size(); p++) {
+        for (int p = 0; p <= PATCHES.size(); p++) {
+            final boolean guano = p == PATCHES.size();
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dz = -1; dz <= 1; dz++) {
                     final int cx = chunkX + dx;
@@ -111,11 +121,16 @@ public final class ShoreGroundcover {
                     if (!decorates(view.biome((cx << 4) + 8, (cz << 4) + 8))) {
                         continue;
                     }
-                    patch(randoms[p].chunk(cx, cz), PATCHES.get(p), cx << 4, cz << 4, view, g -> {
+                    final Consumer<Groundcover> sink = g -> {
                         if (g.inChunk(chunkX, chunkZ)) {
                             out.add(g);
                         }
-                    });
+                    };
+                    if (guano) {
+                        guano(randoms[p].chunk(cx, cz), cx << 4, cz << 4, view, sink);
+                    } else {
+                        patch(randoms[p].chunk(cx, cz), PATCHES.get(p), cx << 4, cz << 4, view, sink);
+                    }
                 }
             }
         }
@@ -161,6 +176,43 @@ public final class ShoreGroundcover {
             }
             placed.add(key);
             out.accept(new Groundcover(x, y, z, patch.kind(), patch.block(), 1, water));
+        }
+    }
+
+    /**
+     * The guano patch with TFC's draws in TFC's order: the rarity float, {@code in_square} (x, then z), the climate filter at
+     * the origin, then per try the {@code random_patch} offsets (x, y, z). Each try's placed feature draws nothing: the
+     * {@code WORLD_SURFACE_WG} height, {@code tfc:replaceable} (air or a fluid: a guano placed earlier in the patch is
+     * neither), {@code would_survive} (a sturdy floor: stone is), {@code tfc:intertidal} 2 to 32 and {@code tfc:on_top} of
+     * {@code #tfc:creeping_stone_plantable_on}. The block is placed with no fluid.
+     */
+    public static void guano(XoroshiroRandomSource random, int blockX, int blockZ, GroundView view, Consumer<Groundcover> out) {
+        final Patch patch = GUANO;
+        if (!(random.nextFloat() < 1f / patch.rarity())) {
+            return;
+        }
+        final int originX = blockX + random.nextInt(16);
+        final int originZ = blockZ + random.nextInt(16);
+        if (!patch.climate().isValid(view, originX, view.minY(), originZ, random)) {
+            return;
+        }
+        final Set<Long> placed = new HashSet<>();
+        final int xz = patch.xzSpread() + 1;
+        for (int i = 0; i < patch.tries(); i++) {
+            final int x = originX + random.nextInt(xz) - random.nextInt(xz);
+            random.nextInt(2);
+            random.nextInt(2);
+            final int z = originZ + random.nextInt(xz) - random.nextInt(xz);
+            final int y = view.worldSurface(x, z);
+            if (y <= view.minY()) {
+                continue;
+            }
+            final long key = LooseRocks.key(x, y, z);
+            if (placed.contains(key) || !intertidal(view, x, y, z, patch.minTide(), patch.maxTide()) || !view.topBlockStone(x, z)) {
+                continue;
+            }
+            placed.add(key);
+            out.accept(new Groundcover(x, y, z, patch.kind(), patch.block(), 1, false));
         }
     }
 

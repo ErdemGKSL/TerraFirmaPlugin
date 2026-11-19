@@ -221,12 +221,20 @@ class GroundcoverGoldenTest {
             }
             assertThat(f).as(golden.name()).isNotNegative();
             final Deposits.Feature feature = Deposits.FEATURES.get(f);
+            // the oracle's feature index: its position among the 10 features of the oracle (PAR-WORLD-09 added others)
+            int oracle = 0;
+            for (int i = 0; i < f; i++) {
+                final String id = Deposits.FEATURES.get(i).feature();
+                if (DISC.stream().anyMatch(g -> id.equals("tfc:" + g.name()))) {
+                    oracle++;
+                }
+            }
             long hash = 0xcbf29ce484222325L;
             int total = 0;
             int placed = 0;
             for (int cx = -8; cx < 8; cx++) {
                 for (int cz = -8; cz < 8; cz++) {
-                    final XoroshiroRandomSource r = rnd(golden.seed(), cx, cz, 30 + f);
+                    final XoroshiroRandomSource r = rnd(golden.seed(), cx, cz, 30 + oracle);
                     final StringBuilder log = new StringBuilder();
                     final int[] n = {0};
                     if (Deposits.place(r, feature, cx << 4, cz << 4, VIEW, (x, y, z) -> {
