@@ -85,4 +85,32 @@ class ThirstDecayTest {
         assertThat(migrated.thirstTick()).isEqualTo(Long.MIN_VALUE);
         assertThat(migrated.passiveExhaustion()).isZero();
     }
+
+    @Test
+    void actionExhaustionCountsAtTfcsFactorAndCostsThirstPerFourPoints() {
+        // PAR-SURV-15: 100 sprint ticks of vanilla 0.1 = 10 vanilla exhaustion = 4 scaled = one point: 5 thirst, 1 food point.
+        PlayerData d = START;
+        for (int i = 0; i < 101; i++) {
+            d = ThirstDecay.addExhaustion(d, 0.1f, 0L, 22f);
+        }
+        assertThat(d.thirst()).isEqualTo(95f);
+        assertThat(d.pendingFoodPoints()).isEqualTo(1L);
+        assertThat(d.thirstTick()).isEqualTo(0L);
+    }
+
+    @Test
+    void passiveAndActionShareOnePool() {
+        PlayerData d = ThirstDecay.evaluate(START, 3001, 22f); // one passive point
+        assertThat(d.pendingFoodPoints()).isEqualTo(1L);
+        assertThat(d.thirst()).isEqualTo(95f);
+        PlayerData a = ThirstDecay.addExhaustion(d, 10f, 3001, 22f); // 4 scaled units = one more point
+        assertThat(a.pendingFoodPoints()).isEqualTo(2L);
+        assertThat(a.thirst()).isEqualTo(90f);
+    }
+
+    @Test
+    void nothingBeforeTheClockStartsAndNothingForZero() {
+        assertThat(ThirstDecay.addExhaustion(PlayerData.NEW, 1f, 5L, 22f).pendingFoodPoints()).isZero();
+        assertThat(ThirstDecay.addExhaustion(START, 0f, 5L, 22f).pendingFoodPoints()).isZero();
+    }
 }

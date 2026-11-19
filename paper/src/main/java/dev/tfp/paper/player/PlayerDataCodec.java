@@ -22,13 +22,15 @@ import java.util.List;
  * <ol>
  *   <li>thirst, lastDrinkTick, intoxication, chiselMode, nutrition (M1-SVC-02)</li>
  *   <li>thirstTick, passiveExhaustion: the lazy thirst clock (M3-SURV-03); v1 data starts unset at no exhaustion</li>
+ *   <li>pendingFoodPoints: exhaustion points not yet taken off the food bar (PAR-SURV-15)</li>
  * </ol>
  */
 public final class PlayerDataCodec {
-    public static final int VERSION = 2;
+    public static final int VERSION = 3;
 
     public static final VersionedCodec<PlayerData> CODEC = VersionedCodec.<PlayerData>builder("player_data", VERSION)
             .migrate(1, d -> d.putLong("thirstTick", Long.MIN_VALUE).putLong("passiveExhaustion", 0L))
+            .migrate(2, d -> d.putLong("pendingFoodPoints", 0L))
             .build(PlayerDataCodec::write, PlayerDataCodec::read);
 
     private PlayerDataCodec() {
@@ -57,6 +59,7 @@ public final class PlayerDataCodec {
         out.putList("nutrition", records);
         out.putLong("thirstTick", p.thirstTick());
         out.putLong("passiveExhaustion", p.passiveExhaustion());
+        out.putLong("pendingFoodPoints", p.pendingFoodPoints());
     }
 
     private static PlayerData read(DataMap in) {
@@ -72,6 +75,7 @@ public final class PlayerDataCodec {
         }
         return new PlayerData(in.requireFloat("thirst"), in.requireLong("lastDrinkTick"),
                 in.requireLong("intoxication"), in.requireString("chiselMode"), records,
-                in.getLong("thirstTick", Long.MIN_VALUE), in.getLong("passiveExhaustion", 0L));
+                in.getLong("thirstTick", Long.MIN_VALUE), in.getLong("passiveExhaustion", 0L),
+                in.getLong("pendingFoodPoints", 0L));
     }
 }

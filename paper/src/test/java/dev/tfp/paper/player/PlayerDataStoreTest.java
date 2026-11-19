@@ -165,7 +165,7 @@ class PlayerDataStoreTest {
     void codecRoundTripsAndKeepsTfcFieldNames() {
         DataMap m = PlayerDataCodec.CODEC.encode(played());
         assertThat(m.keys()).containsExactly("v", "thirst", "lastDrinkTick", "intoxication", "chiselMode", "nutrition",
-                "thirstTick", "passiveExhaustion");
+                "thirstTick", "passiveExhaustion", "pendingFoodPoints");
         assertThat(m.getList("nutrition").getFirst().keys()).contains("hunger", "water", "grain", "dairy", "decay_modifier");
         assertThat(PlayerDataCodec.CODEC.decode(m)).isEqualTo(played());
         assertThat(PlayerDataCodec.CODEC.fromBytes(PlayerDataCodec.CODEC.toBytes(PlayerData.NEW))).isEqualTo(PlayerData.NEW);

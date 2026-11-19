@@ -279,6 +279,11 @@ public final class PlayerNeedsHudService implements Listener {
         long now = playerTicks.getAsLong();
         float temperature = (float) base.ambientTemperature();
         PlayerData evaluated = data.update(id, d -> GameModeNeeds.evaluate(d, active, now, temperature));
+        // PAR-SURV-15: the exhaustion points the clock completed come off the vanilla food bar (before it is read below)
+        if (evaluated.pendingFoodPoints() > 0 || !active) {
+            dev.tfp.paper.player.exhaustion.FoodSpend.drain(player, data, active);
+            evaluated = data.get(id).orElse(evaluated);
+        }
         float modifier = healthModifier(Optional.of(evaluated), player.getFoodLevel());
         HealthDisplay health = HealthDisplay.of((float) player.getHealth(), (float) player.getMaxHealth(), modifier,
                 HealthConfig.DEFAULT);

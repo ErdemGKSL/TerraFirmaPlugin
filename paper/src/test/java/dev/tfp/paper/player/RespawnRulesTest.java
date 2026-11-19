@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 class RespawnRulesTest {
     static final PlayerData.FoodRecord BREAD = new PlayerData.FoodRecord(4, 0f, 1f, 0,
             new PlayerData.Nutrients(1.5f, 0, 0, 0, 0), 1f);
-    static final PlayerData DEAD = new PlayerData(3f, 1_000L, 9_000L, "tfp:slab", List.of(BREAD), 2_000L, 7L);
+    static final PlayerData DEAD = new PlayerData(3f, 1_000L, 9_000L, "tfp:slab", List.of(BREAD), 2_000L, 7L, 0L);
 
     @Test
     void defaultsAreTfcServerConfigDefaults() {

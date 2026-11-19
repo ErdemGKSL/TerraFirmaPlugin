@@ -2,7 +2,7 @@
 id: PAR-SURV-15
 title: "TFC exhaustion on Paper: passive hunger drain on the vanilla food bar, vanilla action exhaustion x0.4, thirst lost on every 4 exhaustion"
 area: SURV
-status: open
+status: blocked
 wave: 17
 deps: [PAR-SURV-04, PAR-SURV-06, PAR-SURV-09, PAR-HUD-12]
 size: M
@@ -32,6 +32,7 @@ in_game_steps:
   - "tfp debug hunger Bot 20; Bot sprint-jumps for 60 s (bot script in spikes/client/); tfp debug player Bot: food and thirst fell by the 0.4-scaled vanilla action exhaustion plus the passive share, not by vanilla's full rate"
   - "gamemode creative Bot; tfp time add 1d; gamemode survival Bot; tfp debug player Bot: food and thirst unchanged by the creative day"
 plan:
+  - "BLOCKED (2026-11-19): code, tests and ledger are done and pushed (FoodSpend, ExhaustionModule, ThirstDecay.addExhaustion, PlayerData.pendingFoodPoints, codec v3; paper tests green). The ui in-game check (docs/verification/PAR-SURV-15) could not run: this container has no /opt/tfc checkout and no headless Paper+client setup, so datagen content cannot be built. Run the in_game_steps where /opt/tfc exists, then set done. itest ExhaustionCase and the core TFC-golden export are also still to do."
   - "What exists: core HungerState evaluates TFC's passive exhaustion lazily (exactly 3000 ticks per point, x passiveExhaustionModifier, x0.4) but only ThirstDecay uses it, as the thirst clock; nothing applies it to the vanilla food level, so a survival player standing still never gets hungry. Vanilla's own action exhaustion (sprint, jump, mining, attack, damage) reaches the vanilla FoodData at full rate, while TFC's PlayerInfo.addExhaustion multiplies every vanilla source by EXHAUSTION_MULTIPLIER 0.4; and thirst ignores it, while TFC drops `thirstModifier x (1 + temperature share)` each time the exhaustion reaches 4, whatever its source. The exhausted effect's extra exhaustion (BurdenApplier, PAR-SURV-06) therefore costs no thirst either (ledger divergence)."
   - "1. Action exhaustion: a listener in player/exhaustion on EntityExhaustionEvent (players, every reason except REGEN, which HealthRegenerator already cancels) sets the amount to 0.4x (TFC addExhaustion) and counts the scaled amount into an action-exhaustion pool in PlayerData (new field; PlayerDataCodec version bump with a migration starting at 0)."
   - "2. Passive exhaustion on the vanilla bar, lazily: at each evaluation (the 1 s needs pass of PlayerNeedsHudService, join, eat, respawn, game-mode change) the passive units since the last evaluation plus the action pool are applied on the player's thread in vanilla FoodData's order (exhaustion >= 4 takes saturation first, then 1 food; TFC's peaceful branch of PlayerInfo.tick), and each crossed 4.0 costs TFC's thirst step. ThirstDecay counts every exhaustion point, passive and action, through one pure rule, golden against TFC (scratch export of PlayerInfo.tick over N ticks with a scripted action list)."
@@ -48,7 +49,5 @@ done_criteria:
 ---
 
 # PAR-SURV-15: TFC exhaustion on Paper: passive hunger drain on the vanilla food bar, vanilla action exhaustion x0.4, thirst lost on every 4 exhaustion
-
-> Claimed: claude-session-011osUp9, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
