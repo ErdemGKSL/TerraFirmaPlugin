@@ -48,6 +48,23 @@ public final class FluidAlloy {
         this.content = Collections.unmodifiableMap(new LinkedHashMap<>(content));
     }
 
+    /**
+     * An alloy restored from stored state (TFC's codec: the fluid map and the total). Non-positive or empty content gives the
+     * empty alloy; a total of zero or less does too.
+     *
+     * @param amount  the total amount in mB
+     * @param content the fluid id to amount, in insertion order
+     */
+    public static FluidAlloy of(int amount, Map<String, Double> content) {
+        Map<String, Double> kept = new LinkedHashMap<>();
+        for (Map.Entry<String, Double> entry : content.entrySet()) {
+            if (entry.getValue() != null && entry.getValue() > 0d) {
+                kept.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return amount <= 0 || kept.isEmpty() ? EMPTY : new FluidAlloy(amount, kept);
+    }
+
     /** A new, empty alloy. */
     public static FluidAlloy empty() {
         return EMPTY;

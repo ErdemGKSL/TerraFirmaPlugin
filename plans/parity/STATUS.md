@@ -277,7 +277,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-16 | Spawn and world settings: spawn offset, forced TFC gamerules, structures off, dimension policy | WORLD | 26 | done |
 | PAR-FARM-01 | Farmland block: hydration from water (async), nutrients, hoe overlay readout | FARM | 27 | open |
 | PAR-FLUID-05 | Fluid container tooltip in-game verification: debug fill of a jug shows the fluid line | FLUID | 27 | done |
-| PAR-METAL-01 | Alloy display and fluid alloy glue for vessels and crucibles | METAL | 27 | open |
+| PAR-METAL-01 | Alloy display and fluid alloy glue for vessels and crucibles | METAL | 27 | done |
 | PAR-POT-12 | Jug fluid overlay and the four glass bottle items | POTTERY | 27 | open |
 | PAR-POT-08 | Drying bricks, mud bricks and thatch blocks | POTTERY | 27 | open |
 | PAR-POT-09 | Bowls and powder bowls (wooden and ceramic bowl blocks) | POTTERY | 27 | open |
@@ -287,6 +287,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-03 | Crop blocks: all 29 crops in every shape, seeds, dead and wild crops | FARM | 28 | open |
 | PAR-METAL-02 | Fire ingot mold and bell casting; casting crafting | METAL | 28 | open |
 | PAR-METAL-03 | Anvil blocks: rock anvils and metal anvils with items shown on top | METAL | 28 | open |
+| PAR-METAL-22 | Small vessel stores a mixed alloy: fills and melts write tfp:alloy, the vessel tooltip shows the mix | METAL | 28 | open |
 | PAR-WORLD-22 | TFC world generator settings as server config (flat bedrock, spawn distance and centre, climate scales, continentalness, grass density); close the spawn-settings and river open gaps | WORLD | 28 | open |
 | PAR-FARM-04 | Crop growth glue: lazy calendar growth, climate checks, death, harvest yields | FARM | 29 | open |
 | PAR-FARM-06 | Stationary berry bushes: lifecycle, picking, propagation | FARM | 29 | done |

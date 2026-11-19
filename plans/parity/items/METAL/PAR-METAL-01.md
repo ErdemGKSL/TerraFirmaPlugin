@@ -2,7 +2,7 @@
 id: PAR-METAL-01
 title: "Alloy display and fluid alloy glue for vessels and crucibles"
 area: METAL
-status: open
+status: done
 wave: 27
 deps: [PAR-INFRA-04, PAR-INFRA-05]
 size: S
@@ -23,6 +23,7 @@ in_game_steps:
   - "hover; screenshot"
 plan:
   - "Store FluidAlloy contents on vessel/crucible items and blocks (PAR-INFRA-04), tooltip contributor lists metal percentages and the resulting alloy (or 'Unknown') as TFC."
+  - "Done: PAR-METAL-01 commit. core AlloyDisplay/AlloyCodec/FluidAlloy.of (FluidAlloy was already ported), paper/alloy (AlloyPdc tfp:alloy, AlloyRecipes, AlloyTooltipContributor, AlloyModule + /tfp debug alloy). Tests: core AlloyDisplayTest 7, FluidAlloyTest (existing), paper AlloyTooltipTest 7. In-game: docs/verification/PAR-METAL-01/ (Bronze and Unknown pass). The vessel still stores one fluid: follow-up PAR-METAL-22 (vessel files are PAR-POT-04 owned)."
 tests:
   - "core: FluidAlloyTest exists"
   - "paper: tooltip lines"
@@ -32,6 +33,5 @@ done_criteria:
 
 # PAR-METAL-01: Alloy display and fluid alloy glue for vessels and crucibles
 
-> Claimed: Sonnet-5.5 agent, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

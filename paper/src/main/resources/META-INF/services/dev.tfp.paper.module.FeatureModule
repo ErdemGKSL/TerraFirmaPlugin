@@ -78,3 +78,4 @@ dev.tfp.paper.strip.StripModule
 dev.tfp.paper.berry.spread.SpreadModule
 dev.tfp.paper.logging.FellingModule
 dev.tfp.paper.fruittree.FruitTreeModule
+dev.tfp.paper.alloy.AlloyModule
