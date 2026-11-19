@@ -281,7 +281,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-02 | Fertilizers | FARM | 28 | open |
 | PAR-FARM-03 | Crop blocks: all 29 crops in every shape, seeds, dead and wild crops | FARM | 28 | blocked |
 | PAR-METAL-02 | Fire ingot mold and bell casting; casting crafting | METAL | 28 | open |
-| PAR-METAL-03 | Anvil blocks: rock anvils and metal anvils with items shown on top | METAL | 28 | open |
+| PAR-METAL-03 | Anvil blocks: rock anvils and metal anvils with items shown on top | METAL | 28 | blocked |
 | PAR-WORLD-22 | TFC world generator settings as server config (flat bedrock, spawn distance and centre, climate scales, continentalness, grass density); close the spawn-settings and river open gaps | WORLD | 28 | open |
 | PAR-FARM-04 | Crop growth glue: lazy calendar growth, climate checks, death, harvest yields | FARM | 29 | open |
 | PAR-FARM-06 | Stationary berry bushes: lifecycle, picking, propagation | FARM | 29 | done |
