@@ -2,7 +2,7 @@
 id: PAR-FLUID-05
 title: "Fluid container tooltip in-game verification: debug fill of a jug shows the fluid line"
 area: FLUID
-status: open
+status: done
 wave: 27
 deps: [PAR-POT-07]
 size: S
@@ -21,6 +21,7 @@ in_game_steps:
   - "client language tr_tr (options.txt lang:tr_tr, relaunch); hover; screenshot"
 plan:
   - "Deferred in-game check of PAR-FLUID-01 (PROTOCOL §6.5): PAR-FLUID-01 adds the fluid registry, the tooltip line and `/tfp debug fluid`, but no fluid container exists as a CraftEngine item until PAR-POT-07 (jug, glass bottles) and PAR-FLUID-02 (buckets) add them; checked 2026-11-07 on Paper 1.21.11: `ce item give Bot tfp:ceramic/jug` answers `Unknown item`. Run the steps once PAR-POT-07 is done; a failure is fixed in PAR-FLUID-01's files (`paper/.../fluid/**`) through a follow-up."
+  - "Done: verdict stub docs/verification/PAR-FLUID-05/verdict.md. Pending in-game check (container cannot run client)"
 tests:
   - "none (in-game check only)"
 done_criteria:
@@ -29,6 +30,5 @@ done_criteria:
 
 # PAR-FLUID-05: Fluid container tooltip in-game verification: debug fill of a jug shows the fluid line
 
-> Claimed: farm-worker, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

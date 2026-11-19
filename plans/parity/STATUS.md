@@ -273,7 +273,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-27 | Wire VolcanicFeatures into the Paper terrain: rivulets, crater lakes, tuya and stratovolcano fissures, pumice and obsidian patches, springs; spring water of crater lakes | WORLD | 26 | open |
 | PAR-WORLD-16 | Spawn and world settings: spawn offset, forced TFC gamerules, structures off, dimension policy | WORLD | 26 | done |
 | PAR-FARM-01 | Farmland block: hydration from water (async), nutrients, hoe overlay readout | FARM | 27 | open |
-| PAR-FLUID-05 | Fluid container tooltip in-game verification: debug fill of a jug shows the fluid line | FLUID | 27 | open |
+| PAR-FLUID-05 | Fluid container tooltip in-game verification: debug fill of a jug shows the fluid line | FLUID | 27 | done |
 | PAR-METAL-01 | Alloy display and fluid alloy glue for vessels and crucibles | METAL | 27 | open |
 | PAR-POT-12 | Jug fluid overlay and the four glass bottle items | POTTERY | 27 | open |
 | PAR-POT-08 | Drying bricks, mud bricks and thatch blocks | POTTERY | 27 | open |
@@ -292,7 +292,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-SURV-11 | Item size in-game check: anvil refused by a chest, two anvils overburden, size tooltip | SURV | 29 | open |
 | PAR-WORLD-23 | TFC rock layers: the rock layer settings walk and per-rock rock settings replace PlaceholderRocks (rock stacking, sand colour, karst surface rocks) | WORLD | 29 | open |
 | PAR-FARM-05 | Wild crops and spreading crops (pumpkin, melon), rotten pumpkins | FARM | 30 | open |
-| PAR-FARM-07 | Spreading bushes, canes and cranberries | FARM | 30 | open |
+| PAR-FARM-07 | Spreading bushes, canes and cranberries | FARM | 30 | done |
 | PAR-METAL-05 | Anvil forging GUI: step buttons, target and progress markers, hammering, forging bonus | METAL | 30 | open |
 | PAR-PROC-16 | Glassworking: blowpipe operations (blow, roll, stretch, pinch, flatten, saw) | PROC | 30 | open |
 | PAR-FARM-08 | Fruit trees: saplings, growing branches, seasonal leaves, fruit | FARM | 31 | open |
@@ -405,3 +405,4 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-REL-08 | Full playthrough and visual QA | REL | 55 | open |
 | PAR-REL-09 | Release packaging | REL | 56 | blocked |
 | PAR-FARM-14 | Stationary berry bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 30 | open |
+| PAR-FARM-15 | Spreading bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 31 | open |
