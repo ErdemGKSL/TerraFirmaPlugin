@@ -75,7 +75,8 @@ import org.bukkit.event.entity.EntityEnterLoveModeEvent;
  *   <li><b>Re-apply</b>: on every model (re)creation ({@link EntityModels#onModelCreated}), and on every model load
  *       ({@link EntityModels#onReady}) for carriers that loaded before the models existed.</li>
  * </ul>
- * Vanilla carrier goals are unchanged in this slice; vanilla breeding is cancelled for our carriers (TFC breeds by its
+ * Carrier goals: a species with a {@link SpeciesBehaviour} gets its goals in place of the vanilla ones on every add to a
+ * world; other species keep the vanilla goals (PAR-FAUNA-21). Vanilla breeding is cancelled for our carriers (TFC breeds by its
  * own rules, M5-LIV).
  *
  * <p>Threads: the decision is computed on the entity's thread because it is a few comparisons; the snapshot and the write
@@ -91,6 +92,7 @@ public final class AnimalService implements Listener {
     private final Logger logger;
     private final CarrierTable table = CarrierTable.get();
     private final Map<UUID, Tracked> tracked = new ConcurrentHashMap<>();
+    private final SpeciesBehaviours behaviours;
 
     /** One running check. {@code applied} is the stage last applied to the carrier (TFC's {@code lastAge}). */
     private static final class Tracked {
@@ -109,6 +111,12 @@ public final class AnimalService implements Listener {
         this.clock = clock;
         this.models = models;
         this.logger = logger;
+        this.behaviours = new SpeciesBehaviours(logger);
+    }
+
+    /** The registry FAUNA features register their {@link SpeciesBehaviour} in (goals, add and check hooks). */
+    public SpeciesBehaviours behaviours() {
+        return behaviours;
     }
 
     /** Registers the model hooks. Call once, after the integrations are enabled. */
@@ -323,6 +331,9 @@ public final class AnimalService implements Listener {
         if (previous != null && previous.task != null) {
             previous.task.cancel();
         }
+        if (e instanceof Mob mob) {
+            record(e).ifPresent(r -> behaviours.onAdd(mob, e, r));
+        }
         long delay = 1 + Math.floorMod(id.hashCode(), (int) PERIOD);
         Scheduler.TaskHandle handle = scheduler.entityRepeating(e, delay, PERIOD, () -> check(t),
                 () -> tracked.remove(id, t));
@@ -377,6 +388,7 @@ public final class AnimalService implements Listener {
                 ensureModel(e, d.record(), d.age());
                 t.applied = d.age();
             }
+            behaviours.onCheck(new SpeciesBehaviour.Check(e, d.record(), d.age(), now.playerTicks()));
             t.checks++;
         } catch (RuntimeException ex) {
             logger.log(Level.SEVERE, "Animal check failed for " + e.getUniqueId() + "; stopping it", ex);
