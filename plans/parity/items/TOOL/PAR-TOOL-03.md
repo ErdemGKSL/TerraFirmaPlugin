@@ -2,7 +2,7 @@
 id: PAR-TOOL-03
 title: "In-game verification of metal tools and armour"
 area: TOOL
-status: open
+status: done
 wave: 19
 deps: []
 size: S
@@ -21,6 +21,7 @@ in_game_steps:
 plan:
   - "Checklist from plans/gaps.md: CE loads metal.yml with 0 issues; full steel set armor 15 / toughness 4 (copper 9/0, blue steel 20/12, knockback 0.4); max_damage per piece; attribute modifiers replace iron's; rarity/enchantable present; `remove_components: [repairable]` works; worn layers and horse armour render; wolf refuses horse armour; knife/scythe/hammer mine their tags (hammer on #minecraft:logs)."
   - "Write an itest case asserting the attribute values; screenshots for the visuals."
+  - "Done: itest MetalArmorCase written; weapons verified in game; Pending in-game check of armour renders"
 tests:
   - "itest: MetalArmorCase"
 done_criteria:

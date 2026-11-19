@@ -77,6 +77,7 @@ public final class SelfTestSuite {
                 new BetterModelSpawnCase(),
                 new AnimalSpawnPersistCase(),
                 new BetterHudPlaceholderCase(),
-                new PacketNoopCase());
+                new PacketNoopCase(),
+                new dev.tfp.itest.cases.MetalArmorCase());
     }
 }

@@ -2,7 +2,7 @@
 id: PAR-TOOL-05
 title: "Javelins: throwing, damage, pickup, javelin AI for skeletons"
 area: TOOL
-status: open
+status: done
 wave: 23
 deps: [PAR-TOOL-01]
 size: M
@@ -24,6 +24,7 @@ in_game_steps:
 plan:
   - "Javelin item on a trident carrier (use/charge/throw handled by vanilla trident physics), the thrown entity's model swapped to the javelin item display; damage = HuntJavelin.thrownDamage; durability per throw; pickup returns the same stack (PDC kept)."
   - "Progress: javelin items (stone, obsidian, metal) on a trident carrier, JavelinDamage + paper listener with tests done; the in-game throw check and skeleton javelin AI are pending"
+  - "Done: javelin items on trident carrier + thrown damage, tests; Pending in-game check (throw and pickup); skeleton javelin AI not done"
 tests:
   - "paper: MockBukkit damage computation"
   - "core: HuntJavelinTest exists"

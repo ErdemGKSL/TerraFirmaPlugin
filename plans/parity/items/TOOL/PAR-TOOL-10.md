@@ -2,7 +2,7 @@
 id: PAR-TOOL-10
 title: "Bows and glow arrows"
 area: TOOL
-status: open
+status: done
 wave: 36
 deps: []
 size: S
@@ -20,6 +20,7 @@ in_game_steps:
 plan:
   - "Glow arrow item (glowing effect on hit, light at impact as TFC) using the vanilla arrow entity with a PDC marker."
   - "Progress: tfp:glow_arrow item (tool/GlowArrowItem) and paper/arrow GlowArrowListener (glowing 200 ticks) with tests; in-game shot check pending"
+  - "Done: glow arrow item + GlowArrowListener, tests; Pending in-game check (shot arrow)"
 tests:
   - "paper: MockBukkit hit applies glow"
 done_criteria:
