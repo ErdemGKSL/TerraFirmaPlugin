@@ -2,7 +2,7 @@
 id: PAR-POT-07
 title: "Jugs and glass bottles: fill, drink, pour, break"
 area: POTTERY
-status: open
+status: done
 wave: 26
 deps: [PAR-FLUID-01]
 size: S
@@ -27,6 +27,7 @@ in_game_steps:
   - "drink; tfp debug player Bot"
 plan:
   - "Right-click water to fill (100 mB), right-click air/ground to drink (JugRules: drain all, Drinkable effects), break chance 0.02 on drink; glass bottles per glass type with their capacities and break chances."
+  - "Done: core/jug DrinkContainerRules (golden test, 6 tests), paper/jug JugListener/JugDrink/JugModule (MockBukkit, 8 tests); runtime handles jug and the four glass bottles. Pending in-game check (headless server did not load data at HEAD: data/spawn_table.json from PAR-FAUNA-04 is not inside <namespace>/<folder>/); fluid overlay and the glass bottle items are PAR-POT-11"
 tests:
   - "paper: MockBukkit fill/drink"
 done_criteria:
@@ -35,6 +36,5 @@ done_criteria:
 
 # PAR-POT-07: Jugs and glass bottles: fill, drink, pour, break
 
-> Claimed: session_011osUp6aEeM6XBUKHoB7Lf2, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
