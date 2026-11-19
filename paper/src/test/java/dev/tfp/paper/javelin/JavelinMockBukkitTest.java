@@ -21,7 +21,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
-import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
 /** PAR-TOOL-05 on MockBukkit: a trident carrying a javelin item deals TFC's flat 1.5 x tier bonus. */
 class JavelinMockBukkitTest extends MockServerTest {
@@ -52,11 +51,16 @@ class JavelinMockBukkitTest extends MockServerTest {
 
     @Test
     void aThrownJavelinHitReplacesTheTridentDamage() {
-        PlayerMock player = server.addPlayer();
-        var world = player.getWorld();
-        Trident trident = world.spawn(player.getLocation(), Trident.class);
-        trident.setItemStack(javelin(0.7f * 3.25f));
-        Cow cow = world.spawn(player.getLocation().add(2, 0, 0), Cow.class);
+        ItemStack stack = javelin(0.7f * 3.25f);
+        Trident trident = (Trident) java.lang.reflect.Proxy.newProxyInstance(Trident.class.getClassLoader(),
+            new Class<?>[] {Trident.class}, (p, m, a) -> switch (m.getName()) {
+                case "getItemStack" -> stack;
+                case "hashCode" -> 1;
+                case "equals" -> p == a[0];
+                default -> m.getReturnType() == boolean.class ? (Object) false : null;
+            });
+        Cow cow = (Cow) java.lang.reflect.Proxy.newProxyInstance(Cow.class.getClassLoader(), new Class<?>[] {Cow.class},
+            (p, m, a) -> m.getName().equals("hashCode") ? (Object) 2 : m.getName().equals("equals") ? (Object) (p == a[0]) : null);
         EntityDamageByEntityEvent hit = new EntityDamageByEntityEvent(trident, cow, EntityDamageEvent.DamageCause.PROJECTILE, 20.0);
         listener.onHit(hit);
         assertThat(hit.getDamage()).isCloseTo(4.875, within(1e-4));

@@ -100,6 +100,12 @@ templates#items:
       max_stack_size: 1
       max_damage: ${durability}
     model: ${__NAMESPACE__}:item/${__ID__}
+  # Arrow item (PAR-TOOL-10): a vanilla arrow material so bows and crossbows shoot it; the Paper arrow listener adds the effect.
+  tfp:item/arrow:
+    material: arrow
+    data:
+      item_name: <!i><lang:${item_lang_key}>
+    model: ${__NAMESPACE__}:item/${__ID__}
   # Metal armor piece (helmet, chestplate, greaves, boots). material: the vanilla piece for the hand and inventory behaviour.
   # durability, armor, toughness, knockback, enchantability: TFC's TFCArmorMaterials for the slot. rarity: the metal's Rarity.
   # The attribute modifiers replace the material's own. repairable is removed: TFC's material has no repair ingredient.

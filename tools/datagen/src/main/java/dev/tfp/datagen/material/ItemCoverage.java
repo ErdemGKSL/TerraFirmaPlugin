@@ -60,7 +60,6 @@ public final class ItemCoverage {
         Owner.of("firestarter|flint_and_pyrite", "PAR-HEAT-05", "fire starting tools"),
         Owner.of("rope", "PAR-DECO-10", "rope"),
         Owner.of("rotten_compost", "PAR-FARM-02", "rotten compost (fertilizer with a use)"),
-        Owner.of("glow_arrow", "PAR-TOOL-10", "glow arrows"),
         Owner.of("basket", "PAR-PROC-22", "basket (TFC bundle)"),
         Owner.of("wooden_bucket|metal/bucket/(red|blue)_steel|bucket/.+", "PAR-FLUID-02", "fluid buckets (after the mob buckets)"),
         Owner.of("pan/(empty|filled)", "PAR-PROC-12", "pans"),

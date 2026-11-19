@@ -60,3 +60,4 @@ dev.tfp.paper.rock.MossModule
 dev.tfp.paper.tool.ToolModule
 dev.tfp.paper.javelin.JavelinModule
 dev.tfp.paper.toolarea.ToolAreaModule
+dev.tfp.paper.arrow.ArrowModule

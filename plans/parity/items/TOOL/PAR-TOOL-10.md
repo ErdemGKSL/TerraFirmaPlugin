@@ -19,6 +19,7 @@ in_game_steps:
   - "shoot; screenshot"
 plan:
   - "Glow arrow item (glowing effect on hit, light at impact as TFC) using the vanilla arrow entity with a PDC marker."
+  - "Progress: tfp:glow_arrow item (tool/GlowArrowItem) and paper/arrow GlowArrowListener (glowing 200 ticks) with tests; in-game shot check pending"
 tests:
   - "paper: MockBukkit hit applies glow"
 done_criteria:

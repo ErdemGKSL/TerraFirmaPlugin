@@ -2,7 +2,7 @@
 id: PAR-TOOL-04
 title: "Swords, maces, macuahuitl: attack damage per TFC tier"
 area: TOOL
-status: open
+status: done
 wave: 20
 deps: [PAR-TOOL-03]
 size: S
@@ -22,6 +22,7 @@ in_game_steps:
 plan:
   - "Generate swords (factor 1.0, speed -2.4) and maces (1.3, -3.4) for 9 metals and the obsidian macuahuitl with `attribute_modifiers` amount = TFC damage - 1 (fist base) as measured in plans/gaps.md; verify one tier in-game (cow, armour 0)."
   - "Progress: macuahuitl (weapon/Macuahuitl), metal weapon attack speed and TFC damage amount (factor x tier damage, no -1), metal mining tool attack modifiers generated; in-game hit check pending"
+  - "Done: Macuahuitl, metal attack speed/damage; in-game cow hit 6.75 = TFC; docs/verification/PAR-TOOL-04/verdict.md"
 tests:
   - "tools/datagen: amounts vs TFCTiers"
 done_criteria:

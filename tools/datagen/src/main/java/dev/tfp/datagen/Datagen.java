@@ -128,6 +128,9 @@ public final class Datagen {
         if (dev.tfp.datagen.toolitems.MetalToolItems.available(tfc)) { // PAR-TOOL-06: metal chisel, propick, tuyere, shears; before the coverage gate
             dev.tfp.datagen.toolitems.MetalToolItems.run(tfc, out);
         }
+        if (dev.tfp.datagen.tool.GlowArrowItem.available(tfc)) { // PAR-TOOL-10: tfp:glow_arrow; before the coverage gate
+            dev.tfp.datagen.tool.GlowArrowItem.run(tfc, out);
+        }
         if (dev.tfp.datagen.material.MaterialItems.available(tfc)) { // PAR-PROC-19: plain TFC material items + TFCItems coverage gate; fixtures have no TFCItems
             dev.tfp.datagen.material.MaterialItems.run(tfc, out);
             dev.tfp.datagen.material.ItemCoverage.run(tfc, out);

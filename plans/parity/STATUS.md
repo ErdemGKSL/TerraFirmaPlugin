@@ -228,7 +228,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-HEAT-31 | Firebox block loaded in game (full-cube pool, copper sounds, in-game screen check), stove and stove pot | HEAT | 19 | open |
 | PAR-PROC-20 | Knapping in-game verification: axe head from two granite loose rocks, clay and leather screens | PROC | 20 | open |
 | PAR-TOOL-02 | Tool mechanics on Paper: TFC mining speed, durability rules, forging efficiency | TOOL | 20 | done |
-| PAR-TOOL-04 | Swords, maces, macuahuitl: attack damage per TFC tier | TOOL | 20 | open |
+| PAR-TOOL-04 | Swords, maces, macuahuitl: attack damage per TFC tier | TOOL | 20 | done |
 | PAR-WORLD-07 | Aquifer barrier noise and the grass rule under carved surfaces | WORLD | 20 | open |
 | PAR-WORLD-09 | Groundcover, loose rocks, deposits and boulders as CE blocks in generation | WORLD | 20 | open |
 | PAR-WORLD-19 | Ore overlay S1 rerun on a world with caves: census, exposed-vein reference screenshots, GPU client cost | WORLD | 20 | open |
