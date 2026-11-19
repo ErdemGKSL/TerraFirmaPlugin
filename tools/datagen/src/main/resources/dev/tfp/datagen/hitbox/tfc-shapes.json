@@ -1343,6 +1343,106 @@
       "from": "BurningLogPileBlock.java Shapes.block() / same"
     },
     {
+      "key": "tfc:snow_pile[layers=1]",
+      "class": "snow_layer",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 2, 16]],
+      "collision": [],
+      "from": "SnowPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:snow_pile[layers=2]",
+      "class": "snow_layer",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 4, 16]],
+      "collision": [[0, 0, 0, 16, 2, 16]],
+      "from": "SnowPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:snow_pile[layers=3]",
+      "class": "snow_layer",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 6, 16]],
+      "collision": [[0, 0, 0, 16, 4, 16]],
+      "from": "SnowPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:snow_pile[layers=4]",
+      "class": "snow_layer",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 6, 16]],
+      "from": "SnowPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:snow_pile[layers=5]",
+      "class": "snow_layer",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 10, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16]],
+      "from": "SnowPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:snow_pile[layers=6]",
+      "class": "snow_layer",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16]],
+      "collision": [[0, 0, 0, 16, 10, 16]],
+      "from": "SnowPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:snow_pile[layers=7]",
+      "class": "snow_layer",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 14, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16]],
+      "from": "SnowPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:snow_pile[layers=8]",
+      "class": "snow_layer",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 14, 16]],
+      "from": "SnowPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:ice_pile",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "IcePileBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:sea_ice",
+      "class": "full_cube",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "SeaIceBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:icicle[tip=true]",
+      "class": "thin_spike",
+      "kind": "object",
+      "selection": [[4, 2, 4, 12, 16, 12], [2, 5, 2, 14, 16, 4], [2, 5, 4, 4, 16, 14], [12, 5, 4, 14, 16, 14], [4, 5, 12, 12, 16, 14]],
+      "collision": [[4, 2, 4, 12, 16, 12], [2, 5, 2, 14, 16, 4], [2, 5, 4, 4, 16, 14], [12, 5, 4, 14, 16, 14], [4, 5, 12, 12, 16, 14]],
+      "see_through": true,
+      "from": "ThinSpikeBlock.java TIP_SHAPE / same"
+    },
+    {
+      "key": "tfc:icicle[tip=false]",
+      "class": "thin_spike",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 16, 14]],
+      "collision": [[2, 0, 2, 14, 16, 14]],
+      "see_through": true,
+      "from": "ThinSpikeBlock.java PILLAR_SHAPE / same"
+    },
+    {
       "key": "tfc:torch",
       "class": "torch",
       "kind": "object",

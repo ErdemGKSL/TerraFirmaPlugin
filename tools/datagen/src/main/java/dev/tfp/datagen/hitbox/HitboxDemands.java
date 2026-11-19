@@ -88,7 +88,9 @@ public final class HitboxDemands {
     public static final java.util.Map<String, String> BORROWED_ROWS = java.util.Map.of(
         TfcShapes.logPileKey("x", 5), TfcShapes.logPileKey("x", 6),
         TfcShapes.logPileKey("z", 5), TfcShapes.logPileKey("z", 6),
-        "tfc:charcoal_pile[layers=3]", "tfc:charcoal_pile[layers=4]");
+        "tfc:charcoal_pile[layers=3]", "tfc:charcoal_pile[layers=4]",
+        // PAR-CLIM-04: the six-pixel snow pile's best carrier is the daylight detector, which TFC crafts.
+        TfcShapes.snowPileKey(3), TfcShapes.snowPileKey(4));
 
     /**
      * PAR-HEAT-21: TFC's torch blocks ({@code light/TorchBlocks}). The lit ones draw vanilla's torch on vanilla's torch
@@ -117,6 +119,49 @@ public final class HitboxDemands {
     public static final String POWDERKEG_ROW = "tfc:powderkeg[sealed=true]";
     /** PAR-PROC-39: served after every other demand (adding the keg moves no carrier of another block). */
     static final int POWDERKEG_WEIGHT = -4;
+
+    /**
+     * PAR-CLIM-04: TFC's weather blocks. The snow pile ({@code tfc:snow_pile[layers=1..8]}) draws vanilla's snow models;
+     * vanilla snow's own states are mostly taken (other blocks' carriers and their hide targets), so every pile appearance
+     * is hitbox-only (a snow pile only exists on vegetation and loose rocks, so the item displays are few). The ice pile
+     * and sea ice are TFC's translucent full cubes (the leaves pool, {@link #POOLS}); the icicle is {@code tip=true|false}
+     * with TFC's models.
+     */
+    public static final String SNOW_PILE_ID = "tfp:snow_pile";
+    public static final String ICE_PILE_ID = "tfp:ice_pile";
+    public static final String SEA_ICE_ID = "tfp:sea_ice";
+    public static final String ICICLE_ID = "tfp:icicle";
+    public static final String ICE_POOL = "leaves";
+    /** PAR-CLIM-04: the one appearance of the ice pile and sea ice. */
+    public static final String ICE_APPEARANCE = "base";
+    /** PAR-CLIM-04: served after every other demand (adding the weather blocks moves no carrier of another block). */
+    static final int WEATHER_WEIGHT = -8;
+
+    /** PAR-CLIM-04: the snow pile appearance of {@code layers} ({@code layers_3}); the model is vanilla's snow height. */
+    public static String snowPileAppearance(int layers) {
+        return "layers_" + layers;
+    }
+
+    /** PAR-CLIM-04: the tfc-shapes row the snow pile demand of {@code layers} is served for (see {@link #BORROWED_ROWS}). */
+    public static String snowPileDemandKey(int layers) {
+        String key = TfcShapes.snowPileKey(layers);
+        return BORROWED_ROWS.getOrDefault(key, key);
+    }
+
+    /** PAR-CLIM-04: the icicle appearance of {@code tip} ({@code tip} or {@code pillar}). */
+    public static String icicleAppearance(boolean tip) {
+        return tip ? "tip" : "pillar";
+    }
+
+    /** PAR-CLIM-04: TFC's icicle model ({@code tfp:block/icicle_tip} or {@code tfp:block/icicle}). */
+    public static String icicleModel(boolean tip) {
+        return tip ? "tfp:block/icicle_tip" : "tfp:block/icicle";
+    }
+
+    /** PAR-CLIM-04: TFC's sea ice model; the ice pile draws vanilla's {@code minecraft:block/ice} through our own model. */
+    public static String iceModel(String blockId) {
+        return blockId.equals(SEA_ICE_ID) ? "tfp:block/sea_ice" : "tfp:block/ice_pile";
+    }
 
     private HitboxDemands() {
     }
@@ -248,6 +293,16 @@ public final class HitboxDemands {
         for (String f : FACINGS) {
             d.add(new Demand(JACK_O_LANTERN_ID, f, "tfc:jack_o_lantern[facing=" + f + "]", JACK_O_LANTERN_LIGHT,
                 HitboxAllocation.VANILLA_LOOK, true, CANDLE_WEIGHT));
+        }
+        // PAR-CLIM-04: the snow pile (hitbox-only, the look is a display) and the icicle with TFC's models; the ice pile
+        // and sea ice are pool appearances (POOLS) and no demands.
+        for (int layers = 1; layers <= TfcShapes.SNOW_PILE_MAX; layers++) {
+            d.add(new Demand(SNOW_PILE_ID, snowPileAppearance(layers), snowPileDemandKey(layers), 0,
+                HitboxAllocation.TRANSPARENT, true, WEATHER_WEIGHT));
+        }
+        for (boolean tip : new boolean[] {true, false}) {
+            d.add(new Demand(ICICLE_ID, icicleAppearance(tip), "tfc:icicle[tip=" + tip + "]", 0, icicleModel(tip), true,
+                WEATHER_WEIGHT));
         }
         return d;
     }
@@ -417,7 +472,9 @@ public final class HitboxDemands {
         }
         return java.util.Map.of(LOG_PILE_ID, java.util.Collections.unmodifiableMap(log),
             BURNING_LOG_PILE_ID, java.util.Map.of("*_*", BURNING_LOG_PILE_POOL),
-            CHARCOAL_PILE_ID, java.util.Map.of(charcoalPileAppearance(CHARCOAL_PILE_MAX), CHARCOAL_POOL));
+            CHARCOAL_PILE_ID, java.util.Map.of(charcoalPileAppearance(CHARCOAL_PILE_MAX), CHARCOAL_POOL),
+            ICE_PILE_ID, java.util.Map.of(ICE_APPEARANCE, ICE_POOL),
+            SEA_ICE_ID, java.util.Map.of(ICE_APPEARANCE, ICE_POOL));
     }
 
     public static String composterKey(int stage) {

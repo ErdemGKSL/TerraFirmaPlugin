@@ -93,7 +93,6 @@ public final class BlockCoverage {
         Owner.of("deposit/.+|groundcover/.+|ore/small_.+", "PAR-WORLD-09", "ore deposits, groundcover, small ores"),
         Owner.of("(raw|smooth|cut)_sandstone/.+|hardened_clay|halite|calcite|bituminous_coal|lignite", "PAR-DECO-08",
             "sandstone families and misc natural blocks"),
-        Owner.of("snow_pile|ice_pile|icicle|sea_ice", "PAR-CLIM-04", "snow piles, ice piles, icicles, sea ice"),
         // building blocks
         Owner.of("drying_bricks/.+", "PAR-POT-08", "drying mud bricks"),
         Owner.of("smooth_mud_bricks|reinforced_fire_bricks|fire_brick_shelf|fireproof_door|fire_clay_block", "PAR-DECO-16",

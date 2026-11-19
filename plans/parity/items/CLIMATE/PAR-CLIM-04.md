@@ -2,7 +2,7 @@
 id: PAR-CLIM-04
 title: "Snow piles, ice piles, icicles and sea ice as CraftEngine blocks"
 area: CLIMATE
-status: open
+status: done
 wave: 13
 deps: [PAR-CLIM-03, PAR-INFRA-08, PAR-INFRA-13]
 size: M
@@ -30,6 +30,7 @@ in_game_steps:
   - "tfp debug block"
   - "Screenshot each"
 plan:
+  - "Done: datagen weather/WeatherBlocks (tfp:snow_pile layers 1..8, tfp:ice_pile, tfp:sea_ice, tfp:icicle tip; TFC models, texture, strength, sounds, tags, silk-touch loot through the loot runtime; hitbox rows, demands and pins), WorldBlocks writes and reads them through CustomBlocks with the placeholder fallback, WeatherBlocksModule installs it and restores a pile's covered block on a player break; tests WeatherBlocksTest (6), WorldBlocksCraftEngineMockBukkitTest (5), PileBreaksMockBukkitTest (3), GeneratedCarrierTest pins, TfcShapesTest regenerated; ledger rows and divergences updated. Pending in-game check (container cannot run client): a pile over a plant melts back to the plant, icicles under an overhang at -10 C."
   - "UNBLOCKED (worker, 2026-11-19): files_owned widened to the four hitbox files the Blocked note lists (shared: edit only the rows and pins for tfp:snow_pile, tfp:ice_pile, tfp:sea_ice, tfp:icicle and keep others on rebase). The worktree prepared earlier was lost, redo from the Blocked note."
   - "Blocked (2026-11-14): files_owned is too narrow for PAR-INFRA-13's carrier rule. Every explicit appearance state in generated CE YAML must come from the hitbox selector (HardcodedCarrierTest bans `\"minecraft:<block>[` literals outside datagen/hitbox and datagen/visuals; GeneratedCarrierTest checks each state equals HitboxAllocation.agreed of a HitboxDemands entry, and pins the exact block ids and block_state_mappings). So the four blocks need rows and demands in files this item does not own: tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxDemands.java, hitbox/TfcShapes.java + src/main/resources/dev/tfp/datagen/hitbox/tfc-shapes.json (tfc:snow_pile[layers=1..8] = vanilla snow shapes, tfc:ice_pile and tfc:sea_ice full cubes with ice friction, tfc:icicle[tip=true|false] = ThinSpikeBlock TIP_SHAPE / PILLAR_SHAPE) and tools/datagen/src/test/java/dev/tfp/datagen/hitbox/GeneratedCarrierTest.java (pin the 4 ids and any hide mappings), as PAR-PROC-34 had. Also: carrier-policy.json rejects pointed_dripstone (random XZ offset), so the icicle carrier must be the selector's choice. Unblock: add those four paths to files_owned (owner/manager). Prepared and tested in the worker's worktree, not published: datagen/weather/WeatherBlocks.java (TFC blockstates/loot/tags/strengths checked, TFC's icicle/thin_spike/sea_ice models and texture copied, sturdy_base_block up+stackable as ThinSpikeBlock.canSurvive, snow pile on the state real snow of that height shows), WeatherBlocksTest (7), WorldBlocks write/read swap through CustomBlocks with placeholder fallback, WorldBlocksCraftEngineMockBukkitTest (pile over fern placed as tfp:snow_pile and melted back to the fern + absorbed grass; ice pile, sea ice, icicle tip/pillar mapping)."
   - "Current: SnowService writes vanilla placeholders and remembers the covered block in the chunk PDC."
@@ -44,7 +45,5 @@ done_criteria:
 ---
 
 # PAR-CLIM-04: Snow piles, ice piles, icicles and sea ice as CraftEngine blocks
-
-> Claimed: worker session_011osUp5o449zjy3Qcb6jpEk, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

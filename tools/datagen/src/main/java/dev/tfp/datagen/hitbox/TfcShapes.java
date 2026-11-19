@@ -15,6 +15,8 @@
  *       @ c3b4d9536 (vanilla TorchBlock / WallTorchBlock outlines, noCollission in TFCBlocks),
  *       src/main/java/net/dries007/tfc/common/blocks/{TFCCandleBlock,TFCCandleCakeBlock}.java and
  *       devices/JackOLanternBlock.java @ c3b4d9536 (vanilla CandleBlock outlines; the candle cake SHAPE; a full cube),
+ *       src/main/java/net/dries007/tfc/common/blocks/{SnowPileBlock,IcePileBlock,SeaIceBlock,IcicleBlock,ThinSpikeBlock}.java
+ *       @ c3b4d9536 (vanilla SnowLayerBlock and IceBlock outlines; TIP_SHAPE and PILLAR_SHAPE),
  *       the getShape / getCollisionShape choices of the block classes named in SPECS @ c3b4d9536
  */
 package dev.tfp.datagen.hitbox;
@@ -118,6 +120,12 @@ public final class TfcShapes {
         m.put("tfc:thatch", "new ThatchBlock(ExtendedProperties.of(MapColor.SAND).strength(0.6F, 0.4F).noOcclusion()");
         m.put("tfc:wattle[woven=false]", "new WattleBlock(ExtendedProperties.of(MapColor.WOOD).strength(0.3F).noOcclusion()");
         m.put("tfc:lobster_trap", "new LobsterTrapBlock(ExtendedProperties.of(MapColor.METAL).strength(3f).sound(SoundType.METAL).noOcclusion()");
+        // PAR-CLIM-04: TFC's ice blocks copy vanilla ICE (noOcclusion, translucent); the icicle is noOcclusion itself.
+        m.put("tfc:ice_pile", "new IcePileBlock(ExtendedProperties.of(Blocks.ICE).randomTicks()");
+        m.put("tfc:sea_ice", "new SeaIceBlock(Properties.ofFullCopy(Blocks.ICE)");
+        for (String tip : List.of("true", "false")) {
+            m.put("tfc:icicle[tip=" + tip + "]", "sound(SoundType.GLASS).noOcclusion()");
+        }
         // PAR-PROC-37: the burning log pile (every axis and count) draws TFC's partial log models.
         for (String axis : LOG_PILE_AXES) {
             for (int count = 1; count <= LOG_PILE_MAX; count++) {
@@ -310,6 +318,28 @@ public final class TfcShapes {
                     List.of("class BurningLogPileBlock extends Block"), List.of("getShape(", "getCollisionShape")));
             }
         }
+        // PAR-CLIM-04: the weather blocks. The snow pile extends vanilla SnowLayerBlock with no shape override: vanilla's
+        // SHAPE_BY_LAYER (the selection 2 px per layer, the collision one layer lower), ported. The ice pile and sea ice
+        // extend vanilla IceBlock (a full cube; ice is noOcclusion, see SEE_THROUGH). The icicle is ThinSpikeBlock:
+        // TIP_SHAPE for the tip, PILLAR_SHAPE for the pieces above; getShape only, so the collision is the same.
+        String snowPile = B + "SnowPileBlock.java";
+        for (int layers = 1; layers <= SNOW_PILE_MAX; layers++) {
+            final int n = layers;
+            s.add(new Spec(snowPileKey(layers), "snow_layer", Kind.OBJECT, List.of(snowPile), null, null,
+                List.of("public class SnowPileBlock extends SnowLayerBlock"), List.of("getShape(", "getCollisionShape"),
+                x -> snowLayer(n)));
+        }
+        s.add(Spec.of("tfc:ice_pile", "full_cube", Kind.OBJECT, List.of(B + "IcePileBlock.java"), "Shapes.block()", "same",
+            List.of("public class IcePileBlock extends IceBlock"), List.of("getShape(", "getCollisionShape")));
+        s.add(Spec.of("tfc:sea_ice", "full_cube", Kind.OBJECT, List.of(B + "SeaIceBlock.java"), "Shapes.block()", "same",
+            List.of("public class SeaIceBlock extends IceBlock"), List.of("getShape(", "getCollisionShape")));
+        String spikeFile = B + "ThinSpikeBlock.java";
+        for (String tip : List.of("true", "false")) {
+            s.add(Spec.of("tfc:icicle[tip=" + tip + "]", "thin_spike", Kind.OBJECT, List.of(spikeFile, B + "IcicleBlock.java"),
+                tip.equals("true") ? "TIP_SHAPE" : "PILLAR_SHAPE", "same",
+                List.of("return state.getValue(TIP) ? TIP_SHAPE : PILLAR_SHAPE;", "public class IcicleBlock extends ThinSpikeBlock"),
+                List.of("getCollisionShape")));
+        }
         // PAR-HEAT-21: the four torch blocks extend vanilla TorchBlock / WallTorchBlock with no shape override, and
         // TFCBlocks registers each noCollission(): the outline is vanilla's (ported, TORCH_SHAPE / WALL_TORCH_SHAPES), no
         // collision. The dead torches share the lit ones' outlines.
@@ -437,6 +467,25 @@ public final class TfcShapes {
             return Shape.EMPTY;
         }
         return Shape.box(r[0], r[1], r[2], r[3], r[4], r[5]);
+    }
+
+    /** PAR-CLIM-04: vanilla {@code BlockStateProperties.LAYERS} 1..8, the snow pile's layers. */
+    public static final int SNOW_PILE_MAX = 8;
+
+    public static String snowPileKey(int layers) {
+        return "tfc:snow_pile[layers=" + layers + "]";
+    }
+
+    /**
+     * Vanilla {@code SnowLayerBlock.SHAPE_BY_LAYER}: index {@code layers} is {@code 2 * layers} px high (empty at 0), the
+     * selection is {@code SHAPE_BY_LAYER[layers]}, the collision {@code SHAPE_BY_LAYER[layers - 1]}.
+     */
+    static Shape[] snowLayer(int layers) {
+        return new Shape[] {snowHeight(layers), snowHeight(layers - 1)};
+    }
+
+    private static Shape snowHeight(int layers) {
+        return layers <= 0 ? Shape.EMPTY : layers >= 8 ? Shape.FULL : Shape.box(0, 0, 0, 16, 2 * layers, 16);
     }
 
     /** TFC {@code TFCBlockStateProperties.STAGE_8}: the composter's stages 0..8. */

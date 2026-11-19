@@ -159,6 +159,9 @@ public final class Datagen {
         if (dev.tfp.datagen.charcoal.CharcoalBlocks.available(tfc)) { // PAR-PROC-37: tfp:log_pile, tfp:burning_log_pile, tfp:charcoal_pile entries, models, textures; fixtures have no log pile
             dev.tfp.datagen.charcoal.CharcoalBlocks.run(tfc, out);
         }
+        if (dev.tfp.datagen.weather.WeatherBlocks.available(tfc)) { // PAR-CLIM-04: tfp:snow_pile, ice_pile, sea_ice, icicle entries, models, texture, loot; fixtures have no weather blocks
+            dev.tfp.datagen.weather.WeatherBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.light.TorchBlocks.available(tfc)) { // PAR-HEAT-21: tfp:torch, wall, dead torch entries on the selector's carriers, models, texture, loot, names; fixtures have no torches
             dev.tfp.datagen.light.TorchBlocks.run(tfc, out, dev.tfp.datagen.light.TorchBlocks::selected);
         }
