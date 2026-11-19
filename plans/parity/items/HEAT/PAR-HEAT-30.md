@@ -40,4 +40,6 @@ done_criteria:
 
 # PAR-HEAT-30: Firepit, grill and pot world rules: fuel gathering and hot floor
 
+> Claimed: claude-heat-mech-proc-infra, 2026-11-19
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
