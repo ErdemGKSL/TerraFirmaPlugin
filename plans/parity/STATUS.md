@@ -311,7 +311,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-HEAT-32 | Firebox kiln and heat consumers: placed items heat in an insulated chamber, the crucible above heats (self-test), hot floor, comparator | HEAT | 34 | open |
 | PAR-DATA-03 | Advancement criteria wiring across features | DATA | 35 | open |
 | PAR-DATA-04 | Field guide: decide the form and convert the book | DATA | 35 | open |
-| PAR-HEAT-13 | Fire behaviour: fire arrows, dousing, fire spread limits | HEAT | 35 | open |
+| PAR-HEAT-13 | Fire behaviour: fire arrows, dousing, fire spread limits | HEAT | 35 | done |
 | PAR-METAL-14 | Bloomery multiblock and bloom | METAL | 35 | open |
 | PAR-DATA-05 | Localisation: Paper lang loading, all TFC locales, plugin strings | DATA | 36 | open |
 | PAR-METAL-15 | Blast furnace, tuyere and steel path | METAL | 36 | open |

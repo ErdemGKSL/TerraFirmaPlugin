@@ -2,7 +2,7 @@
 id: PAR-HEAT-13
 title: "Fire behaviour: fire arrows, dousing, fire spread limits"
 area: HEAT
-status: open
+status: done
 wave: 35
 deps: [PAR-HEAT-05]
 size: S
@@ -17,6 +17,7 @@ ui: false
 in_game_steps: []
 plan:
   - "Fire arrows ignite blocks only when enableFireArrowSpreading; water splash/bucket douses TFC devices through the FireLightable SPI (douse)."
+  - "Done: paper/fire/spread FireSpreadModule + FireSpreadListener (burning projectile hit starts a strong fire when tfp.fire.arrowSpreading is true; water potion douses fire, lit candles/campfires, burning entities); FireSpreadMockBukkitTest 3 tests. Pending in-game check (arrow and potion in a client); the config key is a JVM property (ledger divergence)."
 tests:
   - "paper: MockBukkit projectile hit"
 done_criteria:
@@ -25,6 +26,5 @@ done_criteria:
 
 # PAR-HEAT-13: Fire behaviour: fire arrows, dousing, fire spread limits
 
-> Claimed: claude-heat-mech-proc-infra, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
