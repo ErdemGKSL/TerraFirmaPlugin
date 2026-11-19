@@ -2,7 +2,7 @@
 id: PAR-CLIM-08
 title: "Lightning rules: enableLightning, log stripping, fire start"
 area: CLIMATE
-status: open
+status: done
 wave: 34
 deps: [PAR-INFRA-01]
 size: S
@@ -22,6 +22,7 @@ in_game_steps:
   - "tfp debug block on the log"
 plan:
   - "On LightningStrikeEvent: cancel when enableLightning=false; with enableLightningStrippingLogs, 20% chance to strip logs around the strike as TFC (ForgeEventHandler lines ~932-950); vanilla fire stays."
+  - "Done: core/lightning LightningRules + paper/lightning (LightningStrikes, LightningModule, lightning.yml); own stripped mapping (divergence until PAR-GATHER-08); 7 core + 5 paper tests. Pending in-game check (container cannot run client)."
 tests:
   - "paper: MockBukkit strike with seeded random strips the expected logs"
 done_criteria:
