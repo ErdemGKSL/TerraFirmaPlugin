@@ -69,6 +69,13 @@ def check(model: dict, model_id: str | None = None, strict: bool = True) -> list
         for animator in an.get("animators", {}).values():
             if animator.get("type", "bone") == "bone" and animator["name"] not in bone_names:
                 errs.append(f"animation '{an['name']}' targets missing bone '{animator['name']}'")
+    ntex = len(model.get("textures", []))
+    for e in model.get("elements", []):
+        for face in (e.get("faces") or {}).values():
+            tex = face.get("texture")
+            if isinstance(tex, int) and tex >= ntex:
+                errs.append(f"cube '{e.get('name')}' face uses texture {tex} but the model has {ntex} (BetterModel: index out of bounds)")
+                break
     for t in model.get("textures", []):
         if not str(t.get("source", "")).startswith("data:image/png;base64,"):
             errs.append(f"texture '{t.get('name')}' is not embedded (BetterModel needs embedded textures)")

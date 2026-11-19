@@ -96,7 +96,7 @@ def with_texture(bb: dict, png: bytes | None) -> dict:
         t["source"] = "data:image/png;base64," + base64.b64encode(png).decode()
         w, h = png_size(png)
         t["width"], t["height"], t["uv_width"], t["uv_height"] = w, h, w, h
-        out["textures"] = [t]
+        # other textures (TFC's bedrock models list two) stay, so every face's texture index keeps pointing at a texture
     return out
 
 

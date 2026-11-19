@@ -81,6 +81,7 @@ public final class NaturalSpawnModule implements FeatureModule, Listener {
     /** Chunks tried per player and pass. */
     static final int TOP_UP_ATTEMPTS = Integer.getInteger("tfp.spawn.topUpAttempts", 12);
     static final int CHUNK_CAP = Integer.getInteger("tfp.spawn.chunkCap", 8);
+    static final int SEARCH_DEPTH = 40;
     static final boolean ENABLED = !Boolean.getBoolean("tfp.spawn.disabled");
 
     private ModuleContext ctx;
@@ -184,22 +185,33 @@ public final class NaturalSpawnModule implements FeatureModule, Listener {
         return c.category().startsWith("WATER") || c.category().startsWith("UNDERGROUND_WATER");
     }
 
-    /** The column's standing place (centre of the block above the highest solid ground), or null if a land animal cannot stand there. */
+    /**
+     * The column's standing place: the first ground below the top of the column (looking through leaves and plants down
+     * to {@value #SEARCH_DEPTH} blocks) that has room for the carrier, or null (water, no ground, no room).
+     */
     static Location standingPlace(World world, int x, int z, Carrier carrier) {
-        int y = world.getHighestBlockYAt(x, z);
-        Block ground = world.getBlockAt(x, y, z);
-        Material type = ground.getType();
-        if (!type.isSolid() || ground.isLiquid() || isLeaves(type)) {
-            return null;
-        }
-        int clear = (int) Math.ceil(carrier.height());
-        for (int i = 1; i <= Math.max(1, clear); i++) {
-            Block above = world.getBlockAt(x, y + i, z);
-            if (!above.isPassable() || above.isLiquid()) {
+        int top = world.getHighestBlockYAt(x, z);
+        int clear = Math.max(1, (int) Math.ceil(carrier.height()));
+        for (int y = top; y > Math.max(world.getMinHeight(), top - SEARCH_DEPTH); y--) {
+            Block ground = world.getBlockAt(x, y, z);
+            if (ground.isLiquid()) {
                 return null;
             }
+            if (ground.isPassable() || isLeaves(ground.getType())) {
+                continue;
+            }
+            for (int i = 1; i <= clear; i++) {
+                Block above = world.getBlockAt(x, y + i, z);
+                if (!above.isPassable() || above.isLiquid()) {
+                    ground = null;
+                    break;
+                }
+            }
+            if (ground != null) {
+                return new Location(world, x + 0.5, y + 1, z + 0.5);
+            }
         }
-        return new Location(world, x + 0.5, y + 1, z + 0.5);
+        return null;
     }
 
     private static boolean isLeaves(Material m) {
