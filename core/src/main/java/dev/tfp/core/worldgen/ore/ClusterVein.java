@@ -15,4 +15,4 @@ package dev.tfp.core.worldgen.ore;
  * @param y the centre's block y
  * @param z the centre's block z
  */
-public record ClusterVein(int x, int y, int z, Metaballs3D metaballs) {}
+public record ClusterVein(int x, int y, int z, Metaballs3D metaballs) implements Vein {}

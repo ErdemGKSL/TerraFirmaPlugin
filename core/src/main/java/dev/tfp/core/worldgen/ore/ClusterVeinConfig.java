@@ -26,7 +26,7 @@ import java.util.Map;
  * @param indicator the surface indicator of the type, or null when it has none
  */
 public record ClusterVeinConfig(String name, int rarity, float density, int minY, int maxY, int size, long seed,
-                                Map<String, Weighted<VeinBlock>> blocks, Indicator indicator) {
+                                Map<String, Weighted<VeinBlock>> blocks, Indicator indicator) implements VeinConfig {
     public ClusterVeinConfig {
         blocks = Map.copyOf(blocks);
     }

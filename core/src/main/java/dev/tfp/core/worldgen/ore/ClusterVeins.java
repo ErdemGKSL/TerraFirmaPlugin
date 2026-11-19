@@ -69,7 +69,7 @@ public final class ClusterVeins {
     }
 
     /** {@code ClusterVeinFeature.createVein}: the centre ({@code defaultPos}), then the metaballs. */
-    private static ClusterVein createVein(int blockX, int blockZ, XoroshiroRandomSource random, ClusterVeinConfig config) {
+    static ClusterVein createVein(int blockX, int blockZ, XoroshiroRandomSource random, ClusterVeinConfig config) {
         // new BlockPos(x, y, z): Java evaluates the three draws left to right
         final int x = blockX + random.nextInt(16);
         final int y = defaultYPos(config.verticalRadius(), random, config);
@@ -78,7 +78,7 @@ public final class ClusterVeins {
     }
 
     /** {@code VeinFeature.defaultYPos}: a centre at least {@code verticalShrinkRange} inside the height range, or the middle. */
-    static int defaultYPos(int verticalShrinkRange, XoroshiroRandomSource random, ClusterVeinConfig config) {
+    static int defaultYPos(int verticalShrinkRange, XoroshiroRandomSource random, VeinConfig config) {
         final int actualRange = config.maxY() - config.minY() - 2 * verticalShrinkRange;
         if (actualRange > 0) {
             return config.minY() + verticalShrinkRange + random.nextInt(actualRange);
