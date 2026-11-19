@@ -2,7 +2,7 @@
 id: PAR-DATA-06
 title: "Configuration parity: every TFC ServerConfig/CommonConfig key in config.yml"
 area: DATA
-status: open
+status: done
 wave: 37
 deps: []
 size: M
@@ -21,6 +21,7 @@ ui: false
 in_game_steps: []
 plan:
   - "Generate a table of every TFC config key with default, our key and the consumer item; add missing keys with TFC defaults (consumers read them via ConfigService); keys of client-only options listed as divergences."
+  - "Done 2026-11-19: docs/config.md lists all 214 TFC config keys with default, our key (10 mapped) and status; ConfigParityDocTest (2) checks every TFC key is in the table (against /opt/tfc) and every mapped key is in config.yml. Decision: keys without a reading feature are NOT added to config.yml (they would do nothing); each feature item adds its key with the TFC default when it adds its consumer."
 tests:
   - "core: every TFC key mapped or documented (parsed from ServerConfig.java at the pin)"
 done_criteria:

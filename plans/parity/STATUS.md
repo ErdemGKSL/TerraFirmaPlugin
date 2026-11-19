@@ -317,7 +317,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-15 | Blast furnace, tuyere and steel path | METAL | 36 | open |
 | PAR-METAL-16 | Ingot and double-ingot piles | METAL | 36 | open |
 | PAR-TOOL-10 | Bows and glow arrows | TOOL | 36 | done |
-| PAR-DATA-06 | Configuration parity: every TFC ServerConfig/CommonConfig key in config.yml | DATA | 37 | open |
+| PAR-DATA-06 | Configuration parity: every TFC ServerConfig/CommonConfig key in config.yml | DATA | 37 | done |
 | PAR-DATA-07 | Damage types and mob effects | DATA | 37 | open |
 | PAR-DATA-08 | Sounds: TFC sound events into the pack and played by features | DATA | 37 | open |
 | PAR-METAL-18 | Bells (bronze, brass) | METAL | 37 | open |
