@@ -2,7 +2,7 @@
 id: PAR-FAUNA-02
 title: "Entity models for Java-only TFC models via the rig generator"
 area: FAUNA
-status: open
+status: done
 wave: 39
 deps: [PAR-FAUNA-01]
 size: M
@@ -25,5 +25,7 @@ done_criteria:
 # PAR-FAUNA-02: Entity models for Java-only TFC models via the rig generator
 
 > see_not_parity: NP-ENT-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
+
+Done: java_layer.py + 16 models in tools/models/tfpmodels/species/out, test_java_layer.py (4), contact sheet reviewed; coverage 55 models + 5 vanilla-layer (divergence rows added).
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

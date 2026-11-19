@@ -22,66 +22,66 @@ TFC checkout HEAD: `c3b4d9536b82e5a9746dd793c586720a74108057`. Pin in `docs/port
 
 | TFC entity model | Species key | TFC animations | Parameter file | Generated .bbmodel | Our animations | Status |
 |---|---|---:|---|---|---|---|
-| `AlpacaModel` | `alpaca` | 0 | no | no | 0 of 0 | not started |
-| `ArcticCharModel` | `arctic_char` | 1 | no | no | 0 of 1 | not started |
-| `BactrianCamelModel` | `bactrian_camel` | 6 | no | no | 0 of 6 | not started |
-| `BisonModel` | `bison` | 2 | no | no | 0 of 2 | not started |
-| `BlackBearModel` | `black_bear` | 6 | no | no | 0 of 6 | not started |
-| `BluegillModel` | `bluegill` | 0 | no | no | 0 of 0 | not started |
-| `BoarModel` | `boar` | 4 | no | no | 0 of 4 | not started |
-| `BongoModel` | `bongo` | 0 | no | no | 0 of 0 | not started |
-| `BurbotModel` | `burbot` | 1 | no | no | 0 of 1 | not started |
-| `CaribouModel` | `caribou` | 0 | no | no | 0 of 0 | not started |
-| `CougarModel` | `cougar` | 5 | no | no | 0 of 5 | not started |
-| `CrocodileModel` | `crocodile` | 6 | no | no | 0 of 6 | not started |
-| `DeerModel` | `deer` | 2 | no | no | 0 of 2 | not started |
-| `DirewolfModel` | `direwolf` | 4 | no | no | 0 of 4 | not started |
-| `DogModel` | `dog` | 0 | no | no | 0 of 0 | not started |
-| `DuckModel` | `duck` | 0 | no | no | 0 of 0 | not started |
-| `GazelleModel` | `gazelle` | 0 | no | no | 0 of 0 | not started |
-| `GrizzlyBearModel` | `grizzly_bear` | 6 | no | no | 0 of 6 | not started |
-| `GrouseModel` | `grouse` | 2 | no | no | 0 of 2 | not started |
-| `HorseshoeCrabModel` | `horseshoe_crab` | 4 | no | no | 0 of 4 | not started |
-| `HyenaModel` | `hyena` | 1 | no | no | 0 of 1 | not started |
-| `IsopodModel` | `isopod` | 4 | no | no | 0 of 4 | not started |
-| `JellyfishModel` | `jellyfish` | 0 | no | no | 0 of 0 | not started |
-| `JerboaModel` | `jerboa` | 7 | no | no | 0 of 7 | not started |
-| `LemmingModel` | `lemming` | 8 | no | no | 0 of 8 | not started |
-| `LeopardSealModel` | `leopard_seal` | 2 | no | no | 0 of 2 | not started |
-| `LionModel` | `lion` | 4 | no | no | 0 of 4 | not started |
-| `LobsterModel` | `lobster` | 3 | no | no | 0 of 3 | not started |
-| `ManateeModel` | `manatee` | 0 | no | no | 0 of 0 | not started |
-| `MongooseModel` | `mongoose` | 8 | no | no | 0 of 8 | not started |
-| `MooseModel` | `moose` | 3 | no | no | 0 of 3 | not started |
-| `MuksunModel` | `muksun` | 1 | no | no | 0 of 1 | not started |
-| `MuskOxModel` | `musk_ox` | 0 | no | no | 0 of 0 | not started |
-| `NorthernPikeModel` | `northern_pike` | 1 | no | no | 0 of 1 | not started |
-| `OrcaModel` | `orca` | 2 | no | no | 0 of 2 | not started |
-| `PacuModel` | `pacu` | 1 | no | no | 0 of 1 | not started |
-| `PeacockBassModel` | `peacock_bass` | 1 | no | no | 0 of 1 | not started |
-| `PeafowlModel` | `peafowl` | 0 | no | no | 0 of 0 | not started |
-| `PenguinModel` | `penguin` | 2 | no | no | 0 of 2 | not started |
-| `PheasantModel` | `pheasant` | 1 | no | no | 0 of 1 | not started |
-| `PolarBearModel` | `polar_bear` | 6 | no | no | 0 of 6 | not started |
-| `QuailModel` | `quail` | 0 | no | no | 0 of 0 | not started |
-| `RatModel` | `rat` | 5 | no | no | 0 of 5 | not started |
-| `RedPiranhaModel` | `red_piranha` | 1 | no | no | 0 of 1 | not started |
-| `SabertoothModel` | `sabertooth` | 4 | no | no | 0 of 4 | not started |
-| `SpottedGudgeonModel` | `spotted_gudgeon` | 1 | no | no | 0 of 1 | not started |
-| `TFCCatModel` | `cat` | 0 | no | no | 0 of 0 | not started |
-| `TFCChestedHorseModel` | `chested_horse` | 0 | no | no | 0 of 0 | not started |
-| `TFCChickenModel` | `chicken` | 0 | no | no | 0 of 0 | not started |
-| `TFCCowModel` | `cow` | 0 | no | no | 0 of 0 | not started |
-| `TFCGoatModel` | `goat` | 0 | no | no | 0 of 0 | not started |
-| `TFCPigModel` | `pig` | 0 | no | no | 0 of 0 | not started |
-| `TFCSheepModel` | `sheep` | 0 | no | no | 0 of 0 | not started |
-| `TFCTurtleModel` | `turtle` | 2 | no | no | 0 of 2 | not started |
-| `TFCWolfModel` | `wolf` | 5 | no | no | 0 of 5 | not started |
-| `TigerModel` | `tiger` | 0 | no | no | 0 of 0 | not started |
-| `TilapiaModel` | `tilapia` | 1 | no | no | 0 of 1 | not started |
-| `TurkeyModel` | `turkey` | 2 | no | no | 0 of 2 | not started |
-| `WildebeestModel` | `wildebeest` | 3 | no | no | 0 of 3 | not started |
-| `YakModel` | `yak` | 0 | no | no | 0 of 0 | not started |
+| `AlpacaModel` | `alpaca` | 0 | no | yes | not parsed | generated |
+| `ArcticCharModel` | `arctic_char` | 1 | no | yes | not parsed | generated |
+| `BactrianCamelModel` | `bactrian_camel` | 6 | no | yes | not parsed | generated |
+| `BisonModel` | `bison` | 2 | no | yes | not parsed | generated |
+| `BlackBearModel` | `black_bear` | 6 | no | yes | not parsed | generated |
+| `BluegillModel` | `bluegill` | 0 | no | yes | not parsed | generated |
+| `BoarModel` | `boar` | 4 | no | yes | not parsed | generated |
+| `BongoModel` | `bongo` | 0 | no | yes | not parsed | generated |
+| `BurbotModel` | `burbot` | 1 | no | yes | not parsed | generated |
+| `CaribouModel` | `caribou` | 0 | no | yes | not parsed | generated |
+| `CougarModel` | `cougar` | 5 | no | yes | not parsed | generated |
+| `CrocodileModel` | `crocodile` | 6 | no | yes | not parsed | generated |
+| `DeerModel` | `deer` | 2 | no | yes | not parsed | generated |
+| `DirewolfModel` | `direwolf` | 4 | no | yes | not parsed | generated |
+| `DogModel` | `dog` | 0 | no | vanilla carrier | vanilla | vanilla layer |
+| `DuckModel` | `duck` | 0 | no | yes | not parsed | generated |
+| `GazelleModel` | `gazelle` | 0 | no | yes | not parsed | generated |
+| `GrizzlyBearModel` | `grizzly_bear` | 6 | no | yes | not parsed | generated |
+| `GrouseModel` | `grouse` | 2 | no | yes | not parsed | generated |
+| `HorseshoeCrabModel` | `horseshoe_crab` | 4 | no | yes | not parsed | generated |
+| `HyenaModel` | `hyena` | 1 | no | yes | not parsed | generated |
+| `IsopodModel` | `isopod` | 4 | no | yes | not parsed | generated |
+| `JellyfishModel` | `jellyfish` | 0 | no | yes | not parsed | generated |
+| `JerboaModel` | `jerboa` | 7 | no | yes | not parsed | generated |
+| `LemmingModel` | `lemming` | 8 | no | yes | not parsed | generated |
+| `LeopardSealModel` | `leopard_seal` | 2 | no | yes | not parsed | generated |
+| `LionModel` | `lion` | 4 | no | yes | not parsed | generated |
+| `LobsterModel` | `lobster` | 3 | no | yes | not parsed | generated |
+| `ManateeModel` | `manatee` | 0 | no | yes | not parsed | generated |
+| `MongooseModel` | `mongoose` | 8 | no | yes | not parsed | generated |
+| `MooseModel` | `moose` | 3 | no | yes | not parsed | generated |
+| `MuksunModel` | `muksun` | 1 | no | yes | not parsed | generated |
+| `MuskOxModel` | `musk_ox` | 0 | no | yes | not parsed | generated |
+| `NorthernPikeModel` | `northern_pike` | 1 | no | yes | not parsed | generated |
+| `OrcaModel` | `orca` | 2 | no | yes | not parsed | generated |
+| `PacuModel` | `pacu` | 1 | no | yes | not parsed | generated |
+| `PeacockBassModel` | `peacock_bass` | 1 | no | yes | not parsed | generated |
+| `PeafowlModel` | `peafowl` | 0 | no | yes | not parsed | generated |
+| `PenguinModel` | `penguin` | 2 | no | yes | not parsed | generated |
+| `PheasantModel` | `pheasant` | 1 | no | yes | not parsed | generated |
+| `PolarBearModel` | `polar_bear` | 6 | no | yes | not parsed | generated |
+| `QuailModel` | `quail` | 0 | no | yes | not parsed | generated |
+| `RatModel` | `rat` | 5 | no | yes | not parsed | generated |
+| `RedPiranhaModel` | `red_piranha` | 1 | no | yes | not parsed | generated |
+| `SabertoothModel` | `sabertooth` | 4 | no | yes | not parsed | generated |
+| `SpottedGudgeonModel` | `spotted_gudgeon` | 1 | no | yes | not parsed | generated |
+| `TFCCatModel` | `cat` | 0 | no | vanilla carrier | vanilla | vanilla layer |
+| `TFCChestedHorseModel` | `chested_horse` | 0 | no | vanilla carrier | vanilla | vanilla layer |
+| `TFCChickenModel` | `chicken` | 0 | no | yes | not parsed | generated |
+| `TFCCowModel` | `cow` | 0 | no | yes | not parsed | generated |
+| `TFCGoatModel` | `goat` | 0 | no | vanilla carrier | vanilla | vanilla layer |
+| `TFCPigModel` | `pig` | 0 | no | vanilla carrier | vanilla | vanilla layer |
+| `TFCSheepModel` | `sheep` | 0 | no | yes | not parsed | generated |
+| `TFCTurtleModel` | `turtle` | 2 | no | yes | not parsed | generated |
+| `TFCWolfModel` | `wolf` | 5 | no | yes | not parsed | generated |
+| `TigerModel` | `tiger` | 0 | no | yes | not parsed | generated |
+| `TilapiaModel` | `tilapia` | 1 | no | yes | not parsed | generated |
+| `TurkeyModel` | `turkey` | 2 | no | yes | not parsed | generated |
+| `WildebeestModel` | `wildebeest` | 3 | no | yes | not parsed | generated |
+| `YakModel` | `yak` | 0 | no | yes | not parsed | generated |
 
 ## Excluded from the table
 
@@ -106,7 +106,7 @@ TFC checkout HEAD: `c3b4d9536b82e5a9746dd793c586720a74108057`. Pin in `docs/port
 
 - TFC entity models in scope: **60** (excluded: 14)
 - Entity models with a parameter file: **0** of 60
-- Entity models with a committed generated .bbmodel: **0** of 60
+- Entity models with a committed generated .bbmodel: **55** of 60
 - Local-only drafts (git-ignored `out/`, inputs not in repo): **0**
 - TFC AnimationDefinition constants: **128** in 76 Java files scanned; attributed to the table: 128
 - Animations covered by committed generated models: **0** of 128 (none committed); unknown for local-only drafts: 0 row(s)

@@ -37,6 +37,10 @@ EXCLUDED = {
 }
 
 
+# Models whose Java class only wraps a vanilla layer (no cubes of their own): the carrier is drawn as itself (PAR-FAUNA-02).
+VANILLA_LAYER = {"dog", "cat", "chested_horse", "goat", "pig"}
+
+
 def species_key(cls: str) -> str:
     """TFCWolfModel -> wolf, BactrianCamelModel -> bactrian_camel, MuskOxModel -> musk_ox."""
     name = cls[: -len("Model")]
@@ -102,7 +106,7 @@ def build(tfc: pathlib.Path) -> str:
     out_dir = REPO / "tools/models/out"
     param_ids = {p.stem for p in species_dir.glob("*.json")}
     local_out = {p.name for p in out_dir.glob("*.bbmodel")} if out_dir.is_dir() else set()
-    committed = (git_ls_files("tools/models/out/") or set()) | (git_ls_files("tools/models/imported/") or set())
+    committed = (git_ls_files("tools/models/out/") or set()) | (git_ls_files("tools/models/imported/") or set()) | (git_ls_files("tools/models/tfpmodels/species/out/") or set())
     committed_out = {pathlib.PurePosixPath(p).name for p in (committed or set())}
     tfc_bbmodels = sum(1 for f in tfc.rglob("*.bbmodel") if ".git" not in f.parts)
 
@@ -146,6 +150,8 @@ def build(tfc: pathlib.Path) -> str:
             gen = "no"
             status = "param only" if pf == "yes" else "not started"
             ours = f"0 of {n}"
+        if key in VANILLA_LAYER and gen == "no":
+            gen, status, ours = "vanilla carrier", "vanilla layer", "vanilla"
         if pf == "yes" and gen == "no":
             status = "param only"
         lines.append(f"| `{cls}` | `{key}` | {n} | {pf} | {gen} | {ours} | {status} |")
