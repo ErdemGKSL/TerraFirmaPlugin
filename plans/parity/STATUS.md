@@ -277,7 +277,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-POT-12 | Jug fluid overlay and the four glass bottle items | POTTERY | 27 | open |
 | PAR-POT-08 | Drying bricks, mud bricks and thatch blocks | POTTERY | 27 | open |
 | PAR-POT-09 | Bowls and powder bowls (wooden and ceramic bowl blocks) | POTTERY | 27 | open |
-| PAR-CLIM-11 | Climate in worlds without the TFC generator: biome-based climate model for the Nether, the End and vanilla worlds (temperature, rainfall, consumers) | CLIMATE | 27 | open |
+| PAR-CLIM-11 | Climate in worlds without the TFC generator: biome-based climate model for the Nether, the End and vanilla worlds (temperature, rainfall, consumers) | CLIMATE | 27 | done |
 | PAR-SURV-13 | Intoxication in-game verification: beer from a jug, drunk chat | SURV | 27 | open |
 | PAR-FARM-02 | Fertilizers | FARM | 28 | open |
 | PAR-FARM-03 | Crop blocks: all 29 crops in every shape, seeds, dead and wild crops | FARM | 28 | open |

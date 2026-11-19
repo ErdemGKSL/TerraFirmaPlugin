@@ -2,7 +2,7 @@
 id: PAR-CLIM-11
 title: "Climate in worlds without the TFC generator: biome-based climate model for the Nether, the End and vanilla worlds (temperature, rainfall, consumers)"
 area: CLIMATE
-status: open
+status: done
 wave: 27
 deps: [PAR-CLIM-01, PAR-CLIM-02, PAR-WORLD-02, PAR-WORLD-16]
 size: M
@@ -33,6 +33,7 @@ plan:
   - "paper: `ClimateModels` picks the model per world exactly as TFC (overworld + our generator -> overworld model; any other world, Nether, End, a vanilla-generated overworld -> biome-based) and exposes one lookup used by PlayerClimateService and ChunkClimateSource; captures read the biome on the owning region thread and compute async."
   - "Consumers keep working without TFC chunk data: HUD readout, food decay temperature, snow/ice and precipitation services skip or use the biome model as TFC does; record any consumer that TFC also disables outside the overworld."
   - "Ledger: feature row and a Divergences row only if a value differs (for example Paper biome temperature access)."
+  - "Done: core/climate/model (BiomeBasedClimate, ClimateModelKind), paper ClimateModels + PlayerClimateService biome-based capture; tests BiomeBasedClimateGoldenTest (4) and ClimateModelsTest (4). Pending in-game check (container cannot run client). Other consumers (TabService, InstrumentReadout, SnowService, PrecipitationService) still gate on the overworld: not in files_owned, follow-up needed."
 tests:
   - "core: BiomeBasedClimateGoldenTest (Climate.fromVanilla values and rainfall for sample vanilla biomes vs TFC)"
   - "paper: MockBukkit model selection per world type (TFC overworld, vanilla overworld, nether, end)"

@@ -8,6 +8,8 @@ package dev.tfp.paper.climate;
 import dev.tfp.core.climate.ChunkClimate;
 import dev.tfp.core.climate.ClimateReading;
 import dev.tfp.core.climate.OverworldClimate;
+import dev.tfp.core.climate.model.BiomeBasedClimate;
+import dev.tfp.core.climate.model.ClimateModelKind;
 import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.clock.GlobalClockHolder;
 import dev.tfp.core.world.BlockPos;
@@ -34,8 +36,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
  *   <li><b>Throttle (global thread).</b> Every {@value #PERIOD_TICKS} ticks, for each online player, a task goes to that
  *       player's own thread. A player who has not moved still gets a fresh reading, because the calendar moves the
  *       daily temperature swing.</li>
- *   <li><b>Capture (player thread).</b> Reads the block position and the world seed, and nothing else. Only
- *       the overworld has the model; other dimensions publish an unknown reading.</li>
+ *   <li><b>Capture (player thread).</b> Reads the block position, the world seed, the model kind of the world
+ *       ({@link ClimateModels}) and, for a biome-based world, the vanilla biome temperature and precipitation flag.</li>
  *   <li><b>Compute (worker pool).</b> {@link ClimateReading#of} is pure: {@link OverworldClimate} with the published
  *       {@link ClockSnapshot} and the chunk's {@link ChunkClimate}, read from the seed by {@link ChunkClimateSource}.</li>
  *   <li><b>Apply (player thread).</b> Publishes the value into the player's {@link HudSnapshot} in the
@@ -61,19 +63,29 @@ public final class PlayerClimateService implements Listener {
     }
 
     /** What the player thread reads: everything the pure computation needs, as plain values. */
-    record Capture(UUID player, long worldSeed, boolean overworld, BlockPos pos) {
+    record Capture(UUID player, long worldSeed, ClimateModelKind kind, BlockPos pos, float vanillaTemperature,
+            boolean hasPrecipitation) {
         static Capture of(Player player) {
             World world = player.getWorld();
             Location at = player.getLocation();
-            return new Capture(player.getUniqueId(), world.getSeed(), world.getEnvironment() == World.Environment.NORMAL,
-                    new BlockPos(at.getBlockX(), at.getBlockY(), at.getBlockZ()));
+            return at(player.getUniqueId(), world, new BlockPos(at.getBlockX(), at.getBlockY(), at.getBlockZ()));
+        }
+
+        /** Region (or entity) thread of {@code pos}: reads the biome inputs only where the biome-based model needs them. */
+        static Capture at(UUID player, World world, BlockPos pos) {
+            ClimateModelKind kind = ClimateModels.kindOf(world);
+            if (kind == ClimateModelKind.OVERWORLD) {
+                return new Capture(player, world.getSeed(), kind, pos, Float.NaN, false);
+            }
+            return new Capture(player, world.getSeed(), kind, pos, (float) world.getTemperature(pos.x(), pos.y(), pos.z()),
+                    ClimateModels.hasPrecipitation(world, pos.x(), pos.y(), pos.z()));
         }
     }
 
-    /** The worker-side computation (pure): the overworld model of the captured world at the captured position. */
+    /** The worker-side computation (pure): the model of the captured world at the captured position. */
     static ClimateReading compute(Capture c, ClockSnapshot clock) {
-        if (!c.overworld()) {
-            return ClimateReading.unknown(clock.sequence(), clock.calendarTicks());
+        if (c.kind() == ClimateModelKind.BIOME_BASED) {
+            return BiomeBasedClimate.reading(c.vanillaTemperature(), c.hasPrecipitation(), clock);
         }
         OverworldClimate climate = OverworldClimate.forWorldSeed(c.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
         ChunkClimate chunk = ChunkClimateSource.climateAt(c.worldSeed(), c.pos().x(), c.pos().z());
@@ -142,11 +154,11 @@ public final class PlayerClimateService implements Listener {
 
     /**
      * {@code /tfp debug chunk <x> <z>} from the console: the reading at {@code pos} in {@code world}, with no player.
-     * The caller reads the position's block data on the owning region thread; this only computes (the capture has no
-     * player, so {@link Capture#player()} is {@code null}).
+     * The caller must run on the thread that owns {@code pos} (the capture reads the biome of a biome-based world); only the
+     * computation runs on a worker.
      */
     public CompletableFuture<ClimateReading> readAt(World world, BlockPos pos) {
-        Capture c = new Capture(null, world.getSeed(), world.getEnvironment() == World.Environment.NORMAL, pos);
+        Capture c = Capture.at(null, world, pos);
         return CompletableFuture.supplyAsync(() -> compute(c, clock.get()), scheduler.cpuExecutor());
     }
 
