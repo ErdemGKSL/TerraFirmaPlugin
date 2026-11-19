@@ -116,6 +116,12 @@ public final class Datagen {
         if (dev.tfp.datagen.tool.RockTools.available(tfc)) { // PAR-TOOL-01: rock tool heads and tools; before the coverage gate
             dev.tfp.datagen.tool.RockTools.run(tfc, out);
         }
+        if (dev.tfp.datagen.tool.ObsidianTools.available(tfc)) { // PAR-TOOL-11: obsidian tool heads and tools; before the coverage gate
+            dev.tfp.datagen.tool.ObsidianTools.run(tfc, out);
+        }
+        if (dev.tfp.datagen.weapon.Macuahuitl.available(tfc)) { // PAR-TOOL-04: tfp:obsidian_macuahuitl; before the coverage gate
+            dev.tfp.datagen.weapon.Macuahuitl.run(tfc, out);
+        }
         if (dev.tfp.datagen.material.MaterialItems.available(tfc)) { // PAR-PROC-19: plain TFC material items + TFCItems coverage gate; fixtures have no TFCItems
             dev.tfp.datagen.material.MaterialItems.run(tfc, out);
             dev.tfp.datagen.material.ItemCoverage.run(tfc, out);

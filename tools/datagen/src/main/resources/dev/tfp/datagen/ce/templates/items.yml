@@ -50,8 +50,8 @@ templates#items:
       break_power: ${break_power}
       tags:
         - ${tool_tag}
-  # Metal sword and mace. damage: the attack_damage modifier amount (TFC damage x factor - 1: a CE item with attribute_modifiers
-  # replaces the vanilla base damage, so the in-game damage is 1 + amount). The attack speed is open.
+  # Metal sword and mace. damage: the attack_damage modifier amount (TFC's factor x tier damage, as productAttributes; a CE item
+  # with attribute_modifiers replaces the vanilla base damage, so the in-game damage is 1 + amount, as in TFC). attack_speed: TFC's modifier.
   tfp:item/weapon:
     material: iron_sword
     data:
@@ -61,6 +61,10 @@ templates#items:
       attribute_modifiers:
         - type: attack_damage
           amount: ${damage}
+          operation: add_value
+          slot: mainhand
+        - type: attack_speed
+          amount: ${attack_speed}
           operation: add_value
           slot: mainhand
     model: ${__NAMESPACE__}:item/${__ID__}

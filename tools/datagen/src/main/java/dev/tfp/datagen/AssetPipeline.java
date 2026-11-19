@@ -76,6 +76,8 @@ public final class AssetPipeline {
     private final Set<String> metalItems = new TreeSet<>();
     /** Metal mining tools ({@code metal/<kind>/<metal>}) with the arguments of {@code tfp:item/tool}. */
     private final Map<String, Map<String, Object>> metalTools = new TreeMap<>();
+    /** The {@code data} (attack attributes) of each metal mining tool, by id. */
+    private final Map<String, Map<String, Object>> metalToolData = new TreeMap<>();
     /** Metal weapons ({@code metal/<kind>/<metal>}) with the arguments of {@code tfp:item/weapon}. */
     private final Map<String, Map<String, Object>> metalWeapons = new TreeMap<>();
     /** Metal armor and horse armor ({@code metal/<kind>/<metal>}) with the arguments of {@code tfp:item/armor} or {@code tfp:item/horse_armor}. */
@@ -187,6 +189,11 @@ public final class AssetPipeline {
                 args.put("break_power", tier.level());
                 args.put("mineable_tag", mineable);
                 args.put("tool_tag", Json.TO_NS + ":tools/" + kind);
+                BigDecimal[] attack = metalAttacks(tfc).get(kind);
+                if (attack == null) {
+                    throw new DatagenException("metal tool " + kind + " has no attack values in " + MetalFamilies.SOURCE);
+                }
+                metalToolData.put(id, attackData(tier, attack));
                 metalTools.put(id, args);
             }
         });
@@ -205,7 +212,12 @@ public final class AssetPipeline {
                 modelQueue.add("item/" + id);
                 Map<String, Object> args = new LinkedHashMap<>();
                 args.put("item_lang_key", langKey("item", id));
+                BigDecimal[] attack = metalAttacks(tfc).get(kind);
+                if (attack == null || attack[0].compareTo(factor) != 0) {
+                    throw new DatagenException("metal weapon " + kind + " factor differs from " + MetalFamilies.SOURCE);
+                }
                 args.put("damage", weaponDamageModifier(tier.damage(), factor));
+                args.put("attack_speed", attack[1]);
                 args.put("durability", tier.uses());
                 args.put("break_power", tier.level());
                 metalWeapons.put(id, args);
@@ -391,11 +403,38 @@ public final class AssetPipeline {
         "sword", new BigDecimal("1.0"), "mace", new BigDecimal("1.3"));
 
     /**
-     * The attack_damage modifier amount for TFC damage tier x factor. A CE item with attribute_modifiers replaces the
-     * vanilla base damage, so the in-game damage is 1 + amount (verified): amount = damage - 1.
+     * The attack_damage modifier amount: TFC's {@code productAttributes} value, tier damage x factor. A CE item with
+     * attribute_modifiers replaces the vanilla base damage, so the in-game damage is 1 + amount, as in TFC.
      */
     static BigDecimal weaponDamageModifier(BigDecimal tierDamage, BigDecimal factor) {
-        return tierDamage.multiply(factor).subtract(BigDecimal.ONE);
+        return tierDamage.multiply(factor).stripTrailingZeros();
+    }
+
+    private static final Pattern METAL_ATTACK = Pattern.compile(
+        "(\\w+)\\(PartType\\.ALL, metal -> new \\w+\\([^;\\n]*?tool\\(metal, (-?[\\d.]+)f, (-?[\\d.]+)f\\)");
+
+    /** TFC's attack factor and attack speed per metal tool kind (lower case), from {@code Metal.ItemType}. */
+    static Map<String, BigDecimal[]> metalAttacks(TfcCheckout tfc) {
+        Map<String, BigDecimal[]> out = new java.util.HashMap<>();
+        java.util.regex.Matcher m = METAL_ATTACK.matcher(tfc.readString(MetalFamilies.SOURCE));
+        while (m.find()) {
+            out.put(m.group(1).toLowerCase(java.util.Locale.ROOT), new BigDecimal[] {new BigDecimal(m.group(2)), new BigDecimal(m.group(3))});
+        }
+        return out;
+    }
+
+    private static Map<String, Object> attackData(Tier tier, BigDecimal[] attack) {
+        Map<String, Object> damage = new LinkedHashMap<>();
+        damage.put("type", "attack_damage");
+        damage.put("amount", weaponDamageModifier(tier.damage(), attack[0]));
+        damage.put("operation", "add_value");
+        damage.put("slot", "mainhand");
+        Map<String, Object> speed = new LinkedHashMap<>();
+        speed.put("type", "attack_speed");
+        speed.put("amount", attack[1]);
+        speed.put("operation", "add_value");
+        speed.put("slot", "mainhand");
+        return Map.of("attribute_modifiers", List.of(damage, speed));
     }
 
     /** TFC's tiers by metal name. The vanilla material follows the tier's {@code INCORRECT_FOR_*} tag (netherite as diamond: no fire resistance). */
@@ -678,7 +717,9 @@ public final class AssetPipeline {
         }
         metalTools.forEach((id, args) -> {
             requireItemModel(id);
-            metal.items.put(Json.TO_NS + ":" + id, CeBlockStates.call("tfp:item/tool", args));
+            Map<String, Object> entry = CeBlockStates.call("tfp:item/tool", args);
+            entry.put("data", metalToolData.get(id));
+            metal.items.put(Json.TO_NS + ":" + id, entry);
         });
         metalWeapons.forEach((id, args) -> {
             requireItemModel(id);

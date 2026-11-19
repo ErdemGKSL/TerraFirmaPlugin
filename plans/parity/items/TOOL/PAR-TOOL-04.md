@@ -21,6 +21,7 @@ in_game_steps:
   - "hit once; data get entity @e[type=cow,limit=1] Health"
 plan:
   - "Generate swords (factor 1.0, speed -2.4) and maces (1.3, -3.4) for 9 metals and the obsidian macuahuitl with `attribute_modifiers` amount = TFC damage - 1 (fist base) as measured in plans/gaps.md; verify one tier in-game (cow, armour 0)."
+  - "Progress: macuahuitl (weapon/Macuahuitl), metal weapon attack speed and TFC damage amount (factor x tier damage, no -1), metal mining tool attack modifiers generated; in-game hit check pending"
 tests:
   - "tools/datagen: amounts vs TFCTiers"
 done_criteria:

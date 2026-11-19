@@ -14,14 +14,14 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
-/** Metal sword and mace attack damage: modifier amount = TFC tier damage x factor - 1. */
+/** Metal sword and mace attack damage: modifier amount = TFC tier damage x factor (TFC's productAttributes). */
 class MetalWeaponsTest {
     @Test
     void amountIsTierDamageTimesFactorMinusOne() {
         assertThat(AssetPipeline.weaponDamageModifier(new BigDecimal("3.25"), AssetPipeline.METAL_WEAPON_KINDS.get("sword")))
-            .isEqualByComparingTo("2.25");
+            .isEqualByComparingTo("3.25");
         assertThat(AssetPipeline.weaponDamageModifier(new BigDecimal("5.75"), AssetPipeline.METAL_WEAPON_KINDS.get("mace")))
-            .isEqualByComparingTo("6.475");
+            .isEqualByComparingTo("7.475");
     }
 
     @Test
@@ -33,7 +33,7 @@ class MetalWeaponsTest {
         String metal = files.entrySet().stream().filter(e -> e.getKey().endsWith("/metal.yml"))
             .map(e -> new String(e.getValue(), StandardCharsets.UTF_8)).findFirst().orElseThrow();
         assertThat(metal).contains("tfp:metal/sword/copper:", "tfp:metal/mace/steel:", "template: tfp:item/weapon");
-        assertThat(metal).contains("damage: 2.25", "damage: 6.475");
+        assertThat(metal).contains("damage: 3.25", "damage: 7.475", "attack_speed: -2.4", "attack_speed: -3.4");
     }
 
     @Test

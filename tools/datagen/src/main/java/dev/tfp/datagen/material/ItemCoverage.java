@@ -41,9 +41,7 @@ public final class ItemCoverage {
 
     /** The parity items that own the TFC items not generated yet (checked against plans/parity/items by the test). */
     public static final List<Owner> OWNERS = List.of(
-        Owner.of("obsidian_macuahuitl", "PAR-TOOL-04", "macuahuitl"),
-        Owner.of("obsidian_javelin|metal/javelin/.+", "PAR-TOOL-05", "javelins"),
-        Owner.of("obsidian_.+", "PAR-TOOL-01", "obsidian tool heads and tools (TFC's knapped tools)"),
+        Owner.of("metal/javelin/.+", "PAR-TOOL-05", "javelins"),
         Owner.of("brick/.+", "PAR-DECO-06", "rock bricks (rock display-category lore)"),
         Owner.of("mud_brick/.+", "PAR-POT-08", "mud bricks"),
         Owner.of("(small|medium|large)_(raw|soaked|scraped|prepared|sheepskin)_hide", "PAR-FAUNA-17", "hides"),
