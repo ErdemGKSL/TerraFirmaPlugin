@@ -2,7 +2,7 @@
 id: PAR-REL-03
 title: "Dependency and version updates (MC, Paper, Folia, CE, BetterModel, BetterHud)"
 area: REL
-status: open
+status: done
 wave: 52
 deps: []
 size: S
@@ -15,6 +15,7 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
+  - "Done: versions re-checked 2026-11-19, docs/compat/versions.md rewritten, pins kept (BetterModel 3.7.0 released today: left for a matrix run). compat.yml unchanged, so CompatCheckTest is unaffected. No code change."
   - "Re-check versions, update pins and the CI matrix, re-verify version-specific skill claims."
 tests:
   - "CompatCheck tests"
