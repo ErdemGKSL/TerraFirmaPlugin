@@ -67,8 +67,8 @@ import org.bukkit.event.world.ChunkLoadEvent;
  *       creature list (vanilla's chunk-generation spawn with TFC's lists), and each member passes TFC's gate
  *       ({@link SpawnRules#accepts}: chance, depth, climate window with fuzzy draw, months, brightness) with the climate of
  *       its own column.</li>
- *   <li><b>Top-up</b>: every {@value #TOP_UP_TICKS} ticks, for each player, one group in a loaded chunk 2 to 6 chunks
- *       away, skipped when that chunk already holds {@value #CHUNK_CAP} TFC animals (a documented divergence: TFC has the
+ *   <li><b>Top-up</b>: every {@value #TOP_UP_TICKS} ticks (vanilla's creature cycle), for each player, {@value #TOP_UP_ATTEMPTS} attempts in loaded
+ *       chunks 2 to 8 chunks away, skipped when that chunk already holds {@value #CHUNK_CAP} TFC animals (a documented divergence: TFC has the
  *       vanilla mob cap).</li>
  * </ul>
  * Planning is a few random draws and the gate a few comparisons on cached climate data, so both run on the chunk's or
@@ -76,13 +76,23 @@ import org.bukkit.event.world.ChunkLoadEvent;
  * category are spawned here; fish and other water categories belong to PAR-FAUNA-11.
  */
 public final class NaturalSpawnModule implements FeatureModule, Listener {
-    static final long TOP_UP_TICKS = Long.getLong("tfp.spawn.topUpTicks", 600L);
+    /** Vanilla runs the creature spawn cycle every 400 ticks. */
+    static final long TOP_UP_TICKS = Long.getLong("tfp.spawn.topUpTicks", 400L);
+    /** Chunks tried per player and pass. */
+    static final int TOP_UP_ATTEMPTS = Integer.getInteger("tfp.spawn.topUpAttempts", 12);
     static final int CHUNK_CAP = Integer.getInteger("tfp.spawn.chunkCap", 8);
     static final boolean ENABLED = !Boolean.getBoolean("tfp.spawn.disabled");
 
     private ModuleContext ctx;
     private volatile SpawnTables tables;
     private final Map<UUID, Scheduler.TaskHandle> topUps = new ConcurrentHashMap<>();
+    /** Diagnostics shown by the census: new chunks seen, members planned, refused by the placement, refused by the gate, spawned. */
+    final java.util.concurrent.atomic.LongAdder newChunks = new java.util.concurrent.atomic.LongAdder();
+    final java.util.concurrent.atomic.LongAdder planned = new java.util.concurrent.atomic.LongAdder();
+    final java.util.concurrent.atomic.LongAdder noPlace = new java.util.concurrent.atomic.LongAdder();
+    final java.util.concurrent.atomic.LongAdder gateFailed = new java.util.concurrent.atomic.LongAdder();
+    final java.util.concurrent.atomic.LongAdder spawned = new java.util.concurrent.atomic.LongAdder();
+    final java.util.concurrent.atomic.LongAdder topUpPasses = new java.util.concurrent.atomic.LongAdder();
 
     @Override
     public String id() {
@@ -140,7 +150,11 @@ public final class NaturalSpawnModule implements FeatureModule, Listener {
         }
         List<ChunkSpawns.Member> members = newChunk ? ChunkSpawns.forNewChunk(biome.get(), rand)
                 : ChunkSpawns.topUp(biome.get(), rand);
+        if (newChunk) {
+            newChunks.increment();
+        }
         for (ChunkSpawns.Member m : members) {
+            planned.increment();
             Carrier carrier = animals.table().find(m.entry().type()).orElse(null);
             FaunaRule rule = tables.fauna().get(m.entry().type());
             if (carrier == null || rule == null || isWater(carrier)) {
@@ -150,12 +164,15 @@ public final class NaturalSpawnModule implements FeatureModule, Listener {
             int z = bz + m.z();
             Location at = standingPlace(world, x, z, carrier);
             if (at == null) {
+                noPlace.increment();
                 continue;
             }
             SpawnSite site = site(world, at, now);
             if (!SpawnRules.accepts(rule, site, rand)) {
+                gateFailed.increment();
                 continue;
             }
+            spawned.increment();
             animals.spawn(at, carrier, AnimalSpawnRoll.AgeHint.RANDOM, null).exceptionally(e -> {
                 ctx.logger().fine("Spawn of " + carrier.id() + " failed: " + e.getMessage());
                 return null;
@@ -241,25 +258,30 @@ public final class NaturalSpawnModule implements FeatureModule, Listener {
         }
     }
 
-    /** One top-up for {@code player}: a loaded chunk 2 to 6 chunks away, in a region this thread owns. Player thread. */
+    /** One top-up pass for {@code player}: {@link #TOP_UP_ATTEMPTS} loaded chunks 2 to 8 chunks away, each in its own region. Player thread. */
     private void topUp(Player player) {
         World world = player.getWorld();
         if (world.getEnvironment() != World.Environment.NORMAL) {
             return;
         }
+        topUpPasses.increment();
         ThreadLocalRandom r = ThreadLocalRandom.current();
-        int cx = (player.getLocation().getBlockX() >> 4) + (r.nextBoolean() ? 1 : -1) * (2 + r.nextInt(5));
-        int cz = (player.getLocation().getBlockZ() >> 4) + (r.nextBoolean() ? 1 : -1) * (2 + r.nextInt(5));
-        ctx.scheduler().region(world, cx, cz, () -> {
-            if (!world.isChunkLoaded(cx, cz)) {
-                return;
-            }
-            Chunk chunk = world.getChunkAt(cx, cz);
-            if (countAnimals(chunk) >= CHUNK_CAP) {
-                return;
-            }
-            populate(chunk, false);
-        });
+        int px = player.getLocation().getBlockX() >> 4;
+        int pz = player.getLocation().getBlockZ() >> 4;
+        for (int i = 0; i < TOP_UP_ATTEMPTS; i++) {
+            int cx = px + (r.nextBoolean() ? 1 : -1) * (2 + r.nextInt(7));
+            int cz = pz + (r.nextBoolean() ? 1 : -1) * (2 + r.nextInt(7));
+            ctx.scheduler().region(world, cx, cz, () -> {
+                if (!world.isChunkLoaded(cx, cz)) {
+                    return;
+                }
+                Chunk chunk = world.getChunkAt(cx, cz);
+                if (countAnimals(chunk) >= CHUNK_CAP) {
+                    return;
+                }
+                populate(chunk, false);
+            });
+        }
     }
 
     static int countAnimals(Chunk chunk) {
@@ -323,6 +345,8 @@ public final class NaturalSpawnModule implements FeatureModule, Listener {
             int total = sorted.values().stream().mapToInt(Integer::intValue).sum();
             List<String> lines = new ArrayList<>();
             sorted.forEach((k, n) -> lines.add(k + ": " + n));
+            lines.add("spawn stats: new chunks " + newChunks.sum() + ", planned " + planned.sum() + ", no place " + noPlace.sum()
+                    + ", gate refused " + gateFailed.sum() + ", spawned " + spawned.sum() + ", top-up passes " + topUpPasses.sum());
             return Reply.ok("debug.census.header", total, sorted.size(), radius).withDetails(lines);
         });
     }
