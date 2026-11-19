@@ -25,5 +25,6 @@ done_criteria:
 ---
 
 # PAR-POT-11: item_heat data for fired pottery
+> Claimed: pot-11 worker, 2026-11-19
 
 Follow-up of PAR-POT-04. Follow `plans/parity/PROTOCOL.md`.
