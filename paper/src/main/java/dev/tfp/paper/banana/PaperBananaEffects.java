@@ -1,0 +1,188 @@
+/*
+ * Licensed under the EUPL, Version 1.2.
+ * You may obtain a copy of the Licence at:
+ * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
+ * file: src/main/java/net/dries007/tfc/common/blocks/plant/fruit/SeasonalPlantBlock.java @ c3b4d9536 (getFruitBushHydrationFromRootPos),
+ *       src/main/java/net/dries007/tfc/common/blocks/soil/FarmlandBlock.java @ c3b4d9536 (getInstantHydrationFromRainHydration, isSourceBlockPresent)
+ */
+package dev.tfp.paper.banana;
+
+import dev.tfp.core.berry.FruitTreeState;
+import dev.tfp.core.climate.ChunkClimate;
+import dev.tfp.core.climate.OverworldClimate;
+import dev.tfp.core.climate.Solar;
+import dev.tfp.core.farm.FarmlandRules;
+import dev.tfp.core.world.BlockPos;
+import dev.tfp.paper.berry.BerryEffects;
+import dev.tfp.paper.catchup.CatchUpService;
+import dev.tfp.paper.climate.ChunkClimateSource;
+import dev.tfp.paper.device.DeviceKind;
+import dev.tfp.paper.device.DeviceService;
+import dev.tfp.paper.integration.BlockStateRef;
+import dev.tfp.paper.integration.BlockVisuals;
+import dev.tfp.paper.integration.CustomBlocks;
+import dev.tfp.paper.integration.CustomItems;
+import dev.tfp.paper.scheduler.Scheduler;
+import dev.tfp.paper.tags.Tags;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.random.RandomGenerator;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.SoundCategory;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+/**
+ * The server side of {@link BananaEffects}, as {@code PaperBerryEffects}: a visual state of the same id is written with
+ * {@code setBlockData(data, false)} while the block is still our CraftEngine block; a block with another id is placed anew. Region thread of
+ * the block.
+ *
+ * <p>Divergence (ledger): as the berry bushes, the hydration is the farmland hydration of the block below the stem without a soil multiplier.
+ */
+public final class PaperBananaEffects implements BananaEffects {
+    public static final String BUSH_PLANTABLE_ON = "tfc:bush_plantable_on";
+
+    private final Scheduler scheduler;
+    private final CustomBlocks blocks;
+    private final CustomItems items;
+    private final Supplier<BlockVisuals> visuals;
+    private final Tags tags;
+    private final Supplier<DeviceService> devices;
+    private final Function<String, DeviceKind<FruitTreeState>> kinds;
+    private final Supplier<Optional<CatchUpService>> catchUp;
+
+    public PaperBananaEffects(Scheduler scheduler, CustomBlocks blocks, CustomItems items, Supplier<BlockVisuals> visuals, Tags tags,
+            Supplier<DeviceService> devices, Function<String, DeviceKind<FruitTreeState>> kinds, Supplier<Optional<CatchUpService>> catchUp) {
+        this.scheduler = scheduler;
+        this.blocks = blocks;
+        this.items = items;
+        this.visuals = visuals;
+        this.tags = tags;
+        this.devices = devices;
+        this.kinds = kinds;
+        this.catchUp = catchUp;
+    }
+
+    @Override
+    public BerryEffects.Environment environment(Block stem, Block root) {
+        World world = stem.getWorld();
+        long seed = world.getSeed();
+        OverworldClimate climate = OverworldClimate.forWorldSeed(seed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        ChunkClimate chunk = ChunkClimateSource.climateAt(seed, stem.getX(), stem.getZ());
+        float temperature = climate.averageTemperature(new BlockPos(stem.getX(), stem.getY(), stem.getZ()), chunk);
+        boolean northern = world.getEnvironment() != World.Environment.NORMAL
+            || Solar.inNorthernHemisphere(stem.getZ(), climate.hemisphereScale());
+        int rain = FarmlandRules.rainHydration(chunk.averageRainfall());
+        boolean source = FarmlandRules.sourcePresent(FarmlandRules.minCostWater((dx, dy, dz) -> root.getRelative(dx, dy, dz).getType() == Material.WATER));
+        return new BerryEffects.Environment(FarmlandRules.instantHydration(rain, false, source, 1f), temperature, northern);
+    }
+
+    @Override
+    public Optional<BlockStateRef> blockAt(Block block) {
+        return blocks.stateAt(block);
+    }
+
+    @Override
+    public boolean isAir(Block block) {
+        return block.getType().isAir() && blocks.stateAt(block).isEmpty();
+    }
+
+    @Override
+    public boolean plantable(Block block) {
+        return tags.is(block, BUSH_PLANTABLE_ON);
+    }
+
+    @Override
+    public boolean canSeeSky(Block block) {
+        return block.getWorld().getHighestBlockYAt(block.getX(), block.getZ(), org.bukkit.HeightMap.MOTION_BLOCKING) <= block.getY();
+    }
+
+    @Override
+    public void show(Block block, BlockStateRef wanted, FruitTreeState state) {
+        scheduler.region(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, () -> {
+            Optional<BlockStateRef> now = blocks.stateAt(block);
+            if (now.isEmpty() || BananaDevice.parse(now.get()).isEmpty() || wanted.equals(now.get())) {
+                return; // broken or replaced meanwhile, or already right
+            }
+            if (!wanted.id().equals(now.get().id())) {
+                if (blocks.place(block, wanted, false) && state != null) {
+                    devices.get().edit(block, kinds.apply(wanted.id()), (record, at) -> record.withState(state));
+                }
+                return;
+            }
+            Optional<BlockData> data = visuals.get().blockData(wanted);
+            data.ifPresent(d -> block.setBlockData(d, false));
+        });
+    }
+
+    @Override
+    public void place(Block target, BlockStateRef ref, FruitTreeState state) {
+        if (!blocks.place(target, ref, true) || state == null) {
+            return;
+        }
+        devices.get().edit(target, kinds.apply(ref.id()), (record, now) -> record.withState(state));
+    }
+
+    @Override
+    public void store(Block block, FruitTreeState state) {
+        blocks.stateAt(block).map(BlockStateRef::id).map(kinds).ifPresent(k -> devices.get().edit(block, k, (record, now) -> record.withState(state)));
+    }
+
+    @Override
+    public void replaceWithDeadBush(Block block) {
+        scheduler.region(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, () -> {
+            BlockStateRef dead = BlockStateRef.of(BananaDevice.DEAD_BUSH_ID);
+            if (!(blocks.exists(dead.id()) && blocks.place(block, dead, true))) {
+                blocks.remove(block);
+            }
+        });
+    }
+
+    @Override
+    public void remove(Block block) {
+        scheduler.region(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, () -> {
+            if (blocks.stateAt(block).flatMap(BananaDevice::parse).isPresent()) {
+                blocks.remove(block);
+            }
+        });
+    }
+
+    @Override
+    public void track(Block block) {
+        catchUp.get().ifPresent(c -> c.track(block, BananaDevice.CATCH_UP_KIND));
+    }
+
+    @Override
+    public Optional<ItemStack> product(String itemId, int count) {
+        return items.create(itemId, count);
+    }
+
+    @Override
+    public void give(Player player, ItemStack stack) {
+        Map<Integer, ItemStack> left = player.getInventory().addItem(stack);
+        for (ItemStack rest : left.values()) {
+            player.getWorld().dropItem(player.getLocation(), rest);
+        }
+    }
+
+    @Override
+    public void pickSound(Block block) {
+        ThreadLocalRandom r = ThreadLocalRandom.current();
+        block.getWorld().playSound(new Location(block.getWorld(), block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5),
+            org.bukkit.Sound.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES, SoundCategory.BLOCKS, 1f, r.nextFloat() + 0.7f + 0.3f);
+    }
+
+    @Override
+    public RandomGenerator random() {
+        return ThreadLocalRandom.current();
+    }
+}
