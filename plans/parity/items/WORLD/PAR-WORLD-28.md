@@ -2,7 +2,7 @@
 id: PAR-WORLD-28
 title: "Wire the cave and canyon tunnel masks into the terrain fill, and the in-game cave check"
 area: WORLD
-status: open
+status: done
 wave: 20
 deps: [PAR-WORLD-06]
 size: S
@@ -23,6 +23,8 @@ plan:
   - "The decorations view (`TfcTerrain.Ground`) should see the opened blocks where it matters (ledger divergence 'TFC's decorations read the carved terrain'); at least keep loose rocks off cave ceilings that are now open."
   - "Cost: the mask is ~0.2 ms per chunk on one core (17 x 17 start chunks x 3 carvers); check the PAR-WORLD-03 chunk budget bench."
   - "After this lands, PAR-WORLD-19 (ore census rerun with caves) can run; it lists PAR-WORLD-06 in deps but needs this item too."
+  - "Done: `TfcTerrain.fill` carves the tunnel mask per chunk through `TfcTerrain.CaveChunk` (replaceable = rock and every surface kind but snow blocks, as TFC's `overworld_carver_replaceables`; density-opened water is not recarved, as TFC removes water from the tag); carved air is `cave_air`; `Ground` reads the carves of the chunk and its neighbours (carved column tops, so loose rocks and plants do not float over a cave that breaks the surface). Tests: paper `CaveWiringTest` (2). Budget: one mask per chunk (~0.2 ms) plus neighbour masks only when the decorations read a neighbour column; bench not rerun (no server)."
+  - "Pending in-game check (container cannot run client): the two in_game_steps (cave and canyon screenshots) into docs/verification/PAR-WORLD-28/, and the PAR-WORLD-03 chunk budget on a server."
 tests:
   - "paper: CaveWiringTest: a filled chunk with a non-empty mask has air/water/lava exactly at the masked rock positions the carve decision opens, lava at or below min y + 8, and the rest rock"
 done_criteria:

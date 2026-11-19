@@ -9,6 +9,8 @@ import dev.tfp.core.worldgen.Seed;
 import dev.tfp.core.worldgen.carver.Aquifer;
 import dev.tfp.core.worldgen.carver.Carve;
 import dev.tfp.core.worldgen.carver.CaveCarver;
+import dev.tfp.core.worldgen.carver.TunnelCarvers;
+import dev.tfp.core.worldgen.carver.TunnelMask;
 import dev.tfp.core.worldgen.biome.TfcBiomes;
 import dev.tfp.core.worldgen.chunk.ChunkData;
 import dev.tfp.core.worldgen.chunk.ChunkDataGenerator;
@@ -81,11 +83,6 @@ final class TfcTerrain {
     /** The raw rock ids of the content, in {@link PlaceholderRocks#names()} order. */
     static final List<String> ROCK_IDS = PlaceholderRocks.names().stream().map(n -> "tfp:rock/raw/" + n).toList();
 
-    /**
-     * The tunnel shape of the caves. TFC's vanilla {@code CaveWorldCarver} tunnels are not ported yet (M2-GEN-09 is open), so
-     * no position is inside one and the carve never changes a block. The decision in {@link CaveCarver} is wired and tested.
-     */
-    private static final boolean IN_CAVE = false;
     /** The aquifer barrier noise: TFC's vanilla {@code aquifer_barrier} is not ported, so the barrier is zero (see the ledger). */
     private static final Aquifer.BarrierNoise NO_BARRIER = (x, y, z) -> 0.0;
 
@@ -99,6 +96,8 @@ final class TfcTerrain {
     private final BlockData bedrock = Material.BEDROCK.createBlockData();
     private final BlockData water = Material.WATER.createBlockData();
     private final BlockData air = Material.AIR.createBlockData();
+    /** The air of a carved cave: TFC's carvers write {@code cave_air} ({@code CarverHelpers.AIR}). */
+    private final BlockData caveAir = Material.CAVE_AIR.createBlockData();
     private final BlockData lava = Material.LAVA.createBlockData();
     /** The positional random factory of TFC's noise sampler for this seed: {@code new XoroshiroRandomSource(seed).forkPositional()}. */
     private final PositionalRandom aquiferFork;
@@ -294,10 +293,10 @@ final class TfcTerrain {
         final int[] heights = columns.heights();
         // The climate of the chunk, with the groundwater that the surface heights remove from the rivers' share
         final ChunkData climate = chunks.generate(chunkX, chunkZ).modifyBaseGroundwater(heights);
-        final double[] slopes = SurfaceSlope.slopeMap(chunkX << 4, chunkZ << 4, this::heightAt);
         final int minY = data.getMinHeight();
         final int sea = ChunkData.SEA_LEVEL_Y;
-        final Aquifer aquifer = new Aquifer(chunkX, chunkZ, minY, sea, aquiferFork, NO_BARRIER, surfaceHeights.aquiferSurfaceHeights(chunkX, chunkZ));
+        // PAR-WORLD-28: the view carries the chunk's cave carves (and its neighbours', for the decorations)
+        final Ground view = new Ground(chunkX, chunkZ, columns, climate, minY, data.getMaxHeight());
         final OreVeins.Chunk veins = ores.chunk(chunkX, chunkZ);
         for (int lz = 0; lz < 16; lz++) {
             final int z = (chunkZ << 4) + lz;
@@ -306,8 +305,7 @@ final class TfcTerrain {
                 final int height = heights[lx + 16 * lz];
                 final int top = columns.tops()[lx + 16 * lz];
                 final SurfaceHeights.Column sample = columns.samples()[lx + 16 * lz];
-                final ColumnSurface surface = ColumnSurface.build(SurfaceFamily.forBiome(columns.biomes()[lx + 16 * lz]).builder(),
-                    column(x, z, height, climate, SurfaceSlope.sample(slopes, lx, lz)), top, minY);
+                final ColumnSurface surface = view.surface(x, z);
                 data.setBlock(lx, minY, lz, bedrock);
                 for (int y = minY + 1; y <= top; y++) {
                     final Material opened = densityCarve(sample, y, top, sea);
@@ -315,16 +313,17 @@ final class TfcTerrain {
                         data.setBlock(lx, y, lz, opened == Material.WATER ? water : air);
                         continue;
                     }
+                    // PAR-WORLD-28: TFC's carvers run after the surface builder, over every replaceable block (CaveChunk)
+                    final Carve carve = view.caveCarve(x, y, z);
+                    if (carve != Carve.KEEP) {
+                        data.setBlock(lx, y, lz, carvedBlock(carve));
+                        continue;
+                    }
                     final SurfaceKind kind = surface.kind(y);
                     if (kind == null || kind == SurfaceKind.ROCK_SURFACE) {
-                        final Carve carve = CaveCarver.carve(aquifer, x, y, z, inCave(x, y, z));
-                        if (carve == Carve.KEEP) {
-                            ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, height);
-                            final int rockIndex = PlaceholderRocks.index(rock.point(), rock.layer());
-                            data.setBlock(lx, y, lz, palette.block(veins.isEmpty() ? rockIndex : blockIndex(ores, veins, x, y, z, rockIndex)));
-                        } else {
-                            data.setBlock(lx, y, lz, carvedBlock(carve));
-                        }
+                        ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, height);
+                        final int rockIndex = PlaceholderRocks.index(rock.point(), rock.layer());
+                        data.setBlock(lx, y, lz, palette.block(veins.isEmpty() ? rockIndex : blockIndex(ores, veins, x, y, z, rockIndex)));
                     } else {
                         data.setBlock(lx, y, lz, surfaceBlocks[kind.ordinal()]);
                     }
@@ -334,7 +333,7 @@ final class TfcTerrain {
                 }
             }
         }
-        decorate(data, chunkX, chunkZ, columns, climate, palette);
+        decorate(data, chunkX, chunkZ, view, palette);
     }
 
     /**
@@ -348,11 +347,9 @@ final class TfcTerrain {
      * same way ({@link Plants}: this chunk and its 8 neighbours, only this chunk's blocks written, {@link PlantBlocks#write}).
      * Every block is a vanilla placeholder ({@link GroundcoverBlocks}, {@link TreeBlocks}, {@link PlantBlocks}).
      */
-    private void decorate(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, Columns columns, ChunkData climate,
-                          RockPalette<BlockData> palette) {
+    private void decorate(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, Ground view, RockPalette<BlockData> palette) {
         final int minY = data.getMinHeight();
         final int maxY = data.getMaxHeight();
-        final Ground view = new Ground(chunkX, chunkZ, columns, climate, minY);
         final Map<BlockData, DepositMaterial> materials = depositMaterials(palette);
         for (DepositBlock block : deposits.chunk(chunkX, chunkZ, view,
             (x, y, z) -> y < minY || y >= maxY ? null : materials.get(data.getBlockData(x & 15, y, z & 15)))) {
@@ -582,19 +579,23 @@ final class TfcTerrain {
         private final int[] ownHeights;
         private final ChunkData ownClimate;
         private final int minY;
+        private final int maxY;
         private final Columns ownColumns;
         private final Map<Long, Columns> columns = new HashMap<>();
         private final Map<Long, ChunkData> climates = new HashMap<>();
         private final Map<Long, double[]> slopes = new HashMap<>();
         private final Map<Long, ColumnSurface> surfaces = new HashMap<>();
+        /** PAR-WORLD-28: the cave carves of this chunk and of the neighbours the decisions read. */
+        private final Map<Long, CaveChunk> caves = new HashMap<>();
 
-        Ground(int chunkX, int chunkZ, Columns ownColumns, ChunkData ownClimate, int minY) {
+        Ground(int chunkX, int chunkZ, Columns ownColumns, ChunkData ownClimate, int minY, int maxY) {
             this.chunkX = chunkX;
             this.chunkZ = chunkZ;
             this.ownColumns = ownColumns;
             this.ownHeights = ownColumns.heights();
             this.ownClimate = ownClimate;
             this.minY = minY;
+            this.maxY = maxY;
         }
 
         private static long key(int a, int b) {
@@ -629,14 +630,56 @@ final class TfcTerrain {
             return climates.computeIfAbsent(key(cx, cz), k -> chunks.generate(cx, cz).modifyBaseGroundwater(heightsOf(cx, cz)));
         }
 
-        /** The terrain top of a column: the highest block the density keeps, as {@link #fill} writes it. */
-        int top(int x, int z) {
+        /** The terrain top of a column: the highest block the density keeps, which the surface builder covers. */
+        int terrainTop(int x, int z) {
             return columnsOf(x >> 4, z >> 4).tops()[(x & 15) + 16 * (z & 15)];
         }
 
-        /** Whether the density opens a block at or below the column's terrain top ({@link TfcTerrain#densityCarve}). */
-        private boolean opened(int x, int y, int z) {
+        /**
+         * The top of a column as {@link #fill} writes it: the highest block neither the density nor a cave opens (TFC's
+         * heightmaps follow the carvers, so a cave that breaks the surface lowers them).
+         */
+        int top(int x, int z) {
+            return carvedTop(terrainTop(x, z), minY, y -> opened(x, y, z));
+        }
+
+        /** Whether the density opens a block of the column ({@link TfcTerrain#densityCarve}). */
+        private boolean densityOpened(int x, int y, int z) {
             return !columnsOf(x >> 4, z >> 4).samples()[(x & 15) + 16 * (z & 15)].solid(y);
+        }
+
+        /** Whether the density or a cave opens a block at or below the column's terrain top. */
+        private boolean opened(int x, int y, int z) {
+            return densityOpened(x, y, z) || caveCarve(x, y, z) != Carve.KEEP;
+        }
+
+        /** PAR-WORLD-28: the cave carve of a position, as {@link #fill} writes it ({@link CaveChunk}). */
+        Carve caveCarve(int x, int y, int z) {
+            return cavesOf(x >> 4, z >> 4).carve(x, y, z);
+        }
+
+        private CaveChunk cavesOf(int cx, int cz) {
+            CaveChunk out = caves.get(key(cx, cz));
+            if (out == null) {
+                final TunnelMask mask = TunnelCarvers.mask(aquiferFork, cx, cz, minY, maxY - minY);
+                final Aquifer aquifer = new Aquifer(cx, cz, minY, ChunkData.SEA_LEVEL_Y, aquiferFork, NO_BARRIER,
+                    surfaceHeights.aquiferSurfaceHeights(cx, cz));
+                out = new CaveChunk(cx, cz, mask, aquifer, this::replaceable);
+                caves.put(key(cx, cz), out);
+            }
+            return out;
+        }
+
+        /**
+         * Whether the carvers may replace the block the terrain holds at a position (TFC's {@code canReplaceBlock} on
+         * {@code #minecraft:overworld_carver_replaceables}: raw and hardened rock, soils, grass, mud, sand, gravel and
+         * sandstone, and vanilla's packed ice; TFC removes water from the tag, and snow blocks are not in it).
+         */
+        private boolean replaceable(int x, int y, int z) {
+            if (y <= minY || y > terrainTop(x, z) || densityOpened(x, y, z)) {
+                return false;
+            }
+            return surface(x, z).kind(y) != SurfaceKind.SNOW;
         }
 
         /** TFC's surface height of a column (the rock layers read it). */
@@ -651,7 +694,7 @@ final class TfcTerrain {
                 final int cz = z >> 4;
                 final double[] slope = slopes.computeIfAbsent(key(cx, cz),
                     s -> SurfaceSlope.slopeMap(cx << 4, cz << 4, TfcTerrain.this::heightAt));
-                final int top = top(x, z);
+                final int top = terrainTop(x, z);
                 return ColumnSurface.build(SurfaceFamily.forBiome(biomeOf(x, z)).builder(),
                     column(x, z, height(x, z), climateOf(x, z), SurfaceSlope.sample(slope, x & 15, z & 15)), top, minY);
             });
@@ -659,7 +702,7 @@ final class TfcTerrain {
 
         /** The rock index at a position, or -1 where the column holds no rock there (above the top, or a surface block). */
         int rock(int x, int y, int z) {
-            final int top = top(x, z);
+            final int top = terrainTop(x, z);
             if (y > top || y <= minY || opened(x, y, z)) {
                 return -1;
             }
@@ -739,11 +782,21 @@ final class TfcTerrain {
 
         /**
          * The terrain block class as {@link #fill} writes it: water (salt in salty biomes, as the groundcover reads it) up to
-         * sea level over the column, the surface kinds, and raw rock ({@code c:stones}) below. Caves are not carved yet.
+         * sea level over the column, the surface kinds, and raw rock ({@code c:stones}) below. A cave's water is water, and
+         * its air and lava are air (nothing stands on lava; the writers check the real block before they replace one).
          */
         @Override
         public TreeGround ground(int x, int y, int z) {
-            final int top = top(x, z);
+            final int top = terrainTop(x, z);
+            if (y > minY && y <= top) {
+                final Carve cave = caveCarve(x, y, z);
+                if (cave == Carve.WATER) {
+                    return TreeGround.WATER;
+                }
+                if (cave != Carve.KEEP) {
+                    return TreeGround.AIR;
+                }
+            }
             if (y > top || (y > minY && opened(x, y, z))) {
                 return y > ChunkData.SEA_LEVEL_Y ? TreeGround.AIR : saltWater(x, z) ? TreeGround.SALT_WATER : TreeGround.WATER;
             }
@@ -812,15 +865,73 @@ final class TfcTerrain {
         return carve(yy -> !column.solid(yy), y, top, sea);
     }
 
-    /** Whether a rock position is inside a cave's tunnel shape. See {@link #IN_CAVE}. */
-    private static boolean inCave(int x, int y, int z) {
-        return IN_CAVE;
+    /** The highest y at or below {@code terrainTop} (and not below {@code minY}) that {@code opened} keeps. */
+    static int carvedTop(int terrainTop, int minY, IntPredicate opened) {
+        int y = terrainTop;
+        while (y > minY && opened.test(y)) {
+            y--;
+        }
+        return y;
     }
 
-    /** The vanilla block of a carve decision (air, water or lava); {@link Carve#KEEP} never reaches here. */
+    /**
+     * PAR-WORLD-28: the cave carves of one chunk, TFC's carver pass ({@code TFCChunkGenerator.applyCarvers} with
+     * {@code CarverHelpers.carveBlock}): a position inside the chunk's {@link TunnelMask} ({@link TunnelCarvers#mask}) whose
+     * terrain block the carvers may replace takes {@link CaveCarver#carve}'s decision (lava at or below the lava level, else
+     * the chunk's aquifer); every other position keeps its block. Decisions are computed on demand and cached. Confined to
+     * one worldgen worker, like the {@link Aquifer} it samples.
+     */
+    static final class CaveChunk {
+        /** Whether the terrain block at a world position is one the carvers may replace. */
+        @FunctionalInterface
+        interface Replaceable {
+            boolean test(int x, int y, int z);
+        }
+
+        private static final Carve[] CARVES = Carve.values();
+        private final int chunkX;
+        private final int chunkZ;
+        private final TunnelMask mask;
+        private final Aquifer aquifer;
+        private final Replaceable replaceable;
+        /** The decision of each mask position, {@code ordinal + 1}, 0 while not computed; indexed as the mask's bits. */
+        private final byte[] decided;
+
+        CaveChunk(int chunkX, int chunkZ, TunnelMask mask, Aquifer aquifer, Replaceable replaceable) {
+            this.chunkX = chunkX;
+            this.chunkZ = chunkZ;
+            this.mask = mask;
+            this.aquifer = aquifer;
+            this.replaceable = replaceable;
+            this.decided = mask.isEmpty() ? new byte[0] : new byte[256 * mask.height()];
+        }
+
+        TunnelMask mask() {
+            return mask;
+        }
+
+        /** The carve of a world position of this chunk: {@link Carve#KEEP} outside the mask or where the block stays. */
+        Carve carve(int x, int y, int z) {
+            final int lx = x - (chunkX << 4);
+            final int lz = z - (chunkZ << 4);
+            if (!mask.contains(lx, y, lz)) {
+                return Carve.KEEP;
+            }
+            final int index = lx | lz << 4 | (y - mask.minY()) << 8;
+            final byte known = decided[index];
+            if (known != 0) {
+                return CARVES[known - 1];
+            }
+            final Carve carve = replaceable.test(x, y, z) ? CaveCarver.carve(aquifer, x, y, z, true) : Carve.KEEP;
+            decided[index] = (byte) (carve.ordinal() + 1);
+            return carve;
+        }
+    }
+
+    /** The vanilla block of a carve decision (cave air, water or lava); {@link Carve#KEEP} never reaches here. */
     private BlockData carvedBlock(Carve carve) {
         return switch (carve) {
-            case AIR -> air;
+            case AIR -> caveAir;
             case WATER -> water;
             case LAVA -> lava;
             case KEEP -> throw new IllegalArgumentException("a kept block is not carved");
