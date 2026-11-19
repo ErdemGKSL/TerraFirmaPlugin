@@ -298,7 +298,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-07 | Spreading bushes, canes and cranberries | FARM | 30 | done |
 | PAR-METAL-05 | Anvil forging GUI: step buttons, target and progress markers, hammering, forging bonus | METAL | 30 | open |
 | PAR-PROC-16 | Glassworking: blowpipe operations (blow, roll, stretch, pinch, flatten, saw) | PROC | 30 | open |
-| PAR-FARM-08 | Fruit trees: saplings, growing branches, seasonal leaves, fruit | FARM | 31 | open |
+| PAR-FARM-08 | Fruit trees: saplings, growing branches, seasonal leaves, fruit | FARM | 31 | done |
 | PAR-METAL-06 | Welding on the anvil (flux) | METAL | 31 | open |
 | PAR-METAL-09 | Charcoal forge GUI and insulation/chimney multiblock scan | METAL | 31 | open |
 | PAR-METAL-21 | Forging tooltips: forging bonus with the smith's name, and 'Worked' on partly forged items | METAL | 31 | open |
@@ -409,3 +409,4 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-REL-09 | Release packaging | REL | 56 | blocked |
 | PAR-FARM-14 | Stationary berry bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 30 | open |
 | PAR-FARM-15 | Spreading bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 31 | open |
+| PAR-FARM-16 | Fruit tree blocks: CraftEngine states, models, hitbox carriers, loot, splicing | FARM | 32 | open |
