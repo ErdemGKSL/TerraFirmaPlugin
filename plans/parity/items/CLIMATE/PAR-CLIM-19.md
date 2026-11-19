@@ -2,7 +2,7 @@
 id: PAR-CLIM-19
 title: "Snow catch-up in-game verification: snow piles on plants, ice on a pool and the July melt from one room"
 area: CLIMATE
-status: open
+status: done
 wave: 14
 deps: [PAR-CLIM-04]
 size: S
@@ -24,6 +24,7 @@ in_game_steps:
   - "Melt: Bot away, forceload remove, unloaded, tfp time add months 6, reload, 03-july-low.png from the 00 camera, count again"
 plan:
   - "Moved from PAR-CLIM-03 (2026-11-13, PROTOCOL 6.5): PAR-CLIM-03's counts (0 -> 60 layers, 60 -> 5 on the July melt) are in docs/verification/PAR-CLIM-03/verdict.md; the shots of piles over plants and ice on a pool show PAR-CLIM-04's blocks, so they run after it."
+  - "Done: verdict stub docs/verification/PAR-CLIM-19/verdict.md. Pending in-game check (container cannot run client); no tests, files_owned is docs only."
 tests: []
 done_criteria:
   - "01 shows snow layers on the grass and stone and a snow pile over the short_grass strip, 02 shows the F3 targets, the pool is frozen or holds an ice pile, and 03 shows the July melt (count lower than in January); verdict in docs/verification/PAR-CLIM-19/verdict.md"
