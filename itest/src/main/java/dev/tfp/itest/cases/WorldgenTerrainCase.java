@@ -41,6 +41,9 @@ public final class WorldgenTerrainCase implements SelfTestCase {
     /** Vanilla materials a TFC surface can show, besides a rock visual. */
     static final List<Material> EXPECTED = List.of(Material.STONE, Material.DIRT, Material.GRASS_BLOCK,
             Material.SAND, Material.GRAVEL);
+    /** Plants that stand on a sea floor: the column's surface is the block under them. */
+    static final java.util.Set<Material> WATER_PLANTS = java.util.Set.of(Material.SEAGRASS, Material.TALL_SEAGRASS,
+            Material.KELP, Material.KELP_PLANT, Material.SEA_PICKLE);
     private static final Duration STEP = Duration.ofSeconds(20);
     private static final Duration GENERATE = Duration.ofSeconds(60);
 
@@ -91,7 +94,7 @@ public final class WorldgenTerrainCase implements SelfTestCase {
         Block top = null;
         for (int y = world.getMaxHeight() - 1; y >= world.getMinHeight(); y--) {
             Block b = world.getBlockAt(x, y, z);
-            if (!b.isEmpty() && !b.isLiquid()) {
+            if (!b.isEmpty() && !b.isLiquid() && !WATER_PLANTS.contains(b.getType())) {
                 top = b;
                 break;
             }

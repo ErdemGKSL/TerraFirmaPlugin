@@ -202,7 +202,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-INFRA-36 | Verify falling ores keep their face overlays in game (collapse and falling rich ore) | INFRA | 17 | blocked |
 | PAR-PHYS-02 | Collapse runner: mining triggers collapses decided async, applied as falling blocks | PHYS | 17 | open |
 | PAR-PHYS-03 | Landslides and gravity soils | PHYS | 17 | done |
-| PAR-WORLD-03 | Worldgen performance: JMH chunk budget, vanilla baseline and exposed-gem decision | WORLD | 17 | open |
+| PAR-WORLD-03 | Worldgen performance: JMH chunk budget, vanilla baseline and exposed-gem decision | WORLD | 17 | done |
 | PAR-WORLD-04 | TFC soil and gravel block set in generation: grass, dirt, coarse dirt, clay, peat, kaolin, mud, rock gravel | WORLD | 17 | open |
 | PAR-PROC-44 | Barrel wiring in-game verification: GUI from the block, five buckets in and one out, half-tank surface, lazy rain fill (the checks PAR-PROC-35 closed without) | PROC | 17 | done |
 | PAR-PROC-45 | Newer vanilla recipe removal in-game verification: copper tools/armour and spears do not craft, kept recipes still do (the check PAR-PROC-43 closed without) | PROC | 19 | open |

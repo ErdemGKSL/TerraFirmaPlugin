@@ -2,7 +2,7 @@
 id: PAR-WORLD-03
 title: "Worldgen performance: JMH chunk budget, vanilla baseline and exposed-gem decision"
 area: WORLD
-status: open
+status: done
 wave: 17
 deps: [PAR-WORLD-02, PAR-WORLD-17]
 size: M
@@ -29,3 +29,5 @@ done_criteria:
 > see_not_parity: NP-VIS-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+Done: ChunkCostBench (plain main in worldgen/src/jmh, no JMH plugin: build file not owned) and docs/perf/worldgen-chunk-cost.md with core-stage throughput at 1/4/8 threads and the gem decision (superseded by the ore overlay). Pending in-game check (container cannot run client or a fair vanilla pre-generation): the vanilla baseline ratio, with the exact method in the doc.

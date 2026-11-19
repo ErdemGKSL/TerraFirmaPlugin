@@ -40,22 +40,35 @@ Measured 2026-10-17 on the core stages only (single thread, JDK 25, seed -579390
 | Stage means: heights / climate+slopes / surface+rock+veins / volcano | 0.24 / 0.51 / 12.46 / 0.19 ms |
 | Contiguous grid at (0,0), all sea | mean 12.5-12.9 ms, p95 16.0-17.1 ms |
 
-## Budget and vanilla baseline (open)
+## Throughput by thread count (PAR-WORLD-03, 2026-11-19)
 
-PRD.md:68 names the target "Worldgen throughput within 1.5x of vanilla at equal thread count".
-The vanilla baseline is still NOT measured, so no ratio is claimed. The command cannot time
-vanilla the same way: vanilla's noise generator is not a Bukkit `ChunkGenerator`, so there is
-no `generateNoise` to call on throwaway data. A fair comparison needs the same end-to-end path
-for both: pre-generate the same N chunks far from spawn (for example `world.getChunkAtAsync`
-over a grid, or a pre-generation plugin) on a vanilla world and on a TFC world with equal worker
-threads, and compare chunks per second (ideally under spark). That also adds the chunk-system
-cost that this fill timing leaves out.
+`worldgen/src/jmh/java/dev/tfp/worldgen/bench/ChunkCostBench.java`: a plain `main` (the worldgen build file is not owned by this
+item, so there is no JMH source set; same discipline: fixed seed, JIT warm-up, a fresh grid origin per round, wall time over
+a 32 x 32 grid, median of 3 rounds). It times the platform-free part of the fill: `ChunkDataGenerator.generate` plus
+`SurfaceHeights.chunk` (heights, climate, rivers, cones). The Bukkit-bound part (`TfcTerrain.fill`: palette writes, veins,
+trees, plants) cannot run outside a server, so its cost stays the in-server figures above.
+Machine: 4 vCPU cloud container, JDK 25, `-Xmx3g`.
 
-## Exposed gems (decision open)
+| Threads | chunks/s (median) | min / max |
+|---|---|---|
+| 1 | 2 904 | 2 093 / 3 361 |
+| 4 | 10 675 | 10 599 / 12 762 |
+| 8 (only 4 cores) | 9 758 | 9 510 / 13 128 |
 
-0 of 48 gem positions touch air or water (all volcano GEM_ORE in the core-stage chunks; no vein
-gems). Caveat: measured on the core stages before caves, trees and decoration were counted, so
-this is not a decision about the overlay yet.
+The core stages are about 0.3 ms per chunk single threaded and scale 3.7x on 4 cores (no shared lock), so the generator itself
+is not the bottleneck: the 13 to 27 ms per chunk are the surface/rock/vein writes and the decoration in `TfcTerrain.fill`.
+8 threads on 4 cores gain nothing, as expected.
 
-Open: the vanilla baseline (and the ratio against the PRD budget), throughput at N worker
-threads, and the gem overlay decision.
+## Budget and vanilla baseline (pending in-game run)
+
+PRD.md:68 names the target "Worldgen throughput within 1.5x of vanilla at equal thread count". The vanilla baseline is NOT
+measured: this container cannot run a pre-generation comparison with a result that means anything (shared 4 vCPU, the
+chunk system's own cost needs a real server). Pending in-game check, to be run by the owner: pre-generate the same 10 000
+chunks (100 x 100 from chunk 6250,6250) on a vanilla world and on a TFC world with equal `worker-threads`
+(`world.getChunkAtAsync` over the grid, or Chunky), under spark, and compare chunks/s. No ratio is claimed.
+
+## Exposed gems (decision)
+
+Superseded by the ore overlay (PAR-WORLD-17, `docs/perf/ore-overlay-budget.md`, `docs/spikes/S1-ore-overlay.md`): every ore,
+gems included, is a packet overlay on the host rock, so there is no separate "level-2 exposed gem" decision. Earlier count
+(core stages only): 0 of 48 volcano gem positions touch air or water.
