@@ -40,4 +40,6 @@ done_criteria:
 
 # PAR-CLIM-09: Climate instruments: thermometer, anemometer, vane, calendar clock
 
+> Claimed: session_011osUp5, 2026-11-19
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
