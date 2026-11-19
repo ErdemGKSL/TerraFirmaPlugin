@@ -1,0 +1,10 @@
+{
+  "_comment": "PAR-REL-02. Budget per JMH benchmark (docs/perf/budgets.md has the IDs). tolerance 0.20: the check fails above budget * 1.2 unless the PR carries a 'perf-note:' line.",
+  "tolerance": 0.20,
+  "budgets": {
+    "dev.tfp.core.perf.CollapseBenchmark.triggerDecision": {"id": "PERF-COL-01", "budget": 2100, "unit": "us/op"},
+    "dev.tfp.core.perf.RotationBenchmark.loadLine": {"id": "PERF-ROT-01", "budget": 7, "unit": "us/op"},
+    "dev.tfp.core.perf.WorldgenBenchmark.chunk1Thread": {"id": "PERF-GEN-05", "budget": 450, "unit": "ms/op"},
+    "dev.tfp.core.perf.WorldgenBenchmark.chunk4Threads": {"id": "PERF-GEN-05", "budget": 500, "unit": "ms/op"}
+  }
+}

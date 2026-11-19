@@ -19,3 +19,39 @@ tasks.test {
         .withPropertyName("contentData")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }
+
+// PAR-REL-02: JMH source set for core (core/src/jmh/java).
+// Run: ./gradlew :core:jmh  (writes core/build/reports/jmh/results.json). Budgets: core/src/jmh/budgets.json, checked by
+// core/src/jmh/check-budgets.py (`:core:jmhCheck`).
+val jmhVersion = "1.37"
+
+val jmh = sourceSets.create("jmh") {
+    java.setSrcDirs(listOf("src/jmh/java"))
+    compileClasspath += sourceSets["main"].output + configurations["runtimeClasspath"]
+    runtimeClasspath += output + compileClasspath
+}
+dependencies {
+    "jmhImplementation"("org.openjdk.jmh:jmh-core:$jmhVersion")
+    "jmhAnnotationProcessor"("org.openjdk.jmh:jmh-generator-annprocess:$jmhVersion")
+}
+
+val jmhResults = layout.buildDirectory.file("reports/jmh/results.json")
+val jmhRun = tasks.register<JavaExec>("jmh") {
+    group = "verification"
+    description = "Runs the JMH benchmarks (PAR-REL-02). Pass -Pjmh.include=<regex> to select."
+    classpath = jmh.runtimeClasspath
+    mainClass = "org.openjdk.jmh.Main"
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
+    val include = providers.gradleProperty("jmh.include").orElse("dev\\.tfp\\.core\\.perf\\..*")
+    doFirst {
+        jmhResults.get().asFile.parentFile.mkdirs()
+        args(include.get(), "-rf", "json", "-rff", jmhResults.get().asFile.absolutePath)
+    }
+}
+tasks.register<Exec>("jmhCheck") {
+    group = "verification"
+    description = "Fails when a JMH result is more than 20 % above its budget in core/src/jmh/budgets.json."
+    dependsOn(jmhRun)
+    commandLine("python3", "-I", "src/jmh/check-budgets.py", "src/jmh/budgets.json", jmhResults.get().asFile.absolutePath)
+}
+tasks.named("check") { dependsOn(tasks.named("compileJmhJava")) }

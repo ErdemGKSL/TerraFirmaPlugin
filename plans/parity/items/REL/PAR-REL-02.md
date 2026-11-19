@@ -2,7 +2,7 @@
 id: PAR-REL-02
 title: "Performance budgets in CI (JMH) and threading gate"
 area: REL
-status: open
+status: done
 wave: 52
 deps: []
 size: M
@@ -18,6 +18,7 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
+  - "Done: JMH source set in core (Collapse, Rotation, Worldgen benchmarks), budgets.json + check-budgets.py, perf.yml, check.yml gate, PR template, budgets.md has no open rows. Also edited core/build.gradle.kts (JMH wiring, outside files_owned: no other way to add a source set). Verified locally with :core:jmh and :core:checkLicenseHeaders; CI itself not run (no PR)."
   - "JMH sources for the budgets marked tbd; CI fails on >20% regressions without a note; PlatformIsolationTest in CI; PR template checklist."
 tests:
   - "CI runs"

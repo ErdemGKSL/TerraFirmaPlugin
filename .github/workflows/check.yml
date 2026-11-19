@@ -1,0 +1,29 @@
+# PAR-REL-02: threading and isolation gate. Fast, needs no TFC checkout. PlatformIsolationTest (core/ and worldgen/ stay free of
+# Bukkit/Paper/CE/BM/BH), the module-boundary architecture tests, and the pure modules' classpath check.
+name: Gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Platform isolation and threading rules
+        run: >
+          ./gradlew :core:test --tests 'dev.tfp.core.PlatformIsolationTest'
+          :core:verifyPlatformFree :worldgen:verifyPlatformFree
+      - name: Threading architecture tests
+        run: ./gradlew :dist:test --tests 'dev.tfp.arch.ArchitectureTest' :paper:test --tests 'dev.tfp.paper.scheduler.*'
