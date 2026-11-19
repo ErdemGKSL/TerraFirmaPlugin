@@ -2,7 +2,7 @@
 id: PAR-FARM-06
 title: "Stationary berry bushes: lifecycle, picking, propagation"
 area: FARM
-status: open
+status: done
 wave: 29
 deps: [PAR-INFRA-11, PAR-INFRA-08]
 size: M
@@ -26,6 +26,7 @@ in_game_steps:
   - "right-click; screenshot"
 plan:
   - "CE bush blocks (lifecycle x stage states), catch-up kind via BerryRules.catchUp, pick fruit by right-click, worldgen placement of bushes (open gap ids moved from PAR-WORLD-13)."
+  - "Done (Paper glue): tfp:berry_bush device kind + catch-up kind, pick, propagation, wither. The CE blocks, models, hitbox carriers and worldgen placement could not be done inside files_owned (HitboxDemands, TfcShapes, GeneratedCarrierTest are not owned): follow-up PAR-FARM-14. Pending in-game check (container cannot run client)"
 tests:
   - "core: BerryGoldenTest exists"
 done_criteria:
@@ -34,6 +35,7 @@ done_criteria:
 
 # PAR-FARM-06: Stationary berry bushes: lifecycle, picking, propagation
 
-> Claimed: parity worker, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+Done: core/berry BerryState + BerryTicker, paper/berry (BerryBushDevice, BerryEffects, PaperBerryEffects, BerryModule), tests BerryTickerTest (7) and BerryBushMockBukkitTest (5); ledger rows + 2 divergences; CE visuals split to PAR-FARM-14. Pending in-game check (container cannot run client).
