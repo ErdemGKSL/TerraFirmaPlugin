@@ -6,6 +6,8 @@
 package dev.tfp.paper.worldgen;
 
 import dev.tfp.core.worldgen.chunk.PlaceholderRocks;
+import dev.tfp.core.worldgen.volcano.VolcanicBlock;
+import dev.tfp.core.worldgen.volcano.VolcanicKind;
 import dev.tfp.core.worldgen.volcano.VolcanoBlock;
 import dev.tfp.core.worldgen.volcano.VolcanoKind;
 import java.util.List;
@@ -42,6 +44,29 @@ final class VolcanoBlocks {
     /** The gem ore id of a {@link VolcanoKind#GEM_ORE} block ({@code tfp:ore/<gem>/<rock>}), else null. */
     static String gemOreId(VolcanoBlock block) {
         return block.kind() == VolcanoKind.GEM_ORE ? "tfp:ore/" + block.gem().id() + "/" + PlaceholderRocks.names().get(block.rock()) : null;
+    }
+
+    /** PAR-WORLD-15: TFC's igneous rocks ({@code RockCategory.IGNEOUS_*}), the only rocks with a magma block. */
+    static final List<String> IGNEOUS = List.of("rhyolite", "basalt", "andesite", "dacite", "granite", "diorite", "gabbro");
+
+    /**
+     * PAR-WORLD-15: the CraftEngine rock block of a volcanic hardened rock or magma block: {@code tfp:rock/hardened/<rock>}
+     * for every rock, {@code tfp:rock/magma/<rock>} for an igneous rock (TFC registers magma blocks for those only; the
+     * features take magma only from igneous replacers), else null (the caller keeps its fallback: raw rock, vanilla magma).
+     * Datagen's {@code VolcanicRockBlocks} fails when one of these ids is not generated.
+     */
+    static String rockBlockId(VolcanicKind kind, int rock) {
+        final String name = PlaceholderRocks.names().get(rock);
+        return switch (kind) {
+            case HARDENED_ROCK -> "tfp:rock/hardened/" + name;
+            case MAGMA -> IGNEOUS.contains(name) ? "tfp:rock/magma/" + name : null;
+            default -> null;
+        };
+    }
+
+    /** {@link #rockBlockId(VolcanicKind, int)} of a volcanic block. */
+    static String rockBlockId(VolcanicBlock block) {
+        return rockBlockId(block.kind(), block.rock());
     }
 
     /** The blocks of the generating chunk, by local x and z. */

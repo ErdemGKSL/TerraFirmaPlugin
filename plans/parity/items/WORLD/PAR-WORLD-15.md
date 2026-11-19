@@ -2,7 +2,7 @@
 id: PAR-WORLD-15
 title: "Volcanic and spring CE blocks: hardened rock, magma blocks, spring water look"
 area: WORLD
-status: open
+status: done
 wave: 26
 deps: [PAR-WORLD-14, PAR-INFRA-08]
 size: S
@@ -14,15 +14,16 @@ files_owned:
   - "paper/src/main/java/dev/tfp/paper/worldgen/VolcanoBlocks.java"
   - "tools/datagen/src/main/java/dev/tfp/datagen/volcano/**"
   - "content/generated/content/craftengine/tfp/configuration/volcano/**"
-ui: true
-in_game_steps:
-  - "Locate a volcano with tfp debug chunk; screenshot"
+ui: false
+in_game_steps: []
 plan:
   - "Generate rock magma blocks (7 igneous rocks) and hardened rock; VolcanoBlocks writes them; spring water stays vanilla water (divergence, see PAR-FLUID-03)."
+  - "Found: RockFamilies already generates `tfp:rock/hardened/<rock>` (21) and `tfp:rock/magma/<rock>` (7, animated textures, light 6) in `configuration/rock/<rock>.yml`; nothing new under `configuration/volcano/`. Since PAR-WORLD-27 the volcanic blocks are written by `TfcTerrain.volcanicData` + `VolcanicFeatureBlocks` (not owned here), so placing them is follow-up PAR-WORLD-45, which also owes TFC magma behaviour on the CE block (step damage, drag-down bubble columns: the CE server state is not vanilla magma); the screenshot check moved there (PROTOCOL 6.5)."
+  - "Done: datagen `volcano/VolcanicRockBlocks` (run from `Datagen.generate`, fails datagen when a hardened rock or magma block the world generator relies on is missing, a magma block exists for a non-igneous rock, a magma texture/mcmeta is missing, or TFC's magma rocks differ from the igneous rocks of PlaceholderRocks); paper `VolcanoBlocks.rockBlockId(kind, rock)` maps HARDENED_ROCK / MAGMA to the CE ids. Tests: datagen `VolcanicRockBlocksTest` (2: counts 21 + 7 on the committed content and the pinned checkout; four failure cases), paper `VolcanoRockBlocksTest` (1). Generated content unchanged (verifyContent up to date). Spring water stays vanilla water (NP-FLUID-01)."
 tests:
   - "tools/datagen counts"
 done_criteria:
-  - "A caldera shows TFC magma textures (screenshot)"
+  - "Deferred check tracked in PAR-WORLD-45"
 ---
 
 # PAR-WORLD-15: Volcanic and spring CE blocks: hardened rock, magma blocks, spring water look

@@ -84,6 +84,9 @@ public final class Datagen {
         dev.tfp.datagen.device.DeviceTemplates.run(out); // PAR-INFRA-08: tfp:block/device and tfp:block/device_rendered
         dev.tfp.datagen.rendered.RenderedTemplates.run(out); // PAR-INFRA-17: tfp:block/rendered_cube, tfp:settings/destroy_stages
         dev.tfp.datagen.hitbox.HitboxReport.run(out); // PAR-INFRA-13: hitbox carrier allocation reports (fails on overflow)
+        if (dev.tfp.datagen.volcano.VolcanicRockBlocks.available(tfc)) { // PAR-WORLD-15: hardened rock and magma blocks the volcanic features place; fixtures have none
+            dev.tfp.datagen.volcano.VolcanicRockBlocks.run(tfc, out);
+        }
         if (tfc.exists(ForgeDevices.FORGE_SOURCE)) { // the small fixture checkouts of the tests have no forge; ForgeDevicesTest pins the real one
             ForgeDevices.run(tfc, out);
         }
