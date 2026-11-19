@@ -76,8 +76,8 @@ public final class BlockCoverage {
      */
     public static final List<Owner> OWNERS = List.of(
         // farming
-        Owner.of("crop/.+|dead_crop/.+", "PAR-FARM-03", "crop blocks and dead crops"),
-        Owner.of("wild_crop/.+|melon|pumpkin|rotten_melon|rotten_pumpkin", "PAR-FARM-05", "wild crops, spreading-crop fruit blocks, rotten fruit"),
+        Owner.of("crop/.+|dead_crop/.+|wild_crop/.+", "PAR-FARM-03", "crop blocks, dead crops and wild crops"),
+        Owner.of("melon|pumpkin|rotten_melon|rotten_pumpkin", "PAR-FARM-05", "spreading-crop fruit blocks, rotten fruit"),
         Owner.of("farmland/.+", "PAR-FARM-01", "farmland per soil"),
         Owner.of("plant/(banana_plant|banana_sapling|dead_banana_plant)", "PAR-FARM-09", "banana plant and sapling"),
         Owner.of("plant/((snowberry|bunchberry|gooseberry|cloudberry|strawberry|wintergreen_berry)_bush|dead_berry_bush)",

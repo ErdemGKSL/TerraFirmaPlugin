@@ -17,6 +17,7 @@
  *       devices/JackOLanternBlock.java @ c3b4d9536 (vanilla CandleBlock outlines; the candle cake SHAPE; a full cube),
  *       src/main/java/net/dries007/tfc/common/blocks/{SnowPileBlock,IcePileBlock,SeaIceBlock,IcicleBlock,ThinSpikeBlock}.java
  *       @ c3b4d9536 (vanilla SnowLayerBlock and IceBlock outlines; TIP_SHAPE and PILLAR_SHAPE),
+ *       src/main/java/net/dries007/tfc/common/blocks/crop/{CropBlock,Crop}.java @ c3b4d9536 (QUARTER/HALF/FULL_SHAPE, noCollission),
  *       the getShape / getCollisionShape choices of the block classes named in SPECS @ c3b4d9536
  */
 package dev.tfp.datagen.hitbox;
@@ -340,6 +341,21 @@ public final class TfcShapes {
                 List.of("return state.getValue(TIP) ? TIP_SHAPE : PILLAR_SHAPE;", "public class IcicleBlock extends ThinSpikeBlock"),
                 List.of("getCollisionShape")));
         }
+        // PAR-FARM-03: the crop blocks. CropBlock.getShape is QUARTER_SHAPE, HALF_SHAPE or FULL_SHAPE by growth (the double
+        // crops' top half is HALF_SHAPE, the dead crops' mature one FULL_SHAPE; no class below CropBlock overrides it);
+        // Crop.dead() registers every crop, dead and wild block noCollission(). One row per outline.
+        String cropFile = B + "crop/CropBlock.java";
+        String cropEnum = B + "crop/Crop.java";
+        for (String shape : CROP_ROWS) {
+            s.add(Spec.of(cropKey(shape), "crop_" + shape, Kind.OBJECT, List.of(cropFile, cropEnum),
+                shape.toUpperCase(java.util.Locale.ROOT) + "_SHAPE", "Shapes.empty()",
+                List.of("public static final VoxelShape QUARTER_SHAPE = box(2, 0, 2, 14, 4, 14);",
+                    "public static final VoxelShape HALF_SHAPE = box(2, 0, 2, 14, 8, 14);",
+                    "public static final VoxelShape FULL_SHAPE = box(2, 0, 2, 14, 16, 14);",
+                    "return ExtendedProperties.of(MapColor.PLANT).noCollission().randomTicks().strength(0.4F)"
+                        + ".sound(SoundType.CROP).flammable(60, 30).pushReaction(PushReaction.DESTROY);"),
+                List.of("getCollisionShape")));
+        }
         // PAR-HEAT-21: the four torch blocks extend vanilla TorchBlock / WallTorchBlock with no shape override, and
         // TFCBlocks registers each noCollission(): the outline is vanilla's (ported, TORCH_SHAPE / WALL_TORCH_SHAPES), no
         // collision. The dead torches share the lit ones' outlines.
@@ -478,6 +494,20 @@ public final class TfcShapes {
             return Shape.EMPTY;
         }
         return Shape.box(r[0], r[1], r[2], r[3], r[4], r[5]);
+    }
+
+    /** PAR-FARM-03: TFC's three crop outlines ({@code CropBlock.QUARTER_SHAPE}, {@code HALF_SHAPE}, {@code FULL_SHAPE}). */
+    public static final List<String> CROP_SHAPES = List.of("quarter", "half", "full");
+
+    /**
+     * The outlines with a row. The full outline (12 x 16 x 12, no collision) has none: the selector knows no carrier without
+     * collision that tall (the best, a cactus, would block players walking through a field), so the full demands are served
+     * on the half row ({@link HitboxDemands#cropDemandKey}, ledger divergence).
+     */
+    public static final List<String> CROP_ROWS = List.of("quarter", "half");
+
+    public static String cropKey(String shape) {
+        return "tfc:crop[shape=" + shape + "]";
     }
 
     /** PAR-CLIM-04: vanilla {@code BlockStateProperties.LAYERS} 1..8, the snow pile's layers. */

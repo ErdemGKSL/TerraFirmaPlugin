@@ -109,7 +109,8 @@ class GeneratedCarrierTest {
         // PAR-HEAT-26: 17 candles x 16 states, 17 candle cakes x 2, the jack-o'-lantern's 4 facings (35 ids).
         // PAR-CLIM-04: the snow pile (8 layer counts, hitbox-only), the icicle (tip, pillar) and, on the leaves pool, the
         // ice pile and sea ice.
-        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3 + 17 * 16 + 17 * 2 + 4 + 10);
+        // PAR-FARM-03: the crops, dead crops and wild crops of the 29 crops (87 block ids; every appearance is explicit).
+        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3 + 17 * 16 + 17 * 2 + 4 + 10 + 87);
         // PAR-CLIM-04: the ice pile and sea ice (one leaves pool appearance each).
         assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2);
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
@@ -124,7 +125,10 @@ class GeneratedCarrierTest {
         // PAR-METAL-03: the nine metal anvils (4 facings, hitbox-only) and the seven rock anvils (one appearance each).
         HitboxDemands.ANVIL_METALS.forEach(m -> expected.add(HitboxDemands.anvilId(m)));
         HitboxDemands.ANVIL_ROCKS.forEach(r -> expected.add(HitboxDemands.rockAnvilId(r)));
-        assertThat(expected).hasSize(36 + 35 + 2 + 16);
+        for (String kind : HitboxDemands.CROP_KINDS) {
+            HitboxDemands.CROPS.forEach(c -> expected.add(HitboxDemands.cropId(kind, c)));
+        }
+        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87);
         java.util.SortedSet<String> grass = new java.util.TreeSet<>();
         for (String soil : List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol", "podzol", "alfisol", "mollisol")) {
             dev.tfp.datagen.soil.SoilBlocks.GRASS_TYPES.forEach(t -> grass.add("tfp:" + t + "/" + soil));
@@ -325,6 +329,22 @@ class GeneratedCarrierTest {
         for (boolean tip : new boolean[] {true, false}) {
             assertThat(HitboxAllocation.agreed(HitboxDemands.ICICLE_ID, HitboxDemands.icicleAppearance(tip)).state())
                 .doesNotStartWith("minecraft:pointed_dripstone");
+        }
+    }
+
+    @Test
+    void theCropDemandsArePinned() {
+        // PAR-FARM-03: 29 crops x (crop, dead_crop, wild_crop) x 3 outlines = 261 demands, each on a row of
+        // hitbox/tfc-shapes.json, all hitbox-only (look transparent) and sharing one carrier per outline.
+        Map<String, TfcShapes.Row> rows = TfcShapes.load();
+        List<Demand> crops = HitboxDemands.all().stream().filter(d -> d.blockId().matches("tfp:(crop|dead_crop|wild_crop)/.+"))
+            .toList();
+        assertThat(crops).hasSize(29 * 3 * 3);
+        for (Demand d : crops) {
+            assertThat(rows).as(d.id()).containsKey(d.tfcKey());
+            assertThat(d.look()).isEqualTo(HitboxAllocation.TRANSPARENT);
+            assertThat(rows.get(d.tfcKey()).collision().isEmpty()).as(d.id() + " has no collision").isTrue();
+            assertThat(HitboxAllocation.agreed(d.blockId(), d.appearance()).mode()).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
         }
     }
 

@@ -163,6 +163,32 @@ public final class HitboxDemands {
         return blockId.equals(SEA_ICE_ID) ? "tfp:block/sea_ice" : "tfp:block/ice_pile";
     }
 
+    /**
+     * PAR-FARM-03: TFC's crops ({@code Crop.java}; CropBlocks checks the list against the checkout) and the three block
+     * families made of them: {@code tfp:crop/<name>}, {@code tfp:dead_crop/<name>}, {@code tfp:wild_crop/<name>}.
+     */
+    public static final List<String> CROPS = List.of("cassava", "green_bean", "lentil", "peanut", "soybean", "barley", "oat",
+        "rye", "maize", "wheat", "rice", "beet", "cabbage", "carrot", "garlic", "onion", "potato", "squash", "tomato",
+        "red_bell_pepper", "yellow_bell_pepper", "pumpkin", "melon", "canola", "radish", "alfalfa", "jute", "papyrus",
+        "sugarcane");
+    public static final List<String> CROP_KINDS = List.of("crop", "dead_crop", "wild_crop");
+    /** PAR-FARM-03: served after every other demand (adding the crops moves no carrier of another block). */
+    static final int CROP_WEIGHT = -9;
+
+    public static String cropId(String kind, String crop) {
+        return "tfp:" + kind + "/" + crop;
+    }
+
+    /** PAR-FARM-03: the tfc-shapes row a crop outline is served for (the full one borrows the half row, see TfcShapes.CROP_ROWS). */
+    public static String cropDemandKey(String shape) {
+        return TfcShapes.cropKey(shape.equals("full") ? "half" : shape);
+    }
+
+    /** PAR-FARM-03: the demand pattern of the appearances on one outline ({@code quarter_*}). */
+    public static String cropAppearancePattern(String shape) {
+        return shape + "_*";
+    }
+
     private HitboxDemands() {
     }
 
@@ -315,6 +341,17 @@ public final class HitboxDemands {
         for (String rock : ANVIL_ROCKS) {
             d.add(new Demand(rockAnvilId(rock), ANVIL_ROCK_APPEARANCE, "tfc:rock/anvil", 0, HitboxAllocation.TRANSPARENT, true,
                 ANVIL_WEIGHT));
+        }
+        // PAR-FARM-03: the crops, dead crops and wild crops of every Crop: one demand per block and TFC outline (quarter, half
+        // or full, no collision), hitbox-only on one shared carrier per outline; the appearances of a block name the outline
+        // they sit on ({@code quarter_age_0}) and the look is an item display (CropBlocks).
+        for (String kind : CROP_KINDS) {
+            for (String crop : CROPS) {
+                for (String shape : TfcShapes.CROP_SHAPES) {
+                    d.add(new Demand(cropId(kind, crop), cropAppearancePattern(shape), cropDemandKey(shape), 0,
+                        HitboxAllocation.TRANSPARENT, true, CROP_WEIGHT));
+                }
+            }
         }
         return d;
     }

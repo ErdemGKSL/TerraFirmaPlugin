@@ -1443,6 +1443,22 @@
       "from": "ThinSpikeBlock.java PILLAR_SHAPE / same"
     },
     {
+      "key": "tfc:crop[shape=quarter]",
+      "class": "crop_quarter",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 4, 14]],
+      "collision": [],
+      "from": "CropBlock.java QUARTER_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:crop[shape=half]",
+      "class": "crop_half",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 8, 14]],
+      "collision": [],
+      "from": "CropBlock.java HALF_SHAPE / Shapes.empty()"
+    },
+    {
       "key": "tfc:torch",
       "class": "torch",
       "kind": "object",
