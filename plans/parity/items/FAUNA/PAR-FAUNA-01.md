@@ -2,7 +2,7 @@
 id: PAR-FAUNA-01
 title: "Entity model import: TFC bbmodels and Java animations converted to BetterModel"
 area: FAUNA
-status: open
+status: done
 wave: 38
 deps: []
 size: M
@@ -27,8 +27,9 @@ done_criteria:
 
 # PAR-FAUNA-01: Entity model import: TFC bbmodels and Java animations converted to BetterModel
 
-> Claimed: FAUNA session, 2026-11-19
 
 > see_not_parity: NP-ENT-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
+
+Done: tools/models/import_tfc.py + imported/ (39 models), test_import_tfc.py (5), contact sheet docs/art/model-contact-sheet.png reviewed, coverage regenerated.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

@@ -34,7 +34,7 @@ TFC checkout HEAD: `c3b4d9536b82e5a9746dd793c586720a74108057`. Pin in `docs/port
 | `CaribouModel` | `caribou` | 0 | no | no | 0 of 0 | not started |
 | `CougarModel` | `cougar` | 5 | no | no | 0 of 5 | not started |
 | `CrocodileModel` | `crocodile` | 6 | no | no | 0 of 6 | not started |
-| `DeerModel` | `deer` | 2 | no | local only | unknown | local draft |
+| `DeerModel` | `deer` | 2 | no | no | 0 of 2 | not started |
 | `DirewolfModel` | `direwolf` | 4 | no | no | 0 of 4 | not started |
 | `DogModel` | `dog` | 0 | no | no | 0 of 0 | not started |
 | `DuckModel` | `duck` | 0 | no | no | 0 of 0 | not started |
@@ -107,9 +107,9 @@ TFC checkout HEAD: `c3b4d9536b82e5a9746dd793c586720a74108057`. Pin in `docs/port
 - TFC entity models in scope: **60** (excluded: 14)
 - Entity models with a parameter file: **0** of 60
 - Entity models with a committed generated .bbmodel: **0** of 60
-- Local-only drafts (git-ignored `out/`, inputs not in repo): **1**
+- Local-only drafts (git-ignored `out/`, inputs not in repo): **0**
 - TFC AnimationDefinition constants: **128** in 76 Java files scanned; attributed to the table: 128
-- Animations covered by committed generated models: **0** of 128 (none committed); unknown for local-only drafts: 1 row(s)
+- Animations covered by committed generated models: **0** of 128 (none committed); unknown for local-only drafts: 0 row(s)
 - Our parameter files: 1 (tfp_example_bovine); TFC species among them: 0
 - TFC `.bbmodel` files in the checkout (reference only, not all are entity models): 44
 

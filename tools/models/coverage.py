@@ -102,7 +102,7 @@ def build(tfc: pathlib.Path) -> str:
     out_dir = REPO / "tools/models/out"
     param_ids = {p.stem for p in species_dir.glob("*.json")}
     local_out = {p.name for p in out_dir.glob("*.bbmodel")} if out_dir.is_dir() else set()
-    committed = git_ls_files("tools/models/out/")
+    committed = (git_ls_files("tools/models/out/") or set()) | (git_ls_files("tools/models/imported/") or set())
     committed_out = {pathlib.PurePosixPath(p).name for p in (committed or set())}
     tfc_bbmodels = sum(1 for f in tfc.rglob("*.bbmodel") if ".git" not in f.parts)
 
