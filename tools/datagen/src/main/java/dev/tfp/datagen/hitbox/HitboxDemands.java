@@ -304,7 +304,44 @@ public final class HitboxDemands {
             d.add(new Demand(ICICLE_ID, icicleAppearance(tip), "tfc:icicle[tip=" + tip + "]", 0, icicleModel(tip), true,
                 WEATHER_WEIGHT));
         }
+        // PAR-METAL-03: the metal anvils (per metal and axis) and the rock anvils (per igneous rock), hitbox-only on shared
+        // carriers; the look is TFC's block model as an item display, turned per facing (AnvilBlocks).
+        for (String metal : ANVIL_METALS) {
+            for (String facing : ANVIL_FACINGS) {
+                d.add(new Demand(anvilId(metal), facing, "tfc:metal/anvil[axis=" + anvilAxis(facing) + "]", 0,
+                    HitboxAllocation.TRANSPARENT, true, ANVIL_WEIGHT));
+            }
+        }
+        for (String rock : ANVIL_ROCKS) {
+            d.add(new Demand(rockAnvilId(rock), ANVIL_ROCK_APPEARANCE, "tfc:rock/anvil", 0, HitboxAllocation.TRANSPARENT, true,
+                ANVIL_WEIGHT));
+        }
         return d;
+    }
+
+    /** PAR-METAL-03: the metals that have an anvil (TFC {@code Metal.BlockType.ANVIL}, tool-tier metals), in tier order. */
+    public static final List<String> ANVIL_METALS = List.of("copper", "bronze", "bismuth_bronze", "black_bronze", "wrought_iron",
+        "steel", "black_steel", "blue_steel", "red_steel");
+    /** PAR-METAL-03: the igneous rocks (TFC {@code RockCategory.IGNEOUS_*}) that have a rock anvil. */
+    public static final List<String> ANVIL_ROCKS = List.of("granite", "diorite", "gabbro", "rhyolite", "basalt", "andesite",
+        "dacite");
+    /** PAR-METAL-03: TFC {@code AnvilBlock.FACING}, the appearance of a metal anvil (the outline follows its axis). */
+    public static final List<String> ANVIL_FACINGS = List.of("north", "east", "south", "west");
+    public static final String ANVIL_ROCK_APPEARANCE = "base";
+    /** PAR-METAL-03: served after every other demand (adding the anvils moves no carrier of another block). */
+    static final int ANVIL_WEIGHT = -10;
+
+    /** PAR-METAL-03: {@code AnvilBlock.getShape}: SHAPE_X for east and west, SHAPE_Z for north and south. */
+    public static String anvilAxis(String facing) {
+        return facing.equals("east") || facing.equals("west") ? "x" : "z";
+    }
+
+    public static String anvilId(String metal) {
+        return "tfp:metal/anvil/" + metal;
+    }
+
+    public static String rockAnvilId(String rock) {
+        return "tfp:rock/anvil/" + rock;
     }
 
     /** PAR-HEAT-26: TFC's candle, candle cake and jack-o'-lantern block ids (light/candle/CandleBlocks writes them). */

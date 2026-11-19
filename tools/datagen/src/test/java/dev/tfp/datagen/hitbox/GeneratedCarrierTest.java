@@ -115,7 +115,10 @@ class GeneratedCarrierTest {
         HitboxDemands.BARREL_WOODS.forEach(w -> expected.add(HitboxDemands.barrelId(w)));
         expected.addAll(HitboxDemands.candleIds(HitboxDemands.CANDLE_ID));
         expected.addAll(HitboxDemands.candleIds(HitboxDemands.CANDLE_CAKE_ID));
-        assertThat(expected).hasSize(36 + 35 + 2);
+        // PAR-METAL-03: the nine metal anvils (4 facings, hitbox-only) and the seven rock anvils (one appearance each).
+        HitboxDemands.ANVIL_METALS.forEach(m -> expected.add(HitboxDemands.anvilId(m)));
+        HitboxDemands.ANVIL_ROCKS.forEach(r -> expected.add(HitboxDemands.rockAnvilId(r)));
+        assertThat(expected).hasSize(36 + 35 + 2 + 16);
         assertThat(checkedIds).as("block ids whose explicit appearance states were checked")
             .containsExactlyElementsOf(expected);
         assertThat(mappings).as("generator block_state_mappings")

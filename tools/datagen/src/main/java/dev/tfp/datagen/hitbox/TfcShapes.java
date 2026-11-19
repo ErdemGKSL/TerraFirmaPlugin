@@ -387,6 +387,17 @@ public final class TfcShapes {
                 List.of(D + "JackOLanternBlock.java"), "Shapes.block()", "same",
                 List.of("public class JackOLanternBlock extends CarvedPumpkinBlock"), List.of("getShape(", "getCollisionShape")));
         }
+        // PAR-METAL-03: the anvils. AnvilBlock.getShape picks SHAPE_X for facing east and west, SHAPE_Z for north and south;
+        // RockAnvilBlock is one box. Neither overrides getCollisionShape.
+        String anvil = D + "AnvilBlock.java";
+        for (String axis : List.of("x", "z")) {
+            s.add(Spec.of("tfc:metal/anvil[axis=" + axis + "]", "metal_anvil", Kind.OBJECT, List.of(anvil),
+                "SHAPE_" + axis.toUpperCase(java.util.Locale.ROOT), "same",
+                List.of("return state.getValue(FACING).getAxis() == Direction.Axis.X ? SHAPE_X : SHAPE_Z;"),
+                List.of("getCollisionShape")));
+        }
+        s.add(Spec.of("tfc:rock/anvil", "rock_anvil", Kind.OBJECT, List.of(B + "rock/RockAnvilBlock.java"), "SHAPE", "same",
+            List.of("return SHAPE;"), List.of("getCollisionShape")));
         return s;
     }
 

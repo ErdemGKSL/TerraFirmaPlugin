@@ -1697,6 +1697,30 @@
       "selection": [[0, 0, 0, 16, 16, 16]],
       "collision": [[0, 0, 0, 16, 16, 16]],
       "from": "JackOLanternBlock.java Shapes.block() / same"
+    },
+    {
+      "key": "tfc:metal/anvil[axis=x]",
+      "class": "metal_anvil",
+      "kind": "object",
+      "selection": [[0, 0, 3, 16, 11, 13]],
+      "collision": [[0, 0, 3, 16, 11, 13]],
+      "from": "AnvilBlock.java SHAPE_X / same"
+    },
+    {
+      "key": "tfc:metal/anvil[axis=z]",
+      "class": "metal_anvil",
+      "kind": "object",
+      "selection": [[3, 0, 0, 13, 11, 16]],
+      "collision": [[3, 0, 0, 13, 11, 16]],
+      "from": "AnvilBlock.java SHAPE_Z / same"
+    },
+    {
+      "key": "tfc:rock/anvil",
+      "class": "rock_anvil",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 14, 16]],
+      "collision": [[0, 0, 0, 16, 14, 16]],
+      "from": "RockAnvilBlock.java SHAPE / same"
     }
   ]
 }

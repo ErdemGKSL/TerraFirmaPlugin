@@ -148,6 +148,9 @@ public final class Datagen {
         if (dev.tfp.datagen.quern.QuernBlock.available(tfc)) { // PAR-PROC-04: tfp:quern block entry, models, textures, names; fixtures have no quern
             dev.tfp.datagen.quern.QuernBlock.run(tfc, out);
         }
+        if (dev.tfp.datagen.anvil.AnvilBlocks.available(tfc)) { // PAR-METAL-03: tfp:metal/anvil/<metal> and tfp:rock/anvil/<rock> entries, models, textures, names; fixtures have no anvils
+            dev.tfp.datagen.anvil.AnvilBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.barrel.BarrelBlock.available(tfc)) { // PAR-PROC-32: tfp:wood/barrel/<wood> entries, models, textures, names; fixtures have no barrels
             dev.tfp.datagen.barrel.BarrelBlock.run(tfc, out);
         }
