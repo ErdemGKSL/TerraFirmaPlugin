@@ -2,7 +2,7 @@
 id: PAR-REL-10
 title: "Art backlog: replace every placeholder texture"
 area: REL
-status: open
+status: blocked
 wave: 53
 deps: []
 size: M
@@ -17,6 +17,7 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
+  - "BLOCKED (2026-11-19): imagegen MCP is not signed in to ChatGPT (auth_status: no credential; sign-in needs the user) and no TFC checkout / generated content exists in this container to audit placeholders. docs/art/image-list.md still has 173 rows `needed`. Resume: sign in, run datagen, list referenced non-TFC textures, generate per the image-generation skill."
   - "Per feature item, generate missing art through the imagegen MCP and the image-generation skill (style guide, post-processing), keep raws/prompts in art/raw/<id>/; this item tracks the leftovers at the end."
 tests:
   - "no placeholder art referenced (datagen check)"
