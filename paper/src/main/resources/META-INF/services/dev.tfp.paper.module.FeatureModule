@@ -76,3 +76,4 @@ dev.tfp.paper.prospect.ProspectModule
 dev.tfp.paper.livestock.LivestockModule
 dev.tfp.paper.strip.StripModule
 dev.tfp.paper.berry.spread.SpreadModule
+dev.tfp.paper.logging.FellingModule

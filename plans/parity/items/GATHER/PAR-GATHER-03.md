@@ -2,7 +2,7 @@
 id: PAR-GATHER-03
 title: "Tree felling: the whole tree falls when the trunk is cut with an axe"
 area: GATHER
-status: open
+status: done
 wave: 22
 deps: [PAR-WORLD-10]
 size: M
@@ -23,6 +23,7 @@ in_game_steps:
   - "screenshot"
 plan:
   - "On breaking a natural log with an axe (sneak disables, as TFC), snapshot the connected log set (bounded), decide async which logs drop, apply sync in budgeted batches; durability cost per log as TFC; leaves left to decay (PAR-GATHER-04)."
+  - "Done: core/logging TreeLogs (TFC findLogs, 31 direction rows exported from TFC, 6 tests) + paper/logging TreeFelling/FellingModule (7 MockBukkit tests + 1 shipped-tag test); no sneak check (TFC has none). Felling needs branch_direction on log blocks, which tree generation does not set yet: follow-up PAR-GATHER-09. Pending in-game check (container cannot run client)."
 tests:
   - "core: connected-set golden on fixture trees"
   - "paper: budgeted commit test"
@@ -32,6 +33,5 @@ done_criteria:
 
 # PAR-GATHER-03: Tree felling: the whole tree falls when the trunk is cut with an axe
 
-> Claimed: parity worker, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

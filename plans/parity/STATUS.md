@@ -242,7 +242,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-12 | Panning | PROC | 21 | open |
 | PAR-WORLD-10 | Wood blocks: logs, wood, stripped, leaves, saplings as CE blocks | WORLD | 21 | done |
 | PAR-WORLD-24 | Noise and noodle caves: TFC's density caves (cave cheese, cave layer, spaghetti, pillars, noodles) in the terrain fill, and the surface over carved blocks | WORLD | 21 | open |
-| PAR-GATHER-03 | Tree felling: the whole tree falls when the trunk is cut with an axe | GATHER | 22 | open |
+| PAR-GATHER-03 | Tree felling: the whole tree falls when the trunk is cut with an axe | GATHER | 22 | done |
 | PAR-GATHER-04 | Leaves: slow decay, movement slowdown, fallen leaves; plant movement slowdown | GATHER | 22 | open |
 | PAR-GATHER-07 | Item placement interactions: vanilla stick, bone, feather, flint, rotten flesh and salt place as TFC groundcover; a snow item over plants places a snow pile | GATHER | 22 | open |
 | PAR-GATHER-08 | Axe stripping: TFC logs and woods to their stripped forms, golden bamboo block to stripped bamboo | GATHER | 22 | done |
@@ -255,6 +255,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-TOOL-05 | Javelins: throwing, damage, pickup, javelin AI for skeletons | TOOL | 23 | done |
 | PAR-TOOL-06 | Knife, scythe and hoe area behaviours; remaining tool items (saw, chisel, propick, tuyere, shears heads) | TOOL | 23 | done |
 | PAR-WORLD-11 | Tree generation: forest placement on every chunk, dead forests, mangroves | WORLD | 23 | open |
+| PAR-GATHER-09 | Natural logs: the branch_direction property on log and wood blocks, set by tree generation | GATHER | 24 | open |
 | PAR-POT-03 | Pit kiln: straw and log stages, lighting, lazy firing | POTTERY | 24 | open |
 | PAR-POT-04 | Small vessel: inventory, melting contents into metal, pouring | POTTERY | 24 | done |
 | PAR-TOOL-07 | Shields per metal | TOOL | 24 | done |

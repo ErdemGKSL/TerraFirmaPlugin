@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -74,8 +75,9 @@ public final class StripListener implements Listener {
         Player player = event.getPlayer();
         Block clicked = event.getClickedBlock();
         ItemStack item = event.getItem();
-        if (clicked == null || item == null || !org.bukkit.Bukkit.isOwnedByCurrentRegion(clicked.getLocation()) || item.getType().isAir() || player.getGameMode() == GameMode.ADVENTURE
-                || player.getGameMode() == GameMode.SPECTATOR || !axes.test(item)) {
+        if (clicked == null || item == null || item.getType().isAir() || !Bukkit.isOwnedByCurrentRegion(clicked.getLocation())
+                || player.getGameMode() == GameMode.ADVENTURE || player.getGameMode() == GameMode.SPECTATOR
+                || !axes.test(item)) {
             return;
         }
         if (strip(player, event.getHand(), clicked, item)) {
