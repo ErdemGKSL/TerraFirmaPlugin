@@ -6,6 +6,8 @@
 package dev.tfp.paper.worldgen;
 
 import dev.tfp.core.worldgen.Seed;
+import dev.tfp.core.worldgen.aquifer.AquiferBarrierNoise;
+import dev.tfp.core.worldgen.aquifer.FluidSupport;
 import dev.tfp.core.worldgen.carver.Aquifer;
 import dev.tfp.core.worldgen.carver.Carve;
 import dev.tfp.core.worldgen.carver.CaveCarver;
@@ -83,8 +85,6 @@ final class TfcTerrain {
     /** The raw rock ids of the content, in {@link PlaceholderRocks#names()} order. */
     static final List<String> ROCK_IDS = PlaceholderRocks.names().stream().map(n -> "tfp:rock/raw/" + n).toList();
 
-    /** The aquifer barrier noise: TFC's vanilla {@code aquifer_barrier} is not ported, so the barrier is zero (see the ledger). */
-    private static final Aquifer.BarrierNoise NO_BARRIER = (x, y, z) -> 0.0;
 
     private final RegionGenerator regions;
     private final ChunkDataGenerator chunks;
@@ -101,6 +101,8 @@ final class TfcTerrain {
     private final BlockData lava = Material.LAVA.createBlockData();
     /** The positional random factory of TFC's noise sampler for this seed: {@code new XoroshiroRandomSource(seed).forkPositional()}. */
     private final PositionalRandom aquiferFork;
+    /** PAR-WORLD-29: TFC's aquifer barrier noise of this seed (immutable, shared by every chunk's {@link Aquifer}). */
+    private final AquiferBarrierNoise barrier;
     private final BlockData[] surfaceBlocks = surfaceBlocks();
     /** The ore decision of this world (M2-GEN-10): TFC's cluster veins, in the vein tag's order. */
     private final OreVeins ores;
@@ -137,6 +139,7 @@ final class TfcTerrain {
         final BiomeLayers layers = new BiomeLayers(regions, stream);
         this.shoreTide = SurfaceNoise.shoreTide(seed);
         this.aquiferFork = PositionalRandom.fork(new XoroshiroRandomSource(seed));
+        this.barrier = AquiferBarrierNoise.create(aquiferFork);
         this.biomes = resolveBiomes(key -> Registry.BIOME.get(key));
         this.fallbackBiomes = countFallbacks(biomes);
         this.biomeList = Arrays.stream(biomes).distinct().toList();
@@ -653,16 +656,19 @@ final class TfcTerrain {
             return densityOpened(x, y, z) || caveCarve(x, y, z) != Carve.KEEP;
         }
 
-        /** PAR-WORLD-28: the cave carve of a position, as {@link #fill} writes it ({@link CaveChunk}). */
+        /**
+         * PAR-WORLD-28/29: the cave carve of a position, as {@link #fill} writes it: the {@link CaveChunk} decision, settled by
+         * {@link FluidSupport#settle} over the decisions of this chunk and its neighbours (same masks, same aquifers).
+         */
         Carve caveCarve(int x, int y, int z) {
-            return cavesOf(x >> 4, z >> 4).carve(x, y, z);
+            return settledCave(this::cavesOf, x, y, z);
         }
 
         private CaveChunk cavesOf(int cx, int cz) {
             CaveChunk out = caves.get(key(cx, cz));
             if (out == null) {
                 final TunnelMask mask = TunnelCarvers.mask(aquiferFork, cx, cz, minY, maxY - minY);
-                final Aquifer aquifer = new Aquifer(cx, cz, minY, ChunkData.SEA_LEVEL_Y, aquiferFork, NO_BARRIER,
+                final Aquifer aquifer = new Aquifer(cx, cz, minY, ChunkData.SEA_LEVEL_Y, aquiferFork, barrier,
                     surfaceHeights.aquiferSurfaceHeights(cx, cz));
                 out = new CaveChunk(cx, cz, mask, aquifer, this::replaceable);
                 caves.put(key(cx, cz), out);
@@ -863,6 +869,20 @@ final class TfcTerrain {
      */
     static Material densityCarve(SurfaceHeights.Column column, int y, int top, int sea) {
         return carve(yy -> !column.solid(yy), y, top, sea);
+    }
+
+    /** The {@link CaveChunk} of a chunk. */
+    @FunctionalInterface
+    interface CaveChunks {
+        CaveChunk of(int chunkX, int chunkZ);
+    }
+
+    /**
+     * PAR-WORLD-29: the cave carve of a position after {@link FluidSupport#settle}: a carved water or lava with cave air below
+     * it or on one of its four sides, in this chunk or a neighbour, keeps its block.
+     */
+    static Carve settledCave(CaveChunks caves, int x, int y, int z) {
+        return FluidSupport.settle((a, b, c) -> caves.of(a >> 4, c >> 4).carve(a, b, c), x, y, z);
     }
 
     /** The highest y at or below {@code terrainTop} (and not below {@code minY}) that {@code opened} keeps. */

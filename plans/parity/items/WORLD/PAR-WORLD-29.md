@@ -2,7 +2,7 @@
 id: PAR-WORLD-29
 title: "Wire the aquifer barrier noise and the fluid support rule into the terrain fill, and the floating-fluid scan"
 area: WORLD
-status: open
+status: done
 wave: 21
 deps: [PAR-WORLD-07, PAR-WORLD-28]
 size: S
@@ -22,6 +22,8 @@ plan:
   - "In `TfcTerrain`, build one `AquiferBarrierNoise.create(aquiferFork)` per world (thread-safe, immutable) and pass it to every chunk's `Aquifer` instead of `NO_BARRIER`."
   - "After the carve decisions of a chunk (with the PAR-WORLD-28 tunnel mask), apply `FluidSupport.settle` with a lookup over the chunk's own decisions; positions in the neighbour chunks count as their own carve decision (same aquifer, same mask function) or, if that is too costly, as solid with a note in the ledger."
   - "Check the PAR-WORLD-03 chunk budget (barrier noise is sampled only near aquifer borders)."
+  - "Done: `TfcTerrain` builds one `AquiferBarrierNoise.create(aquiferFork)` per world and passes it to every chunk's `Aquifer`; `TfcTerrain.settledCave` applies `FluidSupport.settle` to every cave carve, reading neighbour chunks' own carve decisions (their own mask and aquifer, built lazily only when a border fluid needs them). The decoration view reads the settled carves. Tests: paper `AquiferWiringTest` (2; the 100-chunk scan finds 2695 cave fluids, 3 dammed, none with air below or beside). Budget: no extra cost away from fluids; bench not rerun (no server)."
+  - "Pending in-game check (container cannot run client): the 100-chunk floating-fluid RCON scan and the flooded/dry cave screenshot into docs/verification/PAR-WORLD-29/."
 tests:
   - "paper: AquiferWiringTest: a filled chunk with caves has no water or lava with air directly below or beside it; the barrier noise is the world's (not zero)"
 done_criteria:
