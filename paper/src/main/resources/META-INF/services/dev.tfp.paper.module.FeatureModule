@@ -54,3 +54,4 @@ dev.tfp.paper.tooltip.feature.FeatureTooltipModule
 dev.tfp.paper.firebox.FireboxModule
 dev.tfp.paper.falling.FallingModule
 dev.tfp.paper.landslide.LandslideModule
+dev.tfp.paper.worldgen.WorldSettingsModule
