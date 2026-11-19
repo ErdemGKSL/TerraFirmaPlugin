@@ -26,6 +26,7 @@ plan:
   - "Raw rock loot per TFC tables (loose rocks), mossy cobble/bricks spread lazily near water as TFC."
 tests:
   - "core: spread golden"
+  - "Progress (2026-11-19): core/rock/MossSpread (TFC offset draws, Poisson attempts, id mapping; MossSpreadTest 5) and paper/rock MossModule/MossService/MossListener (lazy spread via a catch-up Direct kind, tracked on placement and conversion; compiles, core:check green). Missing: MockBukkit/self-test for the service, ledger row, in-game check, worldgen-placed mossy blocks are not indexed, targets in another Folia region are skipped. Item stays open."
 done_criteria:
   - "Mining raw granite yields TFC drops in-game"
 ---

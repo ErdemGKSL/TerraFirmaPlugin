@@ -56,3 +56,4 @@ dev.tfp.paper.falling.FallingModule
 dev.tfp.paper.landslide.LandslideModule
 dev.tfp.paper.worldgen.WorldSettingsModule
 dev.tfp.paper.player.exhaustion.ExhaustionModule
+dev.tfp.paper.rock.MossModule
