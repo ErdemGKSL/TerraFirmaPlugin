@@ -26,6 +26,8 @@ import org.junit.jupiter.api.io.TempDir;
 /** M1-TEST-01: the runner's rules (outcomes, timeouts, skips, gate). */
 class CaseRunnerTest {
     static final Duration SHORT = Duration.ofMillis(200);
+    /** Generous timeout for cases whose outcome is not the timeout: a loaded CI box may start a pool task late. */
+    static final Duration LONG = Duration.ofSeconds(10);
     final List<String> progress = new ArrayList<>();
     final CaseRunner runner = new CaseRunner(progress::add);
     final SelfTestContext ctx = context(new ReadyGate(), System.currentTimeMillis());
@@ -34,7 +36,7 @@ class CaseRunnerTest {
     void passFailureErrorAndSynchronousThrowAreClassified() {
         List<CaseResult> r = runner.runAll(List.of(
                 of("pass", SHORT, c -> CompletableFuture.completedFuture("all good")),
-                of("async assertion", SHORT, c -> CompletableFuture.supplyAsync(() -> {
+                of("async assertion", LONG, c -> CompletableFuture.supplyAsync(() -> {
                     throw new AssertionError("expected 3, got 4");
                 })),
                 of("async exception", SHORT, c -> CompletableFuture.failedFuture(new IllegalStateException("boom"))),
@@ -96,7 +98,7 @@ class CaseRunnerTest {
                 of("sync skip", SHORT, c -> {
                     throw new SelfTestCase.Skip("BetterHud is not installed");
                 }),
-                of("async skip", SHORT, c -> CompletableFuture.supplyAsync(() -> {
+                of("async skip", LONG, c -> CompletableFuture.supplyAsync(() -> {
                     throw new SelfTestCase.Skip("no pack this run");
                 }))), ctx);
         assertThat(r).extracting(CaseResult::status).containsExactly(Status.SKIPPED, Status.SKIPPED);
