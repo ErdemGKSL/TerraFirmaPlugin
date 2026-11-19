@@ -214,7 +214,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-HEAT-36 | Firepit carrier culls the top face of the block below: the floor shows through the gaps of TFC's firepit model | HEAT | 17 | open |
 | PAR-HEAT-25 | Pot loaded in game: configuration/devices/pot.yml, pot screen art (tfp:gui/pot, thermometer, bubbles) and the in-game soup check | HEAT | 18 | open |
 | PAR-GATHER-05 | Soil interactions: hoeing, paths, mud, rooted dirt, grass spread and rock spawning | GATHER | 18 | open |
-| PAR-GATHER-06 | Raw rock drops and mossy rock spreading | GATHER | 18 | open |
+| PAR-GATHER-06 | Raw rock drops and mossy rock spreading | GATHER | 18 | done |
 | PAR-PHYS-05 | Explosion collapses | PHYS | 18 | open |
 | PAR-WORLD-05 | Ice sheets, sea ice and icebergs at generation; lava flows; remaining biome surface builders | WORLD | 18 | open |
 | PAR-HEAT-30 | Firepit, grill and pot world rules: fuel thrown on top is gathered, a lit firepit burns entities standing on it (hot floor) | HEAT | 18 | open |

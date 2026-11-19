@@ -12,7 +12,6 @@ import dev.tfp.core.rock.MossSpread;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.blockdata.ChunkDataKey;
 import dev.tfp.paper.blockdata.ChunkDataStore;
-import dev.tfp.paper.catchup.CatchUpService;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.core.persist.VersionedCodec;
@@ -20,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiPredicate;
 import java.util.function.LongSupplier;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -45,7 +45,7 @@ public final class MossService {
         BlockFace.EAST, BlockFace.WEST};
 
     private final CustomBlocks custom;
-    private final CatchUpService catchUp;
+    private final BiPredicate<Block, String> tracker;
     private final ChunkDataStore store;
     private final LongSupplier clock;
     private final boolean enabled;
@@ -54,9 +54,9 @@ public final class MossService {
     private final Map<String, Map<BlockPos, Long>> synced = new ConcurrentHashMap<>();
     private final Map<String, Long> chunkBase = new ConcurrentHashMap<>();
 
-    MossService(CustomBlocks custom, CatchUpService catchUp, ChunkDataStore store, LongSupplier clock, boolean enabled, int rate) {
+    MossService(CustomBlocks custom, BiPredicate<Block, String> tracker, ChunkDataStore store, LongSupplier clock, boolean enabled, int rate) {
         this.custom = custom;
-        this.catchUp = catchUp;
+        this.tracker = tracker;
         this.store = store;
         this.clock = clock;
         this.enabled = enabled;
@@ -73,7 +73,7 @@ public final class MossService {
         if (s.isPresent() && MossSpread.isMossy(s.get().id())) {
             synced.computeIfAbsent(key(block.getChunk()), k -> new ConcurrentHashMap<>())
                     .put(new BlockPos(block.getX(), block.getY(), block.getZ()), clock.getAsLong());
-            return catchUp.track(block, KIND);
+            return tracker.test(block, KIND);
         }
         return false;
     }

@@ -28,7 +28,7 @@ public final class MossModule implements FeatureModule {
         CatchUpService catchUp = context.services().require(CatchUpService.class);
         int rate = Integer.getInteger("tfp.moss.rate", MossSpread.DEFAULT_RATE);
         boolean enabled = Boolean.parseBoolean(System.getProperty("tfp.moss.enabled", "true"));
-        MossService service = new MossService(context.integrations().customBlocks(), catchUp,
+        MossService service = new MossService(context.integrations().customBlocks(), catchUp::track,
                 context.chunkData(), () -> context.clock().get().playerTicks(), enabled, Math.max(1, rate));
         catchUp.kinds().registerDirect(MossService.KIND, service::catchUp);
         context.services().provide(MossService.class, service);
