@@ -23,4 +23,6 @@ done_criteria:
 
 # PAR-INFRA-62: Flaky CaseRunnerTest.aSkipThrownAtRunTimeIsASkipWithItsReason
 
+> Claimed: claude-heat-mech-proc-infra, 2026-11-19
+
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.
