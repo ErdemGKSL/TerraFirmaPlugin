@@ -107,8 +107,8 @@ Below, a path like `dist/.../X.kt` is relative to the repo root. `kr/toxicity/hu
   - Wiki `Caution.md` and `How-to-install.md` tell users to disable ItemsAdder `text-effects`, and Nexo `generate_gif_shaders: false`.
   - Issue #227 is a CustomNameplates `bars.png` conflict plus an ItemsAdder shader conflict.
   - Issue #479 (open): the BetterHud text shader changes the colors of other bitmap fonts (for example a TAB logo) because of a global lightmap multiplication. In current `master`, `text.vsh` for 26.2/26.3 still does `vertexColor *= sample_lightmap(Sampler2, UV2)` outside the GUI guard.
-- **CraftEngine.** If CraftEngine ships its own `rendertype_text` / `text` shaders, they collide with BetterHud's. **UNVERIFIED** whether current CraftEngine does this.
-- **OptiFine, Iris, Sodium.** I found no statement in the repo or wiki. Vanilla core shaders in resource packs are generally ignored by OptiFine; Iris with a shaderpack active normally still uses vanilla core shaders for GUI text. **UNVERIFIED.**
+- **CraftEngine.** If CraftEngine ships its own `rendertype_text` / `text` shaders, they collide with BetterHud's. **VERIFIED** for CraftEngine 26.9.2 + BetterHud 2.2.0-SNAPSHOT-449 on 1.21.11 and 26.3: the merged pack renders the HUD with no shader failure (docs/spikes/M0-BH-01.md, docs/spikes/M1-HUD-FIRST-START.md, 2026-10-16/17). The spikes did not inspect CE's shader files, so a collision with other CE packs is not excluded.
+- **OptiFine, Iris, Sodium.** I found no statement in the repo or wiki. Vanilla core shaders in resource packs are generally ignored by OptiFine; Iris with a shaderpack active normally still uses vanilla core shaders for GUI text. **UNVERIFIED (checked 2026-11-19: no evidence in repo; run a vanilla client with Iris + a shaderpack and with OptiFine against the spike server and screenshot the HUD).**
 - **Shader compile errors.** Issue #344 (open, 1.21.10): "Couldn't compile fragment shader (minecraft:core/rendertype_text): 'FogColor' redefinition". Issue #321 (open): HUD invisible on 1.21.9/1.21.10 clients with BetterHud 1.14.0. The overlay system in `master` addresses per-version shaders.
 
 ---
@@ -618,7 +618,7 @@ java { toolchain.languageVersion = JavaLanguageVersion.of(25) } // API classes a
 
 - The 2.0.0 POM declares these **compile-scope** transitive dependencies: `BetterCommand:1.4.3`, `adventure-api` / `minimessage` / `serializer-legacy` / `serializer-gson` 4.26.1, `kotlin-stdlib` 2.3.21 and `BetterHud-api` 2.0.0. Keep the dependency `compileOnly` and never shade it. Excluding `net.kyori` from it is advisable so Paper's Adventure wins on the compile classpath.
 - `HudPlayer` extends `kr.toxicity.command.BetterCommandSource`, so BetterCommand must be on the compile classpath. The transitive dependency already provides it.
-- Maven Central has `BetterHud-bukkit-api` versions 1.9.2 … 1.14.1 and 2.0.0. SNAPSHOT builds (2.1/2.2) are not on Central. For those, see `jitpack.yml`; **UNVERIFIED** whether JitPack works.
+- Maven Central has `BetterHud-bukkit-api` versions 1.9.2 … 1.14.1 and 2.0.0. SNAPSHOT builds (2.1/2.2) are not on Central. For those, see `jitpack.yml`; **UNVERIFIED (checked 2026-11-19: no evidence in repo; the repo resolves BetterHud via Modrinth maven `maven.modrinth:betterhud2`, see gradle/libs.versions.toml, not JitPack; a test would be one Gradle resolution of the JitPack coordinates)**.
 - `plugin.yml` of a consumer (pattern from BetterHud-MMOCore): `depend: [BetterHud]` or `softdepend: [BetterHud]`.
 
 ### 5.2 Main types (`api/src/main/java/kr/toxicity/hud/api/...`)
@@ -741,13 +741,13 @@ Hide hearts, food, air and armor but keep the hotbar, crosshair and XP:
   - (a) inside our CraftEngine resource pack (best if we already ship CraftEngine content);
   - (b) a folder `plugins/<ourplugin>/hud-pack/` listed in BetterHud `merge-other-folders` (this requires editing BetterHud's `config.yml`).
 - Mount health (`heart/vehicle_*`) is drawn instead of the food bar when riding. Decide whether to hide it.
-- Server-side alternatives are limited. Bukkit's `Player#setHealthScale` changes the heart count, not visibility, and food cannot be hidden server-side. A resource pack is the standard approach. **UNVERIFIED** for 26.x whether Mojang added a GUI-element toggle.
+- Server-side alternatives are limited. Bukkit's `Player#setHealthScale` changes the heart count, not visibility, and food cannot be hidden server-side. A resource pack is the standard approach, and transparent-sprite overrides hide hearts, food and air on 26.3 as well as 1.21.11 (docs/spikes/M0-BH-01.md, docs/hud/versions.md). **UNVERIFIED (checked 2026-11-19: no evidence in repo)** whether 26.x added a GUI-element toggle; a test would be grepping the 26.3 server/client jar for a gamerule or option that hides HUD elements.
 
 ### 6.3 GUI scale and resolution
 
 - The shader computes `ui = ceil(2/ProjMat)` in GUI pixels. `gui.x`/`gui.y` are a percentage of the GUI-scaled screen; `pixel` offsets are GUI pixels and scale with the GUI scale like vanilla elements (`text.vsh`, `ShaderManagerImpl.compileShader`).
 - Wiki `huds.md`: positions drift between GUI scales unless HUD `gui` coordinates are only 0, 50 or 100. Anchor at an edge or the center and do the fine placement with layout pixel offsets.
-  - Vanilla's bar rows sit around `gui: {x: 50, y: 100}` with pixel offsets about -91 to +91 horizontally and -39 vertically, relative to a 182 px hotbar. **UNVERIFIED exact offsets; tune in-game.**
+  - Vanilla's bar rows sit around `gui: {x: 50, y: 100}` with pixel offsets about -91 to +91 horizontally and -39 vertically, relative to a 182 px hotbar. **VERIFIED horizontally (docs/verification/PAR-HUD-06/verdict.md, 2026-11):** in game the outer frames span -91..-11 and +10..+90 around the screen centre, exactly the hotbar's extent. The vertical -39 was not re-measured there; tune in-game.
 - `render-scale.static-scale: true` keeps an element's size constant regardless of the GUI scale. The wiki recommends positioning such elements through HUD coordinates.
 - The shader checks `pos.y >= ui.y`, so elements are placed relative to the real screen size: any resolution works.
 
@@ -797,9 +797,9 @@ override fun start() {
 - BetterHud then **skips its own ServerLoadEvent reload**. Every CraftEngine pack build triggers a full BetterHud reload and merge, and CraftEngine handles distribution.
 - **Do not also enable BetterHud self-host.**
 - `pack-type` must not be `none`, or `directory()` is null and nothing merges.
-- **Consequence:** after changing BetterHud content, the user must trigger a **CraftEngine** pack rebuild for clients to receive it. A plain `/hud reload` regenerates `BetterHud/build.zip`, but CraftEngine does not re-merge it. **UNVERIFIED** which CraftEngine command does this (probably `/ce reload pack` or `/ce reload all`).
+- **Consequence:** after changing BetterHud content, the user must trigger a **CraftEngine** pack rebuild for clients to receive it. A plain `/hud reload` regenerates `BetterHud/build.zip`, but CraftEngine does not re-merge it. **VERIFIED (docs/spikes/M0-BH-01.md, 2026-10-16):** `ce reload all` after BetterHud's `Successfully merged` put the 1488 BetterHud entries into CE's pack. `/ce reload pack` was not tested.
 - Compiled against `net.momirealms:craft-engine-bukkit:26.9.1` (`bootstrap/bukkit/build.gradle.kts`). Issue #464 (open, 2026-07) "Will there be plans to support craftengine?" and #254 (CraftEngine MiniMessage image tags) ask for more. Reading comments was blocked.
-- **Shader collision risk:** if CraftEngine or another of its packs provides `rendertype_text` / `text` core shaders, the merged result is undefined. **UNVERIFIED.**
+- **Shader collision risk:** if CraftEngine or another of its packs provides `rendertype_text` / `text` core shaders, the merged result is undefined. **VERIFIED for CE 26.9.2 + BetterHud 2.2.0-SNAPSHOT-449 (docs/spikes/M0-BH-01.md, docs/spikes/M1-HUD-FIRST-START.md, 2026-10-16/17):** no collision, HUD renders on 1.21.11 and 26.3; other CE packs were not tested.
 
 ### 7.3 Nexo and ItemsAdder
 
@@ -860,7 +860,7 @@ What the code supports:
 
 ## 10. Gotchas
 
-1. **Java 25 for both the server and our compile**, if we compile against the API. A Paper 1.21.x server on Java 21 cannot run BetterHud 2.x. Use BetterHud 1.14.x for Java 21 (**UNVERIFIED**: 1.14.x target JVM).
+1. **Java 25 for both the server and our compile**, if we compile against the API. A Paper 1.21.x server on Java 21 cannot run BetterHud 2.x. Use BetterHud 1.14.x for Java 21 (**UNVERIFIED (checked 2026-11-19: no evidence in repo; unzip a 1.14.x jar and read the class-file major version)**: 1.14.x target JVM). Repo evidence for the 2.x side: content/compat.yml says BetterHud 2.2.0-SNAPSHOT-449 needs Java 25 class files.
 2. **Placeholders must exist before the YAML is parsed**, otherwise "this placeholder not found" (`PlaceholderManagerImpl.find`) and that element, layout and hud fail. If our plugin enables after BetterHud's first reload (for example a hot-loaded plugin), call `reload()`.
 3. **`/` is an escape character in text patterns.** Write `[a]//[b]` to get `a/b`. Division inside `@equation` in a pattern also uses `//` (wiki `operations.md`).
 4. **`disable-number-format` defaults to `true`.** Numbers then print with `#.###`, unless `placeholder-string-format.number` is set. For "45/50", set `placeholder-string-format: {number: "#"}` on the text element.

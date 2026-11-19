@@ -115,7 +115,7 @@ Consequence: code that must load on 1.21.11 servers has to be compiled with `--r
   - On 26.x there is no `reobfJar` and no plugin remapping. You compile against the dev bundle, and the class and member names you see are the runtime names.
   - On 1.20.5–1.21.11, Paper still has a plugin remapper. A jar that declares it is Mojang-mapped skips remapping. paperweight writes the `paperweight-mappings-namespace: mojang` manifest attribute when `reobfArtifactConfiguration = MOJANG_PRODUCTION`. The official multi-version example sets this attribute by hand on its shaded root jar (paperweight-test-plugin `multi-project` branch, `build.gradle.kts`, https://github.com/PaperMC/paperweight-test-plugin/tree/multi-project).
   - The CraftBukkit package relocation (`org.bukkit.craftbukkit.v1_xx_Rx`) was dropped in 1.20.5 (PSA: https://papermc.io/news/important-dev-psa-future-removal-of-cb-package-relocation). CB classes therefore have the same package on 1.21.11 and 26.x.
-  - Whether Mojang-mapped names on 1.21.11 and the "real" names on 26.x are identical for the classes we touch is **UNVERIFIED**. Mojang mappings were generated from the original names, so they are expected to match, but signatures change between versions anyway. Keep NMS in per-version modules.
+  - Whether Mojang-mapped names on 1.21.11 and the "real" names on 26.x are identical for the classes we touch is **UNVERIFIED (checked 2026-11-19: no evidence in repo; no NMS is used (docs/spikes/M0-JAR-01.md static check); a test would be `javap` of the same NMS class on the 1.21.11 and 26.3 server jars)**. Mojang mappings were generated from the original names, so they are expected to match, but signatures change between versions anyway. Keep NMS in per-version modules.
 - run-paper's `disablePluginRemapping()` sets `paper.disablePluginRemapping=true`. It "Only has an effect on Paper 1.20.5 and newer builds that include plugin remapping" (run-task repo, `plugin/src/main/kotlin/xyz/jpenilla/runpaper/task/RunServer.kt`).
 
 ### 1.5 Building one jar for 1.21.x and 26.x
@@ -239,7 +239,7 @@ Docs: https://docs.papermc.io/paper/dev/getting-started/paper-plugins/. The page
 
 Folia support in `paper-plugin.yml` comes from Folia's patch to `PaperPluginMeta`, which adds `private boolean foliaSupported` (Folia repo `folia-server/paper-patches/features/0001-Region-Threading-Base.patch`, ~line 709). The flag in `plugin.yml` comes from `folia-api/paper-patches/features/0003-Require-plugins-to-be-explicitly-marked-as-Folia-sup.patch`.
 
-The default `load` of POSTWORLD matters for worldgen. Worlds created by the server at startup only get a plugin's generator if the plugin loads at **STARTUP**, so set `load: STARTUP`. The generator is reached through `Plugin#getDefaultWorldGenerator(String, String)`, which `WorldCreator` calls (Paper repo `paper-api/.../WorldCreator.java:654`). That loading rule is general Bukkit behaviour and is **UNVERIFIED** in docs for Paper plugins. Folia matters here too: `createWorld` and `unloadWorld` throw `UnsupportedOperationException`, as covered in §4.
+The default `load` of POSTWORLD matters for worldgen. Worlds created by the server at startup only get a plugin's generator if the plugin loads at **STARTUP**, so set `load: STARTUP`. The generator is reached through `Plugin#getDefaultWorldGenerator(String, String)`, which `WorldCreator` calls (Paper repo `paper-api/.../WorldCreator.java:654`). That loading rule is general Bukkit behaviour and is **VERIFIED** for Paper plugins (docs/spikes/M0-CE-01.md, 2026-10-16: `load: STARTUP` generator applied to the default world on Paper and Folia, 1.21.11 and 26.3; paper/src/main/resources/paper-plugin.yml). Folia matters here too: `createWorld` and `unloadWorld` throw `UnsupportedOperationException`, as covered in §4.
 
 Suggested `paper-plugin.yml`:
 
@@ -262,7 +262,7 @@ dependencies:
     packetevents: { load: BEFORE, required: true,  join-classpath: true }
 ```
 
-The plugin names `CraftEngine`, `BetterModel`, `BetterHud` and `packetevents` are **UNVERIFIED**. Read the `name:` from each jar's plugin.yml or paper-plugin.yml. The format of `api-version` for patch releases (`'1.21.11'` vs `'1.21'`) is also **UNVERIFIED**. The docs example uses `'26.3'`.
+The plugin names `CraftEngine`, `BetterModel`, `BetterHud` and `packetevents` are **VERIFIED** (paper/src/main/resources/paper-plugin.yml dependencies, loaded in the spikes docs/spikes/M0-NET-01.md and M0-BH-01.md; content/compat.yml keys are "the exact plugin names from each jar's plugin descriptor"). The format of `api-version` for patch releases (`'1.21.11'`) is also **VERIFIED** (docs/spikes/M0-JAR-01.md: one jar with `api-version: '1.21.11'` passes on 1.21.11 and 26.3, Paper and Folia); `'1.21'` was not tried. The docs example uses `'26.3'`.
 
 Library loader (`PluginLoader`):
 
@@ -318,7 +318,7 @@ Source: https://github.com/jpenilla/run-task (README and `plugin/src/main/kotlin
   - Source: `RunServer.kt`.
 - **Plugin downloads:**
   - `downloadPlugins { hangar(name, version); modrinth(id, version); github(owner, repo, tag, asset); url(url) }` (`DownloadPluginsSpec.kt`).
-  - Modrinth resolves `GET /v2/project/{id}/version/{version}` (`PluginDownloadServiceImpl.kt:159`). Modrinth's API accepts either a version ID or a version number there; that is per Modrinth API docs and **UNVERIFIED** here.
+  - Modrinth resolves `GET /v2/project/{id}/version/{version}` (`PluginDownloadServiceImpl.kt:159`). Modrinth's API accepts either a version ID or a version number there; that is per Modrinth API docs and **UNVERIFIED (checked 2026-11-19: no evidence in repo; docs/compat/versions.md used `/v2/project/<slug>/version` listings, not this endpoint; a test would be one GET with a version number and one with an id)** here.
 - **EULA:** run-paper does **not** accept the EULA itself. Pass `-Dcom.mojang.eula.agree=true`, which Paper reads (`paper-server/patches/sources/net/minecraft/server/Main.java.patch`, "Paper start - eula system property").
 - It is a `JavaExec`, so `javaLauncher` works. Use a Java 21 launcher for 1.21.11 and Java 25 for 26.x.
 
@@ -333,7 +333,7 @@ Current Modrinth versions for 26.3 / Paper, from `api.modrinth.com/v2/project/<s
 
 All four list Folia as a loader.
 
-Licensing: CraftEngine and PacketEvents are GPL-3.0-only. EUPL-1.2 lists GPL-3.0 as a compatible licence, but whether that covers our use is a legal question and **UNVERIFIED**. Because these are separate plugins (compileOnly, not shaded), the question mostly concerns distribution.
+Licensing: CraftEngine and PacketEvents are GPL-3.0-only. EUPL-1.2 lists GPL-3.0 as a compatible licence, but whether that covers our use is a legal question and **UNVERIFIED (checked 2026-11-19: no evidence in repo; needs legal review of EUPL-1.2 vs GPL-3.0-only for distribution)**. Because these are separate plugins (compileOnly, not shaded), the question mostly concerns distribution.
 
 ```kotlin
 plugins { id("xyz.jpenilla.run-paper") version "3.1.0" }
@@ -398,7 +398,7 @@ Paper repo `paper-api/src/main/java/org/bukkit/generator/*.java`, main @ 3988767
 - `getBiome(WorldInfo, x, y, z)` and the `getBiome(..., BiomeParameterPoint)` overload "**must** be completely thread safe".
 - It should only return biomes listed in `getBiomes(WorldInfo)` and must never return `Biome.CUSTOM` (`BiomeProvider.java` lines 10–81).
 - `WorldInfo#vanillaBiomeProvider()` exists (`WorldInfo.java:74`).
-- `Biome` is an `OldEnum`/`Keyed` interface in both 1.21.11 (`javap`) and 26.3 (`Biome.java:26`). Custom datapack biomes can therefore be looked up through `RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME)` and returned. Whether a datapack biome is accepted by the BiomeProvider path end to end is **UNVERIFIED** and should be tested early.
+- `Biome` is an `OldEnum`/`Keyed` interface in both 1.21.11 (`javap`) and 26.3 (`Biome.java:26`). Custom datapack biomes can therefore be looked up through `RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME)` and returned. Whether a datapack biome is accepted by the BiomeProvider path end to end is **VERIFIED** (docs/spikes/M0-NET-01.md, 2026-10-16: a `ChunkGenerator` BiomeProvider returning datapack biomes `tfpspike:plains_summer`/`plains_autumn` rendered correctly on Paper and Folia, 1.21.11 and 26.3; saving was not checked).
 
 **BlockPopulator**
 - `populate(WorldInfo, Random, chunkX, chunkZ, LimitedRegion)` "must be completely thread safe" (`BlockPopulator.java:53–69`).
@@ -409,7 +409,7 @@ Paper repo `paper-api/src/main/java/org/bukkit/generator/*.java`, main @ 3988767
 - Coordinates are absolute.
 - "The buffer zone may or may not be already populated" (`LimitedRegion.java`).
 
-Which threads call the generator on Paper and Folia is **UNVERIFIED** from docs. The Javadoc only mandates thread safety. Assume arbitrary chunk-system worker threads, and never touch `World`/`Chunk` API from generator code.
+Which threads call the generator on Paper and Folia is **VERIFIED** (docs/spikes/M0-CE-01.md, 2026-10-16: `generateNoise`/`populate` run on `Paper Common Worker` threads on Paper and Folia; a `BlockPopulator` does not run on a region thread). The Javadoc only mandates thread safety. Assume arbitrary chunk-system worker threads, and never touch `World`/`Chunk` API from generator code.
 
 ### 3.2 Async chunk APIs and snapshots
 
@@ -454,7 +454,7 @@ public final class TfpBootstrap implements PluginBootstrap {
 
 **Seasonal grass colours by rewriting biome IDs in chunk packets.** The client only knows biomes that were sent in the registry during the configuration phase. Every "seasonal variant" biome therefore has to be a real registered biome from the datapack above, and its numeric network ID has to be looked up at runtime.
 
-How the network ID is obtained without NMS is **UNVERIFIED**. PacketEvents exposes biome palettes (`Chunk_v1_18` `biomeData`, `api/.../world/chunk/impl/v_1_18/Chunk_v1_18.java:46`). The registry-to-ID mapping may come from PacketEvents' synchronized-registry tracking or from NMS. Investigate this.
+How the network ID is obtained without NMS is **VERIFIED** (docs/spikes/M0-NET-01.md, 2026-10-16: from the per-user synchronized registry, `User.getRegistry(worldgen/biome)` + `getByName`; ids differ per version, so look them up at runtime). PacketEvents exposes biome palettes (`Chunk_v1_18` `biomeData`, `api/.../world/chunk/impl/v_1_18/Chunk_v1_18.java:46`). The registry-to-ID mapping may come from PacketEvents' synchronized-registry tracking or from NMS. Investigate this.
 
 ### 3.4 PersistentDataContainer on chunks
 
@@ -500,7 +500,7 @@ Consequences:
 - Use only immutable or concurrent caches, such as the season state or a per-player item-lore cache.
 - Keep handlers allocation-light. Chunk packets are large, and rewriting biome palettes must be fast.
 
-PacketEvents' own docs do not state the listener thread (https://docs.packetevents.com/processing-and-sending/master/). That it is the Netty thread is inferred from the above and is **UNVERIFIED** for PacketEvents specifically.
+PacketEvents' own docs do not state the listener thread (https://docs.packetevents.com/processing-and-sending/master/). That it is the Netty thread is inferred from the above and is **VERIFIED** for PacketEvents specifically (docs/spikes/M0-NET-01.md, 2026-10-16: every listener ran on a `Netty Epoll IO` thread on Paper and Folia, 1.21.11 and 26.3).
 
 ---
 
@@ -600,7 +600,7 @@ From the Folia README "Current broken API", and the `UnsupportedOperationExcepti
 6. Do not use the scoreboard API, `createWorld`, or the sync `teleport`.
 7. Add `folia-supported: true`.
 
-`Bukkit.isPrimaryThread()` on Paper returns `TickThread.isTickThread()` (Paper repo `paper-server/src/main/java/org/bukkit/craftbukkit/CraftServer.java:2299–2300`). On Folia it therefore presumably returns true on any region or global tick thread, which is **UNVERIFIED**. Use it only as "am I on *a* tick thread". For "am I on the *right* thread", use `isOwnedByCurrentRegion`.
+`Bukkit.isPrimaryThread()` on Paper returns `TickThread.isTickThread()` (Paper repo `paper-server/src/main/java/org/bukkit/craftbukkit/CraftServer.java:2299–2300`). On Folia it therefore presumably returns true on any region or global tick thread, which is **UNVERIFIED (checked 2026-11-19: no evidence in repo; the MockBukkit tests only see main vs other thread; a test would be calling it from a Folia region and a global task in the itest)**. Use it only as "am I on *a* tick thread". For "am I on the *right* thread", use `isOwnedByCurrentRegion`.
 
 ---
 
@@ -621,7 +621,7 @@ Source: https://github.com/MockBukkit/MockBukkit, default branch `minecraft/v26.
   - Folia schedulers.
   - `isOwnedByCurrentRegion`, but **every overload just returns `isPrimaryThread()`** (`ServerMock.java` ~2818–2860), so it cannot catch wrong-region bugs.
   - Lifecycle manager mock (`LifecycleEventManagerMock`).
-  - Reading `paper-plugin.yml` through `PluginManagerMock`, parsed as a `PluginDescriptionFile`. Bootstrapper and loader are not executed; this is inferred from the code and **UNVERIFIED**.
+  - Reading `paper-plugin.yml` through `PluginManagerMock`, parsed as a `PluginDescriptionFile`. Bootstrapper and loader are not executed; this is inferred from the code and **UNVERIFIED (checked 2026-11-19: no evidence in repo; paper/src/test/.../BootstrapTest.java reads paper-plugin.yml from the classpath instead of via PluginManagerMock; a test would load the plugin through MockBukkit and assert whether the bootstrapper ran)**.
   - `MockBukkitExtension` with `@MockBukkitInject` for JUnit.
   - `AsyncCatcher`.
 - **Limitations relevant to TFC:**
@@ -635,7 +635,7 @@ Source: https://github.com/MockBukkit/MockBukkit, default branch `minecraft/v26.
 ### 5.3 Integration tests on a real server
 
 - **run-paper headless in CI.** `runServer` with `-Dcom.mojang.eula.agree=true` and `--nogui`, which run-paper adds. Watchdog is disabled. Download the dependency plugins with `downloadPlugins`.
-- **Self-test plugin pattern.** This is a recommendation; no official PaperMC harness exists (UNVERIFIED that none exists).
+- **Self-test plugin pattern.** This is a recommendation; no official PaperMC harness exists (UNVERIFIED (checked 2026-11-19: no evidence in repo; search PaperMC org repos for a test-server harness) that none exists).
   - A `tfp-itest` plugin, or the main plugin with `-Dtfp.selftest=true`, schedules test cases after `ServerLoadEvent`.
   - Example cases: generate chunks via `getChunkAtAsync(x, z, true)`, then assert block and biome distributions; place blocks and tick them; spawn entities and check goals; run commands with `dispatchCommand` from the console on the global region.
   - It writes JUnit-XML or a JSON report to the run directory, then calls `Bukkit.shutdown()`. The exit code or report decides pass or fail.
@@ -665,7 +665,7 @@ Here `runSelfTest` is a custom `RunServer` task with `minecraftVersion(mc)`, the
 
 ### 5.4 Concurrency testing
 
-- **jcstress 0.16** (`org.openjdk.jcstress:jcstress-core`) for lock-free and racy structures in core: season/climate snapshot publication and any JCTools queues. Gradle plugin `io.github.reyerizo.gradle.jcstress` 1.0.0 (usage **UNVERIFIED**).
+- **jcstress 0.16** (`org.openjdk.jcstress:jcstress-core`) for lock-free and racy structures in core: season/climate snapshot publication and any JCTools queues. Gradle plugin `io.github.reyerizo.gradle.jcstress` 1.0.0 (usage **UNVERIFIED (checked 2026-11-19: jcstress is not wired into the build, core/src/test/.../SnapshotStressTest.java uses repeated JUnit runs instead; a test would be applying the plugin to core and running one jcstress test)**).
 - **Runtime assertions:**
 
 ```java
@@ -683,12 +683,12 @@ static void assertNotTickThread() { if (Bukkit.isPrimaryThread()) throw new Ille
 
 - **spark is bundled.** "Starting with 1.21, Paper bundles the spark profiler" (https://docs.papermc.io/paper/profiling/). Paper 26.3 bundles `me.lucko:spark-paper:1.10.191` and 1.21.11 bundles `1.10.152` (`libraries.list`).
 - **Timings** is "deprecated in favor of spark and turned off by default in 1.21". `co.aikar.timings.Timings` is `@Deprecated(forRemoval = true)` with the comment "Timings will be removed in the future" (Paper repo `paper-api/.../co/aikar/timings/Timings.java:43–46`). Do not use it.
-- Usage: `/spark profiler start --timeout 600` (profiling docs). Also use the `--thread` options to include chunk-worker and Netty threads (flag **UNVERIFIED** on that page).
+- Usage: `/spark profiler start --timeout 600` (profiling docs). Also use the `--thread` options to include chunk-worker and Netty threads (flag **UNVERIFIED (checked 2026-11-19: no evidence in repo; run `/spark profiler start --thread *` on a test server)** on that page).
 
 ### 5.6 Worldgen benchmarking
 
 - Use JMH 1.37 through `me.champeau.jmh` 0.7.3 in `tfp-worldgen`. Benchmark the pure-Java pipeline per chunk (noise, rock layers, surface, biome sampling) with `@Threads(N)` to reflect concurrent callers.
-- In-server, combine pre-generation timing with chunk-generation spark profiles. A Chunky-style pregen plugin through `downloadPlugins` is an option, **UNVERIFIED** on 26.x.
+- In-server, combine pre-generation timing with chunk-generation spark profiles. A Chunky-style pregen plugin through `downloadPlugins` is an option, **UNVERIFIED (checked 2026-11-19: no evidence in repo; docs/spikes/M0-CE-01.md did not pregenerate with Chunky; a test would be a Chunky run on Paper 26.3, see M2-GEN-15)** on 26.x.
 
 ---
 

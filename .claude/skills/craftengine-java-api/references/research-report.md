@@ -312,7 +312,7 @@ if (be != null) be.controller.let(TfcCropController.class, this.controllerId, c 
 - **Sleeping tickers / chunk subscriptions:** `SleepingBlockEntityTicker<T>(delegate)` with `sleep()/wakeUp()/isSleeping()`, and `subscribeChunkLoad(BlockPos, Runnable) → ChunkSubscription{cancel(), cancelled()}`. Documented in [WIKI `api/block_entity_ticker`], **dev branch only** (26.10-SNAPSHOT), and absent from 26.9.1 [JAR `unzip -l` shows no `Sleeping*`]. Wiki rules for when they ship: keep one ticker instance per controller field; call `sleep`/`wakeUp` on the owning tick thread; subscription callbacks run directly on Paper's main thread and are scheduled on the subscriber's region thread on Folia.
 
 ### 4.5 Cost per block entity [INF from source]
-- No ticker: one `BlockEntity` (5 fields), our controller, one entry in the chunk's `ConcurrentChainedLong2ReferenceHashTable`, plus the serialized NBT in CE region files. No per-tick cost. Roughly 100–300 bytes of heap plus our fields (UNVERIFIED estimate).
+- No ticker: one `BlockEntity` (5 fields), our controller, one entry in the chunk's `ConcurrentChainedLong2ReferenceHashTable`, plus the serialized NBT in CE region files. No per-tick cost. Roughly 100–300 bytes of heap plus our fields (VERIFIED as order of magnitude: docs/spikes/M0-CE-02.md, 2026-10-16, measured about 259 B per block including a small controller, heap deltas with GC noise).
 - With a ticker: also a `DefaultTickingBlockEntity` and a `ReplaceableTickingBlockEntity`, a map entry per chunk, a slot in the world ticker list, and a call every tick. On Folia it also adds a region task per chunk per tick.
 - Worldgen-created BEs are constructed and serialized during generation (§9), which adds cost for every generated BE block.
 
@@ -342,7 +342,7 @@ public static <T extends ItemBehavior> ItemBehaviorType<T> ItemBehaviors.registe
   - `onBreakBlock`: inside CE's `BlockBreakEvent` MONITOR handler, if not cancelled (`BlockEventListener` L176–178).
 - Built-in `block_item` handles CE block placement (events, `updateStateForPlacement`, `loadCustomDataFromItem`). For a TFC seed item that plants a crop, the simplest route is the built-in `block_item` with `block: tfc:crop/wheat` plus our `tfc:crop` block behavior. Use a custom `ItemBehavior` only for non-placement logic (knapping, firestarter and similar).
 - Composition: several item behaviors are wrapped in `DualItemBehavior`/`CompositeItemBehavior`. Find ours with `getFirst`.
-- `dev` branch head commit is "物品行为状态" (item behavior state), but `ItemBehavior`/`ItemBehaviorFactory` are unchanged in dev [SRC diff] (UNVERIFIED beyond those two files).
+- `dev` branch head commit is "物品行为状态" (item behavior state), but `ItemBehavior`/`ItemBehaviorFactory` are unchanged in dev [SRC diff] (UNVERIFIED (checked 2026-11-19: no evidence in repo; the pin is CE 26.9.2, docs/compat/versions.md, and no dev-branch build is used; diff the whole behaviour API of dev against 26.9.2 before adopting it) beyond those two files).
 
 ---
 
@@ -403,7 +403,7 @@ Extend `IdSectionConfigParser` (per-id entries, applies templates and `__ID__`/`
 
 ### 7.2 What TFC must do (default worlds generated at startup)
 1. `paper-plugin.yml`: `load: STARTUP` **[MEM]**. CraftBukkit only accepts a `bukkit.yml` default-world generator from an *enabled* plugin ("…is not enabled yet (is it load:STARTUP?)"). CE is also STARTUP (`bukkit/paper-loader/build.gradle.kts` L47). Dependency `CraftEngine: {load: BEFORE, required: true, join-classpath: true}`.
-2. CE `config.yml`: `misc.delay-configuration-load: false`. CE parses it in bootstrap, so a value written by our plugin applies from the **next** restart. Ship it as an install step or a first-run restart (see the `dependency-bootstrap` skill). UNVERIFIED: Paper's bootstrapper ordering between two plugins.
+2. CE `config.yml`: `misc.delay-configuration-load: false`. CE parses it in bootstrap, so a value written by our plugin applies from the **next** restart. Ship it as an install step or a first-run restart (see the `dependency-bootstrap` skill). UNVERIFIED (checked 2026-11-19: docs/spikes/M0-CE-01.md phase B/C shows `delay=false` applied after a restart, but not the bootstrapper ordering between two plugins; test by logging both bootstrappers' timestamps): Paper's bootstrapper ordering between two plugins.
 3. In our `onLoad()`: write/refresh pack files in `plugins/CraftEngine/resources/tfc/`, then `BlockBehaviors.register(...)`, `ItemBehaviors.register(...)` and any `CommonFunctions`/parsers. CE's `onLoad` has already run because CE loads before us, so the registries exist. CE's `onEnable` (where configs are parsed) runs after all `onLoad`s.
 4. In our `onEnable()`: `CraftEngineBlocks.loadedBlocks()` is **already populated** when not delayed, because CE's onEnable precedes ours. Resolve and cache our states then, and **again on every `CraftEngineReloadEvent`**.
 5. With `delay=false`, CE registers `WorldInitEvent` before worlds load, so `ensureStorageWorld` → `injectWorldGeneration` happens at `WorldInitEvent` (priority HIGH) before any chunk is generated (`BukkitWorldManager` L331–336, L402–424).
@@ -469,7 +469,7 @@ Pick one owner per datum. Never mirror the same value in A and B.
   - (3) CE configs loaded before generation, so `CraftEngineBlocks.byId(...)` works and each `custom_N` NMS state has its `ImmutableBlockState` bound (`applyPlatformSettings`).
   - (4) Stages enabled.
   - (5) World not blacklisted and storage not `none` (with `none`, data is in-memory only).
-  - (6) Do not use the deprecated `ChunkGenerator.generateChunkData` path (UNVERIFIED whether its legacy chunk-data copy bypasses the injected sections).
+  - (6) Do not use the deprecated `ChunkGenerator.generateChunkData` path (UNVERIFIED (checked 2026-11-19: no evidence in repo; docs/spikes/M0-CE-01.md used `generateNoise`/`populate` only; a test would be a generator using `generateChunkData` with CE blocks and the CE-01 check) whether its legacy chunk-data copy bypasses the injected sections).
 
 ### 9.3 Thread safety on worldgen threads [SRC + INF]
 - `CraftEngineBlocks.getBukkitBlockData(state)`: reads `state.customBlockState().minecraftState()` (a final-after-load field) and calls Paper `asBlockData()`. Safe off-thread after load. **Cache one `BlockData` per state at startup/reload** and never mutate it (CraftBlockData is mutable).

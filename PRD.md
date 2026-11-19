@@ -107,7 +107,7 @@ Status per feature is tracked in `docs/porting/ledger.md`.
 | Licensing questions (EUPL-1.2 with GPL-3.0 dependencies) | Distribution doubts | EUPL compatibility clause; legal review before first release |
 
 ## 10. Open product questions
-- Final product name, Java package and content namespace (provisional: `tfp`, `dev.tfp`).
+- Final product name chosen: Cairnlands (docs/release/product-name.md). Still open: Java package and content namespace (provisional: `tfp`, `dev.tfp`).
 - Bedrock (Geyser) players: unsupported, or a degraded mode?
 - Server-owner configurability vs TFC defaults: which TFC config options are exposed in v1?
 - Field guide form: CE-textured GUI book, written book, or a web guide?

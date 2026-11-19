@@ -51,7 +51,7 @@ Anything marked **UNVERIFIED** is my inference and was not confirmed in a source
   - one model per texture variant, or
   - "remap" bones to a variant model's items with `TrackerUpdateAction.perBone(... itemStack(otherRenderer.groupByTree(name).getItemStack()))`. This is what `RemapScript.kt` does.
   - `tint(rgb)` multiplies the texture colour for each bone.
-- **Baby scale:** `tracker.scaler(ModelScaler.entity().multiply(0.5f))` (pattern from `Commands.kt spawn`). `ModelScaler.entity()` reads `LivingEntity#getScale()`, which is the `SCALE` attribute. UNVERIFIED: that attribute probably does not include the vanilla baby age-scale.
+- **Baby scale:** `tracker.scaler(ModelScaler.entity().multiply(0.5f))` (pattern from `Commands.kt spawn`). `ModelScaler.entity()` reads `LivingEntity#getScale()`, which is the `SCALE` attribute. VERIFIED (docs/spikes/M0-BM-01.md, 2026-10-16): `ModelScaler.entity()` alone does not shrink a baby (`attrScale=1.0 bmScale=1.0`); `entity().multiply(0.5f)` does (`bmScale=0.5`), on Paper 1.21.11 and 26.3.
 
 ---
 
@@ -74,7 +74,7 @@ Anything marked **UNVERIFIED** is my inference and was not confirmed in a source
 
 **Impact on us:**
 - Our servers must run **Java 25**, including on 1.21.x. Paper 1.21.4+ runs on 25.
-- Our plugin compiles against `bettermodel-bukkit-api`, whose class files target Java 25. Our Gradle toolchain must therefore be JDK 25, or javac will reject the class files (UNVERIFIED for `--release 21` cross-compilation; just use toolchain 25).
+- Our plugin compiles against `bettermodel-bukkit-api`, whose class files target Java 25. Our Gradle toolchain must therefore be JDK 25, or javac will reject the class files (VERIFIED for toolchain 25 + `options.release = 25`: build-logic/src/main/kotlin/tfp.java-conventions.gradle.kts compiles against it. UNVERIFIED (checked 2026-11-19: no evidence in repo; compile once with `--release 21`) for cross-compilation; just use toolchain 25).
 
 ### 2.2 How rendering works
 - **One `item_display` per bone (group).** "All elements will be rendered as one item display packet per one model bone." (wiki `Create-your-own-model-using-BlockBench.md`). Cubes inside a group with different arbitrary rotations are split into several JSON models and combined into one item model of type `composite`. It is still one display entity. See `api/data/blueprint/BlueprintElement.java` (`buildModernJson`, grouping by `Cube::identifierDegree`) and `core/.../manager/ModelManagerImpl.kt` (`toModernJson`, `"type" to "composite"`).
@@ -107,7 +107,7 @@ Anything marked **UNVERIFIED** is my inference and was not confirmed in a source
   - `assets/<namespace>/items/...`, `assets/<namespace>/models/...` and `assets/<namespace>/textures/item/...` (`api/pack/PackNamespace.java`).
   - Names are obfuscated when `pack.use-obfuscation: true` (default) (`PackObfuscator`; 3.1.0 "fully obfuscating resource pack").
   - Plus `pack.mcmeta` and `pack.png`. Overlays are supported (`PackOverlay`).
-- **The pack is not hosted.** BetterModel sends no pack to players. We or a pack plugin must serve it (UNVERIFIED: I found no send code; grep for `setResourcePack`/`sendResourcePacks` finds nothing in core).
+- **The pack is not hosted.** BetterModel sends no pack to players. We or a pack plugin must serve it (UNVERIFIED (checked 2026-11-19: no evidence in repo beyond docs/spikes/M0-BM-01.md, where CE served the merged pack; a test would be a BetterModel-only server with a client join and a packet log)).
 - **Merging with other pack plugins** (wiki `Merge-with-external-resources.md`, recommendation "**CraftEngine**"):
   - **CraftEngine.** CE's default config already lists `BetterModel/build.zip` under `merge-external-zip-files`. Nothing is needed unless the BM build path changes (wiki `Merge-with-CraftEngine.md`).
   - **Nexo.** Auto-merge. If Nexo is present and `merge-with-external-resources: true`, BM **skips its startup reload** and only loads models when Nexo fires `NexoPrePackGenerateEvent` (`core/bukkit-core/.../compatibility/nexo/NexoCompatibility.kt`). FAQ: set Nexo `Pack.import.model_engine.import_pack: false`, otherwise textures show as podzol (wiki `FAQ.md`).
@@ -213,7 +213,7 @@ Root command `/bettermodel`, with aliases `/bm` and `/model`. Permissions are `b
   - Animated textures are supported (`frame_time`, `frame_interpolate` → `.mcmeta`).
   - Mixing different per-texture UV sizes in one model renders wrongly (issue #371, open). Float UV sizes are a problem (issue #386, open).
 - **Cube rotation.** Any rotation works. Cubes are grouped by rotation "identifier", each group gets its own JSON model with a `display.fixed.rotation`, and the leftover rotation is single-axis (`BlueprintElement.buildModernJson`, `Cube.buildJson`). ViaVersion clients older than 1.21.4 lose "free cube rotation".
-- **Bone size.** No hard limit. If any cube is more than 16 px from the group origin, that bone's model is scaled down by `max/16` and scaled back up on the display (`BlueprintElement.Group.scale()`). Very large bones lose precision (UNVERIFIED how much).
+- **Bone size.** No hard limit. If any cube is more than 16 px from the group origin, that bone's model is scaled down by `max/16` and scaled back up on the display (`BlueprintElement.Group.scale()`). Very large bones lose precision (UNVERIFIED (checked 2026-11-19: no evidence in repo; render a >16 px-from-origin bone at several scales and compare screenshots) how much).
 - **Root-level cubes** (outside any group) are not rendered. A non-Group root element becomes an empty bone (`ModelManagerImpl.toRenderer.parse`: `if (this !is Group) RendererGroup(1.0F, null, ...)`). **Put every cube in a group.**
 - `glow_` tag, or a cube's `light_emission`, sets the emission to 15 (`BlueprintElement.Cube.buildJson`, wiki `Glow-part.md`).
 
@@ -241,7 +241,7 @@ Root command `/bettermodel`, with aliases `/bm` and `/model`. Permissions are `b
 | `ph, pra, prfa, pla, plfa, phip, pw, pc, prl, prfl, pll, plfl, cape` | player-skin limbs (players/ models; usable in general models too) |
 | bone named `shadow` | creates a fake shadow entity sized by the group's cube (`EntityTracker` constructor). Invisible base entities cast no vanilla shadow. |
 
-Extra tags can be registered via `BoneTag.REGISTRY.addTag(...)` (`BoneTagRegistry.addTag`). UNVERIFIED: whether this is safe to call before BM loads models.
+Extra tags can be registered via `BoneTag.REGISTRY.addTag(...)` (`BoneTagRegistry.addTag`). UNVERIFIED (checked 2026-11-19: no evidence in repo; call `addTag` from our `onLoad`/`onEnable` and check that models load): whether this is safe to call before BM loads models.
 
 **Matching rules:**
 - **Animations are matched to bones by bone name, not UUID.** Animators are filtered by UUID existence but keyed by `animator.name` (`ModelAnimation.toBlueprint`, `AnimationGenerator.generate` with `pointMap.get(g.name())`).
@@ -283,7 +283,7 @@ dependencies {
 - Packages: `kr.toxicity.model.api.*` (core API) and `kr.toxicity.model.api.bukkit.*` (Bukkit adapter).
 - Our plugin.yml / paper-plugin.yml should declare a dependency on `BetterModel` (`depend` in the test plugin: `test-plugin/build.gradle.kts`).
 
-UNVERIFIED: whether 3.5.1 is published to Central yet. A search.maven.org query returned 0 docs, which may just be index lag. The README badge points to Central.
+UNVERIFIED (checked 2026-11-19: no evidence in repo; the repo pins 3.5.1 through Modrinth maven `maven.modrinth:bettermodel`, gradle/libs.versions.toml, not Central; a test would be resolving it from Central): whether 3.5.1 is published to Central yet. A search.maven.org query returned 0 docs, which may just be index lag. The README badge points to Central.
 
 ### 5.2 Entry points
 | Class | Use | Source |
@@ -374,7 +374,7 @@ Bone access:
 Source: `api/tracker/ModelScaler.java`.
 - `tracker.scaler(ModelScaler.value(0.5f))`, `ModelScaler.entity()` (default), `ModelScaler.entity().multiply(0.5f)`, `ModelScaler.composite(...)`.
 - The scaler is re-evaluated (throttled per tick), so a growing animal can use a custom scaler.
-- **Only built-in scalers serialise.** A custom one needs `ModelScaler.DESERIALIZER.addScaler(name, builder)`, or it falls back to default after reload (UNVERIFIED that lambdas are not serialisable, but `ModelScaler` is a `sealed` interface, so we must use `value`/`entity`/`composite`).
+- **Only built-in scalers serialise.** A custom one needs `ModelScaler.DESERIALIZER.addScaler(name, builder)`, or it falls back to default after reload (UNVERIFIED (checked 2026-11-19: no evidence in repo; register a custom scaler, `/bm reload`, observe) that lambdas are not serialisable, but `ModelScaler` is a `sealed` interface, so we must use `value`/`entity`/`composite`).
 - The scaler **is saved** in PDC.
 - Hitbox entities scale with `bone.hitBoxScale()`. The vanilla base entity's own hitbox does not scale; use the `generic.scale` attribute if needed.
 
@@ -402,13 +402,13 @@ Sources: `MountController`, `MountControllers`, `HitBoxImpl.mount/mountControl`,
 - **Recommendation for TFC horses and camels.** Do **not** use `p_` bones. Use a vanilla `Horse`/`Camel`/`Donkey` as carrier and let vanilla riding, saddles, taming and inventory work.
   - The model displays are already the carrier's passengers. BM re-injects real passengers into the passenger packet: `mountPacket` keeps non-registry passengers.
   - `walk` animates while ridden because `isWalking()` checks `controllingPassenger`.
-  - UNVERIFIED: whether the rider's seat height lines up with the model; tune it with a scale or attribute.
+  - VERIFIED for the number (docs/spikes/M0-BM-01.md session 3, 2026-10-16): the rider sits 0.84375 blocks above the carrier horse's Y, same as a vanilla horse. UNVERIFIED (checked 2026-11-19: not compared with the deer model's back bone height; measure that bone and compare) whether the seat lines up with the model; tune it with a scale or attribute.
 - Events: `MountModelEvent` / `DismountModelEvent`. `registry.hasPassenger()`, `registry.mountedHitBox()`.
 
 ### 5.9 Nametags
 - Add a `tag_`/`mtag_`/`ptag_` bone. Its text is the base entity's custom name when custom-name-visible (`EntityTracker` constructor, `BaseEntityImpl.customName`).
 - `tracker.createNametag(predicate, (bone, tag) -> tag.component(...))`.
-- UNVERIFIED: whether the vanilla nameplate of the invisible base entity is also shown (BM only rewrites the shared-flags byte).
+- CORRECTED (docs/spikes/M0-BM-01.md session 3, 2026-10-16): the vanilla nameplate of the carrier is not shown. A cow with custom name "NAMETEST", diamond helmet and sword rendered with no name, helmet or sword (tracker `hide-option` `[true,true,true,true]`, Paper 26.3). The config-level cause was not checked.
 
 ### 5.10 Events
 - Subscribe with `BetterModelBukkit.platform().eventBus().subscribe(plugin, Class, Consumer)`.
@@ -463,7 +463,7 @@ Sources: `MountController`, `MountControllers`, `HitBoxImpl.mount/mountControl`,
   - **A tracker with no viewers shuts its scheduler down** (`Tracker.start` lambda: `if (playerCount()==0 && !forRemoval) shutdown()`), so unseen animals cost close to nothing.
   - Animation keyframes are precomputed at import, with lerp frames inserted every `lerp-frame-time` ticks.
 - **Culling.**
-  - Spawn and visibility follow the base entity's **vanilla entity-tracking range**. Configure it in `spigot.yml` `entity-tracking-range.animals`/`monsters`/`misc`, or Paper's equivalent (UNVERIFIED wording).
+  - Spawn and visibility follow the base entity's **vanilla entity-tracking range**. Configure it in `spigot.yml` `entity-tracking-range.animals`/`monsters`/`misc`, or Paper's equivalent (UNVERIFIED (checked 2026-11-19: no evidence in repo; read the Paper config docs for the exact key) wording).
   - Animation packets are further limited by `max-sight`/`min-sight` and the view-cone `sight-trace` (per tracker via `TrackerModifier.sightTrace`).
   - `TrackerUpdateAction.viewRange(f)` sets the display entity view range.
 - **Server entities.**
@@ -471,7 +471,7 @@ Sources: `MountController`, `MountControllers`, `HitBoxImpl.mount/mountControl`,
   - Seats (`p_`) also create hitboxes.
 - **Keep bone counts low.** Every group is one display entity per viewer. TFC models have 4 to 21 groups (§9). The Peacock has 21.
 
-UNVERIFIED: no official recommended entity limits. ModelEngine-style "N models per chunk" guidance was not found.
+UNVERIFIED (checked 2026-11-19: no evidence in repo; a test would be a spawn-N-carriers MSPT/packet benchmark): no official recommended entity limits. ModelEngine-style "N models per chunk" guidance was not found.
 
 ---
 
@@ -504,7 +504,7 @@ UNVERIFIED: no official recommended entity limits. ModelEngine-style "N models p
 - `ModelAssetsEvent` is fired on every reload, so our models survive `/bm reload` with no extra work.
 - Use a unique prefix (`tfc_`). A server admin's file with the same name in `models/` makes `addAsset` **throw**, and per §5.10 the exception removes our subscriber. Catch it.
 - **Alternative:** copy files into `plugins/BetterModel/models/tfc/` at startup and call `BetterModelBukkit.platform().reload()`. A reload is a heavy, full pack rebuild, so avoid calling it more than once. Copying before BM's first startup reload (our `onEnable`) needs no reload call. This is less clean (it gets edited by admins and leaves stale files) but works.
-- **Pack delivery.** Keep `pack-type: zip`. CraftEngine merges `BetterModel/build.zip` by default (wiki `Merge-with-CraftEngine.md`). After `PluginEndReloadEvent`, trigger CraftEngine's pack reload if BM rebuilt after CE generated (UNVERIFIED API, see §12).
+- **Pack delivery.** Keep `pack-type: zip`. CraftEngine merges `BetterModel/build.zip` by default (wiki `Merge-with-CraftEngine.md`). After `PluginEndReloadEvent`, trigger CraftEngine's pack reload if BM rebuilt after CE generated (VERIFIED for the command `ce reload all`: docs/spikes/M0-BM-01.md finding 3, 2026-10-16; UNVERIFIED (checked 2026-11-19: no evidence in repo for a Java-API equivalent; check paper/.../integration/PackRebuilder.java against a run) as an API, see §12).
 
 ---
 
@@ -517,7 +517,7 @@ UNVERIFIED: no official recommended entity limits. ModelEngine-style "N models p
 - Head bones (`h_`/`hi_`) follow `yHeadRot`. The body follows `yBodyRot` (`EntityBodyRotator`, `BaseEntityImpl.bodyYaw/headYaw`).
 - Model position = carrier position, with the root at the carrier's feet. Displays are offset by `-passengerPosition` because they ride the entity (`EntityTracker` constructor `pipeline.defaultPosition`).
 
-**Recommendations (partly UNVERIFIED design advice):**
+**Recommendations (partly UNVERIFIED design advice; checked 2026-11-19: carrier, baby scale, tint/part persistence and re-attach advice is VERIFIED in docs/spikes/M0-BM-01.md, the rest has no evidence in repo):**
 - **Pick a carrier per role.** Choose a vanilla type whose **hitbox size, movement physics, sounds and AI** are closest:
   - `Cow`/`Sheep`/`Pig`/`Goat` for livestock;
   - `Wolf` for predators and pets;
@@ -531,7 +531,7 @@ UNVERIFIED: no official recommended entity limits. ModelEngine-style "N models p
   - Keep the `DEFAULT` (hide equipment, fire, invisible, glow).
   - **Set `equipment=false`** if you want vanilla armor or saddles visible. Usually keep it true and model the saddle as a bone toggled with `togglePart`.
   - Set it per tracker with `tracker.hideOption(...)` in the pre-update consumer. It is persisted.
-- **Prevent vanilla look-through.** The carrier's vanilla nametag and leash rendering still exist (UNVERIFIED for nametags).
+- **Prevent vanilla look-through.** The carrier's vanilla nametag and leash rendering still exist (CORRECTED for nametags: not rendered, docs/spikes/M0-BM-01.md session 3; leash rendering was not tested).
 
 ---
 
@@ -552,7 +552,7 @@ These are the files in `scratchpad/src/tfc/resources/entity_models` (44 checked 
 
 **Animation names do not match BM built-ins.** For example `animation.deer.walk`, `animation.lion.run`, `animation.model.walk`, `animation_walk_mongoose`, `crawl`, `swim`. Some have only `once` loops (`Caribou: animation.caribou.walk once`).
 
-**Many models have no animations at all:** Bluegill, Jellyfish, Lobster, Manatee, Orca, the windmill parts, etc. In the TFC mod, entity animation is mostly **procedural Java code** in the model classes (UNVERIFIED for every case). For BM we must:
+**Many models have no animations at all:** Bluegill, Jellyfish, Lobster, Manatee, Orca, the windmill parts, etc. In the TFC mod, entity animation is mostly **procedural Java code** in the model classes (UNVERIFIED (checked 2026-11-19: docs/research/3d-model-generation.md confirms procedural `setupAnim` exists next to 122 keyframe definitions, but no per-model audit; grep each model class for `setupAnim`) for every case). For BM we must:
 - author keyframe animations (`walk`/`idle`/`swim`/...) into the bbmodels, or
 - generate them at preprocessing time (Molang keyframes like `math.sin(query.anim_time*...)` are supported, wiki `Math-animation.md`).
 
@@ -594,7 +594,7 @@ These are the files in `scratchpad/src/tfc/resources/entity_models` (44 checked 
 17. **Default `damageTint`** (red flash) and `damage` animation are on (`TrackerModifier.DEFAULT`). Disable them per tracker if TFC wants its own.
 18. **Death closes the tracker** after the `death` animation, or immediately if there is none. Do not re-create on a dead entity.
 19. **The wiki is partly stale.** It shows the `item-namespace` key and `HitBoxInteractEvent`, which no longer exist. Trust the 3.5.x code.
-20. **The base entity is still client-visible data**: sounds, particles, the nameplate (UNVERIFIED) and the vanilla client hitbox.
+20. **The base entity is still client-visible data**: sounds, particles, the nameplate (CORRECTED: hidden in practice, docs/spikes/M0-BM-01.md session 3) and the vanilla client hitbox.
 
 ---
 

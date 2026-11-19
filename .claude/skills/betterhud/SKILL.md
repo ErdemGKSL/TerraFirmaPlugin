@@ -10,7 +10,7 @@ BetterHud draws the **whole HUD as the text of one boss bar per player**. It use
 - Positions, scales, layers and animations are **baked into the resource pack**. Changing them means a reload *and* the client re-applying the pack.
 - Only one pack can own the `rendertype_text` (≤26.1) / `text` (26.2+) core shader. Anything else shipping that shader conflicts.
 
-Facts below come from `references/research-report.md` (BetterHud `master` @ `8f4b11d`, tag 2.0.0, researched 2026-10). Re-check the report's "UNVERIFIED" list before relying on those items.
+Facts below come from `references/research-report.md` (BetterHud `master` @ `8f4b11d`, tag 2.0.0, researched 2026-10). Re-check the report's "UNVERIFIED" list before relying on those items. Swept 2026-11-19 (PAR-REL-11): items now marked `VERIFIED (<source>)` were confirmed by M0-BH-01 / M1-HUD-FIRST-START / PAR-HUD-06; the rest carry a `checked 2026-11-19` note naming the test that would settle them.
 
 ## Version and platform constraints
 - Release 2.0.0: MC 1.21–26.1.2. Dev 2.2.0: MC 1.21.4–26.3 (drops ≤1.21.3). Folia is supported.
