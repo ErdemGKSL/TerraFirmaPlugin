@@ -2,7 +2,7 @@
 id: PAR-TOOL-02
 title: "Tool mechanics on Paper: TFC mining speed, durability rules, forging efficiency"
 area: TOOL
-status: open
+status: done
 wave: 20
 deps: [PAR-TOOL-01]
 size: M
@@ -25,6 +25,7 @@ plan:
   - "Current: core/tool rules golden-tested; metal tools generated with vanilla tool components."
   - "BlockDamageEvent/BlockBreakEvent: apply ToolRules.willConsumeDurability (stone axe/shovel vanilla rule), forging bonus efficiency (mining speed multiplier attribute on the item) and durability chance (unbreaking-like)."
   - "Shears special mining speed."
+  - "Done: paper/tool ToolModule, ToolListener, ForgingBonusPdc; ToolRulesMockBukkitTest 6 tests; in-game timing check batched in docs/verification/PAR-TOOL-02 when run"
 tests:
   - "core: ToolRulesGoldenTest exists"
   - "paper: MockBukkit durability consumption"
