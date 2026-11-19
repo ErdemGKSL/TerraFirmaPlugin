@@ -34,4 +34,6 @@ done_criteria:
 
 # PAR-DECO-01: Wood families loaded in CraftEngine: planks, stairs, slabs, fences, walls with our block_state templates
 
+> Claimed: deco-tool session, 2026-11-19
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
