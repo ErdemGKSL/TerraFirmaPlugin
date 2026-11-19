@@ -19,6 +19,7 @@
 package dev.tfp.paper.barrel;
 
 import dev.tfp.core.barrel.BarrelData;
+import dev.tfp.core.barrel.BarrelRedstone;
 import dev.tfp.core.barrel.BarrelFluidTransfer;
 import dev.tfp.core.barrel.BarrelRain;
 import dev.tfp.core.barrel.BarrelSimulation;
@@ -78,6 +79,10 @@ public final class BarrelDevice {
     public static final int SLOTS = FIRST_EXCESS + EXCESS_SLOTS;
     /** TFC {@code SealableDeviceBlock.SEALED}. */
     public static final String SEALED = "sealed";
+    /** TFC {@code level.hasNeighborSignal}; replaced in tests (MockBukkit computes no redstone). */
+    static java.util.function.Predicate<Block> SIGNAL = Block::isBlockIndirectlyPowered;
+    /** PAR-PROC-42: JVM property of TFC's {@code barrelEnableRedstoneSeal} (default true; ledger divergence). */
+    public static final String REDSTONE_PROPERTY = "tfp.barrel.redstoneSeal";
     /** NeoForge {@code Tags.Items.RODS_WOODEN}. */
     public static final String RODS_WOODEN = "c:rods/wooden";
     /** PAR-PROC-38: TFC {@code BarrelBlock.FACING} (up or a side) and {@code RACK}. */
@@ -431,8 +436,34 @@ public final class BarrelDevice {
             if (racks.facing(block) != org.bukkit.block.BlockFace.UP && !racks.supported(block)) {
                 services.effects().collapse(block, racks.racked(block) ? racks.rackItem().orElse(ItemStack.empty())
                     : ItemStack.empty());
+                return DeviceResult.pass();
             }
-            return DeviceResult.pass();
+            return redstone(ctx, SIGNAL.test(block));
+        }
+
+        /**
+         * PAR-PROC-42: TFC {@code BarrelBlock.neighborChanged} with {@code barrelEnableRedstoneSeal}: the signal is
+         * {@code hasNeighborSignal}; {@link BarrelRedstone} decides, the seal runs {@link #toggleSeal}.
+         */
+        private DeviceResult<BarrelData> redstone(DeviceContext<BarrelData> ctx, boolean signal) {
+            if (!Boolean.parseBoolean(System.getProperty(REDSTONE_PROPERTY, "true"))) {
+                return DeviceResult.pass();
+            }
+            BarrelData data = ctx.record().state();
+            BarrelRedstone.Action action = BarrelRedstone.decide(data.powered(), data.sealed(), signal);
+            if (action == BarrelRedstone.Action.NONE) {
+                return DeviceResult.pass();
+            }
+            Block block = ctx.block();
+            DeviceRecord<BarrelData> record = settle(ctx.record(), ctx.now(), services.rain().rainingAbove(block), block,
+                services, ctx.stacks());
+            BarrelData before = record.state();
+            if (action == BarrelRedstone.Action.SEAL || action == BarrelRedstone.Action.UNSEAL) {
+                record = toggleSeal(record, ctx.now(), block, ctx.state().id(), services, ctx.stacks());
+            }
+            record = record.withState(record.state().withPowered(signal));
+            surface(block, before, record.state(), services);
+            return DeviceResult.update(record);
         }
 
         /** TFC {@code BarrelBlock.attack}: a sealed barrel hit with a wooden rod sounds its fill level. */

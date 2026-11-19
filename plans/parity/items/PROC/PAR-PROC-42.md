@@ -2,7 +2,7 @@
 id: PAR-PROC-42
 title: "Barrel world rules: redstone seals and unseals (barrelEnableRedstoneSeal), items dropped into an open upright barrel are gathered"
 area: PROC
-status: open
+status: done
 wave: 18
 deps: [PAR-PROC-08, PAR-PROC-35, PAR-PROC-38, PAR-INFRA-10]
 size: S
@@ -33,6 +33,7 @@ plan:
   - "Redstone: our CE barrel has no powered property; keep the last signal in the barrel record (BarrelData field, codec migration) and decide the edge in a pure core/barrel/BarrelRedstone rule (golden vs handleNeighborChanged's table). The trigger is the neighbour-update runner (PAR-INFRA-10: decide async, apply sync) through DeviceService.neighbourChanged -> the barrel handler; the seal runs BarrelDevice's existing toggleSeal path (sounds, on_seal/on_unseal, block state). Sideways barrels on racks follow the same rule."
   - "Gathering without a per-block tick: on item spawn/drop events schedule an entity task on the item (every 20 ticks while it moves, at most 10 checks after it rests); when it lies in an open upright barrel's box, one DeviceService.edit inserts what SLOT_ITEM accepts (TFC isItemValid and size rules) and shrinks the entity. Share the entity-check helper with PAR-HEAT-30 only by copying a small class (no cross-item file ownership) or by a later refactor item."
   - "barrelEnableRedstoneSeal keeps TFC's default here; its config.yml key is PAR-DATA-06's. Ledger: shrink the barrel divergence row to the automation part (PAR-INFRA-60) and the fluid sides."
+  - "Done: BarrelRedstone + BarrelData.powered + BarrelDevice neighbourChanged redstone; paper/barrel/world BarrelWorldModule/Listener/BarrelGather (physics events feed the router; per-item gather tasks); 2 core + 4 MockBukkit tests. Pending in-game check (lever, dropped items)."
 tests:
   - "core: BarrelRedstone edge table golden vs SealableDeviceBlock.handleNeighborChanged (all four POWERED x SEALED x signal cases)"
   - "paper MockBukkit: a powered neighbour seals an open barrel and unpowering unseals it; a dropped item over an open barrel is gathered, over a sealed or sideways one it is not"

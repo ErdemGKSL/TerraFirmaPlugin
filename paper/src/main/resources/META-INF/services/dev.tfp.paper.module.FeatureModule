@@ -39,6 +39,7 @@ dev.tfp.paper.heat.HeatingModule
 dev.tfp.paper.fire.FireModule
 dev.tfp.paper.fire.spread.FireSpreadModule
 dev.tfp.paper.barrel.gui.BarrelGuiModule
+dev.tfp.paper.barrel.world.BarrelWorldModule
 dev.tfp.paper.weather.cycle.WeatherCycleModule
 dev.tfp.paper.firepit.FirepitModule
 dev.tfp.paper.firepit.gui.FirepitGuiModule

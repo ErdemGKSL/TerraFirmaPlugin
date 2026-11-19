@@ -220,7 +220,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-HEAT-30 | Firepit, grill and pot world rules: fuel thrown on top is gathered, a lit firepit burns entities standing on it (hot floor) | HEAT | 18 | open |
 | PAR-HEAT-34 | Grill and pot burn-out after a calendar jump: the lit look turns off without a click, as the firepit since PAR-HEAT-33 | HEAT | 18 | done |
 | PAR-INFRA-60 | Device automation: hoppers, droppers and pipes insert into and pull from CE device blocks by side (TFC SidedHandler, *EnableAutomation), wired for the done devices | INFRA | 18 | open |
-| PAR-PROC-42 | Barrel world rules: redstone seals and unseals (barrelEnableRedstoneSeal), items dropped into an open upright barrel are gathered | PROC | 18 | open |
+| PAR-PROC-42 | Barrel world rules: redstone seals and unseals (barrelEnableRedstoneSeal), items dropped into an open upright barrel are gathered | PROC | 18 | done |
 | PAR-INFRA-62 | Flaky CaseRunnerTest.aSkipThrownAtRunTimeIsASkipWithItsReason: the async-skip case times out after 200 ms under a loaded full ./gradlew check | INFRA | 18 | done |
 | PAR-PROC-43 | Vanilla recipes newer than TFC's 1.21.1 follow TFC's removal policy: copper tools and armour, spears and other post-1.21.1 tool/armour recipes disabled | PROC | 18 | done |
 | PAR-TOOL-01 | Stone tools: rock tool heads and tools as CE items, crafting from knapped heads | TOOL | 19 | done |

@@ -21,7 +21,7 @@ import org.bukkit.inventory.ItemStack;
  * (ledger divergence: no config.yml key yet). Needs the fire module before it in the service file.
  */
 public final class FireSpreadModule implements FeatureModule {
-    public static final String ID = "fire-spread";
+    public static final String ID = "fire_spread";
     /** JVM property of {@code enableFireArrowSpreading}. */
     public static final String ARROW_PROPERTY = "tfp.fire.arrowSpreading";
 
