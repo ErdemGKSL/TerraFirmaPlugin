@@ -92,6 +92,14 @@ templates#items:
     model: ${__NAMESPACE__}:item/${__ID__}
     settings:
       break_power: ${break_power}
+  # Metal shears (TFC ShearsItem with the tier's uses). A shears material keeps vanilla's tool component (cobweb, wool, leaves).
+  tfp:item/shears:
+    material: shears
+    data:
+      item_name: <!i><lang:${item_lang_key}>
+      max_stack_size: 1
+      max_damage: ${durability}
+    model: ${__NAMESPACE__}:item/${__ID__}
   # Metal armor piece (helmet, chestplate, greaves, boots). material: the vanilla piece for the hand and inventory behaviour.
   # durability, armor, toughness, knockback, enchantability: TFC's TFCArmorMaterials for the slot. rarity: the metal's Rarity.
   # The attribute modifiers replace the material's own. repairable is removed: TFC's material has no repair ingredient.

@@ -57,10 +57,12 @@ public final class RockTools {
     /** The block tag each mining kind mines faster; the javelin mines nothing. Knife and hammer use our own tags. */
     static final Map<String, String> MINEABLE = Map.of(
         "axe", "minecraft:mineable/axe", "hammer", "tfp:mineable/hammer", "hoe", "minecraft:mineable/hoe",
-        "knife", "tfp:mineable/knife", "shovel", "minecraft:mineable/shovel");
+        "knife", "tfp:mineable/knife", "shovel", "minecraft:mineable/shovel",
+        "chisel", "tfp:mineable/chisel", "propick", "tfp:mineable/propick");
     /** The vanilla tool each kind is rendered as (hand pose, enchantability). */
     static final Map<String, String> VANILLA_BASE = Map.of(
-        "axe", "axe", "hammer", "pickaxe", "hoe", "hoe", "knife", "hoe", "shovel", "shovel", "javelin", "sword");
+        "axe", "axe", "hammer", "pickaxe", "hoe", "hoe", "knife", "hoe", "shovel", "shovel", "javelin", "sword",
+        "chisel", "pickaxe", "propick", "pickaxe");
 
     private static final Pattern TIER = Pattern.compile(
         "(\\w+) = create\\(\"(\\w+)\", BlockTags\\.INCORRECT_FOR_(\\w+)_TOOL, (\\d+), (\\d+), ([\\d.]+)f, ([\\d.]+)f, \\d+\\)");
@@ -73,6 +75,13 @@ public final class RockTools {
 
     /** One TFC tool tier: level, uses, mining speed, attack damage bonus. */
     public record Tier(int level, int uses, BigDecimal speed, BigDecimal damage) {
+        /**
+         * The vanilla tool material the item is rendered as (hand pose, enchantability), by TFC's {@code INCORRECT_FOR_*}
+         * tag: level 0 wooden, 1 stone, 2 and 3 iron, above that diamond (netherite as diamond: no fire resistance).
+         */
+        public String vanillaTool() {
+            return level == 0 ? "wooden" : level == 1 ? "stone" : level <= 3 ? "iron" : "diamond";
+        }
     }
 
     /** One tool kind's attack: the damage factor and the attack speed modifier. */
@@ -151,7 +160,7 @@ public final class RockTools {
     }
 
     /** Writes {@code items} to {@code configuration/tool/<file>} with their models and names. */
-    static void write(TfcCheckout tfc, OutputTree out, List<Item> items, Map<String, Tier> tiers, Map<String, Attack> attacks,
+    public static void write(TfcCheckout tfc, OutputTree out, List<Item> items, Map<String, Tier> tiers, Map<String, Attack> attacks,
             String file, String langSuffix) {
         Map<String, Object> entries = new LinkedHashMap<>();
         for (Item item : items) {
@@ -174,6 +183,17 @@ public final class RockTools {
             e.put("arguments", args);
             return e;
         }
+        if (item.kind().equals("tuyere")) { // TFC TieredItem: no durability, no tool rules
+            e.put("template", "tfp:item/simple");
+            e.put("arguments", args);
+            return e;
+        }
+        if (item.kind().equals("shears")) { // vanilla ShearsItem with the tier's uses
+            args.put("durability", tier.uses());
+            e.put("template", "tfp:item/shears");
+            e.put("arguments", args);
+            return e;
+        }
         if (item.kind().equals("javelin")) { // PAR-TOOL-05: a trident carrier the player throws
             args.put("damage", attack.factor().multiply(tier.damage()).stripTrailingZeros());
             args.put("attack_speed", attack.speed());
@@ -187,7 +207,7 @@ public final class RockTools {
         data.put("attribute_modifiers", List.of(modifier("attack_damage", attack.factor().multiply(tier.damage())),
             modifier("attack_speed", attack.speed())));
         String mineable = MINEABLE.get(item.kind());
-        args.put("material", "wooden_" + VANILLA_BASE.get(item.kind())); // level 0: INCORRECT_FOR_WOODEN_TOOL
+        args.put("material", tier.vanillaTool() + "_" + VANILLA_BASE.get(item.kind()));
         args.put("durability", tier.uses());
         args.put("speed", tier.speed());
         args.put("break_power", tier.level());

@@ -2,7 +2,7 @@
 id: PAR-TOOL-06
 title: "Knife, scythe and hoe area behaviours; remaining tool items (saw, chisel, propick, tuyere, shears heads)"
 area: TOOL
-status: open
+status: done
 wave: 23
 deps: [PAR-TOOL-02]
 size: M
@@ -22,6 +22,7 @@ in_game_steps:
   - "break grass; screenshot"
 plan:
   - "Scythe cuts a 3x3 of plants as TFC (decided async, applied sync); generate the remaining metal tool items (saw, chisel, propick, tuyere, shears, fishing rod head) with their data so later items can give them."
+  - "Done: paper/toolarea ScytheListener (ScytheMockBukkitTest 4), datagen toolitems/MetalToolItems (36 items, MetalToolItemsTest 2); in-game scythe check batched in docs/verification/PAR-TOOL-06 when run"
 tests:
   - "paper: area set test"
 done_criteria:
