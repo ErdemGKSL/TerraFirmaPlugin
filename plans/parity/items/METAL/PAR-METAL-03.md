@@ -2,7 +2,7 @@
 id: PAR-METAL-03
 title: "Anvil blocks: rock anvils and metal anvils with items shown on top"
 area: METAL
-status: blocked
+status: open
 wave: 28
 deps: [PAR-INFRA-02, PAR-INFRA-08, PAR-INFRA-13]
 size: M
@@ -21,6 +21,11 @@ files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/anvil/**"
   - "tools/datagen/src/test/java/dev/tfp/datagen/anvil/**"
   - "content/generated/content/craftengine/tfp/configuration/anvil/**"
+  - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxDemands.java"
+  - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/TfcShapes.java"
+  - "tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/tfc-shapes.json"
+  - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/**"
+  - "tools/datagen/src/main/java/dev/tfp/datagen/RockFamilies.java"
 ui: true
 in_game_steps:
   - "ce item give Bot tfp:metal/anvil/copper; place"
