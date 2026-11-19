@@ -131,7 +131,7 @@ class MaterialItemsTest {
         assertThat(report.getAsJsonObject("items").size()).isEqualTo(1618);
         assertThat(report.getAsJsonObject("items").get("tfc:gem/ruby").getAsString()).isEqualTo("ce:material/gem.yml");
         assertThat(report.getAsJsonObject("items").get("tfc:ore/rich_hematite").getAsString()).isEqualTo("ce:drops.yml");
-        assertThat(report.getAsJsonObject("items").get("tfc:stone/axe/sedimentary").getAsString()).isEqualTo("PAR-TOOL-01");
+        assertThat(report.getAsJsonObject("items").get("tfc:stone/axe/sedimentary").getAsString()).isEqualTo("ce:tool/stone.yml");
     }
 
     /** Every owner rule names an existing parity item and matches at least one TFC item. */

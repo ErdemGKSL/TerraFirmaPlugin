@@ -2,7 +2,7 @@
 id: PAR-TOOL-01
 title: "Stone tools: rock tool heads and tools as CE items, crafting from knapped heads"
 area: TOOL
-status: open
+status: done
 wave: 19
 deps: []
 size: M
@@ -21,6 +21,7 @@ in_game_steps:
   - "break a TFC log; time it"
 plan:
   - "Generate the 4 rock categories x (axe, hammer, hoe, javelin, knife, shovel) heads and tools as CE items with tool components (speed and uses from TFC rock tiers) and mineable tags; names and models from TFC."
+  - "Done: RockTools generator, 48 CE items in configuration/tool/stone.yml, RockToolsTest 4 tests; in-game check batched in docs/verification/PAR-TOOL-01 when run"
 tests:
   - "tools/datagen: counts and tier numbers vs RockCategory/TFCTiers"
 done_criteria:
@@ -29,6 +30,5 @@ done_criteria:
 
 # PAR-TOOL-01: Stone tools: rock tool heads and tools as CE items, crafting from knapped heads
 
-> Claimed: deco-tool session, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

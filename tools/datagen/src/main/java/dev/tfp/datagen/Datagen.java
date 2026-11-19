@@ -113,6 +113,9 @@ public final class Datagen {
         if (dev.tfp.datagen.pottery.PotteryItems.available(tfc)) { // PAR-POT-02: ceramic/* items; before the coverage gate
             dev.tfp.datagen.pottery.PotteryItems.run(tfc, out);
         }
+        if (dev.tfp.datagen.tool.RockTools.available(tfc)) { // PAR-TOOL-01: rock tool heads and tools; before the coverage gate
+            dev.tfp.datagen.tool.RockTools.run(tfc, out);
+        }
         if (dev.tfp.datagen.material.MaterialItems.available(tfc)) { // PAR-PROC-19: plain TFC material items + TFCItems coverage gate; fixtures have no TFCItems
             dev.tfp.datagen.material.MaterialItems.run(tfc, out);
             dev.tfp.datagen.material.ItemCoverage.run(tfc, out);
