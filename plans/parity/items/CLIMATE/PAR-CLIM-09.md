@@ -2,7 +2,7 @@
 id: PAR-CLIM-09
 title: "Climate instruments: thermometer, anemometer, vane, calendar clock"
 area: CLIMATE
-status: open
+status: blocked
 wave: 34
 deps: [PAR-INFRA-02, PAR-INFRA-08, PAR-INFRA-13]
 size: M
@@ -30,6 +30,7 @@ in_game_steps:
   - "ce item give Bot tfp:thermometer"
   - "place it, right-click, compare with tfp debug chunk"
 plan:
+  - "BLOCKED (partly): the CraftEngine blocks need hitbox demands and TFC shape rows in tools/datagen/.../hitbox/HitboxDemands.java and TfcShapes.java (not in files_owned) plus entity models for the cups, vane and clock hands. Done here: core/instrument rules, wind field, the four device kinds with action bar readouts, mode cycle, thermometer power. Remainder: PAR-CLIM-27. Pending in-game check (container cannot run client)."
   - "CE blocks with entity_renderer parts (needle/cups/vane) whose rotation is set when a player looks or on a slow sweep (no ticking); thermometer shows the TFC temperature at the block, anemometer the wind speed, vane the wind direction (core/power WindSpeed), the clock the calendar time."
   - "Readout as actionbar on right-click (TFC shows block tooltips via Jade: divergence row)."
 tests:
@@ -40,6 +41,5 @@ done_criteria:
 
 # PAR-CLIM-09: Climate instruments: thermometer, anemometer, vane, calendar clock
 
-> Claimed: session_011osUp5, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

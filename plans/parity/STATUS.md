@@ -182,6 +182,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-INFRA-58 | Packet-layer boundary: move the PacketEvents-typed heat glow, item bar and block sound handlers under dev.tfp.paper.packet so ArchitectureTest.onlyThePacketLayerTouchesPacketEvents passes | INFRA | 15 | done |
 | PAR-PROC-41 | Sealed barrel item keeps its contents: breaking a sealed barrel drops the barrel with its items and fluid (TFC BarrelComponent), placing it restores them | PROC | 15 | blocked |
 | PAR-CLIM-26 | Client snow look: freezing seasonal variants carry a below-0.15 biome temperature | CLIMATE | 15 | done |
+| PAR-CLIM-27 | Climate instrument blocks: CraftEngine entries, hitbox demands, models and animated parts | CLIMATE | 35 | open |
 | PAR-HEAT-23 | Firepit look in game: TFC's lit and unlit models on their own carriers (axis z turned 90), and the in-game firepit check | HEAT | 16 | done |
 | PAR-HEAT-28 | Torch burnout on chunk load leaves the client's block light at 14 until the chunk is sent again | HEAT | 16 | done |
 | PAR-HEAT-29 | Dead torch outlines closer to TFC: widen the hitbox candidate dump to every small no-collision vanilla block and re-pick the dead torch carriers | HEAT | 16 | done |
@@ -304,7 +305,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-12 | Crucible block and GUI | METAL | 33 | open |
 | PAR-TOOL-08 | Prospector's pick: scan, result message, `/tfp propick` | TOOL | 33 | open |
 | PAR-CLIM-08 | Lightning rules: enableLightning, log stripping, fire start | CLIMATE | 34 | open |
-| PAR-CLIM-09 | Climate instruments: thermometer, anemometer, vane, calendar clock | CLIMATE | 34 | open |
+| PAR-CLIM-09 | Climate instruments: thermometer, anemometer, vane, calendar clock | CLIMATE | 34 | blocked |
 | PAR-DATA-02 | Advancements: triggers, awards and presentation | DATA | 34 | open |
 | PAR-METAL-13 | Channels and mold tables: pouring flow | METAL | 34 | open |
 | PAR-HEAT-32 | Firebox kiln and heat consumers: placed items heat in an insulated chamber, the crucible above heats (self-test), hot floor, comparator | HEAT | 34 | open |
