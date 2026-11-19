@@ -2,7 +2,7 @@
 id: PAR-CLIM-06
 title: "Seasonal packet rewrite JMH budget and visual checklist"
 area: CLIMATE
-status: open
+status: done
 wave: 15
 deps: [PAR-CLIM-05]
 size: S
@@ -15,6 +15,7 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
+  - "Done: SeasonalRewriteBenchmark (paper/src/jmh, run by hand, see docs/perf/seasonal-rewrite.md): rewriteSection 0.55 us, 24-section chunk 13.9 us, 3,500-variant registry sync 278 us (HashMap stand-in); PERF-SEA-01 measured in budgets.md; ledger row and Divergences row (no paper jmh Gradle source set: paper/build.gradle.kts not owned). Pending in-game check (container cannot run client): visual checklist in docs/perf/seasonal-rewrite.md."
   - "Add a JMH benchmark of BiomePaletteRewrite per chunk section and of the 2,000-variant registry sync; record numbers in docs/perf/seasonal-rewrite.md and docs/perf/budgets.md."
 tests:
   - "JMH run recorded"
@@ -24,7 +25,6 @@ done_criteria:
 
 # PAR-CLIM-06: Seasonal packet rewrite JMH budget and visual checklist
 
-> Claimed: parity worker (CLIM-06/14), 2026-11-19
 
 > see_not_parity: NP-CLIM-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

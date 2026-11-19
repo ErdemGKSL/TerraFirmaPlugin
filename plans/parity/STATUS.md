@@ -166,7 +166,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-36 | Salad completion: salad screen art, eating and tooltip read the salad's own food data, in-game check | PROC | 14 | done |
 | PAR-PROC-37 | Log pile, burning log pile and charcoal pile CE blocks: hitbox rows and demands, configuration/charcoal, support rule, in-game check | PROC | 14 | done |
 | PAR-PROC-38 | Barrel rack, sideways barrel and tap pouring, and their in-game check | PROC | 14 | done |
-| PAR-CLIM-06 | Seasonal packet rewrite JMH budget and visual checklist | CLIMATE | 15 | open |
+| PAR-CLIM-06 | Seasonal packet rewrite JMH budget and visual checklist | CLIMATE | 15 | done |
 | PAR-HEAT-08 | Grill on firepit: placement, five slots, cooking, GUI | HEAT | 15 | done |
 | PAR-HEAT-09 | Cooking pot on firepit: boiling, soups and jams, pot fluid, GUI | HEAT | 15 | done |
 | PAR-HEAT-20 | Firepit screen art and block wiring: datagen art for tfp:gui/firepit and its thermometer, FirepitDevice opens the screen, in-game check | HEAT | 15 | done |
