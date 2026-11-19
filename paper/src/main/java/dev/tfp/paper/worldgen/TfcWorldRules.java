@@ -3,7 +3,8 @@
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * Ported from TerraFirmaCraft (net.dries007.tfc.ForgeEventHandler#onWorldLoad, #onCreateNetherPortal) @ commit c3b4d9536.
+ * Ported from TerraFirmaCraft (onWorldLoad forced game rules, onCreateNetherPortal):
+ * file: src/main/java/net/dries007/tfc/ForgeEventHandler.java @ c3b4d9536
  */
 package dev.tfp.paper.worldgen;
 
