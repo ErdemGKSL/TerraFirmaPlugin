@@ -31,4 +31,6 @@ done_criteria:
 
 # PAR-WORLD-12: Plant blocks: all TFC plant shapes as CE blocks in generation
 
+> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-19
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
