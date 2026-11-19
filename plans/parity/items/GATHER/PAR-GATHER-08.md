@@ -2,7 +2,7 @@
 id: PAR-GATHER-08
 title: "Axe stripping: TFC logs and woods to their stripped forms, golden bamboo block to stripped bamboo"
 area: GATHER
-status: open
+status: done
 wave: 22
 deps: [PAR-WORLD-10, PAR-INFRA-02]
 size: S
@@ -27,6 +27,7 @@ plan:
   - "Current (audit 2026-11-13): TFC strips logs and woods with any axe (LogBlock.getToolModifiedState for ItemAbilities.AXE_STRIP, keeping axis and BRANCH_DIRECTION via Helpers.copyProperties) and strips tfc:golden_bamboo_block to minecraft:stripped_bamboo_block (BambooBlock). Lightning stripping (PAR-CLIM-08) uses the same mapping. PAR-WORLD-10 generates the log and stripped blocks but no item gives them the interaction; vanilla's strip code only knows vanilla logs."
   - "core/strip: the TFC pair table (log -> stripped_log, wood -> stripped_wood for all 20 woods, golden bamboo block -> minecraft:stripped_bamboo_block) derived from TFC's Wood.BlockType and TFCBlocks, plus the property copy rule (axis; branch_direction where the stripped block has it)."
   - "paper/strip: a right-click handler on CE blocks in the table when the held item is in #minecraft:axes (vanilla and TFC axes, via the tag runtime): snapshot, decide, apply on the region thread through the commit queue with the vanilla strip sound, 1 durability on the axe (not in creative), arm swing; adventure mode follows vanilla's can-build rule. Prefer CraftEngine's built-in strippable_block where the block's generator can carry it (that YAML belongs to PAR-WORLD-10 / PAR-DECO-12); otherwise this handler is the implementation and the table is the single source for both. Expose the table as a service so PAR-CLIM-08 reuses it."
+  - "Done: core/strip StripTable (41 pairs, 3 tests) + paper/strip StripListener/StripModule (4 MockBukkit tests); the handler is the implementation (no CE strippable_block); LightningRules.stripped (PAR-CLIM-08) could reuse StripTable, left untouched. Pending in-game check (container cannot run client)."
   - "The golden bamboo block row works as soon as PAR-DECO-12 generates the block; until then it is covered by the table test."
 tests:
   - "core: table matches TFC for every wood and the bamboo block; property copy keeps axis and branch_direction"
@@ -37,6 +38,5 @@ done_criteria:
 
 # PAR-GATHER-08: Axe stripping: TFC logs and woods to their stripped forms, golden bamboo block to stripped bamboo
 
-> Claimed: parity worker, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

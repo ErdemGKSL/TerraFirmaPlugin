@@ -244,7 +244,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-GATHER-03 | Tree felling: the whole tree falls when the trunk is cut with an axe | GATHER | 22 | open |
 | PAR-GATHER-04 | Leaves: slow decay, movement slowdown, fallen leaves; plant movement slowdown | GATHER | 22 | open |
 | PAR-GATHER-07 | Item placement interactions: vanilla stick, bone, feather, flint, rotten flesh and salt place as TFC groundcover; a snow item over plants places a snow pile | GATHER | 22 | open |
-| PAR-GATHER-08 | Axe stripping: TFC logs and woods to their stripped forms, golden bamboo block to stripped bamboo | GATHER | 22 | open |
+| PAR-GATHER-08 | Axe stripping: TFC logs and woods to their stripped forms, golden bamboo block to stripped bamboo | GATHER | 22 | done |
 | PAR-INFRA-47 | Block flammability: TFC's flammable(flammability, fireSpreadSpeed) and ignitedByLava as CraftEngine burn settings on every generated block | INFRA | 22 | open |
 | PAR-PHYS-04 | Support beams: blocks, connections, collapse prevention | PHYS | 22 | open |
 | PAR-PROC-13 | Sluice | PROC | 22 | open |
