@@ -49,4 +49,6 @@ done_criteria:
 
 # PAR-SURV-15: TFC exhaustion on Paper: passive hunger drain on the vanilla food bar, vanilla action exhaustion x0.4, thirst lost on every 4 exhaustion
 
+> Claimed: claude-session-011osUp9, 2026-11-19
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
