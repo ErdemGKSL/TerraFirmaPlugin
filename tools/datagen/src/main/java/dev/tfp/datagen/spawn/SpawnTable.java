@@ -18,7 +18,7 @@ import dev.tfp.datagen.TfcCheckout;
 import java.util.Map;
 
 /**
- * PAR-FAUNA-04: the TFC spawn data the Paper spawn pass reads, in one file {@code data/spawn_table.json}:
+ * PAR-FAUNA-04: the TFC spawn data the Paper spawn pass reads, in one file {@code data/tfp/data_maps/spawn_table.json} (a folder the data loader skips):
  * <pre>
  * { "biomes": { "plateau": { "probability": 0.1, "creature": [["tfc:cow", weight, min, max], ...], ... } },
  *   "fauna":  { "tfc:cow": { TFC's fauna JSON as written } } }
@@ -27,7 +27,7 @@ import java.util.Map;
  * rules stay TFC's raw JSON, parsed with TFC's defaults at runtime by {@code core/spawn/FaunaRules}.
  */
 public final class SpawnTable {
-    public static final String FILE = "data/spawn_table.json";
+    public static final String FILE = "data/tfp/data_maps/spawn_table.json";
     static final String BIOMES = TfcCheckout.MAIN + "data/tfc/worldgen/biome/";
     static final String FAUNA = TfcCheckout.GENERATED + "data/tfc/tfc/fauna/";
 

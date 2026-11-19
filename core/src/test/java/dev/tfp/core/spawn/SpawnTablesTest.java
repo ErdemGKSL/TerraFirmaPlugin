@@ -82,7 +82,7 @@ class SpawnTablesTest {
     /** The file datagen ships equals TFC's exported golden: every biome entry and every gate (skipped when content is not generated). */
     @Test
     void shippedTableMatchesTheGolden() throws IOException {
-        Path file = Path.of("..", "content", "generated", "content", "data", "spawn_table.json");
+        Path file = Path.of("..", "content", "generated", "content", "data", "tfp", "data_maps", "spawn_table.json");
         assumeTrue(Files.exists(file), "content/generated is not built");
         JsonObject root = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
         SpawnTables t = SpawnTables.parse(root);

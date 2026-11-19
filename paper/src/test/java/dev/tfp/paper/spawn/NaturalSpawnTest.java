@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 class NaturalSpawnTest {
     @Test
     void shippedTableLoadsAndEverySpeciesHasACarrier() throws Exception {
-        var file = java.nio.file.Path.of(System.getProperty("tfp.contentData")).resolve("spawn_table.json");
+        var file = java.nio.file.Path.of(System.getProperty("tfp.contentData")).resolve("tfp/data_maps/spawn_table.json");
         SpawnTables t = SpawnTables.parse(JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject());
         assertThat(t.biomes()).hasSizeGreaterThan(100);
         assertThat(t.fauna()).hasSize(77);

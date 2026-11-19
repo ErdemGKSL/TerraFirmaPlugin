@@ -92,7 +92,7 @@ public final class NaturalSpawnModule implements FeatureModule, Listener {
     @Override
     public void enable(ModuleContext context) throws Exception {
         this.ctx = context;
-        var file = RegistryService.jarDataRoot(NaturalSpawnModule.class.getClassLoader()).resolve("spawn_table.json");
+        var file = RegistryService.jarDataRoot(NaturalSpawnModule.class.getClassLoader()).resolve("tfp/data_maps/spawn_table.json");
         tables = SpawnTables.parse(JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject());
         if (ENABLED) {
             context.listen(this);
