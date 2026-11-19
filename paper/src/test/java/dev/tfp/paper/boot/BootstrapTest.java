@@ -312,7 +312,8 @@ class BootstrapTest {
                 "barrel",
                 "damage",
                 "egg",
-                "fall");
+                "fall",
+                "census");
         assertThat(children(tfp.getChild("debug").getChild("showcase"))).containsExactly("family");
         assertThat(tfp.getChild("debug").getChild("showcase").getCommand()).as("showcase needs a family").isNull();
         assertThat(children(tfp.getChild("debug").getChild("player"))).containsExactly("name");

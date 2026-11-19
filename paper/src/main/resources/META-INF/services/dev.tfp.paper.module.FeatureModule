@@ -62,3 +62,4 @@ dev.tfp.paper.javelin.JavelinModule
 dev.tfp.paper.toolarea.ToolAreaModule
 dev.tfp.paper.arrow.ArrowModule
 dev.tfp.paper.shield.ShieldModule
+dev.tfp.paper.spawn.NaturalSpawnModule
