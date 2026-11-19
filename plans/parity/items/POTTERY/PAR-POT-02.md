@@ -2,7 +2,7 @@
 id: PAR-POT-02
 title: "Unfired and fired pottery items, clay knapping outputs"
 area: POTTERY
-status: open
+status: done
 wave: 23
 deps: []
 size: S
@@ -20,6 +20,7 @@ in_game_steps:
   - "ce item give Bot tfp:ceramic/ingot_mold"
 plan:
   - "Generate every unfired/fired ceramic item (incl. 16 glazed vessels and large vessels, all molds, fire bricks) as CE items with names, models, item_heat (pit kiln firing at 1399 via heating recipes) and sizes."
+  - "Done: PotteryItems generator (all ceramic/* TFCItems as CE items, models, names, stacks), PotteryItemsTest 4 tests, ledger rows; in-game check docs/verification/PAR-POT-02/verdict.md (pass)"
 tests:
   - "tools/datagen: counts vs TFCItems"
 done_criteria:
@@ -28,6 +29,5 @@ done_criteria:
 
 # PAR-POT-02: Unfired and fired pottery items, clay knapping outputs
 
-> Claimed: pottery-metal worker, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
