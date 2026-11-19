@@ -64,7 +64,6 @@ public final class ItemCoverage {
         Owner.of("wooden_bucket|metal/bucket/(red|blue)_steel|bucket/.+", "PAR-FLUID-02", "fluid buckets (after the mob buckets)"),
         Owner.of("pan/(empty|filled)", "PAR-PROC-12", "pans"),
         Owner.of("(lattice|rustic)_windmill_blade|windmill_blade/.+", "PAR-MECH-04", "windmill blades"),
-        Owner.of("metal/shield/.+", "PAR-TOOL-07", "shields"),
         Owner.of("metal/fishing_rod/.+", "PAR-FAUNA-18", "fishing rods"),
         Owner.of("metal/unfinished_lamp/.+", "PAR-METAL-19", "unfinished lamps (the lamps are blocks)"));
 

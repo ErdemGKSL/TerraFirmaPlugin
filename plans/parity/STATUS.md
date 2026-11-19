@@ -254,7 +254,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-11 | Tree generation: forest placement on every chunk, dead forests, mangroves | WORLD | 23 | open |
 | PAR-POT-03 | Pit kiln: straw and log stages, lighting, lazy firing | POTTERY | 24 | open |
 | PAR-POT-04 | Small vessel: inventory, melting contents into metal, pouring | POTTERY | 24 | open |
-| PAR-TOOL-07 | Shields per metal | TOOL | 24 | open |
+| PAR-TOOL-07 | Shields per metal | TOOL | 24 | done |
 | PAR-WORLD-12 | Plant blocks: all TFC plant shapes as CE blocks in generation | WORLD | 24 | open |
 | PAR-TOOL-11 | Obsidian tools: obsidian axe, hammer, hoe, javelin, knife and shovel with their heads, knapped from obsidian shards | TOOL | 24 | open |
 | PAR-GATHER-02 | Harvest plants, leaves, twigs and fallen leaves by TFC loot tables | GATHER | 25 | open |

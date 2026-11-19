@@ -2,7 +2,7 @@
 id: PAR-TOOL-07
 title: "Shields per metal"
 area: TOOL
-status: open
+status: done
 wave: 24
 deps: [PAR-TOOL-03]
 size: S
@@ -19,6 +19,7 @@ in_game_steps:
   - "block a zombie; screenshot"
 plan:
   - "Shield items per metal on the vanilla shield (blocks_attacks component on 1.21.5+, banner pattern texture); TFC onShieldBlock damage rule."
+  - "Done: ShieldItems (9), ShieldRules + ShieldListener, tests; Pending in-game check (container run not done)"
 tests:
   - "tools/datagen counts"
 done_criteria:

@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  * {@code separate_transforms} model, so the generated one is the flat {@code _gui} sprite held as a handheld item.
  */
 public final class RockTools {
-    static final String PACK = "craftengine/tfp/";
+    public static final String PACK = "craftengine/tfp/";
     public static final String CONFIG = PACK + "configuration/tool/";
     static final String RP = PACK + "resourcepack/assets/" + Json.TO_NS + "/";
     /** The pack namespace of the names (any namespace's lang file is merged by the client). */

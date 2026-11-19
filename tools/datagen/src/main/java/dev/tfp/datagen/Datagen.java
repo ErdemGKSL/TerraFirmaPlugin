@@ -131,6 +131,9 @@ public final class Datagen {
         if (dev.tfp.datagen.tool.GlowArrowItem.available(tfc)) { // PAR-TOOL-10: tfp:glow_arrow; before the coverage gate
             dev.tfp.datagen.tool.GlowArrowItem.run(tfc, out);
         }
+        if (dev.tfp.datagen.shield.ShieldItems.available(tfc)) { // PAR-TOOL-07: metal shields; before the coverage gate
+            dev.tfp.datagen.shield.ShieldItems.run(tfc, out);
+        }
         if (dev.tfp.datagen.material.MaterialItems.available(tfc)) { // PAR-PROC-19: plain TFC material items + TFCItems coverage gate; fixtures have no TFCItems
             dev.tfp.datagen.material.MaterialItems.run(tfc, out);
             dev.tfp.datagen.material.ItemCoverage.run(tfc, out);
