@@ -275,7 +275,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-CLIM-11 | Climate in worlds without the TFC generator: biome-based climate model for the Nether, the End and vanilla worlds (temperature, rainfall, consumers) | CLIMATE | 27 | open |
 | PAR-SURV-13 | Intoxication in-game verification: beer from a jug, drunk chat | SURV | 27 | open |
 | PAR-FARM-02 | Fertilizers | FARM | 28 | open |
-| PAR-FARM-03 | Crop blocks: all 29 crops in every shape, seeds, dead and wild crops | FARM | 28 | open |
+| PAR-FARM-03 | Crop blocks: all 29 crops in every shape, seeds, dead and wild crops | FARM | 28 | blocked |
 | PAR-METAL-02 | Fire ingot mold and bell casting; casting crafting | METAL | 28 | open |
 | PAR-METAL-03 | Anvil blocks: rock anvils and metal anvils with items shown on top | METAL | 28 | open |
 | PAR-WORLD-22 | TFC world generator settings as server config (flat bedrock, spawn distance and centre, climate scales, continentalness, grass density); close the spawn-settings and river open gaps | WORLD | 28 | open |
