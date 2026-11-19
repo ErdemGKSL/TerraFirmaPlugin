@@ -2,7 +2,7 @@
 id: PAR-DATA-13
 title: "TFC pin drift check in CI"
 area: DATA
-status: open
+status: done
 wave: 39
 deps: []
 size: S
@@ -16,6 +16,7 @@ ui: false
 in_game_steps: []
 plan:
   - "Run :tools:datagen:tfcPinDrift in CI against a cached TFC clone; fail on unacknowledged drift; ported-header commit check."
+  - "Done 2026-11-19: TfcPinDrift.headerDrift (ported headers must name a prefix of docs/porting/tfc-pin.txt) with TfcPinDriftTest (a stale header is flagged; the repository itself has none); .github/workflows/tfc-drift.yml fails on header drift and prints the upstream changes since the pin (the existing tfcPinDrift task) against a cached clone fetched by the pinned hash. The workflow itself has not run on GitHub from this container."
 tests:
   - "TfcPinDriftTest"
 done_criteria:

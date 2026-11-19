@@ -14,7 +14,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Lists the TFC paths that changed upstream since the pinned commit in {@link #PIN_FILE}, so a developer can see
@@ -35,6 +37,10 @@ public final class TfcPinDrift {
         "src/generated/resources/data/tfc");
 
     private static final Pattern COMMIT = Pattern.compile("[0-9a-f]{40}");
+
+    private static final Pattern HEADER =
+        Pattern.compile("Ported from TerraFirmaCraft[\\s\\S]{0,400}?@ (?:commit )?([0-9a-f]{7,40})");
+    private static final List<String> SOURCE_ROOTS = List.of("core", "worldgen", "paper", "tools", "itest", "dist");
 
     private TfcPinDrift() {
     }
@@ -58,6 +64,34 @@ public final class TfcPinDrift {
             System.err.println("tfc pin drift: " + e.getMessage());
             System.exit(1);
         }
+    }
+
+    /**
+     * PAR-DATA-13: the ported files whose {@code Ported from TerraFirmaCraft ... @ <commit>} header names a commit that is
+     * not a prefix of the pin (a stale port, or a re-pin that did not update the headers). Paths relative to
+     * {@code repoRoot}; empty when every header matches.
+     */
+    public static List<String> headerDrift(Path repoRoot, String pin) {
+        List<String> stale = new ArrayList<>();
+        for (String root : SOURCE_ROOTS) {
+            Path dir = repoRoot.resolve(root);
+            if (!Files.isDirectory(dir)) {
+                continue;
+            }
+            try (Stream<Path> files = Files.walk(dir)) {
+                for (Path f : files.filter(x -> x.toString().endsWith(".java")
+                        && !dir.relativize(x).toString().contains("build/")).toList()) {
+                    String text = Files.readString(f, StandardCharsets.UTF_8);
+                    Matcher m = HEADER.matcher(text.length() > 4000 ? text.substring(0, 4000) : text);
+                    if (m.find() && !pin.startsWith(m.group(1))) {
+                        stale.add(repoRoot.relativize(f) + " @ " + m.group(1));
+                    }
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException("cannot scan " + dir, e);
+            }
+        }
+        return stale;
     }
 
     /** Reads the pinned commit. Fails when the file is missing or does not hold exactly one 40-digit hash. */

@@ -1,0 +1,45 @@
+# PAR-DATA-13: the TFC pin must not drift. Needs no built content: ported-file headers against docs/porting/tfc-pin.txt, and a
+# cached TFC clone fetched by the pinned hash.
+name: TFC pin drift
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 5 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Pinned commit
+        id: pin
+        run: echo "sha=$(cat docs/porting/tfc-pin.txt)" >> "$GITHUB_OUTPUT"
+      - name: Cache the TFC clone
+        uses: actions/cache@v5
+        with:
+          path: tfc
+          key: tfc-${{ steps.pin.outputs.sha }}
+      - name: Fetch TFC at the pin
+        run: |
+          if [ ! -d tfc/.git ]; then
+            git init tfc
+            git -C tfc remote add origin https://github.com/TerraFirmaCraft/TerraFirmaCraft
+            git -C tfc fetch --depth 1 origin "${{ steps.pin.outputs.sha }}"
+            git -C tfc checkout --detach FETCH_HEAD
+          fi
+      - name: Ported headers name the pin (fails on drift)
+        run: ./gradlew :tools:datagen:test --tests 'dev.tfp.datagen.TfcPinDriftTest'
+      - name: Upstream changes since the pin (informational)
+        run: ./gradlew :tools:datagen:tfcPinDrift -Ptfc.checkout="$GITHUB_WORKSPACE/tfc"

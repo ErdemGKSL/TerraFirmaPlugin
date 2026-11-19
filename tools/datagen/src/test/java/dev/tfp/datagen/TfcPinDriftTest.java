@@ -127,4 +127,23 @@ class TfcPinDriftTest {
         }
         return out;
     }
+
+    @Test
+    void headerDriftFlagsAPortedFileThatNamesAnotherCommit() throws IOException {
+        Files.createDirectories(tmp.resolve("core"));
+        Files.writeString(tmp.resolve("core/Good.java"),
+            "/* Ported from TerraFirmaCraft (u),\n * file: f @ " + OTHER.substring(0, 9) + " */\n");
+        Files.writeString(tmp.resolve("core/Stale.java"), "/* Ported from TerraFirmaCraft (u),\n * file: f @ ffffffff1 */\n");
+        Files.writeString(tmp.resolve("core/Plain.java"), "class Plain {}\n");
+        assertThat(TfcPinDrift.headerDrift(tmp, OTHER)).containsExactly("core/Stale.java @ ffffffff1");
+    }
+
+    /** PAR-DATA-13 CI gate: every ported header in this repository names the pin. */
+    @Test
+    void everyPortedHeaderInTheRepositoryNamesThePin() {
+        Path root = Path.of(System.getProperty("tfp.repoRoot", "."));
+        Path pin = root.resolve(TfcPinDrift.PIN_FILE);
+        Assumptions.assumeTrue(Files.isRegularFile(pin), "no pin file at " + pin);
+        assertThat(TfcPinDrift.headerDrift(root, TfcPinDrift.readPin(pin))).isEmpty();
+    }
 }
