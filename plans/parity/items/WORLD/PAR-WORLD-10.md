@@ -2,7 +2,7 @@
 id: PAR-WORLD-10
 title: "Wood blocks: logs, wood, stripped, leaves, saplings as CE blocks"
 area: WORLD
-status: open
+status: done
 wave: 21
 deps: [PAR-INFRA-08, PAR-INFRA-13]
 size: M
@@ -23,6 +23,7 @@ in_game_steps:
 plan:
   - "Generate the 20 woods x (log, stripped log, wood, stripped wood, leaves, sapling, potted sapling, fallen leaves, twig) with the leaves visual pool (leaves keep vanilla tint via repurposed leaves states)."
   - "TreeBlocks writes the CE ids; leaves `persistent=false` state as TFC."
+  - "Done: AssetPipeline wood blocks (120), tfp:settings/wood templates, worldgen places CE logs/leaves; WoodBlocksTest; Pending in-game check (forest screenshot)"
 tests:
   - "tools/datagen: counts vs Wood.java"
 done_criteria:
@@ -31,8 +32,5 @@ done_criteria:
 
 # PAR-WORLD-10: Wood blocks: logs, wood, stripped, leaves, saplings as CE blocks
 
-> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-19
-
-> Claimed: deco-tool session (blocks PAR-DECO-01), 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

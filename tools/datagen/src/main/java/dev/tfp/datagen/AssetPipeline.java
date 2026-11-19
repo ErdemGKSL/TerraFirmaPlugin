@@ -137,6 +137,19 @@ public final class AssetPipeline {
             }
         }
         // Food items: generated with their models by dev.tfp.datagen.food.FoodItems (PAR-SURV-01).
+        // Wood block items (PAR-WORLD-10): the item model of each log, wood, stripped form, plank and leaves block.
+        for (String f : tfc.list(TfcCheckout.ASSETS + "blockstates/wood/log/")) {
+            String wood = f.substring(f.lastIndexOf('/') + 1, f.length() - 5);
+            List<String> dirs = new ArrayList<>(WOOD_BLOCKS.stream().map(WoodBlock::dir).toList());
+            dirs.add("sapling"); // leaves drop it as a plain item until its block exists
+            twigItem(wood);
+            for (String dir : dirs) {
+                String id = "wood/" + dir + "/" + wood;
+                if (tfc.exists(TfcCheckout.ASSETS + "models/item/" + id + ".json")) {
+                    modelQueue.add("item/" + id);
+                }
+            }
+        }
         // Metal material items (M4-MET-01): one model per metal for each kind below, found by the model folders of TFC.
         for (String kind : METAL_ITEM_KINDS) {
             for (String f : tfc.list(TfcCheckout.ASSETS + "models/item/metal/" + kind + "/")) {
@@ -683,6 +696,19 @@ public final class AssetPipeline {
             block(sand, "sand/" + color, granular("sand", TfcTables.SAND_STRENGTH, TfcTables.SAND_STRENGTH, "snare", map));
         }
         sand.write("sand");
+        // wood/<kind>/<wood> (PAR-WORLD-10): logs, wood, stripped forms, planks and leaves, one file per wood
+        Map<String, ConfigFile> woods = new TreeMap<>();
+        for (String f : tfc.list(TfcCheckout.ASSETS + "blockstates/wood/log/")) {
+            String wood = f.substring(f.lastIndexOf('/') + 1, f.length() - 5);
+            ConfigFile file = woods.computeIfAbsent(wood, k -> new ConfigFile());
+            for (WoodBlock kind : WOOD_BLOCKS) {
+                String id = "wood/" + kind.dir() + "/" + wood;
+                if (tfc.exists(blockstate(id))) {
+                    block(file, id, kind.settings());
+                }
+            }
+        }
+        woods.forEach((wood, file) -> file.write("wood/" + wood));
         // drop items (ore pieces, loose rocks) in one file
         ConfigFile drops = new ConfigFile();
         dropItems.keySet().removeAll(report.emittedIds()); // a delegated table may name another emitted block (its item exists)
@@ -747,9 +773,60 @@ public final class AssetPipeline {
         return TfcCheckout.ASSETS + "blockstates/" + id + ".json";
     }
 
+    /**
+     * The twig item of a wood (dropped by its leaves): TFC tints one grey {@code twig.png} per wood through a paletted
+     * permutation atlas; here every wood shares the untinted texture (ledger divergence).
+     */
+    private void twigItem(String wood) {
+        String png = TfcCheckout.ASSETS + "textures/item/wood/twig.png";
+        if (!tfc.exists(png)) {
+            return;
+        }
+        if (doneTextures.add("item/wood/twig")) {
+            out.put(RP + "textures/item/wood/twig.png", tfc.read(png));
+        }
+        JsonObject model = new JsonObject();
+        model.addProperty("parent", "minecraft:item/handheld_rod");
+        JsonObject tex = new JsonObject();
+        tex.addProperty("layer0", Json.TO_NS + ":item/wood/twig");
+        model.add("textures", tex);
+        out.put(RP + "models/item/wood/twig/" + wood + ".json", Json.write(model));
+    }
+
+    /** One wood block kind: the blockstate folder and its CE settings (TFC {@code Wood.BlockType} strength and sound). */
+    private record WoodBlock(String dir, Map<String, Object> settings) {
+    }
+
+    private static Map<String, Object> woodSettings(String template, String hardness, String resistance, String instrument) {
+        Map<String, Object> args = new LinkedHashMap<>();
+        args.put("wood_hardness", new BigDecimal(hardness));
+        args.put("wood_resistance", new BigDecimal(resistance));
+        args.put("wood_instrument", instrument);
+        args.put("wood_map_color", 13); // MapColor.WOOD for every wood (TFC's per-wood colours are not carried)
+        return CeBlockStates.call(template, args);
+    }
+
+    private static final List<WoodBlock> WOOD_BLOCKS = List.of(
+        new WoodBlock("log", woodSettings("tfp:settings/wood_tool", "8", "8", "bass")),
+        new WoodBlock("stripped_log", woodSettings("tfp:settings/wood_tool", "7.5", "7.5", "bass")),
+        new WoodBlock("wood", woodSettings("tfp:settings/wood_tool", "8", "8", "bass")),
+        new WoodBlock("stripped_wood", woodSettings("tfp:settings/wood_tool", "7.5", "7.5", "bass")),
+        new WoodBlock("planks", woodSettings("tfp:settings/wood", "1.5", "3.0", "bass")),
+        new WoodBlock("leaves", CeBlockStates.call("tfp:settings/leaves", Map.of())));
+
     private void block(ConfigFile file, String id, Map<String, Object> settings) {
         String src = blockstate(id);
         JsonObject bs = Json.rename(Json.parse(tfc.readString(src), src)).getAsJsonObject();
+        if (id.startsWith("wood/leaves/")) {
+            // TFC's leaves model is a NeoForge loader with a season per state; vanilla clients get the dense (summer) leaves.
+            String wood = id.substring("wood/leaves/".length());
+            JsonObject variant = new JsonObject();
+            variant.addProperty("model", Json.TO_NS + ":block/wood/leaves/dense_leaves/" + wood);
+            JsonObject variants = new JsonObject();
+            variants.add("", variant);
+            bs = new JsonObject();
+            bs.add("variants", variants); // also replaces chestnut's multipart (burr variants)
+        }
         CeBlockStates.CeState state = CeBlockStates.toCe(CeBlockStates.parse(bs, src), id);
         Map<String, Object> entry = new LinkedHashMap<>();
         entry.put("settings", settings);

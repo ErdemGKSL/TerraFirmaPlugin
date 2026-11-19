@@ -259,6 +259,7 @@ final class TfcTerrain {
      * Re-resolved only when the table's generation changed or the last attempt was refused.
      */
     RockPalette<BlockData> palette(BlockVisuals visuals) {
+        ceVisuals = visuals;
         RockPalette<BlockData> current = palette;
         long generation = visuals == null ? 0 : visuals.generation();
         if (current != null && current.resolved() && current.generation() == generation) {
@@ -448,6 +449,10 @@ final class TfcTerrain {
      * placed in a chunk keep distance 7 and would decay (TFC's own leaves are not persistent; ledger).
      */
     private BlockData treeData(TreeBlock block) {
+        final BlockData custom = customTreeData(block);
+        if (custom != null) {
+            return custom;
+        }
         final Material material = TreeBlocks.placeholder(block);
         return placeholders.computeIfAbsent("tree/" + material.name() + "/" + block.axis(), k -> {
             final BlockData out = material.createBlockData();
@@ -463,6 +468,40 @@ final class TfcTerrain {
             }
             return out;
         });
+    }
+
+    /** The CraftEngine state table of the last palette resolution (null before the plugin enabled). */
+    private volatile BlockVisuals ceVisuals;
+
+    /**
+     * PAR-WORLD-10: the CraftEngine wood block of a log, wood or leaves block ({@code tfp:wood/log/oak[axis=x]}), or null
+     * while CraftEngine has not loaded or does not know it (the vanilla placeholder is used then).
+     */
+    private BlockData customTreeData(TreeBlock block) {
+        final BlockVisuals visuals = ceVisuals;
+        if (visuals == null || !visuals.isLoaded()) {
+            return null;
+        }
+        final String name = block.wood().serializedName();
+        final String ref = switch (block.kind()) {
+            case LOG -> "tfp:wood/log/" + name + "[axis=" + block.axis().name().toLowerCase(java.util.Locale.ROOT) + "]";
+            case WOOD -> "tfp:wood/wood/" + name + "[axis=" + block.axis().name().toLowerCase(java.util.Locale.ROOT) + "]";
+            case LEAVES -> "tfp:wood/leaves/" + name;
+            default -> null;
+        };
+        if (ref == null) {
+            return null;
+        }
+        final String key = "ce/" + visuals.generation() + "/" + ref;
+        final BlockData cached = placeholders.get(key);
+        if (cached != null) {
+            return cached;
+        }
+        final BlockData data = visuals.blockData(BlockStateRef.parse(ref)).orElse(null);
+        if (data != null) {
+            placeholders.put(key, data);
+        }
+        return data;
     }
 
     /**

@@ -152,14 +152,14 @@ class LootTableExportTest {
         Report report = new Report();
         AssetPipeline.run(tfc, out, report);
         int[] counts = LootTableExport.run(tfc, out);
-        assertThat(counts).containsExactly(42, 83);
-        assertThat(report.count("loot_delegated", 0)).isEqualTo(42);
+        assertThat(counts).containsExactly(142, 83); // 42 rock tables + 100 wood tables (PAR-WORLD-10)
+        assertThat(report.count("loot_delegated", 0)).isEqualTo(142);
         SortedMap<String, byte[]> files = out.files();
         List<String> blocks = files.keySet().stream().filter(p -> p.startsWith(LootTableExport.TARGET + "blocks/"))
             .map(p -> p.substring((LootTableExport.TARGET + "blocks/").length(), p.length() - ".json".length())).toList();
-        assertThat(blocks).hasSize(42).allMatch(id -> id.startsWith("rock/raw/") || id.startsWith("rock/hardened/"));
+        assertThat(blocks).hasSize(142).allMatch(id -> id.startsWith("rock/raw/") || id.startsWith("rock/hardened/") || id.startsWith("wood/"));
         assertThat(blocks.stream().filter(id -> id.startsWith("rock/raw/"))).hasSize(21);
-        for (String id : blocks) {
+        for (String id : blocks.stream().filter(id -> id.startsWith("rock/")).toList()) {
             assertThat(text(files, LootTableExport.TARGET + "blocks/" + id + ".json")).contains("\"tfp:is_isolated\"");
         }
         assertThat(text(files, AssetPipeline.CONFIG + "drops.yml")).contains("tfp:rock/loose/granite:", "tfp:rock/loose/basalt:");

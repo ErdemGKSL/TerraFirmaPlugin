@@ -58,8 +58,8 @@ class OrePieceStackTest {
         assertThat(ores).allSatisfy(id -> assertThat(stack(id)).as(id).isEqualTo(16));
         // The three item-only ores belong to the material generator (PAR-PROC-19), never to drops.yml.
         assertThat(ores).doesNotContain("tfp:ore/halite", "tfp:ore/lignite", "tfp:ore/bituminous_coal");
-        assertThat(report.count("drop_items_sized", 0)).isEqualTo(74); // 53 ore pieces + 21 loose rocks
-        assertThat(report.count("drop_items_block_default", 0)).isEqualTo(21);
+        assertThat(report.count("drop_items_sized", 0)).isEqualTo(94); // 53 ore pieces + 21 loose rocks + 20 saplings (leaf drops)
+        assertThat(report.count("drop_items_block_default", 0)).isEqualTo(41); // loose rocks + saplings and twigs: BlockItems
     }
 
     @Test

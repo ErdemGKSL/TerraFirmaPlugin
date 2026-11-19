@@ -37,6 +37,47 @@ templates#settings:
       correct_tools:
         - '#minecraft:pickaxes'
         - '#tfp:tools/pickaxe'
+  # Wood blocks (logs, wood, stripped, planks; PAR-WORLD-10): wood sounds, axe-mineable.
+  # wood_hardness, wood_resistance: numbers. wood_map_color: vanilla MapColor id. wood_instrument: note block instrument name.
+  # wood_correct_tools: the tool tags that count as correct (an empty list for planks, which need no tool).
+  tfp:settings/wood:
+    template:
+      - tfp:settings/sound
+      - tfp:settings/solid_cube
+    arguments:
+      sound_block_type: wood
+    overrides:
+      hardness: ${wood_hardness}
+      resistance: ${wood_resistance}
+      instrument: ${wood_instrument}
+      map_color: ${wood_map_color}
+      tags:
+        - minecraft:mineable/axe
+  # Wood blocks that need an axe or saw for drops (logs, wood and their stripped forms).
+  tfp:settings/wood_tool:
+    template: tfp:settings/wood
+    overrides:
+      correct_tools:
+        - '#minecraft:axes'
+        - '#tfp:tools/axe'
+        - '#tfp:tools/saw'
+  # Leaves (PAR-WORLD-10): grass sounds, not a cube, no tool required; sharp tools mine them faster (minecraft:mineable/hoe).
+  tfp:settings/leaves:
+    template: tfp:settings/sound
+    arguments:
+      sound_block_type: grass
+    overrides:
+      hardness: 0.5
+      resistance: 0.5
+      instrument: harp
+      map_color: 7
+      is_suffocating: false
+      is_view_blocking: false
+      can_occlude: false
+      replaceable: false
+      tags:
+        - minecraft:mineable/hoe
+        - minecraft:leaves
   # Loose granular blocks (dirt, clay, sand, gravel): shovel-mineable, no tool required.
   # sound_block_type: gravel|sand|grass. granular_instrument: note block instrument name.
   tfp:settings/granular:
