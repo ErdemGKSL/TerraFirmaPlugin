@@ -2,7 +2,7 @@
 id: PAR-WORLD-27
 title: "Wire VolcanicFeatures into the Paper terrain: rivulets, crater lakes, tuya and stratovolcano fissures, pumice and obsidian patches, springs; spring water of crater lakes"
 area: WORLD
-status: open
+status: done
 wave: 26
 deps: [PAR-WORLD-14]
 size: M
@@ -25,6 +25,8 @@ plan:
   - "PAR-WORLD-14 ported every volcanic feature as pure core rules (`core/worldgen/volcano/VolcanicFeatures`: `place(chunkX, chunkZ, view, out)` gives the chunk's own blocks of its 3 x 3 neighbourhood). `TfcTerrain.decorate` still runs only `Volcanoes.place` (calderas, volcano fissures, hot springs). Replace that call with `VolcanicFeatures.place` (same chunk-boundary rule, NP-WORLD-01), keeping its position after the trees and before the corals and plants, and the underground springs in their tag order."
   - "Write the new `VolcanicKind`s: water and salt water sources, hardened rock (raw rock until PAR-WORLD-15), sulfur ore (CE ore palette when present, else raw rock), pumice and obsidian shard groundcover (CE groundcover ids), magma per rock (PAR-WORLD-15). The view must supply `oceanFloor` and the ground over the decorated terrain; `packedIce`/`blueIce` stay false until the glacier builders exist."
   - "Extend `SpringWater` so the stratovolcano crater spring water lakes and the `*_volcano_spring_water_fissure` springs count as spring water (ledger divergence row on spring water names this)."
+  - "Done: `TfcTerrain.decorate` runs `VolcanicFeatures.place` (same slot: after the trees, before the corals and plants; the chunk's underground springs follow its large features in tag order) with the `Ground` view (ocean floor and ground follow PAR-WORLD-28's carved terrain); `VolcanicFeatureBlocks` maps every `VolcanicKind` (water/salt/spring water as vanilla water, hardened rock as raw rock, gem and sulfur ores as `tfp:ore/<ore>/<rock>` when the palette or CraftEngine has them, pumice and obsidian shards as `tfp:groundcover/*` CE blocks with button placeholders before CE loads, magma as vanilla magma until PAR-WORLD-15). `SpringWater` counts water above sea level, not river water, in stratovolcano biome columns as spring water (divergence row: Kelimutu's fresh lake counts too). Tests: paper `VolcanicFeatureWiringTest` (2), `SpringWaterStratovolcanoTest` (4)."
+  - "Pending in-game check (container cannot run client): both in_game_steps (seed 42 Crater Lake 0 -1664 and cinder cone -32 1369 screenshots at GUI scale 2; `/tfp debug water` in a crater spring water lake says spring) into docs/verification/PAR-WORLD-27/."
 tests:
   - "paper: VolcanicFeatureWiringTest (every kind maps to a placeholder or CE id, blocks stay in the chunk, trees kept)"
   - "paper: SpringWater test for a crater lake pool"

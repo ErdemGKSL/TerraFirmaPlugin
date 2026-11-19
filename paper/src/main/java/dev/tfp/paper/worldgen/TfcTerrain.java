@@ -50,7 +50,8 @@ import dev.tfp.core.worldgen.tree.Forest;
 import dev.tfp.core.worldgen.tree.ForestType;
 import dev.tfp.core.worldgen.tree.TreeBlock;
 import dev.tfp.core.worldgen.tree.TreeGround;
-import dev.tfp.core.worldgen.volcano.VolcanoBlock;
+import dev.tfp.core.worldgen.volcano.VolcanicBlock;
+import dev.tfp.core.worldgen.volcano.VolcanicFeatures;
 import dev.tfp.core.worldgen.volcano.VolcanoView;
 import dev.tfp.core.worldgen.volcano.Volcanoes;
 import dev.tfp.paper.integration.BlockStateRef;
@@ -122,6 +123,8 @@ final class TfcTerrain {
     private final Plants plants;
     /** The cinder cones, calderas, volcano fissures and hot springs of this world (M2-GEN-14). */
     private final Volcanoes volcanoes;
+    /** PAR-WORLD-27: every volcanic feature of this world (the cinder cones of {@link #volcanoes} among them). */
+    private final VolcanicFeatures volcanicFeatures;
     /** The placeholder block data by material and waterlogging. */
     private final Map<String, BlockData> placeholders = new ConcurrentHashMap<>();
     /** TFC's surface heights of this seed (M2-GEN-06), with the river samplers and the cinder cones; pure, shared by the workers. */
@@ -152,6 +155,7 @@ final class TfcTerrain {
         this.forest = new Forest(seed, TreeResources.fromJar(TfcTerrain.class.getClassLoader()));
         this.plants = new Plants(seed, PlantResources.fromJar(TfcTerrain.class.getClassLoader()));
         this.volcanoes = new Volcanoes(seed);
+        this.volcanicFeatures = new VolcanicFeatures(seed, volcanoes);
         this.surfaceHeights = new SurfaceHeights(seed, regions, layers, RiverBlendType.createSamplers(seed), volcanoes.cones());
     }
 
@@ -387,18 +391,20 @@ final class TfcTerrain {
                 data.setBlock(localX, y, localZ, treeData(block));
             }
         });
-        // M2-GEN-14: the cinder cones' calderas and fissures and the hot springs (large features, after the forest)
-        final List<VolcanoBlock> volcanic = new ArrayList<>();
-        volcanoes.place(chunkX, chunkZ, view, volcanic::add);
-        VolcanoBlocks.write(volcanic, chunkX, chunkZ, minY, maxY, new VolcanoBlocks.Target() {
+        // M2-GEN-14, PAR-WORLD-27: every volcanic feature (large features, after the forest: the rivulets, crater lakes,
+        // fissures and patches of the cinder cones, tuyas, stratovolcanoes and shield volcanoes, the calderas, the hot
+        // springs, the ocean ridges), then the chunk's underground springs in their tag order
+        final List<VolcanicBlock> volcanic = new ArrayList<>();
+        volcanicFeatures.place(chunkX, chunkZ, view, volcanic::add);
+        VolcanicFeatureBlocks.write(volcanic, chunkX, chunkZ, minY, maxY, new VolcanicFeatureBlocks.Target() {
             @Override
             public Material type(int localX, int y, int localZ) {
                 return data.getType(localX, y, localZ);
             }
 
             @Override
-            public void place(int localX, int y, int localZ, VolcanoBlock block) {
-                data.setBlock(localX, y, localZ, volcanoData(block, palette));
+            public void place(int localX, int y, int localZ, VolcanicBlock block) {
+                data.setBlock(localX, y, localZ, volcanicData(block, palette));
             }
         });
         // M2-GEN-13: the corals (large features, after the forest), then the plants of the surface decoration step, which
@@ -426,22 +432,57 @@ final class TfcTerrain {
     }
 
     /**
-     * The block data of a volcano block (M2-GEN-14): the palette's rock for the rock kinds (the gem ore when the palette has
-     * it), else the vanilla placeholder ({@link VolcanoBlocks}).
+     * The block data of a volcanic block (M2-GEN-14, PAR-WORLD-27): the palette's rock for the rock kinds (the gem or sulfur
+     * ore when the palette or CraftEngine has it), the CraftEngine groundcover when loaded, else the vanilla placeholder
+     * ({@link VolcanicFeatureBlocks}).
      */
-    private BlockData volcanoData(VolcanoBlock block, RockPalette<BlockData> palette) {
-        final Material material = VolcanoBlocks.placeholder(block.kind());
+    private BlockData volcanicData(VolcanicBlock block, RockPalette<BlockData> palette) {
+        final String cover = VolcanicFeatureBlocks.groundcoverId(block.kind());
+        if (cover != null) {
+            final BlockData custom = customBlockData(cover);
+            if (custom != null) {
+                return custom;
+            }
+        }
+        final Material material = VolcanicFeatureBlocks.placeholder(block.kind());
         if (material != null) {
             return switch (block.kind()) {
                 case AIR -> air;
                 case LAVA -> lava;
-                case SPRING_WATER -> water;
+                case SPRING_WATER, WATER, SALT_WATER -> water;
                 default -> placeholderData(material, false);
             };
         }
-        final String gem = VolcanoBlocks.gemOreId(block);
-        final int gemIndex = gem == null ? -1 : paletteIds.indexOf(gem);
-        return palette.block(gemIndex >= 0 ? gemIndex : block.rock());
+        final String ore = VolcanicFeatureBlocks.oreId(block);
+        if (ore != null) {
+            final int oreIndex = paletteIds.indexOf(ore);
+            if (oreIndex >= 0) {
+                return palette.block(oreIndex);
+            }
+            final BlockData custom = customBlockData(ore);
+            if (custom != null) {
+                return custom;
+            }
+        }
+        return palette.block(block.rock());
+    }
+
+    /** The CraftEngine block of a reference, or null while CraftEngine has not loaded or does not know it. */
+    private BlockData customBlockData(String ref) {
+        final BlockVisuals visuals = ceVisuals;
+        if (visuals == null || !visuals.isLoaded()) {
+            return null;
+        }
+        final String key = "ce/" + visuals.generation() + "/" + ref;
+        final BlockData cached = placeholders.get(key);
+        if (cached != null) {
+            return cached;
+        }
+        final BlockData data = visuals.blockData(BlockStateRef.parse(ref)).orElse(null);
+        if (data != null) {
+            placeholders.put(key, data);
+        }
+        return data;
     }
 
     /**
@@ -492,16 +533,7 @@ final class TfcTerrain {
         if (ref == null) {
             return null;
         }
-        final String key = "ce/" + visuals.generation() + "/" + ref;
-        final BlockData cached = placeholders.get(key);
-        if (cached != null) {
-            return cached;
-        }
-        final BlockData data = visuals.blockData(BlockStateRef.parse(ref)).orElse(null);
-        if (data != null) {
-            placeholders.put(key, data);
-        }
-        return data;
+        return customBlockData(ref);
     }
 
     /**

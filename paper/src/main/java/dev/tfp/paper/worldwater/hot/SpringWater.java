@@ -8,6 +8,7 @@
  */
 package dev.tfp.paper.worldwater.hot;
 
+import dev.tfp.core.worldgen.volcano.Stratovolcanoes;
 import dev.tfp.core.worldwater.ChunkWater;
 import dev.tfp.core.worldwater.WaterKind;
 import java.util.HashMap;
@@ -73,11 +74,29 @@ public final class SpringWater {
         if (blocks.kind(x, y, z) != HotSpringRules.Kind.WATER) {
             return false;
         }
+        if (stratovolcanoSpring(world, blocks, x, y, z)) {
+            return true;
+        }
         int cx = x >> 4;
         int cz = z >> 4;
         boolean near = springChunks.computeIfAbsent(((long) cx << 32) ^ (cz & 0xFFFFFFFFL),
                 k -> HotSpringRules.springChunk(cx, cz, (ax, az) -> centreBiome(world, ax, az)).orElse(false));
         return near && notRiverOrSalt(world, x, y, z) && HotSpringRules.isSpringWater(blocks, x, y, z);
+    }
+
+    /**
+     * PAR-WORLD-27: the stratovolcanoes' spring water: the crater lakes of spring water ({@code tfc:fuji_spring},
+     * {@code tahoma_spring}, {@code wizard_island_spring}, {@code kelimutu_spring_water}) and the
+     * {@code *_volcano_spring_water_fissure} springs lie only in stratovolcano biomes, above sea level. Water there whose
+     * column top is above sea level, and that is not river water, is spring water (most stratovolcano biomes are salty
+     * oceanic ones, whose salt classification is meant for the sea; Kelimutu's fresh water lake counts too: ledger).
+     */
+    private boolean stratovolcanoSpring(World world, HotSpringRules.Blocks blocks, int x, int y, int z) {
+        boolean stratovolcano = chunks.chunk(world, x >> 4, z >> 4)
+                .map(c -> Stratovolcanoes.hasStratovolcanoes(c.biome(x & 15, z & 15))
+                        && c.kind(x & 15, y, z & 15) != WaterKind.RIVER)
+                .orElse(false);
+        return stratovolcano && HotSpringRules.waterTop(blocks, x, y, z) > HotSpringRules.SEA_LEVEL_Y;
     }
 
     private boolean notRiverOrSalt(World world, int x, int y, int z) {
