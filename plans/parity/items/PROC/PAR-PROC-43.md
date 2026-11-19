@@ -36,4 +36,6 @@ done_criteria:
 
 # PAR-PROC-43: Vanilla recipes newer than TFC's 1.21.1 follow TFC's removal policy
 
+> Claimed: claude-heat-mech-proc-infra, 2026-11-19
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
