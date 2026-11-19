@@ -15,6 +15,7 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
+  - "Progress 2026-11-19: name chosen (Cairnlands, docs/release/product-name.md) and README.md added. Still to do after PAR-REL-08: NOTICE review, EUPL vs GPL dependency review, server-owner docs, listings, rename descriptor/jar (outside files_owned), 1.0.0. Status stays blocked on the REL-08 dep."
   - "BLOCKED on the final product name/namespace (PRD open question). Then: NOTICE review, EUPL vs GPL dependency review, server-owner docs, listings, 1.0.0."
 tests:
   - "checkNotice"
