@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * <p>The list is every {@code minecraft:crafting_*} recipe of the vanilla 1.21.11 data that TFC's data does not replace
  * under its {@code minecraft:} id and that names a TFC-extended vanilla tag directly or through a nested tag. All of them
  * name {@code #minecraft:planks} directly. {@code minecraft:wooden_spear} reaches it through
- * {@code #minecraft:wooden_tool_materials} and is left out, because TFC removes every wooden tool. Each entry restates the
+ * {@code #minecraft:wooden_tool_materials} and is left out, because TFC removes every wooden tool (and datagen disables it with the other newer vanilla spears, PAR-PROC-43). Each entry restates the
  * vanilla recipe (pattern, key, result) as written in the vanilla data.
  */
 final class KeptVanillaRecipes {

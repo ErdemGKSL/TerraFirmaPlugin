@@ -63,7 +63,7 @@ class DataExportTest {
         assertThat(text(files, "data/external_tags.json")).contains("\"c:bowls\"");
     }
 
-    /** On the real pinned checkout: the 66 overrides (48 shaped, 18 shapeless) and the 195 disabled recipes. */
+    /** On the real pinned checkout: the 66 overrides (48 shaped, 18 shapeless) and the 195 disabled recipes plus PAR-PROC-43's. */
     @Test
     void pinnedCheckoutExportsAllVanillaOverridesAndTheDisabledSet() {
         Path checkout = Path.of(System.getProperty("tfc.checkout", "/opt/tfc"));
@@ -90,7 +90,8 @@ class DataExportTest {
             }
         }
         assertThat(types).isEqualTo(Map.of("minecraft:crafting_shaped", 48, "minecraft:crafting_shapeless", 18));
-        assertThat(disabled).isEqualTo(195);
+        // 195 of TFC's plus the newer vanilla ids of PAR-PROC-43 that TFC has no file for
+        assertThat(disabled).isEqualTo(195 + dev.tfp.datagen.recipe.NewerVanillaRecipes.ids().size());
         assertThat(new String(out.get(RECIPES + "compass.json"), StandardCharsets.UTF_8))
             .contains("\"item\": \"tfp:lens\"", "\"item\": \"tfp:ore/normal_magnetite\"");
     }

@@ -9,6 +9,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.tfp.core.registry.KnownIds;
+import dev.tfp.datagen.recipe.NewerVanillaRecipes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collection;
@@ -69,6 +70,8 @@ public final class DataExport {
                 exportTree(tfc, out, generated + ns + "/" + kind + "/", ns, kind, counts);
             }
         }
+        // PAR-PROC-43: vanilla tool, weapon and armour recipes newer than TFC's 1.21.1 are disabled like their siblings
+        NewerVanillaRecipes.run(out);
         String main = TfcCheckout.MAIN + "data/";
         for (String ns : tfc.childDirs(main)) {
             exportTree(tfc, out, main + ns + "/tags/", ns, "tags", counts);

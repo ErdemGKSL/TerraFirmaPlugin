@@ -205,6 +205,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-03 | Worldgen performance: JMH chunk budget, vanilla baseline and exposed-gem decision | WORLD | 17 | open |
 | PAR-WORLD-04 | TFC soil and gravel block set in generation: grass, dirt, coarse dirt, clay, peat, kaolin, mud, rock gravel | WORLD | 17 | open |
 | PAR-PROC-44 | Barrel wiring in-game verification: GUI from the block, five buckets in and one out, half-tank surface, lazy rain fill (the checks PAR-PROC-35 closed without) | PROC | 17 | done |
+| PAR-PROC-45 | Newer vanilla recipe removal in-game verification: copper tools/armour and spears do not craft, kept recipes still do (the check PAR-PROC-43 closed without) | PROC | 19 | open |
 | PAR-SURV-15 | TFC exhaustion on Paper: passive hunger drain on the vanilla food bar, vanilla action exhaustion x0.4, thirst lost on every 4 exhaustion | SURV | 17 | blocked |
 | PAR-SURV-16 | Food items and food tooltip in-game verification: the checks PAR-SURV-01 and PAR-SURV-02 closed without (sampled gives, TFC tooltip lines) | SURV | 17 | open |
 | PAR-CLIM-24 | Self-test calendar.sleep_skip on 26.x: build the NIGHT_SKIP event without TimeSkipEvent$SkipReason (NoClassDefFoundError on Paper 26.3) | CLIMATE | 17 | done |
@@ -220,7 +221,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-INFRA-60 | Device automation: hoppers, droppers and pipes insert into and pull from CE device blocks by side (TFC SidedHandler, *EnableAutomation), wired for the done devices | INFRA | 18 | open |
 | PAR-PROC-42 | Barrel world rules: redstone seals and unseals (barrelEnableRedstoneSeal), items dropped into an open upright barrel are gathered | PROC | 18 | open |
 | PAR-INFRA-62 | Flaky CaseRunnerTest.aSkipThrownAtRunTimeIsASkipWithItsReason: the async-skip case times out after 200 ms under a loaded full ./gradlew check | INFRA | 18 | done |
-| PAR-PROC-43 | Vanilla recipes newer than TFC's 1.21.1 follow TFC's removal policy: copper tools and armour, spears and other post-1.21.1 tool/armour recipes disabled | PROC | 18 | open |
+| PAR-PROC-43 | Vanilla recipes newer than TFC's 1.21.1 follow TFC's removal policy: copper tools and armour, spears and other post-1.21.1 tool/armour recipes disabled | PROC | 18 | done |
 | PAR-TOOL-01 | Stone tools: rock tool heads and tools as CE items, crafting from knapped heads | TOOL | 19 | done |
 | PAR-TOOL-03 | In-game verification of metal tools and armour | TOOL | 19 | open |
 | PAR-WORLD-06 | Cave tunnels and canyons (vanilla carvers with TFC carveBlock) | WORLD | 19 | open |

@@ -1,0 +1,26 @@
+# Vanilla crafting recipes newer than TFC's MC 1.21.1 that follow TFC's removal policy (PAR-PROC-43).
+#
+# Selection rule (owner policy, auditor decision 2026-11-17): TFC disables every vanilla wooden, stone, iron, golden and
+# diamond tool and armour recipe of 1.21.1 (data/minecraft/recipe, false neoforge:conditions). A tool, weapon or armour
+# recipe that vanilla added after 1.21.1 is disabled the same way: copper tools and armour (1.21.9) and spears (1.21.11).
+# Other new families (shelves, copper chests, decorative blocks) stay until an item decides otherwise.
+# One recipe id per line, without the minecraft: namespace. Ids absent from the running server's data are harmless.
+# Per version section: "[1.21.11]" lists the ids first present there; later sections (26.x) are cumulative on top.
+[1.21.11]
+copper_pickaxe
+copper_axe
+copper_shovel
+copper_hoe
+copper_sword
+copper_helmet
+copper_chestplate
+copper_leggings
+copper_boots
+wooden_spear
+stone_spear
+copper_spear
+iron_spear
+golden_spear
+diamond_spear
+[26.x]
+# Not filled yet: the 26.x vanilla recipe list has to be read from a 26.x server jar (follow-up when 26.x is run).
