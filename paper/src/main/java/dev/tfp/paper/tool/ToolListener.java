@@ -94,7 +94,7 @@ public final class ToolListener implements Listener {
     }
 
     /** One point of damage through {@link PlayerItemDamageEvent}, so the forging bonus and other listeners see it. */
-    static void damageTool(Player player, ItemStack tool, int amount) {
+    public static void damageTool(Player player, ItemStack tool, int amount) {
         PlayerItemDamageEvent e = new PlayerItemDamageEvent(player, tool, amount, amount);
         if (!e.callEvent() || e.getDamage() <= 0 || !(tool.getItemMeta() instanceof Damageable d)) {
             return;

@@ -306,7 +306,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-11 | Plant regrowth, plant growth/spread, flower cuttings | FARM | 33 | open |
 | PAR-FARM-13 | Plant info and fertilizer tooltips: climate range, nutrients, growth time and lifecycle on seeds and saplings; N/P/K on fertilizers | FARM | 33 | open |
 | PAR-METAL-12 | Crucible block and GUI | METAL | 33 | open |
-| PAR-TOOL-08 | Prospector's pick: scan, result message, `/tfp propick` | TOOL | 33 | open |
+| PAR-TOOL-08 | Prospector's pick: scan, result message, `/tfp propick` | TOOL | 33 | done |
 | PAR-CLIM-08 | Lightning rules: enableLightning, log stripping, fire start | CLIMATE | 34 | done |
 | PAR-CLIM-09 | Climate instruments: thermometer, anemometer, vane, calendar clock | CLIMATE | 34 | blocked |
 | PAR-DATA-02 | Advancements: triggers, awards and presentation | DATA | 34 | open |

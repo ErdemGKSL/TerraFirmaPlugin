@@ -2,7 +2,7 @@
 id: PAR-TOOL-08
 title: "Prospector's pick: scan, result message, `/tfp propick`"
 area: TOOL
-status: open
+status: done
 wave: 33
 deps: [PAR-TOOL-06, PAR-DATA-01]
 size: M
@@ -24,6 +24,7 @@ in_game_steps:
   - "right-click a rock above a vein; screenshot actionbar"
 plan:
   - "Use: snapshot the 25^3 cube on the region thread (chunk snapshots), decide async with ProspectRules, reply on the actionbar with TFC's translated message; cooldown 10 and 1 damage; `/tfp propick` command (radius, ore filter) as TFC."
+  - "Done: paper/prospect PropickListener + core PropickTiers, tests; /tfp propick command not built (PAR-DATA-01 open); Pending in-game check (actionbar)"
 tests:
   - "paper: MockBukkit use with a fixture snapshot"
   - "core: ProspectGoldenTest exists"

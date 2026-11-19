@@ -71,3 +71,4 @@ dev.tfp.paper.weather.WeatherBlocksModule
 dev.tfp.paper.lightning.LightningModule
 dev.tfp.paper.vessel.VesselModule
 dev.tfp.paper.jug.JugModule
+dev.tfp.paper.prospect.ProspectModule
