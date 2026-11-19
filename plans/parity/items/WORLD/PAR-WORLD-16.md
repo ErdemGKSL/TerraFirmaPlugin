@@ -2,7 +2,7 @@
 id: PAR-WORLD-16
 title: "Spawn and world settings: spawn offset, forced TFC gamerules, structures off, dimension policy"
 area: WORLD
-status: open
+status: done
 wave: 26
 deps: []
 size: S
@@ -31,8 +31,9 @@ done_criteria:
 
 # PAR-WORLD-16: Spawn and world settings: spawn offset, forced TFC gamerules, structures off, dimension policy
 
-> Claimed: world-session, 2026-11-19
 
 > see_not_parity: NP-CLIENT-05 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+Done: PAR-WORLD-16 commit: TfcWorldRules + WorldSettingsModule (forced gamerules on world load, FIRE portals cancelled, JVM-property switches), docs/worldgen/settings.md, ledger rows. Tests: TfcSpawnWorldRulesTest (3, MockBukkit). Itest case world.spawn_rules added; on the 2026-11-19 paper-1.21.11 run it skipped itself (harness world is not a TFC world), so the in-server check is unproven. That run also showed 5 failures unrelated to this item (CE state pool "Cannot allocate enough real block states" for ore/cryolite, firepit.yml not loaded, terrain_generates top block SEAGRASS), reported to the coordinator, not investigated here.
