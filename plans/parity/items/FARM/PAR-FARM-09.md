@@ -28,4 +28,6 @@ done_criteria:
 
 # PAR-FARM-09: Bananas
 
+> Claimed: sonnet worker, 2026-11-19
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
