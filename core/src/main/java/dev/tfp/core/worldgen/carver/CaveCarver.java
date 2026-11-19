@@ -11,8 +11,11 @@ package dev.tfp.core.worldgen.carver;
 
 /**
  * The carve decision of a cave block: inside the tunnel shape, below the lava level the position is lava, otherwise the
- * aquifer decides (air, water or lava, or keeps solid rock). The tunnel shape ({@code inCave}) is the caller's: TFC's
- * vanilla {@code CaveWorldCarver} tunnels are not ported yet. Pure.
+ * aquifer decides (air, water or lava, or keeps solid rock). The tunnel shape ({@code inCave}) is the caller's: the chunk's
+ * {@link TunnelMask} from {@link TunnelCarvers#mask} (TFC's cave, deep cave and canyon carvers). The three carvers share
+ * the lava level, so one decision serves them all. TFC's {@code carveBlock} also turns dirt under a carved block into grass
+ * when {@code reachedSurface} is set, but nothing in TFC sets it (only vanilla's own {@code carveBlock} does, and TFC
+ * overrides that), so there is no surface rule to port. Pure.
  */
 public final class CaveCarver {
     /** cave.json: {@code lava_level: {above_bottom: 8}}, resolved against the world's lowest block. */

@@ -225,7 +225,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-43 | Vanilla recipes newer than TFC's 1.21.1 follow TFC's removal policy: copper tools and armour, spears and other post-1.21.1 tool/armour recipes disabled | PROC | 18 | done |
 | PAR-TOOL-01 | Stone tools: rock tool heads and tools as CE items, crafting from knapped heads | TOOL | 19 | done |
 | PAR-TOOL-03 | In-game verification of metal tools and armour | TOOL | 19 | done |
-| PAR-WORLD-06 | Cave tunnels and canyons (vanilla carvers with TFC carveBlock) | WORLD | 19 | open |
+| PAR-WORLD-06 | Cave tunnels and canyons (vanilla carvers with TFC carveBlock) | WORLD | 19 | done |
 | PAR-WORLD-08 | Disc, pipe and kaolin veins; montane second pass; ore distribution statistics | WORLD | 19 | open |
 | PAR-HEAT-31 | Firebox block loaded in game (full-cube pool, copper sounds, in-game screen check), stove and stove pot | HEAT | 19 | open |
 | PAR-PROC-20 | Knapping in-game verification: axe head from two granite loose rocks, clay and leather screens | PROC | 20 | open |
@@ -234,6 +234,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-07 | Aquifer barrier noise and the grass rule under carved surfaces | WORLD | 20 | open |
 | PAR-WORLD-09 | Groundcover, loose rocks, deposits and boulders as CE blocks in generation | WORLD | 20 | open |
 | PAR-WORLD-19 | Ore overlay S1 rerun on a world with caves: census, exposed-vein reference screenshots, GPU client cost | WORLD | 20 | open |
+| PAR-WORLD-28 | Wire the cave and canyon tunnel masks into the terrain fill, and the in-game cave check | WORLD | 20 | open |
 | PAR-INFRA-61 | Static info tooltip lines in-game verification: damage type, resistances, fuel and rock lore (the check PAR-INFRA-46 closed without) | INFRA | 20 | open |
 | PAR-GATHER-01 | Pick up loose rocks and groundcover with a right-click | GATHER | 21 | open |
 | PAR-POT-01 | Placed items: put up to four items on the ground (and the straw/log stages of a pit kiln) | POTTERY | 21 | open |
