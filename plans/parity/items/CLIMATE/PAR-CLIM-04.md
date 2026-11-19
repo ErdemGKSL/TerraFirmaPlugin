@@ -45,4 +45,6 @@ done_criteria:
 
 # PAR-CLIM-04: Snow piles, ice piles, icicles and sea ice as CraftEngine blocks
 
+> Claimed: worker session_011osUp5o449zjy3Qcb6jpEk, 2026-11-19
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
