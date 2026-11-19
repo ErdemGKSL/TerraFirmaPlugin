@@ -2,7 +2,7 @@
 id: PAR-DATA-09
 title: "Particles: action-driven TFC particles with vanilla equivalents"
 area: DATA
-status: open
+status: done
 wave: 38
 deps: []
 size: S
@@ -16,6 +16,7 @@ ui: false
 in_game_steps: []
 plan:
   - "Table of TFC particles -> vanilla particle + options, only on explicit actions (locked decision); ambient ones (butterflies, moths, wind, leaves) dropped as divergence."
+  - "Done 2026-11-19: paper/particle/TfcParticle (11 action-driven entries -> vanilla particles) and docs/particles.md (generated from the enum, ambient ones listed as dropped); TfcParticleTest (3). Features call TfcParticle.play from their own actions."
 tests:
   - "paper: facade test"
 done_criteria:

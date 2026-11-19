@@ -320,7 +320,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DATA-07 | Damage types and mob effects | DATA | 37 | open |
 | PAR-DATA-08 | Sounds: TFC sound events into the pack and played by features | DATA | 37 | open |
 | PAR-METAL-18 | Bells (bronze, brass) | METAL | 37 | open |
-| PAR-DATA-09 | Particles: action-driven TFC particles with vanilla equivalents | DATA | 38 | open |
+| PAR-DATA-09 | Particles: action-driven TFC particles with vanilla equivalents | DATA | 38 | done |
 | PAR-DATA-10 | Dispenser behaviours, bonemeal, vanilla rule overrides | DATA | 38 | open |
 | PAR-DATA-11 | Paintings, armour trims, misc data registries | DATA | 38 | open |
 | PAR-FAUNA-01 | Entity model import: TFC bbmodels and Java animations converted to BetterModel | FAUNA | 38 | done |
