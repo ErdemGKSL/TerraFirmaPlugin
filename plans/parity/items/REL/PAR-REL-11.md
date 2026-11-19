@@ -2,7 +2,7 @@
 id: PAR-REL-11
 title: "Design docs and skills kept current"
 area: REL
-status: open
+status: done
 wave: 53
 deps: []
 size: S
@@ -16,6 +16,7 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
+  - "Done 2026-11-19: swept all UNVERIFIED notes in the skill references (verified/corrected/rewritten with the evidence or the test that would settle them; ARCHITECTURE.md and PRD.md had none). Remaining notes read 'checked 2026-11-19: no evidence in repo' plus the settling test, so none are stale. Decisions made by parity items are kept in ARCHITECTURE.md by those items; re-sweep at milestones."
   - "Resolve UNVERIFIED notes in skills; sync ARCHITECTURE.md with every decision made by parity items (each item updates its own section; this item sweeps leftovers at milestones)."
 tests:
   - "n/a"

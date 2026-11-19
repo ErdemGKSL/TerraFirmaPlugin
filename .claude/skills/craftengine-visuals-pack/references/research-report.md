@@ -84,7 +84,7 @@ Nothing was built or run.
   - The mapping parser is **synchronous**, because `ConfigParser.async()` defaults to false, and it runs in config-storage order (pack order, then file order). [SRC `ConfigParser` L44, `SectionConfigParser.loadAll` L15–40]
 - **Reload:** `unload()` clears the mapping array, the arranger, the candidates and the groups. `/ce reload` (config) therefore re-evaluates mappings, and the packet remapper is rebuilt in `delayedLoad()`. [SRC L150–167; `BukkitBlockManager.delayedLoad` L148–151]
   - Changed models still need a pack rebuild (`/ce reload all`).
-  - Whether chunks already sent to online players get resent: **UNVERIFIED** (see `craftengine.md` §13.8).
+  - Whether chunks already sent to online players get resent: **UNVERIFIED (checked 2026-11-19: no evidence in repo; docs/spikes/M0-NET-01.md resent chunks only for the biome remap; change a mapping with a player online and watch for chunk packets)** (see `craftengine.md` §13.8).
 
 ### 1.2 Syntax and version conditionals
 The whole file is one `block_state_mappings:` map. A version-conditional block is a key that starts with `$$`. Its children are **merged into the parent map** only when the server version matches. [SRC `StringKeyConstructor.processVersionedBlock` L104–112, `isVersionMatch` L177–195]
@@ -416,7 +416,7 @@ state:
   - `blueprint: file.bbmodel`
   - `transparent: true`
 - Rotations must be multiples of 90, otherwise `invalid_rotation`.
-- `z` is accepted and written into the variant. No vanilla 1.21.4/1.21.11/26.1.2 blockstate uses `"z"` [MC-JAR grep]. **UNVERIFIED** that clients honour it; avoid it.
+- `z` is accepted and written into the variant. No vanilla 1.21.4/1.21.11/26.1.2 blockstate uses `"z"` [MC-JAR grep]. **UNVERIFIED (checked 2026-11-19: no evidence in repo; render a variant with `z` set on 1.21.11 and 26.3)** that clients honour it; avoid it.
 
 ### 3.2 How the blockstate override JSON is generated
 1. **At parse time**, `arrangeModelForStateAndVerify(state, variantJson)`:
@@ -433,7 +433,7 @@ state:
 **Why partial variant files work** [MC-JAR 26.1.2 `net.minecraft.client.resources.model.BlockStateModelLoader`, javap]:
 - `loadBlockStates` uses `FileToIdConverter.listMatchingResourceStacks`, which returns all packs' copies of `blockstates/<block>.json`.
 - `loadBlockStateDefinitionStack` iterates the stack and calls `BlockStateModelDispatcher.instantiate(...)` for each copy, then `putAll` into one `IdentityHashMap<BlockState, …>`.
-- Higher packs therefore override **per state**. Vanilla's `multipart` (lower in the stack) still defines every state you did not override. 1.21.4–1.21.11 behaviour is assumed identical (obfuscated jar, not disassembled): **UNVERIFIED but very likely**, since CE's default `solid` pool already overrides multipart mushroom blocks this way.
+- Higher packs therefore override **per state**. Vanilla's `multipart` (lower in the stack) still defines every state you did not override. 1.21.4–1.21.11 behaviour is assumed identical (obfuscated jar, not disassembled): **VERIFIED (docs/spikes/M0-VIS-01.md, 2026-10-16: explicit-state overrides and `auto_state` pools render our models on 1.21.11 and 26.3 with 0 CE issues; 1.21.4-1.21.10 not run)**, since CE's default `solid` pool already overrides multipart mushroom blocks this way.
 - **Consequence:** the "multipart dropping" only destroys multipart definitions that **another merged pack** shipped for the same block (for example a texture pack's custom fence). Vanilla's multipart is unaffected.
 
 ### 3.3 Model-conflict rule
@@ -501,7 +501,7 @@ Variants-only, verified for the TFC repurpose candidates (variant-key counts are
 ### 3.6 Client-side behaviour of the visual block (what to avoid)
 The client treats a CE block exactly as its visual vanilla state: physics, prediction, particles and the occlusion flag. CE patches only note_block and tripwire prediction (`isClientSideNoteBlock`/`isClientSideTripwire` flags) and the interact sounds (§3.4). [SRC `BukkitBlockManager.applyPlatformSettings` L374–375; `BlockGenerator` L68–82, L214; CFG mappings.yml comments L246–248, L891–894]
 
-The following is **[INF, vanilla knowledge, UNVERIFIED in game]**:
+The following is **[INF, vanilla knowledge; VERIFIED in game in part: client prediction from the visual block (held snow, hoe on `dirt_path`, button flash) in docs/verification/PAR-INFRA-13/verdict.md, torch flame particles in docs/verification/PAR-HEAT-29/verdict.md; UNVERIFIED (checked 2026-11-19: no evidence in repo for the redstone_ore lit prediction, friction/slime/cobweb, concrete powder; docs/spikes/M0-VIS-01.md carried them to the M2 visual checklist)]**:
 
 - **Avoid as visuals:**
   - ice, packed_ice, blue_ice (client friction);
@@ -523,7 +523,7 @@ The following is **[INF, vanilla knowledge, UNVERIFIED in game]**:
   - crops: no collision, crop outline by age;
   - full cubes for the stone, ore, wool, concrete and terracotta families.
   - `craftengine.md` §6 has the full discussion.
-- **Light:** client light comes from the client state. `light[level=N]` *emits* light client-side; the CE light system handles server/client mismatches (`block.light-system`). **UNVERIFIED** how they combine.
+- **Light:** client light comes from the client state. `light[level=N]` *emits* light client-side; the CE light system handles server/client mismatches (`block.light-system`). **VERIFIED (docs/verification/PAR-HEAT-29/verdict.md, 2026-11-17):** with the light system on (default), a CE block with `luminance: 0` on a soul-torch carrier still gets the carrier's client light (walls drawn lit, emission 10) in the 1.21.11 client; the server value does not remove client light.
 
 ### 3.7 Render layer / transparency
 - **26.1+:**
@@ -534,7 +534,7 @@ The following is **[INF, vanilla knowledge, UNVERIFIED in game]**:
   - The layer is per *block* (vanilla `ItemBlockRenderTypes`): stone/note_block/mushroom/wool = solid; leaves = cutout_mipped; glass/grate = cutout; stained glass = translucent; plants = cutout.
   - CE's own comments agree: leaves "are some of the few block types that actually support transparent textures" and the copper grate is "Suitable for making glass because it is completely transparent". [CFG mappings.yml L388, L4109]
   - For transparent TFC blocks on 1.21.x, use leaves/grate/glass-like visuals, or `transparent` + entity_renderer.
-  - Not disassembled (the jar is obfuscated): **UNVERIFIED** for 1.21.11 specifically.
+  - Not disassembled (the jar is obfuscated): **UNVERIFIED (checked 2026-11-19: docs/spikes/M0-VIS-01.md says render layers for cutout/translucent were not exercised, all spike textures were opaque; render a cutout texture on a `stone` visual on 1.21.11)** for 1.21.11 specifically.
 
 ---
 
@@ -606,7 +606,7 @@ Rules for this pattern:
 - Keep CE from allocating CMD for these items (min ≥ 1.21.2, `always-use-custom-model-data: false`). Otherwise CE puts its int in floats[0] and adds a range_dispatch on the *material's* item model.
 - `client_bound_data`/`client-bound-model` (packet-side component injection) is **Premium only**, so server-side stack data is the community path. [SRC `AbstractItemManager` L630–647; CFG config.yml L293–306]
 - Changing floats re-sends the item. That is fine for inventory updates, but keep update frequency low.
-- **UNVERIFIED:** whether model elements' `light_emission` gives a true "glow" in GUI and hand on 1.21.x/26.x. Tinting works regardless.
+- **UNVERIFIED (checked 2026-11-19: no evidence in repo; screenshot an item with `light_emission` elements in a dark room on 1.21.11 and 26.3):** whether model elements' `light_emission` gives a true "glow" in GUI and hand on 1.21.x/26.x. Tinting works regardless.
 
 ---
 
@@ -777,7 +777,7 @@ resource-pack:
 | `external` | `url` (required), `sha1`, `uuid` (default: name-UUID of the url) | No upload. Manual updates. |
 | `lobfile` | `api_key` or `use_environment_variables` (`CE_LOBFILE_API_KEY`), `cache_file_name` | |
 | `mcpacks` | `cache_file_name` | Free, no account (uploads to `mcpacks.dev`). |
-| `s3` | `endpoint`, `bucket`, `access_key_id`, `access_key_secret`, `use_environment_variables` (`CE_S3_ACCESS_KEY_ID/SECRET`), `protocol`, `path_style`, `region`, `upload_path`, `disable_calculate_sha256`, `validity` (s), `rate_map{max_requests,reset_interval}`, `timeout{connect,socket,api_call,api_call_attempt,connection_acquisition}`, `cdn{domain,protocol}` | Implementation is in the separate artifact `craft-engine-s3` (`core/build.gradle.kts` L26). The wiki marks it **"Paid / Advanced User"**: UNVERIFIED whether the Community build includes it. |
+| `s3` | `endpoint`, `bucket`, `access_key_id`, `access_key_secret`, `use_environment_variables` (`CE_S3_ACCESS_KEY_ID/SECRET`), `protocol`, `path_style`, `region`, `upload_path`, `disable_calculate_sha256`, `validity` (s), `rate_map{max_requests,reset_interval}`, `timeout{connect,socket,api_call,api_call_attempt,connection_acquisition}`, `cdn{domain,protocol}` | Implementation is in the separate artifact `craft-engine-s3` (`core/build.gradle.kts` L26). The wiki marks it **"Paid / Advanced User"**: UNVERIFIED (checked 2026-11-19: no evidence in repo; the repo uses CE's self-host, docs/spikes/M0-VIS-01.md; set `host: s3` on the Community jar and read the load log) whether the Community build includes it. |
 | `openlist` / `alist` | `api_url`, `username`, `password`, `file_password`, `otp_code`, `jwt_token_expiration` (h, 48), `upload_path`, env (`CE_OPENLIST_*`/`CE_ALIST_*`), `cache_file_name` | |
 | `onedrive` | `client_id`, `client_secret`, `refresh_token` (or env `CE_ONEDRIVE_*`), `upload_path` (`resource_pack.zip`), `cache_file_name` | |
 | `gitlab` | `gitlab_url`, `access_token` (or `CE_GITLAB_ACCESS_TOKEN`), `project_id`, `cache_file_name` | |
@@ -785,7 +785,7 @@ resource-pack:
 | `self_forward` | `server`, `secret`, `pack` | Asks another CE server's self-host (`GET <server>/forward/<pack>`, header `secret`) for a per-player link; pairs with `self-host.forward_secret`. No upload. |
 | `none` | none | |
 
-- The wiki also documents per-pack `dependencies: [...]` / `conflicts: [...]` (`workflows/multi_pack`). These keys are **not read anywhere** in this commit's source (grep): **UNVERIFIED / newer than b3079c5**.
+- The wiki also documents per-pack `dependencies: [...]` / `conflicts: [...]` (`workflows/multi_pack`). These keys are **not read anywhere** in this commit's source (grep): **UNVERIFIED / newer than b3079c5 (checked 2026-11-19: no evidence in repo; the pin is CE 26.9.2 per docs/compat/versions.md; put `dependencies:` in a pack.yml on 26.9.2 and read the load log)**.
 
 ### 6.2 `resource-pack.self-host`
 [SRC `SelfHostHttpServer.load` L164–240; CFG L57–68; WIKI `set_up_host/self`]
@@ -865,7 +865,7 @@ resource-pack:
   - It lives in pack `remove_shulker_head`: `namespace: minecraft`, **`enable: true`**, description "Remove Shulker Head for 1.20~1.21.1".
 - **No `rendertype_text` and no `text` shader**, so there is no collision with BetterHud's text shader (`<overlay>/assets/minecraft/shaders/core/rendertype_text.*` or `text.*` on 26.2+).
 - The shulker shader uses pre-1.21.6 fog uniforms (`FogStart`, `FogEnd`, `FogColor`, `linear_fog`) and sits in the **root** `assets`, so 1.21.4+ and 26.x clients also load it.
-  - **[INF] UNVERIFIED in game:** it may fail to compile on 1.21.6+ (fog moved to a uniform block, the same "FogColor redefinition" failure class as BetterHud issue #344), breaking resource loading.
+  - **[INF] UNVERIFIED in game (checked 2026-11-19: the repo disables the pack, `ThirdPartyEdits` / paper/src/test/.../InstallerTest.java, so the failure is untested; enable it on a 26.3 server and read the client log):** it may fail to compile on 1.21.6+ (fog moved to a uniform block, the same "FogColor redefinition" failure class as BetterHud issue #344), breaking resource loading.
   - **Recommendation:** disable that pack on 1.21.4+ servers (`/ce resource disable remove_shulker_head`, or `enable: false` in its `pack.yml`).
 - `exclude-core-shaders: true` deletes `assets/minecraft/shaders` from root **and all overlays** after merging. That would strip BetterHud's shaders. Keep it **false**. [SRC `removeAllShaders` L1157–1173, L837–840]
 - CE has no shader merge resolution; the wiki says shader merging is unsupported. So the first shader file wins. [WIKI `reference/file_conflict`]

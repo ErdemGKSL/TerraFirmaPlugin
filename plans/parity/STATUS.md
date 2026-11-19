@@ -392,7 +392,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-REL-05 | Metal run self-test | REL | 53 | open |
 | PAR-REL-06 | Husbandry run self-test and 200-animal load test | REL | 53 | open |
 | PAR-REL-10 | Art backlog: replace every placeholder texture | REL | 53 | blocked |
-| PAR-REL-11 | Design docs and skills kept current | REL | 53 | open |
+| PAR-REL-11 | Design docs and skills kept current | REL | 53 | done |
 | PAR-DATA-15 | TFC's ten creative tabs as CraftEngine item browser categories, in TFC's order with TFC's icons and names | DATA | 53 | open |
 | PAR-REL-07 | Performance audit with 50 bots | REL | 54 | open |
 | PAR-REL-08 | Full playthrough and visual QA | REL | 55 | open |
