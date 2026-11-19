@@ -25,6 +25,7 @@ in_game_steps:
 plan:
   - "Current: families/wood.yml (780 blocks) is generated but not loaded (outside configuration/)."
   - "Our `tfp:block_state/slab|stairs|wall|fence` templates (CE defaults allow only 5 slabs / 4 stairs), visuals via the allocator (auto_state pools for non-full shapes, entity_renderer for fences/walls if pools run out), then move the entries into configuration/woodfamily/; make the generator loud when blockstates are missing."
+  - "Note (deco-tool session 2026-11-19): PAR-WORLD-10 is done, so this is unblocked. Needs per-state shape demands in hitbox/HitboxDemands (stairs 80 states x 20 woods, slabs, fences, walls) plus block_state templates; planks, logs and leaves already exist in configuration/wood/."
 tests:
   - "tools/datagen: WoodFamiliesTest + allocation report"
   - "VisualBudgetTest"
@@ -34,6 +35,5 @@ done_criteria:
 
 # PAR-DECO-01: Wood families loaded in CraftEngine: planks, stairs, slabs, fences, walls with our block_state templates
 
-> Claimed: deco-tool session, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
