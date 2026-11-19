@@ -58,7 +58,7 @@ class RockToolsTest {
         assertThat(e.toString()).contains("durability=60", "break_power=0", "mineable/axe", "amount=3");
         var javelin = RockTools.entry(new RockTools.Item("stone/javelin/igneous_intrusive", "javelin", "igneous_intrusive", true),
             tier, new RockTools.Attack(new BigDecimal("0.7"), new BigDecimal("-2.2")));
-        assertThat(javelin.get("template")).isEqualTo("tfp:item/simple");
-        assertThat(javelin.toString()).contains("max_damage=60");
+        assertThat(javelin.get("template")).isEqualTo("tfp:item/javelin");
+        assertThat(javelin.toString()).contains("durability=60", "damage=1.4", "attack_speed=-2.2");
     }
 }

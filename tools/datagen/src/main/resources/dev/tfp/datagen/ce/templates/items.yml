@@ -70,6 +70,28 @@ templates#items:
     model: ${__NAMESPACE__}:item/${__ID__}
     settings:
       break_power: ${break_power}
+  # Javelin (PAR-TOOL-05): a trident item, so the client holds it with the spear pose and vanilla throws a Trident entity that
+  # carries this stack (pickup, durability per throw and the "next damage breaks" refusal are vanilla's, as TFC's JavelinItem
+  # copies TridentItem). damage: the attack_damage modifier amount (factor 0.7 x tier damage); the thrown damage is
+  # 1.5 x tier damage, set by the Paper javelin listener. Our damage-type and tier rules do not use the trident's enchantments.
+  tfp:item/javelin:
+    material: trident
+    data:
+      item_name: <!i><lang:${item_lang_key}>
+      max_stack_size: 1
+      max_damage: ${durability}
+      attribute_modifiers:
+        - type: attack_damage
+          amount: ${damage}
+          operation: add_value
+          slot: mainhand
+        - type: attack_speed
+          amount: ${attack_speed}
+          operation: add_value
+          slot: mainhand
+    model: ${__NAMESPACE__}:item/${__ID__}
+    settings:
+      break_power: ${break_power}
   # Metal armor piece (helmet, chestplate, greaves, boots). material: the vanilla piece for the hand and inventory behaviour.
   # durability, armor, toughness, knockback, enchantability: TFC's TFCArmorMaterials for the slot. rarity: the metal's Rarity.
   # The attribute modifiers replace the material's own. repairable is removed: TFC's material has no repair ingredient.

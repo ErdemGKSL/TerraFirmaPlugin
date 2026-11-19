@@ -23,6 +23,7 @@ in_game_steps:
   - "throw at a pig; screenshot"
 plan:
   - "Javelin item on a trident carrier (use/charge/throw handled by vanilla trident physics), the thrown entity's model swapped to the javelin item display; damage = HuntJavelin.thrownDamage; durability per throw; pickup returns the same stack (PDC kept)."
+  - "Progress: javelin items (stone, obsidian, metal) on a trident carrier, JavelinDamage + paper listener with tests done; the in-game throw check and skeleton javelin AI are pending"
 tests:
   - "paper: MockBukkit damage computation"
   - "core: HuntJavelinTest exists"

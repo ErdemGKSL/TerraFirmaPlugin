@@ -121,7 +121,7 @@ public final class RockTools {
         Map<String, Tier> out = new TreeMap<>();
         Matcher m = TIER.matcher(tfc.readString(TIERS_SOURCE));
         while (m.find()) {
-            if (CATEGORIES.contains(m.group(2)) || m.group(2).equals(ObsidianTools.TIER)) {
+            {
                 out.put(m.group(2), new Tier(Integer.parseInt(m.group(4)), Integer.parseInt(m.group(5)),
                     new BigDecimal(m.group(6)), new BigDecimal(m.group(7))));
             }
@@ -174,24 +174,26 @@ public final class RockTools {
             e.put("arguments", args);
             return e;
         }
+        if (item.kind().equals("javelin")) { // PAR-TOOL-05: a trident carrier the player throws
+            args.put("damage", attack.factor().multiply(tier.damage()).stripTrailingZeros());
+            args.put("attack_speed", attack.speed());
+            args.put("durability", tier.uses());
+            args.put("break_power", tier.level());
+            e.put("template", "tfp:item/javelin");
+            e.put("arguments", args);
+            return e;
+        }
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("attribute_modifiers", List.of(modifier("attack_damage", attack.factor().multiply(tier.damage())),
             modifier("attack_speed", attack.speed())));
         String mineable = MINEABLE.get(item.kind());
-        if (mineable == null) { // the javelin: damageable, no mining
-            data.put("max_stack_size", 1);
-            data.put("max_damage", tier.uses());
-            data.put("components", Map.of("minecraft:damage", 0));
-            e.put("template", "tfp:item/simple");
-        } else {
-            args.put("material", "wooden_" + VANILLA_BASE.get(item.kind())); // level 0: INCORRECT_FOR_WOODEN_TOOL
-            args.put("durability", tier.uses());
-            args.put("speed", tier.speed());
-            args.put("break_power", tier.level());
-            args.put("mineable_tag", mineable);
-            args.put("tool_tag", Json.TO_NS + ":tools/" + item.kind());
-            e.put("template", "tfp:item/tool");
-        }
+        args.put("material", "wooden_" + VANILLA_BASE.get(item.kind())); // level 0: INCORRECT_FOR_WOODEN_TOOL
+        args.put("durability", tier.uses());
+        args.put("speed", tier.speed());
+        args.put("break_power", tier.level());
+        args.put("mineable_tag", mineable);
+        args.put("tool_tag", Json.TO_NS + ":tools/" + item.kind());
+        e.put("template", "tfp:item/tool");
         e.put("arguments", args);
         e.put("data", data);
         return e;
