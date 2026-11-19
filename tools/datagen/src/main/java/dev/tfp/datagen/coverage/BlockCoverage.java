@@ -88,7 +88,8 @@ public final class BlockCoverage {
         Owner.of("plant/.+", "PAR-WORLD-12", "plant blocks (the Plant enum shapes)"),
         Owner.of("coral/.+|sea_pickle", "PAR-WORLD-25", "corals, coral fans and sea pickle"),
         // soils and natural blocks
-        Owner.of("(grass|clay_grass|duff|clay_duff|coarse_dirt|grass_path|mud|muddy_roots|rooted_dirt)/.+|peat|peat_grass|"
+        Owner.of("(duff|clay_duff|grass_path|muddy_roots)/.+", "PAR-WORLD-42", "duff, clay duff, grass path, muddy roots"),
+        Owner.of("(grass|clay_grass|coarse_dirt|mud|rooted_dirt)/.+|peat|peat_grass|"
             + "kaolin_clay_grass|(pink|red|white)_kaolin_clay", "PAR-WORLD-04", "soil block set per soil variant, peat, kaolin"),
         Owner.of("deposit/.+|groundcover/.+|ore/small_.+", "PAR-WORLD-09", "ore deposits, groundcover, small ores"),
         Owner.of("(raw|smooth|cut)_sandstone/.+|hardened_clay|halite|calcite|bituminous_coal|lignite", "PAR-DECO-08",

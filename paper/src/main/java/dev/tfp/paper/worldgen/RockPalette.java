@@ -2,9 +2,14 @@
  * Licensed under the EUPL, Version 1.2.
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
+ * file: src/main/java/net/dries007/tfc/common/blocks/soil/SoilBlockType.java @ c3b4d9536 (the Variant order and the
+ *       GRASS, DIRT, COARSE_DIRT and MUD block types of the surface ids)
  */
 package dev.tfp.paper.worldgen;
 
+import dev.tfp.core.worldgen.surface.SurfaceKind;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +26,14 @@ import java.util.function.Function;
  * @param generation the state-table generation the palette was resolved from
  */
 public final class RockPalette<T> {
+    /** TFC's soils, in the order of {@code SoilBlockType.Variant} (the soil index of {@link #surfaceIndex}). */
+    public static final List<String> SOILS = List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol", "podzol",
+        "alfisol", "mollisol");
+    /** The surface kinds that are one CraftEngine block per soil, in the order of {@link #surfaceIds}. */
+    static final List<SurfaceKind> SOIL_KINDS = List.of(SurfaceKind.GRASS, SurfaceKind.DIRT, SurfaceKind.COARSE_DIRT,
+        SurfaceKind.MUD);
+    private static final String RAW_ROCK = "tfp:rock/raw/";
+
     private final long generation;
     private final List<T> blocks;
     private final String refusal;
@@ -57,6 +70,77 @@ public final class RockPalette<T> {
             return new RockPalette<>(generation, null, "unknown custom block(s) " + missing);
         }
         return new RockPalette<>(generation, List.copyOf(blocks), null);
+    }
+
+    /**
+     * The CraftEngine block of a surface kind (PAR-WORLD-04): {@code tfp:<grass|dirt|coarse_dirt|mud>/<soil>} for the soil
+     * kinds and {@code tfp:rock/gravel/<rock>} for gravel. Null for the kinds with no CraftEngine block of their own here:
+     * the rock surface (the rock palette itself), sand and sandstone (a colour per rock, PAR-WORLD-23), snow and packed
+     * ice (vanilla blocks in TFC too).
+     *
+     * @param soil a name of {@link #SOILS}; ignored for gravel
+     * @param rock the rock name ({@code granite}); ignored for the soil kinds
+     */
+    public static String surfaceId(SurfaceKind kind, String soil, String rock) {
+        return switch (kind) {
+            case GRASS, DIRT, COARSE_DIRT, MUD -> {
+                if (!SOILS.contains(soil)) {
+                    throw new IllegalArgumentException("unknown soil " + soil);
+                }
+                yield "tfp:" + kind.name().toLowerCase(java.util.Locale.ROOT) + "/" + soil;
+            }
+            case GRAVEL -> "tfp:rock/gravel/" + rock;
+            case ROCK_SURFACE, SAND, SANDSTONE, SNOW, PACKED_ICE -> null;
+        };
+    }
+
+    /**
+     * The surface block ids to append to a palette's ids, so the surface blocks resolve once with the rocks and fall under
+     * the same refuse rule: every soil kind of {@link #SOIL_KINDS} for every soil of {@link #SOILS}, then the gravel of
+     * every rock. {@link #surfaceIndex} is the position of a block in this list.
+     *
+     * @param rawRockIds the raw rock ids of the palette ({@code tfp:rock/raw/<rock>}), in rock index order
+     */
+    public static List<String> surfaceIds(List<String> rawRockIds) {
+        List<String> ids = new ArrayList<>(SOIL_KINDS.size() * SOILS.size() + rawRockIds.size());
+        for (SurfaceKind kind : SOIL_KINDS) {
+            for (String soil : SOILS) {
+                ids.add(surfaceId(kind, soil, null));
+            }
+        }
+        for (String raw : rawRockIds) {
+            if (!raw.startsWith(RAW_ROCK)) {
+                throw new IllegalArgumentException("not a raw rock id: " + raw);
+            }
+            ids.add(surfaceId(SurfaceKind.GRAVEL, null, raw.substring(RAW_ROCK.length())));
+        }
+        return List.copyOf(ids);
+    }
+
+    /**
+     * The position of a surface block in {@link #surfaceIds}, or -1 for a kind that has no CraftEngine block there (see
+     * {@link #surfaceId}). Plain arithmetic: the terrain fill calls it per block and reads the cached block data with
+     * {@link #block}, offset by where the surface ids start in its palette, so no id is looked up per block.
+     *
+     * @param soil  the index in {@link #SOILS}; ignored for gravel
+     * @param rock  the rock index; ignored for the soil kinds
+     * @param rocks how many rocks the palette has
+     */
+    public static int surfaceIndex(SurfaceKind kind, int soil, int rock, int rocks) {
+        final int soilKind = SOIL_KINDS.indexOf(kind);
+        if (soilKind >= 0) {
+            if (soil < 0 || soil >= SOILS.size()) {
+                throw new IndexOutOfBoundsException("soil " + soil);
+            }
+            return soilKind * SOILS.size() + soil;
+        }
+        if (kind == SurfaceKind.GRAVEL) {
+            if (rock < 0 || rock >= rocks) {
+                throw new IndexOutOfBoundsException("rock " + rock + " of " + rocks);
+            }
+            return SOIL_KINDS.size() * SOILS.size() + rock;
+        }
+        return -1;
     }
 
     public long generation() {

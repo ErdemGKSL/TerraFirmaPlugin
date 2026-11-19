@@ -42,6 +42,7 @@ class GeneratedCarrierTest {
         int pools = 0;
         java.util.SortedSet<String> checkedIds = new java.util.TreeSet<>();
         java.util.SortedSet<String> mappings = new java.util.TreeSet<>();
+        java.util.SortedSet<String> keptVanillaIds = new java.util.TreeSet<>();
         for (Map.Entry<String, byte[]> e : files.entrySet()) {
             String path = e.getKey();
             if (!path.startsWith("craftengine/") || !path.endsWith(".yml")) {
@@ -65,7 +66,12 @@ class GeneratedCarrierTest {
                             pools++;
                             checkPool(path, id, a.getKey(), app.get("auto_state"), problems);
                         }
-                        if (app.get("state") instanceof String state) {
+                        if (app.get("state") instanceof String state
+                                && dev.tfp.datagen.visuals.HideTargets.KEEP_VANILLA.contains(state)) {
+                            // PAR-WORLD-04: the grass blocks draw on the kept vanilla grass_block states, a visual
+                            // choice (HideTargets), not a hitbox carrier of the selector.
+                            keptVanillaIds.add(id);
+                        } else if (app.get("state") instanceof String state) {
                             states++;
                             checkedIds.add(id);
                             check(path, id, a.getKey(), state, problems);
@@ -119,6 +125,12 @@ class GeneratedCarrierTest {
         HitboxDemands.ANVIL_METALS.forEach(m -> expected.add(HitboxDemands.anvilId(m)));
         HitboxDemands.ANVIL_ROCKS.forEach(r -> expected.add(HitboxDemands.rockAnvilId(r)));
         assertThat(expected).hasSize(36 + 35 + 2 + 16);
+        java.util.SortedSet<String> grass = new java.util.TreeSet<>();
+        for (String soil : List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol", "podzol", "alfisol", "mollisol")) {
+            dev.tfp.datagen.soil.SoilBlocks.GRASS_TYPES.forEach(t -> grass.add("tfp:" + t + "/" + soil));
+        }
+        dev.tfp.datagen.soil.SoilBlocks.SINGLE_GRASS.forEach(t -> grass.add("tfp:" + t));
+        assertThat(keptVanillaIds).as("PAR-WORLD-04 grass blocks on the kept grass_block states").isEqualTo(grass);
         assertThat(checkedIds).as("block ids whose explicit appearance states were checked")
             .containsExactlyElementsOf(expected);
         assertThat(mappings).as("generator block_state_mappings")

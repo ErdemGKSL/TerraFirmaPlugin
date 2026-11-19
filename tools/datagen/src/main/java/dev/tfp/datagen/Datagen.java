@@ -75,6 +75,7 @@ public final class Datagen {
         WoodFamilies.run(tfc, out);
         RockFamilies.run(tfc, out);
         MudFamilies.run(tfc, out);
+        demand = dev.tfp.datagen.soil.SoilBlocks.available(tfc) ? dev.tfp.datagen.soil.SoilBlocks.run(tfc, out, demand) : demand; // PAR-WORLD-04: soil block set
         MetalFamilies.run(tfc, out);
         FruitFamilies.run(tfc, out);
         Firepit.run(tfc, out);
