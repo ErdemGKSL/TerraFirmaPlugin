@@ -72,3 +72,4 @@ dev.tfp.paper.lightning.LightningModule
 dev.tfp.paper.vessel.VesselModule
 dev.tfp.paper.jug.JugModule
 dev.tfp.paper.prospect.ProspectModule
+dev.tfp.paper.livestock.LivestockModule

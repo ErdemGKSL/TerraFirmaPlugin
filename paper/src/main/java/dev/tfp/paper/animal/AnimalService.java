@@ -164,11 +164,28 @@ public final class AnimalService implements Listener {
         if (!now.isSet()) {
             return CompletableFuture.failedFuture(new IllegalStateException("the calendar is not loaded yet"));
         }
+        return spawn(at, carrier, roll(carrier, now.playerTicks(), hint, male), now);
+    }
+
+    /**
+     * Spawns a newborn of {@code carrier}'s species (PAR-FAUNA-05): TFC's {@code setBabyTraits} gives it a random gender,
+     * today as its birth tick and the given familiarity; its genetic size is the usual spawn draw.
+     */
+    public CompletableFuture<Entity> spawnOffspring(Location at, Carrier carrier, float familiarity) {
+        ClockSnapshot now = clock.get();
+        if (!now.isSet()) {
+            return CompletableFuture.failedFuture(new IllegalStateException("the calendar is not loaded yet"));
+        }
+        AnimalRecord drawn = roll(carrier, now.playerTicks(), AnimalSpawnRoll.AgeHint.CHILD, null);
+        AnimalState child = AnimalState.offspring(drawn.state().male(), familiarity, now.playerTicks());
+        return spawn(at, carrier, new AnimalRecord(carrier.id(), child, drawn.geneticSize(), ""), now);
+    }
+
+    private CompletableFuture<Entity> spawn(Location at, Carrier carrier, AnimalRecord record, ClockSnapshot now) {
         EntityType type = Registry.ENTITY_TYPE.get(NamespacedKey.fromString(carrier.carrier()));
         if (type == null || type.getEntityClass() == null || !LivingEntity.class.isAssignableFrom(type.getEntityClass())) {
             return CompletableFuture.failedFuture(new IllegalStateException(carrier.carrier() + " is not a living entity type"));
         }
-        AnimalRecord record = roll(carrier, now.playerTicks(), hint, male);
         LivestockAge age = AnimalCheck.ageAt(record, now.playerTicks());
         CompletableFuture<Entity> out = new CompletableFuture<>();
         scheduler.region(at, () -> {
