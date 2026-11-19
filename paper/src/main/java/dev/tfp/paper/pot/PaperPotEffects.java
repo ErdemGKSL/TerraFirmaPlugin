@@ -16,6 +16,7 @@ import dev.tfp.paper.device.StackCodec;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.BlockVisuals;
 import dev.tfp.paper.integration.CustomBlocks;
+import dev.tfp.paper.firepit.PaperFirepitEffects;
 import dev.tfp.paper.scheduler.Scheduler;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
@@ -25,9 +26,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.LongSupplier;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import net.kyori.adventure.key.Key;
@@ -56,9 +57,8 @@ public final class PaperPotEffects implements PotEffects {
     private final Consumer<Block> callback;
     private final Predicate<Block> toFirepit;
     private final BiConsumer<Player, Block> screen;
-    private final Map<Pos, Long> pending = new ConcurrentHashMap<>();
     private final Map<Pos, Boolean> converting = new ConcurrentHashMap<>();
-    private final AtomicLong sequence = new AtomicLong();
+    private final PaperFirepitEffects.BurnOutWatch watch;
     private volatile DamageType damage;
 
     private record Pos(UUID world, int x, int y, int z) {
@@ -74,12 +74,27 @@ public final class PaperPotEffects implements PotEffects {
      */
     public PaperPotEffects(Scheduler scheduler, CustomBlocks blocks, Supplier<BlockVisuals> visuals,
             Consumer<Block> callback, Predicate<Block> toFirepit, BiConsumer<Player, Block> screen) {
+        this(scheduler, blocks, visuals, () -> 0L, callback, toFirepit, screen);
+    }
+
+    /**
+     * @param clock the device clock (the calendar's player ticks): a calendar jump past the burn-out fires the callback
+     *              within a second through the sweep started by {@link #start()} (PAR-HEAT-34)
+     */
+    public PaperPotEffects(Scheduler scheduler, CustomBlocks blocks, Supplier<BlockVisuals> visuals, LongSupplier clock,
+            Consumer<Block> callback, Predicate<Block> toFirepit, BiConsumer<Player, Block> screen) {
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.visuals = Objects.requireNonNull(visuals, "visuals");
         this.callback = Objects.requireNonNull(callback, "callback");
         this.toFirepit = Objects.requireNonNull(toFirepit, "toFirepit");
         this.screen = Objects.requireNonNull(screen, "screen");
+        this.watch = new PaperFirepitEffects.BurnOutWatch(scheduler, clock, callback);
+    }
+
+    /** Starts the calendar-jump sweep of the burn-out watch; the handle stops it. */
+    public Scheduler.TaskHandle start() {
+        return watch.start();
     }
 
     private boolean isPot(Block block) {
@@ -165,14 +180,7 @@ public final class PaperPotEffects implements PotEffects {
 
     @Override
     public void callbackIn(Block block, long ticks) {
-        Pos key = Pos.of(block);
-        long id = sequence.incrementAndGet();
-        pending.put(key, id);
-        scheduler.regionDelayed(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, Math.max(1, ticks), () -> {
-            if (pending.remove(key, id)) {
-                callback.accept(block);
-            }
-        });
+        watch.callbackIn(block, ticks);
     }
 
     @Override

@@ -69,6 +69,8 @@ public final class PotModule implements FeatureModule {
     public static final String EMPTY_JARS_WITH_LID = "tfc:foods/empty_jars_with_lid";
 
     private volatile AutoCloseable hook;
+    /** PAR-HEAT-34: the calendar-jump sweep of the burn-out callbacks. */
+    private volatile Scheduler.TaskHandle sweep;
     private volatile PotScreens screens;
 
     @Override
@@ -102,7 +104,9 @@ public final class PotModule implements FeatureModule {
             new PotScreenLink(new PotScreenLink.Env(devices, device[0], scheduler), block),
             p -> context.messages().get(p, "gui.pot.title"));
         PaperPotEffects effects = new PaperPotEffects(scheduler, blocks, () -> context.integrations().blockVisuals(),
-            devices::neighbourChanged, block -> conversion[0].toFirepit(block), open);
+            () -> context.clock().get().playerTicks(), devices::neighbourChanged,
+            block -> conversion[0].toFirepit(block), open);
+        sweep = effects.start();
         device[0] = new PotDevice(new PotDevice.Services(
             stack -> tags.itemId(stack).flatMap(id -> fuels.get().get(id)),
             stack -> tags.is(stack, FIREPIT_FUEL),
@@ -128,6 +132,11 @@ public final class PotModule implements FeatureModule {
 
     @Override
     public void disable() {
+        Scheduler.TaskHandle sw = sweep;
+        sweep = null;
+        if (sw != null) {
+            sw.cancel();
+        }
         AutoCloseable h = hook;
         if (h != null) {
             try {

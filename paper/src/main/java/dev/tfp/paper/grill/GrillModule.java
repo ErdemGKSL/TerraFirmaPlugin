@@ -71,6 +71,18 @@ public final class GrillModule implements FeatureModule {
         }
     }
 
+    /** PAR-HEAT-34: the calendar-jump sweep of the burn-out callbacks. */
+    private volatile Scheduler.TaskHandle sweep;
+
+    @Override
+    public void disable() {
+        Scheduler.TaskHandle s = sweep;
+        sweep = null;
+        if (s != null) {
+            s.cancel();
+        }
+    }
+
     @Override
     public String id() {
         return ID;
@@ -92,8 +104,10 @@ public final class GrillModule implements FeatureModule {
         GrillScreens screens = new GrillScreens(gui, scheduler, context.messages(), TooltipStyles.TFC_DEFAULTS.heat());
         AtomicReference<GrillDevice> deviceRef = new AtomicReference<>();
         AtomicReference<GrillConversion> conversionRef = new AtomicReference<>();
-        FirepitEffects firepitEffects = new PaperFirepitEffects(scheduler, blocks, () -> context.integrations().blockVisuals(),
+        PaperFirepitEffects firepitEffects = new PaperFirepitEffects(scheduler, blocks,
+            () -> context.integrations().blockVisuals(), () -> context.clock().get().playerTicks(),
             devices::neighbourChanged);
+        sweep = firepitEffects.start();
         PaperGrillEffects effects = new PaperGrillEffects(scheduler, blocks, () -> context.integrations().blockVisuals(),
             firepitEffects, (player, block) -> scheduler.entityDelayed(player, 1, () -> {
                 GrillDevice d = deviceRef.get();
