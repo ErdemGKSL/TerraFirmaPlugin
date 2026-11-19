@@ -194,7 +194,7 @@ How it works:
 - At element creation, `DefaultBlockEntityTintSourceConfig.create` looks up `blockEntity.controller.get(TintSource.class, index)`. That is the *index-th* controller implementing `core/.../world/TintSource` (`Item tintSource()`).
 - At metadata time, `DefaultBlockEntityTintSource.applyTint` copies each listed component **verbatim** from the source item onto the rendered item (`getComponentAsSparrowTag` → `setSparrowTagComponent`).
 - On pre-1.20.5 servers only dyed_color, firework_explosion, potion_contents and map_color are mapped to legacy NBT.
-- The wiki says `custom_model_data` is a common choice. Copying `minecraft:item_model` should work the same way (**UNVERIFIED**).
+- The wiki says `custom_model_data` is a common choice. Copying `minecraft:item_model` should work the same way (**UNVERIFIED (checked 2026-11-19: no evidence in repo; set `components: [minecraft:item_model]` on a `tint_source` and screenshot the element)**).
 
 Built-in providers:
 - `tint_source_block` (`TintSourceBlockEntityController`): stores the item used to place the block. Option `drop_item`, `data_key`.
@@ -306,7 +306,7 @@ Options, best first:
    - `grinding=true` appearance: `entity_renderer: {type: better_model, model: tfc_quern_spin}`, where the bbmodel's `idle` animation spins the stone.
    - On a state change the classes differ, so CE hides the old element and shows the new one (§1.4).
    - BetterModel streams bone updates itself (dirty bones only, see bettermodel.md L456).
-   - **UNVERIFIED**: whether a dummy tracker's `idle` runs per viewer from the moment it spawns; test it.
+   - **UNVERIFIED (checked 2026-11-19: no evidence in repo; spawn the quern model, join a second viewer later and compare the stone's rotation phase)**: whether a dummy tracker's `idle` runs per viewer from the moment it spawns; test it.
 2. **Our own element type with interpolation** (Level C). On `update`, send a metadata packet with `transformation_interpolation_delay = 0`, `transformation_interpolation_duration = N` and a new `left_rotation` advanced by ≤ 90° per step. Display entities interpolate the shortest arc [VAN], so 180° steps are ambiguous.
    - A ticker on the controller (`createBlockEntityTicker`, region thread) or a scheduler every N ticks calls `element.update(p)` for each tracked player.
    - Cost: 1 small metadata packet per viewer every N ticks (for example N=10, 90° per 10 ticks gives 1.5 rpm per 0.5 s step… tune it).
@@ -543,7 +543,7 @@ PlaceholderAPI expansions: `%image_mm_ns:id[:r:c]%`, `%image_md_…%`, `%image_r
 - **Consequences for our titles**:
   - Write the tags as **plain literal text** in a Paper component: `Component.text("<shift:-8><image:tfc:gui/knapping>")`.
   - Style it with Adventure: `.color(NamedTextColor.WHITE)`. Container titles are drawn in 0x404040, and that colour multiplies glyph pixels, so without white the texture is darkened to ~25% [VAN]. CE's own titles start with `<white>` for this reason.
-  - `<white>` written literally in the title text is **not** parsed by the interceptor; it stays literal. Do not pre-parse with Paper's MiniMessage unless it leaves the unknown `image`/`shift` tags as literal text (non-strict MiniMessage keeps unknown tags as text [INF], **UNVERIFIED**).
+  - `<white>` written literally in the title text is **not** parsed by the interceptor; it stays literal. Do not pre-parse with Paper's MiniMessage unless it leaves the unknown `image`/`shift` tags as literal text (non-strict MiniMessage keeps unknown tags as text [INF], **UNVERIFIED (checked 2026-11-19: no evidence in repo; docs/spikes/M0-GUI-01.md passed the raw string without Paper MiniMessage; test by deserialising the title with MiniMessage first)**).
   - Tags can be split across several sibling text components, but each tag must be fully inside one string.
 - **Direct (no-interception) alternative** [SRC `CraftEngineImages`, `FontManager`]. Read the data at `CraftEngineReloadEvent`:
   - `BitmapImage img = CraftEngine.instance().fontManager().bitmapImageById(Key.of("tfc:gui/knapping")).orElseThrow()`
@@ -614,7 +614,7 @@ The `+7` and `+1` come from vanilla bitmap glyph metrics [VAN], confirmed agains
 - `ascent = 13 − gy`
 - leading shift `= gx − titleLabelX`
 
-| Screen (open via Paper) | Window size | titleLabelX | Slot item positions (interior, 16×16) | Notes [VAN, UNVERIFIED] |
+| Screen (open via Paper) | Window size | titleLabelX | Slot item positions (interior, 16×16) | Notes [VAN; chest 9x6 (176x222, ascent 13, shift -8) and crafting-table titleLabelX 29 VERIFIED, docs/spikes/M0-GUI-01.md, 2026-10-16; other rows UNVERIFIED (checked 2026-11-19: no evidence in repo; open each GUI and run spikes/gui-01/check_align.py)] |
 |---|---|---|---|---|
 | Chest `9×N` (`createInventory(h, 9N, title)` / `MenuType.GENERIC_9xN`) | 176 × (114 + 18N) | 8 | container `(8+18c, 18+18r)`; player inv `(8+18c, 31+18N+18r)`; hotbar `(8+18c, 89+18N)` | N=6 ⇒ 176×222, player inv y=139, hotbar y=197; inventory label y = height−94 |
 | Dispenser / dropper `3×3` (`InventoryType.DISPENSER`) | 176 × 166 | **centered**: `(176 − titleWidth)/2` | `(62+18c, 17+18r)`; player inv `(8+18c, 84+18r)`; hotbar y=142 | Make the title's total advance 0 with a trailing shift, so titleLabelX = 88 |
@@ -670,16 +670,16 @@ CE's `Key` is `net.momirealms.craftengine.core.util.Key`. CE's `Component`, if y
 - The window is centred: `leftPos = (screenW − imageWidth)/2`, `topPos = (screenH − imageHeight)/2` in GUI units, where `screenW = windowPx / guiScale`.
 - **GUI-scale caveat**: positions are scale-independent in GUI units, but the *available* space around the window shrinks at high GUI scale or small window sizes. Art placed more than ~(screenW−176)/2 to the side may go off-screen. At 1920×1080 with scale 4 the screen is 480×270, leaving 152 px on each side and 24 px above a 222-tall chest.
 - Screens with a recipe book (player inventory, crafting, furnaces) shift `leftPos` by 77 when the book opens, and the art moves with the window.
-- **Click detection**: a click outside the window is a container click with slot −999. Bukkit reports `SlotType.OUTSIDE` and `rawSlot −999` [VAN/INF]. The **server cannot know where** outside the window the click happened, so an outside "button" can only mean "clicked anywhere outside". Which client versions send the packet when the cursor is empty is **UNVERIFIED**; test it.
+- **Click detection**: a click outside the window is a container click with slot −999. Bukkit reports `SlotType.OUTSIDE` and `rawSlot −999` [VAN/INF]. The **server cannot know where** outside the window the click happened, so an outside "button" can only mean "clicked anywhere outside". Which client versions send the packet when the cursor is empty is **VERIFIED (docs/spikes/M0-GUI-01.md, 2026-10-16)**: 1.21.11 and 26.3 send `CLICK_WINDOW` slot -999 with an empty cursor from the player inventory; the creative inventory sends no packet.
 
 ### 4.6 The player-inventory (E) screen
 - The server gets no packet when the player inventory opens, and cannot set its title.
 - Resource-pack option via CE: `lang: { all: { container.crafting: "<white><shift:-97><image:tfc:inv_tab_bar>…" } }` (`TranslationManagerImpl` L351–356, where `all` means every language).
   - CE's `LangParser` turns the MiniMessage into a **legacy `§` string** (L487–490: deserialize with ShiftTag and ImageTag, then `LegacyComponentSerializer`). **Fonts are lost** in that conversion, so the glyph must live in **`minecraft:default`**. CE's shift chars already do. The wiki's lang example also uses `font: minecraft:default`.
-  - The `§f` produced by `<white>` should override the 0x404040 label colour [VAN, **UNVERIFIED**].
+  - The `§f` produced by `<white>` should override the 0x404040 label colour [VAN, **UNVERIFIED (checked 2026-11-19: no evidence in repo; docs/spikes/M0-GUI-01.md used `<white>` in the lang override but did not inspect label colour; zoom a screenshot of a title with and without `<white>`)**].
   - The inventory label sits at titleLabelX 97, y 6 [VAN].
   - Caveats: `container.crafting` is **also the crafting-table title**, so add a crafting-table layout or accept the art there. The creative inventory does not show it. Default-font codepoints can be typed by players (keep `illegal-characters-filter` on). The art moves with the recipe-book shift.
-- Detecting the click: use slot −999 as above. Another option outside CE: Paper's `PlayerRecipeBookSettingsChangeEvent` fires when the recipe-book button is toggled. It could be re-skinned via the vanilla sprite `textures/gui/sprites/recipe_book/button*.png`. **UNVERIFIED.**
+- Detecting the click: use slot −999 as above. Another option outside CE: Paper's `PlayerRecipeBookSettingsChangeEvent` fires when the recipe-book button is toggled. It could be re-skinned via the vanilla sprite `textures/gui/sprites/recipe_book/button*.png`. **CORRECTED (docs/spikes/M0-GUI-01.md, 2026-10-16):** the event fires on 1.21.11 and 26.3 but only for the in-window recipe-book button, never for outside clicks. **UNVERIFIED (checked 2026-11-19: re-skinning was not tested; replace the sprite in a pack and screenshot)** as a re-skinned in-window button.
 
 ---
 

@@ -104,7 +104,7 @@ In `processConfigEntry` the text after the first `#` of a **top-level** key is d
 If parsing fails with a ScannerException mentioning `TAB` and `indentation`, every `\t` is replaced by 4 spaces. The file is re-parsed and, on success, **rewritten on disk** [SRC `APM:650-668`]. This changes mtime and content, which would trip our hash manifest. Never emit tabs.
 
 ### 2.6 Tags and scalars
-- Extra tags are `!!byte !!short !!long !!double !!ByteArray !!IntArray !!LongArray !!DoubleArray !!IntList !!LongList !!DoubleList`, plus `!!binary`. The UUID tag is also registered, but **UNVERIFIED** how to write it in YAML. [SRC StringKeyConstructor L27-61; constructors in `yaml/constructor/*`]
+- Extra tags are `!!byte !!short !!long !!double !!ByteArray !!IntArray !!LongArray !!DoubleArray !!IntList !!LongList !!DoubleList`, plus `!!binary`. The UUID tag is also registered, but **UNVERIFIED (checked 2026-11-19: no evidence in repo; datagen emits no UUID tag; load a `!!uuid` scalar in a CE config and read the load log)** how to write it in YAML. [SRC StringKeyConstructor L27-61; constructors in `yaml/constructor/*`]
 - Plain floats become **Double** (tag `!!double` via `DoubleSensitiveScalarResolver`). Plain ints become int, or long if large. `0x…` and `0o…` are accepted. Bools are `true/True/TRUE/false/…` only. [SRC `yaml/DoubleSensitiveScalarResolver.java:12-38`]
 - A plain scalar that looks exactly like `${word}` or `${word:-word}` is resolved to SnakeYAML's ENV tag (L13, L37). Shipped files rely on it being returned unchanged, for example `fuel_time: ${wood_fuel_time:-300}` [CFG tree.yml L47]. INFERRED: the engine's env constructor returns the raw string when no EnvConfig is set. Quoting placeholders is never wrong.
 - **Numeric config fields accept arithmetic strings.** `ConfigValue.getAsInt` falls back to `Expressions.evaluate` [SRC `core/…/config/ConfigValue.java:119-139`], hence `fuel_time: "${wood_fuel_time:-300} / 3"` [CFG tree.yml L166].
@@ -163,7 +163,7 @@ Let T₁…Tₙ be the expanded templates. The type of **T₁** decides the mode
 - map + map recurses.
 - **list + list concatenates (append).**
 - Anything else is replaced by the later value.
-- **Odd case:** a key in the merged map that starts with `$$` (only reachable via escaping, e.g. `\$\$key`) is stored with one `$` stripped and not merged. The purpose is undocumented (UNVERIFIED).
+- **Odd case:** a key in the merged map that starts with `$$` (only reachable via escaping, e.g. `\$\$key`) is stored with one `$` stripped and not merged. The purpose is undocumented (UNVERIFIED (checked 2026-11-19: no evidence in repo; escape a `$$` key in a test config and inspect the merged result)).
 
 **Extra keys** beside `template`: if the call map has keys other than the four reserved ones, they are evaluated and put into a `merges` map. Then an explicit `merges:` map is `putAll`-ed over them (shallow) (L305-326). Example: `default:settings/sapling` puts `burnable: false` next to `template:`/`overrides:` [CFG block_settings.yml L14-25]. The effective order is: templates → overrides (shallow) → extras+merges (deep).
 
@@ -215,7 +215,7 @@ There is **no lower-case modifier**. Use the `to_lower_case` argument type.
 - `${count:-1}` gives an int and `${hardness:-3.0}` a number.
 - Quote strings that contain `:`/`.`/`#`/`<`: `${rotate_sound:-'minecraft:block.bamboo.place'}` [CFG events.yml L11], `${default_leaves_color:-"#48B358"}` [CFG tree.yml L215], `${category_name:-"<white>${namespace}:${tree_type}"}` [CFG tree.yml L39].
 - `${x:-null}` makes the placeholder evaluate to `null` [usage CFG events.yml L55; code L78-80, L116-118]. In a map key, null removes the key [TemplateManagerImpl L207-211]. As a value it stores `null`.
-- The `TagParser` source is **not in the repository** (imported from `core.util` but absent), so exact SNBT typing rules are UNVERIFIED. For example, it is unknown whether `true` becomes a boolean or a byte.
+- The `TagParser` source is **not in the repository** (imported from `core.util` but absent), so exact SNBT typing rules are UNVERIFIED (checked 2026-11-19: no evidence in repo; give a CE item `true` and `1b` in a component and read it back with `data get`). For example, it is unknown whether `true` becomes a boolean or a byte.
 - A bad default gives `resource.argument.parser.snbt` at construction.
 
 **Return types:**
@@ -340,11 +340,11 @@ config_factory#rocks:            # ConfigKeys.of("config_factor(y|ies)") – als
 
 ### 7.2 Expressions
 - `Expressions.evaluate` uses `net.momirealms.sparrow.expr.ExpressionCompiler` (sparrow-expression 1.0, external). Unknown identifiers are rejected [SRC `core/…/plugin/context/expression/Expressions.java:14-27`].
-- The supported operators and functions are **UNVERIFIED**: the library is not in the clone. The wiki example uses `*` and `10d` literals.
+- The supported operators and functions are **UNVERIFIED (checked 2026-11-19: no evidence in repo; datagen expands matrices itself, so no expression is emitted; test each operator in a template)**: the library is not in the clone. The wiki example uses `*` and `10d` literals.
 - Used by `expression` arguments and by numeric field parsing (§2.6).
 
 ### 7.3 Custom template argument types (Java)
-`TemplateArguments.register(Key, TemplateArgumentFactory)` is public and static [SRC `TemplateArguments.java:31-36`]. The factory receives the evaluated `ConfigSection` and returns `TemplateArgument.get(node, args)`. We could register, for example, `tfc:rock_prop` (`type: tfc:rock_prop`). **UNVERIFIED** whether a namespaced `type:` value is resolved by `Key.ce` (it keeps an explicit namespace if one is given; `Key.decompose` source not checked). Registration must happen before CE's first config load (our `onLoad`). CE delays config load by default (`misc.delay-configuration-load: true`, CFG config.yml L862).
+`TemplateArguments.register(Key, TemplateArgumentFactory)` is public and static [SRC `TemplateArguments.java:31-36`]. The factory receives the evaluated `ConfigSection` and returns `TemplateArgument.get(node, args)`. We could register, for example, `tfc:rock_prop` (`type: tfc:rock_prop`). **UNVERIFIED (checked 2026-11-19: no evidence in repo; no custom `TemplateArgument` is registered, datagen emits literal entries; register one and load it)** whether a namespaced `type:` value is resolved by `Key.ce` (it keeps an explicit namespace if one is given; `Key.decompose` source not checked). Registration must happen before CE's first config load (our `onLoad`). CE delays config load by default (`misc.delay-configuration-load: true`, CFG config.yml L862).
 
 ### 7.4 JS scripting, runtime only
 - Off by default: `scripting.js.enable: false`. `engine: nashorn` (~2.4MB) or `graaljs` (~68MB), `strict: true`, `nashorn-compat: false` [CFG config.yml L843-854; `core/…/config/Config.java:411-414`]. Restart required. The dependencies are downloaded on first enable [WIKI /reference/script].
@@ -474,7 +474,7 @@ YAML syntax errors are logged earlier: `Invalid YAML file found: <path>.` or `Er
 - `/ce reload` prints `⚠ <n> issue(s) found` only to players [SRC `bukkit/…/command/feature/ReloadCommand.java:40-50`].
 - The practical options are:
   - **(a)** our in-server self-test asserts that every expected id exists via `CraftEngineItems`/`CraftEngineBlocks` after `CraftEngineReloadEvent`.
-  - **(b)** a log appender on CE's logger. On Paper the logger is an SLF4J logger from the bootstrap context [SRC `bukkit/paper-loader/…/PaperCraftEngineBootstrap.java:50-55`]. On the Bukkit loader it is the JUL `plugin.getLogger()` [SRC `BukkitCraftEngine.java:91-94`]. Match `Found .* issue\(s\) in file '…/resources/terrafirmacraft/…'`. The logger name is UNVERIFIED.
+  - **(b)** a log appender on CE's logger. On Paper the logger is an SLF4J logger from the bootstrap context [SRC `bukkit/paper-loader/…/PaperCraftEngineBootstrap.java:50-55`]. On the Bukkit loader it is the JUL `plugin.getLogger()` [SRC `BukkitCraftEngine.java:91-94`]. Match `Found .* issue\(s\) in file '…/resources/terrafirmacraft/…'`. The logger name is UNVERIFIED (checked 2026-11-19: integration/craftengine/.../CraftEngineIssueLog.java matches the message text `Found N issue(s)`, and itest Log4jTapTest.java taps it, but the logger name itself is not documented in repo; print `event.getLoggerName()` from the tap).
   - **(c)** best of all, **validate in datagen** so CE never sees a bad file.
 
 ### 9.5 Caching facts
@@ -486,7 +486,7 @@ YAML syntax errors are logged earlier: `Invalid YAML file found: <path>.` or `Er
 ### 9.6 How long do large packs take? (UNVERIFIED, no benchmarks found)
 - No timing data was found in the repo or wiki. CE logs each stage's time, so measure it.
 - INFERRED complexity: expansion is a recursive walk that allocates new maps, lists and strings for every node. A `stairs` template is about 685 YAML lines and expands into thousands of nodes. Using it for 200 blocks costs O(10⁵–10⁶) node copies on **one thread per stage**. My estimate is about 0.1–1 s. Literal YAML of the same size instead costs SnakeYAML parse time once at startup, single-threaded, roughly tens of MB/s, and is cached afterwards.
-- Either cost is probably small next to resource-pack generation and image optimisation (UNVERIFIED).
+- Either cost is probably small next to resource-pack generation and image optimisation (VERIFIED for the config side: docs/verification/PAR-PROC-24/verdict.md, 2026-11-06, `Loaded items in 262.74ms (2971)` and `Loaded recipes in 230.64ms (160)` on CE 26.9.2; pack generation time was not measured).
 
 ---
 
@@ -547,7 +547,7 @@ YAML syntax errors are logged earlier: `Invalid YAML file found: <path>.` or `Er
    - Never put list arguments first in a list-merged key (§6.2).
 3. **Emit `lang`/`translations` literally**, because templates do not apply to them.
 4. **Do not use `config_factory` for shipped content.** Optionally document it for server owners who want to add a custom rock or wood themselves.
-5. **Do not reference `default:` templates.** Re-author the ones we want in `tfc:`. The CE repository is GPL-3.0 (repo `LICENSE`), and our plugin is EUPL-1.2. Copying the YAML verbatim may make our pack a derivative work, so re-author it from the semantics documented here. The legal question is UNVERIFIED and needs a human decision.
+5. **Do not reference `default:` templates.** Re-author the ones we want in `tfc:`. The CE repository is GPL-3.0 (repo `LICENSE`), and our plugin is EUPL-1.2. Copying the YAML verbatim may make our pack a derivative work, so re-author it from the semantics documented here. The legal question is UNVERIFIED (checked 2026-11-19: no evidence in repo; needs a human/legal decision on EUPL-1.2 vs GPL-3.0) and needs a human decision.
 6. **Use `$$` only where vanilla data formats differ** (1.21.x vs 26.x). Prefer datagen choosing per-version files through subpacks for large differences.
 7. **Never emit:** tabs, `enable: false`, un-escaped `${` in text, `::` inside keys meant literally, `#tag` containing digits in `$$` keys.
 8. **CI gate:** datagen runs a YAML lint plus our own schema check. The in-server self-test (plugin-testing skill) loads CE and asserts zero `Found … issue(s)` lines for our pack path, and that every expected id exists.
@@ -561,7 +561,7 @@ TFC needs roughly:
 - 214 plants
 - 27×60 metal items
 
-That is about 4–5k entries. At 8–15 lines each, the YAML is about 50–75k lines (~2–3 MB). It parses in well under a second (UNVERIFIED) and is cached afterwards. The template expansion per reload is single-threaded per stage. Measure with the `Loaded items in Xms` lines.
+That is about 4–5k entries. At 8–15 lines each, the YAML is about 50–75k lines (~2–3 MB). It parses in well under a second (VERIFIED at 2971 items: `Loaded items in 262.74ms`, docs/verification/PAR-PROC-24/verdict.md, 2026-11-06; the 4-5k figure was not measured) and is cached afterwards. The template expansion per reload is single-threaded per stage. Measure with the `Loaded items in Xms` lines.
 
 ---
 
