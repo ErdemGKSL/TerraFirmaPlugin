@@ -24,6 +24,7 @@ plan:
   - "Generate the 20 woods x (log, stripped log, wood, stripped wood, leaves, sapling, potted sapling, fallen leaves, twig) with the leaves visual pool (leaves keep vanilla tint via repurposed leaves states)."
   - "TreeBlocks writes the CE ids; leaves `persistent=false` state as TFC."
   - "Done: AssetPipeline wood blocks (120), tfp:settings/wood templates, worldgen places CE logs/leaves; WoodBlocksTest; Pending in-game check (forest screenshot)"
+  - "Follow-up: sapling, potted sapling, fallen leaves and twig blocks (and the visual budget decision for them: tripwire pool, repurposed potted states) moved to PAR-WORLD-44; leaves persistent=false is PAR-GATHER-09."
 tests:
   - "tools/datagen: counts vs Wood.java"
 done_criteria:
