@@ -2,6 +2,10 @@
  * Licensed under the EUPL, Version 1.2.
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
+ * file: src/main/java/net/dries007/tfc/world/surface/builder/NormalSurfaceBuilder.java @ c3b4d9536, with
+ * SurfaceBuilderContext.java (calculateAltitudeSlopeSurfaceDepth)
  */
 package dev.tfp.core.worldgen.surface;
 
@@ -35,7 +39,23 @@ public record NormalSurface(
 
     /** The land builder with the gravel underwater, TFC's {@code NormalSurfaceBuilder.INSTANCE} and {@code ROCKY}. */
     public static NormalSurface land(int subsurfaceMinDepth, SurfaceRule top, SurfaceRule mid, SurfaceRule under) {
-        return new NormalSurface(subsurfaceMinDepth, top, mid, under, SurfaceRules.of(SurfaceKind.GRAVEL), SurfaceRules.of(SurfaceKind.GRAVEL));
+        return new NormalSurface(subsurfaceMinDepth, top, mid, under, SurfaceRules.GRAVEL, SurfaceRules.GRAVEL);
+    }
+
+    /** {@code NormalSurfaceBuilder.INSTANCE.buildSurface(context, startY, endY, top, mid, under)}: gravel under water. */
+    public static void normal(SurfacePass pass, int startY, int endY, SurfaceRule top, SurfaceRule mid, SurfaceRule under) {
+        NormalSurface.land(-1, top, mid, under).build(pass, startY, endY);
+    }
+
+    /** {@code NormalSurfaceBuilder.ROCKY.buildSurface(context, startY, endY, top, mid, under)}: gravel under water. */
+    public static void rocky(SurfacePass pass, int startY, int endY, SurfaceRule top, SurfaceRule mid, SurfaceRule under) {
+        NormalSurface.land(-3, top, mid, under).build(pass, startY, endY);
+    }
+
+    /** {@code NormalSurfaceBuilder.INSTANCE.buildSurface} with the five states. */
+    public static void normal(SurfacePass pass, int startY, int endY, SurfaceRule top, SurfaceRule mid, SurfaceRule under,
+                              SurfaceRule underWater, SurfaceRule thinUnderWater) {
+        new NormalSurface(-1, top, mid, under, underWater, thinUnderWater).build(pass, startY, endY);
     }
 
     @Override
@@ -43,8 +63,7 @@ public record NormalSurface(
         SurfaceRule top = this.top;
         SurfaceRule mid = this.mid;
         SurfaceRule under = this.under;
-        final SurfaceColumn column = pass.column();
-        final int seaLevel = column.seaLevel();
+        final int seaLevel = pass.seaLevel();
 
         int surfaceDepth = -1;
         int surfaceY = 0;
@@ -71,27 +90,27 @@ public record NormalSurface(
                     surfaceY = y; // Reached surface. Place top state and switch to subsurface layers
                     firstLayer = true;
                     if (y < seaLevel - 1) {
-                        surfaceDepth = altitudeSlopeDepth(column, surfaceY, -1, 5);
+                        surfaceDepth = altitudeSlopeDepth(pass, surfaceY, -1, 5);
                         if (surfaceDepth < -1) {
                             surfaceDepth = 0; // No surface layers
                         } else if (surfaceDepth == -1) {
                             // Place one subsurface layer, skipping the top layer entirely
                             surfaceDepth = 0;
-                            pass.set(y, thinUnderWater.kind(column, y));
+                            pass.set(y, thinUnderWater);
                         } else {
-                            pass.set(y, underWater.kind(column, y));
+                            pass.set(y, underWater);
                         }
                         surfaceState = underWater;
                         underwaterLayer = true;
                     } else {
-                        surfaceDepth = altitudeSlopeDepth(column, surfaceY, subsurfaceMinDepth, 5);
+                        surfaceDepth = altitudeSlopeDepth(pass, surfaceY, subsurfaceMinDepth, 5);
                         if (surfaceDepth < -1) {
                             surfaceDepth = 0; // No surface layers
                         } else if (surfaceDepth == -1) {
                             surfaceDepth = 0;
-                            pass.set(y, under.kind(column, y));
+                            pass.set(y, under);
                         } else {
-                            pass.set(y, top.kind(column, y));
+                            pass.set(y, top);
                         }
                         surfaceState = mid;
                         underwaterLayer = false;
@@ -100,11 +119,11 @@ public record NormalSurface(
                     hasPlacedFirstSurface = true;
                     // Subsurface layers
                     surfaceDepth--;
-                    pass.set(y, surfaceState.kind(column, y));
+                    pass.set(y, surfaceState);
                     if (surfaceDepth == 0 && firstLayer) {
                         // Next subsurface layer
                         firstLayer = false;
-                        surfaceDepth = altitudeSlopeDepth(column, surfaceY, 0, 5);
+                        surfaceDepth = altitudeSlopeDepth(pass, surfaceY, 0, 5);
                         surfaceState = underwaterLayer ? thinUnderWater : under;
                     }
                 }
@@ -120,13 +139,15 @@ public record NormalSurface(
      * @param minimumReturnValue the minimum depth; {@code -1} means no top layer on this column
      * @param maxDepth           the depth at and below sea level plus seven
      */
-    static int altitudeSlopeDepth(SurfaceColumn column, int y, int minimumReturnValue, int maxDepth) {
-        final int seaLevel = column.seaLevel();
-        final double slopeFactor = 1 - Mth.clamp(column.slope() / 15d, 0, 1); // Large = low slope
+    static int altitudeSlopeDepth(SurfacePass pass, int y, int minimumReturnValue, int maxDepth) {
+        final int seaLevel = pass.seaLevel();
+        final double slopeFactor = 1 - Mth.clamp(pass.slope() / 15d, 0, 1); // Large = low slope
         final double seaLevelFactor = y < seaLevel ? Mth.clampedMap((seaLevel - y) / 15d, 0, 0.4, 1, 1.4) : 1; // Below sea level, deeper
+        // All ints in TFC, so this is Minecraft's float clampedMap
         final int maxElevationDepth = y < seaLevel + 7 ? maxDepth
-            : (int) Mth.clampedMap((double) y, seaLevel + 7, seaLevel + 67, maxDepth, 2);
+            : (int) Mth.clampedMap((float) y, seaLevel + 7, seaLevel + 67, maxDepth, 2);
         final int depth = (int) Mth.lerp(slopeFactor * seaLevelFactor, minimumReturnValue, maxElevationDepth);
-        return Math.max(minimumReturnValue, Math.min(depth, maxElevationDepth));
+        // Mth.clamp(int, int, int): the maximum wins when the minimum is above it
+        return Math.min(Math.max(depth, minimumReturnValue), maxElevationDepth);
     }
 }

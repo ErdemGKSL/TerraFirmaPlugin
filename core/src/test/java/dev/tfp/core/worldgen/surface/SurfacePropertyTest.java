@@ -38,20 +38,20 @@ class SurfacePropertyTest {
                 final SurfaceColumn column = randomColumn(r);
                 final int top = 30 + r.nextInt(60);
                 final ColumnSurface surface = build(family, column, top);
-                assertThat(surface.endY()).isEqualTo(top - 19);
+                assertThat(surface.endY()).isEqualTo(top - 20);
                 int written = 0;
                 for (int y = top + 40; y > top; y--) {
                     assertThat(surface.kind(y)).as("above the rock top").isNull();
                 }
-                for (int y = top; y >= top - 19; y--) {
+                for (int y = top; y >= top - 20; y--) {
                     final SurfaceKind kind = surface.kind(y);
                     if (kind != null) {
                         written++;
                         assertThat(SurfaceKind.values()).contains(kind);
                     }
                 }
-                assertThat(written).isLessThanOrEqualTo(20);
-                assertThat(surface.kind(top - 20)).as("below the pass").isNull();
+                assertThat(written).isLessThanOrEqualTo(21);
+                assertThat(surface.kind(top - 21)).as("below the pass").isNull();
             }
         }
     }
@@ -73,7 +73,7 @@ class SurfacePropertyTest {
 
     private static String describe(ColumnSurface surface, int top) {
         final StringBuilder out = new StringBuilder();
-        for (int y = top; y >= top - 19; y--) {
+        for (int y = top; y >= top - 20; y--) {
             out.append(surface.kind(y) == null ? '.' : surface.kind(y).ordinal());
         }
         return out.toString();
@@ -88,7 +88,7 @@ class SurfacePropertyTest {
                 final SurfaceColumn column = randomColumn(r);
                 final int top = 20 + r.nextInt(SEA_LEVEL - 22);
                 final ColumnSurface surface = build(family, column, top);
-                for (int y = top; y >= top - 19; y--) {
+                for (int y = top; y >= top - 20; y--) {
                     final SurfaceKind kind = surface.kind(y);
                     assertThat(kind == null || kind == SurfaceKind.GRAVEL).as(family + " at " + y).isTrue();
                 }

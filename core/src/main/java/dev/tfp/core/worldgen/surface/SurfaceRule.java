@@ -6,15 +6,15 @@
 package dev.tfp.core.worldgen.surface;
 
 /**
- * A surface state: the block kind that one position of a column takes, given the column and the height. TFC's
- * {@code SurfaceState}, in kind space. Rules are pure and thread-safe.
+ * A surface state: the block that one position of a column takes, given the column and the height. TFC's
+ * {@code SurfaceState}. Rules are pure and thread-safe.
  */
 @FunctionalInterface
 public interface SurfaceRule {
     /**
-     * @param column The column, with its climate and slope.
+     * @param column The column, with its climate.
      * @param y      The block height of the position, absolute.
-     * @return The kind of the block at {@code (column.x(), y, column.z())}.
+     * @return The block at {@code (column.x(), y, column.z())}.
      */
-    SurfaceKind kind(SurfaceColumn column, int y);
+    SurfaceBlock block(SurfaceColumn column, int y);
 }

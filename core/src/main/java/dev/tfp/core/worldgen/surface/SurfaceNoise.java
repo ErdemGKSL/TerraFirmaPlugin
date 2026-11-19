@@ -20,10 +20,18 @@ public final class SurfaceNoise {
     /** TFC's {@code SurfaceStates.sandGravelBeachNoise()}: above the cutoff of the temperature, a beach is gravel. */
     public static final Noise2D SAND_GRAVEL_BEACH = new OpenSimplex2D(124154L).octaves(3).spread(0.00002f);
 
+    /** TFC's {@code SurfaceStates.sandVariantNoise()}: the colour of a shore's sand. */
+    public static final Noise2D SAND_VARIANT = new OpenSimplex2D(36263276L).octaves(5).spread(0.0003f).abs();
+
     /** The sea level in TFC's {@code ChunkData.SEA_LEVEL_Y}; the tide noise is centred on it. */
     private static final int SEA_LEVEL_Y = ChunkData.SEA_LEVEL_Y;
 
     private SurfaceNoise() {}
+
+    /** TFC's {@code BiomeNoise.lavaFlowMaterial(seed)}: which material a lava flow shows. */
+    public static Noise2D lavaFlowMaterial(long levelSeed) {
+        return new OpenSimplex2D(levelSeed).octaves(2).spread(0.25);
+    }
 
     /**
      * TFC's {@code BiomeNoise.shoreTideLevelNoise(seed)}: the shore tide level, between sea level minus 6 and sea level plus 6,

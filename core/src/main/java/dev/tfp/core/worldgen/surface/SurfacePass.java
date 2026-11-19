@@ -5,34 +5,52 @@
  */
 package dev.tfp.core.worldgen.surface;
 
+import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
+import java.util.Arrays;
+
 /**
  * The state of one column while a surface builder runs: what each height holds before the surface (rock, water or air),
- * the surface kinds written so far, and the lowest height the pass may write. TFC's {@code SurfaceBuilderContext} cursor
- * and its {@code getBlockState} / {@code setBlockState}, for one column. Not thread-safe; one per column.
+ * the blocks written so far, the slope (a builder may scale it), and the chunk's random source. TFC's
+ * {@code SurfaceBuilderContext} cursor and its {@code getBlockState} / {@code setBlockState}, for one column. Not
+ * thread-safe; one per column.
  */
 public final class SurfacePass {
-    /** What the column holds at a height before the surface rules run. */
-    public enum Fill { AIR, WATER, ROCK }
+    /**
+     * What the column holds at a height: air, water, the raw rock of a rock type (TFC's {@code isDefaultBlock}), or another
+     * block that a builder wrote there.
+     */
+    public enum Fill { AIR, WATER, ROCK, OTHER }
 
     private final SurfaceColumn column;
     private final int topY;
     private final int oceanFloorY;
     private final int endY;
-    private final SurfaceKind[] out;
+    private final int minY;
+    private final XoroshiroRandomSource random;
+    private double slope;
+    private int baseY;
+    private SurfaceBlock[] out;
 
     /**
      * @param column      the column
      * @param topY        the highest rock block of the column; rock fills every height from the floor to here
-     * @param oceanFloorY the ocean floor heightmap of the column, {@code topY + 1} (TFC's {@code OCEAN_FLOOR_WG})
-     * @param endY        the lowest height the pass visits
+     * @param oceanFloorY the ocean floor height of the column, {@code topY} (TFC's {@code getHeight(OCEAN_FLOOR_WG)})
      * @param startY      the highest height the pass visits
+     * @param endY        the lowest height the pass visits
+     * @param minY        the lowest height of the world
+     * @param random      the random source of the chunk, shared by its columns in TFC's order (x outer, z inner); null for
+     *                    builders that draw nothing
      */
-    SurfacePass(SurfaceColumn column, int topY, int oceanFloorY, int startY, int endY) {
+    SurfacePass(SurfaceColumn column, int topY, int oceanFloorY, int startY, int endY, int minY, XoroshiroRandomSource random) {
         this.column = column;
         this.topY = topY;
         this.oceanFloorY = oceanFloorY;
         this.endY = endY;
-        this.out = new SurfaceKind[startY - endY + 1];
+        this.minY = minY;
+        this.random = random;
+        this.slope = column.slope();
+        this.baseY = endY;
+        this.out = new SurfaceBlock[startY - endY + 1];
     }
 
     public SurfaceColumn column() {
@@ -49,21 +67,76 @@ public final class SurfacePass {
         return oceanFloorY;
     }
 
-    /** What the column holds at {@code y}: rock up to the top, then water up to sea level, then air. */
+    /** TFC's {@code getSlope()}: the column's slope, or what a builder set it to. */
+    public double slope() {
+        return slope;
+    }
+
+    /** TFC's {@code setSlope(slope)}; the builders that follow in the same pass see it. */
+    public void setSlope(double slope) {
+        this.slope = slope;
+    }
+
+    /** TFC's {@code context.random()}: the chunk's random source. */
+    public XoroshiroRandomSource random() {
+        if (random == null) {
+            throw new IllegalStateException("this surface builder draws from the chunk random; build the column with one");
+        }
+        return random;
+    }
+
+    /**
+     * What the column holds at {@code y}: a block this pass wrote, else rock up to the top, then water up to the block below
+     * sea level, then air. Heights below the world are air, as a chunk returns void air there (and drops writes).
+     */
     public Fill fill(int y) {
+        if (y < minY) {
+            return Fill.AIR;
+        }
+        final SurfaceBlock written = block(y);
+        if (written != null) {
+            return written.isRawRock() ? Fill.ROCK : Fill.OTHER;
+        }
         if (y <= topY) {
             return Fill.ROCK;
         }
-        return y <= column.seaLevel() ? Fill.WATER : Fill.AIR;
+        return y <= column.seaLevel() - 1 ? Fill.WATER : Fill.AIR;
     }
 
-    /** Writes the kind at {@code y}. Each height is written at most once per pass. */
-    public void set(int y, SurfaceKind kind) {
-        out[y - endY] = kind;
+    /** Writes the block at {@code y}; a chunk drops writes below the world, and so does the pass. */
+    public void set(int y, SurfaceBlock block) {
+        if (y < minY) {
+            return;
+        }
+        if (y < baseY) {
+            final SurfaceBlock[] grown = new SurfaceBlock[out.length + (baseY - y)];
+            System.arraycopy(out, 0, grown, baseY - y, out.length);
+            out = grown;
+            baseY = y;
+        } else if (y - baseY >= out.length) {
+            out = Arrays.copyOf(out, y - baseY + 1);
+        }
+        out[y - baseY] = block;
     }
 
-    /** @return The kinds written, indexed {@code y - endY}; null where the pass wrote nothing. */
-    SurfaceKind[] kinds() {
+    /** Writes the block of a rule at {@code y}: TFC's {@code setBlockState(y, SurfaceState)}. */
+    public void set(int y, SurfaceRule rule) {
+        set(y, rule.block(column, y));
+    }
+
+    /** @return The block written at {@code y}, or null. */
+    SurfaceBlock block(int y) {
+        final int i = y - baseY;
+        return i < 0 || i >= out.length ? null : out[i];
+    }
+
+    /** @return The lowest height the blocks array starts at. */
+    int baseY() {
+        return baseY;
+    }
+
+    /** @return The blocks written, indexed {@code y - baseY()}; null where the pass wrote nothing. */
+    SurfaceBlock[] blocks() {
         return out;
     }
 
