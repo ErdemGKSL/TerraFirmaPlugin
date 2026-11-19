@@ -2,7 +2,7 @@
 id: PAR-POT-11
 title: "item_heat data for fired pottery: vessels, molds, jugs"
 area: POTTERY
-status: open
+status: done
 wave: 25
 deps: [PAR-POT-04]
 size: S
@@ -17,6 +17,7 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
+  - "Done: datagen PotteryHeat emits data/tfp/tfp/item_heat/ceramic/fired_pottery.json (1.2 for fired vessel, 16 glazed vessels, all fired molds); PotteryHeatTest (1); in-game check pending (tfp debug warm Bot 1100 2000). Note: TFC gives the jug no heat component, so it gets none."
   - "TFC gives the fired vessel and the molds the pottery heat capacity (1.2, `HeatCapability.POTTERY_HEAT_CAPACITY`) as a default item component, not as `item_heat` data. Our `ItemHeatDefinitions` therefore has no entry for `tfp:ceramic/vessel`, the 16 glazed vessels or the molds, so the item heater (`tfp debug warm`, forge, firepit) and the heat tooltip treat them as unheatable (found in PAR-POT-04's in-game check). Emit `tfp/item_heat` definitions with heat_capacity 1.2 for those ids (add a datagen generator + one `run` line in Datagen.java), keep the vessel's content-dependent capacity a ledger divergence."
 tests:
   - "datagen: the generated item_heat covers every fired vessel and mold id with 1.2"
@@ -25,6 +26,5 @@ done_criteria:
 ---
 
 # PAR-POT-11: item_heat data for fired pottery
-> Claimed: pot-11 worker, 2026-11-19
 
 Follow-up of PAR-POT-04. Follow `plans/parity/PROTOCOL.md`.

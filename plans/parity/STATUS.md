@@ -261,7 +261,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-GATHER-02 | Harvest plants, leaves, twigs and fallen leaves by TFC loot tables | GATHER | 25 | open |
 | PAR-POT-05 | Molds: filling from a vessel/crucible, solidifying, breaking out the casting | POTTERY | 25 | open |
 | PAR-POT-10 | Small vessel screen art: the textured four-slot GUI | POTTERY | 25 | open |
-| PAR-POT-11 | item_heat data for fired pottery: vessels, molds, jugs | POTTERY | 25 | open |
+| PAR-POT-11 | item_heat data for fired pottery: vessels, molds, jugs | POTTERY | 25 | done |
 | PAR-WORLD-13 | Remaining plant features: vines, kelp, epiphytes, creeping plants, cacti, algae, atoll corals | WORLD | 25 | open |
 | PAR-WORLD-14 | Volcanic features: springs, rivulets, flood-fill lakes, calderas of other cones | WORLD | 25 | done |
 | PAR-WORLD-25 | TFC corals and sea pickle as CE blocks: 5 colours x (coral, coral fan, wall fan) live and dead, the salt-water sea pickle, dying out of water, drops; replace the vanilla coral placeholders in generation | WORLD | 25 | open |
