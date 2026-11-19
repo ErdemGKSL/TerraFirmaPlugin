@@ -160,8 +160,24 @@ public final class BetterModelIntegration implements Integration, EntityModels {
         if (entity == null) {
             return;
         }
+        if (!org.bukkit.Bukkit.isOwnedByCurrentRegion(entity)) {
+            // A /bm reload recreates trackers on BetterModel's own thread. The hooks write entity state, so they run on the
+            // entity's thread, where the new tracker is registered by then (PAR-FAUNA-21).
+            ctx.requireScheduler().entity(entity, () -> runCreatedHooks(entity), null);
+            return;
+        }
+        runCreatedHooks(entity, event.tracker());
+    }
+
+    private void runCreatedHooks(Entity entity) {
+        runCreatedHooks(entity, null);
+    }
+
+    private void runCreatedHooks(Entity entity, EntityTracker tracker) {
         EntityTracker previous = creating.get();
-        creating.set(event.tracker());
+        if (tracker != null) {
+            creating.set(tracker);
+        }
         try {
             for (Consumer<Entity> hook : createdHooks) {
                 try {

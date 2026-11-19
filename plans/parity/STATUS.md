@@ -326,7 +326,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DATA-12 | Block info readout (Jade-like tooltips) on the actionbar | DATA | 39 | open |
 | PAR-DATA-13 | TFC pin drift check in CI | DATA | 39 | done |
 | PAR-FAUNA-02 | Entity models for Java-only TFC models via the rig generator | FAUNA | 39 | done |
-| PAR-FAUNA-21 | Animal framework completion: species behaviour SPI, goal replacement, model re-apply checks | FAUNA | 39 | open |
+| PAR-FAUNA-21 | Animal framework completion: species behaviour SPI, goal replacement, model re-apply checks | FAUNA | 39 | done |
 | PAR-DECO-01 | Wood families loaded in CraftEngine: planks, stairs, slabs, fences, walls with our block_state templates | DECO | 40 | open |
 | PAR-DECO-10 | Ropes, rope anchors and rope knots | DECO | 40 | open |
 | PAR-FAUNA-03 | Entity texture variants, gendered and aged textures, render review | FAUNA | 40 | open |
