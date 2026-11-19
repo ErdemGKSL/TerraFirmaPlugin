@@ -2,7 +2,7 @@
 id: PAR-WORLD-14
 title: "Volcanic features: springs, rivulets, flood-fill lakes, calderas of other cones"
 area: WORLD
-status: open
+status: done
 wave: 25
 deps: []
 size: M
@@ -20,6 +20,7 @@ ui: false
 in_game_steps: []
 plan:
   - "Close the 51 open ids of volcano_features_open_gaps.txt (springs, rivulets, flood fill lakes, cone/shield patches, crater selectors) with goldens."
+  - "Done: core/worldgen/volcano VolcanicFeatures (tag order per family, own FeatureRandom per placed id, NP-WORLD-01 3x3 chunk rule) with Spring, Rivulet, GroundcoverPatch, Caldera configs (lava/spring water/water), Tuyas, Stratovolcanoes (variants, offset centers, hash ranges), VolcanicKind/VolcanicBlock; VolcanoFeatureGoldenTest open gaps empty (51 rules compared cell by cell with TFC's table; minimal edit outside the glob, the test's own open-gaps rule), VolcanicFeaturesTest (17); showcase seeds docs/worldgen/volcanic-features.md. Paper wiring is follow-up PAR-WORLD-27."
 tests:
   - "core: VolcanoFeatureGoldenTest open gaps empty"
 done_criteria:
@@ -28,7 +29,6 @@ done_criteria:
 
 # PAR-WORLD-14: Volcanic features: springs, rivulets, flood-fill lakes, calderas of other cones
 
-> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-19
 
 > see_not_parity: NP-WORLD-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

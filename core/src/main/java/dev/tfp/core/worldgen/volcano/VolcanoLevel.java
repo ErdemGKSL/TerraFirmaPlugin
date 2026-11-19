@@ -26,7 +26,7 @@ final class VolcanoLevel {
     enum Fluid { EMPTY, WATER, OTHER }
 
     private final VolcanoView view;
-    private final Map<Long, VolcanoBlock> placed = new LinkedHashMap<>();
+    private final Map<Long, VolcanicBlock> placed = new LinkedHashMap<>();
 
     VolcanoLevel(VolcanoView view) {
         this.view = view;
@@ -41,36 +41,54 @@ final class VolcanoLevel {
     }
 
     void set(int x, int y, int z, VolcanoKind kind, int rock, Gem gem) {
-        placed.put(key(x, y, z), new VolcanoBlock(x, y, z, kind, kind.hasRock() ? rock : -1, gem));
+        set(x, y, z, VolcanicKind.of(kind), rock, gem);
+    }
+
+    void set(int x, int y, int z, VolcanicKind kind, int rock, Gem gem) {
+        placed.put(key(x, y, z), new VolcanicBlock(x, y, z, kind, kind.hasRock() ? rock : -1, gem));
+    }
+
+    void set(int x, int y, int z, VolcanicKind kind) {
+        set(x, y, z, kind, -1, null);
     }
 
     void set(int x, int y, int z, VolcanoKind kind) {
         set(x, y, z, kind, -1, null);
     }
 
+    /** The placed blocks as {@link VolcanoBlock}s: for the cinder cone and hot spring features, whose kinds those are. */
     List<VolcanoBlock> blocks() {
+        final List<VolcanoBlock> out = new ArrayList<>(placed.size());
+        for (VolcanicBlock b : placed.values()) {
+            out.add(new VolcanoBlock(b.x(), b.y(), b.z(), b.kind().legacy(), b.rock(), b.gem()));
+        }
+        return out;
+    }
+
+    /** The placed blocks, each position once with the last block placed there, in first-placed order. */
+    List<VolcanicBlock> volcanicBlocks() {
         return new ArrayList<>(placed.values());
     }
 
-    private VolcanoBlock placed(int x, int y, int z) {
+    private VolcanicBlock placed(int x, int y, int z) {
         return placed.get(key(x, y, z));
     }
 
     /** {@code BlockState.isAir} (and NeoForge's {@code isEmpty}, which is true for the air blocks). */
     boolean isAir(int x, int y, int z) {
-        final VolcanoBlock b = placed(x, y, z);
-        return b != null ? b.kind() == VolcanoKind.AIR : view.ground(x, y, z).isAir();
+        final VolcanicBlock b = placed(x, y, z);
+        return b != null ? b.kind() == VolcanicKind.AIR : view.ground(x, y, z).isAir();
     }
 
     /** {@code FluidHelpers.isAirOrEmptyFluid}: air or a fluid's own source block. */
     boolean isAirOrEmptyFluid(int x, int y, int z) {
-        final VolcanoBlock b = placed(x, y, z);
-        return b != null ? b.kind() == VolcanoKind.AIR || b.kind().isFluid() : view.ground(x, y, z).isAirOrEmptyFluid();
+        final VolcanicBlock b = placed(x, y, z);
+        return b != null ? b.kind() == VolcanicKind.AIR || b.kind().isFluid() : view.ground(x, y, z).isAirOrEmptyFluid();
     }
 
     /** {@code BlockState.liquid}: a fluid block. */
     boolean liquid(int x, int y, int z) {
-        final VolcanoBlock b = placed(x, y, z);
+        final VolcanicBlock b = placed(x, y, z);
         return b != null ? b.kind().isFluid() : view.ground(x, y, z).hasFluid();
     }
 
@@ -79,22 +97,55 @@ final class VolcanoLevel {
         return isAirOrEmptyFluid(x, y, z);
     }
 
-    /** {@code BlockState.isSolid}: everything but air and fluids (the terrain has no plants). */
+    /** {@code BlockState.isSolid}: everything but air, fluids and groundcover (the terrain has no plants). */
     boolean isSolid(int x, int y, int z) {
-        return !isAirOrEmptyFluid(x, y, z);
+        final VolcanicBlock b = placed(x, y, z);
+        return b != null ? b.kind().isSolid() : !view.ground(x, y, z).isAirOrEmptyFluid();
+    }
+
+    /** {@code isFaceSturdy(UP)}: a full block, on which groundcover survives. */
+    boolean sturdyTop(int x, int y, int z) {
+        final VolcanicBlock b = placed(x, y, z);
+        return b != null ? b.kind().isSolid() : view.ground(x, y, z).sturdyTop();
+    }
+
+    /** The fluid block kind of the fluid at a position (a source), or null where there is none. */
+    VolcanicKind fluidKind(int x, int y, int z) {
+        final VolcanicBlock b = placed(x, y, z);
+        if (b != null) {
+            return b.kind().isFluid() ? b.kind() : null;
+        }
+        final TreeGround g = view.ground(x, y, z);
+        return g == TreeGround.WATER ? VolcanicKind.WATER : g == TreeGround.SALT_WATER ? VolcanicKind.SALT_WATER : null;
+    }
+
+    /** The rock index of the hardened rock block at a position ({@code tfc:rock/hardened/<rock>}), or -1 (never the terrain). */
+    int hardenedRock(int x, int y, int z) {
+        final VolcanicBlock b = placed(x, y, z);
+        return b != null && b.kind() == VolcanicKind.HARDENED_ROCK ? b.rock() : -1;
+    }
+
+    /** {@code minecraft:packed_ice}, the block of the glacial springs: the terrain's only. */
+    boolean isPackedIce(int x, int y, int z) {
+        return placed(x, y, z) == null && view.packedIce(x, y, z);
+    }
+
+    /** {@code minecraft:blue_ice}, the block of the ice sheet springs: the terrain's only. */
+    boolean isBlueIce(int x, int y, int z) {
+        return placed(x, y, z) == null && view.blueIce(x, y, z);
     }
 
     /** {@code getBlock() instanceof ILeavesBlock}. */
     boolean isLeaves(int x, int y, int z) {
-        final VolcanoBlock b = placed(x, y, z);
+        final VolcanicBlock b = placed(x, y, z);
         return b == null && view.ground(x, y, z).isLeaves();
     }
 
     /** The fluid of the block at a position. */
     Fluid fluid(int x, int y, int z) {
-        final VolcanoBlock b = placed(x, y, z);
+        final VolcanicBlock b = placed(x, y, z);
         if (b != null) {
-            return b.kind().isFluid() ? Fluid.OTHER : Fluid.EMPTY;
+            return b.kind() == VolcanicKind.WATER ? Fluid.WATER : b.kind().isFluid() ? Fluid.OTHER : Fluid.EMPTY;
         }
         final TreeGround g = view.ground(x, y, z);
         return g == TreeGround.WATER ? Fluid.WATER : g == TreeGround.SALT_WATER ? Fluid.OTHER : Fluid.EMPTY;
@@ -117,9 +168,9 @@ final class VolcanoLevel {
 
     /** The rock index of the raw rock block at a position ({@code tfc:rock/raw/<rock>}), or -1 for any other block. */
     int rawRock(int x, int y, int z) {
-        final VolcanoBlock b = placed(x, y, z);
+        final VolcanicBlock b = placed(x, y, z);
         if (b != null) {
-            return b.kind() == VolcanoKind.RAW_ROCK ? b.rock() : -1;
+            return b.kind() == VolcanicKind.RAW_ROCK ? b.rock() : -1;
         }
         return view.ground(x, y, z) == TreeGround.STONE ? view.rockAt(x, y, z) : -1;
     }

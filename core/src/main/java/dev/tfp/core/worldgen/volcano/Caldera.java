@@ -6,7 +6,9 @@
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/world/feature/FloodFillLakeFeature.java @ c3b4d9536, with
  * src/main/java/net/dries007/tfc/world/feature/FloodFillLakeConfig.java (shouldReplace) and
- * src/main/resources/data/tfc/worldgen/configured_feature/volcano_caldera.json (lava, replaces water, overfill)
+ * src/main/resources/data/tfc/worldgen/configured_feature/{volcano_caldera,tuya_caldera,fuji_caldera,fuji_spring,
+ * tahoma_caldera,tahoma_spring,kelimutu_lava,kelimutu_spring_water,kelimutu_water,wizard_island_lava,wizard_island_spring}.json
+ * (all overfill; lava and spring water replace water, the Kelimutu water lake replaces no fluid)
  */
 package dev.tfp.core.worldgen.volcano;
 
@@ -16,7 +18,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * TFC's {@code volcano_caldera}: a flood fill lake of lava in a cone's crater. From the crater floor it fills the layer
+ * TFC's flood fill lakes ({@code volcano_caldera} and the crater lakes of the tuyas and stratovolcanoes): a lake of lava,
+ * spring water or water in a crater. From the crater floor it fills the layer
  * above, then overfills layer by layer while each layer stays bounded inside the chunk and 14 blocks around it, so the lava
  * rises to the crater's rim. Fewer than 20 blocks fill nothing. Pure: it reads and writes a {@link VolcanoLevel} only.
  */
@@ -26,8 +29,25 @@ final class Caldera {
 
     private Caldera() {}
 
-    /** {@code FloodFillLakeFeature.place} at origin {@code (x, y, z)}. Returns whether lava was placed. */
+    /**
+     * {@code FloodFillLakeConfig} (every TFC config overfills).
+     *
+     * @param state        the fluid placed
+     * @param replaceWater whether {@code replace_fluids} holds {@code minecraft:water}
+     */
+    record Config(VolcanicKind state, boolean replaceWater, boolean overfill) {
+        static final Config LAVA = new Config(VolcanicKind.LAVA, true, true);
+        static final Config SPRING_WATER = new Config(VolcanicKind.SPRING_WATER, true, true);
+        static final Config WATER = new Config(VolcanicKind.WATER, false, true);
+    }
+
+    /** {@code volcano_caldera} at origin {@code (x, y, z)}. Returns whether lava was placed. */
     static boolean place(VolcanoLevel level, int x, int y, int z) {
+        return place(level, x, y, z, Config.LAVA);
+    }
+
+    /** {@code FloodFillLakeFeature.place} at origin {@code (x, y, z)}. Returns whether the fluid was placed. */
+    static boolean place(VolcanoLevel level, int x, int y, int z, Config config) {
         final int chunkX = x >> 4;
         final int chunkZ = z >> 4;
         // Leeway so we can check outside this box
@@ -41,14 +61,14 @@ final class Caldera {
         }
 
         // Initial placement is surface level, so start filling one block above
-        if (floodFill(level, x, py + 1, z, box, filled)) {
+        if (floodFill(level, x, py + 1, z, box, filled, config)) {
             // Minimum size, don't fill awkward tiny lakes
             if (filled.size() >= 20) {
                 for (long p : filled) {
                     final int fx = unpackX(p);
                     final int fy = unpackY(p);
                     final int fz = unpackZ(p);
-                    level.set(fx, fy, fz, VolcanoKind.LAVA);
+                    level.set(fx, fy, fz, config.state());
                 }
                 for (long p : filled) {
                     // If we're at the bottom
@@ -71,15 +91,18 @@ final class Caldera {
         }
     }
 
-    private static boolean floodFill(VolcanoLevel level, int x, int y, int z, Box box, Set<Long> filled) {
-        if (!floodFillLayer(level, x, y, z, box, filled)) {
+    private static boolean floodFill(VolcanoLevel level, int x, int y, int z, Box box, Set<Long> filled, Config config) {
+        if (!floodFillLayer(level, x, y, z, box, filled, config)) {
             return false; // Failed the initial flood fill, exit early
+        }
+        if (!config.overfill()) {
+            return true; // No overfilling, result is valid
         }
         // Initial result is valid, overfill upwards
         final Set<Long> nextFilled = new LinkedHashSet<>(filled);
         int startY = y + 1;
         final int prevSize = filled.size();
-        while (floodFillLayer(level, x, startY, z, box, nextFilled)) {
+        while (floodFillLayer(level, x, startY, z, box, nextFilled, config)) {
             filled.addAll(nextFilled);
             if (prevSize == filled.size()) {
                 // The last move upwards added no new filled area (TFC never updates prevSize)
@@ -90,9 +113,9 @@ final class Caldera {
         return true;
     }
 
-    private static boolean floodFillLayer(VolcanoLevel level, int x, int y, int z, Box box, Set<Long> filled) {
+    private static boolean floodFillLayer(VolcanoLevel level, int x, int y, int z, Box box, Set<Long> filled, Config config) {
         // First check the start position, this must be fillable
-        if (!isFloodFillable(level, x, y, z)) {
+        if (!isFloodFillable(level, x, y, z, config)) {
             return false;
         }
         final Deque<Long> queue = new ArrayDeque<>();
@@ -111,7 +134,7 @@ final class Caldera {
                 final int mz = az + d[2];
                 final long key = VolcanoLevel.key(mx, my, mz);
                 if (!filled.contains(key) && my <= maximumY) {
-                    if (isFloodFillable(level, mx, my, mz)) {
+                    if (isFloodFillable(level, mx, my, mz, config)) {
                         if (box.isInside(mx, mz)) {
                             // Valid flood fill location
                             queue.addFirst(key);
@@ -128,9 +151,13 @@ final class Caldera {
         return !filled.isEmpty();
     }
 
-    /** Not solid, not leaves, and air or {@code minecraft:water} ({@code replace_fluids}). */
-    private static boolean isFloodFillable(VolcanoLevel level, int x, int y, int z) {
-        return !level.isSolid(x, y, z) && !level.isLeaves(x, y, z) && level.fluid(x, y, z) != VolcanoLevel.Fluid.OTHER;
+    /** Not solid, not leaves, and no fluid or one of {@code replace_fluids} ({@code minecraft:water} or none). */
+    private static boolean isFloodFillable(VolcanoLevel level, int x, int y, int z, Config config) {
+        if (level.isSolid(x, y, z) || level.isLeaves(x, y, z)) {
+            return false;
+        }
+        final VolcanoLevel.Fluid fluid = level.fluid(x, y, z);
+        return fluid == VolcanoLevel.Fluid.EMPTY || (fluid == VolcanoLevel.Fluid.WATER && config.replaceWater());
     }
 
     static int unpackX(long key) {

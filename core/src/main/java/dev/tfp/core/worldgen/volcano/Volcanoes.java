@@ -27,8 +27,8 @@ import java.util.function.Consumer;
  * runs the features of the biome at its centre, each with its own {@link FeatureRandom} at the chunk, in one level that sees
  * the blocks its earlier features placed. The cones' heights are {@link #cones()}. Immutable and thread-safe.
  * <p>
- * Not ported (ledger): the cones' rivulets, pumice and obsidian patches, the {@code #tfc:feature/volcanic} lava surface
- * springs, the other centered features (tuyas, tuff rings, atolls, stratovolcanoes) and their fissures.
+ * The cones' rivulets and groundcover patches, the springs and the features of the tuyas, stratovolcanoes and shield
+ * volcanoes are {@link VolcanicFeatures} (PAR-WORLD-14), which runs these too.
  */
 public final class Volcanoes {
     /** The fissure configs of {@code random_volcano_fissure}, in its list order: 3 topaz, 1 diamond, 4 plain. */
@@ -125,29 +125,47 @@ public final class Volcanoes {
         }
         final VolcanoLevel level = new VolcanoLevel(view);
         if (hasConeFeatures(biome)) {
-            final long center = volcanoCenter(chunkX, chunkZ, view);
-            // volcano_caldera: placement tfc:volcano (center), heightmap WORLD_SURFACE_WG; no draws
-            if (center != Long.MIN_VALUE) {
-                final int cx = CinderCones.unpackX(center);
-                final int cz = CinderCones.unpackZ(center);
-                Caldera.place(level, cx, view.worldSurface(cx, cz), cz);
-            }
-            // random_volcano_fissure: the selector draws first, then the chosen fissure's volcano placement
-            final XoroshiroRandomSource random = fissure.chunk(chunkX, chunkZ);
-            final Fissure.Decoration decoration = VOLCANO_FISSURES[random.nextInt(VOLCANO_FISSURES.length)];
-            if (center != Long.MIN_VALUE) {
-                final int cx = CinderCones.unpackX(center);
-                final int cz = CinderCones.unpackZ(center);
-                placeVolcanoFissure(level, random, cx, view.worldSurface(cx, cz), cz, decoration);
-            }
+            placeCaldera(level, chunkX, chunkZ);
+            placeFissure(level, chunkX, chunkZ);
         }
+        placeSprings(level, chunkX, chunkZ, springs);
+        return level.blocks();
+    }
+
+    /** {@code volcano_caldera} of a chunk: placement {@code tfc:volcano} (center), heightmap {@code WORLD_SURFACE_WG}; no draws. */
+    void placeCaldera(VolcanoLevel level, int chunkX, int chunkZ) {
+        final VolcanoView view = level.view();
+        final long center = volcanoCenter(chunkX, chunkZ, view);
+        if (center != Long.MIN_VALUE) {
+            final int cx = CinderCones.unpackX(center);
+            final int cz = CinderCones.unpackZ(center);
+            Caldera.place(level, cx, view.worldSurface(cx, cz), cz);
+        }
+    }
+
+    /** {@code random_volcano_fissure} of a chunk: the selector draws first, then the chosen fissure's volcano placement. */
+    void placeFissure(VolcanoLevel level, int chunkX, int chunkZ) {
+        final VolcanoView view = level.view();
+        final long center = volcanoCenter(chunkX, chunkZ, view);
+        final XoroshiroRandomSource random = fissure.chunk(chunkX, chunkZ);
+        final Fissure.Decoration decoration = VOLCANO_FISSURES[random.nextInt(VOLCANO_FISSURES.length)];
+        if (center != Long.MIN_VALUE) {
+            final int cx = CinderCones.unpackX(center);
+            final int cz = CinderCones.unpackZ(center);
+            placeVolcanoFissure(level, random, cx, view.worldSurface(cx, cz), cz, decoration);
+        }
+    }
+
+    /** The hot spring feature of a chunk's biome list. */
+    void placeSprings(VolcanoLevel level, int chunkX, int chunkZ, Springs springs) {
+        final int x0 = chunkX << 4;
+        final int z0 = chunkZ << 4;
         switch (springs) {
             case ACTIVE -> randomSpring(level, activeSprings.chunk(chunkX, chunkZ), x0, z0, 50, ACTIVE_SPRINGS);
             case EMPTY -> randomSpring(level, emptySprings.chunk(chunkX, chunkZ), x0, z0, 70, EMPTY_SPRINGS);
             case LAVA -> lavaSpring(level, lavaSpring.chunk(chunkX, chunkZ), x0, z0);
             case NONE -> { }
         }
-        return level.blocks();
     }
 
     /**

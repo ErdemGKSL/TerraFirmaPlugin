@@ -8,6 +8,7 @@ package dev.tfp.core.worldgen;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.tfp.core.worldgen.chunk.PlaceholderRocks;
+import dev.tfp.core.worldgen.volcano.VolcanicFeatures;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -35,8 +36,10 @@ import org.junit.jupiter.api.Test;
  * are not in the table (M2-GEN-13). The table is the golden: the test reads only the resources and the volcano classes.
  *
  * <p>The Java rules are private or package-private in {@code volcano}, so they are read by reflection, as
- * {@code PlantPlacementGoldenTest} does. A row with no Java rule must be listed in
- * {@code volcano_features_open_gaps.txt}; it gets no rule here.
+ * {@code PlantPlacementGoldenTest} does; the rules of PAR-WORLD-14 (springs, rivulets, crater lakes, groundcover patches,
+ * the fissure selectors of the tuyas and stratovolcanoes, ice and snow) are read through {@code VolcanicFeatures.rules()},
+ * which gives each rule's row cells from the constants the features run. A row with no Java rule must be listed in
+ * {@code volcano_features_open_gaps.txt}; it gets no rule here. The file is empty since PAR-WORLD-14.
  */
 class VolcanoFeatureGoldenTest {
     static final String TABLE = "dev/tfp/core/worldgen/volcano_features.tsv";
@@ -77,7 +80,15 @@ class VolcanoFeatureGoldenTest {
         JAVA_RULES.put("tfc:diamond_volcano_fissure", "Volcanoes.VOLCANO_FISSURES");
         JAVA_RULES.put("tfc:volcano_fissure", "Volcanoes.placeVolcanoFissure");
         JAVA_RULES.put("tfc:volcano_caldera", "Caldera.place");
+        for (String id : VolcanicFeatures.rules().keySet()) {
+            JAVA_RULES.put(id, "VolcanicFeatures.rules");
+        }
     }
+
+    /** The table columns a {@code VolcanicFeatures} rule is compared on: all but the id and TFC's file columns. */
+    static final List<String> RULE_COLUMNS = List.of("group", "state", "radius", "count", "allow_underwater", "overfill",
+        "decoration_gem", "decoration_rarity", "decoration_radius", "decoration_count", "replace_rocks", "list_len", "features",
+        "valid_blocks", "placed", "placement", "placed_rarity", "placed_max_elevation");
 
     /** The TFC state name of each {@code VolcanoKind} of a hot spring or fissure fluid. */
     static final Map<String, String> FLUID_KINDS = Map.of("air", "AIR", "spring_water", "SPRING_WATER", "lava", "LAVA");
@@ -166,6 +177,30 @@ class VolcanoFeatureGoldenTest {
         assertThat(row("tfc:lava_hot_spring").get("placed_max_elevation")).isEqualTo("40");
         final Object climate = staticField(VOLCANOES_CLASS, "LAVA_SPRING_CLIMATE");
         assertThat(instanceField(climate, "maxElevation")).isEqualTo(40);
+    }
+
+    @Test
+    void volcanicFeatureRulesMatchTfcRows() throws IOException {
+        final Map<String, Map<String, String>> rules = VolcanicFeatures.rules();
+        // PAR-WORLD-14: the 51 ids that were open gaps
+        assertThat(rules).hasSize(51);
+        final Map<String, Integer> groups = new HashMap<>();
+        for (Map.Entry<String, Map<String, String>> rule : rules.entrySet()) {
+            final Map<String, String> row = row(rule.getKey());
+            assertThat(RULE_COLUMNS).as("%s cells", rule.getKey()).containsAll(rule.getValue().keySet());
+            for (String column : RULE_COLUMNS) {
+                assertThat(rule.getValue().getOrDefault(column, "")).as("%s %s", rule.getKey(), column).isEqualTo(row.get(column));
+            }
+            groups.merge(row.get("group"), 1, Integer::sum);
+        }
+        assertThat(groups).isEqualTo(Map.of("simple_block", 8, "random_patch", 8, "fissure", 3, "spring", 7, "flood_fill_lake", 10,
+            "rivulet", 5, "ice_and_snow", 1, "random_selector", 9));
+    }
+
+    @Test
+    void openGapsAreEmpty() throws IOException {
+        assertThat(openGaps()).isEmpty();
+        assertThat(JAVA_RULES).hasSize(65);
     }
 
     @Test

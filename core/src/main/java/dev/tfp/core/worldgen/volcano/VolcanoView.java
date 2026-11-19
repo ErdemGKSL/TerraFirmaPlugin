@@ -17,4 +17,17 @@ public interface VolcanoView extends TreeView {
      * holds there: TFC's {@code RockData.getRock(x, y, z)}.
      */
     int rockAt(int x, int y, int z);
+
+    /**
+     * Whether the terrain block at a position is {@code minecraft:packed_ice}, the only block TFC's glacial springs start
+     * in. The terrain holds none until the glacier builders place it, so the default is false.
+     */
+    default boolean packedIce(int x, int y, int z) {
+        return false;
+    }
+
+    /** Whether the terrain block at a position is {@code minecraft:blue_ice}, the block of TFC's ice sheet springs. */
+    default boolean blueIce(int x, int y, int z) {
+        return false;
+    }
 }
