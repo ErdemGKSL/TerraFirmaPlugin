@@ -18,6 +18,7 @@ import dev.tfp.core.animal.AnimalRecord;
 import dev.tfp.core.animal.AnimalScale;
 import dev.tfp.core.animal.AnimalSpawnRoll;
 import dev.tfp.core.animal.Carrier;
+import dev.tfp.core.animal.ModelVariants;
 import dev.tfp.core.animal.CarrierTable;
 import dev.tfp.core.animal.WildAnimalRoll;
 import dev.tfp.core.clock.ClockSnapshot;
@@ -54,6 +55,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityEnterLoveModeEvent;
+import org.bukkit.persistence.PersistentDataType;
 
 /**
  * TFC animals on vanilla carriers (M5-ENT-01): spawning, the stored record ({@link AnimalPdc}), the model and its
@@ -93,6 +95,8 @@ public final class AnimalService implements Listener {
     private final CarrierTable table = CarrierTable.get();
     private final Map<UUID, Tracked> tracked = new ConcurrentHashMap<>();
     private final SpeciesBehaviours behaviours;
+    /** The id of the model attached by {@link #ensureModel}, so a changed look (age, gender) swaps it. */
+    static final NamespacedKey MODEL_KEY = new NamespacedKey("tfp", "animal_model");
 
     /** One running check. {@code applied} is the stage last applied to the carrier (TFC's {@code lastAge}). */
     private static final class Tracked {
@@ -276,13 +280,34 @@ public final class AnimalService implements Listener {
         }
     }
 
-    /** {@link #applyBody}, attaching the species model first if the carrier has none and models are loaded. */
+    /** The model for the animal's gender and stage (PAR-FAUNA-03 variants), else the carrier table's model. */
+    Optional<String> modelFor(AnimalRecord record, LivestockAge age) {
+        return ModelVariants.get().pick(record.species(), record.state().male(), age)
+                .or(() -> table.find(record.species()).flatMap(Carrier::modelOrFallback));
+    }
+
+    /**
+     * {@link #applyBody}, attaching the species model first if the carrier has none and models are loaded, and swapping it
+     * when the animal's look changed (older, a different texture). The id of the model on the carrier is kept in its PDC.
+     */
     private void ensureModel(Entity e, AnimalRecord record, LivestockAge age) {
         EntityModels m = models.get();
-        Optional<String> modelId = table.find(record.species()).flatMap(Carrier::modelOrFallback);
-        if (modelId.isPresent() && m.isReady() && m.modelCount(e) == 0
-                && !m.attach(e, modelId.get(), AnimalScale.modelMultiplier(record.geneticSize(), age))) {
-            logger.warning("Animal " + e.getUniqueId() + ": model " + modelId.get() + " is not loaded");
+        Optional<String> modelId = modelFor(record, age);
+        if (modelId.isPresent() && m.isReady()) {
+            String id = modelId.get();
+            String current = e.getPersistentDataContainer().get(MODEL_KEY, PersistentDataType.STRING);
+            if (m.modelCount(e) > 0 && current != null && !current.equals(id)) {
+                m.detach(e);
+            }
+            if (m.modelCount(e) == 0) {
+                if (m.attach(e, id, AnimalScale.modelMultiplier(record.geneticSize(), age))) {
+                    e.getPersistentDataContainer().set(MODEL_KEY, PersistentDataType.STRING, id);
+                } else {
+                    logger.warning("Animal " + e.getUniqueId() + ": model " + id + " is not loaded");
+                }
+            } else if (current == null) {
+                e.getPersistentDataContainer().set(MODEL_KEY, PersistentDataType.STRING, id);
+            }
         }
         applyBody(e, record, age);
     }
@@ -440,7 +465,7 @@ public final class AnimalService implements Listener {
                 "debug.animal.info.livestock", LivestockRules.familiarityAt(s, now.playerTicks()), s.uses(),
                 sp.adulthoodDays())));
         lines.add(messages.get(locale, "debug.animal.info.model",
-                carrier.flatMap(Carrier::modelOrFallback).orElseGet(() -> messages.get(locale,
+                modelFor(r, age).orElseGet(() -> messages.get(locale,
                         "debug.animal.info.model_none")),
                 models.get().modelCount(e),
                 checking(e) ? messages.get(locale, "debug.animal.info.check_running", checks(e))

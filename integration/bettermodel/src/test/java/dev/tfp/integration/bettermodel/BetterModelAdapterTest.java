@@ -63,7 +63,8 @@ class BetterModelAdapterTest {
     @Test
     void jarModelsListsTheSpikeModels() throws Exception {
         List<ModelSource> models = JarModels.load(getClass().getClassLoader(), JarModels.DEFAULT_FOLDER);
-        assertThat(models).extracting(ModelSource::id).containsExactly("tfp_example_bovine", "tfp_deer");
+        assertThat(models).extracting(ModelSource::id).contains("tfp_example_bovine", "tfp_deer", "tfp_cow", "tfp_cow_m", "tfp_cow_old")
+                .hasSizeGreaterThan(90).doesNotHaveDuplicates(); // PAR-FAUNA-03: every TFC model and its variants
         try (InputStream in = models.getFirst().open().open()) {
             String json = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             assertThat(json).contains("\"elements\"").contains("\"outliner\"");
