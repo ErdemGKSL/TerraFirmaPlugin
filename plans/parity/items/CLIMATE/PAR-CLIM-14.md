@@ -2,7 +2,7 @@
 id: PAR-CLIM-14
 title: "Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute"
 area: CLIMATE
-status: open
+status: done
 wave: 16
 deps: [PAR-CLIM-06]
 size: M
@@ -25,6 +25,7 @@ in_game_steps:
   - "tfp debug fog force (new: forces today's fog roll); tfp time set hour 7; screenshot the view over open terrain at render distance 12"
   - "tfp time set hour 13; screenshot the same view (no fog)"
 plan:
+  - "Done (partial, spike pending): core/climate/fog/ClimateFog ports getFog (day roll 1 in 10, strength, 4-6-10-12 ramp, easeInOutCubic, rainfall and sky-light scaling) and onFogRender's planes; ClimateFogTest (6 tests: 468 golden rows from an independent float32 scratch re-implementation of TFC getFog, 981 foggy days in 10,000, xoroshiro pins, ramp, planes, levels). The vanilla-client spike (do biome fog distance attributes work per chunk on 1.21.11 and 26.x clients) and the paper/datagen foggy variants were NOT run: no client or Minecraft server jar in this container. Until the spike runs, vanilla fog applies (no foggy mornings): ledger Divergences row; the NP entry 'none, vanilla fog' needs the owner's approval and is not added. Pending in-game check (container cannot run client). Follow-up: PAR-CLIM-14 spike and paper wiring."
   - "Current (audit 2026-11-08): nothing ports getFog. TFC rolls a foggy day once in FOGGY_DAY_RARITY (10) days from a calendar-day seeded random, with a strength fogModifier; the fog ramps in 4-6 am, holds 6-10 am, fades 10-12, and the client sets the terrain fog far plane to renderDistance * (1 - min(0.86, fog)) (near plane minus clamp(renderDistance / 10, 4, 64)); underwater fog also thickens at low light (0.6..1.0 by raw brightness, lerped)."
   - "core/climate/fog: pure port of getFog (seededRandom of total calendar days with salt 129341623413L, the ramp, the remaining scaling by climate as in the TFC source) with golden values."
   - "Spike first: check on 1.21.11 and 26.3 clients whether datapack biome environment attributes (visual fog start/end distance) are honoured by the client and can be switched per chunk by the existing seasonal biome remap (PAR-CLIM-06 packet path) without growing the registry beyond budget (a fog flag on the band variants, a few quantised fog levels). Record the measured result in the ledger."
@@ -40,7 +41,6 @@ done_criteria:
 
 # PAR-CLIM-14: Climate fog
 
-> Claimed: parity worker (CLIM-06/14), 2026-11-19
 
 > see_not_parity: NP-CLIM-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

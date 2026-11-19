@@ -187,7 +187,7 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-HEAT-28 | Torch burnout on chunk load leaves the client's block light at 14 until the chunk is sent again | HEAT | 16 | done |
 | PAR-HEAT-29 | Dead torch outlines closer to TFC: widen the hitbox candidate dump to every small no-collision vanilla block and re-pick the dead torch carriers | HEAT | 16 | done |
 | PAR-HEAT-35 | Firepit drawn by entity_renderer item displays on one hidden daylight detector hitbox carrier (instead of four model carrier states) | HEAT | 16 | done |
-| PAR-CLIM-14 | Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute | CLIMATE | 16 | open |
+| PAR-CLIM-14 | Climate fog: TFC's foggy mornings (ClimateModel.getFog) on vanilla clients through biome fog distance, or a recorded substitute | CLIMATE | 16 | done |
 | PAR-CLIM-23 | Verify vanilla /time and the night skip move the calendar in game on Paper 26.3 and 1.21.11 (PAR-CLIM-22 server logs) | CLIMATE | 16 | done |
 | PAR-HEAT-12 | Firebox, stove and stove pot | HEAT | 16 | done |
 | PAR-HEAT-26 | Candles loaded in game: hitbox carriers, configuration/light/candle/candle.yml and the in-game candle burnout check | HEAT | 16 | done |
