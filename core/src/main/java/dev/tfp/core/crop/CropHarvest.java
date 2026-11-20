@@ -29,6 +29,23 @@ public final class CropHarvest {
     }
 
     /**
+     * The food item names of a pickable crop's two fruits (TFC's {@code Crop} constructors): the first fruit is null when the crop has
+     * none. Both are {@code Food} names, so the item is {@code tfp:food/<name>}.
+     */
+    public record Fruits(String first, String second) {
+    }
+
+    /** The fruits of {@code type}, or null when the crop is not picked by hand. */
+    public static Fruits fruits(CropType type) {
+        return switch (type) {
+            case TOMATO -> new Fruits(null, "tomato");
+            case RED_BELL_PEPPER -> new Fruits("green_bell_pepper", "red_bell_pepper");
+            case YELLOW_BELL_PEPPER -> new Fruits("green_bell_pepper", "yellow_bell_pepper");
+            default -> null;
+        };
+    }
+
+    /**
      * TFC's pick branches: at {@code maxAge - 1} the first fruit (only when the crop has one), at {@code maxAge} the second.
      *
      * @param age        the current age
