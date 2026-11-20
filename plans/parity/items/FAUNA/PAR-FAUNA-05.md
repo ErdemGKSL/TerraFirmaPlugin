@@ -2,7 +2,7 @@
 id: PAR-FAUNA-05
 title: "Livestock: feeding, familiarity and breeding interactions"
 area: FAUNA
-status: open
+status: done
 wave: 41
 deps: [PAR-FAUNA-04]
 size: M
@@ -35,5 +35,7 @@ done_criteria:
 # PAR-FAUNA-05: Livestock: feeding, familiarity and breeding interactions
 
 > see_not_parity: NP-UI-01, NP-SIM-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
+
+Done: SpeciesBehaviour livestock module: feeding, mating, pregnancy, birth, spawnOffspring; LivestockModuleTest (2); verification docs/verification/PAR-FAUNA-05/.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

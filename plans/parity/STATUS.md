@@ -358,11 +358,11 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-03 | Entity texture variants, gendered and aged textures, render review | FAUNA | 40 | done |
 | PAR-FAUNA-04 | Spawning by climate on Paper | FAUNA | 40 | done |
 | PAR-DECO-17 | Wood workbenches: the 20 tfc:wood/workbench blocks as CE blocks that open the 3x3 crafting grid | DECO | 41 | open |
-| PAR-FAUNA-05 | Livestock: feeding, familiarity and breeding interactions | FAUNA | 41 | open |
+| PAR-FAUNA-05 | Livestock: feeding, familiarity and breeding interactions | FAUNA | 41 | done |
 | PAR-PROC-06 | Loom: weaving cloth, burlap, wool, silk | PROC | 41 | open |
 | PAR-PROC-07 | Sewing table GUI | PROC | 41 | open |
 | PAR-PROC-15 | Scribing table | PROC | 41 | open |
-| PAR-FAUNA-06 | Animal products: milk, wool, eggs; sheared look | FAUNA | 42 | open |
+| PAR-FAUNA-06 | Animal products: milk, wool, eggs; sheared look | FAUNA | 42 | done |
 | PAR-FAUNA-08 | Livestock AI and roster: graze, follow food, herd; all 18 domestic species | FAUNA | 42 | open |
 | PAR-FAUNA-09 | Prey AI and wild animals | FAUNA | 42 | open |
 | PAR-FAUNA-11 | Aquatic animals: fish, squid, jellyfish, dolphins, orcas, manatees; mob buckets | FAUNA | 42 | open |

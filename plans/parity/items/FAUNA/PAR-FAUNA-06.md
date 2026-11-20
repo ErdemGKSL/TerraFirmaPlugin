@@ -2,7 +2,7 @@
 id: PAR-FAUNA-06
 title: "Animal products: milk, wool, eggs; sheared look"
 area: FAUNA
-status: open
+status: done
 wave: 42
 deps: [PAR-FAUNA-05, PAR-INFRA-04]
 size: M
@@ -34,5 +34,7 @@ done_criteria:
 ---
 
 # PAR-FAUNA-06: Animal products: milk, wool, eggs; sheared look
+
+Done: ProductsModule: milk, shears, eggs, sheared look; ProductPdc; several behaviours per species; verification docs/verification/PAR-FAUNA-06/.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
