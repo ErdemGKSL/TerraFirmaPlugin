@@ -2,7 +2,7 @@
 id: PAR-WORLD-30
 title: "Vein step wiring: biome vein passes, kaolin disc, projected, near-lava and rock-writing veins in TfcTerrain"
 area: WORLD
-status: open
+status: done
 wave: 22
 deps: [PAR-WORLD-08, PAR-WORLD-04]
 size: M
@@ -28,6 +28,9 @@ plan:
   - "Extend the terrain palette with the non-ore blocks the veins write (dike rocks, gravel, marble, coal, salts) so the rock-writing types are no longer held back; a pick that is a rock becomes the rock later veins see (OreVeins already does this)."
   - "Kaolin disc: only in `#in_biome/veins/kaolin` biomes and where the chunk climate has average temperature >= 18 and groundwater >= 300 (`KaolinDisc.MIN_TEMPERATURE/MIN_GROUNDWATER`), after the soil exists (needs PAR-WORLD-04's kaolin clay blocks)."
   - "Rerun PAR-WORLD-17's `ore.census` and PAR-REL-12's `ore.overlay.budget` (delegated server run) and record the numbers in docs/perf/ore-overlay-budget.md."
+  - "Kaolin clays and lignite/bituminous coal/halite have no CE blocks yet (PAR-WORLD-04 and PAR-DECO-08 own them): VeinStep writes them as CE blocks when CE knows tfp:{kaolin_clay_grass,red,pink,white_kaolin_clay,lignite,bituminous_coal,halite}, else vanilla placeholders (grass, red/pink/white terracotta, coal block, calcite). Those owners must keep these ids. Indicators of disc/kaolin veins (blood lily) and underground indicators stay open (ledger)."
+  - "Pending in-game check (container cannot run client): delegated server run of PAR-WORLD-17's ore.census and PAR-REL-12's ore.overlay.budget on a fresh world, numbers into docs/perf/ore-overlay-budget.md."
+  - "Done: VeinStep (main tag all types incl. dikes, gravel, projected, near-lava; kaolin disc in its biomes/climate over soils; montane/collisional/river passes from the 3x3 chunk biomes, fixed order) wired into TfcTerrain.fill with the Ground world view; palette adds hardened rocks and rock gravels. Tests VeinStepWiringTest (8), OreVeinWiringTest (5). Divergence row for the fixed tag order."
 tests:
   - "paper: VeinStep wiring test: biome passes only in their biomes, projected types follow the height, near-lava types only near lava, kaolin only on soil and in its climate"
   - "itest: ore.census and ore.overlay.budget rerun"

@@ -30,7 +30,8 @@ import dev.tfp.core.worldgen.height.LakeCarving;
 import dev.tfp.core.worldgen.height.SurfaceHeights;
 import dev.tfp.core.worldgen.noise.Noise2D;
 import dev.tfp.core.worldgen.ore.OreVeins;
-import dev.tfp.core.worldgen.ore.VeinBlock;
+import dev.tfp.core.worldgen.ore.KaolinDisc;
+import dev.tfp.core.worldgen.groundcover.ClimateFilter;
 import dev.tfp.core.worldgen.plant.PlantBlock;
 import dev.tfp.core.worldgen.plant.PlantState;
 import dev.tfp.core.worldgen.plant.Plants;
@@ -105,9 +106,11 @@ final class TfcTerrain {
     /** PAR-WORLD-29: TFC's aquifer barrier noise of this seed (immutable, shared by every chunk's {@link Aquifer}). */
     private final AquiferBarrierNoise barrier;
     private final BlockData[] surfaceBlocks = surfaceBlocks();
-    /** The ore decision of this world (M2-GEN-10): TFC's cluster veins, in the vein tag's order. */
+    /** PAR-WORLD-30: the vein step of this world (every type of the vein tags, the kaolin disc). */
+    private final VeinStep veinStep;
+    /** The ore decision of the main vein tag (M2-GEN-10), which the vein indicators read. */
     private final OreVeins ores;
-    /** The palette ids: {@link #ROCK_IDS}, then the ore blocks ({@link OreVeins#oreIds()}) from index {@code ROCK_IDS.size()}. */
+    /** The palette ids ({@link VeinStep#paletteIds}): {@link #ROCK_IDS}, the ores, then the other rocks the veins write. */
     private final List<String> paletteIds;
     private volatile RockPalette<BlockData> palette;
     /** The groundcover and deposit decisions of this world (M2-GEN-11), in TFC's decoration step order. */
@@ -146,8 +149,9 @@ final class TfcTerrain {
         this.biomes = resolveBiomes(key -> Registry.BIOME.get(key));
         this.fallbackBiomes = countFallbacks(biomes);
         this.biomeList = Arrays.stream(biomes).distinct().toList();
-        this.ores = new OreVeins(seed, OreVeinResources.fromJar(TfcTerrain.class.getClassLoader()), ROCK_IDS);
-        this.paletteIds = paletteIds(ores);
+        this.veinStep = new VeinStep(seed, OreVeinResources.jar(TfcTerrain.class.getClassLoader()), ROCK_IDS);
+        this.ores = veinStep.main();
+        this.paletteIds = veinStep.paletteIds();
         this.deposits = new Deposits(seed);
         this.indicators = new VeinIndicators(ores);
         this.shoreCover = new ShoreGroundcover(seed);
@@ -199,28 +203,6 @@ final class TfcTerrain {
             tops[i] = column.terrainTop(TOP_FLOOR_Y);
         }
         return new Columns(heights, biomes, chunk.columns(), tops);
-    }
-
-    /** The palette ids of a world: the raw rocks, then the ore blocks. Any unknown id refuses the palette (no stone fallback). */
-    static List<String> paletteIds(OreVeins ores) {
-        final List<String> ids = new ArrayList<>(ROCK_IDS);
-        ids.addAll(ores.oreIds());
-        return List.copyOf(ids);
-    }
-
-    /**
-     * The palette index of the block at a rock position: the ore the veins decide there, or the rock itself. A deposit pick
-     * keeps the rock: the deposit blocks are not generated yet (ledger).
-     */
-    static int blockIndex(OreVeins ores, OreVeins.Chunk veins, int x, int y, int z, int rockIndex) {
-        final VeinBlock ore = veins.decide(x, y, z, rockIndex);
-        if (ore != null) {
-            final int index = ores.oreIndex(ore);
-            if (index >= 0) {
-                return ROCK_IDS.size() + index;
-            }
-        }
-        return rockIndex;
     }
 
     /**
@@ -304,7 +286,7 @@ final class TfcTerrain {
         final int sea = ChunkData.SEA_LEVEL_Y;
         // PAR-WORLD-28: the view carries the chunk's cave carves (and its neighbours', for the decorations)
         final Ground view = new Ground(chunkX, chunkZ, columns, climate, minY, data.getMaxHeight());
-        final OreVeins.Chunk veins = ores.chunk(chunkX, chunkZ);
+        final VeinStep.Chunk veins = veinChunk(chunkX, chunkZ, view);
         for (int lz = 0; lz < 16; lz++) {
             final int z = (chunkZ << 4) + lz;
             for (int lx = 0; lx < 16; lx++) {
@@ -330,9 +312,10 @@ final class TfcTerrain {
                     if (kind == null || kind == SurfaceKind.ROCK_SURFACE) {
                         ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, height);
                         final int rockIndex = PlaceholderRocks.index(rock.point(), rock.layer());
-                        data.setBlock(lx, y, lz, palette.block(veins.isEmpty() ? rockIndex : blockIndex(ores, veins, x, y, z, rockIndex)));
+                        data.setBlock(lx, y, lz, veinBlock(veins.isEmpty() ? rockIndex : veins.rock(x, y, z, rockIndex), palette));
                     } else {
-                        data.setBlock(lx, y, lz, surfaceBlocks[kind.ordinal()]);
+                        final int clay = veins.isEmpty() ? VeinStep.KEEP : veins.soil(x, y, z, kaolinSoil(kind));
+                        data.setBlock(lx, y, lz, clay == VeinStep.KEEP ? surfaceBlocks[kind.ordinal()] : veinBlock(clay, palette));
                     }
                 }
                 for (int y = top + 1; y <= sea; y++) {
@@ -341,6 +324,54 @@ final class TfcTerrain {
             }
         }
         decorate(data, chunkX, chunkZ, view, palette);
+    }
+
+    /**
+     * PAR-WORLD-30: the vein step of a chunk: its biome vein tags from the biomes of its 3x3 chunk area, the kaolin disc's
+     * climate placement at the chunk origin ({@code tfc:climate}, at the feature origin's y, the world's minimum height), and the
+     * world view of the projected and near-lava types: the ocean floor height after the carvers and the carved lava.
+     */
+    private VeinStep.Chunk veinChunk(int chunkX, int chunkZ, Ground view) {
+        final int tags = VeinStep.chunkTags(chunkX, chunkZ, this::biomeId);
+        final boolean climate = (tags & VeinStep.KAOLIN) != 0
+            && KAOLIN_CLIMATE.isValid(view, chunkX << 4, view.minY(), chunkZ << 4, null);
+        return veinStep.chunk(chunkX, chunkZ, tags, climate, new OreVeins.WorldView() {
+            @Override
+            public int surfaceHeight(int x, int z) {
+                return view.oceanFloor(x, z);
+            }
+
+            @Override
+            public boolean isLava(int x, int y, int z) {
+                return y > view.minY() && y <= view.terrainTop(x, z) && view.caveCarve(x, y, z) == Carve.LAVA;
+            }
+        });
+    }
+
+    /** {@code placed_feature/vein/kaolin_disc}'s {@code tfc:climate} placement. */
+    private static final ClimateFilter KAOLIN_CLIMATE = ClimateFilter.of(KaolinDisc.MIN_TEMPERATURE, Float.POSITIVE_INFINITY,
+        KaolinDisc.MIN_GROUNDWATER, Float.POSITIVE_INFINITY);
+
+    /**
+     * What a surface block is for the kaolin disc: grass is {@code #tfc:grass}; dirt, gravel and snow blocks are
+     * {@code #tfc:kaolin_clay_replaceable}; coarse dirt, mud, sand, sandstone and packed ice are not.
+     */
+    static KaolinDisc.Soil kaolinSoil(SurfaceKind kind) {
+        return switch (kind) {
+            case GRASS -> KaolinDisc.Soil.GRASS;
+            case DIRT, GRAVEL, SNOW, ROCK_SURFACE -> KaolinDisc.Soil.REPLACEABLE;
+            case COARSE_DIRT, MUD, SAND, SANDSTONE, PACKED_ICE -> KaolinDisc.Soil.OTHER;
+        };
+    }
+
+    /** The block of a vein step code: the palette's, or a custom block (CraftEngine's, else its vanilla placeholder). */
+    private BlockData veinBlock(int code, RockPalette<BlockData> palette) {
+        if (!VeinStep.isCustom(code)) {
+            return palette.block(code);
+        }
+        final String id = veinStep.customIds().get(VeinStep.customOf(code));
+        final BlockData custom = customBlockData(id);
+        return custom != null ? custom : placeholderData(VeinStep.placeholder(id), false);
     }
 
     /**
