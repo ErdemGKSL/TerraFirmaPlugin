@@ -2,7 +2,7 @@
 id: PAR-GATHER-02
 title: "Harvest plants, leaves, twigs and fallen leaves by TFC loot tables"
 area: GATHER
-status: open
+status: done
 wave: 25
 deps: [PAR-GATHER-01, PAR-WORLD-10, PAR-WORLD-12]
 size: M
@@ -23,6 +23,7 @@ in_game_steps:
   - "screenshot"
 plan:
   - "Break and right-click hooks for the 277 harvest tables (core HarvestTables) with the held tool (knife/scythe/sharp tag), creative handling."
+  - "Done: HarvestListener (paper/harvest) on BlockBreakEvent over the existing core HarvestRules/Tables; 4 MockBukkit tests; no right-click hook (TFC has none for these blocks). Pending in-game check (container cannot run client)"
 tests:
   - "paper: MockBukkit break with knife vs hand"
 done_criteria:

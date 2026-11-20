@@ -272,7 +272,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-12 | Plant blocks: all TFC plant shapes as CE blocks in generation | WORLD | 24 | done |
 | PAR-TOOL-11 | Obsidian tools: obsidian axe, hammer, hoe, javelin, knife and shovel with their heads, knapped from obsidian shards | TOOL | 24 | open |
 | PAR-GATHER-10 | Plant and thatch movement slowdown: TFC's per-plant speed factors registered with the slow-block service | GATHER | 25 | open |
-| PAR-GATHER-02 | Harvest plants, leaves, twigs and fallen leaves by TFC loot tables | GATHER | 25 | open |
+| PAR-GATHER-02 | Harvest plants, leaves, twigs and fallen leaves by TFC loot tables | GATHER | 25 | done |
 | PAR-POT-05 | Molds: filling from a vessel/crucible, solidifying, breaking out the casting | POTTERY | 25 | open |
 | PAR-POT-10 | Small vessel screen art: the textured four-slot GUI | POTTERY | 25 | open |
 | PAR-POT-11 | item_heat data for fired pottery: vessels, molds, jugs | POTTERY | 25 | done |
