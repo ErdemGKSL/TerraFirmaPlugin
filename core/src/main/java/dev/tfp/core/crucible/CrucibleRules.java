@@ -49,6 +49,9 @@ public final class CrucibleRules {
      * @param fluid the fluid id, such as {@code tfc:metal/copper}
      */
     public static Optional<Float> meltTemperature(String fluid) {
+        if (fluid.startsWith("tfp:")) {
+            fluid = "tfc:" + fluid.substring("tfp:".length()); // the plugin's data renames the namespace
+        }
         if (Metal.UNKNOWN_ID.equals(fluid)) {
             return Optional.of(UNKNOWN_MELT_TEMPERATURE);
         }

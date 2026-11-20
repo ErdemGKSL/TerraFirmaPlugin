@@ -152,6 +152,9 @@ public final class Datagen {
         if (dev.tfp.datagen.quern.QuernBlock.available(tfc)) { // PAR-PROC-04: tfp:quern block entry, models, textures, names; fixtures have no quern
             dev.tfp.datagen.quern.QuernBlock.run(tfc, out);
         }
+        if (dev.tfp.datagen.crucible.CrucibleBlock.available(tfc)) { // PAR-METAL-12: tfp:crucible block entry, models, textures, names; fixtures have no crucible
+            dev.tfp.datagen.crucible.CrucibleBlock.run(tfc, out);
+        }
         if (dev.tfp.datagen.anvil.AnvilBlocks.available(tfc)) { // PAR-METAL-03: tfp:metal/anvil/<metal> and tfp:rock/anvil/<rock> entries, models, textures, names; fixtures have no anvils
             dev.tfp.datagen.anvil.AnvilBlocks.run(tfc, out);
         }
@@ -196,6 +199,9 @@ public final class Datagen {
         }
         if (dev.tfp.datagen.firepitgui.FirepitScreenArt.available(tfc)) { // PAR-HEAT-20: firepit screen art and thermometer; fixtures have no firepit screen
             dev.tfp.datagen.firepitgui.FirepitScreenArt.run(tfc, out);
+        }
+        if (dev.tfp.datagen.crucible.CrucibleScreenArt.available(tfc)) { // PAR-METAL-12: crucible screen art, thermometer and fill; fixtures have no crucible screen
+            dev.tfp.datagen.crucible.CrucibleScreenArt.run(tfc, out);
         }
         if (dev.tfp.datagen.grillgui.GrillScreenArt.available(tfc)) { // PAR-HEAT-24: grill screen art; fixtures have no grill screen
             dev.tfp.datagen.grillgui.GrillScreenArt.run(tfc, out);

@@ -324,7 +324,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-CLIM-07 | Weather command and TFC weather state (`/tfp weather`) | CLIMATE | 33 | open |
 | PAR-FARM-11 | Plant regrowth, plant growth/spread, flower cuttings | FARM | 33 | open |
 | PAR-FARM-13 | Plant info and fertilizer tooltips: climate range, nutrients, growth time and lifecycle on seeds and saplings; N/P/K on fertilizers | FARM | 33 | open |
-| PAR-METAL-12 | Crucible block and GUI | METAL | 33 | open |
+| PAR-METAL-12 | Crucible block and GUI | METAL | 33 | done |
 | PAR-TOOL-08 | Prospector's pick: scan, result message, `/tfp propick` | TOOL | 33 | done |
 | PAR-CLIM-08 | Lightning rules: enableLightning, log stripping, fire start | CLIMATE | 34 | done |
 | PAR-CLIM-09 | Climate instruments: thermometer, anemometer, vane, calendar clock | CLIMATE | 34 | blocked |
@@ -429,3 +429,4 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-15 | Spreading bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 31 | open |
 | PAR-FARM-16 | Fruit tree blocks: CraftEngine states, models, hitbox carriers, loot, splicing | FARM | 32 | open |
 | PAR-FARM-17 | Banana blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 33 | open |
+| PAR-METAL-23 | Crucible molds: pour into and out of the crucible, output slot, held crucible tooltip | METAL | 34 | open |

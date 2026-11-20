@@ -33,6 +33,12 @@ public final class HitboxDemands {
     /** PAR-PROC-04: the quern appearance of TFC {@code has_handstone=false} and {@code true}. */
     public static final String QUERN_BASE = "base";
     public static final String QUERN_HANDSTONE = "handstone";
+    /** PAR-METAL-12: the crucible's one appearance (all 16 channel-connection states) and its model (TFC {@code crucible}). */
+    public static final String CRUCIBLE_ID = "tfp:crucible";
+    public static final String CRUCIBLE_APPEARANCE = "crucible";
+    public static final String CRUCIBLE_MODEL = "tfp:block/crucible";
+    /** PAR-METAL-12: served after every other demand, so adding the crucible moves no carrier of another block. */
+    static final int CRUCIBLE_WEIGHT = -11;
     /** PAR-PROC-29: the scraping surface block and its one appearance (WAXED is the plugin's record state, no CE state). */
     public static final String SCRAPING_ID = "tfp:scraping";
     public static final String SCRAPING_APPEARANCE = "base";
@@ -374,6 +380,8 @@ public final class HitboxDemands {
             d.add(new Demand(BERRY_DEAD_ID, "stage_" + stage, TfcShapes.BERRY_BUSH_KEY, 0, HitboxAllocation.TRANSPARENT,
                 true, BERRY_WEIGHT));
         }
+        // PAR-METAL-12: the crucible, TFC's shell outline (no channel nubs) with TFC's crucible model.
+        d.add(new Demand(CRUCIBLE_ID, CRUCIBLE_APPEARANCE, "tfc:crucible", 0, CRUCIBLE_MODEL, true, CRUCIBLE_WEIGHT));
         return d;
     }
 
