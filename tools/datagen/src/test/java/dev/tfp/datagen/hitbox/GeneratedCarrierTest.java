@@ -62,7 +62,9 @@ class GeneratedCarrierTest {
                         if (!(a.getValue() instanceof Map<?, ?> app)) {
                             continue;
                         }
-                        if (app.containsKey("auto_state")) {
+                        // PAR-WORLD-12: the plant looks take the plant pools outside the selector (PlantBlockGenTest pins
+                        // them; PAR-WORLD-47 moves them into hitbox/)
+                        if (app.containsKey("auto_state") && !id.startsWith("tfp:plant/")) {
                             pools++;
                             checkPool(path, id, a.getKey(), app.get("auto_state"), problems);
                         }

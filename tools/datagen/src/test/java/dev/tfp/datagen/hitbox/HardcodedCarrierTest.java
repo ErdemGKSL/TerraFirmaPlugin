@@ -27,7 +27,9 @@ import org.junit.jupiter.api.Test;
 class HardcodedCarrierTest {
     private static final Pattern STATE_LITERAL = Pattern.compile("\"minecraft:[a-z0-9_]+\\[");
     private static final Pattern AUTO_STATE = Pattern.compile("\"auto_state\"");
-    private static final Set<String> AUTO_STATE_SERIALISERS = Set.of("device/DeviceAppearance.java");
+    // PAR-WORLD-12: the plant looks take CraftEngine's plant pools (tripwire, sugar_cane, sapling), which the selector
+    // does not model yet; PAR-WORLD-47 moves that choice into hitbox/.
+    private static final Set<String> AUTO_STATE_SERIALISERS = Set.of("device/DeviceAppearance.java", "plant/PlantBlockGen.java");
 
     @Test
     void noVanillaStateLiteralOutsideTheSelector() throws IOException {

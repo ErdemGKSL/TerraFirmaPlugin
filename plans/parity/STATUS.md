@@ -268,7 +268,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-POT-03 | Pit kiln: straw and log stages, lighting, lazy firing | POTTERY | 24 | open |
 | PAR-POT-04 | Small vessel: inventory, melting contents into metal, pouring | POTTERY | 24 | done |
 | PAR-TOOL-07 | Shields per metal | TOOL | 24 | done |
-| PAR-WORLD-12 | Plant blocks: all TFC plant shapes as CE blocks in generation | WORLD | 24 | open |
+| PAR-WORLD-12 | Plant blocks: all TFC plant shapes as CE blocks in generation | WORLD | 24 | done |
 | PAR-TOOL-11 | Obsidian tools: obsidian axe, hammer, hoe, javelin, knife and shovel with their heads, knapped from obsidian shards | TOOL | 24 | open |
 | PAR-GATHER-10 | Plant and thatch movement slowdown: TFC's per-plant speed factors registered with the slow-block service | GATHER | 25 | open |
 | PAR-GATHER-02 | Harvest plants, leaves, twigs and fallen leaves by TFC loot tables | GATHER | 25 | open |
@@ -402,6 +402,9 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-06 | Quern automation | MECH | 50 | open |
 | PAR-MECH-07 | Trip hammer | MECH | 50 | open |
 | PAR-WORLD-21 | Untracked surface features: forest-floor patches, tide pools, guano islands, bamboo, sea stack patches and five volcanic ids | WORLD | 50 | open |
+| PAR-WORLD-46 | Write the CE plant blocks in generation: TfcTerrain places tfp:plant/* through PlantBlocks.ceRef, placeholders only as fallback | WORLD | 27 | open |
+| PAR-WORLD-47 | Remaining plant shapes as CE blocks: water plants (waterlogged), creeping, epiphytes, vines, weeping/twisting columns, kelp, cacti, bamboo, intertidal plant-likes | WORLD | 27 | open |
+| PAR-WORLD-48 | Plant lifecycle looks, climate tint and soil rules: TFC's seasonal plant stages (tfc:plant model loader), per-climate grass/foliage colour, TFC canSurvive per plant type | WORLD | 28 | open |
 | PAR-MECH-03 | Water wheel | MECH | 51 | open |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | open |
 | PAR-MECH-08 | Power loom | MECH | 51 | open |

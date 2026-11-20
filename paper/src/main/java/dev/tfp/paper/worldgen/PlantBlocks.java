@@ -16,8 +16,9 @@ import java.util.Map;
 import org.bukkit.Material;
 
 /**
- * The blocks of the plants, wild crops and corals (M2-GEN-13). The CraftEngine plant and crop blocks do not exist yet, so each
- * TFC block gets a vanilla placeholder (ledger): grasses, flowers, ferns, dead bushes, lily pads, seagrass, vanilla corals and
+ * The blocks of the plants, wild crops and corals (M2-GEN-13). The land and floating plants are CraftEngine blocks
+ * ({@link #ceRef}, PAR-WORLD-12; the terrain writes them once PAR-WORLD-46 wires it); until then, and for the water plants,
+ * wild crops and corals, each TFC block gets a vanilla placeholder (ledger): grasses, flowers, ferns, dead bushes, lily pads, seagrass, vanilla corals and
  * sea pickles. The corals are vanilla's own blocks (TFC uses vanilla's coral blocks and its own coral plants of the same five
  * colours). The placement rule is pure: {@link #write} applies the decisions of one chunk through a {@link Target}.
  */
@@ -81,6 +82,32 @@ final class PlantBlocks {
         final String name = id.substring(id.lastIndexOf(id.contains("/") ? '/' : ':') + 1);
         return Material.valueOf(name.toUpperCase(Locale.ROOT));
     }
+
+    /**
+     * PAR-WORLD-12: the CraftEngine state of a plant block ({@code tfp:plant/rose[age=2,half=upper]}) for the types datagen
+     * generates (land and floating plants: {@code dev.tfp.datagen.plant.PlantBlockGen.TYPES}), or null for the others
+     * (water plants, wild crops, corals), which keep their vanilla placeholder. TFC's {@code part} is CraftEngine's
+     * {@code half}; an age not drawn yet is age 0 (TFC's default state).
+     */
+    static String ceRef(PlantState state) {
+        if (state.kind() != PlantState.Kind.PLANT || !CE_TYPES.contains(state.type())) {
+            return null;
+        }
+        final List<String> props = new java.util.ArrayList<>(2);
+        if (state.type().hasAge()) {
+            props.add("age=" + Math.max(0, state.age()));
+        }
+        if (state.type().isTall()) {
+            props.add("half=" + (state.part() == PlantState.Part.UPPER ? "upper" : "lower"));
+        }
+        return props.isEmpty() ? state.block() : state.block() + "[" + String.join(",", props) + "]";
+    }
+
+    /** The plant types generated as CraftEngine blocks (PAR-WORLD-12). */
+    static final java.util.Set<PlantType> CE_TYPES = java.util.EnumSet.of(PlantType.STANDARD, PlantType.SHORT_SHRUB,
+        PlantType.SHRUB, PlantType.FLOWERBED, PlantType.CACTUSBED, PlantType.PASSABLE_CACTUS, PlantType.DRY,
+        PlantType.SHORT_GRASS, PlantType.BEACH_GRASS, PlantType.TALL_GRASS, PlantType.TALL_SHRUB, PlantType.FLOATING,
+        PlantType.FLOATING_FRESH);
 
     /** Whether a placeholder is a vanilla two-block plant ({@code Bisected}), written as a lower and an upper half. */
     static boolean twoHalves(Material material) {

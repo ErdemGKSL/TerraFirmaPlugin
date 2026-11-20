@@ -85,7 +85,7 @@ public final class BlockCoverage {
         Owner.of("plant/((blackberry|raspberry|blueberry|elderberry)_bush(_cane)?|cranberry_bush|dead_cane)", "PAR-FARM-07",
             "spreading bushes, canes and cranberries"),
         Owner.of("plant/potted/.+|plant/.+_krummholz", "PAR-DECO-13", "potted plants and saplings, krummholz"),
-        Owner.of("plant/.+", "PAR-WORLD-12", "plant blocks (the Plant enum shapes)"),
+        Owner.of("plant/.+", "PAR-WORLD-47", "plant blocks of the shapes PAR-WORLD-12 left (water, creeping, epiphytes, columns, cacti, kelp, bamboo)"),
         Owner.of("coral/.+|sea_pickle", "PAR-WORLD-25", "corals, coral fans and sea pickle"),
         // soils and natural blocks
         Owner.of("(duff|clay_duff|grass_path|muddy_roots)/.+", "PAR-WORLD-42", "duff, clay duff, grass path, muddy roots"),
