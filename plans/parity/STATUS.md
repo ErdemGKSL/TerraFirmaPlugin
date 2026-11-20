@@ -222,7 +222,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-05 | Ice sheets, sea ice and icebergs at generation; lava flows; remaining biome surface builders | WORLD | 18 | done |
 | PAR-HEAT-30 | Firepit, grill and pot world rules: fuel thrown on top is gathered, a lit firepit burns entities standing on it (hot floor) | HEAT | 18 | done |
 | PAR-HEAT-34 | Grill and pot burn-out after a calendar jump: the lit look turns off without a click, as the firepit since PAR-HEAT-33 | HEAT | 18 | done |
-| PAR-INFRA-60 | Device automation: hoppers, droppers and pipes insert into and pull from CE device blocks by side (TFC SidedHandler, *EnableAutomation), wired for the done devices | INFRA | 18 | open |
+| PAR-INFRA-60 | Device automation: hoppers, droppers and pipes insert into and pull from CE device blocks by side (TFC SidedHandler, *EnableAutomation), wired for the done devices | INFRA | 18 | done |
 | PAR-PROC-42 | Barrel world rules: redstone seals and unseals (barrelEnableRedstoneSeal), items dropped into an open upright barrel are gathered | PROC | 18 | done |
 | PAR-INFRA-62 | Flaky CaseRunnerTest.aSkipThrownAtRunTimeIsASkipWithItsReason: the async-skip case times out after 200 ms under a loaded full ./gradlew check | INFRA | 18 | done |
 | PAR-PROC-43 | Vanilla recipes newer than TFC's 1.21.1 follow TFC's removal policy: copper tools and armour, spears and other post-1.21.1 tool/armour recipes disabled | PROC | 18 | done |
@@ -231,6 +231,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-06 | Cave tunnels and canyons (vanilla carvers with TFC carveBlock) | WORLD | 19 | done |
 | PAR-WORLD-08 | Disc, pipe and kaolin veins; montane second pass; ore distribution statistics | WORLD | 19 | done |
 | PAR-HEAT-31 | Firebox block loaded in game (full-cube pool, copper sounds, in-game screen check), stove and stove pot | HEAT | 19 | open |
+| PAR-INFRA-63 | Device automation follow-ups: droppers and hopper minecarts into devices, screen-aware moves, per-device settle after a move, config.yml automation keys | INFRA | 19 | open |
 | PAR-PROC-20 | Knapping in-game verification: axe head from two granite loose rocks, clay and leather screens | PROC | 20 | open |
 | PAR-TOOL-02 | Tool mechanics on Paper: TFC mining speed, durability rules, forging efficiency | TOOL | 20 | done |
 | PAR-TOOL-04 | Swords, maces, macuahuitl: attack damage per TFC tier | TOOL | 20 | done |

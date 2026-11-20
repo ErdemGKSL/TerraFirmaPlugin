@@ -2,7 +2,7 @@
 id: PAR-INFRA-60
 title: "Device automation: hoppers, droppers and pipes insert into and pull from CE device blocks by side (TFC SidedHandler, *EnableAutomation), wired for the done devices"
 area: INFRA
-status: open
+status: done
 wave: 18
 deps: [PAR-INFRA-02, PAR-INFRA-18, PAR-PROC-04, PAR-PROC-08, PAR-PROC-11, PAR-HEAT-06, PAR-HEAT-08, PAR-HEAT-09, PAR-PROC-18]
 size: M
@@ -38,6 +38,8 @@ plan:
   - "2. paper/device/automation: Paper's HopperInventorySearchEvent supplies a virtual Inventory for a hopper or hopper minecart whose source or destination is a device block (DeviceService.inspect), backed by DeviceService.edit on the device's region thread: the hopper move becomes one edit (snapshot, decide, commit), never a stored live inventory. Droppers through BlockDispenseEvent/InventoryMoveItemEvent where the target is a device. Respect TFC's per-kind defaults (barrel, firepit/grill/pot, quern, composter, powderkeg) and leave a registration API for the devices still to come (crucible, charcoal forge, blast furnace, loom, large vessel, crate, nest box, firebox, powder bowl): their items call `DeviceAutomation.register(kind, sides)`."
   - "3. Config keys (barrelEnableAutomation, firePitEnableAutomation, quernEnableAutomation, composterEnableAutomation, powderKegEnableAutomation) read with TFC defaults through a supplier; the config.yml entries are PAR-DATA-06's. Fluid sides (barrel and pot SidedHandler<IFluidHandler>) are recorded as a divergence: no vanilla block moves fluids."
   - "4. Threading: the hopper event runs on the hopper's region thread, which owns the adjacent device block on Folia (same region); assert it, and refuse (no move) across a region border."
+  - "Verified 2026-11-20: Paper 1.21.11 API has org.bukkit.event.inventory.HopperInventorySearchEvent (SOURCE/DESTINATION, hopper block + search block, setInventory) and Hopper.setTransferCooldown; it fires only for hopper blocks (not hopper minecarts, not droppers). Design: the listener does the one-item move itself in the search event as one DeviceService.edit and sets the 8-tick cooldown; the event inventory stays null (no virtual inventory). Composter keeps its own PAR-PROC-11 rule (0 slots: output is a count)."
+  - "Done: PAR-INFRA-60 commit. core/device/automation (Face, PartialSlots, SideTable, TfcSideTables, AutomationRules), paper/device/automation (DeviceAutomation registration API, HopperMover, HopperAutomationListener, DeviceAutomationModule `device_automation`: barrel, firepit, grill, pot, quern, powder keg). Tests: TfcSideTablesTest (8), HopperAutomationMockBukkitTest (9) green; itest DeviceAutomationCase added to SelfTestSuite (Pending server run on Paper and Folia). Pending in-game check (in_game_steps; docs/verification/PAR-INFRA-60/). Divergences in the ledger; follow-up PAR-INFRA-63 (droppers, hopper minecarts, screen-aware moves, barrel settle, config.yml keys)."
 tests:
   - "core: side tables golden vs the TFC constructors (barrel all six facings, firepit, grill, pot, quern, composter, powderkeg)"
   - "paper MockBukkit: a HopperInventorySearchEvent into a barrel inserts the stack into SLOT_ITEM from above and the fluid-container slot from a side; extraction from the composter below; automation off leaves the event untouched"
@@ -48,7 +50,5 @@ done_criteria:
 ---
 
 # PAR-INFRA-60: Device automation through hoppers by side
-
-> Claimed: session_011osUpAUVyyokAxf5Kiw72D, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
