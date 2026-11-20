@@ -247,7 +247,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-POT-01 | Placed items: put up to four items on the ground (and the straw/log stages of a pit kiln) | POTTERY | 21 | open |
 | PAR-PROC-12 | Panning | PROC | 21 | open |
 | PAR-WORLD-10 | Wood blocks: logs, wood, stripped, leaves, saplings as CE blocks | WORLD | 21 | done |
-| PAR-WORLD-24 | Noise and noodle caves: TFC's density caves (cave cheese, cave layer, spaghetti, pillars, noodles) in the terrain fill, and the surface over carved blocks | WORLD | 21 | open |
+| PAR-WORLD-24 | Noise and noodle caves: TFC's density caves (cave cheese, cave layer, spaghetti, pillars, noodles) in the terrain fill, and the surface over carved blocks | WORLD | 21 | done |
 | PAR-WORLD-31 | Groundcover CE blocks: loose rocks, small ores, groundcover types and deposits (datagen, hitbox demands, visuals) | WORLD | 21 | open |
 | PAR-GATHER-03 | Tree felling: the whole tree falls when the trunk is cut with an axe | GATHER | 22 | done |
 | PAR-GATHER-04 | Leaves: slow decay, movement slowdown, fallen leaves; plant movement slowdown | GATHER | 22 | done |
@@ -408,6 +408,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-46 | Write the CE plant blocks in generation: TfcTerrain places tfp:plant/* through PlantBlocks.ceRef, placeholders only as fallback | WORLD | 27 | open |
 | PAR-WORLD-47 | Remaining plant shapes as CE blocks: water plants (waterlogged), creeping, epiphytes, vines, weeping/twisting columns, kelp, cacti, bamboo, intertidal plant-likes | WORLD | 27 | open |
 | PAR-WORLD-48 | Plant lifecycle looks, climate tint and soil rules: TFC's seasonal plant stages (tfc:plant model loader), per-climate grass/foliage colour, TFC canSurvive per plant type | WORLD | 28 | open |
+| PAR-WORLD-49 | Surface builder over every exposed floor: cave floors, arch and overhang floors get TFC's surface states (whole-column scan) | WORLD | 23 | open |
 | PAR-MECH-03 | Water wheel | MECH | 51 | open |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | open |
 | PAR-MECH-08 | Power loom | MECH | 51 | open |

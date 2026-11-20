@@ -5,7 +5,9 @@
  */
 package dev.tfp.paper.worldgen;
 
+import dev.tfp.core.worldgen.FastConcurrentCache;
 import dev.tfp.core.worldgen.Seed;
+import dev.tfp.core.worldgen.density.NoiseCaves;
 import dev.tfp.core.worldgen.aquifer.AquiferBarrierNoise;
 import dev.tfp.core.worldgen.aquifer.FluidSupport;
 import dev.tfp.core.worldgen.carver.Aquifer;
@@ -105,6 +107,10 @@ final class TfcTerrain {
     private final PositionalRandom aquiferFork;
     /** PAR-WORLD-29: TFC's aquifer barrier noise of this seed (immutable, shared by every chunk's {@link Aquifer}). */
     private final AquiferBarrierNoise barrier;
+    /** PAR-WORLD-24: TFC's noise and noodle caves of this seed, on the noise sampler's positional random factory. */
+    private final NoiseCaves noiseCaves;
+    /** The interpolated density caves of recently generated chunks and their neighbours, shared by the workers. */
+    private final FastConcurrentCache<NoiseCaves.Chunk> caveGrids = new FastConcurrentCache<>(256);
     private final BlockData[] surfaceBlocks = surfaceBlocks();
     /** PAR-WORLD-30: the vein step of this world (every type of the vein tags, the kaolin disc). */
     private final VeinStep veinStep;
@@ -146,6 +152,7 @@ final class TfcTerrain {
         this.shoreTide = SurfaceNoise.shoreTide(seed);
         this.aquiferFork = PositionalRandom.fork(new XoroshiroRandomSource(seed));
         this.barrier = AquiferBarrierNoise.create(aquiferFork);
+        this.noiseCaves = new NoiseCaves(aquiferFork);
         this.biomes = resolveBiomes(key -> Registry.BIOME.get(key));
         this.fallbackBiomes = countFallbacks(biomes);
         this.biomeList = Arrays.stream(biomes).distinct().toList();
@@ -714,6 +721,22 @@ final class TfcTerrain {
             return !columnsOf(x >> 4, z >> 4).samples()[(x & 15) + 16 * (z & 15)].solid(y);
         }
 
+        /**
+         * PAR-WORLD-24: the top the surface builder covers: the highest block of the column that neither the terrain density
+         * nor a density cave opens (TFC builds the surface after the noise fill; the carvers come later).
+         */
+        int surfaceTop(int x, int z) {
+            return carvedTop(terrainTop(x, z), minY, y -> densityOpened(x, y, z) || noiseCarve(x, y, z) != Carve.KEEP);
+        }
+
+        /** PAR-WORLD-24: the density cave decision of a block at or below the terrain top that the density keeps. */
+        Carve noiseCarve(int x, int y, int z) {
+            if (y <= minY || y > terrainTop(x, z) || densityOpened(x, y, z)) {
+                return Carve.KEEP;
+            }
+            return cavesOf(x >> 4, z >> 4).noise(x, y, z);
+        }
+
         /** Whether the density or a cave opens a block at or below the column's terrain top. */
         private boolean opened(int x, int y, int z) {
             return densityOpened(x, y, z) || caveCarve(x, y, z) != Carve.KEEP;
@@ -733,7 +756,17 @@ final class TfcTerrain {
                 final TunnelMask mask = TunnelCarvers.mask(aquiferFork, cx, cz, minY, maxY - minY);
                 final Aquifer aquifer = new Aquifer(cx, cz, minY, ChunkData.SEA_LEVEL_Y, aquiferFork, barrier,
                     surfaceHeights.aquiferSurfaceHeights(cx, cz));
-                out = new CaveChunk(cx, cz, mask, aquifer, this::replaceable);
+                final NoiseCaves.Chunk grid = caveGrid(cx, cz);
+                final Columns cols = columnsOf(cx, cz);
+                out = new CaveChunk(cx, cz, mask, aquifer, this::replaceable, minY, maxY - minY,
+                    (x, y, z) -> {
+                        if (y <= minY || y > cols.tops()[(x & 15) + 16 * (z & 15)]) {
+                            return Carve.KEEP;
+                        }
+                        final SurfaceHeights.Column column = cols.samples()[(x & 15) + 16 * (z & 15)];
+                        final double cave = grid.density(x, y, z);
+                        return cave > 0 || !column.solid(y) ? Carve.KEEP : TfcTerrain.noiseCarve(column.density(y), cave, aquifer, x, y, z);
+                    });
                 caves.put(key(cx, cz), out);
             }
             return out;
@@ -763,7 +796,7 @@ final class TfcTerrain {
                 final int cz = z >> 4;
                 final double[] slope = slopes.computeIfAbsent(key(cx, cz),
                     s -> SurfaceSlope.slopeMap(cx << 4, cz << 4, TfcTerrain.this::heightAt));
-                final int top = terrainTop(x, z);
+                final int top = surfaceTop(x, z);
                 return ColumnSurface.build(SurfaceFamily.forBiome(biomeOf(x, z)).builder(),
                     column(x, z, height(x, z), climateOf(x, z), SurfaceSlope.sample(slope, x & 15, z & 15)), top, minY);
             });
@@ -934,6 +967,28 @@ final class TfcTerrain {
         return carve(yy -> !column.solid(yy), y, top, sea);
     }
 
+    /** PAR-WORLD-24: the interpolated density caves of a chunk (cached; the same value whichever worker computes it). Any thread. */
+    NoiseCaves.Chunk caveGrid(int chunkX, int chunkZ) {
+        NoiseCaves.Chunk grid = caveGrids.getIfPresent(chunkX, chunkZ);
+        if (grid == null) {
+            grid = noiseCaves.chunk(chunkX, chunkZ);
+            caveGrids.set(chunkX, chunkZ, grid);
+        }
+        return grid;
+    }
+
+    /**
+     * PAR-WORLD-24: TFC's density cave decision at a block whose terrain density is {@code terrain} (positive, the block is
+     * solid without caves): {@link Carve#KEEP} while {@code min(terrain, cave density)} is positive, else the aquifer's
+     * ({@code calculateBlockStateAtNoise}: air, water, lava, or a barrier that keeps the block).
+     */
+    static Carve noiseCarve(double terrain, double caveDensity, Aquifer aquifer, int x, int y, int z) {
+        if (caveDensity > 0) {
+            return Carve.KEEP;
+        }
+        return aquifer.sample(x, y, z, Math.min(terrain, caveDensity));
+    }
+
     /** The {@link CaveChunk} of a chunk. */
     @FunctionalInterface
     interface CaveChunks {
@@ -971,7 +1026,18 @@ final class TfcTerrain {
             boolean test(int x, int y, int z);
         }
 
+        /** PAR-WORLD-24: the density cave decision at a world position of the chunk ({@link Carve#KEEP} for none). */
+        @FunctionalInterface
+        interface NoiseCarve {
+            Carve carve(int x, int y, int z);
+        }
+
         private static final Carve[] CARVES = Carve.values();
+        private final NoiseCarve noise;
+        private final int noiseMinY;
+        private final int noiseHeight;
+        /** The density cave decision of each block, {@code ordinal + 1}, 0 while not computed; null without density caves. */
+        private final byte[] noiseDecided;
         private final int chunkX;
         private final int chunkZ;
         private final TunnelMask mask;
@@ -981,6 +1047,19 @@ final class TfcTerrain {
         private final byte[] decided;
 
         CaveChunk(int chunkX, int chunkZ, TunnelMask mask, Aquifer aquifer, Replaceable replaceable) {
+            this(chunkX, chunkZ, mask, aquifer, replaceable, 0, 0, null);
+        }
+
+        /**
+         * @param noise the density caves (PAR-WORLD-24), decided before the carvers as TFC's noise fill comes before them; a
+         *              block they open is never a carver's
+         */
+        CaveChunk(int chunkX, int chunkZ, TunnelMask mask, Aquifer aquifer, Replaceable replaceable, int minY, int height,
+                  NoiseCarve noise) {
+            this.noise = noise;
+            this.noiseMinY = minY;
+            this.noiseHeight = height;
+            this.noiseDecided = noise == null ? null : new byte[256 * height];
             this.chunkX = chunkX;
             this.chunkZ = chunkZ;
             this.mask = mask;
@@ -993,8 +1072,30 @@ final class TfcTerrain {
             return mask;
         }
 
-        /** The carve of a world position of this chunk: {@link Carve#KEEP} outside the mask or where the block stays. */
+        /** PAR-WORLD-24: the density cave decision of a world position of this chunk. */
+        Carve noise(int x, int y, int z) {
+            if (noise == null || y < noiseMinY || y >= noiseMinY + noiseHeight) {
+                return Carve.KEEP;
+            }
+            final int index = (x & 15) | (z & 15) << 4 | (y - noiseMinY) << 8;
+            final byte known = noiseDecided[index];
+            if (known != 0) {
+                return CARVES[known - 1];
+            }
+            final Carve carve = noise.carve(x, y, z);
+            noiseDecided[index] = (byte) (carve.ordinal() + 1);
+            return carve;
+        }
+
+        /**
+         * The carve of a world position of this chunk: the density caves' decision, else the carvers' ({@link Carve#KEEP}
+         * outside the mask or where the block stays).
+         */
         Carve carve(int x, int y, int z) {
+            final Carve density = noise(x, y, z);
+            if (density != Carve.KEEP) {
+                return density;
+            }
             final int lx = x - (chunkX << 4);
             final int lz = z - (chunkZ << 4);
             if (!mask.contains(lx, y, lz)) {

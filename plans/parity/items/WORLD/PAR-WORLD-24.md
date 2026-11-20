@@ -2,7 +2,7 @@
 id: PAR-WORLD-24
 title: "Noise and noodle caves: TFC's density caves (cave cheese, cave layer, spaghetti, pillars, noodles) in the terrain fill, and the surface over carved blocks"
 area: WORLD
-status: open
+status: done
 wave: 21
 deps: [PAR-WORLD-06, PAR-WORLD-07]
 size: M
@@ -39,6 +39,9 @@ plan:
   - "Surface under overhangs: where a cave or shore density opens blocks under the top, run TFC's surface pass on the real column (the first solid block below air), so cave mouths and overhang floors get the soil/sand TFC gives them (ledger row 'surface builder covers the terrain top')."
   - "Rerun PAR-WORLD-19's ore census only if PAR-WORLD-19 is still open; otherwise record the new exposure numbers in docs/spikes/S1-ore-overlay.md through a follow-up item."
   - "Ledger: replace the 'not ported: the noise and noodle caves' part of the density row with the implemented behaviour; add a divergence row for anything kept different (for example the beardifier, which stays out because there are no structures)."
+  - "Note: TFC's noise_caves.json has no pillars (TFC dropped them from vanilla's graph); everything else of the list is ported. The five density files are kept verbatim in NoiseCaves (test: equal to /opt/tfc's files when present); the vanilla noise parameters in VanillaDensityNoise (golden values from the 1.21.11 server classes)."
+  - "Pending in-game check (container cannot run client): the itest worldgen.caves case (open-block fraction below y 50 per biome sample) and the screenshots of a cheese chamber, a spaghetti tunnel and a noodle cave in a fresh world (in_game_steps). The ore census rerun is PAR-WORLD-30's pending server run."
+  - "Done: core NoiseCaves/VanillaDensity/VanillaDensityNoise/CellInterpolator; TfcTerrain.CaveChunk decides the density caves (aquifer of min(terrain, caves)) before the carvers, Ground.surfaceTop puts the surface below the opened top. Tests VanillaDensityGoldenTest (2: 4080 noise values, 3000 function values, all exact), NoiseCavesGoldenTest (4: 20 chunk masks by SHA-256, 800 interpolated values exact, JSON = TFC, timing guard), TfcTerrainNoiseCaveTest (3). Follow-up PAR-WORLD-49 (surface on cave/overhang floors)."
 tests:
   - "core: VanillaDensityGoldenTest: each ported node and the vanilla noises equal vanilla 1.21.1's DensityFunction values from a scratch oracle (1,000 positions per noise, 1e-9)"
   - "core: NoiseCavesGoldenTest: solid/open masks of 20 chunks (full height) equal TFC's ChunkNoiseFiller output from the oracle on the pinned checkout"
