@@ -2,7 +2,7 @@
 id: PAR-WORLD-26
 title: "Amethyst geodes: tfc:geode (hardened basalt shell, quartzite layers, amethyst ore) in the vein step"
 area: WORLD
-status: open
+status: done
 wave: 22
 deps: [PAR-WORLD-08, PAR-WORLD-24]
 size: M
@@ -30,6 +30,9 @@ plan:
   - "Place it in TfcTerrain's vein step at its tag position (after the veins) under our chunk-boundary rule (NP-WORLD-01): the geode only writes inside the chunk being filled, decided from the 3x3 origin chunks deterministically, so a geode crossing chunk borders is identical whichever chunk generates first. Blocks are the CE ids of the hardened rocks and the amethyst ore (palette ids in TfcTerrain)."
   - "Amethyst ore here is the CE ore block `tfp:ore/amethyst/quartzite` with its overlay (PAR-INFRA-15/16); no budding amethyst and no vanilla amethyst clusters exist in TFC's config (inner placements air), so none are placed."
   - "Ledger: feature row; a divergence row only if the chunk-boundary rule changes a geode compared with TFC's 3x3 feature region."
+  - "Config: datagen does not export geode.json (tools/datagen is outside this item), so GeodeConfig keeps TFC's two JSON files verbatim and parses them with the vanilla codec defaults; GeodeGoldenTest checks them against /opt/tfc when present."
+  - "Pending in-game check (container cannot run client): the itest worldgen.geode case (one geode in a 40x40 chunk sample, its three layers) and the shell screenshot and tfp debug block checks of in_game_steps."
+  - "Done: core/worldgen/geode (GeodeConfig, Geode = vanilla GeodeFeature.place + placement draws, Geodes = 3x3 origin rule); TfcTerrain writes them after the vein step via Ground.geodeWorld, palette gains hardened basalt/quartzite. Tests GeodeGoldenTest (5: 20 geodes SHA-equal to vanilla 1.21.11 GeodeFeature, one aborted; order independence; frequency; config), GeodeWiringTest (2). Ledger feature row and two divergence rows."
 tests:
   - "core: GeodeGoldenTest: block-for-block equality with a vanilla GeodeFeature oracle run on TFC's config (scratch export from a 1.21.1 dev run kept outside the repo) for 20 seeds/origins, including one aborted by invalid blocks"
   - "core: chunk-order independence: a geode spanning 4 chunks is identical when the chunks are filled in any order"

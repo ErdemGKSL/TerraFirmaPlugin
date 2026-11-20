@@ -259,7 +259,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PHYS-04 | Support beams: blocks, connections, collapse prevention | PHYS | 22 | open |
 | PAR-PROC-13 | Sluice | PROC | 22 | open |
 | PAR-INFRA-29 | Loot delegation check: loose rocks and leaves drop by their TFC tables in the self-test | INFRA | 22 | open |
-| PAR-WORLD-26 | Amethyst geodes: tfc:geode (hardened basalt shell, quartzite layers, amethyst ore) in the vein step | WORLD | 22 | open |
+| PAR-WORLD-26 | Amethyst geodes: tfc:geode (hardened basalt shell, quartzite layers, amethyst ore) in the vein step | WORLD | 22 | done |
 | PAR-WORLD-30 | Vein step wiring: biome vein passes, kaolin disc, projected, near-lava and rock-writing veins in TfcTerrain | WORLD | 22 | done |
 | PAR-WORLD-32 | Wire groundcover, boulders, cave loose rocks and the new soil features into TfcTerrain with CE blocks, and the in-game groundcover check | WORLD | 22 | open |
 | PAR-POT-02 | Unfired and fired pottery items, clay knapping outputs | POTTERY | 23 | done |

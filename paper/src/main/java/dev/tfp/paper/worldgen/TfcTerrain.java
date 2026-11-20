@@ -8,6 +8,9 @@ package dev.tfp.paper.worldgen;
 import dev.tfp.core.worldgen.FastConcurrentCache;
 import dev.tfp.core.worldgen.Seed;
 import dev.tfp.core.worldgen.density.NoiseCaves;
+import dev.tfp.core.worldgen.geode.Geode;
+import dev.tfp.core.worldgen.geode.GeodeConfig;
+import dev.tfp.core.worldgen.geode.Geodes;
 import dev.tfp.core.worldgen.aquifer.AquiferBarrierNoise;
 import dev.tfp.core.worldgen.aquifer.FluidSupport;
 import dev.tfp.core.worldgen.carver.Aquifer;
@@ -112,6 +115,8 @@ final class TfcTerrain {
     /** The interpolated density caves of recently generated chunks and their neighbours, shared by the workers. */
     private final FastConcurrentCache<NoiseCaves.Chunk> caveGrids = new FastConcurrentCache<>(256);
     private final BlockData[] surfaceBlocks = surfaceBlocks();
+    /** PAR-WORLD-26: TFC's amethyst geodes of this world, after the veins of the vein tag. */
+    private final Geodes geodes;
     /** PAR-WORLD-30: the vein step of this world (every type of the vein tags, the kaolin disc). */
     private final VeinStep veinStep;
     /** The ore decision of the main vein tag (M2-GEN-10), which the vein indicators read. */
@@ -156,9 +161,10 @@ final class TfcTerrain {
         this.biomes = resolveBiomes(key -> Registry.BIOME.get(key));
         this.fallbackBiomes = countFallbacks(biomes);
         this.biomeList = Arrays.stream(biomes).distinct().toList();
+        this.geodes = new Geodes(seed);
         this.veinStep = new VeinStep(seed, OreVeinResources.jar(TfcTerrain.class.getClassLoader()), ROCK_IDS);
         this.ores = veinStep.main();
-        this.paletteIds = veinStep.paletteIds();
+        this.paletteIds = withGeodeBlocks(veinStep.paletteIds(), geodes.geode().config());
         this.deposits = new Deposits(seed);
         this.indicators = new VeinIndicators(ores);
         this.shoreCover = new ShoreGroundcover(seed);
@@ -330,7 +336,56 @@ final class TfcTerrain {
                 }
             }
         }
+        // PAR-WORLD-26: the geodes of the vein tag, over the filled and carved blocks (the carvers run before the features)
+        final int maxY = data.getMaxHeight();
+        geodes.chunk(chunkX, chunkZ, view.geodeWorld(), (x, y, z, layer) -> {
+            if (y > minY && y < maxY) {
+                data.setBlock(x & 15, y, z & 15, geodeBlock(layer, palette));
+            }
+        });
         decorate(data, chunkX, chunkZ, view, palette);
+    }
+
+    /**
+     * PAR-WORLD-26: the palette ids of a world: the vein step's, then the geode's shell and ore blocks the veins do not write
+     * (appended, so the vein step's indices stay valid).
+     */
+    static List<String> withGeodeBlocks(List<String> veinPalette, GeodeConfig geode) {
+        final List<String> out = new ArrayList<>(veinPalette);
+        for (String id : List.of(geode.outerLayer(), geode.middleLayer(), geode.innerLayer(), geode.alternateInnerLayer())) {
+            if (!out.contains(id)) {
+                out.add(id);
+            }
+        }
+        return List.copyOf(out);
+    }
+
+    /**
+     * PAR-WORLD-26: the block of a geode layer: air for the filling, the crack and the inner placements, the palette's
+     * hardened basalt and quartzite and amethyst ore (else the CraftEngine block, else a vanilla placeholder).
+     */
+    private BlockData geodeBlock(Geode.Layer layer, RockPalette<BlockData> palette) {
+        final GeodeConfig config = geodes.geode().config();
+        final String id = switch (layer) {
+            case FILLING, CRACK, PLACEMENT -> null;
+            case OUTER -> config.outerLayer();
+            case MIDDLE -> config.middleLayer();
+            case INNER -> config.innerLayer();
+            case ALTERNATE_INNER -> config.alternateInnerLayer();
+        };
+        if (id == null) {
+            return air;
+        }
+        final int index = paletteIds.indexOf(id);
+        if (index >= 0) {
+            return palette.block(index);
+        }
+        final BlockData custom = customBlockData(id);
+        if (custom != null) {
+            return custom;
+        }
+        return placeholderData(layer == Geode.Layer.OUTER ? Material.SMOOTH_BASALT
+            : layer == Geode.Layer.ALTERNATE_INNER ? Material.AMETHYST_BLOCK : Material.CALCITE, false);
     }
 
     /**
@@ -735,6 +790,43 @@ final class TfcTerrain {
                 return Carve.KEEP;
             }
             return cavesOf(x >> 4, z >> 4).noise(x, y, z);
+        }
+
+        /**
+         * PAR-WORLD-26: the world as the geodes read it before they write: air, water and lava (above the terrain, opened by
+         * the density, the density caves or the carvers), bedrock, and the surface soils and packed ice are
+         * {@code #minecraft:geode_invalid_blocks} (TFC adds salt water and {@code #minecraft:dirt}: grass, dirt, coarse dirt,
+         * mud); only bedrock is {@code #minecraft:features_cannot_replace}; air and water hold a cluster.
+         */
+        Geode.World geodeWorld() {
+            return new Geode.World() {
+                @Override
+                public boolean invalid(int x, int y, int z) {
+                    if (y <= minY || y >= maxY || y > terrainTop(x, z) || opened(x, y, z)) {
+                        return true;
+                    }
+                    final SurfaceKind kind = surface(x, z).kind(y);
+                    return kind == SurfaceKind.GRASS || kind == SurfaceKind.DIRT || kind == SurfaceKind.COARSE_DIRT
+                        || kind == SurfaceKind.MUD || kind == SurfaceKind.PACKED_ICE;
+                }
+
+                @Override
+                public boolean replaceable(int x, int y, int z) {
+                    return y > minY && y < maxY;
+                }
+
+                @Override
+                public boolean clusterCanGrow(int x, int y, int z) {
+                    if (y <= minY || y >= maxY) {
+                        return y >= maxY;
+                    }
+                    if (y > terrainTop(x, z) || densityOpened(x, y, z)) {
+                        return true;
+                    }
+                    final Carve carve = caveCarve(x, y, z);
+                    return carve == Carve.AIR || carve == Carve.WATER;
+                }
+            };
         }
 
         /** Whether the density or a cave opens a block at or below the column's terrain top. */
