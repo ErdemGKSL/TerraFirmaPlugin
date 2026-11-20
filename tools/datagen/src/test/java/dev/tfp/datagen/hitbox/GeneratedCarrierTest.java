@@ -110,7 +110,7 @@ class GeneratedCarrierTest {
         // PAR-CLIM-04: the snow pile (8 layer counts, hitbox-only), the icicle (tip, pillar) and, on the leaves pool, the
         // ice pile and sea ice.
         // PAR-FARM-03: the crops, dead crops and wild crops of the 29 crops (87 block ids; every appearance is explicit).
-        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3 + 17 * 16 + 17 * 2 + 4 + 10 + 87);
+        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3 + 17 * 16 + 17 * 2 + 4 + 10 + 87 + 75);
         // PAR-CLIM-04: the ice pile and sea ice (one leaves pool appearance each).
         assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2);
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
@@ -128,7 +128,10 @@ class GeneratedCarrierTest {
         for (String kind : HitboxDemands.CROP_KINDS) {
             HitboxDemands.CROPS.forEach(c -> expected.add(HitboxDemands.cropId(kind, c)));
         }
-        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87);
+        // PAR-FARM-14: the six stationary berry bushes and the dead one (75 states, hitbox-only).
+        HitboxDemands.BERRY_SPECIES.forEach(sp -> expected.add(HitboxDemands.berryId(sp)));
+        expected.add(HitboxDemands.BERRY_DEAD_ID);
+        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7);
         java.util.SortedSet<String> grass = new java.util.TreeSet<>();
         for (String soil : List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol", "podzol", "alfisol", "mollisol")) {
             dev.tfp.datagen.soil.SoilBlocks.GRASS_TYPES.forEach(t -> grass.add("tfp:" + t + "/" + soil));

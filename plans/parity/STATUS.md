@@ -419,7 +419,8 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-REL-07 | Performance audit with 50 bots | REL | 54 | open |
 | PAR-REL-08 | Full playthrough and visual QA | REL | 55 | open |
 | PAR-REL-09 | Release packaging | REL | 56 | blocked |
-| PAR-FARM-14 | Stationary berry bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 30 | open |
+| PAR-FARM-14 | Stationary berry bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 30 | done |
+| PAR-FARM-18 | Worldgen placement of stationary berry bushes | FARM | 31 | open |
 | PAR-FARM-15 | Spreading bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 31 | open |
 | PAR-FARM-16 | Fruit tree blocks: CraftEngine states, models, hitbox carriers, loot, splicing | FARM | 32 | open |
 | PAR-FARM-17 | Banana blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 33 | open |

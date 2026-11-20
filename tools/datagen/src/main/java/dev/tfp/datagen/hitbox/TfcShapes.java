@@ -356,6 +356,17 @@ public final class TfcShapes {
                         + ".sound(SoundType.CROP).flammable(60, 30).pushReaction(PushReaction.DESTROY);"),
                 List.of("getCollisionShape")));
         }
+        // PAR-FARM-14: the berry bushes. StationaryBerryBushBlock.getShape is HALF_PLANT for every state; the dead bush
+        // (SeasonalPlantBlock.getShape) is the full cube at stage 2, else PLANT_SHAPE, both without collision; the selector knows
+        // no carrier that tall without collision, so the dead bush has no row and is served on the bush's (BERRY_BUSH_KEY).
+        String fruit = B + "plant/fruit/";
+        String seasonal = fruit + "SeasonalPlantBlock.java";
+        List<String> collisionNeedle = List.of("protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, "
+            + "CollisionContext context)\n    {\n        return Shapes.empty();");
+        s.add(Spec.of(BERRY_BUSH_KEY, "berry_bush", Kind.OBJECT, List.of(fruit + "StationaryBerryBushBlock.java", seasonal),
+            "HALF_PLANT", "Shapes.empty()", List.of("private static final VoxelShape HALF_PLANT = box(2, 0, 2, 14, 8, 14);",
+                "protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context)\n"
+                    + "    {\n        return HALF_PLANT;", collisionNeedle.getFirst()), List.of()));
         // PAR-HEAT-21: the four torch blocks extend vanilla TorchBlock / WallTorchBlock with no shape override, and
         // TFCBlocks registers each noCollission(): the outline is vanilla's (ported, TORCH_SHAPE / WALL_TORCH_SHAPES), no
         // collision. The dead torches share the lit ones' outlines.
@@ -495,6 +506,9 @@ public final class TfcShapes {
         }
         return Shape.box(r[0], r[1], r[2], r[3], r[4], r[5]);
     }
+
+    /** PAR-FARM-14: the stationary bushes' outline row; the dead bush (12 x 16 x 12 or a full cube, no collision) borrows it. */
+    public static final String BERRY_BUSH_KEY = "tfc:plant/berry_bush";
 
     /** PAR-FARM-03: TFC's three crop outlines ({@code CropBlock.QUARTER_SHAPE}, {@code HALF_SHAPE}, {@code FULL_SHAPE}). */
     public static final List<String> CROP_SHAPES = List.of("quarter", "half", "full");

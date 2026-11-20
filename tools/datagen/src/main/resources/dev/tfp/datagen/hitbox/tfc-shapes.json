@@ -1459,6 +1459,14 @@
       "from": "CropBlock.java HALF_SHAPE / Shapes.empty()"
     },
     {
+      "key": "tfc:plant/berry_bush",
+      "class": "berry_bush",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 8, 14]],
+      "collision": [],
+      "from": "StationaryBerryBushBlock.java HALF_PLANT / Shapes.empty()"
+    },
+    {
       "key": "tfc:torch",
       "class": "torch",
       "kind": "object",

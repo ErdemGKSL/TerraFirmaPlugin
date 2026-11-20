@@ -172,6 +172,17 @@ public final class HitboxDemands {
         "red_bell_pepper", "yellow_bell_pepper", "pumpkin", "melon", "canola", "radish", "alfalfa", "jute", "papyrus",
         "sugarcane");
     public static final List<String> CROP_KINDS = List.of("crop", "dead_crop", "wild_crop");
+    /** PAR-FARM-14: TFC's StationaryBush constants (BerryBlocks checks them), the block ids and the demand pattern. */
+    public static final List<String> BERRY_SPECIES = List.of("snowberry", "bunchberry", "gooseberry", "cloudberry",
+        "strawberry", "wintergreen_berry");
+    public static final String BERRY_DEAD_ID = "tfp:berry_bush/dead";
+    public static final String BERRY_PATTERN = "*_*";
+    static final int BERRY_WEIGHT = -10;
+
+    public static String berryId(String species) {
+        return "tfp:berry_bush/" + species;
+    }
+
     /** PAR-FARM-03: served after every other demand (adding the crops moves no carrier of another block). */
     static final int CROP_WEIGHT = -9;
 
@@ -352,6 +363,16 @@ public final class HitboxDemands {
                         HitboxAllocation.TRANSPARENT, true, CROP_WEIGHT));
                 }
             }
+        }
+        // PAR-FARM-14: the six stationary berry bushes (every lifecycle and stage on the HALF_PLANT outline) and the dead
+        // bush (served on the bush's row, see TfcShapes), hitbox-only; the look is TFC's model as an item display (BerryBlocks).
+        for (String species : BERRY_SPECIES) {
+            d.add(new Demand(berryId(species), BERRY_PATTERN, TfcShapes.BERRY_BUSH_KEY, 0, HitboxAllocation.TRANSPARENT, true,
+                BERRY_WEIGHT));
+        }
+        for (int stage = 0; stage < 3; stage++) {
+            d.add(new Demand(BERRY_DEAD_ID, "stage_" + stage, TfcShapes.BERRY_BUSH_KEY, 0, HitboxAllocation.TRANSPARENT,
+                true, BERRY_WEIGHT));
         }
         return d;
     }
