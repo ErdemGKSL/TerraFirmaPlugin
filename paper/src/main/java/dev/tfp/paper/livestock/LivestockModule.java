@@ -58,11 +58,7 @@ public final class LivestockModule implements FeatureModule, Listener {
 
     /** The food tag of a species: {@code tfp:cow_food}; both camels share {@code tfp:camel_food}. */
     static String foodTag(Carrier carrier) {
-        String name = carrier.name();
-        if (name.endsWith("_camel")) {
-            name = "camel";
-        }
-        return "tfp:" + name + "_food";
+        return LivestockFood.tag(carrier);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
