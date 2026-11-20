@@ -87,6 +87,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-29 | Scraping block CE entry: tfc:scraping hitbox row and demand, configuration/scraping, in-game check | PROC | 8 | done |
 | PAR-PROC-30 | minecraft:bricks is craftable in TFC: stop repurposing it as a visual state; bricks craft in-game re-check | PROC | 8 | done |
 | PAR-GATHER-12 | CraftEngine blocks for loose rocks and groundcover, so pickup and stacking work in the world | GATHER | 22 | open |
+| PAR-FARM-19 | CraftEngine farmland blocks per soil with hydration visual states | FARM | 28 | open |
 | PAR-PROC-28 | Advanced crafting in-game verification and self-test: knife/sandwich crafts, vanilla recipe leakage over all recipes | PROC | 41 | open |
 | PAR-HUD-17 | Wire the HUD display styles: hud.* keys in config.yml, health text and climate temperature placeholders follow HudStyles | HUD | 8 | done |
 | PAR-HUD-18 | /tfp debug chunk climate lines follow hud.climate-temperature-style | HUD | 9 | done |
@@ -284,7 +285,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-15 | Volcanic and spring CE blocks: hardened rock, magma blocks, spring water look | WORLD | 26 | done |
 | PAR-WORLD-27 | Wire VolcanicFeatures into the Paper terrain: rivulets, crater lakes, tuya and stratovolcano fissures, pumice and obsidian patches, springs; spring water of crater lakes | WORLD | 26 | done |
 | PAR-WORLD-16 | Spawn and world settings: spawn offset, forced TFC gamerules, structures off, dimension policy | WORLD | 26 | done |
-| PAR-FARM-01 | Farmland block: hydration from water (async), nutrients, hoe overlay readout | FARM | 27 | open |
+| PAR-FARM-01 | Farmland block: hydration from water (async), nutrients, hoe overlay readout | FARM | 27 | done |
 | PAR-FLUID-05 | Fluid container tooltip in-game verification: debug fill of a jug shows the fluid line | FLUID | 27 | done |
 | PAR-METAL-01 | Alloy display and fluid alloy glue for vessels and crucibles | METAL | 27 | done |
 | PAR-POT-12 | Jug fluid overlay and the four glass bottle items | POTTERY | 27 | open |
