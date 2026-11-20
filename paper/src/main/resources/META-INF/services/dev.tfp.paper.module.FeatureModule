@@ -94,3 +94,4 @@ dev.tfp.paper.grass.GrassModule
 dev.tfp.paper.plantslow.PlantSlowModule
 dev.tfp.paper.livestockai.LivestockAiModule
 dev.tfp.paper.mold.MoldModule
+dev.tfp.paper.crop.wild.WildModule
