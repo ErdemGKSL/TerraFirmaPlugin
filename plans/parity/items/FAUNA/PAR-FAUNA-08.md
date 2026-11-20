@@ -30,4 +30,6 @@ done_criteria:
 
 # PAR-FAUNA-08: Livestock AI and roster: graze, follow food, herd; all 18 domestic species
 
+> Claimed: REL session_011osUpAJcukeqydbqrkqw9X (owner asked REL to unblock REL-06), 2026-11-20
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
