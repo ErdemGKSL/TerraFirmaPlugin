@@ -2,7 +2,7 @@
 id: PAR-POT-05
 title: "Molds: filling from a vessel/crucible, solidifying, breaking out the casting"
 area: POTTERY
-status: open
+status: done
 wave: 25
 deps: [PAR-POT-04]
 size: M
@@ -41,6 +41,7 @@ done_criteria:
 
 # PAR-POT-05: Molds: filling from a vessel/crucible, solidifying, breaking out the casting
 
-> Claimed: session_011osUp6aEeM6XBUKHoB7Lf2, 2026-11-19
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+Done: PAR-POT-05 commit. core `MoldPouring` (+test), paper/mold (items, pourer, pour screen, listener, tooltip, module, `/tfp debug mold`), MockBukkit `MoldMockBukkitTest` (10 cases). Verification `docs/verification/PAR-POT-05/` (pour and cast seen in game; pour screen and tooltip covered by tests, in-game view pending: container OOM). Follow-ups: fill overlay model and ceramic break sound (ledger divergences). Self-test `casting.copper_axe` not added (itest hub untouched).
