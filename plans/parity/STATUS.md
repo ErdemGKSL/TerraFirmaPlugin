@@ -302,7 +302,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-02 | Fire ingot mold and bell casting; casting crafting | METAL | 28 | open |
 | PAR-METAL-03 | Anvil blocks: rock anvils and metal anvils with items shown on top | METAL | 28 | done |
 | PAR-METAL-22 | Small vessel stores a mixed alloy: fills and melts write tfp:alloy, the vessel tooltip shows the mix | METAL | 28 | open |
-| PAR-WORLD-22 | TFC world generator settings as server config (flat bedrock, spawn distance and centre, climate scales, continentalness, grass density); close the spawn-settings and river open gaps | WORLD | 28 | open |
+| PAR-WORLD-22 | TFC world generator settings as server config (flat bedrock, spawn distance and centre, climate scales, continentalness, grass density); close the spawn-settings and river open gaps | WORLD | 28 | done |
 | PAR-WORLD-43 | Wire every biome's own surface builder (BiomeSurfaces) and the full surface block set into the Paper terrain | WORLD | 28 | open |
 | PAR-FARM-04 | Crop growth glue: lazy calendar growth, climate checks, death, harvest yields | FARM | 29 | done |
 | PAR-FARM-06 | Stationary berry bushes: lifecycle, picking, propagation | FARM | 29 | done |
@@ -412,6 +412,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-48 | Plant lifecycle looks, climate tint and soil rules: TFC's seasonal plant stages (tfc:plant model loader), per-climate grass/foliage colour, TFC canSurvive per plant type | WORLD | 28 | open |
 | PAR-WORLD-49 | Surface builder over every exposed floor: cave floors, arch and overhang floors get TFC's surface states (whole-column scan) | WORLD | 23 | open |
 | PAR-WORLD-50 | CE coral and sea pickle blocks: datagen for the 30 corals and tfp:sea_pickle on their vanilla twin carriers, items, loot, names; write them in generation; drops on support loss; wall fan placement | WORLD | 27 | open |
+| PAR-WORLD-51 | Per-world TFC settings in every climate consumer (HUD, snow, precipitation, weather, seasonal remap, plant effects, chunk climate) | WORLD | 29 | open |
 | PAR-MECH-03 | Water wheel | MECH | 51 | open |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | open |
 | PAR-MECH-08 | Power loom | MECH | 51 | open |

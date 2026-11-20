@@ -49,12 +49,24 @@ public final class Plants {
     private final Set<String> singleBlockReplaceable;
     private final Set<String> snowPileable;
     private final Map<String, String> skipped;
+    /** PAR-WORLD-22: the world's {@code grass_density}. */
+    private final float grassDensity;
 
     /**
      * @param levelSeed the world seed
      * @param data      the exported TFC data
      */
     public Plants(long levelSeed, PlantData data) {
+        this(levelSeed, data, PlantPlacer.GRASS_DENSITY);
+    }
+
+    /**
+     * @param levelSeed    the world seed
+     * @param data         the exported TFC data
+     * @param grassDensity the world's {@code grass_density} (PAR-WORLD-22; TFC's preset is 0.5)
+     */
+    public Plants(long levelSeed, PlantData data, float grassDensity) {
+        this.grassDensity = grassDensity;
         for (Step step : Step.values()) {
             final List<List<PlantFeature.Placed>> byBiome = new ArrayList<>(TfcBiomes.COUNT);
             for (int id = 0; id < TfcBiomes.COUNT; id++) {
@@ -111,7 +123,7 @@ public final class Plants {
         if (list.isEmpty()) {
             return List.of();
         }
-        final PlantLevel level = new PlantLevel(view, singleBlockReplaceable, snowPileable);
+        final PlantLevel level = new PlantLevel(view, singleBlockReplaceable, snowPileable, grassDensity);
         for (PlantFeature.Placed feature : list) {
             PlantPlacer.place(feature, level, randoms.get(feature.id()).chunk(chunkX, chunkZ), chunkX << 4, view.minY(), chunkZ << 4);
         }

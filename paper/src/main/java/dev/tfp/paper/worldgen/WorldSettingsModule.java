@@ -14,7 +14,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 
-/** PAR-WORLD-16: TFC's forced game rules on world load and the nether-portal switch (TFC's onCreateNetherPortal). */
+/**
+ * PAR-WORLD-16: TFC's forced game rules on world load and the nether-portal switch (TFC's onCreateNetherPortal).
+ * PAR-WORLD-22: loads {@code worldgen-settings.yml} (written from the jar when missing) before the worlds' terrain is built.
+ */
 public final class WorldSettingsModule implements FeatureModule {
     public static final String ID = "world_settings";
 
@@ -25,12 +28,27 @@ public final class WorldSettingsModule implements FeatureModule {
 
     @Override
     public void enable(ModuleContext context) {
+        loadConfig(context);
         context.listen(new Rules(context));
         context.scheduler().global(() -> {
             for (World world : context.plugin().getServer().getWorlds()) {
                 TfcWorldRules.apply(world);
             }
         });
+    }
+
+    /** Reads {@code worldgen-settings.yml}; a broken file keeps TFC's defaults and is reported. */
+    static void loadConfig(ModuleContext context) {
+        java.io.File file = new java.io.File(context.plugin().getDataFolder(), WorldSettingsConfig.FILE);
+        try {
+            if (!file.exists()) {
+                context.plugin().saveResource(WorldSettingsConfig.FILE, false);
+            }
+            WorldSettingsConfig.install(WorldSettingsConfig.load(file));
+        } catch (RuntimeException e) {
+            context.logger().severe("worldgen-settings.yml is invalid, TFC's defaults apply: " + e.getMessage());
+            WorldSettingsConfig.install(WorldSettingsConfig.DEFAULT);
+        }
     }
 
     /** The listener; also public for tests. */

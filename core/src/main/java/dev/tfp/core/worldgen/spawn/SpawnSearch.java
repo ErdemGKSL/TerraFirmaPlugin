@@ -29,8 +29,12 @@ public final class SpawnSearch {
     /** The overworld preset's {@code spawn_center_x} and {@code spawn_center_z}. */
     public static final int DEFAULT_CENTER = 0;
 
-    /** TFC's column scan tries: a spiral of at most 1024 chunks. */
-    private static final int CHUNK_TRIES = 1024;
+    /** TFC's column scan tries: a spiral of at most 1024 chunks ({@code ForgeEventHandler.onCreateWorldSpawn}). */
+    public static final int CHUNK_TRIES = 1024;
+    /** TFC's chunk window of the spiral: chunk offsets {@code -16 < x <= 16}, {@code -16 < z <= 16}. */
+    public static final int COLUMN_WINDOW = 16;
+    /** TFC's biome search step: {@code spawnDistance / 256} quarts ({@code BiomeSourceExtension.findSpawnBiome}). */
+    public static final int STEP_DIVISOR = 256;
 
     private SpawnSearch() {}
 
@@ -63,7 +67,7 @@ public final class SpawnSearch {
      * The quart coordinates are the TFC ones, so every candidate is looked up at {@code 4 * quart} blocks.
      */
     static BlockPosition findSpawnBiome(long seed, int centerX, int centerZ, int spawnDistance, IntBinaryOperator biomeId) {
-        final int step = Math.max(1, spawnDistance / 256);
+        final int step = Math.max(1, spawnDistance / STEP_DIVISOR);
         final int quartCenterX = centerX >> 2;
         final int quartCenterZ = centerZ >> 2;
         final int maxRadius = spawnDistance >> 2;
@@ -105,7 +109,7 @@ public final class SpawnSearch {
         int xStep = 0;
         int zStep = -1;
         for (int tries = 0; tries < CHUNK_TRIES; ++tries) {
-            if (x > -16 && x <= 16 && z > -16 && z <= 16) {
+            if (x > -COLUMN_WINDOW && x <= COLUMN_WINDOW && z > -COLUMN_WINDOW && z <= COLUMN_WINDOW) {
                 final Optional<Spawn> spawn = dryColumnInChunk(chunkX + x, chunkZ + z, seaLevel, heightAt);
                 if (spawn.isPresent()) {
                     return spawn;

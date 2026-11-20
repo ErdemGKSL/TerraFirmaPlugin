@@ -6,6 +6,7 @@
 package dev.tfp.core.worldgen;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import dev.tfp.core.worldgen.biome.TfcBiomes;
 import dev.tfp.core.worldgen.chunk.ChunkDataGenerator;
@@ -19,7 +20,18 @@ import dev.tfp.core.worldgen.river.RiverBlendType;
 import dev.tfp.core.worldgen.river.RiverChunk;
 import dev.tfp.core.worldgen.river.RiverColumn;
 import dev.tfp.core.worldgen.river.RiverNoise;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import dev.tfp.core.worldgen.deposit.Deposits;
+import dev.tfp.core.worldgen.ore.VeinData;
+import dev.tfp.core.worldgen.plant.PlantData;
+import dev.tfp.core.worldgen.plant.PlantState;
+import dev.tfp.core.worldgen.tree.Forest;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -37,8 +49,9 @@ import org.junit.jupiter.api.Test;
  *
  * <p>Kinds: {@code data_count} is the number of TFC river worldgen files, {@code data} is one TFC river biome file with its
  * registered blend type and river flag, {@code constant} is a named TFC constant, {@code literal} is a threshold written
- * inline in TFC's river code, and {@code rule} is a river rule with no Java counterpart. Every {@code rule} row must be listed
- * in {@link #OPEN_GAPS_TABLE} and every other row must be checked here.
+ * inline in TFC's river code, {@code rule} is a river rule with no Java counterpart, and {@code ported} is a former rule
+ * that is checked here (PAR-WORLD-22: the river biomes' feature tags, value = TFC's tag values, and the river surface
+ * builder). Every {@code rule} row must be listed in {@link #OPEN_GAPS_TABLE} and every other row must be checked here.
  */
 class RiverRulesGoldenTest {
     static final String TABLE = "dev/tfp/core/worldgen/river_rules.tsv";
@@ -169,6 +182,86 @@ class RiverRulesGoldenTest {
         assertThat(RiverBlendType.ALL).hasSize(TFC_BLEND_COUNT);
     }
 
+    /** The exported content data (content/generated/content/data). */
+    private static Path dataRoot() {
+        final String configured = System.getProperty("tfp.contentData");
+        final Path root = configured != null ? Path.of(configured) : Path.of("..", "content", "generated", "content", "data");
+        assumeTrue(Files.isDirectory(root.resolve(PlantData.PLACED_TAG_DIR)), "no generated content data (run tools/datagen)");
+        return root;
+    }
+
+    @Test
+    void riverFeatureTagsArePortedAndRead() throws IOException {
+        final Path root = dataRoot();
+        final PlantData plants = PlantData.of(path -> {
+            final Path file = root.resolve(path);
+            try {
+                return Files.isRegularFile(file) ? Optional.of(Files.readString(file)) : Optional.empty();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+        int checked = 0;
+        for (String[] row : rows()) {
+            if (!row[0].equals("ported") || !row[1].startsWith("biome.features.")) {
+                continue;
+            }
+            final String tag = row[1].substring("biome.features.".length());
+            final String step = tag.substring("in_biome/".length(), tag.lastIndexOf('/'));
+            final String biome = tag.substring(tag.lastIndexOf('/') + 1);
+            final int id = BIOME_IDS.get("biome/" + biome + ".json");
+            final List<String> tfc = List.of(row[2].split(","));
+            // the exported tag is TFC's, namespace renamed
+            final JsonObject json = JsonParser.parseString(Files.readString(root.resolve(PlantData.PLACED_TAG_DIR + tag + ".json")))
+                .getAsJsonObject();
+            final List<String> exported = new ArrayList<>();
+            json.getAsJsonArray("values").forEach(v -> exported.add(v.getAsString().replace("tfp:", "tfc:")));
+            assertThat(exported).as(tag).isEqualTo(tfc);
+            // and the Java step of the tag reads the biome's list
+            switch (step) {
+                case "soil_discs" -> {
+                    assertThat(Deposits.FEATURES.stream().anyMatch(f -> f.feature().endsWith("_deposit") && Deposits.placesIn(f, id)))
+                        .as(tag + " ore deposits").isEqualTo(tfc.contains("#tfc:feature/ore_deposits"));
+                    assertThat(Deposits.FEATURES.stream().anyMatch(f -> !f.feature().endsWith("_deposit") && Deposits.placesIn(f, id)))
+                        .as(tag + " soil discs").isEqualTo(tfc.contains("#tfc:feature/soil_discs"));
+                }
+                case "veins" -> assertThat(VeinData.BIOME_VEIN_TAGS).as(tag).contains(biome);
+                case "large_features" -> {
+                    assertThat(Forest.decorates(id)).as(tag + " forest").isEqualTo(tfc.contains("tfc:forest"));
+                    // every other entry reaches the plant loader: run, or skipped by name (ledger: features not run yet)
+                    final List<String> ids = plants.tagValues(PlantState.NS + PlantData.LARGE_FEATURES + biome);
+                    assertThat(ids).as(tag).isNotEmpty();
+                    for (String i : ids) {
+                        if (!i.endsWith(":forest")) {
+                            assertThat(plants.supported(i) != null || plants.skipped().containsKey(i)).as(tag + " " + i).isTrue();
+                        }
+                    }
+                }
+                case "surface_decoration" -> {
+                    final List<String> ids = plants.tagValues(PlantState.NS + PlantData.SURFACE_DECORATION + biome);
+                    assertThat(plants.biomeFeatures(PlantData.SURFACE_DECORATION, biome)).as(tag).isNotEmpty();
+                    assertThat(ids.contains("tfp:plant/dry_phragmite")).as(tag + " dry phragmite")
+                        .isEqualTo(tfc.contains("tfc:plant/dry_phragmite"));
+                    for (String i : ids) {
+                        assertThat(plants.supported(i) != null || plants.skipped().containsKey(i)).as(tag + " " + i).isTrue();
+                    }
+                }
+                default -> throw new AssertionError("unknown feature step " + step);
+            }
+            checked++;
+        }
+        assertThat(checked).isEqualTo(7);
+    }
+
+    @Test
+    void riverSurfaceBuilderIsInTheSurfaceGolden() throws IOException {
+        assertThat(rows().stream().anyMatch(r -> r[0].equals("ported") && r[1].equals("surface.river_builder"))).isTrue();
+        // BiomeSurfacesGoldenTest compares TFC's RiverSurfaceBuilder columns (original biome under the river) with ours
+        final long riverRows = Files.readAllLines(Path.of("src/test/java/dev/tfp/core/worldgen/surface/BiomeSurfacesGolden.txt"))
+            .stream().filter(l -> l.startsWith("RIVER ")).count();
+        assertThat(riverRows).isGreaterThanOrEqualTo(8);
+    }
+
     @Test
     void openGapsAreExactlyTheRuleRows() throws IOException {
         final TreeSet<String> rules = new TreeSet<>();
@@ -176,7 +269,7 @@ class RiverRulesGoldenTest {
             if (row[0].equals("rule")) {
                 rules.add(row[1]);
             } else {
-                assertThat(row[0]).as("kind of %s", row[1]).isIn("data_count", "data", "constant", "literal");
+                assertThat(row[0]).as("kind of %s", row[1]).isIn("data_count", "data", "constant", "literal", "ported");
             }
         }
         assertThat(openGaps()).isEqualTo(List.copyOf(rules));

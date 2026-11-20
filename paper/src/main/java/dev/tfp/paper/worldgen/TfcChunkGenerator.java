@@ -5,6 +5,7 @@
  */
 package dev.tfp.paper.worldgen;
 
+import dev.tfp.core.worldgen.settings.WorldSettings;
 import dev.tfp.core.worldgen.spawn.SpawnSearch;
 import dev.tfp.paper.climate.SeasonalBiomeRemap;
 import dev.tfp.paper.integration.BlockVisuals;
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -49,6 +51,10 @@ public final class TfcChunkGenerator extends ChunkGenerator {
     private volatile TfcTerrain terrain;
     /** The spawn of the world, searched once (M2-GEN-16): null until searched, empty when no column is dry land. */
     private volatile Optional<SpawnSearch.Spawn> spawn;
+    /** PAR-WORLD-22: how the world's TFC settings are found (the stored ones, else the config's). */
+    private final Function<WorldInfo, WorldSettings> settingsOf;
+    /** PAR-WORLD-22: the world's TFC settings, resolved with the terrain. */
+    private volatile WorldSettings settings;
 
     /**
      * @param seed    the seed given in {@code bukkit.yml} ({@code TerraFirmaPlugin:<seed>}), or empty to use the world's seed
@@ -56,9 +62,38 @@ public final class TfcChunkGenerator extends ChunkGenerator {
      * @param log     where refusals are reported
      */
     public TfcChunkGenerator(OptionalLong seed, Supplier<BlockVisuals> visuals, Logger log) {
+        this(seed, visuals, log, null);
+    }
+
+    /**
+     * @param settingsOf the TFC settings of a world; null for the stored settings in the world folder, else
+     *                   {@code worldgen-settings.yml}'s ({@link WorldSettingsStore})
+     */
+    public TfcChunkGenerator(OptionalLong seed, Supplier<BlockVisuals> visuals, Logger log,
+                             Function<WorldInfo, WorldSettings> settingsOf) {
         this.seed = seed;
         this.visuals = visuals;
         this.log = log;
+        this.settingsOf = settingsOf != null ? settingsOf : this::storedSettings;
+    }
+
+    /** The stored settings of a world (PAR-WORLD-22), or TFC's preset when the world folder cannot be found (tests). */
+    private WorldSettings storedSettings(WorldInfo info) {
+        java.nio.file.Path folder;
+        try {
+            folder = info instanceof World w ? w.getWorldFolder().toPath()
+                : org.bukkit.Bukkit.getWorldContainer().toPath().resolve(info.getName());
+        } catch (RuntimeException e) {
+            log.warning("TFC world settings: no world folder for " + info.getName() + "; TFC's preset applies");
+            return WorldSettings.DEFAULT;
+        }
+        return WorldSettingsStore.resolve(folder, info.getName(), WorldSettingsConfig.current(), log);
+    }
+
+    /** The TFC settings of this generator's world: resolved with the terrain, TFC's preset before that. */
+    public WorldSettings settings() {
+        WorldSettings s = settings;
+        return s != null ? s : WorldSettings.DEFAULT;
     }
 
     /**
@@ -100,17 +135,33 @@ public final class TfcChunkGenerator extends ChunkGenerator {
 
     /** The terrain of the world: built on first use, from the configured seed or the world's seed. */
     TfcTerrain terrain(WorldInfo info) {
-        return terrain(info::getSeed);
+        return terrain(info::getSeed, info);
     }
 
-    /** The terrain of the world, from the configured seed or {@code worldSeed} (see {@link #terrain(WorldInfo)}). */
+    /**
+     * The terrain of the world, from the configured seed or {@code worldSeed} (see {@link #terrain(WorldInfo)}). Without a
+     * world the settings already resolved are used, else TFC's preset (the world's terrain is normally built first by
+     * {@link #getDefaultBiomeProvider}, at world creation).
+     */
     TfcTerrain terrain(LongSupplier worldSeed) {
+        return terrain(worldSeed, null);
+    }
+
+    private TfcTerrain terrain(LongSupplier worldSeed, WorldInfo info) {
         TfcTerrain built = terrain;
         if (built == null) {
             synchronized (buildLock) {
                 built = terrain;
                 if (built == null) {
-                    built = new TfcTerrain(seed.orElseGet(worldSeed));
+                    if (settings == null) {
+                        if (info != null) {
+                            settings = settingsOf.apply(info);
+                        } else {
+                            log.warning("TFC terrain built before its world was known; TFC's preset settings apply");
+                            settings = WorldSettings.DEFAULT;
+                        }
+                    }
+                    built = new TfcTerrain(seed.orElseGet(worldSeed), settings);
                     if (built.fallbackBiomes() > 0) {
                         log.warning("TFC biomes: " + built.fallbackBiomes() + " of " + dev.tfp.core.worldgen.biome.TfcBiomes.COUNT
                             + " tfp: base biomes are missing from the registry (bootstrap datapack tfp_seasonal_biomes not"
@@ -133,8 +184,11 @@ public final class TfcChunkGenerator extends ChunkGenerator {
             synchronized (buildLock) {
                 found = spawn;
                 if (found == null) {
-                    final TfcTerrain t = terrain(world::getSeed);
-                    found = TfcSpawn.search(seed.orElseGet(world::getSeed), t::biomeNoRiverId, t::heightAt);
+                    final TfcTerrain t = terrain(world);
+                    final WorldSettings s = settings();
+                    // PAR-WORLD-22: the world's spawn distance and centre
+                    found = SpawnSearch.find(seed.orElseGet(world::getSeed), s.spawnCenterX(), s.spawnCenterZ(),
+                        s.spawnDistance(), dev.tfp.core.worldgen.chunk.ChunkData.SEA_LEVEL_Y, t::biomeNoRiverId, t::heightAt);
                     if (found.isEmpty()) {
                         log.warning("TFC spawn: no dry land in the spawn search of " + world.getName()
                             + "; Paper's default spawn applies");
@@ -221,7 +275,7 @@ public final class TfcChunkGenerator extends ChunkGenerator {
         if (table == null || !table.isLoaded()) {
             return -1;
         }
-        TfcTerrain t = terrain(world::getSeed);
+        TfcTerrain t = terrain(world);
         RockPalette<org.bukkit.block.data.BlockData> palette = t.palette(table);
         if (!palette.resolved()) {
             return -1;

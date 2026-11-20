@@ -203,7 +203,7 @@ final class PlantPlacer {
             case 4 -> Math.min(tries, 8);
             case 3 -> Math.min(tries, 14);
             case 2 -> Math.min(tries, 40);
-            default -> (int) (tries * (GRASS_DENSITY * 2f));
+            default -> (int) (tries * (level.grassDensity() * 2f));
         };
     }
 

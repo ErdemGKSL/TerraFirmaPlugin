@@ -2,7 +2,7 @@
 id: PAR-WORLD-22
 title: "TFC world generator settings as server config (flat bedrock, spawn distance and centre, climate scales, continentalness, grass density); close the spawn-settings and river open gaps"
 area: WORLD
-status: open
+status: done
 wave: 28
 deps: [PAR-WORLD-02, PAR-WORLD-05, PAR-WORLD-16]
 size: M
@@ -33,6 +33,7 @@ plan:
   - "Thread it through every consumer: flat bedrock in the base fill, spawn search distance/centre, climate scale/constant in OverworldClimate (HUD, snow, precipitation, seasonal remap all take the world's settings, not the default), continentalness and finite continents in the region generator, grass density in PlantPlacer; replace the constants."
   - "Close spawn_settings_open_gaps.txt (port the spawn chunk tries, column window and search step divisor) and river_open_gaps.txt (river biome feature tags through the existing feature rules, the river surface builder with PAR-WORLD-05's builder table) with goldens; both files empty at done."
   - "Ledger: a Divergences row for the settings source (server config file instead of the world-creation screen), linked to NP-CLIENT-05."
+  - "Done: core/worldgen/settings (WorldSettings with TFC codec names and preset defaults, RockLayerConfig data, BedrockLayer = makeBedrock); paper WorldSettingsConfig (worldgen-settings.yml: forced-gamerules, nether-portals, defaults, worlds.<name>) and WorldSettingsStore (<world>/tfp/world-settings.yml, stored wins); TfcChunkGenerator resolves them and runs the spawn search with them; TfcTerrain uses region settings, bedrock and grass density. Minimal edits outside files_owned, needed by the plan: SpawnSearch (named constants CHUNK_TRIES/COLUMN_WINDOW/STEP_DIVISOR), plant/Plants+PlantLevel+PlantPlacer (grass density parameter), TfcTerrain (constructor with settings, bedrock mask), TfcWorldRules (config keys, properties as overrides, as the coordinator asked), docs/worldgen/settings.md; river_rules.tsv rule rows became kind ported, checked by RiverRulesGoldenTest. Tests: WorldSettingsTest (6), WorldSettingsStoreTest (6), SpawnSettingsGoldenTest (+1), RiverRulesGoldenTest (+2); both open-gap files empty. No TFC oracle for a non-default region sample (needs MC); the test checks the region temperature changes. Follow-up PAR-WORLD-51: climate readers outside the generator still use the preset."
 tests:
   - "core: WorldSettingsTest (codec defaults equal TFC's preset; round trip)"
   - "core: SpawnSettingsGoldenTest and RiverRulesGoldenTest with empty open-gap files"
@@ -43,8 +44,6 @@ done_criteria:
 ---
 
 # PAR-WORLD-22: TFC world generator settings as server config; close the spawn-settings and river open gaps
-
-> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-19
 
 > see_not_parity: NP-CLIENT-05 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

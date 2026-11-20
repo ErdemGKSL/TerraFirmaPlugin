@@ -22,11 +22,11 @@ literal	ChunkNoiseFiller.river_flow_norm_dist_sq	0.28	ChunkNoiseFiller.java:732
 literal	ChunkNoiseFiller.river_biome_norm_dist_sq	1.1	ChunkNoiseFiller.java:664
 constant	Flow.values	17	world/river/Flow.java enum (incl. NONE)
 constant	RiverBlendType.count	11	world/river/RiverBlendType.java enum
-rule	surface.river_builder	sandy shores: slope<2 TOP_GRASS_TO_GRAVEL, slope<5 RIVER_SAND, else GRAVEL (GRAVEL under); no sandy shores: normal builder	world/surface/builder/RiverSurfaceBuilder.java
-rule	biome.features.in_biome/soil_discs/river	river biome feature tag	biome/river.json
-rule	biome.features.in_biome/veins/river	river biome feature tag	biome/river.json
-rule	biome.features.in_biome/large_features/river	river biome feature tag	biome/river.json
-rule	biome.features.in_biome/surface_decoration/river	river biome feature tag	biome/river.json
-rule	biome.features.in_biome/soil_discs/river_valley	river biome feature tag	biome/river_valley.json
-rule	biome.features.in_biome/large_features/river_valley	river biome feature tag	biome/river_valley.json
-rule	biome.features.in_biome/surface_decoration/river_valley	river biome feature tag	biome/river_valley.json
+ported	surface.river_builder	sandy shores: slope<2 TOP_GRASS_TO_GRAVEL, slope<5 RIVER_SAND, else GRAVEL (GRAVEL under); no sandy shores: normal builder	world/surface/builder/RiverSurfaceBuilder.java; golden: surface/BiomeSurfacesGoldenTest RIVER rows
+ported	biome.features.in_biome/soil_discs/river	#tfc:feature/ore_deposits,#tfc:feature/soil_discs	biome/river.json (tags/worldgen/placed_feature/in_biome/soil_discs/river.json)
+ported	biome.features.in_biome/veins/river	tfc:vein/amethyst,tfc:vein/opal	biome/river.json (tags/worldgen/placed_feature/in_biome/veins/river.json)
+ported	biome.features.in_biome/large_features/river	tfc:forest,tfc:rare_bamboo,tfc:bamboo,tfc:rare_bamboo_golden,tfc:bamboo_golden,tfc:cave_vegetation,#tfc:feature/surface_flood_fill_lakes	biome/river.json (tags/worldgen/placed_feature/in_biome/large_features/river.json)
+ported	biome.features.in_biome/surface_decoration/river	tfc:plant/dry_phragmite,#tfc:feature/land_plants	biome/river.json (tags/worldgen/placed_feature/in_biome/surface_decoration/river.json)
+ported	biome.features.in_biome/soil_discs/river_valley	#tfc:feature/soil_discs	biome/river_valley.json (tags/worldgen/placed_feature/in_biome/soil_discs/river_valley.json)
+ported	biome.features.in_biome/large_features/river_valley	tfc:forest,tfc:rare_bamboo,tfc:bamboo,tfc:rare_bamboo_golden,tfc:bamboo_golden,tfc:cave_vegetation,#tfc:feature/surface_flood_fill_lakes	biome/river_valley.json (tags/worldgen/placed_feature/in_biome/large_features/river_valley.json)
+ported	biome.features.in_biome/surface_decoration/river_valley	#tfc:feature/land_plants	biome/river_valley.json (tags/worldgen/placed_feature/in_biome/surface_decoration/river_valley.json)

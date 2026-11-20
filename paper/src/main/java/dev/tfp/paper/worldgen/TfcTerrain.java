@@ -43,9 +43,10 @@ import dev.tfp.core.worldgen.plant.Plants;
 import dev.tfp.core.worldgen.random.PositionalRandom;
 import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
 import dev.tfp.core.worldgen.region.RegionGenerator;
-import dev.tfp.core.worldgen.region.RegionSettings;
 import dev.tfp.core.worldgen.river.RiverBlendType;
 import dev.tfp.core.worldgen.river.RiverColumn;
+import dev.tfp.core.worldgen.settings.BedrockLayer;
+import dev.tfp.core.worldgen.settings.WorldSettings;
 import dev.tfp.core.worldgen.surface.ColumnSurface;
 import dev.tfp.core.worldgen.surface.SurfaceColumn;
 import dev.tfp.core.worldgen.surface.SurfaceFamily;
@@ -143,14 +144,22 @@ final class TfcTerrain {
     private final Map<String, BlockData> placeholders = new ConcurrentHashMap<>();
     /** TFC's surface heights of this seed (M2-GEN-06), with the river samplers and the cinder cones; pure, shared by the workers. */
     private final SurfaceHeights surfaceHeights;
+    /** PAR-WORLD-22: the world's TFC settings. */
+    private final WorldSettings settings;
 
     /**
      * @param seed the level seed. The region generator, the chunk data generator and the biome layer share one {@link Seed},
      *             in that order, as the ledger requires (each takes its seeds right after the one before, as in TFC).
      */
     TfcTerrain(long seed) {
+        this(seed, WorldSettings.DEFAULT);
+    }
+
+    /** PAR-WORLD-22: the terrain of a world with its TFC world settings (region, bedrock, grass density). */
+    TfcTerrain(long seed, WorldSettings settings) {
+        this.settings = settings;
         Seed stream = Seed.of(seed);
-        this.regions = new RegionGenerator(RegionSettings.OVERWORLD, stream);
+        this.regions = new RegionGenerator(settings.regionSettings(), stream);
         this.chunks = new ChunkDataGenerator(regions, stream);
         // TFC's initRandomState: the biome layer takes its seeds from the stream after the region and chunk data generators
         final BiomeLayers layers = new BiomeLayers(regions, stream);
@@ -170,7 +179,7 @@ final class TfcTerrain {
         this.shoreCover = new ShoreGroundcover(seed);
         this.looseRocks = new LooseRocks(seed);
         this.forest = new Forest(seed, TreeResources.fromJar(TfcTerrain.class.getClassLoader()));
-        this.plants = new Plants(seed, PlantResources.fromJar(TfcTerrain.class.getClassLoader()));
+        this.plants = new Plants(seed, PlantResources.fromJar(TfcTerrain.class.getClassLoader()), settings.grassDensity());
         this.volcanoes = new Volcanoes(seed);
         this.volcanicFeatures = new VolcanicFeatures(seed, volcanoes);
         this.surfaceHeights = new SurfaceHeights(seed, regions, layers, RiverBlendType.createSamplers(seed), volcanoes.cones());
@@ -300,6 +309,7 @@ final class TfcTerrain {
         // PAR-WORLD-28: the view carries the chunk's cave carves (and its neighbours', for the decorations)
         final Ground view = new Ground(chunkX, chunkZ, columns, climate, minY, data.getMaxHeight());
         final VeinStep.Chunk veins = veinChunk(chunkX, chunkZ, view);
+        final int[] bedrockMasks = BedrockLayer.columns(chunkX, chunkZ, settings.flatBedrock());
         for (int lz = 0; lz < 16; lz++) {
             final int z = (chunkZ << 4) + lz;
             for (int lx = 0; lx < 16; lx++) {
@@ -308,8 +318,13 @@ final class TfcTerrain {
                 final int top = columns.tops()[lx + 16 * lz];
                 final SurfaceHeights.Column sample = columns.samples()[lx + 16 * lz];
                 final ColumnSurface surface = view.surface(x, z);
-                data.setBlock(lx, minY, lz, bedrock);
-                for (int y = minY + 1; y <= top; y++) {
+                // PAR-WORLD-22: TFC's makeBedrock (flat or natural); bit 0 is always set
+                final int bedrockMask = bedrockMasks[lx + 16 * lz];
+                for (int y = minY; y <= top; y++) {
+                    if (y - minY < BedrockLayer.HEIGHT && (bedrockMask >> (y - minY) & 1) != 0) {
+                        data.setBlock(lx, y, lz, bedrock);
+                        continue;
+                    }
                     final Material opened = densityCarve(sample, y, top, sea);
                     if (opened != null) {
                         data.setBlock(lx, y, lz, opened == Material.WATER ? water : air);

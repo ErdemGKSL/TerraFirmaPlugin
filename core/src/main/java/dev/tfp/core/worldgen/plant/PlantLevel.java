@@ -28,6 +28,8 @@ final class PlantLevel {
     private final TreeView view;
     private final Set<String> singleBlockReplaceable;
     private final Set<String> snowPileable;
+    /** PAR-WORLD-22: the world's {@code grass_density} ({@code DynamicDensityRandomPatchFeature}). */
+    private final float grassDensity;
     private final Map<Long, PlantBlock> placed = new LinkedHashMap<>();
 
     /**
@@ -36,9 +38,18 @@ final class PlantLevel {
      * @param snowPileable           the block ids of {@code tfc:can_be_snow_piled}
      */
     PlantLevel(TreeView view, Set<String> singleBlockReplaceable, Set<String> snowPileable) {
+        this(view, singleBlockReplaceable, snowPileable, PlantPlacer.GRASS_DENSITY);
+    }
+
+    PlantLevel(TreeView view, Set<String> singleBlockReplaceable, Set<String> snowPileable, float grassDensity) {
         this.view = view;
         this.singleBlockReplaceable = singleBlockReplaceable;
         this.snowPileable = snowPileable;
+        this.grassDensity = grassDensity;
+    }
+
+    float grassDensity() {
+        return grassDensity;
     }
 
     TreeView view() {

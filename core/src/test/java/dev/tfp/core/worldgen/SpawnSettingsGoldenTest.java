@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import dev.tfp.core.climate.OverworldClimate;
 import dev.tfp.core.worldgen.chunk.ChunkData;
 import dev.tfp.core.worldgen.region.RegionSettings;
+import dev.tfp.core.worldgen.settings.WorldSettings;
 import dev.tfp.core.worldgen.spawn.SpawnSearch;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +43,12 @@ class SpawnSettingsGoldenTest {
         map.put("spawn_distance", () -> SpawnSearch.DEFAULT_SPAWN_DISTANCE);
         map.put("spawn_center_x", () -> SpawnSearch.DEFAULT_CENTER);
         map.put("spawn_center_z", () -> SpawnSearch.DEFAULT_CENTER);
+        // PAR-WORLD-22: the per-world settings record and the spawn search literals
+        map.put("flat_bedrock", () -> WorldSettings.DEFAULT.flatBedrock());
+        map.put("grass_density", () -> WorldSettings.DEFAULT.grassDensity());
+        map.put("spawn_chunk_tries", () -> SpawnSearch.CHUNK_TRIES);
+        map.put("spawn_column_window", () -> SpawnSearch.COLUMN_WINDOW);
+        map.put("spawn_search_step_divisor", () -> SpawnSearch.STEP_DIVISOR);
         map.put("temperature_scale", () -> OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
         map.put("temperature_constant", () -> RegionSettings.OVERWORLD.temperatureConstant());
         map.put("rainfall_scale", () -> RegionSettings.OVERWORLD.rainfallScale());
@@ -77,6 +84,24 @@ class SpawnSettingsGoldenTest {
         assertThat(tfc.get("rainfall_scale")).isEqualTo("20000");
         assertThat(tfc.get("continentalness")).isEqualTo("0.5");
         assertThat(tfc.get("sea_level_y")).isEqualTo("63");
+    }
+
+    @Test
+    void theWorldSettingsDefaultsAreTheTable() {
+        final Map<String, String> tfc = table();
+        final Map<String, Object> java = WorldSettings.DEFAULT.toMap();
+        for (String field : WorldSettings.FIELDS) {
+            if (field.equals("rock_layer_settings")) {
+                continue;
+            }
+            final Object v = java.get(field);
+            if (v instanceof Boolean b) {
+                assertThat(b).as(field).isEqualTo(Boolean.parseBoolean(tfc.get(field)));
+            } else {
+                assertThat(((Number) v).doubleValue()).as(field).isEqualTo(Double.parseDouble(tfc.get(field)));
+            }
+        }
+        assertThat(WorldSettings.DEFAULT.regionSettings()).isEqualTo(RegionSettings.OVERWORLD);
     }
 
     @Test

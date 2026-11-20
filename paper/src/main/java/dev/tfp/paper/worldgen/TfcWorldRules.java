@@ -19,9 +19,12 @@ import org.bukkit.World;
  * Rules the running server does not have (they were renamed in 1.21.11) are skipped.
  */
 public final class TfcWorldRules {
-    /** JVM property that turns the forced rules off (TFC's {@code enableForcedTFCGameRules}). Default on. */
+    /**
+     * JVM property that overrides {@code forced-gamerules} of {@code worldgen-settings.yml} (TFC's
+     * {@code enableForcedTFCGameRules}, default on; PAR-WORLD-22 moved the switch to the config).
+     */
     public static final String FORCED_PROPERTY = "tfp.world.forced-gamerules";
-    /** JVM property that allows nether portals (TFC's {@code enableNetherPortals}). Default off. */
+    /** JVM property that overrides {@code nether-portals} of {@code worldgen-settings.yml} (TFC's {@code enableNetherPortals}, default off). */
     public static final String PORTALS_PROPERTY = "tfp.world.nether-portals";
 
     /** Rule key (1.21.11+), legacy name. All are forced to false. */
@@ -35,11 +38,13 @@ public final class TfcWorldRules {
     }
 
     public static boolean forcedEnabled() {
-        return !"false".equalsIgnoreCase(System.getProperty(FORCED_PROPERTY, "true"));
+        String property = System.getProperty(FORCED_PROPERTY);
+        return property != null ? !"false".equalsIgnoreCase(property) : WorldSettingsConfig.current().forcedGameRules();
     }
 
     public static boolean netherPortalsEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(PORTALS_PROPERTY, "false"));
+        String property = System.getProperty(PORTALS_PROPERTY);
+        return property != null ? "true".equalsIgnoreCase(property) : WorldSettingsConfig.current().netherPortals();
     }
 
     /** Sets the forced rules on {@code world} (global thread on Folia). Returns how many rules were changed. */

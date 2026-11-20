@@ -1,0 +1,32 @@
+# TerraFirmaPlugin world settings (PAR-WORLD-22). TFC sets these on its "Create TFC World" screen; a server sets them here.
+#
+# A TFC world reads its settings once, when it is created, and stores them in <world folder>/tfp/world-settings.yml.
+# Editing this file later changes new worlds only. Delete a world's stored file only if you regenerate the world.
+
+# TFC's enableForcedTFCGameRules: naturalRegeneration, doInsomnia, doPatrolSpawning and doTraderSpawning forced off on
+# every world load. The JVM property -Dtfp.world.forced-gamerules=true|false overrides this.
+forced-gamerules: true
+
+# TFC's enableNetherPortals. The JVM property -Dtfp.world.nether-portals=true|false overrides this.
+nether-portals: false
+
+# TFC's world generator settings, by TFC's field names. Missing fields keep TFC's overworld preset (shown here).
+defaults:
+  flat_bedrock: false          # one bedrock layer instead of the natural 1..6 block floor
+  spawn_distance: 4000         # radius in blocks of the spawn biome search
+  spawn_center_x: 0
+  spawn_center_z: 0
+  temperature_scale: 20000     # blocks from the coldest to the hottest band
+  temperature_constant: 0.0    # -1..1; with a constant the scale is unused in TFC's region climate
+  rainfall_scale: 20000
+  rainfall_constant: 0.0
+  continentalness: 0.5         # 0..1, the share of land
+  grass_density: 0.5           # 0..1, scales grass in sparse forests
+  finite_continents: false
+  # rock_layer_settings: TFC's codec form (rocks, bottom, layers, ocean_floor, volcanic, land, uplift); default the preset.
+
+# Per world, by world name: only the fields that differ from 'defaults'.
+worlds: {}
+#  world:
+#    temperature_scale: 10000
+#    finite_continents: true
