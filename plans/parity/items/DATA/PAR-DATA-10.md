@@ -2,7 +2,7 @@
 id: PAR-DATA-10
 title: "Dispenser behaviours, bonemeal, vanilla rule overrides"
 area: DATA
-status: open
+status: done
 wave: 38
 deps: [PAR-INFRA-01]
 size: M
@@ -22,6 +22,7 @@ ui: false
 in_game_steps: []
 plan:
   - "Dispensers: light devices, place fluids, shear as TFC (BlockDispenseEvent); bonemeal disabled unless enableVanillaBonemeal; vanilla monsters/golems/skeleton horses/chicken jockeys/egg throwing/milk clearing per config; extend the existing SuppressionListener."
+  - "Done 2026-11-19: core VanillaRules (TFC defaults, tfp.vanilla.* JVM properties, TFC's monster spawn decision) and paper VanillaRulesModule: bone meal, egg throwing, skeleton trap horses, golems, natural monster spawns (underground only, tfc:monster_spawns_on), milk effect restore. Tests: VanillaRulesTest (3), VanillaRulesModuleMockBukkitTest (3: golems/horses, monsters, eggs). Not done, moved to PAR-DATA-18: mob equipment/enchantments, dispenser behaviours, bone meal and milk tests. config.yml keys are added with PAR-DATA-18 (docs/config.md)."
 tests:
   - "paper: MockBukkit per rule"
 done_criteria:

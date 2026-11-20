@@ -102,3 +102,4 @@ dev.tfp.paper.coral.CoralModule
 dev.tfp.paper.rotation.RotationModule
 dev.tfp.paper.familiarity.FamiliarityModule
 dev.tfp.paper.prey.PreyModule
+dev.tfp.paper.vanilla.VanillaRulesModule

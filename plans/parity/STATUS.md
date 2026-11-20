@@ -145,6 +145,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-CLIM-12 | Climate-driven weather cycle: rain and thunder from the climate model replace vanilla's weather cycle; vanilla precipitation ticking off; local rain per player | CLIMATE | 13 | done |
 | PAR-CLIM-18 | Snow catch-up after a calendar skip for chunks that stay loaded (/tfp time add, sleep skip) | CLIMATE | 13 | done |
 | PAR-DATA-17 | Self-test piston.no_water_dupe: a real 1-tick piston pulse moves no water source, on Paper and Folia | DATA | 13 | done |
+| PAR-DATA-18 | Vanilla rules left from PAR-DATA-10: mob equipment and enchantments, dispenser behaviours, bone meal and milk tests | DATA | 39 | open |
 | PAR-HEAT-06 | Firepit block: placement, fuel, lazy temperature, ash, extinguish by rain and water | HEAT | 13 | done |
 | PAR-HEAT-17 | Self-test heat.cook_meat: TFC HeatingItemTest on a real Paper and Folia server | HEAT | 13 | done |
 | PAR-INFRA-46 | Static info tooltip lines: damage type and resistances, fuel, sluice/pan deposits, rock-category and glass-type lore | INFRA | 13 | done |
@@ -346,7 +347,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DATA-08 | Sounds: TFC sound events into the pack and played by features | DATA | 37 | open |
 | PAR-METAL-18 | Bells (bronze, brass) | METAL | 37 | open |
 | PAR-DATA-09 | Particles: action-driven TFC particles with vanilla equivalents | DATA | 38 | done |
-| PAR-DATA-10 | Dispenser behaviours, bonemeal, vanilla rule overrides | DATA | 38 | open |
+| PAR-DATA-10 | Dispenser behaviours, bonemeal, vanilla rule overrides | DATA | 38 | done |
 | PAR-DATA-11 | Paintings, armour trims, misc data registries | DATA | 38 | open |
 | PAR-FAUNA-01 | Entity model import: TFC bbmodels and Java animations converted to BetterModel | FAUNA | 38 | done |
 | PAR-DATA-12 | Block info readout (Jade-like tooltips) on the actionbar | DATA | 39 | open |
