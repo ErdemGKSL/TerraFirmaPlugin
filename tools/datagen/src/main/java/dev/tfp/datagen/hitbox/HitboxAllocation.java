@@ -171,6 +171,11 @@ public final class HitboxAllocation {
         if (state.startsWith(VanillaCandidates.POOL_PREFIX)) {
             return model;
         }
+        int bracket = state.indexOf('[');
+        if (!look.equals(VANILLA_LOOK)
+            && HitboxDemands.KEEPS_VANILLA_LOOK.contains(bracket < 0 ? state : state.substring(0, bracket))) {
+            return false; // PAR-CLIM-27: a crafted block that keeps its vanilla look
+        }
         if (hide.containsValue(state)) {
             return false;
         }

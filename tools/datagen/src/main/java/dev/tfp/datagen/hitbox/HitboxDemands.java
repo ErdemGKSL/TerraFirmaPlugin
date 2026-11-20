@@ -178,6 +178,19 @@ public final class HitboxDemands {
         "red_bell_pepper", "yellow_bell_pepper", "pumpkin", "melon", "canola", "radish", "alfalfa", "jute", "papyrus",
         "sugarcane");
     public static final List<String> CROP_KINDS = List.of("crop", "dead_crop", "wild_crop");
+    /** PAR-CLIM-27: the climate instruments (TFC devices) and the clock's six facings (BlockStateProperties.FACING). */
+    public static final String THERMOMETER_ID = "tfp:thermometer";
+    public static final String ANEMOMETER_ID = "tfp:anemometer";
+    public static final String VANE_ID = "tfp:vane";
+    public static final String CLOCK_ID = "tfp:calendar_clock";
+    public static final List<String> CLOCK_FACINGS = List.of("north", "east", "south", "west", "up", "down");
+    static final int INSTRUMENT_WEIGHT = -11;
+    /**
+     * PAR-CLIM-27: crafted blocks that keep their vanilla look (CarrierPolicyRecipeTest.ALLOWED): the hitbox-only fallback never
+     * takes them (a thin post such as the anemometer ranks the lightning rod first).
+     */
+    static final java.util.Set<String> KEEPS_VANILLA_LOOK = java.util.Set.of("minecraft:lightning_rod");
+
     /** PAR-FARM-14: TFC's StationaryBush constants (BerryBlocks checks them), the block ids and the demand pattern. */
     public static final List<String> BERRY_SPECIES = List.of("snowberry", "bunchberry", "gooseberry", "cloudberry",
         "strawberry", "wintergreen_berry");
@@ -382,6 +395,22 @@ public final class HitboxDemands {
         }
         // PAR-METAL-12: the crucible, TFC's shell outline (no channel nubs) with TFC's crucible model.
         d.add(new Demand(CRUCIBLE_ID, CRUCIBLE_APPEARANCE, "tfc:crucible", 0, CRUCIBLE_MODEL, true, CRUCIBLE_WEIGHT));
+        // PAR-CLIM-27: the four climate instruments, hitbox-only per TFC outline; the look is an item display (InstrumentBlocks).
+        for (String f : FACINGS) {
+            d.add(new Demand(THERMOMETER_ID, f + "_*", TfcShapes.instrumentKey("thermometer", "facing=" + f), 0,
+                HitboxAllocation.TRANSPARENT, true, INSTRUMENT_WEIGHT));
+        }
+        for (String id : List.of(ANEMOMETER_ID, VANE_ID)) {
+            String n = id.substring(id.indexOf(':') + 1);
+            d.add(new Demand(id, "base", TfcShapes.instrumentKey(n, "attached_wind_devices=false"), 0,
+                HitboxAllocation.TRANSPARENT, true, INSTRUMENT_WEIGHT));
+            d.add(new Demand(id, "attached", TfcShapes.instrumentKey(n, "attached_wind_devices=true"), 0,
+                HitboxAllocation.TRANSPARENT, true, INSTRUMENT_WEIGHT));
+        }
+        for (String f : CLOCK_FACINGS) {
+            d.add(new Demand(CLOCK_ID, f + "_*", TfcShapes.instrumentKey("calendar_clock", "facing=" + f), 0,
+                HitboxAllocation.TRANSPARENT, true, INSTRUMENT_WEIGHT));
+        }
         return d;
     }
 

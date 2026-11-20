@@ -1467,6 +1467,118 @@
       "from": "StationaryBerryBushBlock.java HALF_PLANT / Shapes.empty()"
     },
     {
+      "key": "tfc:thermometer[facing=north]",
+      "class": "instrument_thermometer",
+      "kind": "object",
+      "selection": [[4, 1, 14, 12, 15, 16]],
+      "collision": [[4, 1, 14, 12, 15, 16]],
+      "from": "ThermometerBlock.java (ported)"
+    },
+    {
+      "key": "tfc:thermometer[facing=south]",
+      "class": "instrument_thermometer",
+      "kind": "object",
+      "selection": [[4, 1, 0, 12, 15, 2]],
+      "collision": [[4, 1, 0, 12, 15, 2]],
+      "from": "ThermometerBlock.java (ported)"
+    },
+    {
+      "key": "tfc:thermometer[facing=east]",
+      "class": "instrument_thermometer",
+      "kind": "object",
+      "selection": [[0, 1, 4, 2, 15, 12]],
+      "collision": [[0, 1, 4, 2, 15, 12]],
+      "from": "ThermometerBlock.java (ported)"
+    },
+    {
+      "key": "tfc:thermometer[facing=west]",
+      "class": "instrument_thermometer",
+      "kind": "object",
+      "selection": [[14, 1, 4, 16, 15, 12]],
+      "collision": [[14, 1, 4, 16, 15, 12]],
+      "from": "ThermometerBlock.java (ported)"
+    },
+    {
+      "key": "tfc:anemometer[attached_wind_devices=false]",
+      "class": "instrument_anemometer",
+      "kind": "object",
+      "selection": [[6, 0, 6, 10, 8, 10]],
+      "collision": [[6, 0, 6, 10, 8, 10]],
+      "from": "AnemometerBlock.java (ported)"
+    },
+    {
+      "key": "tfc:anemometer[attached_wind_devices=true]",
+      "class": "instrument_anemometer",
+      "kind": "object",
+      "selection": [[6, 0, 6, 10, 16, 10]],
+      "collision": [[6, 0, 6, 10, 16, 10]],
+      "from": "AnemometerBlock.java (ported)"
+    },
+    {
+      "key": "tfc:vane[attached_wind_devices=false]",
+      "class": "instrument_vane",
+      "kind": "object",
+      "selection": [[6, 0, 6, 10, 12, 10]],
+      "collision": [[6, 0, 6, 10, 12, 10]],
+      "from": "VaneBlock.java (ported)"
+    },
+    {
+      "key": "tfc:vane[attached_wind_devices=true]",
+      "class": "instrument_vane",
+      "kind": "object",
+      "selection": [[6, 0, 6, 10, 6, 10]],
+      "collision": [[6, 0, 6, 10, 6, 10]],
+      "from": "VaneBlock.java (ported)"
+    },
+    {
+      "key": "tfc:calendar_clock[facing=up]",
+      "class": "instrument_calendar_clock",
+      "kind": "object",
+      "selection": [[1, 0, 1, 15, 2, 15]],
+      "collision": [[1, 0, 1, 15, 2, 15]],
+      "from": "CalendarClockBlock.java (ported)"
+    },
+    {
+      "key": "tfc:calendar_clock[facing=down]",
+      "class": "instrument_calendar_clock",
+      "kind": "object",
+      "selection": [[1, 14, 1, 15, 16, 15]],
+      "collision": [[1, 14, 1, 15, 16, 15]],
+      "from": "CalendarClockBlock.java (ported)"
+    },
+    {
+      "key": "tfc:calendar_clock[facing=north]",
+      "class": "instrument_calendar_clock",
+      "kind": "object",
+      "selection": [[1, 1, 14, 15, 15, 16]],
+      "collision": [[1, 1, 14, 15, 15, 16]],
+      "from": "CalendarClockBlock.java (ported)"
+    },
+    {
+      "key": "tfc:calendar_clock[facing=south]",
+      "class": "instrument_calendar_clock",
+      "kind": "object",
+      "selection": [[1, 1, 0, 15, 15, 2]],
+      "collision": [[1, 1, 0, 15, 15, 2]],
+      "from": "CalendarClockBlock.java (ported)"
+    },
+    {
+      "key": "tfc:calendar_clock[facing=east]",
+      "class": "instrument_calendar_clock",
+      "kind": "object",
+      "selection": [[0, 1, 1, 2, 15, 15]],
+      "collision": [[0, 1, 1, 2, 15, 15]],
+      "from": "CalendarClockBlock.java (ported)"
+    },
+    {
+      "key": "tfc:calendar_clock[facing=west]",
+      "class": "instrument_calendar_clock",
+      "kind": "object",
+      "selection": [[14, 1, 1, 16, 15, 15]],
+      "collision": [[14, 1, 1, 16, 15, 15]],
+      "from": "CalendarClockBlock.java (ported)"
+    },
+    {
       "key": "tfc:torch",
       "class": "torch",
       "kind": "object",

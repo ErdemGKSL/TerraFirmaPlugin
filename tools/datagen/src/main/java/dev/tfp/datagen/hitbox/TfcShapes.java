@@ -367,6 +367,13 @@ public final class TfcShapes {
             "HALF_PLANT", "Shapes.empty()", List.of("private static final VoxelShape HALF_PLANT = box(2, 0, 2, 14, 8, 14);",
                 "protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context)\n"
                     + "    {\n        return HALF_PLANT;", collisionNeedle.getFirst()), List.of()));
+        // PAR-CLIM-27: the climate instruments (DeviceBlock subclasses; getShape only, so the collision is the same).
+        for (String[] r : INSTRUMENT_SHAPES) {
+            double[] b = java.util.Arrays.stream(r[4].split(",")).mapToDouble(Double::parseDouble).toArray();
+            final Shape shape = Shape.box(b[0], b[1], b[2], b[3], b[4], b[5]);
+            s.add(new Spec(instrumentKey(r[0], r[1]), "instrument_" + r[0], Kind.OBJECT, List.of(D + r[2], B + "devices/DeviceBlock.java"),
+                null, null, List.of(r[3]), List.of("getCollisionShape"), x -> new Shape[] {shape, shape}));
+        }
         // PAR-HEAT-21: the four torch blocks extend vanilla TorchBlock / WallTorchBlock with no shape override, and
         // TFCBlocks registers each noCollission(): the outline is vanilla's (ported, TORCH_SHAPE / WALL_TORCH_SHAPES), no
         // collision. The dead torches share the lit ones' outlines.
@@ -505,6 +512,44 @@ public final class TfcShapes {
             return Shape.EMPTY;
         }
         return Shape.box(r[0], r[1], r[2], r[3], r[4], r[5]);
+    }
+
+    /**
+     * PAR-CLIM-27: the instruments' rows: block, state, source file, the constant line the sources must contain, the box
+     * (pixels). The thermometer's shape switch maps {@code DOWN} and {@code UP} to the north box.
+     */
+    static final List<String[]> INSTRUMENT_SHAPES = List.of(
+        new String[] {"thermometer", "facing=north", "ThermometerBlock.java",
+            "private static final VoxelShape SHAPE_NORTH = box(4D, 1D, 14D, 12D, 15D, 16D);", "4,1,14,12,15,16"},
+        new String[] {"thermometer", "facing=south", "ThermometerBlock.java",
+            "private static final VoxelShape SHAPE_SOUTH = box(4D, 1D, 0D, 12D, 15D, 2D);", "4,1,0,12,15,2"},
+        new String[] {"thermometer", "facing=east", "ThermometerBlock.java",
+            "private static final VoxelShape SHAPE_EAST = box(0D, 1D, 4D, 2D, 15D, 12D);", "0,1,4,2,15,12"},
+        new String[] {"thermometer", "facing=west", "ThermometerBlock.java",
+            "private static final VoxelShape SHAPE_WEST = box(14D, 1D, 4D, 16D, 15D, 12D);", "14,1,4,16,15,12"},
+        new String[] {"anemometer", "attached_wind_devices=false", "AnemometerBlock.java",
+            "private static final VoxelShape SHAPE = box(6D, 0.0D, 6D, 10D, 8.0D, 10D);", "6,0,6,10,8,10"},
+        new String[] {"anemometer", "attached_wind_devices=true", "AnemometerBlock.java",
+            "private static final VoxelShape SHAPE_ATTACHED = box(6D, 0.0D, 6D, 10D, 16.0D, 10D);", "6,0,6,10,16,10"},
+        new String[] {"vane", "attached_wind_devices=false", "VaneBlock.java",
+            "private static final VoxelShape SHAPE = box(6D, 0.0D, 6D, 10D, 12.0D, 10D);", "6,0,6,10,12,10"},
+        new String[] {"vane", "attached_wind_devices=true", "VaneBlock.java",
+            "private static final VoxelShape SHAPE_ATTACHED = box(6D, 0.0D, 6D, 10D, 6.0D, 10D);", "6,0,6,10,6,10"},
+        new String[] {"calendar_clock", "facing=up", "CalendarClockBlock.java",
+            "private static final VoxelShape SHAPE_UP = box(1D, 0D, 1D, 15D, 2.0D, 15D);", "1,0,1,15,2,15"},
+        new String[] {"calendar_clock", "facing=down", "CalendarClockBlock.java",
+            "private static final VoxelShape SHAPE_DOWN = box(1D, 14D, 1D, 15D, 16.0D, 15D);", "1,14,1,15,16,15"},
+        new String[] {"calendar_clock", "facing=north", "CalendarClockBlock.java",
+            "private static final VoxelShape SHAPE_NORTH = box(1D, 1D, 14D, 15D, 15D, 16D);", "1,1,14,15,15,16"},
+        new String[] {"calendar_clock", "facing=south", "CalendarClockBlock.java",
+            "private static final VoxelShape SHAPE_SOUTH = box(1D, 1D, 0D, 15D, 15D, 2D);", "1,1,0,15,15,2"},
+        new String[] {"calendar_clock", "facing=east", "CalendarClockBlock.java",
+            "private static final VoxelShape SHAPE_EAST = box(0D, 1D, 1D, 2D, 15D, 15D);", "0,1,1,2,15,15"},
+        new String[] {"calendar_clock", "facing=west", "CalendarClockBlock.java",
+            "private static final VoxelShape SHAPE_WEST = box(14D, 1D, 1D, 16D, 15D, 15D);", "14,1,1,16,15,15"});
+
+    public static String instrumentKey(String block, String state) {
+        return "tfc:" + block + "[" + state + "]";
     }
 
     /** PAR-FARM-14: the stationary bushes' outline row; the dead bush (12 x 16 x 12 or a full cube, no collision) borrows it. */

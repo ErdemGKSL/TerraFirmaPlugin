@@ -233,11 +233,11 @@ public final class CropBlocks {
     }
 
     /** One model of a state's look: the model id and the blockstate's {@code y} turn. */
-    record Part(String model, int y) {
+    public record Part(String model, int y) {
     }
 
     /** The models TFC's blockstate draws for {@code state} (a variants file: one; a multipart file: every applying part). */
-    static List<Part> look(JsonObject blockstate, String source, Map<String, String> state) {
+    public static List<Part> look(JsonObject blockstate, String source, Map<String, String> state) {
         if (blockstate.has("variants")) {
             JsonObject variants = blockstate.getAsJsonObject("variants");
             List<Map<String, String>> tries = new ArrayList<>();

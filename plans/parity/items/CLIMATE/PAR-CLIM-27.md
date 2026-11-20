@@ -2,7 +2,7 @@
 id: PAR-CLIM-27
 title: "Climate instrument blocks: CraftEngine entries, hitbox demands, models and animated parts"
 area: CLIMATE
-status: open
+status: done
 wave: 35
 deps: [PAR-CLIM-09]
 size: M
@@ -23,6 +23,7 @@ files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/TfcShapes.java"
   - "tools/datagen/src/main/resources/dev/tfp/datagen/hitbox/tfc-shapes.json"
   - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/GeneratedCarrierTest.java"
+  - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxAllocation.java"
   - "content/generated/content/craftengine/tfp/configuration/instrument/**"
   - "paper/src/main/java/dev/tfp/paper/instrument/**"
   - "paper/src/test/java/dev/tfp/paper/instrument/**"
@@ -31,10 +32,12 @@ in_game_steps:
   - "ce item give Bot tfp:thermometer, tfp:anemometer, tfp:vane, tfp:calendar_clock"
   - "place each, right-click, compare the action bar with tfp debug chunk"
 plan:
+  - "Widened again (worker, 2026-11-20): HitboxAllocation.java, one line: the free-carrier test refuses a non-vanilla look on HitboxDemands.KEEPS_VANILLA_LOOK (the lightning rod, an allow-listed crafted block that the thin instrument posts ranked first)."
   - "UNBLOCKED (worker, 2026-11-20): files_owned widened to the shape table and the carrier pin test (shared: edit only the instrument rows, demands and pins)."
   - "CE entries for tfp:thermometer (facing x power 0..15 x attached; TFC's 11 needle models), tfp:anemometer and tfp:vane (attached_wind_devices), tfp:calendar_clock (facing x mode) with the tfp:device behaviour, TFC shapes from the four block classes (new HitboxDemands rows and TfcShapes specs), loot self, support rules (canSurvive: thermometer on a sturdy face or thermometer_readable, vane on top of an anemometer or a centre support)."
   - "Anemometer cups, vane and clock hands: TFC draws them with Java entity models; build bbmodel or item-display parts with model-authoring and rotate them with entity_renderer on a slow sweep, no ticking."
   - "Register InstrumentSources for the firebox, crucible, blast furnace, barrel and bloomery (thermometer_readable and clock_readable tags)."
+  - "Done: datagen instrument/InstrumentBlocks + EntityBoxes (tfp:thermometer 128 states, anemometer 2, vane 2, calendar_clock 18; TFC's needle models, the entity models read from the Java sources and converted to block models with the render transform per facing baked in, item displays on hitbox-only carriers, TFC settings/tool/sounds, loot, block items, names), HitboxDemands rows and pins, TfcShapes rows, HitboxAllocation: the free-carrier test refuses a non-vanilla look on the lightning rod; tests InstrumentBlocksTest (7). The cups, vane arrow and hands are drawn at their rest angle; spinning, the InstrumentSources registrations and the support rules are PAR-CLIM-28. Pending in-game check (container cannot run client)"
 tests:
   - "datagen: the four entries on the real checkout; paper: placement and support rules"
 done_criteria:
@@ -42,7 +45,5 @@ done_criteria:
 ---
 
 # PAR-CLIM-27: Climate instrument blocks: CraftEngine entries, hitbox demands, models and animated parts
-
-> Claimed: session_011osUp5o449zjy3Qcb6jpEk, 2026-11-20
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
