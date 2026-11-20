@@ -1,0 +1,169 @@
+/*
+ * Licensed under the EUPL, Version 1.2.
+ * You may obtain a copy of the Licence at:
+ * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ */
+package dev.tfp.datagen.rotation;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import dev.tfp.datagen.OutputTree;
+import dev.tfp.datagen.TfcCheckout;
+import dev.tfp.datagen.hitbox.HitboxCarrier;
+import dev.tfp.datagen.hitbox.Shape;
+import dev.tfp.datagen.hitbox.TfcShapes;
+import dev.tfp.datagen.rendered.RenderedTemplates;
+import dev.tfp.datagen.visuals.Profile;
+import dev.tfp.datagen.visuals.VersionFamily;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.yaml.snakeyaml.Yaml;
+
+/** PAR-MECH-01: the rotation network block entries on the real checkout. */
+class RotationBlocksTest {
+    private static OutputTree out;
+    private static long states;
+
+    @BeforeAll
+    static void generate() {
+        Path path = Path.of(System.getProperty("tfc.checkout", "/opt/tfc"));
+        Assumptions.assumeTrue(Files.isDirectory(path.resolve(".git")), "no TFC checkout at " + path);
+        TfcCheckout tfc;
+        try {
+            tfc = TfcCheckout.open(path, TfcCheckout.PINNED_COMMIT);
+        } catch (RuntimeException e) {
+            Assumptions.abort("TFC checkout is not at the pinned commit: " + e.getMessage());
+            return;
+        }
+        assertThat(RotationBlocks.available(tfc)).isTrue();
+        out = new OutputTree();
+        states = RotationBlocks.run(tfc, out);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> root(String type) {
+        return new Yaml().load(new String(out.get(RotationBlocks.OUTPUT_DIR + type + ".yml"), StandardCharsets.UTF_8));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> block(String type, String id) {
+        return (Map<String, Object>) ((Map<String, Object>) root(type).get("blocks")).get(id);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> appearance(Map<String, Object> block, String name) {
+        return (Map<String, Object>) ((Map<String, Object>) ((Map<String, Object>) block.get("states")).get("appearances")).get(name);
+    }
+
+    @Test
+    void stateCountsAreTfcs() {
+        // TFC's 20 woods x (axle 3 + encased 3 + clutch 6 + gearbox 64) + motor 3
+        assertThat(states).isEqualTo(20L * (3 + 3 + 6 + 64) + 3);
+        assertThat(((Map<?, ?>) root("gear_box").get("blocks"))).hasSize(20);
+    }
+
+    /** Wood.BlockType: strength 2.5 (gearbox 2), SoundType.WOOD with vanilla's client multipliers, axe, loot self. */
+    @Test
+    @SuppressWarnings("unchecked")
+    void cubeSettingsAreTheExpandedRenderedCube() {
+        Map<String, Object> clutch = block("clutch", "tfp:wood/clutch/oak");
+        Map<String, Object> s = (Map<String, Object>) clutch.get("settings");
+        assertThat(s.get("hardness")).isEqualTo(2.5);
+        assertThat(s.get("tags")).isEqualTo(List.of("minecraft:mineable/axe"));
+        Map<String, Object> brk = (Map<String, Object>) ((Map<String, Object>) s.get("sounds")).get("break");
+        assertThat(brk).containsEntry("id", "minecraft:block.wood.break").containsEntry("pitch", 0.8);
+        assertThat(((Map<String, Object>) s.get("destroy_stages")).get("items")).asList().hasSize(RenderedTemplates.STAGES);
+        assertThat(((Map<String, Object>) clutch.get("loot")).get("template")).isEqualTo("tfp:loot_table/self");
+        assertThat(((Map<String, Object>) clutch.get("behavior")).get("type")).isEqualTo("tfp:device");
+        assertThat(clutch).containsKey("events").doesNotContainKey("state");
+        assertThat(((Map<String, Object>) block("gear_box", "tfp:wood/gear_box/oak").get("settings")).get("hardness")).isEqualTo(2.0);
+        Map<String, Object> motor = block("creative_motor", RotationBlocks.MOTOR);
+        assertThat(motor).doesNotContainKey("loot");
+        Map<String, Object> ms = (Map<String, Object>) motor.get("settings");
+        assertThat(ms.get("hardness")).isEqualTo(5.0);
+        assertThat(ms.get("correct_tools")).isEqualTo(List.of("#minecraft:pickaxes", "#tfp:tools/pickaxe"));
+    }
+
+    /** The barrier carrier drawn by TFC's model, turned as TFC's blockstate turns it; the powered clutch uses its own model. */
+    @Test
+    @SuppressWarnings("unchecked")
+    void cubesAreDrawnByTfcsVariantModels() {
+        Map<String, Object> clutch = block("clutch", "tfp:wood/clutch/oak");
+        Map<String, Object> xPowered = appearance(clutch, "x_powered");
+        assertThat(xPowered.get("state")).isEqualTo(RenderedTemplates.CARRIER);
+        assertThat(xPowered).doesNotContainKey("transparent");
+        Map<String, Object> r = (Map<String, Object>) ((List<Object>) xPowered.get("entity_renderer")).get(0);
+        assertThat(r.get("item")).isEqualTo("tfp:render/rotation/wood/clutch/oak_powered");
+        assertThat(r.get("rotation")).isEqualTo(RotationBlocks.rotation(90, 90));
+        assertThat(r.get("view_range")).isEqualTo(4.0);
+        Map<String, Object> variants = (Map<String, Object>) ((Map<String, Object>) clutch.get("states")).get("variants");
+        assertThat(((Map<String, Object>) variants.get("axis=z,powered=true")).get("appearance")).isEqualTo("z_powered");
+        assertThat(out.contains("craftengine/tfp/resourcepack/assets/tfp/models/block/rotation/wood/clutch/oak_powered.json")).isTrue();
+        assertThat(out.contains("craftengine/tfp/resourcepack/assets/tfp/textures/block/axle_casing_powered.png")).isTrue();
+        assertThat(out.contains("craftengine/tfp/resourcepack/assets/tfp/models/item/wood/clutch/oak.json")).isTrue();
+    }
+
+    /** GearBoxBlock's multipart: each state draws the six faces, a port where the face is enabled. */
+    @Test
+    @SuppressWarnings("unchecked")
+    void gearBoxDrawsSixFacesPerState() {
+        Map<String, Object> box = block("gear_box", "tfp:wood/gear_box/oak");
+        Map<String, Object> variants = (Map<String, Object>) ((Map<String, Object>) box.get("states")).get("variants");
+        assertThat(variants).hasSize(64);
+        String name = "faces_001000"; // FACES order up, down, north, south, east, west: only north enabled
+        String key = variants.entrySet().stream()
+            .filter(e -> name.equals(((Map<String, Object>) e.getValue()).get("appearance"))).findFirst().orElseThrow().getKey();
+        assertThat(key).contains("north=true");
+        assertThat(key.split("true", -1)).hasSize(2);
+        List<Object> faces = (List<Object>) appearance(box, name).get("entity_renderer");
+        assertThat(faces).hasSize(6);
+        assertThat(((Map<String, Object>) faces.get(2)).get("item")).isEqualTo("tfp:render/rotation/wood/gear_box_port/oak");
+        assertThat(((Map<String, Object>) faces.get(3)).get("item")).isEqualTo("tfp:render/rotation/wood/gear_box_face/oak");
+        // south: y 180 in TFC's multipart
+        assertThat(((Map<String, Object>) faces.get(3)).get("rotation")).isEqualTo(RotationBlocks.rotation(0, 180));
+    }
+
+    /** The axle carriers have TFC's shaft outline: the hitbox selector scores each 1.0. */
+    @Test
+    @SuppressWarnings("unchecked")
+    void axleCarriersMatchTheShaft() {
+        Map<String, Shape> shapes = Map.of("x", Shape.box(0, 6, 6, 16, 10, 10), "y", Shape.box(6, 0, 6, 10, 16, 10),
+            "z", Shape.box(6, 6, 0, 10, 10, 16));
+        for (String axis : List.of("x", "y", "z")) {
+            TfcShapes.Row row = new TfcShapes.Row("tfc:wood/axle/oak[axis=" + axis + "]", "axle", TfcShapes.Kind.OBJECT,
+                shapes.get(axis), shapes.get(axis), true, "AbstractShaftAxleBlock.SHAPE_" + axis.toUpperCase());
+            for (VersionFamily f : VersionFamily.values()) {
+                HitboxCarrier.Choice c = HitboxCarrier.select(new HitboxCarrier.TfcState(row, 0, false), Profile.LEVEL_2, f);
+                String carrier = RotationBlocks.AXLE_CARRIERS.get(axis);
+                assertThat(c.ranked()).as("%s %s", axis, f).anySatisfy(s -> {
+                    assertThat(s.carrier()).isEqualTo(carrier);
+                    assertThat(s.score()).isEqualTo(c.chosen().score());
+                    assertThat(s.hideTarget()).isNull();
+                });
+            }
+            Map<String, Object> app = appearance(block("axle", "tfp:wood/axle/oak"), axis);
+            assertThat(app.get("state")).isEqualTo(RotationBlocks.AXLE_CARRIERS.get(axis));
+            assertThat(app.get("transparent")).isEqualTo(true);
+        }
+    }
+
+    /** Vanilla's rotateYXZ(-y, -x, 0) followed by the item display's half turn. */
+    @Test
+    void rotationQuaternions() {
+        assertThat(RotationBlocks.rotation(0, 0)).isEqualTo("0,1,0,0");
+        assertThat(RotationBlocks.rotation(0, 90)).isEqualTo("0,0.707107,0,0.707107");
+        assertThat(RotationBlocks.rotation(0, 180)).isEqualTo("0,0,0,1");
+    }
+
+    @Test
+    void namesComeFromTfc() {
+        String en = new String(out.get("craftengine/tfp/resourcepack/assets/tfp_rotation/lang/en_us.json"), StandardCharsets.UTF_8);
+        assertThat(en).contains("\"block.tfp.wood.axle.oak\": \"Oak Axle\"").contains("\"block.tfp.creative_motor\": \"Creative Motor\"");
+    }
+}

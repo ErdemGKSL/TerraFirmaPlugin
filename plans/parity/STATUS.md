@@ -398,10 +398,11 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-13 | Potted plants and krummholz | DECO | 49 | open |
 | PAR-DECO-14 | Thatch bed: sleeping and spawn setting | DECO | 49 | open |
 | PAR-DECO-15 | Visual budget re-check after all block families | DECO | 49 | open |
-| PAR-MECH-01 | Rotation network blocks: axle, encased axle, gearbox, clutch, creative motor | MECH | 49 | open |
+| PAR-MECH-01 | Rotation network blocks: axle, encased axle, gearbox, clutch, creative motor | MECH | 49 | done |
 | PAR-DECO-16 | Fire brick extras and smooth mud bricks: reinforced fire bricks, fire brick shelf, fireproof door, fire clay block | DECO | 49 | open |
 | PAR-HEAT-27 | Candle cake bite and pumpkin carving hooked to the cake and pumpkin blocks | HEAT | 49 | open |
 | PAR-MECH-02 | Rotation visuals: spinning axles and gears | MECH | 50 | open |
+| PAR-MECH-11 | Rotation blocks: axle carriers in the hitbox allocation, startup re-add, in-game check of PAR-MECH-01 | MECH | 50 | open |
 | PAR-MECH-05 | Crankshaft and powered bellows | MECH | 50 | open |
 | PAR-MECH-06 | Quern automation | MECH | 50 | open |
 | PAR-MECH-07 | Trip hammer | MECH | 50 | open |

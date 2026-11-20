@@ -119,9 +119,45 @@ public final class RotationNetworks {
         static final Verdict DISCONNECTED = new Verdict(true, null);
     }
 
+    /**
+     * TFC's {@code Node.rotation(sourceRotation, sourceDirection, exitDirection)} of a node that is not one of the
+     * production kinds: the test nodes of TFC's {@code RotationNetworkTest} ({@code MockNode}, {@code InvertNode}).
+     */
+    @FunctionalInterface
+    interface Transfer {
+        Rotation emit(Rotation incoming, Direction sourceFace, Direction exit);
+    }
+
     private final Map<BlockPos, Placed> placed = new HashMap<>();
     private final TreeMap<Long, Network> networks = new TreeMap<>();
+    private final Map<BlockPos, Transfer> transfers;
     private long nextNetworkId = 0;
+
+    /** An empty world of networks. */
+    public RotationNetworks() {
+        this(Map.of());
+    }
+
+    /**
+     * Test seam: the nodes at the keys of {@code transfers} (placed as {@link NodeKind#GEAR_BOX}, which takes any
+     * rotation) pass rotations on by their own rule instead of the gearbox's, as TFC's test nodes do.
+     */
+    RotationNetworks(Map<BlockPos, Transfer> transfers) {
+        this.transfers = Map.copyOf(transfers);
+    }
+
+    /** Every placed node and its network ({@link #NO_NETWORK} when disconnected), for a debug readout. */
+    public Map<BlockPos, Long> nodes() {
+        Map<BlockPos, Long> out = new HashMap<>();
+        placed.forEach((pos, entry) -> out.put(pos, entry.network));
+        return out;
+    }
+
+    /** The kind of the node placed at {@code pos}, or empty. */
+    public Optional<NodeKind> kindAt(BlockPos pos) {
+        Placed entry = placed.get(pos);
+        return entry == null ? Optional.empty() : Optional.of(entry.spec.kind());
+    }
 
     /**
      * Places a whole set of nodes, as on a region or chunk load. Sources go first, then the other nodes, each group in
@@ -271,6 +307,12 @@ public final class RotationNetworks {
             return Optional.empty();
         }
         return Optional.of(emit(entry.spec, incomingOf(pos), entry.parent, exit));
+    }
+
+    /** TFC {@code Node.source()}: the face of a connected node toward its parent; empty for a source or a disconnected node. */
+    public Optional<Direction> parentOf(BlockPos pos) {
+        Placed entry = placed.get(pos);
+        return entry == null ? Optional.empty() : Optional.ofNullable(entry.parent);
     }
 
     /** The number of networks currently in the world. */
@@ -523,7 +565,11 @@ public final class RotationNetworks {
      * TFC {@code Node.rotation(sourceRotation, sourceDirection, exitDirection)} for each kind. {@code sourceFace} is the node's
      * own face toward its source, outgoing; {@code exit} is the face the rotation leaves on.
      */
-    static Rotation emit(RotationNode node, Rotation incoming, Direction sourceFace, Direction exit) {
+    Rotation emit(RotationNode node, Rotation incoming, Direction sourceFace, Direction exit) {
+        Transfer custom = transfers.get(node.pos());
+        if (custom != null && node.kind() == NodeKind.GEAR_BOX) {
+            return custom.emit(incoming, sourceFace, exit);
+        }
         return switch (node.kind()) {
             case SOURCE -> node.sourceRotation();
             // TFC AxleNode.rotation: the same handedness and speed, one more axle counted.

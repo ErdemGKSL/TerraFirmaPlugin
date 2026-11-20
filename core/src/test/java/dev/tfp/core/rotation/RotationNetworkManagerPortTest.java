@@ -9,9 +9,9 @@
  * The TFC test builds networks of a passthrough test node (MockNode: the rotation keeps its hand on the exit axis, speed 1.0).
  * That is the production AXLE for straight lines of at most five axles, so these cases use {@link NodeKind#AXLE} with
  * {@link NodeKind#SOURCE} sources. Where TFC's toString shows a node's rotation, the assertion checks its hand and speed, not the
- * string. Not ported here: the cycle cases (testSourceConnectedToCycle, testRemovingBranchInCycle,
- * testConnectTwoDifferentHandRotationsInCycle, testConnectTwoDifferentHandRotationsInCycleFromUpdate), which need the five-face
- * test node with axis remapping and an InvertNode with perpendicular exits, neither of which is a production kind. Also not
+ * string. The cycle cases (testSourceConnectedToCycle, testRemovingBranchInCycle,
+ * testConnectTwoDifferentHandRotationsInCycle, testConnectTwoDifferentHandRotationsInCycleFromUpdate) need TFC's MockNode and
+ * InvertNode, which are not production kinds: they are in RotationNetworkCycleTest (PAR-MECH-01). Also not
  * ported: testSourceAndDisconnectedNodes' first add, which places a node on the source's own position (TFC overwrites the entry;
  * {@link RotationNetworks} refuses a duplicate position). The rest of that test is ported with distinct positions.
  */

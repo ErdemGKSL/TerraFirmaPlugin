@@ -212,6 +212,9 @@ public final class Datagen {
         if (dev.tfp.datagen.plant.PlantBlockGen.available(tfc)) { // PAR-WORLD-12: tfp:plant/* land and floating plants on the plant pools, models, baked tints, items, loot, names; fixtures have no plants
             dev.tfp.datagen.plant.PlantBlockGen.run(tfc, out);
         }
+        if (dev.tfp.datagen.rotation.RotationBlocks.available(tfc)) { // PAR-MECH-01: axles, encased axles, clutches, gearboxes, creative motor; fixtures have no rotation blocks
+            dev.tfp.datagen.rotation.RotationBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.coverage.BlockCoverage.available(tfc)) { // PAR-INFRA-49: TFC blockstate coverage gate; after every block generator and ItemCoverage; fixtures have no TFCItems
             dev.tfp.datagen.coverage.BlockCoverage.run(tfc, out);
         }

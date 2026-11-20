@@ -99,3 +99,4 @@ dev.tfp.paper.crop.CropModule
 dev.tfp.paper.farm.fertilizer.FertilizerModule
 dev.tfp.paper.regrowth.RegrowthModule
 dev.tfp.paper.coral.CoralModule
+dev.tfp.paper.rotation.RotationModule
