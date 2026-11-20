@@ -218,7 +218,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-HEAT-36 | Firepit carrier culls the top face of the block below: the floor shows through the gaps of TFC's firepit model | HEAT | 17 | open |
 | PAR-HEAT-25 | Pot loaded in game: configuration/devices/pot.yml, pot screen art (tfp:gui/pot, thermometer, bubbles) and the in-game soup check | HEAT | 18 | open |
 | PAR-GATHER-05 | Soil interactions: hoeing, paths, mud, rooted dirt, grass spread and rock spawning | GATHER | 18 | done |
-| PAR-GATHER-11 | Grass spread, grass death and rising loose rocks: the lazy sweep of TFC's grass random tick | GATHER | 19 | open |
+| PAR-GATHER-11 | Grass spread, grass death and rising loose rocks: the lazy sweep of TFC's grass random tick | GATHER | 19 | done |
 | PAR-GATHER-06 | Raw rock drops and mossy rock spreading | GATHER | 18 | done |
 | PAR-PHYS-05 | Explosion collapses | PHYS | 18 | open |
 | PAR-WORLD-05 | Ice sheets, sea ice and icebergs at generation; lava flows; remaining biome surface builders | WORLD | 18 | done |
@@ -274,6 +274,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-GATHER-10 | Plant and thatch movement slowdown: TFC's per-plant speed factors registered with the slow-block service | GATHER | 25 | open |
 | PAR-GATHER-02 | Harvest plants, leaves, twigs and fallen leaves by TFC loot tables | GATHER | 25 | done |
 | PAR-GATHER-13 | Snow item over plants: provide the SnowPilePlacer service from the weather blocks | GATHER | 26 | open |
+| PAR-GATHER-14 | Rising loose rocks on grass: the rock raised by TFC's grass random tick in spring frost | GATHER | 26 | open |
 | PAR-POT-05 | Molds: filling from a vessel/crucible, solidifying, breaking out the casting | POTTERY | 25 | open |
 | PAR-POT-10 | Small vessel screen art: the textured four-slot GUI | POTTERY | 25 | open |
 | PAR-POT-11 | item_heat data for fired pottery: vessels, molds, jugs | POTTERY | 25 | done |

@@ -2,7 +2,7 @@
 id: PAR-GATHER-11
 title: "Grass spread, grass death and rising loose rocks: the lazy sweep of TFC's grass random tick"
 area: GATHER
-status: open
+status: done
 wave: 19
 deps: [PAR-GATHER-05, PAR-INFRA-11]
 size: M
@@ -20,6 +20,7 @@ plan:
   - "Grass blocks are written by worldgen without placement events, so they cannot be indexed one by one in the catch-up service (thousands per chunk). Design a sampled sweep: on chunk load and the visible-area sweep, draw the Poisson number of random ticks the column set would have had (randomTickSpeed/4096 per block and tick) and apply GrassRules.canBeGrass (dies to dirt/clay) and the 4 spread attempts (GrassRules.spreadOffset, light >= 9, dirt/clay target, canPropagate), decided async from a snapshot, applied under the region budget."
   - "Rising rock: GrassRules.risingRockGates / risingRockChunk after a surviving grass tick: place or add to a loose rock on the grass (needs the loose rock CE blocks from PAR-GATHER-01's follow-up) when hemispheric season is spring, average temperature at most 8 C, no player within 20 blocks, chance grassSpawningRocksChance (0.001)."
   - "Connected grass sides (north/east/south/west of the CE grass) are PAR-WORLD-04's divergence and not part of this item."
+  - "Done: paper/grass GrassSweepRules (pure Poisson sweep), GrassSweeper (chunk PDC stamp, snapshot, cpu decision, batched region apply), GrassModule (chunk load + player-area sweep). Rising rock split to PAR-GATHER-14 (needs CE loose rocks, season, temperature). Pending in-game check (container cannot run client)"
 tests:
   - "paper: sweep decision on a snapshot (dies under a full block, spreads onto dirt in light, not onto water)"
 done_criteria:
