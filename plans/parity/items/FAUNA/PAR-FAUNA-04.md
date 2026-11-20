@@ -2,7 +2,7 @@
 id: PAR-FAUNA-04
 title: "Spawning by climate on Paper"
 area: FAUNA
-status: open
+status: done
 wave: 40
 deps: [PAR-FAUNA-01, PAR-FAUNA-21]
 size: M
@@ -32,8 +32,9 @@ done_criteria:
 
 # PAR-FAUNA-04: Spawning by climate on Paper
 
-> Claimed: FAUNA session, 2026-11-19
 
 > see_not_parity: NP-ENT-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
+
+Done: SpawnTable datagen, SpawnTables, ChunkSpawns, NaturalSpawnModule, census; verification docs/verification/PAR-FAUNA-04/.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

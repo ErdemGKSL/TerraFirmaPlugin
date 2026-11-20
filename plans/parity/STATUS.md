@@ -352,8 +352,8 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-21 | Animal framework completion: species behaviour SPI, goal replacement, model re-apply checks | FAUNA | 39 | done |
 | PAR-DECO-01 | Wood families loaded in CraftEngine: planks, stairs, slabs, fences, walls with our block_state templates | DECO | 40 | open |
 | PAR-DECO-10 | Ropes, rope anchors and rope knots | DECO | 40 | open |
-| PAR-FAUNA-03 | Entity texture variants, gendered and aged textures, render review | FAUNA | 40 | open |
-| PAR-FAUNA-04 | Spawning by climate on Paper | FAUNA | 40 | open |
+| PAR-FAUNA-03 | Entity texture variants, gendered and aged textures, render review | FAUNA | 40 | done |
+| PAR-FAUNA-04 | Spawning by climate on Paper | FAUNA | 40 | done |
 | PAR-DECO-17 | Wood workbenches: the 20 tfc:wood/workbench blocks as CE blocks that open the 3x3 crafting grid | DECO | 41 | open |
 | PAR-FAUNA-05 | Livestock: feeding, familiarity and breeding interactions | FAUNA | 41 | open |
 | PAR-PROC-06 | Loom: weaving cloth, burlap, wool, silk | PROC | 41 | open |
