@@ -2,7 +2,7 @@
 id: PAR-FARM-15
 title: "Spreading bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement"
 area: FARM
-status: open
+status: done
 wave: 31
 deps: [PAR-FARM-07]
 size: M
@@ -27,12 +27,11 @@ in_game_steps:
   - "tfp debug place tfp:spreading_bush/raspberry[lifecycle=healthy,stage=0]; tfp time add months 4; screenshot"
 plan:
   - "Split from PAR-FARM-07 (2026-11-19). The Paper glue exists: device kind tfp:spreading_bush (tfp:device behaviour) with blocks tfp:spreading_bush/<blackberry|raspberry|blueberry|elderberry>[lifecycle=dormant|healthy|flowering|fruiting, stage=0..2], tfp:spreading_bush/<species>_cane[lifecycle, stage, facing=north|east|south|west], tfp:spreading_bush/cranberry[lifecycle, stage] (waterlogged), tfp:spreading_bush/dead[stage=0..2], tfp:spreading_bush/dead_cane[stage, facing]; product items tfp:food/<species> and tfp:food/cranberry. Needed: CE entries (datagen/berry), TFC models, hitbox demands and outline rows (bush: full block at stage 2 else HALF_PLANT box; canes: TFC CANE_* boxes; cranberry waterlogged), GeneratedCarrierTest pins, loot, block items, lang, worldgen placement. Register the Datagen.java run line."
+  - "Done: datagen berry/SpreadingBushBlocks (tfp:spreading_bush/<4 species>, <species>_cane with facing, cranberry, dead, dead_cane = 267 states; TFC models turned per facing as item displays on the shared hitbox-only bush carrier, loot with the bush item renamed, block items, names in assets/tfp_spreading_bush/lang), HitboxDemands, pins; tests SpreadingBushBlocksTest (3). Worldgen placement is PAR-FARM-19. Pending in-game check (container cannot run client)"
 done_criteria:
   - "A raspberry bush spreads canes over four months of time add and the canes grow into bush blocks"
 ---
 
 # PAR-FARM-15: Spreading bush blocks
-
-> Claimed: session_011osUp5o449zjy3Qcb6jpEk, 2026-11-20
 
 Follow-up of PAR-FARM-07. Follow `plans/parity/PROTOCOL.md`.

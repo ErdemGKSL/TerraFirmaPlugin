@@ -112,7 +112,7 @@ class GeneratedCarrierTest {
         // PAR-CLIM-04: the snow pile (8 layer counts, hitbox-only), the icicle (tip, pillar) and, on the leaves pool, the
         // ice pile and sea ice.
         // PAR-FARM-03: the crops, dead crops and wild crops of the 29 crops (87 block ids; every appearance is explicit).
-        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3 + 17 * 16 + 17 * 2 + 4 + 10 + 87 + 75 + 150);
+        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3 + 17 * 16 + 17 * 2 + 4 + 10 + 87 + 75 + 150 + 267);
         // PAR-CLIM-04: the ice pile and sea ice (one leaves pool appearance each).
         assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2);
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
@@ -137,7 +137,14 @@ class GeneratedCarrierTest {
         expected.add(HitboxDemands.CRUCIBLE_ID);
         // PAR-CLIM-27: the thermometer, anemometer, vane and calendar clock (150 states, hitbox-only).
         expected.addAll(List.of(HitboxDemands.THERMOMETER_ID, HitboxDemands.ANEMOMETER_ID, HitboxDemands.VANE_ID, HitboxDemands.CLOCK_ID));
-        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4);
+        // PAR-FARM-15: the four spreading bushes, their canes, the cranberry, the dead bush and the dead cane (267 states).
+        for (String sp : HitboxDemands.SPREADING_SPECIES) {
+            expected.add(HitboxDemands.SPREADING_PREFIX + sp);
+            expected.add(HitboxDemands.SPREADING_PREFIX + sp + "_cane");
+        }
+        expected.addAll(List.of(HitboxDemands.SPREADING_PREFIX + "cranberry", HitboxDemands.SPREADING_PREFIX + "dead",
+            HitboxDemands.SPREADING_PREFIX + "dead_cane"));
+        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11);
         java.util.SortedSet<String> grass = new java.util.TreeSet<>();
         for (String soil : List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol", "podzol", "alfisol", "mollisol")) {
             dev.tfp.datagen.soil.SoilBlocks.GRASS_TYPES.forEach(t -> grass.add("tfp:" + t + "/" + soil));

@@ -61,13 +61,13 @@ public final class BerryBlocks {
     static final String RP = PACK + "resourcepack/assets/" + Json.TO_NS + "/";
     static final String LANG_NS = "tfp_berry";
     static final String LANG_RP = PACK + "resourcepack/assets/" + LANG_NS + "/lang/";
-    static final String STRENGTH = "0.6";
+    public static final String STRENGTH = "0.6";
     /** TFC {@code flammableLikeLeaves()}: flammable(60, 30); the dead bush {@code flammable(120, 90)} (flammability, spread). */
-    static final int[] LIVING_FIRE = {60, 30};
-    static final int[] DEAD_FIRE = {120, 90};
+    public static final int[] LIVING_FIRE = {60, 30};
+    public static final int[] DEAD_FIRE = {120, 90};
     /** Vanilla {@code SoundType.SWEET_BERRY_BUSH}: break and place their own events, step, hit and fall are grass. */
     static final Map<String, String> SOUNDS = sounds();
-    static final List<String> LIFECYCLES = List.of("dormant", "healthy", "flowering", "fruiting");
+    public static final List<String> LIFECYCLES = List.of("dormant", "healthy", "flowering", "fruiting");
     static final int STAGES = 3;
 
     private BerryBlocks() {
@@ -123,14 +123,20 @@ public final class BerryBlocks {
         return "stage_" + stage;
     }
 
-    static String renderItem(String model) {
+    public static String renderItem(String model) {
         return Json.TO_NS + ":render/" + model.substring(model.indexOf(":block/") + ":block/".length());
     }
 
     record Built(DeviceBlockSpec spec, Set<String> models) {
     }
 
-    private static DeviceAppearance appearance(String id, String name, String pattern, String model, DeviceBlockSpec.Builder b,
+    static DeviceAppearance appearance(String id, String name, String pattern, String model, DeviceBlockSpec.Builder b,
+            Set<String> renderItems, Map<String, String> hidden) {
+        return appearance(id, name, pattern, model, 0, b, renderItems, hidden);
+    }
+
+    /** As above, the model turned by TFC's blockstate {@code y}. */
+    static DeviceAppearance appearance(String id, String name, String pattern, String model, int y, DeviceBlockSpec.Builder b,
             Set<String> renderItems, Map<String, String> hidden) {
         HitboxAllocation.Assignment a = HitboxAllocation.agreed(id, pattern);
         if (a.mode() != HitboxAllocation.Mode.HITBOX_ONLY) {
@@ -144,7 +150,7 @@ public final class BerryBlocks {
             b.stateMapping(a.state(), a.hideTarget());
         }
         return DeviceAppearance.rendered(name, DeviceAppearance.Carrier.state(a.state()),
-            List.of(DeviceAppearance.Renderer.item(item).rotated(CropBlocks.rotation(0))));
+            List.of(DeviceAppearance.Renderer.item(item).rotated(CropBlocks.rotation(y))));
     }
 
     static Built living(TfcCheckout tfc, String species) {
@@ -193,7 +199,7 @@ public final class BerryBlocks {
 
     /** The templated entry with TFC's sounds, push reaction, fire odds and the not-occluding look of a hitbox-only block. */
     @SuppressWarnings("unchecked")
-    static Map<String, Object> yaml(DeviceBlockSpec spec, int[] fire) {
+    public static Map<String, Object> yaml(DeviceBlockSpec spec, int[] fire) {
         Map<String, Object> root = DeviceYaml.templated(spec);
         Map<String, Object> block = (Map<String, Object>) ((Map<String, Object>) root.get("blocks")).get(spec.id());
         Map<String, Object> args = (Map<String, Object>) block.get("arguments");

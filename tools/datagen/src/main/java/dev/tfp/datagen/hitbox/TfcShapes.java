@@ -552,7 +552,10 @@ public final class TfcShapes {
         return "tfc:" + block + "[" + state + "]";
     }
 
-    /** PAR-FARM-14: the stationary bushes' outline row; the dead bush (12 x 16 x 12 or a full cube, no collision) borrows it. */
+    /**
+     * PAR-FARM-14: the stationary bushes' outline row; the dead bush (12 x 16 x 12 or a full cube, no collision), the spreading
+     * bushes and the canes (PAR-FARM-15: 8 x 9 x 16 boxes, no collision) borrow it: no tall or wide no-collision carrier exists.
+     */
     public static final String BERRY_BUSH_KEY = "tfc:plant/berry_bush";
 
     /** PAR-FARM-03: TFC's three crop outlines ({@code CropBlock.QUARTER_SHAPE}, {@code HALF_SHAPE}, {@code FULL_SHAPE}). */

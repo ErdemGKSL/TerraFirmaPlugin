@@ -191,6 +191,19 @@ public final class HitboxDemands {
      */
     static final java.util.Set<String> KEEPS_VANILLA_LOOK = java.util.Set.of("minecraft:lightning_rod");
 
+    /** PAR-FARM-15: TFC's SpreadingBush constants (SpreadingBushBlocks checks them) and the block families made of them. */
+    public static final String SPREADING_PREFIX = "tfp:spreading_bush/";
+    public static final List<String> SPREADING_SPECIES = List.of("blackberry", "raspberry", "blueberry", "elderberry");
+    /** The blocks on the bush outline: the four bushes, the cranberry and the two dead blocks. */
+    static final List<String> SPREADING_BUSHES = List.of("blackberry", "raspberry", "blueberry", "elderberry", "cranberry", "dead",
+        "dead_cane");
+    public static final String SPREADING_BUSH_PATTERN = "bush_*";
+    static final int SPREADING_WEIGHT = -12;
+
+    public static String canePattern(String facing) {
+        return "cane_" + facing + "_*";
+    }
+
     /** PAR-FARM-14: TFC's StationaryBush constants (BerryBlocks checks them), the block ids and the demand pattern. */
     public static final List<String> BERRY_SPECIES = List.of("snowberry", "bunchberry", "gooseberry", "cloudberry",
         "strawberry", "wintergreen_berry");
@@ -410,6 +423,18 @@ public final class HitboxDemands {
         for (String f : CLOCK_FACINGS) {
             d.add(new Demand(CLOCK_ID, f + "_*", TfcShapes.instrumentKey("calendar_clock", "facing=" + f), 0,
                 HitboxAllocation.TRANSPARENT, true, INSTRUMENT_WEIGHT));
+        }
+        // PAR-FARM-15: the spreading bushes (every bush, the cranberry and both dead blocks on the bush outline) and the
+        // canes (a row per facing); hitbox-only, the look is an item display (SpreadingBushBlocks).
+        for (String name : SPREADING_BUSHES) {
+            d.add(new Demand(SPREADING_PREFIX + name, SPREADING_BUSH_PATTERN, TfcShapes.BERRY_BUSH_KEY, 0,
+                HitboxAllocation.TRANSPARENT, true, SPREADING_WEIGHT));
+        }
+        for (String sp : SPREADING_SPECIES) {
+            for (String f : FACINGS) {
+                d.add(new Demand(SPREADING_PREFIX + sp + "_cane", canePattern(f), TfcShapes.BERRY_BUSH_KEY, 0,
+                    HitboxAllocation.TRANSPARENT, true, SPREADING_WEIGHT));
+            }
         }
         return d;
     }
