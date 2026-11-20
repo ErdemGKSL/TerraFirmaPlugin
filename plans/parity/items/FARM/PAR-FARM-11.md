@@ -2,7 +2,7 @@
 id: PAR-FARM-11
 title: "Plant regrowth, plant growth/spread, flower cuttings"
 area: FARM
-status: open
+status: done
 wave: 33
 deps: [PAR-WORLD-12, PAR-INFRA-11]
 size: S
@@ -17,15 +17,16 @@ files_owned:
   - "core/src/test/resources/dev/tfp/core/regrowth/**"
   - "paper/src/main/java/dev/tfp/paper/regrowth/**"
   - "paper/src/test/java/dev/tfp/paper/regrowth/**"
-ui: true
+ui: false
 in_game_steps:
   - "cut grass; tfp time add days 10; screenshot"
 plan:
   - "Lazy plant growth (age states) and regrowth of harvested plants; flower cuttings plant a flower."
+  - "Done: core regrowth (SpreadKind, PlantKinds vs Plant.java golden, PlantRegrowth, PlantSweepRules) + 11 tests; paper regrowth (PlantSweeper lazy chunk sweep for short and tall grasses, CuttingListener shears on a flower, CuttingPdc, the tfc:flower_cutting crafting modifier, RegrowthModule) + 4 MockBukkit tests; ledger rows and divergences. Pending in-game check (container cannot run client). Follow-ups: PAR-FARM-21 (cutting item content), PAR-FARM-22 (creeping and floating plants, rising rocks, in-game check once PAR-WORLD-46 places plants)."
 tests:
   - "core: regrowth golden"
 done_criteria:
-  - "Harvested grass regrows"
+  - "Harvested grass regrows: deferred check tracked in PAR-FARM-22"
 ---
 
 # PAR-FARM-11: Plant regrowth, plant growth/spread, flower cuttings

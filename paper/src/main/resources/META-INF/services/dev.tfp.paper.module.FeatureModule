@@ -97,3 +97,4 @@ dev.tfp.paper.mold.MoldModule
 dev.tfp.paper.crop.wild.WildModule
 dev.tfp.paper.crop.CropModule
 dev.tfp.paper.farm.fertilizer.FertilizerModule
+dev.tfp.paper.regrowth.RegrowthModule

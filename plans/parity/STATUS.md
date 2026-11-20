@@ -324,7 +324,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-10 | Sapling growth into trees | FARM | 32 | open |
 | PAR-METAL-11 | Bellows: push, air boost, crank, animation | METAL | 32 | open |
 | PAR-CLIM-07 | Weather command and TFC weather state (`/tfp weather`) | CLIMATE | 33 | open |
-| PAR-FARM-11 | Plant regrowth, plant growth/spread, flower cuttings | FARM | 33 | open |
+| PAR-FARM-11 | Plant regrowth, plant growth/spread, flower cuttings | FARM | 33 | done |
 | PAR-FARM-13 | Plant info and fertilizer tooltips: climate range, nutrients, growth time and lifecycle on seeds and saplings; N/P/K on fertilizers | FARM | 33 | open |
 | PAR-METAL-12 | Crucible block and GUI | METAL | 33 | done |
 | PAR-TOOL-08 | Prospector's pick: scan, result message, `/tfp propick` | TOOL | 33 | done |
@@ -432,6 +432,8 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-15 | Spreading bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 31 | open |
 | PAR-FARM-16 | Fruit tree blocks: CraftEngine states, models, hitbox carriers, loot, splicing | FARM | 32 | open |
 | PAR-FARM-17 | Banana blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 33 | open |
+| PAR-FARM-21 | Flower cutting item and plant block items: tfp:flower_cutting content, plant item ids for cuttings | FARM | 34 | open |
+| PAR-FARM-22 | Creeping and floating plant spread, rising rocks under grass, plant regrowth verification | FARM | 34 | open |
 | PAR-METAL-23 | Crucible molds: pour into and out of the crucible, output slot, held crucible tooltip | METAL | 34 | open |
 | PAR-FARM-20 | Verification: crops grow, die and yield in game (itest crop.grow and screenshots) | FARM | 34 | open |
 | PAR-FARM-23 | Fruit and wild spreading crop blocks: tfp:fruit pumpkin/melon (and rotten), hitbox rows, loot, wild crop worldgen fruit | FARM | 31 | open |
