@@ -309,7 +309,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-04 | Anvil plan selection GUI | METAL | 29 | open |
 | PAR-METAL-08 | Charcoal forge block entity: creation from a charcoal pile, lighting, continuous heating of held items | METAL | 29 | open |
 | PAR-SURV-11 | Item size in-game check: anvil refused by a chest, two anvils overburden, size tooltip | SURV | 29 | open |
-| PAR-WORLD-23 | TFC rock layers: the rock layer settings walk and per-rock rock settings replace PlaceholderRocks (rock stacking, sand colour, karst surface rocks) | WORLD | 29 | open |
+| PAR-WORLD-23 | TFC rock layers: the rock layer settings walk and per-rock rock settings replace PlaceholderRocks (rock stacking, sand colour, karst surface rocks) | WORLD | 29 | done |
 | PAR-FARM-05 | Wild crops and spreading crops (pumpkin, melon), rotten pumpkins | FARM | 30 | done |
 | PAR-FARM-07 | Spreading bushes, canes and cranberries | FARM | 30 | done |
 | PAR-METAL-05 | Anvil forging GUI: step buttons, target and progress markers, hammering, forging bonus | METAL | 30 | open |
@@ -413,6 +413,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-49 | Surface builder over every exposed floor: cave floors, arch and overhang floors get TFC's surface states (whole-column scan) | WORLD | 23 | open |
 | PAR-WORLD-50 | CE coral and sea pickle blocks: datagen for the 30 corals and tfp:sea_pickle on their vanilla twin carriers, items, loot, names; write them in generation; drops on support loss; wall fan placement | WORLD | 27 | open |
 | PAR-WORLD-51 | Per-world TFC settings in every climate consumer (HUD, snow, precipitation, weather, seasonal remap, plant effects, chunk climate) | WORLD | 29 | open |
+| PAR-WORLD-52 | A world's own rock_layer_settings in every rock consumer (terrain fill, volcanoes, groundcover, karst), not only TFC's preset | WORLD | 30 | open |
 | PAR-MECH-03 | Water wheel | MECH | 51 | open |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | open |
 | PAR-MECH-08 | Power loom | MECH | 51 | open |

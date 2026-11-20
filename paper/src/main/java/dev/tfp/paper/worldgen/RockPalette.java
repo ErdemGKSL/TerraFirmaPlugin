@@ -9,9 +9,17 @@
  */
 package dev.tfp.paper.worldgen;
 
+import dev.tfp.core.worldgen.rock.RockLayerSampler;
+import dev.tfp.core.worldgen.rock.RockSettings;
 import dev.tfp.core.worldgen.surface.SurfaceKind;
+import dev.tfp.paper.data.RegistryService;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -141,6 +149,38 @@ public final class RockPalette<T> {
             return SOIL_KINDS.size() * SOILS.size() + rock;
         }
         return -1;
+    }
+
+    /**
+     * PAR-WORLD-23: the rock settings of every rock of TFC's preset ({@code data/tfp/tfp/worldgen/rock_settings/*.json} in
+     * the plugin jar), by rock id ({@code tfc:granite}), in the preset's order.
+     *
+     * @throws IllegalArgumentException when a rock has no file
+     */
+    public static Map<String, RockSettings> rockSettingsFromJar(ClassLoader loader) {
+        return RockSettings.load(RockLayerSampler.PRESET.rocks(), path -> {
+            try (InputStream in = loader.getResourceAsStream(RegistryService.JAR_DATA_ROOT + "/" + path)) {
+                return in == null ? Optional.empty() : Optional.of(new String(in.readAllBytes(), StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new UncheckedIOException("cannot read " + path + " from the plugin jar", e);
+            }
+        });
+    }
+
+    /**
+     * PAR-WORLD-23: the CraftEngine block of a rock-coloured surface kind from the rock's settings (TFC's
+     * {@code SurfaceStates}: raw, gravel, sand and sandstone of the rock at the position): {@code ROCK_SURFACE} the raw rock,
+     * {@code GRAVEL} its gravel, {@code SAND} its sand colour, {@code SANDSTONE} its raw sandstone colour; null for the
+     * other kinds.
+     */
+    public static String rockSurfaceId(SurfaceKind kind, RockSettings rock) {
+        return switch (kind) {
+            case ROCK_SURFACE -> rock.raw();
+            case GRAVEL -> rock.gravel();
+            case SAND -> rock.sand();
+            case SANDSTONE -> rock.sandstone();
+            case GRASS, DIRT, COARSE_DIRT, MUD, SNOW, PACKED_ICE -> null;
+        };
     }
 
     public long generation() {

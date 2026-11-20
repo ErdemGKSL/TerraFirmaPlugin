@@ -11,27 +11,31 @@ import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-/** The placeholder rock choice of M2-GEN-07: categories, layers, bounds. Not TFC golden values. */
+/** The rock choice: TFC's rock layer walk of the preset (PAR-WORLD-23; goldens in rock/RockLayerGoldenTest), bounds. */
 class PlaceholderTerrainTest {
     @Test
-    void everyRockIndexNamesARockOfItsSupertypeCategory() {
+    void theSurfaceLayerOfEachSupertypeIsTfcs() {
         assertThat(PlaceholderRocks.count()).isEqualTo(21);
         assertThat(PlaceholderRocks.names()).hasSize(21).doesNotHaveDuplicates();
-        // Ocean (type 0): sedimentary
-        assertThat(names(0)).containsOnly("shale", "claystone", "limestone", "conglomerate", "dolomite", "chert", "chalk", "tuff");
-        // Volcanic (type 1): igneous extrusive
-        assertThat(names(1)).containsOnly("rhyolite", "basalt", "andesite", "dacite");
-        // Land (type 2): igneous intrusive
-        assertThat(names(2)).containsOnly("granite", "diorite", "gabbro");
-        // Uplift (type 3): metamorphic
-        assertThat(names(3)).containsOnly("quartzite", "slate", "phyllite", "schist", "gneiss", "marble");
+        // Ocean (type 0): ocean_floor = igneous_extrusive
+        assertThat(names(0, 0)).containsOnly("andesite", "basalt", "dacite", "rhyolite");
+        // Volcanic (type 1): igneous extrusive (x2) and intrusive
+        assertThat(names(1, 0)).containsOnly("andesite", "basalt", "dacite", "rhyolite", "diorite", "gabbro", "granite");
+        // Land (type 2): sedimentary three times in four, igneous extrusive
+        assertThat(names(2, 0)).containsOnly("chalk", "chert", "claystone", "conglomerate", "dolomite", "limestone", "shale",
+            "andesite", "basalt", "dacite", "rhyolite");
+        // Uplift (type 3): the uplift layer and sedimentary
+        assertThat(names(3, 0)).containsOnly("diorite", "gabbro", "gneiss", "granite", "marble", "phyllite", "quartzite", "schist",
+            "slate", "chalk", "chert", "claystone", "conglomerate", "dolomite", "limestone", "shale");
     }
 
     @Test
-    void layersOfOnePointDifferInsideTheCategory() {
-        int rock = (12345 << 2) | 2;
-        assertThat(PlaceholderRocks.index(rock, 0)).isNotEqualTo(PlaceholderRocks.index(rock, 1));
-        assertThat(PlaceholderRocks.index(rock, 3)).isBetween(12, 14);
+    void deepLayersReachTheBottomIntrusives() {
+        for (int type = 0; type < 4; type++) {
+            assertThat(names(type, 12)).containsOnly("gneiss", "schist", "diorite", "granite", "gabbro");
+        }
+        // land: sedimentary over marble / quartzite / low grade metamorphic
+        assertThat(names(2, 1)).contains("marble", "quartzite", "phyllite", "slate");
     }
 
     @Test
@@ -43,12 +47,10 @@ class PlaceholderTerrainTest {
         }
     }
 
-    private static Set<String> names(int type) {
+    private static Set<String> names(int type, int layer) {
         Set<String> out = new HashSet<>();
-        for (int layer = 0; layer < 40; layer++) {
-            for (int rock = type; rock < type + 4 * 64; rock += 4) {
-                out.add(PlaceholderRocks.names().get(PlaceholderRocks.index(rock, layer)));
-            }
+        for (int rock = type; rock < type + 4 * 2000; rock += 4) {
+            out.add(PlaceholderRocks.names().get(PlaceholderRocks.index(rock, layer)));
         }
         return out;
     }

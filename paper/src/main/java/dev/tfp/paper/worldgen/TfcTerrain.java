@@ -43,6 +43,8 @@ import dev.tfp.core.worldgen.plant.Plants;
 import dev.tfp.core.worldgen.random.PositionalRandom;
 import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
 import dev.tfp.core.worldgen.region.RegionGenerator;
+import dev.tfp.core.worldgen.rock.RockLayerSampler;
+import dev.tfp.core.worldgen.rock.RockSettings;
 import dev.tfp.core.worldgen.river.RiverBlendType;
 import dev.tfp.core.worldgen.river.RiverColumn;
 import dev.tfp.core.worldgen.settings.BedrockLayer;
@@ -159,7 +161,10 @@ final class TfcTerrain {
     TfcTerrain(long seed, WorldSettings settings) {
         this.settings = settings;
         Seed stream = Seed.of(seed);
-        this.regions = new RegionGenerator(settings.regionSettings(), stream);
+        // PAR-WORLD-23: the karst surface rocks from the rock settings (the preset's rock layers; PAR-WORLD-52 for others)
+        final Map<String, RockSettings> rockSettings = RockPalette.rockSettingsFromJar(TfcTerrain.class.getClassLoader());
+        this.regions = new RegionGenerator(settings.regionSettings(), stream, RockLayerSampler.PRESET,
+            rock -> rockSettings.get(rock).isKarst());
         this.chunks = new ChunkDataGenerator(regions, stream);
         // TFC's initRandomState: the biome layer takes its seeds from the stream after the region and chunk data generators
         final BiomeLayers layers = new BiomeLayers(regions, stream);

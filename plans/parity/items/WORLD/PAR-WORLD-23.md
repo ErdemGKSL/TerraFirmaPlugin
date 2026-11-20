@@ -2,7 +2,7 @@
 id: PAR-WORLD-23
 title: "TFC rock layers: the rock layer settings walk and per-rock rock settings replace PlaceholderRocks (rock stacking, sand colour, karst surface rocks)"
 area: WORLD
-status: open
+status: done
 wave: 29
 deps: [PAR-WORLD-22, PAR-WORLD-04]
 size: M
@@ -38,6 +38,7 @@ plan:
   - "Port `KarstSurfaceRocks` as a region task in TFC's order inside `RegionGenerator` (it reads the surface rock's `karst` flag), so `isSurfaceRockKarst` is set and the karst biome variants run; regenerate the region/biome goldens that change and record which."
   - "`RockPalette` takes each rock's blocks from its rock settings (sand colour per rock for beaches and sandstone, gravel, cobble, hardened) instead of name concatenation; the beach-sand mafic test reads `RockSettings.mafic`."
   - "Ledger: close the PlaceholderRocks, karst surface rock, vein-host and beach-sand rows (update them to the new behaviour or delete the divergence)."
+  - "Done: core/worldgen/rock (RockLayerSampler = TFC decode + sampleAtLayer, RockSettings records read from the exported rock_settings), PlaceholderRocks delegates to the preset walk (category table removed, API kept, indexOf added), region/KarstSurfaceRocks after ChooseRocks in RegionGenerator (a generator without rock settings skips it, as the goldens' oracle did; region and biome goldens unchanged), TfcTerrain builds its RegionGenerator with the jar's rock settings (karst on), RockPalette.rockSettingsFromJar + rockSurfaceId (raw, gravel, sand and sandstone colour per rock). Tests: RockLayerSettingsTest (6, incl. 10,000 samples vs a scratch TFC oracle on MC 1.21.11 Xoroshiro), RockSettingsTest (1, vs TFC files), KarstSurfaceRocksGoldenTest (1: flags = sampleAtLayer + data, non-karst points unchanged), PlaceholderTerrainTest rewritten to TFC stacking (edited outside the glob: its old category assertions were this item's rule), RockPaletteTest (+1). Not a full TFC oracle: the karst biome choice end to end and the chunk rock column (composed from ChunkDataGoldenTest rock samples and this walk). Minimal edits outside files_owned: TfcTerrain (karst wiring), Region.java (field comment), WorldSettingsStoreTest. Follow-ups: PAR-WORLD-52 (a world's own rock_layer_settings in all rock consumers), PAR-WORLD-43 (writes the per-rock sand/sandstone through rockSurfaceId), PAR-WORLD-51 (WaterTerrain/forSeed without karst). Pending in-game check (container cannot run client): the in_game_steps above (rock column trenches at land, uplift and volcanic points; a karst surface) for the owner."
 tests:
   - "core: RockLayerSettingsTest: the shipped preset decodes; a cycle, an unknown rock and a missing bottom are refused with TFC's messages"
   - "core: RockLayerGoldenTest: 10,000 (pointRock, layer) samples equal TFC's `sampleAtLayer` from a scratch oracle on the pinned checkout"
@@ -50,8 +51,6 @@ done_criteria:
 ---
 
 # PAR-WORLD-23: TFC rock layers: the rock layer settings walk and per-rock rock settings replace PlaceholderRocks (rock stacking, sand colour, karst surface rocks)
-
-> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-20
 
 > see_not_parity: NP-WORLD-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

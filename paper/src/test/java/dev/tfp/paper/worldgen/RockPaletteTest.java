@@ -157,4 +157,35 @@ class RockPaletteTest {
         org.junit.jupiter.api.Assumptions.assumeTrue(blocks.contains("tfp:peat"), "datagen output has the soil block set");
         assertThat(blocks).containsAll(RockPalette.surfaceIds(TfcTerrain.ROCK_IDS));
     }
+
+    @Test
+    void beachSandAndSandstoneColourPerRockFromRockSettings() {
+        // the jar's content/data in production; the datagen output in tests
+        java.nio.file.Path data = java.nio.file.Path.of(System.getProperty("tfp.contentData", "../content/generated/content/data"));
+        org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.file.Files.isDirectory(data.resolve(dev.tfp.core.worldgen.rock.RockSettings.DIR)));
+        Map<String, dev.tfp.core.worldgen.rock.RockSettings> rocks = dev.tfp.core.worldgen.rock.RockSettings.load(
+            dev.tfp.core.worldgen.rock.RockLayerSampler.PRESET.rocks(), path -> {
+                try {
+                    java.nio.file.Path f = data.resolve(path);
+                    return java.nio.file.Files.isRegularFile(f) ? Optional.of(java.nio.file.Files.readString(f)) : Optional.empty();
+                } catch (java.io.IOException e) {
+                    throw new java.io.UncheckedIOException(e);
+                }
+            });
+        assertThat(rocks).hasSize(21);
+        // TFC's sand colours per rock (rock_settings): basalt black, limestone white
+        assertThat(RockPalette.rockSurfaceId(SurfaceKind.SAND, rocks.get("tfc:basalt"))).isEqualTo("tfp:sand/black");
+        assertThat(RockPalette.rockSurfaceId(SurfaceKind.SANDSTONE, rocks.get("tfc:basalt"))).isEqualTo("tfp:raw_sandstone/black");
+        assertThat(RockPalette.rockSurfaceId(SurfaceKind.SAND, rocks.get("tfc:limestone"))).isEqualTo("tfp:sand/white");
+        assertThat(RockPalette.rockSurfaceId(SurfaceKind.GRAVEL, rocks.get("tfc:granite"))).isEqualTo("tfp:rock/gravel/granite");
+        assertThat(RockPalette.rockSurfaceId(SurfaceKind.ROCK_SURFACE, rocks.get("tfc:granite"))).isEqualTo("tfp:rock/raw/granite");
+        assertThat(RockPalette.rockSurfaceId(SurfaceKind.GRASS, rocks.get("tfc:granite"))).isNull();
+        // the gravel ids of the palette are the rock settings' gravel
+        for (Map.Entry<String, dev.tfp.core.worldgen.rock.RockSettings> e : rocks.entrySet()) {
+            assertThat(RockPalette.surfaceId(SurfaceKind.GRAVEL, null, e.getKey().substring(4))).isEqualTo(e.getValue().gravel());
+            // beach sand mafic rule: the rock settings' mafic flag is the palette's
+            int index = dev.tfp.core.worldgen.chunk.PlaceholderRocks.indexOf(e.getKey());
+            assertThat(dev.tfp.core.worldgen.chunk.PlaceholderRocks.isMafic(index)).as(e.getKey()).isEqualTo(e.getValue().isMafic());
+        }
+    }
 }

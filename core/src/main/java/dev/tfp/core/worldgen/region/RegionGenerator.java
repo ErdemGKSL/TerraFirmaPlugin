@@ -7,8 +7,8 @@
  * file: src/main/java/net/dries007/tfc/world/region/RegionGenerator.java @ c3b4d9536
  *
  * Scope of this port: the continent, ocean, island, mountain, distance, climate and rock annotations, and the rivers and
- * lakes (AddRiversAndLakes, RiverEdge, RegionPartition), the biome altitude and the biome choice (ChooseBiomes). Karst
- * surface rocks are not ported yet; see docs/porting/ledger.md (World generation, region).
+ * lakes (AddRiversAndLakes, RiverEdge, RegionPartition), the biome altitude and the biome choice (ChooseBiomes), and the
+ * karst surface rocks (KarstSurfaceRocks, PAR-WORLD-23) when the generator is given the rock settings.
  */
 package dev.tfp.core.worldgen.region;
 
@@ -22,8 +22,10 @@ import dev.tfp.core.worldgen.noise.Cellular2D;
 import dev.tfp.core.worldgen.noise.Noise2D;
 import dev.tfp.core.worldgen.noise.OpenSimplex2D;
 import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
+import dev.tfp.core.worldgen.rock.RockLayerSampler;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Builds the region map from a level seed: for each grid point, the cell (region) it belongs to and the annotations of
@@ -61,14 +63,30 @@ public final class RegionGenerator {
     /** The rock layer stack. Each thread builds its own {@link Area} from the factory, because {@link Area} is not synchronised. */
     final ThreadLocal<Area> rockArea;
 
+    /** PAR-WORLD-23: the world's rock layer walk ({@code settings.rockLayerSettings()} in TFC). */
+    final RockLayerSampler rockLayers;
+    /** PAR-WORLD-23: whether a rock id is karst ({@code RockSettings.karst}); null runs no karst task (as the goldens' oracle). */
+    final Predicate<String> karstRock;
+
     private final Seed seed;
     private final FastConcurrentCache<Region> cellCache;
     /** The river lookup partitions, one per cell. Built from the rivers of the 3 x 3 regions around the cell. */
     private final FastConcurrentCache<RegionPartition> partitionCache;
 
+    /** A generator without the karst surface rock task: every point stays non-karst (the region goldens' oracle). */
     public RegionGenerator(RegionSettings settings, Seed seed) {
+        this(settings, seed, RockLayerSampler.PRESET, null);
+    }
+
+    /**
+     * @param rockLayers the world's rock layer walk
+     * @param karstRock  whether a rock id is karst ({@code RockSettings.isKarst}); null to skip TFC's karst task
+     */
+    public RegionGenerator(RegionSettings settings, Seed seed, RockLayerSampler rockLayers, Predicate<String> karstRock) {
         this.settings = settings;
         this.seed = seed;
+        this.rockLayers = rockLayers;
+        this.karstRock = karstRock;
 
         this.cellNoise = BiomeNoise.continentCellNoise(1f, seed.seed());
 
@@ -184,6 +202,11 @@ public final class RegionGenerator {
         return 1f;
     }
 
+    /** TFC's {@code getSurfaceRock}: the rock id of a point's top layer. */
+    public String getSurfaceRock(Region.Point point) {
+        return rockLayers.sampleAtLayer(point.rock, 0);
+    }
+
     /** @return The region point at the grid coordinates, creating its region if needed. */
     public Region.Point getOrCreateRegionPoint(int gridX, int gridZ) {
         return getOrCreateRegion(gridX, gridZ).atOrThrow(gridX, gridZ);
@@ -278,6 +301,7 @@ public final class RegionGenerator {
         ANNOTATE_BIOME_ALTITUDE(AnnotateBiomeAltitude.INSTANCE),
         ANNOTATE_CLIMATE(AnnotateClimate.INSTANCE),
         CHOOSE_ROCKS(ChooseRocks.INSTANCE),
+        ANNOTATE_KARST_SURFACE(KarstSurfaceRocks.INSTANCE),
         ADD_RIVERS_AND_LAKES(AddRiversAndLakes.INSTANCE),
         CHOOSE_BIOMES(ChooseBiomes.INSTANCE),
         ;

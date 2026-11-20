@@ -3,43 +3,46 @@
  * You may obtain a copy of the Licence at:
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * Placeholder for TFC's rock lookup (M2-GEN-08). TFC maps a region rock id and a layer to a rock through the datapack rock
- * settings, which are not ported yet. The categories of the 21 raw rocks are TFC's (tools/datagen TfcTables, @ c3b4d9536),
- * and the supertype of a point is TFC's (ChooseRocks: ocean, volcanic, land, uplift). The choice inside a category is ours.
+ * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
+ * file: src/main/java/net/dries007/tfc/world/chunkdata/RegionChunkDataGenerator.java @ c3b4d9536 (generateRock: the rock of
+ * a point and layer is rockLayerSettings.sampleAtLayer), PAR-WORLD-23
  */
 package dev.tfp.core.worldgen.chunk;
 
+import dev.tfp.core.worldgen.rock.RockLayerSampler;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * The raw rock that a region rock id and a layer give until the datapack rock settings are ported. The names are the raw
- * rock ids {@code tfp:rock/raw/<name>} of the content, in the order of {@link #names()}.
+ * The raw rock of a region rock id and a layer, by index (PAR-WORLD-23): TFC's rock layer walk of the overworld preset
+ * ({@link RockLayerSampler#PRESET}, {@code RockLayerSettings.sampleAtLayer}), as an index of {@link #names()}. The names are
+ * the raw rock ids {@code tfp:rock/raw/<name>} of the content, in a fixed order the palettes rely on. The class keeps its
+ * name and API for its callers (volcanoes, groundcover, terrain).
  */
 public final class PlaceholderRocks {
-    /** The supertype bits of a region rock id: the lower two bits, as {@code ChooseRocks.TYPE_BITS}. */
-    private static final int TYPE_BITS = 2;
-
     private static final String[] NAMES = {
-        // Ocean (sedimentary)
         "shale", "claystone", "limestone", "conglomerate", "dolomite", "chert", "chalk", "tuff",
-        // Volcanic (igneous extrusive)
         "rhyolite", "basalt", "andesite", "dacite",
-        // Land (igneous intrusive)
         "granite", "diorite", "gabbro",
-        // Uplift (metamorphic)
         "quartzite", "slate", "phyllite", "schist", "gneiss", "marble",
     };
-    /** The first index of each supertype in {@link #NAMES}: ocean, volcanic, land, uplift. */
-    private static final int[] OFFSET = {0, 8, 12, 15};
-    private static final int[] SIZE = {8, 4, 3, 6};
-
-    static {
-        if (OFFSET.length != SIZE.length || OFFSET[3] + SIZE[3] != NAMES.length) {
-            throw new AssertionError("placeholder rock table is inconsistent");
-        }
-    }
+    private static final Map<String, Integer> INDEX = indexByRockId();
 
     private PlaceholderRocks() {}
+
+    private static Map<String, Integer> indexByRockId() {
+        final Map<String, Integer> map = new HashMap<>();
+        for (int i = 0; i < NAMES.length; i++) {
+            map.put("tfc:" + NAMES[i], i);
+        }
+        for (String rock : RockLayerSampler.PRESET.rocks()) {
+            if (!map.containsKey(rock)) {
+                throw new AssertionError("preset rock without a raw rock index: " + rock);
+            }
+        }
+        return Map.copyOf(map);
+    }
 
     /** @return The 21 raw rock names, in index order. */
     public static List<String> names() {
@@ -51,9 +54,19 @@ public final class PlaceholderRocks {
         return NAMES.length;
     }
 
+    /** @return The index in {@link #names()} of a rock id ({@code tfc:granite}). */
+    public static int indexOf(String rockId) {
+        final Integer i = INDEX.get(rockId);
+        if (i == null) {
+            throw new IllegalArgumentException("unknown rock " + rockId);
+        }
+        return i;
+    }
+
     /**
      * @param index an index of {@link #names()}
-     * @return Whether the rock is mafic, as TFC's rock settings mark it: basalt and gabbro. Used for the beach sand colour.
+     * @return Whether the rock is mafic: TFC's rock settings mark basalt and gabbro ({@code RockSettings.mafic}; checked
+     *         against the exported data by {@code RockSettingsTest}). Used for the beach sand colour.
      */
     public static boolean isMafic(int index) {
         final String name = NAMES[index];
@@ -61,14 +74,13 @@ public final class PlaceholderRocks {
     }
 
     /**
-     * The index in {@link #names()} of the rock at a region rock id and a rock layer. The supertype (lower two bits) picks the
-     * category; the upper bits and the layer pick the rock inside it, so the layers of one point differ.
+     * The index in {@link #names()} of the rock at a region rock id and a rock layer: TFC's {@code sampleAtLayer} of the
+     * overworld preset.
      *
      * @param rock  The region rock id ({@code Region.Point.rock}).
      * @param layer The rock layer, 0 at the surface ({@code ChunkDataGenerator.RockSample.layer}).
      */
     public static int index(int rock, int layer) {
-        final int type = rock & ((1 << TYPE_BITS) - 1);
-        return OFFSET[type] + Math.floorMod((rock >>> TYPE_BITS) + layer, SIZE[type]);
+        return INDEX.get(RockLayerSampler.PRESET.sampleAtLayer(rock, layer));
     }
 }

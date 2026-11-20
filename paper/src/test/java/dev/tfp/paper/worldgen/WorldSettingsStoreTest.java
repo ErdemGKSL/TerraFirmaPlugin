@@ -108,7 +108,7 @@ class WorldSettingsStoreTest extends MockServerTest {
         assertEquals(WorldSettings.DEFAULT, g.settings());
         try {
             g.terrain(server.addSimpleWorld("gen"));
-        } catch (IllegalStateException noGeneratedData) {
+        } catch (IllegalStateException | IllegalArgumentException noGeneratedData) {
             // the terrain needs the datagen output; the settings are resolved before it is built
         }
         assertEquals(cold, g.settings());

@@ -252,8 +252,8 @@ public final class Region {
         /** The biome: a {@code dev.tfp.core.worldgen.biome.TfcBiomes} id. Ocean (0) until the biome task runs. */
         public int biome = 0;
         /**
-         * TFC's karst surface rock flag. Karst is not ported (the rock settings are datapack data), so this stays false and
-         * the karst branch of the biome choice never runs.
+         * TFC's karst surface rock flag, set by {@code KarstSurfaceRocks} (PAR-WORLD-23) when the generator has the rock
+         * settings; false otherwise.
          */
         public boolean isSurfaceRockKarst = false;
 

@@ -34,7 +34,7 @@ ui: false
 in_game_steps: []
 plan:
   - "PAR-WORLD-22 made TFC's Settings per world (worldgen-settings.yml, stored in <world>/tfp/world-settings.yml) and the generator (TfcTerrain: region map, chunk data, bedrock, grass density; spawn) uses them. Every other climate reader still builds `OverworldClimate.forWorldSeed(seed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE)` or `ChunkDataGenerator.forSeed` / `WaterTerrain` over `RegionSettings.OVERWORLD`, so a world with a non-default temperature_scale, rainfall or continentalness shows the preset's climate in the HUD, snow, rain, seasonal colours and plant effects (files listed in files_owned)."
-  - "Add `WorldSettingsLookup` (paper/worldgen): the settings of a World from its `TfcChunkGenerator.settings()` (TFC's preset for other generators); replace every DEFAULT_TEMPERATURE_SCALE / RegionSettings.OVERWORLD use with the world's values; give ChunkDataGenerator.forSeed and WaterTerrain a RegionSettings parameter (keep the old overloads for tests)."
+  - "Add `WorldSettingsLookup` (paper/worldgen): the settings of a World from its `TfcChunkGenerator.settings()` (TFC's preset for other generators); (PAR-WORLD-23) also build WaterTerrain's and forSeed's RegionGenerator with the rock settings so their karst biomes match the terrain; replace every DEFAULT_TEMPERATURE_SCALE / RegionSettings.OVERWORLD use with the world's values; give ChunkDataGenerator.forSeed and WaterTerrain a RegionSettings parameter (keep the old overloads for tests)."
 tests:
   - "paper: a world whose generator has temperature_scale 5000 gives the HUD/snow climate with that scale (MockBukkit)"
 done_criteria:
