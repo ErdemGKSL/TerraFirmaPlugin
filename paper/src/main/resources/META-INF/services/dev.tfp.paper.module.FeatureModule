@@ -88,3 +88,4 @@ dev.tfp.paper.device.automation.DeviceAutomationModule
 dev.tfp.paper.gather.GatherModule
 dev.tfp.paper.farm.FarmModule
 dev.tfp.paper.harvest.HarvestModule
+dev.tfp.paper.itemplace.ItemPlaceModule

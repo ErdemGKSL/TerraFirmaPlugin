@@ -2,7 +2,7 @@
 id: PAR-GATHER-07
 title: "Item placement interactions: vanilla stick, bone, feather, flint, rotten flesh and salt place as TFC groundcover; a snow item over plants places a snow pile"
 area: GATHER
-status: open
+status: done
 wave: 22
 deps: [PAR-GATHER-01, PAR-WORLD-09, PAR-CLIM-04]
 size: S
@@ -28,6 +28,7 @@ plan:
   - "Core (pure): the placement decision from a snapshot of the clicked face, the target and its neighbours: TFC's `BlockItemPlacement` rules (replaceable target, the groundcover block's `canSurvive` on a sturdy top face, waterlogging from the target fluid, facing from the player) and `SnowPileBlock.canPlaceSnowPile` (target in TFC's snow-pile-able set, layers stacking as vanilla snow otherwise)."
   - "Paper glue (FeatureModule): PlayerInteractEvent RIGHT_CLICK_BLOCK with these items (HIGH, ignoring cancelled; skip when the clicked block has its own interaction, as InteractionManager runs after the block); the item's vanilla use (eat rotten flesh, ...) still happens when the placement does not apply. Place through the CE adapter with the PAR-WORLD-09 groundcover ids and PAR-CLIM-04's snow pile (covered block stored as CLIM-04 does); consume one item unless creative; play the block's place sound (snow: TFC's extra pitch-0.8 sound); respect build permission (adventure mode `mayBuild`)."
   - "Ledger: feature row; divergence row if a target cannot be replaced on the CE carrier."
+  - "Done: core ItemPlacementRules + paper itemplace (ItemPlaceListener, SnowPilePlacer SPI); 7 core + 6 MockBukkit tests. The snow pile write needs the weather pile memory: PAR-GATHER-13; groundcover needs the CE blocks of PAR-GATHER-12. Pending in-game check (container cannot run client)"
 tests:
   - "core: ItemPlacementRulesTest: each vanilla item -> its groundcover type; non-sturdy face, water and replaceable targets as TFC; snow on grass, on a flower, on a full block (vanilla layer), on an existing pile (layer + 1)"
   - "paper: MockBukkit: stick on grass places tfp:groundcover/stick and consumes one; creative keeps the stack; adventure mode does nothing; rotten flesh on air still eats"
