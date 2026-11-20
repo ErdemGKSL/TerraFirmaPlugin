@@ -43,7 +43,7 @@ public final class SpeciesBehaviours {
         }
     };
 
-    private final Map<String, SpeciesBehaviour> bySpecies = new ConcurrentHashMap<>();
+    private final Map<String, List<SpeciesBehaviour>> bySpecies = new ConcurrentHashMap<>();
     private final Logger logger;
     private final GoalSink sink;
 
@@ -56,48 +56,63 @@ public final class SpeciesBehaviours {
         this.sink = sink;
     }
 
-    /** Registers {@code behaviour} for each of its species; a species that already has one is refused. */
+    /**
+     * Registers {@code behaviour} for each of its species. A species may have several behaviours (livestock rules and
+     * products, say): their goals are all installed, their hooks all run, in registration order. The vanilla goals are
+     * removed unless every behaviour of the species keeps them.
+     */
     public void register(SpeciesBehaviour behaviour) {
         for (String id : behaviour.species()) {
-            SpeciesBehaviour previous = bySpecies.putIfAbsent(id, behaviour);
-            if (previous != null && previous != behaviour) {
-                throw new IllegalStateException("species " + id + " already has a behaviour: " + previous);
-            }
+            bySpecies.compute(id, (k, list) -> {
+                List<SpeciesBehaviour> next = new java.util.ArrayList<>(list == null ? List.of() : list);
+                if (next.contains(behaviour)) {
+                    throw new IllegalStateException("behaviour " + behaviour + " is already registered for " + id);
+                }
+                next.add(behaviour);
+                return List.copyOf(next);
+            });
         }
     }
 
+    /** The first behaviour of {@code species}, if any. */
     public Optional<SpeciesBehaviour> find(String species) {
-        return Optional.ofNullable(bySpecies.get(species));
+        return Optional.ofNullable(bySpecies.get(species)).flatMap(l -> l.stream().findFirst());
     }
 
-    /** Replaces the carrier's goals by the species' (add-to-world), then runs its add hook. No behaviour: nothing changes. */
+    public List<SpeciesBehaviour> all(String species) {
+        return bySpecies.getOrDefault(species, List.of());
+    }
+
+    /** Replaces the carrier's goals by the species' (add-to-world), then runs the add hooks. No behaviour: nothing changes. */
     void onAdd(Mob mob, Entity entity, AnimalRecord record) {
-        SpeciesBehaviour b = bySpecies.get(record.species());
-        if (b == null) {
+        List<SpeciesBehaviour> list = all(record.species());
+        if (list.isEmpty()) {
             return;
         }
         try {
-            if (!b.keepVanillaGoals()) {
+            if (list.stream().anyMatch(b -> !b.keepVanillaGoals())) {
                 sink.removeAll(mob);
             }
-            for (SpeciesBehaviour.GoalSpec g : b.goals(mob, record)) {
-                sink.add(mob, g.priority(), g.goal());
+            for (SpeciesBehaviour b : list) {
+                for (SpeciesBehaviour.GoalSpec g : b.goals(mob, record)) {
+                    sink.add(mob, g.priority(), g.goal());
+                }
             }
-            b.onAdd(entity, record);
+            for (SpeciesBehaviour b : list) {
+                b.onAdd(entity, record);
+            }
         } catch (RuntimeException ex) {
             logger.log(Level.SEVERE, "Species behaviour for " + record.species() + " failed on add", ex);
         }
     }
 
     void onCheck(SpeciesBehaviour.Check check) {
-        SpeciesBehaviour b = bySpecies.get(check.record().species());
-        if (b == null) {
-            return;
-        }
-        try {
-            b.onCheck(check);
-        } catch (RuntimeException ex) {
-            logger.log(Level.SEVERE, "Species behaviour for " + check.record().species() + " failed in its check", ex);
+        for (SpeciesBehaviour b : all(check.record().species())) {
+            try {
+                b.onCheck(check);
+            } catch (RuntimeException ex) {
+                logger.log(Level.SEVERE, "Species behaviour for " + check.record().species() + " failed in its check", ex);
+            }
         }
     }
 

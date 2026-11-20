@@ -51,6 +51,8 @@ TEXTURES: dict[str, dict[str, str]] = {
 # Parts that exist only for one gender (TFC setupAnim visibility): bone-name tokens. Female looks drop MALE_ONLY, male looks FEMALE_ONLY.
 MALE_ONLY = {"cow": ("horn_",), "sheep": ("left_horn", "right_horn"), "musk_ox": ("horn_",), "deer": ("antler",), "moose": ("antler",)}
 FEMALE_ONLY = {"cow": ("udder",), "yak": ("udder",)}
+# Parts that are the wool: removed in the `_sheared` look (shown between a shearing and the product being ready again).
+WOOL = {"sheep": ("wool_",), "alpaca": ("wool_",), "musk_ox": ("quiviut",), "bactrian_camel": ("wool_",)}
 
 
 def drop_bones(bb: dict, tokens: tuple[str, ...]) -> None:
@@ -146,6 +148,16 @@ def main(argv: list[str]) -> int:
                     written[mid] = data
                     ids.append(mid)
                 rows.append(f"{species}\t{'male' if male else 'female'}\t{stage}\t{mid}")
+                if species in WOOL and stage != "child":
+                    sid = mid + "_s"
+                    if sid not in written:
+                        bb = json.loads(written[mid])
+                        drop_bones(bb, WOOL[species])
+                        bb["name"] = sid
+                        bb.setdefault("meta", {})["model_name"] = sid
+                        written[sid] = (json.dumps(bb, indent=1) + "\n").encode()
+                        ids.append(sid)
+                    rows.append(f"{species}\t{'male' if male else 'female'}\t{stage}_sheared\t{sid}")
     for old in MODELS_OUT.glob("tfp_*.bbmodel"):
         if old.stem not in written and old.stem != KEEP:
             old.unlink()

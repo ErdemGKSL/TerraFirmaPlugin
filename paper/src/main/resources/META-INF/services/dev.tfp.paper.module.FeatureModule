@@ -82,3 +82,4 @@ dev.tfp.paper.banana.BananaModule
 dev.tfp.paper.alloy.AlloyModule
 dev.tfp.paper.anvil.AnvilModule
 dev.tfp.paper.leaves.LeavesModule
+dev.tfp.paper.products.ProductsModule

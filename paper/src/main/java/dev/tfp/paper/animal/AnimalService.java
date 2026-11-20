@@ -298,8 +298,9 @@ public final class AnimalService implements Listener {
     }
 
     /** The model for the animal's gender and stage (PAR-FAUNA-03 variants), else the carrier table's model. */
-    Optional<String> modelFor(AnimalRecord record, LivestockAge age) {
-        return ModelVariants.get().pick(record.species(), record.state().male(), age)
+    Optional<String> modelFor(Entity e, AnimalRecord record, LivestockAge age) {
+        boolean sheared = clock.get().isSet() && ProductPdc.isSheared(e, record, clock.get().playerTicks());
+        return ModelVariants.get().pick(record.species(), record.state().male(), age, sheared)
                 .or(() -> table.find(record.species()).flatMap(Carrier::modelOrFallback));
     }
 
@@ -309,7 +310,7 @@ public final class AnimalService implements Listener {
      */
     private void ensureModel(Entity e, AnimalRecord record, LivestockAge age) {
         EntityModels m = models.get();
-        Optional<String> modelId = modelFor(record, age);
+        Optional<String> modelId = modelFor(e, record, age);
         if (modelId.isPresent() && m.isReady()) {
             String id = modelId.get();
             String current = e.getPersistentDataContainer().get(MODEL_KEY, PersistentDataType.STRING);
@@ -327,6 +328,18 @@ public final class AnimalService implements Listener {
             }
         }
         applyBody(e, record, age);
+    }
+
+    /**
+     * Re-evaluates which model the animal should wear (a shearing or the wool growing back changes it) and swaps it.
+     * Owning thread; no-op for an entity that is not one of our animals.
+     */
+    public void refreshModel(Entity e) {
+        Optional<AnimalRecord> record = record(e);
+        ClockSnapshot now = clock.get();
+        if (record.isPresent() && now.isSet()) {
+            ensureModel(e, record.get(), AnimalCheck.ageAt(record.get(), now.playerTicks()));
+        }
     }
 
     /** {@link EntityModels#onModelCreated}: the model plugin (re)created a model; owning thread. */
@@ -482,7 +495,7 @@ public final class AnimalService implements Listener {
                 "debug.animal.info.livestock", LivestockRules.familiarityAt(s, now.playerTicks()), s.uses(),
                 sp.adulthoodDays())));
         lines.add(messages.get(locale, "debug.animal.info.model",
-                modelFor(r, age).orElseGet(() -> messages.get(locale,
+                modelFor(e, r, age).orElseGet(() -> messages.get(locale,
                         "debug.animal.info.model_none")),
                 models.get().modelCount(e),
                 checking(e) ? messages.get(locale, "debug.animal.info.check_running", checks(e))

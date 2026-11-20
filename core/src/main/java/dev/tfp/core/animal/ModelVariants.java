@@ -42,8 +42,22 @@ public final class ModelVariants {
      * model (it is drawn as its carrier).
      */
     public Optional<String> pick(String species, boolean male, LivestockAge age) {
-        String key = key(species, male, age);
-        return Optional.ofNullable(byKey.get(key));
+        return pick(species, male, age, false);
+    }
+
+    /**
+     * As {@link #pick(String, boolean, LivestockAge)}; {@code sheared} asks for the look without wool (sheep, alpaca, musk
+     * ox, bactrian camel after a shearing, until the product is ready again). A species or stage with no sheared look
+     * gets the normal one.
+     */
+    public Optional<String> pick(String species, boolean male, LivestockAge age, boolean sheared) {
+        if (sheared) {
+            String s = byKey.get(key(species, male, age) + "_sheared");
+            if (s != null) {
+                return Optional.of(s);
+            }
+        }
+        return Optional.ofNullable(byKey.get(key(species, male, age)));
     }
 
     static String key(String species, boolean male, LivestockAge age) {

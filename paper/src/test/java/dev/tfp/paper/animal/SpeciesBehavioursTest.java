@@ -146,10 +146,13 @@ class SpeciesBehavioursTest {
     }
 
     @Test
-    void aSpeciesHasOneBehaviourAndAFailureIsContained() {
+    void aSpeciesMayHaveSeveralBehavioursAndAFailureIsContained() {
         SpeciesBehaviours reg = new SpeciesBehaviours(Logger.getAnonymousLogger(), new Goals());
+        Fake first = new Fake();
+        reg.register(first);
         reg.register(new Fake());
-        assertThatThrownBy(() -> reg.register(new Fake())).isInstanceOf(IllegalStateException.class);
+        assertThat(reg.all("tfc:cow")).hasSize(2);
+        assertThatThrownBy(() -> reg.register(first)).isInstanceOf(IllegalStateException.class);
         assertThat(reg.registeredSpecies()).containsExactly("tfc:cow", "tfc:sheep");
 
         SpeciesBehaviours bad = new SpeciesBehaviours(Logger.getAnonymousLogger(), new Goals());

@@ -47,4 +47,13 @@ class ModelVariantsTest {
             }
         }
     }
+
+    @Test
+    void shornWoolAnimalsWearTheShearedLookOthersKeepTheirs() {
+        assertThat(v.pick("tfc:sheep", false, LivestockAge.ADULT, true)).contains("tfp_sheep_s");
+        assertThat(v.pick("tfc:sheep", true, LivestockAge.OLD, true)).contains("tfp_sheep_old_m_s");
+        assertThat(v.pick("tfc:sheep", false, LivestockAge.CHILD, true)).contains("tfp_sheep"); // children are not shorn
+        assertThat(v.pick("tfc:cow", false, LivestockAge.ADULT, true)).contains("tfp_cow");
+        assertThat(v.pick("tfc:musk_ox", false, LivestockAge.ADULT, true)).hasValueSatisfying(id -> assertThat(id).endsWith("_s"));
+    }
 }
