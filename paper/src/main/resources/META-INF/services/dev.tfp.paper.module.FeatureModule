@@ -103,3 +103,5 @@ dev.tfp.paper.rotation.RotationModule
 dev.tfp.paper.familiarity.FamiliarityModule
 dev.tfp.paper.prey.PreyModule
 dev.tfp.paper.vanilla.VanillaRulesModule
+dev.tfp.paper.pluck.PluckModule
+dev.tfp.paper.animal.sound.AnimalSoundsModule

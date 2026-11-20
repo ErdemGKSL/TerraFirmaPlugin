@@ -218,6 +218,7 @@ public final class Datagen {
         if (dev.tfp.datagen.coverage.BlockCoverage.available(tfc)) { // PAR-INFRA-49: TFC blockstate coverage gate; after every block generator and ItemCoverage; fixtures have no TFCItems
             dev.tfp.datagen.coverage.BlockCoverage.run(tfc, out);
         }
+        dev.tfp.datagen.animal.AnimalSounds.run(tfc, out); // PAR-FAUNA-20: TFC's entity sound events and oggs as tfp_animals
         dev.tfp.datagen.spawn.SpawnTable.run(tfc, out); // PAR-FAUNA-04: biome spawners and fauna gates for the spawn pass
         dev.tfp.datagen.plantslow.PlantSlowFactors.run(tfc, out); // PAR-GATHER-10: Plant.speedFactor per plant for the slow-block provider
         LootTableExport.run(tfc, out); // PAR-INFRA-21: TFC loot tables of delegated blocks and spawned entities for the Paper runtime
