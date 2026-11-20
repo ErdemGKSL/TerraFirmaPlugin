@@ -91,3 +91,4 @@ dev.tfp.paper.harvest.HarvestModule
 dev.tfp.paper.itemplace.ItemPlaceModule
 dev.tfp.paper.crucible.CrucibleModule
 dev.tfp.paper.grass.GrassModule
+dev.tfp.paper.plantslow.PlantSlowModule

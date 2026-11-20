@@ -213,6 +213,7 @@ public final class Datagen {
             dev.tfp.datagen.coverage.BlockCoverage.run(tfc, out);
         }
         dev.tfp.datagen.spawn.SpawnTable.run(tfc, out); // PAR-FAUNA-04: biome spawners and fauna gates for the spawn pass
+        dev.tfp.datagen.plantslow.PlantSlowFactors.run(tfc, out); // PAR-GATHER-10: Plant.speedFactor per plant for the slow-block provider
         LootTableExport.run(tfc, out); // PAR-INFRA-21: TFC loot tables of delegated blocks and spawned entities for the Paper runtime
         Advancements.run(tfc, out);
         FieldGuide.run(tfc, out);

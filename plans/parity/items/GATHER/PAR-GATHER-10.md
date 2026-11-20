@@ -2,7 +2,7 @@
 id: PAR-GATHER-10
 title: "Plant and thatch movement slowdown: TFC's per-plant speed factors registered with the slow-block service"
 area: GATHER
-status: open
+status: done
 wave: 25
 deps: [PAR-GATHER-04, PAR-WORLD-12]
 size: S
@@ -27,6 +27,7 @@ plan:
   - "Datagen: export Plant.speedFactor per plant (and the berry bush age/stage rule, thatch 0.6) to a data file read by core; never hand-copy the table."
   - "Core: factor = lerp(plantsMovementModifier 0.2, speedFactor, 1) (PlantBlock/TopPlantBlock/BodyPlantBlock/KelpTreeBlock), SeasonalPlantBlock's lerp by age/stage with the leaves modifier, thatch 0.6 unless waterlogged."
   - "Paper: a SlowBlocks.Provider registered through services().require(SlowBlocks.class); the listener of PAR-GATHER-04 does the rest."
+  - "Done: datagen PlantSlowFactors (data_maps/plant_speed_factors.json, 170 plants parsed from Plant.java), core PlantSlowRules, paper PlantSlowProvider registered with SlowBlocks; 3 core + 5 paper + 2 datagen tests. Thatch id tfp:thatch and berry bush stage are matched by id, no block exists for thatch yet. Pending in-game check (container cannot run client)"
 tests:
   - "core: factors against rows exported from TFC for every plant"
   - "paper: provider answers for tfp:plant/* ids and not for others"
