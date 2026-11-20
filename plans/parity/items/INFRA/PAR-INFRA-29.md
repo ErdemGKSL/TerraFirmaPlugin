@@ -24,6 +24,8 @@ done_criteria:
   - "A loose rock and a leaves block drop per their TFC tables in a self-test"
 ---
 
-# PAR-INFRA-29: Loot delegation check: loose rocks and leaves drop by their TFC tables in the self-test
+# PAR-INFRA-29
+
+> Claimed: worker session_011osUpAUVyyokAxf5Kiw72D, 2026-11-20: Loot delegation check: loose rocks and leaves drop by their TFC tables in the self-test
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
