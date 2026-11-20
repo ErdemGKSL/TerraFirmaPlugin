@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already done).
+Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -215,7 +215,8 @@ Totals: 383 items; open 207, done 167, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-CLIM-25 | Vanilla /time set <marker> on 26.x answers "already at time marker" although the time and the calendar moved (skip amount 0 after DaylightSync) | CLIMATE | 17 | done |
 | PAR-HEAT-36 | Firepit carrier culls the top face of the block below: the floor shows through the gaps of TFC's firepit model | HEAT | 17 | open |
 | PAR-HEAT-25 | Pot loaded in game: configuration/devices/pot.yml, pot screen art (tfp:gui/pot, thermometer, bubbles) and the in-game soup check | HEAT | 18 | open |
-| PAR-GATHER-05 | Soil interactions: hoeing, paths, mud, rooted dirt, grass spread and rock spawning | GATHER | 18 | open |
+| PAR-GATHER-05 | Soil interactions: hoeing, paths, mud, rooted dirt, grass spread and rock spawning | GATHER | 18 | done |
+| PAR-GATHER-11 | Grass spread, grass death and rising loose rocks: the lazy sweep of TFC's grass random tick | GATHER | 19 | open |
 | PAR-GATHER-06 | Raw rock drops and mossy rock spreading | GATHER | 18 | done |
 | PAR-PHYS-05 | Explosion collapses | PHYS | 18 | open |
 | PAR-WORLD-05 | Ice sheets, sea ice and icebergs at generation; lava flows; remaining biome surface builders | WORLD | 18 | done |
