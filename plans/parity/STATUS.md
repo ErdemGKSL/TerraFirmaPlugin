@@ -86,6 +86,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-27 | Tool item build guards: self-test gives every item with a minecraft:tool component; datagen check that tool rules name only shipped block tags | PROC | 8 | done |
 | PAR-PROC-29 | Scraping block CE entry: tfc:scraping hitbox row and demand, configuration/scraping, in-game check | PROC | 8 | done |
 | PAR-PROC-30 | minecraft:bricks is craftable in TFC: stop repurposing it as a visual state; bricks craft in-game re-check | PROC | 8 | done |
+| PAR-GATHER-12 | CraftEngine blocks for loose rocks and groundcover, so pickup and stacking work in the world | GATHER | 22 | open |
 | PAR-PROC-28 | Advanced crafting in-game verification and self-test: knife/sandwich crafts, vanilla recipe leakage over all recipes | PROC | 41 | open |
 | PAR-HUD-17 | Wire the HUD display styles: hud.* keys in config.yml, health text and climate temperature placeholders follow HudStyles | HUD | 8 | done |
 | PAR-HUD-18 | /tfp debug chunk climate lines follow hud.climate-temperature-style | HUD | 9 | done |
@@ -241,7 +242,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-28 | Wire the cave and canyon tunnel masks into the terrain fill, and the in-game cave check | WORLD | 20 | done |
 | PAR-WORLD-29 | Wire the aquifer barrier noise and the fluid support rule into the terrain fill, and the floating-fluid scan | WORLD | 21 | done |
 | PAR-INFRA-61 | Static info tooltip lines in-game verification: damage type, resistances, fuel and rock lore (the check PAR-INFRA-46 closed without) | INFRA | 20 | open |
-| PAR-GATHER-01 | Pick up loose rocks and groundcover with a right-click | GATHER | 21 | open |
+| PAR-GATHER-01 | Pick up loose rocks and groundcover with a right-click | GATHER | 21 | done |
 | PAR-POT-01 | Placed items: put up to four items on the ground (and the straw/log stages of a pit kiln) | POTTERY | 21 | open |
 | PAR-PROC-12 | Panning | PROC | 21 | open |
 | PAR-WORLD-10 | Wood blocks: logs, wood, stripped, leaves, saplings as CE blocks | WORLD | 21 | done |
