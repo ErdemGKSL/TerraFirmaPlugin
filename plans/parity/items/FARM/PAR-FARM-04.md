@@ -34,4 +34,6 @@ done_criteria:
 
 # PAR-FARM-04: Crop growth glue: lazy calendar growth, climate checks, death, harvest yields
 
+> Claimed: farm-worker, 2026-11-20
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
