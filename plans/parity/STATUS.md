@@ -281,7 +281,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-POT-11 | item_heat data for fired pottery: vessels, molds, jugs | POTTERY | 25 | done |
 | PAR-WORLD-13 | Remaining plant features: vines, kelp, epiphytes, creeping plants, cacti, algae, atoll corals | WORLD | 25 | open |
 | PAR-WORLD-14 | Volcanic features: springs, rivulets, flood-fill lakes, calderas of other cones | WORLD | 25 | done |
-| PAR-WORLD-25 | TFC corals and sea pickle as CE blocks: 5 colours x (coral, coral fan, wall fan) live and dead, the salt-water sea pickle, dying out of water, drops; replace the vanilla coral placeholders in generation | WORLD | 25 | open |
+| PAR-WORLD-25 | TFC corals and sea pickle as CE blocks: 5 colours x (coral, coral fan, wall fan) live and dead, the salt-water sea pickle, dying out of water, drops; replace the vanilla coral placeholders in generation | WORLD | 25 | done |
 | PAR-FARM-12 | Wild plant block rules: survival per shape, cactus damage, tall halves, plant stacking, flower shearing, long growth of vines, kelp, kelp trees and branching cacti | FARM | 26 | open |
 | PAR-POT-06 | Large vessel (and glazed): nine slots, sealing, preservation, automation | POTTERY | 26 | open |
 | PAR-POT-07 | Jugs and glass bottles: fill, drink, pour, break | POTTERY | 26 | done |
@@ -410,6 +410,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-47 | Remaining plant shapes as CE blocks: water plants (waterlogged), creeping, epiphytes, vines, weeping/twisting columns, kelp, cacti, bamboo, intertidal plant-likes | WORLD | 27 | open |
 | PAR-WORLD-48 | Plant lifecycle looks, climate tint and soil rules: TFC's seasonal plant stages (tfc:plant model loader), per-climate grass/foliage colour, TFC canSurvive per plant type | WORLD | 28 | open |
 | PAR-WORLD-49 | Surface builder over every exposed floor: cave floors, arch and overhang floors get TFC's surface states (whole-column scan) | WORLD | 23 | open |
+| PAR-WORLD-50 | CE coral and sea pickle blocks: datagen for the 30 corals and tfp:sea_pickle on their vanilla twin carriers, items, loot, names; write them in generation; drops on support loss; wall fan placement | WORLD | 27 | open |
 | PAR-MECH-03 | Water wheel | MECH | 51 | open |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | open |
 | PAR-MECH-08 | Power loom | MECH | 51 | open |

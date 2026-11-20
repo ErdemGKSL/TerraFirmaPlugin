@@ -20,7 +20,8 @@ import org.bukkit.Material;
  * ({@link #ceRef}, PAR-WORLD-12; the terrain writes them once PAR-WORLD-46 wires it); until then, and for the water plants,
  * wild crops and corals, each TFC block gets a vanilla placeholder (ledger): grasses, flowers, ferns, dead bushes, lily pads, seagrass, vanilla corals and
  * sea pickles. The corals are vanilla's own blocks (TFC uses vanilla's coral blocks and its own coral plants of the same five
- * colours). The placement rule is pure: {@link #write} applies the decisions of one chunk through a {@link Target}.
+ * colours); the coral plants, fans, wall fans and sea pickles have CraftEngine states ({@link #coralRef}, PAR-WORLD-25;
+ * written once PAR-WORLD-49 wires them). The placement rule is pure: {@link #write} applies the decisions of one chunk through a {@link Target}.
  */
 final class PlantBlocks {
     /** The vanilla flowers named like a TFC plant. */
@@ -101,6 +102,28 @@ final class PlantBlocks {
             props.add("half=" + (state.part() == PlantState.Part.UPPER ? "upper" : "lower"));
         }
         return props.isEmpty() ? state.block() : state.block() + "[" + String.join(",", props) + "]";
+    }
+
+    /**
+     * PAR-WORLD-25: the CraftEngine state of a coral plant, fan, wall fan or sea pickle
+     * ({@code tfp:coral/tube_coral_wall_fan[facing=east,waterlogged=true]}, {@code tfp:sea_pickle[pickles=3,waterlogged=true]}),
+     * or null for anything else (the vanilla coral blocks TFC uses stay vanilla). TFC's {@code fluid=salt_water} is
+     * {@code waterlogged=true} (core {@code CoralRules}); a wall fan's extra is its facing (north, east, south, west, as
+     * {@code Corals} draws it), a sea pickle's its count.
+     */
+    static String coralRef(PlantState state) {
+        final String wet = "waterlogged=" + (state.fluid() != PlantState.Fluid.EMPTY);
+        return switch (state.kind()) {
+            case CORAL, CORAL_FAN -> state.block() + "[" + wet + "]";
+            case CORAL_WALL_FAN -> state.block() + "[facing=" + switch (state.extra()) {
+                case 0 -> "north";
+                case 1 -> "east";
+                case 2 -> "south";
+                default -> "west";
+            } + "," + wet + "]";
+            case SEA_PICKLE -> state.block() + "[pickles=" + Math.clamp(state.extra(), 1, 4) + "," + wet + "]";
+            default -> null;
+        };
     }
 
     /** The plant types generated as CraftEngine blocks (PAR-WORLD-12). */

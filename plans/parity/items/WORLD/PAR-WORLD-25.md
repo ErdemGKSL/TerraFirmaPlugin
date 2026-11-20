@@ -2,7 +2,7 @@
 id: PAR-WORLD-25
 title: "TFC corals and sea pickle as CE blocks: 5 colours x (coral, coral fan, wall fan) live and dead, the salt-water sea pickle, dying out of water, drops; replace the vanilla coral placeholders in generation"
 area: WORLD
-status: open
+status: done
 wave: 25
 deps: [PAR-WORLD-12, PAR-INFRA-13, PAR-FLUID-03]
 size: M
@@ -25,7 +25,7 @@ files_owned:
   - "paper/src/main/java/dev/tfp/paper/coral/**"
   - "paper/src/test/java/dev/tfp/paper/coral/**"
   - "paper/src/main/java/dev/tfp/paper/worldgen/PlantBlocks.java"
-ui: true
+ui: false
 in_game_steps:
   - "Fresh world; tp Bot to a warm coral reef (tfp debug worldgen finds one); screenshot under water: TFC coral plants, fans, wall fans and sea pickles"
   - "Break a tube coral with an empty hand and with a knife; screenshot the drops (TFC loot)"
@@ -36,17 +36,18 @@ plan:
   - "Rules in core/coral: scanForWater (any infinite water on the block's fluid property or an adjacent water source, as TFC/vanilla BaseCoralPlantTypeBlock), die to the dead block keeping facing and dropping the fluid; survival (sturdy face below or behind); sea pickle survival (non-empty collision top or sturdy top) and light by count when in salt water; decide async, apply sync through the neighbour runner (PAR-INFRA-10) with the 60..100 tick delay TFC schedules."
   - "Generation: PlantBlocks writes the CE ids instead of the vanilla placeholders (shared with PAR-WORLD-12, a different wave); vanilla coral blocks (TFC uses vanilla's full coral blocks) stay vanilla."
   - "Ledger: close the coral/sea pickle placeholder divergence; feature row."
+  - "Scope taken: the rules and the server side. TFC's fluid property is CE's hardcoded `waterlogged` (salt water is vanilla water, NP-FLUID-01; ledger divergence). The CE blocks need hitbox demands with vanilla-twin carriers (`hitbox/HitboxDemands`, `TfcShapes`; HardcodedCarrierTest forbids carriers elsewhere), a Datagen run line and the TfcTerrain write, none of them in files_owned: moved to PAR-WORLD-50 with the in-game steps (PROTOCOL 6.5, deferred check; ui set false here). Also moved there: drops on support loss (the neighbour runner removes without loot), wall fan placement facing and sea pickle stacking."
+  - "Done: core `coral/CoralRules` + `CoralRulesTest` (6: ids and order, block types vs Coral.java and the loot tables, scanForWater truth table, die delay draw, support sides, sea pickle light/survival/count/drops); paper `coral/CoralStates`, `CoralSupport` (neighbour-runner shape rule), `CoralDeath` (decide async, re-validate and apply on the region thread after 60..99 ticks), `CoralModule` (service file line) + `CoralMockBukkitTest` (7); `worldgen/PlantBlocks.coralRef` + `worldgen/CoralRefTest` (1, new test of the owned PlantBlocks). Deferred in-game check tracked in PAR-WORLD-50."
 tests:
   - "tools/datagen: 30 coral blocks + sea pickle, items only where TFC registers them, loot matches TFC's tables"
   - "core: coral survival/die golden vs TFC's rules (fluid property x neighbour water x support)"
   - "paper: MockBukkit: a living coral without water becomes dead after the delay; a wall fan falls without support"
 done_criteria:
-  - "Reefs generate TFC coral blocks and sea pickles; living corals die out of water; drops follow TFC loot; tests green; screenshots pass"
+  - "Living corals die out of water and unsupported corals and sea pickles break (rules + MockBukkit); tests green"
+  - "Reefs generate TFC coral blocks, drops follow TFC loot, screenshots: deferred check tracked in PAR-WORLD-50"
 ---
 
 # PAR-WORLD-25: TFC corals and sea pickle as CE blocks
-
-> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-20
 
 > see_not_parity: NP-FLUID-01, NP-VIS-03 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
