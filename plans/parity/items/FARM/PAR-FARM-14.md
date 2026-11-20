@@ -32,4 +32,6 @@ done_criteria:
 
 # PAR-FARM-14: Stationary berry bush blocks
 
+> Claimed: session_011osUp5o449zjy3Qcb6jpEk, 2026-11-20
+
 Follow-up of PAR-FARM-06. Follow `plans/parity/PROTOCOL.md`.
