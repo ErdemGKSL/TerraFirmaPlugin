@@ -34,12 +34,13 @@ public final class AnvilModule implements FeatureModule {
         Tags tags = context.services().require(Tags.class);
         PaperAnvilEffects effects = new PaperAnvilEffects(context.scheduler(), context.integrations().customBlocks(),
             () -> context.integrations().blockVisuals());
+        AnvilClicks clicks = new AnvilClicks();
         AnvilDevice.Services services = new AnvilDevice.Services(stack -> tags.is(stack, AnvilDevice.HAMMERS),
-            stack -> tags.is(stack, AnvilDevice.FLUXES), effects);
+            stack -> tags.is(stack, AnvilDevice.FLUXES), effects, clicks);
         devices.register(AnvilDevice.kind(AnvilDevice.METAL_ID, services));
         devices.register(AnvilDevice.kind(AnvilDevice.ROCK_ID, services));
         context.listen(new AnvilListener(context.integrations().customBlocks(), devices,
             stack -> tags.is(stack, AnvilDevice.HAMMERS), stack -> tags.is(stack, AnvilListener.CHISELS), context.scheduler(),
-            effects));
+            effects, clicks));
     }
 }

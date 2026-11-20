@@ -57,12 +57,14 @@ public final class AnvilDevice {
      * @param hammer whether an item is a hammer (TFC {@code TOOLS_HAMMER})
      * @param flux   whether an item is welding flux (TFC {@code WELDING_FLUX})
      * @param effects the world effects
+     * @param clicks  the clicks this device consumed (the other hand's event of the same click is cancelled)
      */
-    public record Services(Predicate<ItemStack> hammer, Predicate<ItemStack> flux, AnvilEffects effects) {
+    public record Services(Predicate<ItemStack> hammer, Predicate<ItemStack> flux, AnvilEffects effects, AnvilClicks clicks) {
         public Services {
             Objects.requireNonNull(hammer, "hammer");
             Objects.requireNonNull(flux, "flux");
             Objects.requireNonNull(effects, "effects");
+            Objects.requireNonNull(clicks, "clicks");
         }
     }
 
@@ -130,6 +132,9 @@ public final class AnvilDevice {
 
         private DeviceResult<AnvilState> finish(DeviceContext<AnvilState> ctx, DeviceRecord<AnvilState> next) {
             services.effects().show(ctx.block(), view(ctx, next));
+            if (ctx.player() != null) {
+                services.clicks().mark(ctx.player());
+            }
             return DeviceResult.consume(next);
         }
 

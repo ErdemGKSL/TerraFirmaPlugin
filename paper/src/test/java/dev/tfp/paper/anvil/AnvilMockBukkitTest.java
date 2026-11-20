@@ -117,6 +117,7 @@ class AnvilMockBukkitTest extends MockServerTest {
     private final MemoryStore store = new MemoryStore();
     private final TableCodec stacks = new TableCodec();
     private final Effects effects = new Effects();
+    private final AnvilClicks clicks = new AnvilClicks();
     private DeviceService service;
     private World world;
     private Block anvil;
@@ -139,7 +140,8 @@ class AnvilMockBukkitTest extends MockServerTest {
         world = server.addSimpleWorld("anvil");
         service = new DeviceService(new DeviceKinds(), blocks, () -> store, () -> 1000L, stacks, new FakeCustomItems(),
             Logger.getLogger("test"));
-        AnvilDevice.Services services = new AnvilDevice.Services(AnvilMockBukkitTest::hammer, AnvilMockBukkitTest::flux, effects);
+        AnvilDevice.Services services = new AnvilDevice.Services(AnvilMockBukkitTest::hammer, AnvilMockBukkitTest::flux, effects,
+            clicks);
         service.register(AnvilDevice.kind(AnvilDevice.METAL_ID, services));
         service.register(AnvilDevice.kind(AnvilDevice.ROCK_ID, services));
         anvil = world.getBlockAt(0, 64, 0);
@@ -315,7 +317,8 @@ class AnvilMockBukkitTest extends MockServerTest {
                 }
                 return null;
             });
-        return new AnvilListener(blocks, service, AnvilMockBukkitTest::hammer, AnvilMockBukkitTest::chisel, scheduler, effects);
+        return new AnvilListener(blocks, service, AnvilMockBukkitTest::hammer, AnvilMockBukkitTest::chisel, scheduler, effects,
+            clicks);
     }
 
     private PlayerInteractEvent rightClick(Block block, BlockFace face, EquipmentSlot hand) {
@@ -337,6 +340,20 @@ class AnvilMockBukkitTest extends MockServerTest {
         listener.onInteract(off);
         assertThat(off.isCancelled()).as("the other hand of the same click").isTrue();
         assertThat(slot(AnvilSlots.INPUT_SECOND).getType()).as("is not used a second time").isEqualTo(Material.AIR);
+    }
+
+    @Test
+    void aClickTheDeviceConsumedCancelsTheOtherHandsEventEvenWithoutTheListenersHelp() {
+        AnvilListener listener = listener();
+        player.setSneaking(true);
+        hold(Material.IRON_INGOT, 1);
+        click(); // main input (the device routed it, as CraftEngine does with both hands empty)
+        hold(Material.AIR, 0);
+        assertThat(click()).isTrue(); // the empty hand takes it back: consumed, marked
+        PlayerInteractEvent off = rightClick(anvil, BlockFace.UP, EquipmentSlot.OFF_HAND);
+        listener.onInteract(off);
+        assertThat(off.isCancelled()).isTrue();
+        assertThat(slot(AnvilSlots.INPUT_MAIN).getType()).isEqualTo(Material.AIR);
     }
 
     @Test

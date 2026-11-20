@@ -16,11 +16,8 @@ import dev.tfp.paper.device.DeviceService;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.scheduler.Scheduler;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -46,7 +43,8 @@ import org.bukkit.inventory.ItemStack;
  *   <li>A sneaking click on an anvil with an item in either hand: vanilla would skip the block, but TFC allows the use on
  *       anvils (its {@code onUseBlock}), so the click is handed to the device. CraftEngine routes every other click.</li>
  * </ul>
- * One click fires the event for each hand; once a click is handled the player's other event of the same tick is cancelled.
+ * One click fires the event for each hand; once a click is consumed (here or by the device, {@link AnvilClicks}) the
+ * player's other event of the same tick is cancelled.
  */
 public final class AnvilListener implements Listener {
     static final String RAW_ROCK_PREFIX = "tfp:rock/raw/";
@@ -57,16 +55,17 @@ public final class AnvilListener implements Listener {
     private final Predicate<ItemStack> chisel;
     private final Scheduler scheduler;
     private final AnvilEffects effects;
-    private final Map<UUID, Integer> handled = new ConcurrentHashMap<>();
+    private final AnvilClicks clicks;
 
     public AnvilListener(CustomBlocks blocks, DeviceService devices, Predicate<ItemStack> hammer, Predicate<ItemStack> chisel,
-            Scheduler scheduler, AnvilEffects effects) {
+            Scheduler scheduler, AnvilEffects effects, AnvilClicks clicks) {
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.devices = Objects.requireNonNull(devices, "devices");
         this.hammer = Objects.requireNonNull(hammer, "hammer");
         this.chisel = Objects.requireNonNull(chisel, "chisel");
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.effects = Objects.requireNonNull(effects, "effects");
+        this.clicks = Objects.requireNonNull(clicks, "clicks");
     }
 
     private boolean owned(Block block) {
@@ -94,9 +93,8 @@ public final class AnvilListener implements Listener {
             return;
         }
         Player player = event.getPlayer();
-        Integer done = handled.get(player.getUniqueId());
-        if (done != null && done == player.getTicksLived()) {
-            event.setCancelled(true); // the other hand of a click already handled
+        if (clicks.consumedNow(player)) {
+            event.setCancelled(true); // the other hand of a click the device already consumed
             return;
         }
         if (event.useInteractedBlock() == Event.Result.DENY) {
@@ -119,7 +117,7 @@ public final class AnvilListener implements Listener {
             handledNow = convert(event, player, block, id.substring(RAW_ROCK_PREFIX.length()), held);
         }
         if (handledNow) {
-            handled.put(player.getUniqueId(), player.getTicksLived());
+            clicks.mark(player);
             event.setCancelled(true);
         }
     }
