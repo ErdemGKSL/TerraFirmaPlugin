@@ -32,5 +32,7 @@ done_criteria:
 
 # PAR-WORLD-19: Ore overlay S1 rerun on a world with caves
 
+> Claimed: worker session_011osUp5nmwNAYj7g53gEDAm, 2026-11-20
+
 Deferred in-game check of PAR-WORLD-17 (PROTOCOL §6.5). Paths in `tfc_refs` are relative to the TFC checkout
 (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
