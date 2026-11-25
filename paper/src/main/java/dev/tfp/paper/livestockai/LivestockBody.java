@@ -23,6 +23,16 @@ interface LivestockBody {
      */
     List<LivingEntity> nearby(Mob mob, double range, long now);
 
+    /**
+     * {@link #nearby} restricted to the entities {@code keep} accepts. {@code keep} must depend on the entity only (not on
+     * the asking animal): the server filters each shared section scan once and {@code filter} names the filter in that
+     * cache (PAR-FAUNA-33).
+     */
+    default List<LivingEntity> nearby(Mob mob, double range, long now, java.util.function.Predicate<LivingEntity> keep,
+            String filter) {
+        return nearby(mob, range, now).stream().filter(keep).toList();
+    }
+
     /** Line of sight from the animal to {@code e} (vanilla {@code Sensing.hasLineOfSight}). */
     boolean sees(Mob mob, LivingEntity e);
 

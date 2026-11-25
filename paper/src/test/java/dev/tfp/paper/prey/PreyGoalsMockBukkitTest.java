@@ -143,6 +143,8 @@ class PreyGoalsMockBukkitTest extends MockServerTest {
 
     @BeforeEach
     void setUp() {
+        dev.tfp.paper.prey.Ticks.forTest(() -> now); // the sensing and path-budget tick follows the test clock
+        dev.tfp.paper.prey.PathBudget.limitForTest(dev.tfp.paper.prey.PathBudget.PER_TICK); // a fresh tick budget per test
         world = server.addSimpleWorld("w");
         module = new PreyModule();
         body = new Body();

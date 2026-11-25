@@ -299,7 +299,7 @@ public final class PreyModule implements FeatureModule, Listener {
 
     /** {@code PreyAi.broadcastAvoidTarget}: each visible friend of the same type takes the nearer of its threat and the attacker. */
     void broadcast(PreyBrain hurt, LivingEntity attacker, long now) {
-        for (LivingEntity e : body.nearby(hurt.mob, PreyFleeGoal.SENSE_RANGE, now)) {
+        for (LivingEntity e : body.nearby(hurt.mob, PreyFleeGoal.SENSE_RANGE, Ticks.now())) {
             PreyBrain friend = brains.get(e.getUniqueId());
             if (friend == null || friend == hurt || !friend.species.equals(hurt.species) || !Bukkit.isOwnedByCurrentRegion(e)
                     || !body.sees(hurt.mob, e)) {

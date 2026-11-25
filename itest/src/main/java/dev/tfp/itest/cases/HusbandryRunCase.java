@@ -577,6 +577,13 @@ public final class HusbandryRunCase implements SelfTestCase {
         /** Chunks from the spawn chunk: away from every other case. */
         private static final int CHUNK_DX = -40;
         private static final int CHUNK_DZ = 40;
+        /** Random columns tried per animal for a dry surface. */
+        private static final int LAND_ATTEMPTS = 20;
+        /**
+         * Force-loaded chunks around the centre: the herd spawns in the middle 3x3 and walks (the calendar runs), so a
+         * margin of two chunks keeps strollers loaded for the window.
+         */
+        private static final int FORCE_RADIUS = 3;
 
         @Override
         public String name() {
@@ -607,8 +614,10 @@ public final class HusbandryRunCase implements SelfTestCase {
             Scheduler s = tfp.scheduler();
             World world = Bukkit.getWorlds().getFirst();
             Location spawn = world.getSpawnLocation();
-            int cx = (spawn.getBlockX() >> 4) + CHUNK_DX;
-            int cz = (spawn.getBlockZ() >> 4) + CHUNK_DZ;
+            // a land area (PAR-FAUNA-33: the first area was ocean on the self-test world, the herd only swam)
+            int[] area = landArea(s, world, spawn.getBlockX() >> 4, spawn.getBlockZ() >> 4);
+            int cx = area[0];
+            int cz = area[1];
             List<Carrier> mix = new ArrayList<>();
             for (String id : SPECIES) {
                 animals.table().find(id).ifPresent(mix::add);
@@ -616,8 +625,8 @@ public final class HusbandryRunCase implements SelfTestCase {
             if (mix.size() < 2) {
                 throw new Skip("fewer than two of " + SPECIES + " are in the carrier table");
             }
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dz = -1; dz <= 1; dz++) {
+            for (int dx = -FORCE_RADIUS; dx <= FORCE_RADIUS; dx++) {
+                for (int dz = -FORCE_RADIUS; dz <= FORCE_RADIUS; dz++) {
                     OnThread.await(world.getChunkAtAsync(cx + dx, cz + dz), STEP, "loading chunk");
                 }
             }
@@ -626,33 +635,62 @@ public final class HusbandryRunCase implements SelfTestCase {
                 return null;
             });
             List<Entity> herd = new ArrayList<>();
+            // why a herd animal left the world (reported in the failure): species, cause, position
+            Map<UUID, String> removals = new java.util.concurrent.ConcurrentHashMap<>();
+            Set<UUID> herdIds = java.util.concurrent.ConcurrentHashMap.newKeySet();
+            org.bukkit.event.Listener removalTap = new org.bukkit.event.Listener() {
+            };
+            Bukkit.getPluginManager().registerEvent(org.bukkit.event.entity.EntityRemoveEvent.class, removalTap,
+                    org.bukkit.event.EventPriority.MONITOR, (l, ev) -> {
+                        if (ev instanceof org.bukkit.event.entity.EntityRemoveEvent re
+                                && herdIds.contains(re.getEntity().getUniqueId())) {
+                            Location at = re.getEntity().getLocation();
+                            removals.put(re.getEntity().getUniqueId(), String.format(Locale.ROOT, "%s %s at %d,%d,%d%s",
+                                    re.getEntity().getType().getKey().getKey(), re.getCause(), at.getBlockX(), at.getBlockY(),
+                                    at.getBlockZ(), re.getEntity() instanceof LivingEntity l2 && l2.isDead()
+                                            ? " (dead: " + (l2.getLastDamageCause() == null ? "?"
+                                            : l2.getLastDamageCause().getCause()) + ")" : ""));
+                        }
+                    }, tfp);
             AtomicLong goalNanos = new AtomicLong();
             Map<String, java.util.concurrent.atomic.LongAdder> byClass = new java.util.concurrent.ConcurrentHashMap<>();
             ConcurrentLinkedQueue<long[]> samples = new ConcurrentLinkedQueue<>();
             ConcurrentLinkedQueue<Long> serverTicks = new ConcurrentLinkedQueue<>();
+            Slowest slowest = new Slowest();
             Scheduler.TaskHandle sampler = null;
+            // The calendar runs as with a player online (PAR-FAUNA-33): on an empty server TFC's time stop freezes it, and
+            // every calendar-timed goal (idle waits, flight, panic, cooldowns) would hold its first answer for the window.
+            var calendar = tfp.calendar();
+            boolean calendarWasForced = calendar != null && calendar.setRunWhenEmpty(true);
             try {
                 java.util.Random r = new java.util.Random(0x7f9L);
                 List<CompletableFuture<Entity>> pending = new ArrayList<>();
                 for (int i = 0; i < ANIMALS; i++) {
                     Carrier c = mix.get(i % mix.size());
-                    int x = ((cx - 1) << 4) + 2 + r.nextInt(44);
-                    int z = ((cz - 1) << 4) + 2 + r.nextInt(44);
-                    int ccx = x >> 4;
-                    int ccz = z >> 4;
-                    Location at = OnThread.region(s, world, ccx, ccz, STEP,
-                            () -> world.getHighestBlockAt(x, z).getLocation().add(0.5, 1, 0.5));
+                    Location at = null;
+                    for (int attempt = 0; attempt < LAND_ATTEMPTS && at == null; attempt++) {
+                        int x = ((cx - 1) << 4) + 2 + r.nextInt(44);
+                        int z = ((cz - 1) << 4) + 2 + r.nextInt(44);
+                        boolean last = attempt == LAND_ATTEMPTS - 1;
+                        at = OnThread.region(s, world, x >> 4, z >> 4, STEP, () -> {
+                            org.bukkit.block.Block top = world.getHighestBlockAt(x, z);
+                            return top.isLiquid() && !last ? null : top.getLocation().add(0.5, 1, 0.5);
+                        });
+                    }
                     pending.add(animals.spawn(at, c, AnimalSpawnRoll.AgeHint.RANDOM, null));
                 }
                 for (CompletableFuture<Entity> f : pending) {
-                    herd.add(OnThread.await(f, STEP, "spawning the herd"));
+                    Entity e = OnThread.await(f, STEP, "spawning the herd");
+                    herd.add(e);
+                    herdIds.add(e.getUniqueId());
                 }
                 // Re-install our goals at their priorities, each wrapped in the timer.
                 int wrapped = 0;
                 int lost = 0;
                 for (Entity e : herd) {
                     try {
-                        wrapped += OnThread.entity(s, e, STEP, () -> wrapGoals(animals, (Mob) e, goalNanos, byClass));
+                        wrapped += OnThread.entity(s, e, STEP,
+                                () -> wrapGoals(animals, (Mob) e, goalNanos, byClass, slowest));
                     } catch (Exception | AssertionError gone) {
                         lost++; // removed before its goals could be wrapped (an entity exception, say)
                     }
@@ -680,7 +718,9 @@ public final class HusbandryRunCase implements SelfTestCase {
                     long now = System.nanoTime();
                     long goals = goalNanos.getAndSet(0);
                     if (last[0] != 0L) {
-                        samples.add(new long[] {goals, now - last[0]});
+                        // goal ns, interval ns, the JVM's total GC ms at the end of this tick (reported, not asserted)
+                        samples.add(new long[] {goals, now - last[0], gcMillis()});
+                        slowest.tick.incrementAndGet();
                     }
                     last[0] = now;
                     if (++last[1] % 100 == 0) {
@@ -695,14 +735,39 @@ public final class HusbandryRunCase implements SelfTestCase {
                 });
                 goalNanos.set(0);
                 byClass.values().forEach(java.util.concurrent.atomic.LongAdder::reset);
+                slowest.reset();
+                dev.tfp.paper.prey.PathBudget.resetCounters();
+                long gc0 = gcMillis();
+                long gcCount0 = gcCount();
                 Thread.sleep(WINDOW.toMillis());
+                long gcWindow = gcMillis() - gc0;
+                long gcCountWindow = gcCount() - gcCount0;
+                long pathsStarted = dev.tfp.paper.prey.PathBudget.started();
+                long pathsDeferred = dev.tfp.paper.prey.PathBudget.deferred();
                 sampler.cancel();
                 sampler = null;
                 int alive = 0;
+                // what the herd is doing at the end (reported): animals in water, our running goals by key
+                Map<String, Integer> running = new TreeMap<>();
+                int inWater = 0;
                 for (Entity e : herd) {
                     try {
-                        if (OnThread.entity(s, e, STEP, e::isValid)) {
+                        String[] state = OnThread.entity(s, e, STEP, () -> {
+                            if (!e.isValid()) {
+                                return null;
+                            }
+                            StringBuilder goalsNow = new StringBuilder();
+                            for (Goal<Mob> g : Bukkit.getMobGoals().getRunningGoals((Mob) e)) {
+                                goalsNow.append(g.getKey().getNamespacedKey().getKey()).append(' ');
+                            }
+                            return new String[] {Boolean.toString(e.isInWater()), goalsNow.toString()};
+                        });
+                        if (state != null) {
                             alive++;
+                            inWater += Boolean.parseBoolean(state[0]) ? 1 : 0;
+                            for (String k : state[1].trim().split(" ")) {
+                                running.merge(k.isEmpty() ? "(none)" : k, 1, Integer::sum);
+                            }
                         }
                     } catch (Exception | AssertionError gone) {
                         // removed: not alive
@@ -723,20 +788,32 @@ public final class HusbandryRunCase implements SelfTestCase {
                         .sorted((a, b) -> Long.compare(b.getValue().sum(), a.getValue().sum())).limit(6)
                         .map(en -> String.format(Locale.ROOT, "%s %.3f", en.getKey(), en.getValue().sum() / 1e6 / ticks))
                         .collect(java.util.stream.Collectors.joining(", "));
+                String slow = slowest.calls().stream().map(c -> String.format(Locale.ROOT, "%s#%s %.3f (row %d%s)",
+                        c.goal(), c.method(), c.nanos() / 1e6, c.tick(), gcIn(rows, c.tick())))
+                        .collect(java.util.stream.Collectors.joining(", "));
+                String started = slowest.starts.entrySet().stream()
+                        .sorted((a, b) -> Long.compare(b.getValue().sum(), a.getValue().sum()))
+                        .map(en -> en.getKey() + " " + en.getValue().sum())
+                        .collect(java.util.stream.Collectors.joining(", "));
                 String detail = String.format(Locale.ROOT,
                         "%d animals (%d species, %d alive at end), %d goals timed, %d ticks over %d s; plugin slice/tick ms %s"
                                 + " (goals %s + worst check phase %.3f); check per animal mean %.1f us max %.1f us;"
-                                + " ticks > 1.5 ms: %d; region tick interval ms %s; server MSPT ms %s; goal ms/tick by class: %s",
+                                + " ticks > 1.5 ms: %d; region tick interval ms %s; server MSPT ms %s; goal ms/tick by class: %s;"
+                                + " slowest goal calls ms: %s; GC in the window: %d ms in %d collections (not asserted);"
+                                + " path starts %d, deferred %d (PathBudget %d per tick, sensing on %s); goal starts: %s;"
+                                + " at the end: %d in water, running goals %s; area centre chunk %d,%d, calendar running %s",
                         herd.size(), mix.size(), alive, wrapped, rows.size(), WINDOW.toSeconds(), stats(slice),
                         stats(goalsMs), worstPhase / 1e6, checkSum / 1e3 / herd.size(), checkMax / 1e3, over15,
-                        stats(interval), serverMspt, top);
+                        stats(interval), serverMspt, top, slow, gcWindow, gcCountWindow, pathsStarted, pathsDeferred,
+                        dev.tfp.paper.prey.PathBudget.PER_TICK, dev.tfp.paper.prey.Ticks.source(), started,
+                        inWater, running, cx, cz, tfp.clock().get().running());
                 tfp.getLogger().info("husbandry.load_200: " + detail);
                 double max = slice[slice.length - 1];
                 double p99 = pct(slice, 0.99);
                 if (alive < herd.size()) {
                     throw new AssertionError((herd.size() - alive) + " of " + herd.size() + " animals were removed during the"
-                            + " run (" + lost + " before the goals were wrapped; see the server log for entity exceptions): "
-                            + detail);
+                            + " run (" + lost + " before the goals were wrapped; removals: " + removals.values()
+                            + "; see the server log for entity exceptions): " + detail);
                 }
                 if (max > TICK_BUDGET_MS || p99 > P99_BUDGET_MS) {
                     throw new AssertionError("plugin slice above budget (max " + max + " ms vs PERF-TICK-01 "
@@ -744,8 +821,12 @@ public final class HusbandryRunCase implements SelfTestCase {
                 }
                 return detail;
             } finally {
+                org.bukkit.event.HandlerList.unregisterAll(removalTap);
                 if (sampler != null) {
                     sampler.cancel();
+                }
+                if (calendar != null) {
+                    calendar.setRunWhenEmpty(calendarWasForced);
                 }
                 for (Entity e : herd) {
                     try {
@@ -774,7 +855,7 @@ public final class HusbandryRunCase implements SelfTestCase {
          * wrapped in a timer adding to {@code sink}. Owning thread. Returns the number of goals wrapped.
          */
         static int wrapGoals(AnimalService animals, Mob mob, AtomicLong sink,
-                Map<String, java.util.concurrent.atomic.LongAdder> byClass) {
+                Map<String, java.util.concurrent.atomic.LongAdder> byClass, Slowest slowest) {
             Optional<AnimalRecord> record = animals.record(mob);
             if (record.isEmpty()) {
                 return 0;
@@ -790,7 +871,7 @@ public final class HusbandryRunCase implements SelfTestCase {
                 for (SpeciesBehaviour.GoalSpec spec : b.goals(mob, record.get())) {
                     String key = spec.goal().getClass().getName().replace("dev.tfp.paper.", "");
                     goals.addGoal(mob, spec.priority(), new Timed(spec.goal(), sink,
-                            byClass.computeIfAbsent(key, k -> new java.util.concurrent.atomic.LongAdder())));
+                            byClass.computeIfAbsent(key, k -> new java.util.concurrent.atomic.LongAdder()), slowest, key));
                     n++;
                 }
             }
@@ -817,9 +898,68 @@ public final class HusbandryRunCase implements SelfTestCase {
             return worst;
         }
 
+        /**
+         * The centre chunk of the first 3x3 area, at least 40 chunks from spawn, whose surface is mostly dry: 9 sampled
+         * columns, at most one liquid. Falls back to the first candidate.
+         */
+        static int[] landArea(Scheduler s, World world, int spawnX, int spawnZ) throws Exception {
+            int[][] candidates = {{CHUNK_DX, CHUNK_DZ}, {-CHUNK_DX, CHUNK_DZ}, {CHUNK_DX, -CHUNK_DZ}, {-CHUNK_DX, -CHUNK_DZ},
+                {0, 2 * CHUNK_DZ}, {2 * CHUNK_DX, 0}, {0, -2 * CHUNK_DZ}, {-2 * CHUNK_DX, 0}, {2 * CHUNK_DX, 2 * CHUNK_DZ},
+                {-2 * CHUNK_DX, -2 * CHUNK_DZ}};
+            for (int[] c : candidates) {
+                int cx = spawnX + c[0];
+                int cz = spawnZ + c[1];
+                int wet = 0;
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        int x = ((cx + dx) << 4) + 8;
+                        int z = ((cz + dz) << 4) + 8;
+                        OnThread.await(world.getChunkAtAsync(x >> 4, z >> 4), STEP, "loading chunk");
+                        if (OnThread.region(s, world, x >> 4, z >> 4, STEP, () -> world.getHighestBlockAt(x, z).isLiquid())) {
+                            wet++;
+                        }
+                    }
+                }
+                if (wet <= 1) {
+                    return new int[] {cx, cz};
+                }
+            }
+            return new int[] {spawnX + CHUNK_DX, spawnZ + CHUNK_DZ};
+        }
+
+        /** The JVM's total collection time over all collectors, in ms. */
+        static long gcMillis() {
+            long t = 0;
+            for (var gc : java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()) {
+                t += Math.max(0, gc.getCollectionTime());
+            }
+            return t;
+        }
+
+        static long gcCount() {
+            long n = 0;
+            for (var gc : java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()) {
+                n += Math.max(0, gc.getCollectionCount());
+            }
+            return n;
+        }
+
+        /**
+         * ", GC +n ms" when the JVM's GC total moved during sampler row {@code row} (the region tick a slow call fell in:
+         * the call ran before that row was taken), else "".
+         */
+        static String gcIn(List<long[]> rows, long row) {
+            int i = (int) row;
+            if (i <= 0 || i >= rows.size()) {
+                return "";
+            }
+            long d = rows.get(i)[2] - rows.get(i - 1)[2];
+            return d > 0 ? ", GC +" + d + " ms" : "";
+        }
+
         private static void forceArea(World world, int cx, int cz, boolean on) {
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dz = -1; dz <= 1; dz++) {
+            for (int dx = -FORCE_RADIUS; dx <= FORCE_RADIUS; dx++) {
+                for (int dz = -FORCE_RADIUS; dz <= FORCE_RADIUS; dz++) {
                     world.setChunkForceLoaded(cx + dx, cz + dz, on);
                 }
             }
@@ -840,22 +980,77 @@ public final class HusbandryRunCase implements SelfTestCase {
         }
     }
 
+    /**
+     * The slowest timed goal calls of a window (PAR-FAUNA-33 diagnostic): the {@link #KEEP} longest single calls with their
+     * goal class and method and the sampler tick they fell in. Thread-safe; a call faster than the shortest kept one costs
+     * one volatile read.
+     */
+    static final class Slowest {
+        static final int KEEP = 5;
+
+        record Call(long nanos, String goal, String method, long tick) {
+        }
+
+        private final List<Call> calls = new ArrayList<>();
+        private volatile long floor;
+        /** The sampler's row counter, read when a slow call is kept. */
+        final AtomicLong tick = new AtomicLong();
+        /** Goal starts per goal class in the window (which goals the herd actually runs). */
+        final Map<String, java.util.concurrent.atomic.LongAdder> starts = new java.util.concurrent.ConcurrentHashMap<>();
+
+        void offer(long nanos, String goal, String method) {
+            if ("start".equals(method)) {
+                starts.computeIfAbsent(goal, g -> new java.util.concurrent.atomic.LongAdder()).increment();
+            }
+            if (nanos <= floor) {
+                return;
+            }
+            synchronized (calls) {
+                calls.add(new Call(nanos, goal, method, tick.get()));
+                calls.sort((a, b) -> Long.compare(b.nanos(), a.nanos()));
+                while (calls.size() > KEEP) {
+                    calls.removeLast();
+                }
+                floor = calls.size() < KEEP ? 0 : calls.getLast().nanos();
+            }
+        }
+
+        void reset() {
+            synchronized (calls) {
+                calls.clear();
+                floor = 0;
+            }
+            starts.clear();
+        }
+
+        List<Call> calls() {
+            synchronized (calls) {
+                return List.copyOf(calls);
+            }
+        }
+    }
+
     /** A goal that adds the time spent in each of its calls to a shared counter. */
     static final class Timed implements Goal<Mob> {
         private final Goal<Mob> inner;
         private final AtomicLong sink;
         private final java.util.concurrent.atomic.LongAdder total;
+        private final Slowest slowest;
+        private final String name;
 
-        Timed(Goal<Mob> inner, AtomicLong sink, java.util.concurrent.atomic.LongAdder total) {
+        Timed(Goal<Mob> inner, AtomicLong sink, java.util.concurrent.atomic.LongAdder total, Slowest slowest, String name) {
             this.inner = inner;
             this.sink = sink;
             this.total = total;
+            this.slowest = slowest;
+            this.name = name;
         }
 
-        private void add(long t) {
+        private void add(long t, String method) {
             long d = System.nanoTime() - t;
             sink.addAndGet(d);
             total.add(d);
+            slowest.offer(d, name, method);
         }
 
         @Override
@@ -864,7 +1059,7 @@ public final class HusbandryRunCase implements SelfTestCase {
             try {
                 return inner.shouldActivate();
             } finally {
-                add(t);
+                add(t, "shouldActivate");
             }
         }
 
@@ -874,7 +1069,7 @@ public final class HusbandryRunCase implements SelfTestCase {
             try {
                 return inner.shouldStayActive();
             } finally {
-                add(t);
+                add(t, "shouldStayActive");
             }
         }
 
@@ -884,7 +1079,7 @@ public final class HusbandryRunCase implements SelfTestCase {
             try {
                 inner.start();
             } finally {
-                add(t);
+                add(t, "start");
             }
         }
 
@@ -894,7 +1089,7 @@ public final class HusbandryRunCase implements SelfTestCase {
             try {
                 inner.stop();
             } finally {
-                add(t);
+                add(t, "stop");
             }
         }
 
@@ -904,7 +1099,7 @@ public final class HusbandryRunCase implements SelfTestCase {
             try {
                 inner.tick();
             } finally {
-                add(t);
+                add(t, "tick");
             }
         }
 

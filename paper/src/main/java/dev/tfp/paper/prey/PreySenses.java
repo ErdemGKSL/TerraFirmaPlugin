@@ -93,9 +93,14 @@ final class PreySenses {
     }
 
     static boolean baby(Entity e, long now) {
-        Optional<AnimalRecord> r = record(e);
-        if (r.isPresent() && r.get().wildBabyAt(now)) {
-            return true;
+        if (!SpeciesCache.knownGrown(e, now, false)) {
+            Optional<AnimalRecord> r = record(e);
+            if (r.isPresent() && r.get().wildBabyAt(now)) {
+                return true;
+            }
+            if (r.isPresent()) {
+                SpeciesCache.grown(e, now, false); // the flag only clears (PAR-FAUNA-33)
+            }
         }
         return e instanceof Ageable a && !a.isAdult();
     }

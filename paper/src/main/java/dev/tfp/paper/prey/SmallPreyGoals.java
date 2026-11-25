@@ -77,9 +77,10 @@ final class SmallPreyGoals {
             List<SmallPrey.Threat> facts = new ArrayList<>();
             double y = mob.getLocation().getY();
             // the predator filter first, the line of sight only for predators (TargetingConditions tests it last)
-            for (LivingEntity e : body.nearby(mob, SmallPrey.AVOID_RANGE, clock.getAsLong())) {
-                if (Math.abs(e.getLocation().getY() - y) <= SmallPrey.AVOID_VERTICAL && senses.landPredator(e)
-                        && body.sees(mob, e)) {
+            long now = clock.getAsLong();
+            // the land-predator filter on the shared section scan (once per tick), then range, height and sight per animal
+            for (LivingEntity e : body.nearby(mob, SmallPrey.AVOID_RANGE, Ticks.now(), senses::landPredator, "land_predator")) {
+                if (Math.abs(e.getLocation().getY() - y) <= SmallPrey.AVOID_VERTICAL && body.sees(mob, e)) {
                     near.add(e);
                     facts.add(senses.threat(e));
                 }
@@ -103,6 +104,7 @@ final class SmallPreyGoals {
                     continue;
                 }
                 speed = speeds.at(threatSq);
+                PathBudget.urgent();
                 if (body.moveTo(mob, to, speed)) {
                     threat = from;
                     target = to;

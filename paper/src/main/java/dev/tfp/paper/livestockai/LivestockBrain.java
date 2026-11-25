@@ -49,6 +49,8 @@ final class LivestockBrain {
     /** The kind bits of a sighted entity ({@code SpeciesTags#kind}); set by the module. */
     java.util.function.ToIntFunction<LivingEntity> kinds = e -> 0;
     long seenAt = Long.MIN_VALUE;
+    /** The animal's sex from its record, read once (a record's sex never changes; PAR-FAUNA-33). */
+    private Boolean male;
 
     LivestockBrain(Mob mob, String species, LivestockRoster.Profile profile, Predicate<ItemStack> food) {
         this.mob = mob;
@@ -67,6 +69,20 @@ final class LivestockBrain {
 
     boolean panicking(long now) {
         return now < panicUntil;
+    }
+
+    /** Whether the animal's record says male (false without a record); a record is read only until one is found. */
+    boolean male() {
+        Boolean m = male;
+        if (m == null) {
+            java.util.Optional<dev.tfp.core.animal.AnimalRecord> r = LivestockSenses.record(mob);
+            if (r.isEmpty()) {
+                return false;
+            }
+            m = r.get().state().male();
+            male = m;
+        }
+        return m;
     }
 
     boolean breeding() {

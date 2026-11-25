@@ -20,7 +20,9 @@ import dev.tfp.core.prey.PreyFlee;
 import dev.tfp.core.prey.PreyIdle;
 import dev.tfp.core.prey.Sighting;
 import dev.tfp.paper.animal.AnimalGoal;
+import dev.tfp.paper.prey.PathBudget;
 import dev.tfp.paper.prey.Reading;
+import dev.tfp.paper.prey.Ticks;
 import dev.tfp.paper.prey.SpeciesTags;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,9 +71,11 @@ final class LivestockGoals {
     /**
      * The sensor reading ({@code NEAREST_VISIBLE_LIVING_ENTITIES}, line of sight tested lazily), re-read at most every
      * {@link #SENSE_TICKS}. Shared by the brain's goals. The first reading is dated back by up to {@link #SENSE_TICKS} - 1
-     * ticks by entity id (vanilla's sensor starts at a random tick), so a herd's readings spread over the period.
+     * ticks by entity id (vanilla's sensor starts at a random tick), so a herd's readings spread over the period. The
+     * period counts server ticks ({@link Ticks}; PAR-FAUNA-33), as vanilla's sensors do; {@code calendarNow} is unused.
      */
-    static Reading seen(LivestockBrain brain, LivestockBody body, long now) {
+    static Reading seen(LivestockBrain brain, LivestockBody body, long calendarNow) {
+        long now = Ticks.now();
         if (brain.seenAt == Long.MIN_VALUE || now - brain.seenAt >= SENSE_TICKS || now < brain.seenAt) {
             Mob mob = brain.mob;
             brain.seen = new Reading(body.nearby(mob, SENSE_RANGE, now), e -> body.sees(mob, e), brain.kinds);
@@ -141,6 +145,7 @@ final class LivestockGoals {
                 PreyFlee.Offset o = PreyIdle.randomOffset(PreyIdle.PANIC_HORIZONTAL, PreyIdle.PANIC_VERTICAL, random);
                 Location to = body.standable(mob, o.dx(), o.dy(), o.dz());
                 if (to != null) {
+                    PathBudget.urgent();
                     body.moveTo(mob, to, brain.profile.panicSpeed());
                 }
             }
@@ -186,6 +191,11 @@ final class LivestockGoals {
                 return !PreyFlee.wantsToStopFleeing(brain.flee, now, threatDistanceSq());
             }
             brain.setThreat(null, FleeState.IDLE);
+            // nothing the avoidance could pick in range (no player, predator or rammer): no reading needed (PAR-FAUNA-33)
+            if (body.nearby(mob, SENSE_RANGE, Ticks.now(), e -> (senses.kind(e) & SpeciesTags.MAY_AVOID) != 0,
+                    "livestock_may_avoid").isEmpty()) {
+                return false;
+            }
             Reading seen = seen(brain, body, now);
             // findClosest(isAvoided): the kind filter, then the line of sight, then the sighting, for candidates only
             List<Sighting> sightings = null;
@@ -199,7 +209,7 @@ final class LivestockGoals {
                     sightings = new ArrayList<>();
                     who = new ArrayList<>();
                 }
-                sightings.add(senses.sighting(e, now));
+                sightings.add(senses.sighting(e, Ticks.now()));
                 who.add(e);
             }
             if (sightings == null) {
@@ -250,8 +260,11 @@ final class LivestockGoals {
                     continue;
                 }
                 Location to = body.standable(mob, off.get().dx(), off.get().dy(), off.get().dz());
-                if (to != null && body.moveTo(mob, to, brain.profile.away())) {
-                    return;
+                if (to != null) {
+                    PathBudget.urgent();
+                    if (body.moveTo(mob, to, brain.profile.away())) {
+                        return;
+                    }
                 }
             }
         }
@@ -281,6 +294,7 @@ final class LivestockGoals {
         private final Function<LivingEntity, LivestockBrain> brains;
         /** The pairing ({@code getBreedOffspring}): male, female. */
         private final BiConsumer<LivingEntity, LivingEntity> pair;
+        private boolean retry;
 
         Breed(LivestockBrain brain, LivestockBody body, LongSupplier clock, RandomGenerator random,
                 BiPredicate<LivingEntity, LivingEntity> canMate, Function<LivingEntity, LivestockBrain> brains,
@@ -309,8 +323,7 @@ final class LivestockGoals {
                 }
                 brain.breedPartner = null;
             }
-            boolean male = LivestockSenses.record(mob).map(r -> r.state().male()).orElse(false);
-            if (!BreedApproach.attempts(now, brain.nextBreedAttempt, male)) {
+            if (!BreedApproach.attempts(now, brain.nextBreedAttempt, brain.male())) {
                 return false;
             }
             brain.nextBreedAttempt = now + BreedApproach.ATTEMPT_INTERVAL;
@@ -360,12 +373,11 @@ final class LivestockGoals {
                 return;
             }
             body.lookAt(mob, p);
-            if (repath(mob)) {
+            if (repath(mob) || retry) {
                 walk();
             }
             long now = clock.getAsLong();
-            if (BreedApproach.pairs(LivestockSenses.distanceSq(p, mob), now, brain.pairAt)
-                    && LivestockSenses.record(mob).map(r -> r.state().male()).orElse(false)) {
+            if (BreedApproach.pairs(LivestockSenses.distanceSq(p, mob), now, brain.pairAt) && brain.male()) {
                 pair.accept(mob, p);
                 clear(p);
             }
@@ -373,8 +385,15 @@ final class LivestockGoals {
 
         private void walk() {
             LivingEntity p = brain.breedPartner;
+            retry = false;
             if (LivestockBrain.alive(p) && LivestockSenses.distanceSq(p, mob) > BreedApproach.WALK_CLOSE * BreedApproach.WALK_CLOSE) {
-                body.moveTo(mob, p, brain.profile.breed());
+                // a first path deferred by the tick's budget is retried on the next tick; a refresh waits for the next re-path
+                boolean has = body.hasPath(mob);
+                if (PathBudget.tryPath(has)) {
+                    body.moveTo(mob, p, brain.profile.breed());
+                } else {
+                    retry = !has;
+                }
             }
         }
 
@@ -407,6 +426,7 @@ final class LivestockGoals {
         private final LongSupplier clock;
         private final float adultSpeed;
         private final float babySpeed;
+        private boolean retry;
 
         Tempt(LivestockBrain brain, LivestockBody body, LongSupplier clock, float adultSpeed, float babySpeed) {
             super(brain.mob, "livestock_tempt", PERIOD, GoalType.MOVE, GoalType.LOOK);
@@ -457,11 +477,19 @@ final class LivestockGoals {
                 return;
             }
             body.lookAt(mob, p);
-            if (!repath(mob)) {
+            if (!repath(mob) && !retry) {
                 return;
             }
+            retry = false;
             if (Temptation.walks(LivestockSenses.distanceSq(p, mob))) {
-                body.moveTo(mob, p, LivestockSenses.baby(mob, clock.getAsLong()) ? babySpeed : adultSpeed);
+                long now = clock.getAsLong();
+                // a first path deferred by the tick's budget is retried on the next tick; a refresh waits for the next re-path
+                boolean has = body.hasPath(mob);
+                if (PathBudget.tryPath(has)) {
+                    body.moveTo(mob, p, LivestockSenses.baby(mob, now) ? babySpeed : adultSpeed);
+                } else {
+                    retry = !has;
+                }
             } else {
                 body.stop(mob);
             }
@@ -470,6 +498,7 @@ final class LivestockGoals {
         @Override
         protected void end() {
             body.stop(mob);
+            retry = false;
             brain.tempting = null;
             brain.temptCooldownUntil = Temptation.cooldownUntil(clock.getAsLong());
         }
@@ -481,6 +510,7 @@ final class LivestockGoals {
         private final LivestockBody body;
         private final LongSupplier clock;
         private LivingEntity adult;
+        private boolean retry;
 
         FollowAdult(LivestockBrain brain, LivestockBody body, LongSupplier clock) {
             super(brain.mob, "livestock_follow_adult", 10, GoalType.MOVE);
@@ -519,8 +549,15 @@ final class LivestockGoals {
 
         @Override
         protected void step() {
-            if (repath(mob) && LivestockBrain.alive(adult)) {
-                body.moveTo(mob, adult, brain.profile.followAdult());
+            if ((repath(mob) || retry) && LivestockBrain.alive(adult)) {
+                // a first path deferred by the tick's budget is retried on the next tick; a refresh waits for the next re-path
+                boolean has = body.hasPath(mob);
+                retry = false;
+                if (PathBudget.tryPath(has)) {
+                    body.moveTo(mob, adult, brain.profile.followAdult());
+                } else {
+                    retry = !has;
+                }
             }
         }
 
@@ -528,6 +565,7 @@ final class LivestockGoals {
         protected void end() {
             body.stop(mob);
             adult = null;
+            retry = false;
         }
 
         LivingEntity adult() {
@@ -561,19 +599,24 @@ final class LivestockGoals {
             if (body.hasPath(mob)) {
                 return false;
             }
+            long now = clock.getAsLong();
+            if (!PathBudget.mayStart()) {
+                return false; // this tick's path starts are used up: ask again next period, before any draw
+            }
             current = PreyIdle.movement(random);
             switch (current) {
                 case STROLL -> {
                     PreyFlee.Offset o = PreyIdle.randomOffset(PreyIdle.STROLL_HORIZONTAL, PreyIdle.STROLL_VERTICAL, random);
                     Location to = body.standable(mob, o.dx(), o.dy(), o.dz());
-                    return to != null && body.moveTo(mob, to, brain.profile.stroll());
+                    return to != null && PathBudget.tryStart() && body.moveTo(mob, to, brain.profile.stroll());
                 }
                 case WALK_TO_LOOK_TARGET -> {
                     LivingEntity t = brain.lookTarget;
-                    return LivestockBrain.alive(t) && farFromLook(t) && body.moveTo(mob, t, brain.profile.stroll());
+                    return LivestockBrain.alive(t) && farFromLook(t) && PathBudget.tryStart()
+                            && body.moveTo(mob, t, brain.profile.stroll());
                 }
                 default -> {
-                    waitUntil = clock.getAsLong() + PreyIdle.duration(PreyIdle.WAIT_MIN, PreyIdle.WAIT_MAX, random);
+                    waitUntil = now + PreyIdle.duration(PreyIdle.WAIT_MIN, PreyIdle.WAIT_MAX, random);
                     return true;
                 }
             }

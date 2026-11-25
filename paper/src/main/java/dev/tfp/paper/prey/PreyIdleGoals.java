@@ -83,6 +83,7 @@ final class PreyIdleGoals {
                 PreyFlee.Offset o = PreyIdle.randomOffset(PreyIdle.PANIC_HORIZONTAL, PreyIdle.PANIC_VERTICAL, random);
                 Location to = body.standable(mob, o.dx(), o.dy(), o.dz());
                 if (to != null) {
+                    PathBudget.urgent();
                     body.moveTo(mob, to, PreyIdle.PANIC_SPEED);
                 }
             }
@@ -164,6 +165,7 @@ final class PreyIdleGoals {
         private final PreyBody body;
         private final LongSupplier clock;
         private LivingEntity adult;
+        private boolean retry;
 
         FollowAdult(PreyBrain brain, PreyBody body, LongSupplier clock) {
             super(brain.mob, "prey_follow_adult", 10, GoalType.MOVE);
@@ -203,8 +205,15 @@ final class PreyIdleGoals {
 
         @Override
         protected void step() {
-            if ((mob.getTicksLived() + mob.getEntityId()) % 10 == 0 && PreyBrain.alive(adult)) {
-                body.moveTo(mob, adult, PreyIdle.FOLLOW_SPEED);
+            if (((mob.getTicksLived() + mob.getEntityId()) % 10 == 0 || retry) && PreyBrain.alive(adult)) {
+                // a first path deferred by the tick's budget is retried on the next tick; a refresh waits for the next re-path
+                boolean has = body.hasPath(mob);
+                retry = false;
+                if (PathBudget.tryPath(has)) {
+                    body.moveTo(mob, adult, PreyIdle.FOLLOW_SPEED);
+                } else {
+                    retry = !has;
+                }
             }
         }
 
@@ -212,6 +221,7 @@ final class PreyIdleGoals {
         protected void end() {
             body.stop(mob);
             adult = null;
+            retry = false;
         }
     }
 
@@ -241,19 +251,24 @@ final class PreyIdleGoals {
             if (body.hasPath(mob)) {
                 return false;
             }
+            long now = clock.getAsLong();
+            if (!PathBudget.mayStart()) {
+                return false; // this tick's path starts are used up: ask again next period, before any draw
+            }
             current = PreyIdle.movement(random);
             switch (current) {
                 case STROLL -> {
                     PreyFlee.Offset o = PreyIdle.randomOffset(PreyIdle.STROLL_HORIZONTAL, PreyIdle.STROLL_VERTICAL, random);
                     Location to = body.standable(mob, o.dx(), o.dy(), o.dz());
-                    return to != null && body.moveTo(mob, to, PreyIdle.STROLL_SPEED);
+                    return to != null && PathBudget.tryStart() && body.moveTo(mob, to, PreyIdle.STROLL_SPEED);
                 }
                 case WALK_TO_LOOK_TARGET -> {
                     LivingEntity t = brain.lookTarget;
-                    return PreyBrain.alive(t) && farFromLook(t) && body.moveTo(mob, t, PreyIdle.STROLL_SPEED);
+                    return PreyBrain.alive(t) && farFromLook(t) && PathBudget.tryStart()
+                            && body.moveTo(mob, t, PreyIdle.STROLL_SPEED);
                 }
                 default -> {
-                    waitUntil = clock.getAsLong() + PreyIdle.duration(PreyIdle.WAIT_MIN, PreyIdle.WAIT_MAX, random);
+                    waitUntil = now +PreyIdle.duration(PreyIdle.WAIT_MIN, PreyIdle.WAIT_MAX, random);
                     return true;
                 }
             }

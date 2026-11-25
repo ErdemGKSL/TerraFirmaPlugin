@@ -60,9 +60,11 @@ final class PreyFleeGoal extends AnimalGoal {
     /**
      * The sensor reading, re-read at most every {@link #SENSE_TICKS}. Shared by the brain's goals. The first reading is
      * dated back by up to {@link #SENSE_TICKS} - 1 ticks by entity id, as vanilla's sensor starts at a random tick, so the
-     * herd's readings spread over the period instead of landing in the same tick.
+     * herd's readings spread over the period instead of landing in the same tick. The period counts server ticks
+     * ({@link Ticks}; PAR-FAUNA-33), as vanilla's sensors do; {@code calendarNow} is unused.
      */
-    static Reading seen(PreyBrain brain, PreyBody body, long now) {
+    static Reading seen(PreyBrain brain, PreyBody body, long calendarNow) {
+        long now = Ticks.now();
         if (brain.seenAt == Long.MIN_VALUE || now - brain.seenAt >= SENSE_TICKS || now < brain.seenAt) {
             Mob mob = brain.mob;
             brain.seen = new Reading(body.nearby(mob, SENSE_RANGE, now), e -> body.sees(mob, e), brain.kinds);
@@ -96,7 +98,7 @@ final class PreyFleeGoal extends AnimalGoal {
                 sightings = new ArrayList<>();
                 index = new int[seen.size()];
             }
-            sightings.add(senses.sighting(e, now));
+            sightings.add(senses.sighting(e, Ticks.now()));
             index[n++] = i;
         }
         if (sightings == null) {
@@ -125,13 +127,18 @@ final class PreyFleeGoal extends AnimalGoal {
             return !PreyFlee.wantsToStopFleeing(brain.flee, now, threatDistanceSq());
         }
         brain.setThreat(null, dev.tfp.core.prey.FleeState.IDLE);
+        // nothing the avoidance could pick in range (no player, predator or rammer): no reading needed (PAR-FAUNA-33)
+        if (body.nearby(mob, SENSE_RANGE, Ticks.now(), e -> (senses.kind(e) & SpeciesTags.MAY_AVOID) != 0,
+                "prey_may_avoid").isEmpty()) {
+            return false;
+        }
         Reading seen = seen(brain, body, now);
         int i = threat(seen, mob, senses, brain.avoidance, now);
         if (i < 0) {
             return false;
         }
         LivingEntity threat = seen.get(i);
-        brain.setThreat(threat, PreyFlee.sighted(senses.sighting(threat, now).type()));
+        brain.setThreat(threat, PreyFlee.sighted(senses.sighting(threat, Ticks.now()).type()));
         return true;
     }
 
@@ -168,8 +175,11 @@ final class PreyFleeGoal extends AnimalGoal {
                 continue;
             }
             Location to = body.standable(mob, off.get().dx(), off.get().dy(), off.get().dz());
-            if (to != null && body.moveTo(mob, to, brain.fleeSpeed)) {
-                return;
+            if (to != null) {
+                PathBudget.urgent();
+                if (body.moveTo(mob, to, brain.fleeSpeed)) {
+                    return;
+                }
             }
         }
     }

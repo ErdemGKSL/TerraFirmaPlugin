@@ -28,6 +28,12 @@ final class PaperPreyBody implements PreyBody {
     }
 
     @Override
+    public List<LivingEntity> nearby(Mob mob, double range, long now, java.util.function.Predicate<LivingEntity> keep,
+            String filter) {
+        return NearbyScan.around(mob, range, now, keep, filter);
+    }
+
+    @Override
     public boolean sees(Mob mob, LivingEntity e) {
         return mob.hasLineOfSight(e);
     }

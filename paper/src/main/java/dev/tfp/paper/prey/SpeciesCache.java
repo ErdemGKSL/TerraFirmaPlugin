@@ -24,6 +24,10 @@ import org.bukkit.persistence.PersistentDataContainer;
 public final class SpeciesCache {
     private static final Map<UUID, String> OURS = new ConcurrentHashMap<>();
     private static final Map<EntityType, String> VANILLA = new ConcurrentHashMap<>();
+    /** The tick from which a livestock record was seen grown ({@code AnimalCheck.ageAt} not CHILD; PAR-FAUNA-33). */
+    private static final Map<UUID, Long> LIVESTOCK_GROWN = new ConcurrentHashMap<>();
+    /** The tick from which a record was seen not a wild baby ({@code AnimalRecord.wildBabyAt} false; PAR-FAUNA-33). */
+    private static final Map<UUID, Long> WILD_GROWN = new ConcurrentHashMap<>();
 
     private SpeciesCache() {
     }
@@ -52,7 +56,26 @@ public final class SpeciesCache {
         return s != null ? s : VANILLA.computeIfAbsent(e.getType(), t -> t.getKey().toString());
     }
 
+    /**
+     * Whether {@code e}'s record is known to be past childhood at {@code now}: a record's age only grows (its birth and
+     * grow ticks never change), so once it reads grown at tick t it is grown at every later tick. Lets the follow-adult
+     * goals skip the record read for adults (PAR-FAUNA-33); children are read every time.
+     *
+     * @param livestock {@code AnimalCheck.ageAt != CHILD} if true, else {@code !AnimalRecord.wildBabyAt}
+     */
+    public static boolean knownGrown(Entity e, long now, boolean livestock) {
+        Long t = (livestock ? LIVESTOCK_GROWN : WILD_GROWN).get(e.getUniqueId());
+        return t != null && now >= t;
+    }
+
+    /** Remembers that {@code e}'s record read grown at {@code now} ({@link #knownGrown}). */
+    public static void grown(Entity e, long now, boolean livestock) {
+        (livestock ? LIVESTOCK_GROWN : WILD_GROWN).merge(e.getUniqueId(), now, Math::min);
+    }
+
     public static void forget(UUID id) {
         OURS.remove(id);
+        LIVESTOCK_GROWN.remove(id);
+        WILD_GROWN.remove(id);
     }
 }

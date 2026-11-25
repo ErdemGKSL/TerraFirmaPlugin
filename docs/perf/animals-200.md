@@ -10,6 +10,11 @@ checked on the 99th percentile).
 because of single-call goal spikes in the AI packages (pathfinding inside `shouldActivate`, up to 13 ms in one call), not
 GC. Numbers in "After PAR-FAUNA-28" below; the goal spikes are tracked in PAR-FAUNA-33.
 
+**Update (2026-11-25, PAR-FAUNA-33): the case now runs the calendar and puts the herd on land; before, the calendar
+was frozen (no player online) and the Paper area was ocean, so the earlier numbers measured a herd that did not move.
+With a living herd: goals mean 0.70 / 0.56 ms (Paper / Folia), p99 1.99 / 1.52, max 3.66 / 3.46; slice mean 2.01 /
+2.15, p99 3.30 / 3.11, max 4.97 / 5.05; still over budget. Numbers and causes in "After PAR-FAUNA-33".**
+
 **Update (2026-11-25, PAR-FAUNA-26): goals 13.2 -> 0.65 ms/tick (Paper) and 13.1 -> 0.42 (Folia), no Folia crash; still
 over budget** because the staggered check phase (about 1.2 to 1.4 ms on every tick, outside the AI code) and single-tick
 spikes remain. Numbers in "After PAR-FAUNA-26" below; the rest is tracked in PAR-FAUNA-28.
@@ -162,6 +167,82 @@ call `moveTo`, which computes the vanilla path in the same call) or scan (`Avoid
 patch put the check body at about 7 µs for the record read and 1 to 15 µs per hook (cold caches; the warm cost is lower),
 with single outliers of 0.4 to 38 ms in one call of a hook that does nothing but compare two fields: host pauses, which
 the worst-of-three sample adds to the phase.
+
+## After PAR-FAUNA-33
+
+**Verdict (2026-11-25): still over budget on Paper and Folia, and the earlier numbers were not measuring a living herd.**
+
+What the committed diagnostic (`HusbandryRunCase.Load`: the five slowest timed calls of the window with goal class,
+method, sampler row and whether the JVM's GC total moved in that row; GC time and count of the window; path starts and
+deferrals; goal starts per class; at the end the animals in water and the running goals) showed on the first run:
+
+- The self-test server has no player, so TFC's time stop arrests the calendar: the player ticks stood still for the whole
+  window. Every goal timed on them held its first answer: idle waits never ended, so no idle stroll and no path started
+  (0 path starts in the window), and the sensor readings, the shared section scans and the sightings, stamped with the same
+  frozen tick, were never refreshed. The calendar also advances in 20-tick steps when it runs, so it is no per-tick stamp.
+- On the Paper world the old area (40 chunks west and south of spawn) was ocean: 183 of 200 animals were in water at the
+  end, and only `Swim` goals ever started.
+
+So the PAR-FAUNA-26 / PAR-FAUNA-28 numbers above measured a frozen herd. The case now (same slice, same budgets, same
+60 s window):
+
+- forces the calendar to run as with a player online (`CalendarService.setRunWhenEmpty`, restored after), so the goals
+  live;
+- takes the first 3x3 area at least 40 chunks from spawn whose surface is mostly dry (9 sampled columns, at most one
+  liquid) and retries up to 20 columns per animal for a dry spawn; force-loads 7x7 chunks around it so strollers stay
+  loaded;
+- records why a herd animal was removed (`EntityRemoveEvent` cause, position, damage cause) in the failure.
+
+Changes in `paper/livestockai` and `paper/prey` (TFC targets, speeds and ranges unchanged; FAUNA-08 / FAUNA-09 goldens
+and the MockBukkit goal tests pass):
+
+- `prey/PathBudget`: at most 3 deferrable path starts per region thread and server tick (idle stroll and walk to the look
+  target, baby follows adult, tempt, breed walk). A refused first start answers false (idle, retried next period) or
+  retries on the next tick (followers); a refused refresh of an animal already walking is skipped and may use all but the
+  last token, so refreshes cannot starve first starts. Panic, flight, avoid-predator and ram starts are never refused but
+  use the tokens. Test `PathBudgetMockBukkitTest` (3): a herd of 50 calves following in one tick computes at most 3 paths
+  per tick and every calf starts (within 34 ticks); 50 idle goals all start with at most 3 paths per tick; urgent starts.
+- `prey/Ticks`: the sensor period, the section scans, the sightings and the path budget count server ticks
+  (`Bukkit.getCurrentTick`), as vanilla's sensors do; TFC's memories (flight, panic, cooldowns, breeding) stay on the
+  calendar.
+- `prey/NearbyScan`: one scan per chunk section shared for up to 10 ticks and by every range up to 16 (the rabbit's 8-block
+  predator scan shares the 16-block one), entity boxes read once per scan, a per-filter cache of the section (land
+  predators; anything an avoidance could pick).
+- `LivestockGoals$Avoid` and `PreyFleeGoal` ask the filtered scan first and skip the reading when nothing a player,
+  predator or rammer is in range; `SmallPreyGoals$AvoidPredator` filters the shared scan by land predator once per section.
+- `Tempt` reads the world's player list (no entity-section query when no player is near); `Breed` caches the sex; the
+  follow-adult goals remember adults (`SpeciesCache.knownGrown`: an age only grows), so adults are read once.
+
+Paper 1.21.11-132 and Folia 1.21.11-14, plugin at 1048e3a plus PAR-FAUNA-33, 2026-11-25, same machine. Times in ms per
+tick.
+
+| Platform | Slice mean | p50 | p99 | max | Goals mean | Goals p50 | Goals p99 | Goals max | Worst check phase | Ticks > 1.5 ms | Path starts / deferred | GC in window | Server MSPT mean / p99 / max |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Paper | 2.011 | 1.919 | 3.304 | 4.974 | 0.696 | 0.604 | 1.988 | 3.659 | 1.315 | 1199 of 1199 | 726 / 8 | 0 ms | 3.670 / 7.368 / 32.444 |
+| Folia | 2.149 | 2.099 | 3.112 | 5.046 | 0.561 | 0.511 | 1.524 | 3.458 | 1.588 | 1199 of 1199 | 521 / 3 | 0 ms | n/a |
+
+Goal time by class (ms per tick, the six largest): Paper `LivestockGoals$Avoid` 0.159, `$FollowAdult` 0.147, `$Idle`
+0.094, `$Look` 0.077, `SmallPreyGoals$AvoidPredator` 0.068, `PreyFleeGoal` 0.058; Folia `$Avoid` 0.156, `$Idle` 0.104,
+`$Look` 0.060, `$FollowAdult` 0.058, `AvoidPredator` 0.054, `PreyFleeGoal` 0.051. Slowest single calls: Paper
+`PreyIdleGoals$FollowAdult#shouldActivate` 3.11, `LivestockGoals$Look#shouldActivate` 2.94, `$FollowAdult#tick` 2.62,
+`PreyFleeGoal#shouldActivate` 2.14, `$Avoid#shouldActivate` 2.04; Folia `LivestockGoals$Idle#shouldActivate` 2.88, 2.81,
+2.29, 2.24 (stroll path starts), `$Look#shouldActivate` 2.18; no GC in those rows. 200 of 200 animals alive on both.
+
+Other runs of the same code on Paper (the spread on this shared machine): goals mean 0.59 to 0.75, p99 1.74 to 2.61, max
+3.1 to 6.9 (one run 53.1 with a 52 ms young GC inside an `Avoid` call); worst check phase 1.05 to 1.48. Two runs lost one
+animal each during the window with no entity exception logged (the cause is now recorded by the case). The first run of
+this item, with the calendar still frozen and the herd in the ocean, read goals mean 0.25, p99 0.47: not comparable.
+
+Where the budget is lost now:
+
+- The worst check phase (1.0 to 1.6 ms, the `AnimalService` age step and the behaviour hooks, PAR-FAUNA-28's files; a
+  one-shot worst-of-three sample per animal) alone takes most of PERF-COMMIT-01's 1.5 ms, so the slice p50 is already at
+  or above the p99 budget whatever the goals do.
+- Goals p99 1.5 to 2.6 ms and max 3 to 7 ms come from single calls of 2 to 4 ms: vanilla path computations inside
+  `Pathfinder.moveTo` (idle strolls, follow re-paths; at most 3 per tick now, but one path alone can take 2 to 4 ms) and
+  calls with a trivial body (`Look#shouldActivate`, `Avoid#shouldActivate` with nothing in range) that took 2 to 3 ms with
+  no GC in the row: host preemption on the shared 4 vCPU container or safepoints. A count budget cannot bound one path's
+  cost; meeting a 1 ms goal max needs the path search off the tick (or a time-sliced search) and a quieter host.
 
 ## Machine and command
 

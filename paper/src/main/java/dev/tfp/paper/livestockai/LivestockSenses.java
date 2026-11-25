@@ -59,9 +59,16 @@ final class LivestockSenses {
 
     /** {@code isBaby}: a livestock child by its birth tick, a wild baby by its flag, else the vanilla age. */
     static boolean baby(Entity e, long now) {
+        if (SpeciesCache.knownGrown(e, now, true)) {
+            return false; // read grown before: ages only grow (PAR-FAUNA-33)
+        }
         Optional<AnimalRecord> r = record(e);
         if (r.isPresent()) {
-            return AnimalCheck.ageAt(r.get(), now) == LivestockAge.CHILD;
+            boolean child = AnimalCheck.ageAt(r.get(), now) == LivestockAge.CHILD;
+            if (!child) {
+                SpeciesCache.grown(e, now, true);
+            }
+            return child;
         }
         return e instanceof Ageable a && !a.isAdult();
     }

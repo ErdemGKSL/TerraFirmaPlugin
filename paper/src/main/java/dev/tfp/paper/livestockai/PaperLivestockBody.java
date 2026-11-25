@@ -26,15 +26,31 @@ final class PaperLivestockBody implements LivestockBody {
     }
 
     @Override
+    public List<LivingEntity> nearby(Mob mob, double range, long now, java.util.function.Predicate<LivingEntity> keep,
+            String filter) {
+        return NearbyScan.around(mob, range, now, keep, filter);
+    }
+
+    @Override
     public boolean sees(Mob mob, LivingEntity e) {
         return mob.hasLineOfSight(e);
     }
 
     @Override
     public List<Player> players(Mob mob, double range) {
+        // Location.getNearbyPlayers(range) (the players whose box meets the cube of half size range around the animal's
+        // position), over the world's player list instead of an entity-section query: a herd asks this every 10 ticks per
+        // animal and the list is usually short or empty (PAR-FAUNA-33). On Folia the list holds the region's players.
+        List<Player> all = mob.getWorld().getPlayers();
+        if (all.isEmpty()) {
+            return List.of();
+        }
+        Location l = mob.getLocation();
+        org.bukkit.util.BoundingBox box = new org.bukkit.util.BoundingBox(l.getX(), l.getY(), l.getZ(), l.getX(), l.getY(),
+                l.getZ()).expand(range);
         List<Player> out = new ArrayList<>();
-        for (Player p : mob.getLocation().getNearbyPlayers(range)) {
-            if (Bukkit.isOwnedByCurrentRegion(p)) {
+        for (Player p : all) {
+            if (box.overlaps(p.getBoundingBox()) && Bukkit.isOwnedByCurrentRegion(p)) {
                 out.add(p);
             }
         }

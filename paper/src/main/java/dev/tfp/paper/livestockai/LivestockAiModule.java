@@ -301,7 +301,7 @@ public final class LivestockAiModule implements FeatureModule, Listener {
 
     /** {@code PreyAi.broadcastAvoidTarget}: each visible herd mate takes the nearer of its threat and the attacker. */
     void broadcast(LivestockBrain hurt, LivingEntity attacker, long now) {
-        for (LivingEntity e : body.nearby(hurt.mob, LivestockGoals.SENSE_RANGE, now)) {
+        for (LivingEntity e : body.nearby(hurt.mob, LivestockGoals.SENSE_RANGE, dev.tfp.paper.prey.Ticks.now())) {
             LivestockBrain friend = brains.get(e.getUniqueId());
             if (friend == null || friend == hurt || !friend.species.equals(hurt.species) || !Bukkit.isOwnedByCurrentRegion(e)
                     || !body.sees(hurt.mob, e)) {

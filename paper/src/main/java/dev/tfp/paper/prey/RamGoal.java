@@ -129,6 +129,7 @@ final class RamGoal extends AnimalGoal {
             if (next.phase() == RamCharge.Phase.CHARGING) {
                 body.sound(mob, "entity." + brain.species.substring(brain.species.indexOf(':') + 1) + ".attack");
                 double[] t = next.ramTarget();
+                PathBudget.urgent();
                 body.moveTo(mob, new Location(mob.getWorld(), t[0], t[1], t[2]), RamRules.RAM_SPEED);
             }
             brain.ram = next;
