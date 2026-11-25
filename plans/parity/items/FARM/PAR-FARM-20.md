@@ -30,6 +30,8 @@ done_criteria:
   - "Pure nitrogen raises N in the readout"
 ---
 
-# PAR-FARM-20: Verification: crops grow, die and yield in game
+# PAR-FARM-20
+
+> Claimed: farm-worker-b, 2026-11-25: Verification: crops grow, die and yield in game
 
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.

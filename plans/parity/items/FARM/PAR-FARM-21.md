@@ -25,6 +25,8 @@ done_criteria:
   - "Shearing a flower drops a cutting that crafts into two flowers"
 ---
 
-# PAR-FARM-21: Flower cutting item and plant block items
+# PAR-FARM-21
+
+> Claimed: farm-worker-b, 2026-11-25: Flower cutting item and plant block items
 
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.

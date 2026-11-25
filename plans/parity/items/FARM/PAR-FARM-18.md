@@ -22,6 +22,8 @@ done_criteria:
   - "Bushes generate in the TFC biomes"
 ---
 
-# PAR-FARM-18: Worldgen placement of stationary berry bushes
+# PAR-FARM-18
+
+> Claimed: farm-worker-b, 2026-11-25: Worldgen placement of stationary berry bushes
 
 Follow-up of PAR-FARM-14. Follow `plans/parity/PROTOCOL.md`.

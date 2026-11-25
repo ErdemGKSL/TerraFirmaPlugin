@@ -61,7 +61,9 @@ done_criteria:
   - "Plants break without support, cacti hurt on contact, tall halves pair, stacking and shearing work, vines/kelp/kelp trees/branching cacti grow lazily within TFC's caps; tests green; screenshots pass review"
 ---
 
-# PAR-FARM-12: Wild plant block rules: survival per shape, cactus damage, tall halves, plant stacking, flower shearing, long growth
+# PAR-FARM-12
+
+> Claimed: farm-worker-b, 2026-11-25: Wild plant block rules: survival per shape, cactus damage, tall halves, plant stacking, flower shearing, long growth
 
 > see_not_parity: NP-SIM-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

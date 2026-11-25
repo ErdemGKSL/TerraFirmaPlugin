@@ -22,6 +22,8 @@ done_criteria:
   - "Spreading bushes and cranberries generate in the TFC biomes"
 ---
 
-# PAR-FARM-19: Worldgen placement of spreading bushes and cranberries
+# PAR-FARM-19
+
+> Claimed: farm-worker-b, 2026-11-25: Worldgen placement of spreading bushes and cranberries
 
 Follow-up of PAR-FARM-15. Follow `plans/parity/PROTOCOL.md`.
