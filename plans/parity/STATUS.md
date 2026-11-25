@@ -326,7 +326,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-17 | Glass basin and hot poured glass; poured glass blocks and glass items | PROC | 31 | open |
 | PAR-DATA-01 | Commands under /tfp: player, count block, clear world, add trim, weather hooks | DATA | 32 | open |
 | PAR-FARM-09 | Bananas | FARM | 32 | done |
-| PAR-FARM-10 | Sapling growth into trees | FARM | 32 | open |
+| PAR-FARM-10 | Sapling growth into trees | FARM | 32 | done |
 | PAR-METAL-11 | Bellows: push, air boost, crank, animation | METAL | 32 | done |
 | PAR-CLIM-07 | Weather command and TFC weather state (`/tfp weather`) | CLIMATE | 33 | open |
 | PAR-FARM-11 | Plant regrowth, plant growth/spread, flower cuttings | FARM | 33 | done |
