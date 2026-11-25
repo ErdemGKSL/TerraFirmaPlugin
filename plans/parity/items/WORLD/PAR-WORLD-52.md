@@ -2,7 +2,7 @@
 id: PAR-WORLD-52
 title: "A world's own rock_layer_settings in every rock consumer (terrain fill, volcanoes, groundcover, karst), not only TFC's preset"
 area: WORLD
-status: open
+status: done
 wave: 30
 deps: [PAR-WORLD-23, PAR-WORLD-43]
 size: S
@@ -23,6 +23,7 @@ in_game_steps: []
 plan:
   - "PAR-WORLD-23 ported TFC's layer walk (core/worldgen/rock/RockLayerSampler) and made PlaceholderRocks.index delegate to RockLayerSampler.PRESET. A world whose worldgen-settings.yml gives its own rock_layer_settings (PAR-WORLD-22 stores and validates it) still gets the preset's rocks: TfcTerrain, the volcano features and the groundcover call the static PlaceholderRocks API, and TfcTerrain builds its RegionGenerator with the preset sampler for the karst task."
   - "Pass the world's sampler (RockLayerSampler.decode(settings.rockLayerSettings())) into TfcTerrain and every PlaceholderRocks.index caller (an instance or an extra parameter); index rocks by the config's rock ids, refusing a rock id without exported rock settings at load."
+  - "Done: TfcTerrain decodes settings.rockLayerSettings() (PlaceholderRocks.requireKnown refuses rock ids outside TFC's 21 raw rocks, which alone have exported rock settings) and passes the walk to its RegionGenerator (karst task) and every PlaceholderRocks.index(walk, point, layer) call; volcanoes and groundcover take rock indices from the terrain, so they follow; PlaceholderRocks.index(point, layer) stays as the preset default. Water terrain uses the world's walk via WorldSettingsLookup (PAR-WORLD-51). Test: core WorldRockLayersTest (2)."
 tests:
   - "core: a non-preset config changes the rock of a sample and the karst flag consistently"
 done_criteria:
@@ -30,7 +31,5 @@ done_criteria:
 ---
 
 # PAR-WORLD-52: A world's own rock_layer_settings in every rock consumer
-
-> Claimed: worker agent-a0d3502f, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

@@ -81,6 +81,32 @@ public final class PlaceholderRocks {
      * @param layer The rock layer, 0 at the surface ({@code ChunkDataGenerator.RockSample.layer}).
      */
     public static int index(int rock, int layer) {
-        return INDEX.get(RockLayerSampler.PRESET.sampleAtLayer(rock, layer));
+        return index(RockLayerSampler.PRESET, rock, layer);
+    }
+
+    /**
+     * PAR-WORLD-52: the index in {@link #names()} of the rock at a region rock id and a rock layer in a world's own rock layer
+     * walk ({@code RockLayerSampler.decode(settings.rockLayerSettings())}). The sampler's rocks must have passed
+     * {@link #requireKnown}.
+     */
+    public static int index(RockLayerSampler rockLayers, int rock, int layer) {
+        return INDEX.get(rockLayers.sampleAtLayer(rock, layer));
+    }
+
+    /**
+     * PAR-WORLD-52: refuses a rock layer config that names a rock id without exported rock settings (only TFC's 21 raw rocks
+     * have blocks and {@code RockSettings}), so a world fails at load instead of at its first sample.
+     *
+     * @return {@code rockLayers}
+     * @throws IllegalArgumentException naming the first unknown rock id
+     */
+    public static RockLayerSampler requireKnown(RockLayerSampler rockLayers) {
+        for (String rock : rockLayers.rocks()) {
+            if (!INDEX.containsKey(rock)) {
+                throw new IllegalArgumentException("rock_layer_settings: no rock settings for rock " + rock + " (known: "
+                    + names().stream().map(n -> "tfc:" + n).toList() + ")");
+            }
+        }
+        return rockLayers;
     }
 }

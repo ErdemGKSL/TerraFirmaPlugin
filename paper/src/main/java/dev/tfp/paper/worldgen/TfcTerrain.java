@@ -114,6 +114,8 @@ final class TfcTerrain {
 
 
     private final RegionGenerator regions;
+    /** PAR-WORLD-52: the world's rock layer walk ({@code rock_layer_settings}). */
+    private final RockLayerSampler rockLayers;
     private final ChunkDataGenerator chunks;
     private final Noise2D shoreTide;
     private final Biome[] biomes;
@@ -190,9 +192,10 @@ final class TfcTerrain {
     TfcTerrain(long seed, WorldSettings settings) {
         this.settings = settings;
         Seed stream = Seed.of(seed);
-        // PAR-WORLD-23: the karst surface rocks from the rock settings (the preset's rock layers; PAR-WORLD-52 for others)
+        // PAR-WORLD-23: the karst surface rocks from the rock settings; PAR-WORLD-52: the world's own rock layer walk
         final Map<String, RockSettings> rockSettings = RockPalette.rockSettingsFromJar(TfcTerrain.class.getClassLoader());
-        this.regions = new RegionGenerator(settings.regionSettings(), stream, RockLayerSampler.PRESET,
+        this.rockLayers = PlaceholderRocks.requireKnown(RockLayerSampler.decode(settings.rockLayerSettings()));
+        this.regions = new RegionGenerator(settings.regionSettings(), stream, rockLayers,
             rock -> rockSettings.get(rock).isKarst());
         this.chunks = new ChunkDataGenerator(regions, stream);
         // TFC's initRandomState: the biome layer takes its seeds from the stream after the region and chunk data generators
@@ -389,7 +392,7 @@ final class TfcTerrain {
                     final SurfaceKind kind = written == null ? null : written.kind();
                     if (kind == null || written == SurfaceBlock.RAW || written == SurfaceBlock.HALITE) {
                         ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, height);
-                        final int rockIndex = PlaceholderRocks.index(rock.point(), rock.layer());
+                        final int rockIndex = PlaceholderRocks.index(rockLayers, rock.point(), rock.layer());
                         data.setBlock(lx, y, lz, veinBlock(veins.isEmpty() ? rockIndex : veins.rock(x, y, z, rockIndex), palette));
                     } else {
                         final int clay = veins.isEmpty() ? VeinStep.KEEP : veins.soil(x, y, z, kaolinSoil(kind));
@@ -557,7 +560,7 @@ final class TfcTerrain {
         int rockIndex = -1;
         if (needsRock(block)) {
             final ChunkDataGenerator.RockSample under = chunks.generateRock(x, y, z, height);
-            rockIndex = PlaceholderRocks.index(under.point(), under.layer());
+            rockIndex = PlaceholderRocks.index(rockLayers, under.point(), under.layer());
         }
         return surfaceData(block, rockIndex, palette);
     }
@@ -1183,7 +1186,7 @@ final class TfcTerrain {
                 return -1;
             }
             final ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, height(x, z));
-            return PlaceholderRocks.index(rock.point(), rock.layer());
+            return PlaceholderRocks.index(rockLayers, rock.point(), rock.layer());
         }
 
         @Override
@@ -1219,7 +1222,7 @@ final class TfcTerrain {
         @Override
         public int surfaceRock(int x, int z) {
             final ChunkDataGenerator.RockSample rock = chunks.generateSurfaceRock(x, z);
-            return PlaceholderRocks.index(rock.point(), rock.layer());
+            return PlaceholderRocks.index(rockLayers, rock.point(), rock.layer());
         }
 
         @Override
@@ -1317,7 +1320,7 @@ final class TfcTerrain {
         @Override
         public int rockAt(int x, int y, int z) {
             final ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, height(x, z));
-            return PlaceholderRocks.index(rock.point(), rock.layer());
+            return PlaceholderRocks.index(rockLayers, rock.point(), rock.layer());
         }
     }
 
@@ -1518,11 +1521,11 @@ final class TfcTerrain {
         final int sea = ChunkData.SEA_LEVEL_Y;
         final ChunkDataGenerator.RockSample seaRock = chunks.generateRock(x, sea, z, top);
         final ChunkDataGenerator.RockSample zeroRock = chunks.generateRock(x, 0, z, top);
-        final int zeroIndex = PlaceholderRocks.index(zeroRock.point(), zeroRock.layer());
+        final int zeroIndex = PlaceholderRocks.index(rockLayers, zeroRock.point(), zeroRock.layer());
         return new SurfaceColumn(x, z, sea, slope,
             climate.averageSeaLevelTemperature(x, z), climate.averageRainfall(x, z), climate.baseGroundwater(x, z),
             climate.rainVariance(x, z), (int) shoreTide.noise(x, z),
-            PlaceholderRocks.isMafic(PlaceholderRocks.index(seaRock.point(), seaRock.layer())),
+            PlaceholderRocks.isMafic(PlaceholderRocks.index(rockLayers, seaRock.point(), seaRock.layer())),
             sample.biomeWeight(), (int) sample.preVolcanicHeight(),
             cinderFrequency > 0f ? volcanoes.cones().easing(x, z, cinderFrequency) : 0f,
             SeaIce.warmestMonth(climateModel, climate.climateAt(x, z), z),
