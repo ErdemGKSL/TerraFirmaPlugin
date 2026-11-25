@@ -1,0 +1,5 @@
+# PAR-WORLD-20: TFC placed features of in_biome/underground_decoration, underground_lakes and erosion with no rule yet.
+# Remove an id when its rule lands (empty at done).
+tfc:cave_vegetation
+tfc:underground_flood_fill_lake
+tfc:erosion
