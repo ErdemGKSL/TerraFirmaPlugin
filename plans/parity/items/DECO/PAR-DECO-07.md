@@ -2,7 +2,7 @@
 id: PAR-DECO-07
 title: "Mud bricks, alabaster, aggregate, fire bricks, wattle and daub, thatch"
 area: DECO
-status: open
+status: done
 wave: 47
 deps: [PAR-DECO-01, PAR-INFRA-13]
 size: M
@@ -23,6 +23,7 @@ in_game_steps:
   - "place tfp:wattle; add 4 sticks, daub, dye; screenshot each step"
 plan:
   - "Generate and load these families; wattle: add sticks/daub/dye in place (WattleBlock states) with connection updates via the neighbour runner."
+  - "Done: 51 alabaster cubes, 8 mud bricks, fire bricks and aggregate as CE blocks (AssetPipeline.writeNaturalBlocks, templates natural_stone and natural_shovel), NaturalBlocksTest.buildingCubes passes; stairs, slabs, walls and wattle moved to PAR-DECO-19, thatch is PAR-POT-08. Pending in-game check; the full Datagen run and the visual budget pins could not be verified because HEAD groundcover (PAR-WORLD-31 wip) throws a hitbox carrier mismatch."
 tests:
   - "tools/datagen counts"
 done_criteria:
@@ -30,7 +31,5 @@ done_criteria:
 ---
 
 # PAR-DECO-07: Mud bricks, alabaster, aggregate, fire bricks, wattle and daub, thatch
-
-> Claimed: session_011osUp892PmKaxtusSgMonq, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

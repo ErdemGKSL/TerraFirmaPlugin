@@ -176,10 +176,11 @@ class VisualBudgetTest {
                     VisualAllocator.Allocation a = VisualAllocator.allocate(demand, m -> Datagen.modelContent(out, m), p, f,
                         ne, supply, OreLook.HOST_ROCK);
                     assertThat(a.units().stream().filter(u -> !u.id().startsWith("wood/")
-                        && !u.id().matches("(raw|smooth|cut)_sandstone/.+|hardened_clay|halite|lignite|bituminous_coal"))).as(key)
+                        && !u.id().matches("(raw|smooth|cut)_sandstone/.+|hardened_clay|halite|lignite|bituminous_coal"
+                        + "|alabaster/.+|fire_bricks|aggregate|mud_bricks/.+"))).as(key)
                         .hasSize(261); // wood: PAR-WORLD-10; sandstones, hardened clay, halite, coal: PAR-DECO-08
-                    assertThat(a.solidUsed()).as(key).as("solid pool: wood blocks (PAR-WORLD-10) and the 25 natural cubes (PAR-DECO-08) may use it").isLessThanOrEqualTo(125);
-                    assertThat(a.used().get("absent_minor")).as(key + " absent_minor: wood (PAR-WORLD-10) and natural cubes (PAR-DECO-08)").isLessThanOrEqualTo(325);
+                    assertThat(a.solidUsed()).as(key).as("solid pool: wood blocks (PAR-WORLD-10) and the 25 natural cubes (PAR-DECO-08) may use it").isLessThanOrEqualTo(185); // +60 cubes of PAR-DECO-07
+                    assertThat(a.used().get("absent_minor")).as(key + " absent_minor: wood (PAR-WORLD-10) and natural cubes (PAR-DECO-08)").isLessThanOrEqualTo(385); // +60 cubes of PAR-DECO-07
                     assertThat(a.units()).as(key).noneMatch(u -> u.id().startsWith("ore/"));
                     assertWithinBudget(key, a.used(), budgetOf(f, a.capacity()));
                     if (p == Profile.defaultFor(f)) {

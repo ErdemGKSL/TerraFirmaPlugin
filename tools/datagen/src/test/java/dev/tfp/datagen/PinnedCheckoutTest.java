@@ -41,8 +41,8 @@ class PinnedCheckoutTest {
         assertThat(ores.entrySet().stream().map(e -> e.getValue().getAsJsonObject().get("overlay").getAsString()).distinct())
             .hasSize(53);
         assertThat(ores.getAsJsonObject("tfp:ore/normal_malachite/shale").get("columnar").getAsBoolean()).isTrue();
-        // 21 rocks x 10 cube types + 7 magma, 53 ore kinds x 21 rocks, 8 dirt, 8 clay, 7 sand, 20 woods x 6 (PAR-WORLD-10), 21 sandstones + 4 natural blocks (PAR-DECO-08)
-        assertThat(r.report().emittedCount()).isEqualTo(21 * 10 + 7 + 53 * 21 + 8 + 8 + 7 + 20 * 6 + 25);
+        // 21 rocks x 10 cube types + 7 magma, 53 ore kinds x 21 rocks, 8 dirt, 8 clay, 7 sand, 20 woods x 6 (PAR-WORLD-10), 21 sandstones + 4 natural blocks (PAR-DECO-08), 51 alabaster + 8 mud bricks + fire bricks + aggregate (PAR-DECO-07)
+        assertThat(r.report().emittedCount()).isEqualTo(21 * 10 + 7 + 53 * 21 + 8 + 8 + 7 + 20 * 6 + 25 + 60);
         // FULL_CUBE (shipped until PAR-INFRA-16): one flattened cube per ore; HOST_ROCK writes none (VisualBudgetTest)
         if (dev.tfp.datagen.oreoverlay.OreLook.shipped() == dev.tfp.datagen.oreoverlay.OreLook.FULL_CUBE) {
             assertThat(r.report().count("ore_textures_flattened", 0)).isEqualTo(53 * 21);

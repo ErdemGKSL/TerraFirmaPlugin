@@ -65,7 +65,7 @@ public final class AssetPipeline {
             + "|^item\\." + Json.FROM_NS + "\\.(food|metal|jar)\\..*"
             + "|^item\\." + Json.FROM_NS + "\\.[a-z_]+_jam$"
             + "|^block\\." + Json.FROM_NS + "\\.(charcoal_forge|bellows|hardened_clay|halite|lignite|bituminous_coal"
-            + "|(raw|smooth|cut)_sandstone\\.[a-z]+)$"
+            + "|(raw|smooth|cut)_sandstone\\.[a-z]+|aggregate|fire_bricks|alabaster\\.[a-z_.]+|mud_bricks\\.[a-z]+)$"
             + "|^item\\." + Json.FROM_NS + "\\.powder\\.salt$"); // halite drops salt (PAR-DECO-08)
 
     private final TfcCheckout tfc;
@@ -809,7 +809,23 @@ public final class AssetPipeline {
     }
 
     /** PAR-DECO-08: one natural full block: id, strength, vanilla sound group, instrument and map colour. */
-    private record NaturalBlock(String id, String strength, String sound, String instrument, int mapColor) {
+    private record NaturalBlock(String id, String strength, String resistance, String sound, String instrument, int mapColor,
+                                boolean pickaxe) {
+        NaturalBlock(String id, String strength, String sound, String instrument, int mapColor) {
+            this(id, strength, strength, sound, instrument, mapColor, true);
+        }
+    }
+
+    /** Vanilla {@code DyeColor} map colour ids (white .. black), the colours of TFC's alabaster. */
+    private static final Map<String, Integer> DYE_MAP_COLOR = new LinkedHashMap<>();
+
+    static {
+        String[] names = {"white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray", "light_gray", "cyan",
+            "purple", "blue", "brown", "green", "red", "black"};
+        int[] ids = {8, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29};
+        for (int i = 0; i < names.length; i++) {
+            DYE_MAP_COLOR.put(names[i], ids[i]);
+        }
     }
 
     /**
@@ -832,6 +848,24 @@ public final class AssetPipeline {
         list.add(new NaturalBlock("halite", "6.0", "stone", "harp", 8));
         list.add(new NaturalBlock("lignite", "6.0", "stone", "harp", 51));
         list.add(new NaturalBlock("bituminous_coal", "6.0", "stone", "harp", 51));
+        // PAR-DECO-07: TFCBlocks alabaster (plain: MapColor.STONE; per dye colour: the dye's map colour), fire bricks, aggregate
+        // (gravel copy, 0.6, shovel, no tool needed) and the mud bricks of each soil (2.6, mud bricks sound, basedrum)
+        list.add(new NaturalBlock("alabaster/raw", "1.5", "6.0", "stone", "harp", 11, true));
+        list.add(new NaturalBlock("alabaster/bricks", "1.5", "6.0", "stone", "harp", 11, true));
+        list.add(new NaturalBlock("alabaster/polished", "1.5", "6.0", "stone", "harp", 11, true));
+        DYE_MAP_COLOR.forEach((color, map) -> {
+            list.add(new NaturalBlock("alabaster/raw/" + color, "1.0", "6.0", "stone", "harp", map, true));
+            list.add(new NaturalBlock("alabaster/bricks/" + color, "1.5", "6.0", "stone", "harp", map, true));
+            list.add(new NaturalBlock("alabaster/polished/" + color, "1.5", "6.0", "stone", "harp", map, true));
+        });
+        list.add(new NaturalBlock("fire_bricks", "2.0", "6.0", "stone", "harp", 28, true));
+        list.add(new NaturalBlock("aggregate", "0.6", "0.6", "gravel", "snare", 11, false));
+        for (String f : tfc.list(TfcCheckout.ASSETS + "blockstates/mud_bricks/")) {
+            String name = f.substring(f.lastIndexOf('/') + 1, f.length() - 5);
+            if (!name.endsWith("_slab") && !name.endsWith("_stairs") && !name.endsWith("_wall")) {
+                list.add(new NaturalBlock("mud_bricks/" + name, "2.6", "2.6", "mud_bricks", "basedrum", 10, true));
+            }
+        }
         return list.stream().filter(b -> tfc.exists(blockstate(b.id()))).toList();
     }
 
@@ -845,10 +879,13 @@ public final class AssetPipeline {
             Map<String, Object> args = new LinkedHashMap<>();
             args.put("sound_block_type", b.sound());
             args.put("natural_hardness", new BigDecimal(b.strength()));
+            args.put("natural_resistance", new BigDecimal(b.resistance()));
             args.put("natural_instrument", b.instrument());
             args.put("natural_map_color", b.mapColor());
             String file = b.id().contains("/") ? "sandstone" : b.id();
-            block(files.computeIfAbsent(file, k -> new ConfigFile()), b.id(), CeBlockStates.call("tfp:settings/natural_stone", args));
+            String group = b.id().startsWith("alabaster/") ? "alabaster" : b.id().startsWith("mud_bricks/") ? "mud_bricks" : file;
+            block(files.computeIfAbsent(group, k -> new ConfigFile()), b.id(),
+                CeBlockStates.call(b.pickaxe() ? "tfp:settings/natural_stone" : "tfp:settings/natural_shovel", args));
         }
         files.forEach((name, file) -> file.write("natural/" + name));
     }
