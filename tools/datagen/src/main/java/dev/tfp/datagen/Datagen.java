@@ -108,6 +108,9 @@ public final class Datagen {
         if (dev.tfp.datagen.bucket.BucketItems.available(tfc)) { // PAR-FLUID-02: wooden, red and blue steel buckets, TFC fluid buckets; before the coverage gate
             dev.tfp.datagen.bucket.BucketItems.run(tfc, out);
         }
+        if (dev.tfp.datagen.aquatic.MobBucketItems.available(tfc)) { // PAR-FAUNA-25: the 20 mob buckets; before the coverage gate
+            dev.tfp.datagen.aquatic.MobBucketItems.run(tfc, out);
+        }
         if (dev.tfp.datagen.basket.BasketItem.available(tfc)) { // PAR-PROC-22: tfp:basket (TFC bundle item); before the coverage gate
             dev.tfp.datagen.basket.BasketItem.run(tfc, out);
         }

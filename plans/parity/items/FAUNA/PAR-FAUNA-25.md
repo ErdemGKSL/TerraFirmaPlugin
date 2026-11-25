@@ -2,7 +2,7 @@
 id: PAR-FAUNA-25
 title: "Mob bucket items: the 20 TFC fish buckets as CE items (follow-up of PAR-FAUNA-11)"
 area: FAUNA
-status: open
+status: done
 wave: 43
 deps: [PAR-FAUNA-11]
 size: S
@@ -20,6 +20,7 @@ in_game_steps:
   - "tfp debug animal spawn bluegill adult in a pond, right click it with a water bucket: the tfp:bucket/bluegill item appears; right click water with it: the fish is released"
 plan:
   - "PAR-FAUNA-11 ships the Paper runtime (pickup and release by id tfp:bucket/<species>) but the items do not exist: CE items for COD_BUCKET, PUFFERFISH_BUCKET, JELLYFISH_BUCKET, TROPICAL_FISH_BUCKET and the 16 freshwater fish buckets (TFCItems lines 422-428), stack 1, TFC models/textures/names, on the vanilla bucket material. ItemCoverage.MOB_BUCKETS currently assigns them to PAR-FAUNA-11: move the owner to this item and generate them."
+  - "Done: datagen aquatic/MobBucketItems writes configuration/mob_bucket.yml (20 items, stack 1, material paper), TFC's item models, textures and names; ItemCoverage.MOB_BUCKETS owner moved to this item; tests aquatic/MobBucketItemsTest (3). In-game check pending (container cannot run client): ledger line."
 tests:
   - "datagen: the 20 items exist with TFC's texture and name; coverage report names the generator"
 done_criteria:
@@ -28,6 +29,5 @@ done_criteria:
 
 # PAR-FAUNA-25: Mob bucket items
 
-> Claimed: worker session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 Follow `plans/parity/PROTOCOL.md`.
