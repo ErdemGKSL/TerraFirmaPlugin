@@ -140,3 +140,4 @@ dev.tfp.paper.amphibian.AmphibianModule
 dev.tfp.paper.command.DataCommandsModule
 dev.tfp.paper.critter.CritterModule
 dev.tfp.paper.bloomery.BloomeryModule
+dev.tfp.paper.bell.BellModule

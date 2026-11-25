@@ -247,6 +247,9 @@ public final class Datagen {
         if (dev.tfp.datagen.channel.ChannelBlocks.available(tfc)) { // PAR-METAL-13: tfp:channel and tfp:mold_table blocks, models, names; fixtures have none
             dev.tfp.datagen.channel.ChannelBlocks.run(tfc, out);
         }
+        if (dev.tfp.datagen.bell.BellBlocks.available(tfc)) { // PAR-METAL-18: tfp:bronze_bell and tfp:brass_bell blocks, models, names; fixtures have none
+            dev.tfp.datagen.bell.BellBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.crucible.CrucibleScreenArt.available(tfc)) { // PAR-METAL-12: crucible screen art, thermometer and fill; fixtures have no crucible screen
             dev.tfp.datagen.crucible.CrucibleScreenArt.run(tfc, out);
         }

@@ -46,6 +46,25 @@ public final class HitboxDemands {
     /** PAR-METAL-13: served after every other demand, so adding them moves no carrier of another block. */
     static final int CHANNEL_WEIGHT = -13;
 
+    /** PAR-METAL-18: the bell blocks, one appearance pattern per distinct outline ({@link TfcShapes#BELL_CLASSES}). */
+    public static String bellId(String metal) {
+        return "tfp:" + metal + "_bell";
+    }
+
+    /** PAR-METAL-18: served after every other demand, so adding the bells moves no carrier of another block. */
+    static final int BELL_WEIGHT = -26;
+
+    /** PAR-METAL-18: the outline class of a bell state (see {@link TfcShapes#bellKey}). */
+    public static String bellOutline(String attachment, String facing) {
+        boolean ns = facing.equals("north") || facing.equals("south");
+        return switch (attachment) {
+            case "ceiling" -> "ceiling";
+            case "floor" -> ns ? "floor_ns" : "floor_ew";
+            case "double_wall" -> ns ? "double_ns" : "double_ew";
+            default -> "single_" + facing;
+        };
+    }
+
     /** PAR-METAL-14: the bloomery, the bloom and the molten stack block. */
     public static final String BLOOMERY_ID = "tfp:bloomery";
     public static final String BLOOM_ID = "tfp:bloom";
@@ -576,6 +595,13 @@ public final class HitboxDemands {
         }
         d.add(new Demand(MOLD_TABLE_ID, MOLD_TABLE_APPEARANCE, TfcShapes.MOLD_TABLE_KEY, 0, HitboxAllocation.TRANSPARENT, true,
             CHANNEL_WEIGHT));
+        // PAR-METAL-18: the bronze and brass bells, one outline per attachment and facing class, hitbox-only; the look is item displays.
+        for (String metal : TfcShapes.BELL_METALS) {
+            for (String cls : TfcShapes.BELL_CLASSES) {
+                d.add(new Demand(bellId(metal), cls, TfcShapes.bellKey(metal, cls), 0, HitboxAllocation.TRANSPARENT, true,
+                    BELL_WEIGHT));
+            }
+        }
         // PAR-METAL-14: the bloomery (a facing and open outline each), the bloom (a layer each) and the molten stack block
         // (TFC's 4 px layers: the bloom rows of 2, 4, 6 and 8 layers), hitbox-only; the look is item displays (BloomeryBlocks).
         for (String f : FACINGS) {

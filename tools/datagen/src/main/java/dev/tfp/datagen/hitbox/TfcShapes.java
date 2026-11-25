@@ -400,6 +400,16 @@ public final class TfcShapes {
                     List.of("class BurningLogPileBlock extends Block"), List.of("getShape(", "getCollisionShape")));
             }
         }
+        // PAR-METAL-18: the bronze and brass bells extend vanilla BellBlock with no shape override: vanilla's getVoxelShape
+        // (the same outline for getShape and getCollisionShape), ported. One row per distinct outline (9 of the 16 states).
+        String bell = B + "TFCBellBlock.java";
+        for (String metal : BELL_METALS) {
+            for (String cls : BELL_CLASSES) {
+                s.add(new Spec(bellKey(metal, cls), "bell", Kind.OBJECT, List.of(bell), null, null,
+                    List.of("public class TFCBellBlock extends BellBlock"), List.of("getShape(", "getCollisionShape"),
+                    x -> bellShape(cls)));
+            }
+        }
         // PAR-CLIM-04: the weather blocks. The snow pile extends vanilla SnowLayerBlock with no shape override: vanilla's
         // SHAPE_BY_LAYER (the selection 2 px per layer, the collision one layer lower), ported. The ice pile and sea ice
         // extend vanilla IceBlock (a full cube; ice is noOcclusion, see SEE_THROUGH). The icicle is ThinSpikeBlock:
@@ -1010,6 +1020,42 @@ public final class TfcShapes {
 
     private static Shape snowHeight(int layers) {
         return layers <= 0 ? Shape.EMPTY : layers >= 8 ? Shape.FULL : Shape.box(0, 0, 0, 16, 2 * layers, 16);
+    }
+
+    /** PAR-METAL-18: the bell blocks (TFCBlocks BRONZE_BELL, BRASS_BELL) and the distinct outlines of vanilla's BellBlock. */
+    public static final List<String> BELL_METALS = List.of("bronze", "brass");
+    public static final List<String> BELL_CLASSES = List.of("ceiling", "floor_ns", "floor_ew", "double_ns", "double_ew",
+        "single_north", "single_east", "single_south", "single_west");
+
+    /** The representative TFC state of an outline class: {@code floor_ns} is facing north, {@code floor_ew} east. */
+    public static String bellKey(String metal, String cls) {
+        String state = switch (cls) {
+            case "ceiling" -> "attachment=ceiling,facing=north";
+            case "floor_ns" -> "attachment=floor,facing=north";
+            case "floor_ew" -> "attachment=floor,facing=east";
+            case "double_ns" -> "attachment=double_wall,facing=north";
+            case "double_ew" -> "attachment=double_wall,facing=east";
+            default -> "attachment=single_wall,facing=" + cls.substring("single_".length());
+        };
+        return "tfc:" + metal + "_bell[" + state + "]";
+    }
+
+    /** Vanilla {@code BellBlock.getVoxelShape}: the bell body (two boxes) plus the floor slab, the hanging bar or the ceiling stub. */
+    static Shape[] bellShape(String cls) {
+        Shape body = Shape.box(4, 4, 4, 12, 6, 12).union(Shape.box(5, 6, 5, 11, 13, 11));
+        Shape shape = switch (cls) {
+            case "floor_ns" -> Shape.box(0, 0, 4, 16, 16, 12);
+            case "floor_ew" -> Shape.box(4, 0, 0, 12, 16, 16);
+            case "ceiling" -> body.union(Shape.box(7, 13, 7, 9, 16, 9));
+            case "double_ns" -> body.union(Shape.box(7, 13, 0, 9, 15, 16));
+            case "double_ew" -> body.union(Shape.box(0, 13, 7, 16, 15, 9));
+            case "single_north" -> body.union(Shape.box(7, 13, 0, 9, 15, 13));
+            case "single_south" -> body.union(Shape.box(7, 13, 3, 9, 15, 16));
+            case "single_east" -> body.union(Shape.box(3, 13, 7, 16, 15, 9));
+            case "single_west" -> body.union(Shape.box(0, 13, 7, 13, 15, 9));
+            default -> throw new IllegalArgumentException("unknown bell outline " + cls);
+        };
+        return new Shape[] {shape, shape};
     }
 
     /** TFC {@code TFCBlockStateProperties.STAGE_8}: the composter's stages 0..8. */

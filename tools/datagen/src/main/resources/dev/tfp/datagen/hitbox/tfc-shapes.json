@@ -1687,6 +1687,150 @@
       "from": "BurningLogPileBlock.java Shapes.block() / same"
     },
     {
+      "key": "tfc:bronze_bell[attachment=ceiling,facing=north]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 7, 9, 16, 9]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 7, 9, 16, 9]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:bronze_bell[attachment=floor,facing=north]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[0, 0, 4, 16, 16, 12]],
+      "collision": [[0, 0, 4, 16, 16, 12]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:bronze_bell[attachment=floor,facing=east]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 0, 0, 12, 16, 16]],
+      "collision": [[4, 0, 0, 12, 16, 16]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:bronze_bell[attachment=double_wall,facing=north]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 0, 9, 15, 16]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 0, 9, 15, 16]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:bronze_bell[attachment=double_wall,facing=east]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [0, 13, 7, 16, 15, 9]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [0, 13, 7, 16, 15, 9]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:bronze_bell[attachment=single_wall,facing=north]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 0, 9, 15, 13]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 0, 9, 15, 13]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:bronze_bell[attachment=single_wall,facing=east]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [3, 13, 7, 16, 15, 9]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [3, 13, 7, 16, 15, 9]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:bronze_bell[attachment=single_wall,facing=south]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 3, 9, 15, 16]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 3, 9, 15, 16]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:bronze_bell[attachment=single_wall,facing=west]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [0, 13, 7, 13, 15, 9]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [0, 13, 7, 13, 15, 9]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:brass_bell[attachment=ceiling,facing=north]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 7, 9, 16, 9]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 7, 9, 16, 9]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:brass_bell[attachment=floor,facing=north]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[0, 0, 4, 16, 16, 12]],
+      "collision": [[0, 0, 4, 16, 16, 12]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:brass_bell[attachment=floor,facing=east]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 0, 0, 12, 16, 16]],
+      "collision": [[4, 0, 0, 12, 16, 16]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:brass_bell[attachment=double_wall,facing=north]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 0, 9, 15, 16]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 0, 9, 15, 16]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:brass_bell[attachment=double_wall,facing=east]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [0, 13, 7, 16, 15, 9]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [0, 13, 7, 16, 15, 9]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:brass_bell[attachment=single_wall,facing=north]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 0, 9, 15, 13]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 0, 9, 15, 13]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:brass_bell[attachment=single_wall,facing=east]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [3, 13, 7, 16, 15, 9]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [3, 13, 7, 16, 15, 9]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:brass_bell[attachment=single_wall,facing=south]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 3, 9, 15, 16]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [7, 13, 3, 9, 15, 16]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
+      "key": "tfc:brass_bell[attachment=single_wall,facing=west]",
+      "class": "bell",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [0, 13, 7, 13, 15, 9]],
+      "collision": [[4, 4, 4, 12, 6, 12], [5, 6, 5, 11, 13, 11], [0, 13, 7, 13, 15, 9]],
+      "from": "TFCBellBlock.java (ported)"
+    },
+    {
       "key": "tfc:snow_pile[layers=1]",
       "class": "snow_layer",
       "kind": "object",
