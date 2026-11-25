@@ -318,6 +318,7 @@ class BootstrapTest {
                 "alloy",
                 "anvil",
                 "crucible",
+                "charcoalforge",
                 "pen",
                 "mold",
                 "rotation",

@@ -468,9 +468,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 ItemHeatHooks.Capacities.byId(stack -> integrations.customItems().idOf(stack), itemHeatDefinitions);
         heat = new ItemHeatHooks(() -> clock.get().playerTicks(), dev.tfp.core.heat.HeatConfig.DEFAULT, heatCapacities);
         heater = new ItemHeater(() -> clock.get().playerTicks(), dev.tfp.core.heat.HeatConfig.DEFAULT, heatCapacities);
-        // M4-FORGE-01: a right-click on a lit charcoal forge heats the held item one step toward the forge's temperature.
-        getServer().getPluginManager().registerEvents(
-                new dev.tfp.paper.heat.ForgeHeatListener(integrations::customBlocks, () -> heater), this);
+        // PAR-METAL-08: the charcoal forge heats the items it holds itself (CharcoalForgeModule); the click heating is gone.
         // M3-SURV-01's FoodMergeListener is wired by FoodModule (PAR-INFRA-01) on the services provided here.
         moduleServices.provide(ItemFoodHooks.class, foodHooks);
         moduleServices.provide(FoodDefinitionsCache.class, foodDefinitions);
