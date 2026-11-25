@@ -143,3 +143,4 @@ dev.tfp.paper.bloomery.BloomeryModule
 dev.tfp.paper.bell.BellModule
 dev.tfp.paper.pile.PileModule
 dev.tfp.paper.advancement.AdvancementModule
+dev.tfp.paper.pet.PetModule

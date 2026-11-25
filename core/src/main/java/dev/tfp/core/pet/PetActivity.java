@@ -5,7 +5,7 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/entities/ai/TFCBrain.java @ c3b4d9536 (IDLE_AT_HOME, SIT, FOLLOW, HUNT activities) and
- * src/main/java/net/dries007/tfc/common/entities/ai/pet/TamableAi.java (beginIdle)
+ * src/main/java/net/dries007/tfc/common/entities/ai/pet/TamableAi.java (beginIdle, activities)
  */
 package dev.tfp.core.pet;
 
@@ -23,5 +23,11 @@ public enum PetActivity {
     /** TFC {@code TFCBrain.FOLLOW}: follow the owner but do not join combat. */
     FOLLOW,
     /** TFC {@code TFCBrain.HUNT}: follow the owner and join combat. */
-    HUNT
+    HUNT,
+    /** Vanilla {@code Activity.AVOID}: flee from a threat (TFC {@code TamableAi.initRetreatActivity}). */
+    AVOID,
+    /** Vanilla {@code Activity.FIGHT}: chase and bite the attack target (TFC {@code TamableAi.initFightActivity}). */
+    FIGHT,
+    /** Vanilla {@code Activity.REST}: walk to a bed spot and sleep (TFC {@code TamableAi.initRestActivity}). */
+    REST
 }

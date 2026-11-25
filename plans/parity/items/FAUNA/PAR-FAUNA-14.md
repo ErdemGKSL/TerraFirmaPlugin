@@ -2,7 +2,7 @@
 id: PAR-FAUNA-14
 title: "Pets: dogs and cats with commands"
 area: FAUNA
-status: open
+status: done
 wave: 44
 deps: [PAR-FAUNA-05, PAR-INFRA-03]
 size: M
@@ -24,6 +24,7 @@ in_game_steps:
   - "sneak-right-click; choose Sit; screenshot"
 plan:
   - "Taming by familiarity; sneak + right-click opens a small command GUI (relax/home/sit/follow/hunt) replacing the packet; follow/sit/home goals."
+  - "Done: core PetAi (updateActivity, home distances, flee, sleep timers, attack-target rules; PetAiGoldenTest 14) beside the existing PetRules; paper/pet PetModule, PetGoal, PetBrain, PetMenu (hopper window), PetPdc; 15 MockBukkit tests (PetModuleMockBukkitTest); ledger row and 10 divergences. In-game screenshot check pending (container cannot run client): steps in in_game_steps, to be run where a client exists."
 tests:
   - "core: PetRulesGoldenTest exists"
 done_criteria:
@@ -31,7 +32,5 @@ done_criteria:
 ---
 
 # PAR-FAUNA-14: Pets: dogs and cats with commands
-
-> Claimed: worker session_011osUp8, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

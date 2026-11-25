@@ -379,7 +379,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-13 | Pests and critters: rats raiding containers, lobsters, crayfish, isopods | FAUNA | 43 | done |
 | PAR-FAUNA-25 | Mob bucket items: the 20 TFC fish buckets as CE items (follow-up of PAR-FAUNA-11) | FAUNA | 43 | done |
 | PAR-HUD-20 | Ink splatter: the full-screen ink and glow-ink overlay while the player has tfc:ink / tfc:glow_ink (squid and octopoteuthis hits) | HUD | 43 | open |
-| PAR-FAUNA-14 | Pets: dogs and cats with commands | FAUNA | 44 | open |
+| PAR-FAUNA-14 | Pets: dogs and cats with commands | FAUNA | 44 | done |
 | PAR-FAUNA-15 | Horses, donkeys and mules: riding, breeding, chests | FAUNA | 44 | open |
 | PAR-FAUNA-17 | Hunting drops, butchering, hides | FAUNA | 44 | done |
 | PAR-FAUNA-18 | Fishing: rod, hook, bait | FAUNA | 44 | open |
