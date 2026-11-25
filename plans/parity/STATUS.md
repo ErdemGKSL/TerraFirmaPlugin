@@ -423,7 +423,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-POT-13 | Placed item block: hitbox demand, datagen wiring, config keys, use-duration spike, in-game check | POTTERY | 22 | open |
 | PAR-WORLD-54 | Bubble columns above the CE magma blocks: drag-down columns that survive vanilla's support check, and the hot spring tracker | WORLD | 30 | open |
 | PAR-MECH-03 | Water wheel | MECH | 51 | done |
-| PAR-MECH-04 | Windmill and blades | MECH | 51 | open |
+| PAR-MECH-04 | Windmill and blades | MECH | 51 | done |
 | PAR-MECH-08 | Power loom | MECH | 51 | open |
 | PAR-MECH-09 | Pump and pipes | MECH | 51 | done |
 | PAR-MECH-12 | Spinning shafts on the wire: speed hook, packet sender, axle without a static element, in-game check | MECH | 51 | open |

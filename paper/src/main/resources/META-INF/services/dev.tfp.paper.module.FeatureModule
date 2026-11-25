@@ -117,3 +117,4 @@ dev.tfp.paper.hunt.HuntModule
 dev.tfp.paper.kiln.PitKilnModule
 dev.tfp.paper.plant.PlantModule
 dev.tfp.paper.waterwheel.WaterWheelModule
+dev.tfp.paper.windmill.WindmillModule
