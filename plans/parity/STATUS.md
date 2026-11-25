@@ -496,7 +496,7 @@ Totals: 387 items; open 207, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-50 | Scribing table in-game verification and TFC screen art | PROC | 42 | done |
 | PAR-PROC-53 | Sluice in game: water arrival is not noticed, thrown deposits give no loot in 20 s, outline and model check | PROC | 34 | done |
 | PAR-PROC-54 | Scribing table: right-click does not open the screen in game | PROC | 43 | done |
-| PAR-PROC-55 | Powder bowl: the soda ash step is not written back to the glass blowpipe | PROC | 32 | open |
+| PAR-PROC-55 | Powder bowl: the soda ash step is not written back to the glass blowpipe | PROC | 32 | done |
 | PAR-PROC-56 | Scribing table: TFC screen art on the anvil screen | PROC | 44 | open |
 | PAR-PROC-57 | Sewing table: TFC screen art (sewing.png) behind the grid | PROC | 44 | open |
 | PAR-PROC-52 | Glassworking items in CraftEngine and the in-game blowpipe check | PROC | 31 | done |

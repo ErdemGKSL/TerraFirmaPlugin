@@ -104,6 +104,7 @@ public final class BowlDevices {
                     if (!glass.apply(held, op.id())) {
                         return DeviceResult.pass();
                     }
+                    setHand(player, ctx.hand(), held); // held is a clone: write the new glass step back
                     next = inv.extract(0, 1).inventory();
                     player.setCooldown(held, BowlRules.GLASS_COOLDOWN_TICKS);
                 }

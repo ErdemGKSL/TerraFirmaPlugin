@@ -127,6 +127,7 @@ class BowlDevicesMockBukkitTest extends MockServerTest {
         @Override
         public boolean apply(ItemStack held, String operationId) {
             applied.add(operationId);
+            held.editMeta(m -> m.setDisplayName("stepped")); // the hook changes the stack it is given
             return true;
         }
     }
@@ -333,6 +334,7 @@ class BowlDevicesMockBukkitTest extends MockServerTest {
         assertThat(click(b, new ItemStack(Material.STICK))).isTrue();
         assertThat(glass.applied).containsExactly("tfc:soda_ash");
         assertThat(content(b).getAmount()).isEqualTo(2);
+        assertThat(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName()).as("the changed stack is written back to the hand").isEqualTo("stepped");
         assertThat(player.getCooldown(new ItemStack(Material.STICK))).isGreaterThan(0);
     }
 
