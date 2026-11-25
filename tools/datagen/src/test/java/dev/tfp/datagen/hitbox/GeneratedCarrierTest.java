@@ -60,6 +60,7 @@ class GeneratedCarrierTest {
         List<String> problems = new ArrayList<>();
         int states = 0;
         int pools = 0;
+        int fruitLeaves = 0;
         Map<String, java.util.SortedSet<String>> plantPoolStates = new java.util.TreeMap<>();
         java.util.SortedSet<String> checkedIds = new java.util.TreeSet<>();
         java.util.SortedSet<String> mappings = new java.util.TreeSet<>();
@@ -95,6 +96,9 @@ class GeneratedCarrierTest {
                             }
                         } else if (app.containsKey("auto_state")) {
                             pools++;
+                            if (HitboxDemands.FRUIT_TREES.stream().anyMatch(t -> id.equals(HitboxDemands.fruitId(t, "leaves")))) {
+                                fruitLeaves++;
+                            }
                             checkPool(path, id, a.getKey(), app.get("auto_state"), problems);
                         }
                         if (app.get("state") instanceof String state
@@ -172,7 +176,9 @@ class GeneratedCarrierTest {
         plantPoolStates.forEach((pool, ids) -> assertThat(ids.size()).as("states of the " + pool + " pool")
             .isLessThanOrEqualTo(PlantPools.SIZES.get(pool)));
         assertThat(plantPoolStates.get(PlantPools.TRIPWIRE)).contains(HitboxDemands.TWIG_SHARE_KEY);
-        assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 4 // PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
+        // PAR-WORLD-59: the fruit tree leaves (tfp:plant/<tree>_leaves, leaves pool) are checked since the plant exemption went
+        assertThat(fruitLeaves).isEqualTo(HitboxDemands.FRUIT_TREES.size() * 4); // 4 lifecycles each
+        assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 4 + fruitLeaves // PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
             + (int) HitboxDemands.all().stream().filter(d -> d.blockId().startsWith("tfp:grass_path/") && agreedOrOld(d).pool())
                 .count()); // PAR-WORLD-42: the grass paths on the leaves pool
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
