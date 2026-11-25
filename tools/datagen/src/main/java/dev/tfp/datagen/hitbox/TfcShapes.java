@@ -377,6 +377,24 @@ public final class TfcShapes {
             "HALF_PLANT", "Shapes.empty()", List.of("private static final VoxelShape HALF_PLANT = box(2, 0, 2, 14, 8, 14);",
                 "protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context)\n"
                     + "    {\n        return HALF_PLANT;", collisionNeedle.getFirst()), List.of()));
+        // PAR-FARM-16: the fruit tree branches (and growing branches) are vanilla PipeBlocks of radius 0.25 (FruitTreeBranchBlock
+        // super(0.25F, ...), no shape override; collision is the outline): the core 4..12 plus an arm per set connection flag.
+        String branchFile = fruit + "FruitTreeBranchBlock.java";
+        for (int bits = 0; bits < 64; bits++) {
+            final Shape pipe = pipe(bits);
+            s.add(new Spec(fruitBranchKey(bits), "fruit_branch", Kind.OBJECT, List.of(branchFile, B + "plant/PipePlantBlock.java"),
+                null, null, List.of("super(0.25F, properties);"), List.of("getShape(", "getCollisionShape"), x -> new Shape[] {pipe, pipe}));
+        }
+        // PAR-FARM-17: the banana: TRUNK_0 and TRUNK_1 (stages 0, 1) collide, PLANT (stage 2) does not.
+        String banana = fruit + "BananaPlantBlock.java";
+        for (int stage = 0; stage < 3; stage++) {
+            s.add(Spec.of(bananaKey(stage), "banana_" + stage, Kind.OBJECT, List.of(banana),
+                stage == 0 ? "TRUNK_0" : stage == 1 ? "TRUNK_1" : "PLANT", stage == 2 ? "Shapes.empty()" : "same",
+                List.of("private static final VoxelShape TRUNK_0 = box(4.0, 0.0, 4.0, 12.0, 16.0, 12.0);",
+                    "private static final VoxelShape TRUNK_1 = box(5.0, 0.0, 5.0, 11.0, 16.0, 11.0);",
+                    "public static final VoxelShape PLANT = box(2.0, 0.0, 2.0, 14.0, 6.0, 14.0);",
+                    "return state.getValue(STAGE) == 2 ? Shapes.empty() : getShape(state, level, pos, context);"), List.of()));
+        }
         // PAR-CLIM-27: the climate instruments (DeviceBlock subclasses; getShape only, so the collision is the same).
         for (String[] r : INSTRUMENT_SHAPES) {
             double[] b = java.util.Arrays.stream(r[4].split(",")).mapToDouble(Double::parseDouble).toArray();
@@ -676,6 +694,45 @@ public final class TfcShapes {
      * bushes and the canes (PAR-FARM-15: 8 x 9 x 16 boxes, no collision) borrow it: no tall or wide no-collision carrier exists.
      */
     public static final String BERRY_BUSH_KEY = "tfc:plant/berry_bush";
+
+    /** PAR-FARM-16: the connection flags of a fruit tree branch, bit i of a row is {@code FRUIT_FLAGS[i]} (TFC's PipeBlock order). */
+    public static final List<String> FRUIT_FLAGS = List.of("north", "east", "south", "west", "up", "down");
+
+    public static String fruitBranchKey(int bits) {
+        List<String> parts = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            parts.add(FRUIT_FLAGS.get(i) + "=" + (((bits >> i) & 1) == 1));
+        }
+        return "tfc:fruit_branch[" + String.join(",", parts) + "]";
+    }
+
+    /** The appearance name of a connection pattern, {@code c010011}: one digit per flag in {@link #FRUIT_FLAGS} order. */
+    public static String fruitBranchAppearance(int bits) {
+        StringBuilder b = new StringBuilder("c");
+        for (int i = 0; i < 6; i++) {
+            b.append((bits >> i) & 1);
+        }
+        return b.toString();
+    }
+
+    /** Vanilla PipeBlock.makeShapes(0.25): the 8 x 8 x 8 core and, per flag, the arm from the core to that face. */
+    static Shape pipe(int bits) {
+        Shape shape = Shape.box(4, 4, 4, 12, 12, 12);
+        double[][] arms = {{4, 4, 0, 12, 12, 12}, {4, 4, 4, 16, 12, 12}, {4, 4, 4, 12, 12, 16}, {0, 4, 4, 12, 12, 12},
+            {4, 4, 4, 12, 16, 12}, {4, 0, 4, 12, 12, 12}};
+        for (int i = 0; i < 6; i++) {
+            if (((bits >> i) & 1) == 1) {
+                double[] a = arms[i];
+                shape = shape.union(Shape.box(a[0], a[1], a[2], a[3], a[4], a[5]));
+            }
+        }
+        return shape;
+    }
+
+    /** PAR-FARM-17: the banana's outline rows by {@code stage}. */
+    public static String bananaKey(int stage) {
+        return "tfc:banana[stage=" + stage + "]";
+    }
 
     /** PAR-FARM-03: TFC's three crop outlines ({@code CropBlock.QUARTER_SHAPE}, {@code HALF_SHAPE}, {@code FULL_SHAPE}). */
     public static final List<String> CROP_SHAPES = List.of("quarter", "half", "full");

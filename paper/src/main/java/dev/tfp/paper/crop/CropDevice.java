@@ -14,6 +14,7 @@ import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.crop.CropGrowth;
 import dev.tfp.core.crop.CropHarvest;
 import dev.tfp.core.crop.CropPlant;
+import dev.tfp.core.crop.CropState;
 import dev.tfp.core.crop.CropType;
 import dev.tfp.core.device.DeviceRecord;
 import dev.tfp.core.farm.Nutrients;
@@ -22,9 +23,11 @@ import dev.tfp.paper.device.DeviceHandler;
 import dev.tfp.paper.device.DeviceKind;
 import dev.tfp.paper.device.DeviceResult;
 import dev.tfp.paper.device.DeviceService;
+import dev.tfp.paper.crop.wild.SpreadingFruit;
 import dev.tfp.paper.integration.BlockStateRef;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 import org.bukkit.block.Block;
@@ -45,13 +48,25 @@ public final class CropDevice {
     public static final String CATCH_UP_KIND = ID;
 
     /** What the handler needs. */
-    public record Services(CropWorld world, Supplier<ClockSnapshot> clock, Supplier<DeviceService> devices, RandomGenerator random) {
+    public record Services(CropWorld world, Supplier<ClockSnapshot> clock, Supplier<DeviceService> devices, RandomGenerator random,
+            Supplier<SpreadingFruit> fruit) {
         public Services {
             Objects.requireNonNull(world, "world");
             Objects.requireNonNull(clock, "clock");
             Objects.requireNonNull(devices, "devices");
             Objects.requireNonNull(random, "random");
+            Objects.requireNonNull(fruit, "fruit");
         }
+
+        /** Without the spreading crops' fruit service. */
+        public Services(CropWorld world, Supplier<ClockSnapshot> clock, Supplier<DeviceService> devices, RandomGenerator random) {
+            this(world, clock, devices, random, () -> null);
+        }
+    }
+
+    /** The fruit service for a spreading crop (PAR-FARM-24), or null for every other crop or when the module is off. */
+    private static SpreadingFruit fruit(Services s, CropType type) {
+        return type.shape() == CropType.Shape.SPREADING ? s.fruit().get() : null;
     }
 
     private CropDevice() {
@@ -78,7 +93,19 @@ public final class CropDevice {
         CropWorld world = s.world();
         CropSettle.Environment env = world.environment(block, type, state);
         Nutrients soil = env.farmland() ? world.soil(block).orElse(null) : null;
-        CropGrowth.Result result = CropSettle.settle(type, env, stored, soil, s.clock().get());
+        SpreadingFruit fruit = fruit(s, type);
+        CropGrowth.Result result = CropSettle.settle(type, env, stored, soil, s.clock().get(),
+            fruit == null ? null : base -> fruit.growthLimit(block, type, base));
+        if (fruit != null && !result.dead()) {
+            // TFC postGrowthTick: a crop at full growth sets a fruit beside it and falls back to a band of growth.
+            OptionalDouble fell = fruit.afterGrowth(block, type, result.plant().state().growth(), s.clock().get().playerTicks());
+            if (fell.isPresent()) {
+                CropState c = result.plant().state();
+                CropPlant plant = new CropPlant(new CropState((float) fell.getAsDouble(), c.expiry(), c.yield(), c.lastTick()),
+                    result.plant().absorbed());
+                result = new CropGrowth.Result(plant, result.soil(), false, result.fullyGrown(), result.diedAt());
+            }
+        }
         if (soil != null && result.soil() != null && !result.soil().equals(soil)) {
             world.storeSoil(block, result.soil());
         }
@@ -94,6 +121,11 @@ public final class CropDevice {
             return;
         }
         world.show(block, settled.type(), settled.state(), r.plant().state().growth());
+        SpreadingFruit fruit = fruit(s, settled.type());
+        if (fruit != null) {
+            // TFC updateShape: the four side properties show where the fruit stands.
+            world.blocks().stateAt(block).ifPresent(current -> fruit.updateSides(block, settled.type(), current));
+        }
         world.track(block);
     }
 

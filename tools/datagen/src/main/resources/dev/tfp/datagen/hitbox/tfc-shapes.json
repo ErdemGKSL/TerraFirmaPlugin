@@ -1603,6 +1603,542 @@
       "from": "StationaryBerryBushBlock.java HALF_PLANT / Shapes.empty()"
     },
     {
+      "key": "tfc:fruit_branch[north=false,east=false,south=false,west=false,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 12, 12]],
+      "collision": [[4, 4, 4, 12, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=false,west=false,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 12]],
+      "collision": [[4, 4, 0, 12, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=false,west=false,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 4, 16, 12, 12]],
+      "collision": [[4, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=false,west=false,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "collision": [[4, 4, 0, 12, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=true,west=false,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 12, 16]],
+      "collision": [[4, 4, 4, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=true,west=false,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 16]],
+      "collision": [[4, 4, 0, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=true,west=false,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=true,west=false,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 16], [12, 4, 4, 16, 12, 12]],
+      "collision": [[4, 4, 0, 12, 12, 16], [12, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=false,west=true,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[0, 4, 4, 12, 12, 12]],
+      "collision": [[0, 4, 4, 12, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=false,west=true,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 12], [0, 4, 4, 4, 12, 12]],
+      "collision": [[4, 4, 0, 12, 12, 12], [0, 4, 4, 4, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=false,west=true,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[0, 4, 4, 16, 12, 12]],
+      "collision": [[0, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=false,west=true,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 12], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "collision": [[4, 4, 0, 12, 12, 12], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=true,west=true,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[0, 4, 4, 12, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[0, 4, 4, 12, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=true,west=true,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 16], [0, 4, 4, 4, 12, 12]],
+      "collision": [[4, 4, 0, 12, 12, 16], [0, 4, 4, 4, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=true,west=true,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[0, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[0, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=true,west=true,up=false,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 16], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "collision": [[4, 4, 0, 12, 12, 16], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=false,west=false,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 16, 12]],
+      "collision": [[4, 4, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=false,west=false,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "collision": [[4, 4, 0, 12, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=false,west=false,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 4, 16, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "collision": [[4, 4, 4, 16, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=false,west=false,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 12], [12, 4, 4, 16, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "collision": [[4, 4, 0, 12, 12, 12], [12, 4, 4, 16, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=true,west=false,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 4, 12, 12, 16], [4, 12, 4, 12, 16, 12]],
+      "collision": [[4, 4, 4, 12, 12, 16], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=true,west=false,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 16], [4, 12, 4, 12, 16, 12]],
+      "collision": [[4, 4, 0, 12, 12, 16], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=true,west=false,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16], [4, 12, 4, 12, 16, 12]],
+      "collision": [[4, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=true,west=false,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 16], [12, 4, 4, 16, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "collision": [[4, 4, 0, 12, 12, 16], [12, 4, 4, 16, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=false,west=true,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[0, 4, 4, 12, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "collision": [[0, 4, 4, 12, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=false,west=true,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 12], [0, 4, 4, 4, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "collision": [[4, 4, 0, 12, 12, 12], [0, 4, 4, 4, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=false,west=true,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[0, 4, 4, 16, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "collision": [[0, 4, 4, 16, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=false,west=true,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 12], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "collision": [[4, 4, 0, 12, 12, 12], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=true,west=true,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[0, 4, 4, 12, 12, 12], [4, 4, 12, 12, 12, 16], [4, 12, 4, 12, 16, 12]],
+      "collision": [[0, 4, 4, 12, 12, 12], [4, 4, 12, 12, 12, 16], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=true,west=true,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 16], [0, 4, 4, 4, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "collision": [[4, 4, 0, 12, 12, 16], [0, 4, 4, 4, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=true,west=true,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[0, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16], [4, 12, 4, 12, 16, 12]],
+      "collision": [[0, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=true,west=true,up=true,down=false]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 4, 0, 12, 12, 16], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "collision": [[4, 4, 0, 12, 12, 16], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12], [4, 12, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=false,west=false,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12]],
+      "collision": [[4, 0, 4, 12, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=false,west=false,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4]],
+      "collision": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=false,west=false,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "collision": [[4, 0, 4, 12, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=false,west=false,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [12, 4, 4, 16, 12, 12]],
+      "collision": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [12, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=true,west=false,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=true,west=false,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=true,west=false,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 12, 12], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=true,west=false,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=false,west=true,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [0, 4, 4, 4, 12, 12]],
+      "collision": [[4, 0, 4, 12, 12, 12], [0, 4, 4, 4, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=false,west=true,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12]],
+      "collision": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=false,west=true,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "collision": [[4, 0, 4, 12, 12, 12], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=false,west=true,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "collision": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=true,west=true,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [0, 4, 4, 4, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 12, 12], [0, 4, 4, 4, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=true,west=true,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=true,west=true,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 12, 12], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=true,west=true,up=false,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 12, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=false,west=false,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12]],
+      "collision": [[4, 0, 4, 12, 16, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=false,west=false,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4]],
+      "collision": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=false,west=false,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [12, 4, 4, 16, 12, 12]],
+      "collision": [[4, 0, 4, 12, 16, 12], [12, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=false,west=false,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [12, 4, 4, 16, 12, 12]],
+      "collision": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [12, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=true,west=false,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 16, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=true,west=false,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=true,west=false,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 16, 12], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=true,west=false,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=false,west=true,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [0, 4, 4, 4, 12, 12]],
+      "collision": [[4, 0, 4, 12, 16, 12], [0, 4, 4, 4, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=false,west=true,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12]],
+      "collision": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=false,west=true,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "collision": [[4, 0, 4, 12, 16, 12], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=false,west=true,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "collision": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=false,south=true,west=true,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [0, 4, 4, 4, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 16, 12], [0, 4, 4, 4, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=false,south=true,west=true,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=false,east=true,south=true,west=true,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 16, 12], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:fruit_branch[north=true,east=true,south=true,west=true,up=true,down=true]",
+      "class": "fruit_branch",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "collision": [[4, 0, 4, 12, 16, 12], [4, 4, 0, 12, 12, 4], [0, 4, 4, 4, 12, 12], [12, 4, 4, 16, 12, 12], [4, 4, 12, 12, 12, 16]],
+      "from": "FruitTreeBranchBlock.java (ported)"
+    },
+    {
+      "key": "tfc:banana[stage=0]",
+      "class": "banana_0",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 16, 12]],
+      "collision": [[4, 0, 4, 12, 16, 12]],
+      "from": "BananaPlantBlock.java TRUNK_0 / same"
+    },
+    {
+      "key": "tfc:banana[stage=1]",
+      "class": "banana_1",
+      "kind": "object",
+      "selection": [[5, 0, 5, 11, 16, 11]],
+      "collision": [[5, 0, 5, 11, 16, 11]],
+      "from": "BananaPlantBlock.java TRUNK_1 / same"
+    },
+    {
+      "key": "tfc:banana[stage=2]",
+      "class": "banana_2",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 6, 14]],
+      "collision": [],
+      "from": "BananaPlantBlock.java PLANT / Shapes.empty()"
+    },
+    {
       "key": "tfc:thermometer[facing=north]",
       "class": "instrument_thermometer",
       "kind": "object",

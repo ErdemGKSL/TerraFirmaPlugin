@@ -184,12 +184,17 @@ public final class Datagen {
         }
         if (dev.tfp.datagen.crop.CropBlocks.available(tfc)) { // PAR-FARM-03: tfp:crop/*, dead_crop/*, wild_crop/* entries on the hitbox carriers, models, textures, seeds, loot, names; fixtures have no crops
             dev.tfp.datagen.crop.CropBlocks.run(tfc, out);
+            dev.tfp.datagen.crop.FruitBlocks.run(tfc, out); // PAR-FARM-23: tfp:fruit/pumpkin, melon and their rotten forms (solid pool)
         }
         if (dev.tfp.datagen.berry.BerryBlocks.available(tfc)) { // PAR-FARM-14: tfp:berry_bush/<species> and /dead entries on the hitbox carriers, models, textures, loot, names; fixtures have no bushes
             dev.tfp.datagen.berry.BerryBlocks.run(tfc, out);
         }
         if (dev.tfp.datagen.instrument.InstrumentBlocks.available(tfc)) { // PAR-CLIM-27: tfp:thermometer, anemometer, vane, calendar_clock entries on the hitbox carriers, converted entity models, loot, names; fixtures have none
             dev.tfp.datagen.instrument.InstrumentBlocks.run(tfc, out);
+        }
+        if (dev.tfp.datagen.fruittree.FruitTreeBlocks.available(tfc)) { // PAR-FARM-16/17: tfp:plant/<tree>_* fruit tree blocks and the banana, models, loot, names
+            dev.tfp.datagen.fruittree.FruitTreeBlocks.run(tfc, out);
+            dev.tfp.datagen.banana.BananaBlocks.run(tfc, out);
         }
         if (dev.tfp.datagen.berry.BerryBlocks.available(tfc)) { // PAR-FARM-15: tfp:spreading_bush/* entries (bushes, canes, cranberry, dead), models, loot, names
             dev.tfp.datagen.berry.SpreadingBushBlocks.run(tfc, out);

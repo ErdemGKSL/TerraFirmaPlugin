@@ -9,6 +9,7 @@ package dev.tfp.paper.crop;
 import dev.tfp.core.crop.CropPlant;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.catchup.CatchUpService;
+import dev.tfp.paper.crop.wild.SpreadingFruit;
 import dev.tfp.paper.device.DeviceKind;
 import dev.tfp.paper.device.DeviceService;
 import dev.tfp.paper.integration.BlockStateRef;
@@ -45,8 +46,9 @@ public final class CropModule implements FeatureModule {
         CustomBlocks blocks = context.integrations().customBlocks();
         CropWorld world = new CropWorld(context.scheduler(), blocks, context.integrations().customItems(),
             () -> context.integrations().blockVisuals(), tags, () -> devices, () -> context.services().get(CatchUpService.class));
+        // the crop-wild module (listed before this one) provides the spreading crops' fruit service
         CropDevice.Services services = new CropDevice.Services(world, () -> context.clock().get(), () -> devices,
-            ThreadLocalRandom.current());
+            ThreadLocalRandom.current(), () -> context.services().get(SpreadingFruit.class).orElse(null));
         kind = devices.register(CropDevice.kind(services));
         context.services().get(CatchUpService.class).ifPresent(c -> c.kinds().registerDirect(CropDevice.CATCH_UP_KIND,
             (w, pos) -> catchUp(services, devices, blocks, w, pos)));

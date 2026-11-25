@@ -448,8 +448,8 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-18 | Worldgen placement of stationary berry bushes | FARM | 31 | done |
 | PAR-FARM-19 | Worldgen placement of spreading bushes and cranberries | FARM | 32 | done |
 | PAR-FARM-15 | Spreading bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 31 | done |
-| PAR-FARM-16 | Fruit tree blocks: CraftEngine states, models, hitbox carriers, loot, splicing | FARM | 32 | open |
-| PAR-FARM-17 | Banana blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 33 | open |
+| PAR-FARM-16 | Fruit tree blocks: CraftEngine states, models, hitbox carriers, loot, splicing | FARM | 32 | done |
+| PAR-FARM-17 | Banana blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 33 | done |
 | PAR-METAL-23 | Crucible molds: pour into and out of the crucible, output slot, held crucible tooltip | METAL | 34 | open |
 | PAR-METAL-25 | Charcoal forge: melting into extra-slot molds, the grilled trait on outputs, picking up dropped fuel | METAL | 34 | open |
 | PAR-METAL-24 | Crucible channel nubs: the crucible draws TFC's crucible_connection toward adjacent channels | METAL | 35 | open |
@@ -458,7 +458,13 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-24 | Wire SpreadingFruit into the crop device: fruit placement at full growth, crowding limit, fruit sides | FARM | 31 | open |
 | PAR-FARM-21 | Flower cutting item and plant block items: tfp:flower_cutting content | FARM | 34 | done |
 | PAR-FARM-25 | CraftEngine blocks and runtime for the growing plant shapes: vines, columns, kelp, kelp trees, branching cacti | FARM | 35 | open |
+| PAR-FARM-20 | Verification: crops grow, die and yield in game (itest crop.grow and screenshots) | FARM | 34 | open |
 | PAR-PROC-46 | Panning in-game verification: deposit pickup, water hint, 6 s pan, small ores | PROC | 33 | open |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | open |
 | PAR-DECO-18 | Sandstone stairs, slabs and walls and the calcite spike | DECO | 49 | open |
 | PAR-POT-14 | Pit kiln block: CraftEngine entry, hitboxes and look per stage, config keys, self-test kiln.fire, in-game check | POTTERY | 25 | open |
+| PAR-FARM-27 | Worldgen placement of fruit trees, bananas and wild spreading crop fruit | FARM | 34 | open |
+| PAR-FARM-28 | Fruit tree splicing and hoe overlay lines for fruit trees and bananas | FARM | 34 | open |
+| PAR-FARM-23 | Fruit and wild spreading crop blocks: tfp:fruit pumpkin/melon (and rotten), hitbox rows, loot, wild crop worldgen fruit | FARM | 31 | done |
+| PAR-FARM-24 | Wire SpreadingFruit into the crop device: fruit placement at full growth, crowding limit, fruit sides | FARM | 31 | done |
+

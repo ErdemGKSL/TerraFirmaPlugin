@@ -216,6 +216,41 @@ public final class HitboxDemands {
         return "cane_" + facing + "_*";
     }
 
+    /** PAR-FARM-16: TFC's FruitBlocks.Tree constants (FruitTreeBlocks checks them) and the four block families made of them. */
+    public static final List<String> FRUIT_TREES = List.of("cherry", "green_apple", "lemon", "olive", "orange", "peach", "plum",
+        "red_apple");
+    public static final String FRUIT_PREFIX = "tfp:plant/";
+    /** The appearance patterns of a sapling (one outline for every saplings count). */
+    public static final String FRUIT_SAPLING_PATTERN = "s_*";
+    /** The leaves' one pattern: every lifecycle takes a state of the leaves pool. */
+    public static final String FRUIT_LEAVES_PATTERN = "*";
+    static final int FRUIT_WEIGHT = -20;
+    public static final String FRUIT_LEAVES_POOL = "leaves";
+    /** PAR-FARM-23: the pumpkin and melon blocks of the spreading crops and their rotten forms: full cubes on the solid pool. */
+    public static final String FRUIT_BLOCK_PREFIX = "tfp:fruit/";
+    public static final List<String> FRUIT_BLOCKS = List.of("pumpkin", "melon", "rotten_pumpkin", "rotten_melon");
+
+    /** The block whose demands serve every tree's {@code part} ({@code sapling}, or {@code branch} for branches and growing branches). */
+    public static String fruitDemandOwner(String part) {
+        return fruitId(FRUIT_TREES.getFirst(), part.equals("growing_branch") ? "branch" : part);
+    }
+
+    public static String fruitId(String tree, String part) {
+        return FRUIT_PREFIX + tree + "_" + part;
+    }
+
+    /** PAR-FARM-17: TFC's banana blocks, their appearance patterns by stage and demand weight. */
+    public static final String BANANA_SAPLING_ID = "tfp:plant/banana_sapling";
+    public static final String BANANA_PLANT_ID = "tfp:plant/banana_plant";
+    public static final String BANANA_DEAD_ID = "tfp:plant/dead_banana_plant";
+    public static final String BANANA_SAPLING_APPEARANCE = "base";
+
+    public static String bananaPattern(int stage) {
+        return "stage_" + stage + "*";
+    }
+
+    static final int BANANA_WEIGHT = -21;
+
     /** PAR-FARM-14: TFC's StationaryBush constants (BerryBlocks checks them), the block ids and the demand pattern. */
     public static final List<String> BERRY_SPECIES = List.of("snowberry", "bunchberry", "gooseberry", "cloudberry",
         "strawberry", "wintergreen_berry");
@@ -517,6 +552,26 @@ public final class HitboxDemands {
         }
         GROUNDCOVER_TYPES.forEach((type, shape) -> d.add(new Demand(groundcoverId(type), GROUNDCOVER_APPEARANCE,
             groundcoverKey(shape), 0, groundcoverModel(GROUNDCOVER_LOOKS.getOrDefault(type, type)), true, GROUNDCOVER_WEIGHT)));
+        // PAR-FARM-16: the fruit trees. Every tree's saplings, branches and growing branches have the same outlines and the same
+        // empty look, so one set of demands (owned by the first tree's blocks, see fruitDemandOwner) serves all of them: the
+        // allocation does not grow by 1000 demands. Saplings: the bush outline (no tall no-collision carrier exists); branches:
+        // one demand per connection pattern, TFC's PipeBlock outline. The leaves are full cubes on the leaves pool (POOLS).
+        d.add(new Demand(fruitDemandOwner("sapling"), FRUIT_SAPLING_PATTERN, TfcShapes.BERRY_BUSH_KEY, 0,
+            HitboxAllocation.TRANSPARENT, true, FRUIT_WEIGHT));
+        for (int bits = 0; bits < 64; bits++) {
+            d.add(new Demand(fruitDemandOwner("branch"), TfcShapes.fruitBranchAppearance(bits), TfcShapes.fruitBranchKey(bits), 0,
+                HitboxAllocation.TRANSPARENT, true, FRUIT_WEIGHT));
+        }
+        // PAR-FARM-17: the banana: the sapling on the bush outline, the plant and the dead plant per stage (TFC TRUNK_0 and
+        // TRUNK_1 collide, PLANT does not), hitbox-only with the look as an item display.
+        d.add(new Demand(BANANA_SAPLING_ID, BANANA_SAPLING_APPEARANCE, TfcShapes.BERRY_BUSH_KEY, 0, HitboxAllocation.TRANSPARENT,
+            true, BANANA_WEIGHT));
+        for (String id : List.of(BANANA_PLANT_ID, BANANA_DEAD_ID)) {
+            for (int stage = 0; stage < 3; stage++) {
+                d.add(new Demand(id, bananaPattern(stage), TfcShapes.bananaKey(stage), 0, HitboxAllocation.TRANSPARENT, true,
+                    BANANA_WEIGHT));
+            }
+        }
         return d;
     }
 
@@ -894,11 +949,21 @@ public final class HitboxDemands {
         for (int count = LOG_PILE_POOL_FROM; count < TfcShapes.LOG_PILE_MAX; count++) {
             log.put("*_" + count, BURNING_LOG_PILE_POOL);
         }
-        return java.util.Map.of(LOG_PILE_ID, java.util.Collections.unmodifiableMap(log),
-            BURNING_LOG_PILE_ID, java.util.Map.of("*_*", BURNING_LOG_PILE_POOL),
-            CHARCOAL_PILE_ID, java.util.Map.of(charcoalPileAppearance(CHARCOAL_PILE_MAX), CHARCOAL_POOL),
-            ICE_PILE_ID, java.util.Map.of(ICE_APPEARANCE, ICE_POOL),
-            SEA_ICE_ID, java.util.Map.of(ICE_APPEARANCE, ICE_POOL));
+        java.util.Map<String, java.util.Map<String, String>> all = new java.util.LinkedHashMap<>();
+        all.put(LOG_PILE_ID, java.util.Collections.unmodifiableMap(log));
+        all.put(BURNING_LOG_PILE_ID, java.util.Map.of("*_*", BURNING_LOG_PILE_POOL));
+        all.put(CHARCOAL_PILE_ID, java.util.Map.of(charcoalPileAppearance(CHARCOAL_PILE_MAX), CHARCOAL_POOL));
+        all.put(ICE_PILE_ID, java.util.Map.of(ICE_APPEARANCE, ICE_POOL));
+        all.put(SEA_ICE_ID, java.util.Map.of(ICE_APPEARANCE, ICE_POOL));
+        // PAR-FARM-16: the fruit tree leaves (TFC's full cube, noOcclusion, tinted like leaves) on the leaves pool.
+        for (String tree : FRUIT_TREES) {
+            all.put(fruitId(tree, "leaves"), java.util.Map.of(FRUIT_LEAVES_PATTERN, FRUIT_LEAVES_POOL));
+        }
+        // PAR-FARM-23: the pumpkin, melon and their rotten forms (opaque full cubes) on the solid pool.
+        for (String f : FRUIT_BLOCKS) {
+            all.put(FRUIT_BLOCK_PREFIX + f, java.util.Map.of("base", CHARCOAL_POOL));
+        }
+        return java.util.Collections.unmodifiableMap(all);
     }
 
     /** {@link #POOLS} plus PAR-WORLD-44's twigs (one tripwire pool state shared by every wood). */

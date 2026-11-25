@@ -104,4 +104,37 @@ class CropDeviceTest {
             assertThat(free.plant().state().growth()).isGreaterThan(blocked.dead() ? 0f : blocked.plant().state().growth() - 1e-6f);
         }
     }
+
+    /** PAR-FARM-24: a crowded spreading crop's growth limit (the fruit service's override) caps its growth. */
+    @Test
+    void aGrowthLimitOverrideCapsASpreadingCrop() {
+        Nutrients soil = new Nutrients(1f, 1f, 1f);
+        boolean seen = false;
+        for (int days = 10; days <= 40; days += 2) {
+            CropGrowth.Result free = CropSettle.settle(CropType.PUMPKIN, env(true, true, true), CropPlant.planted(0L), soil,
+                clockAt(days * DAY));
+            if (free.dead() || free.plant().state().growth() <= 0.9f) {
+                continue;
+            }
+            seen = true;
+            CropGrowth.Result crowded = CropSettle.settle(CropType.PUMPKIN, env(true, true, true), CropPlant.planted(0L), soil,
+                clockAt(days * DAY), base -> Math.min(base, 0.9f));
+            assertThat(crowded.dead()).isFalse();
+            assertThat(crowded.plant().state().growth()).isLessThanOrEqualTo(0.9f);
+            // no override: the same result as the plain overload
+            assertThat(CropSettle.settle(CropType.PUMPKIN, env(true, true, true), CropPlant.planted(0L), soil, clockAt(days * DAY),
+                null)).isEqualTo(free);
+            break;
+        }
+        assertThat(seen).as("a pumpkin grows past 0.9 within 40 days").isTrue();
+    }
+
+    /** PAR-FARM-24: the service-less services record keeps the old constructor and has no fruit service. */
+    @Test
+    void servicesWithoutTheFruitServiceHaveNone() {
+        CropDevice.Services s = new CropDevice.Services(new CropWorld(null, null, null, () -> null, null, () -> null,
+                () -> java.util.Optional.empty()),
+            () -> clockAt(0), () -> null, new java.util.Random(1));
+        assertThat(s.fruit().get()).isNull();
+    }
 }

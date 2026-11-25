@@ -77,7 +77,19 @@ public final class CropSettle {
      * @param soil the farmland's nutrients (null without farmland)
      */
     public static CropGrowth.Result settle(CropType type, Environment env, CropPlant plant, Nutrients soil, ClockSnapshot clock) {
+        return settle(type, env, plant, soil, clock, null);
+    }
+
+    /**
+     * As above, with TFC's {@code getGrowthLimit} override of the spreading crops: {@code limitAdjust} takes the base limit (a crowded
+     * crop caps it) and returns the limit to use; null leaves it.
+     */
+    public static CropGrowth.Result settle(CropType type, Environment env, CropPlant plant, Nutrients soil, ClockSnapshot clock,
+            java.util.function.UnaryOperator<Float> limitAdjust) {
         float limit = CropGrowth.growthLimit(type, env.lightValid(), env.fluidInCell(), env.aboveSameOrAir(), env.aboveStickTop());
+        if (limitAdjust != null) {
+            limit = limitAdjust.apply(limit);
+        }
         CropRules.Spec spec = type.spec(GROWTH_MODIFIER, EXPIRY_MODIFIER, limit);
         float bonus = env.tier().bonus();
         return CropGrowth.advance(type, plant, env.farmland() ? soil : null, bonus, spec, climate(env, clock.daysInMonth()),

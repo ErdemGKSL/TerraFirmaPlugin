@@ -158,7 +158,11 @@ public final class HitboxAllocation {
                     }
                 }
             }
-            byId.put(d.id(), new Assignment(d, choice, chosen, mode, hide.get(chosen.carrier())));
+            // The ranking and rejections of every demand would be held 12 times by standard(): keep only what an assignment is read for
+            // (the override note of the report), so the cached allocations stay small.
+            Choice slim = new Choice(choice.tfc(), choice.family(), choice.chosen(), choice.override(), choice.overrideIndex(),
+                List.of(), List.of());
+            byId.put(d.id(), new Assignment(d, slim, chosen, mode, hide.get(chosen.carrier())));
         }
         List<Assignment> inDemandOrder = new ArrayList<>();
         for (Demand d : demands) {

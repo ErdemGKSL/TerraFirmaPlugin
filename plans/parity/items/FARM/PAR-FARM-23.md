@@ -2,7 +2,7 @@
 id: PAR-FARM-23
 title: "Fruit and wild spreading crop blocks: tfp:fruit pumpkin/melon (and rotten), jack o'lantern link, hitbox rows, loot, wild crop worldgen fruit"
 area: FARM
-status: open
+status: done
 wave: 31
 deps: [PAR-FARM-05]
 size: M
@@ -25,6 +25,7 @@ plan:
   - "Food items tfp:food/pumpkin and tfp:food/melon with TFC's decay modifier, placeable as the fruit blocks (the block item carries the food state; FruitDevice.placed reads it)."
   - "Hitbox rows for the new blocks (full cube) in the hitbox files; coverage owner of melon|pumpkin|rotten_melon|rotten_pumpkin moves here from PAR-FARM-05."
   - "Worldgen: SpreadingCropFeature places the wild pumpkin and melon fruit with the wild food trait (FruitState wild=true, creation date at generation)."
+  - "Done: datagen crop/FruitBlocks (tfp:fruit/pumpkin, melon, rotten_pumpkin, rotten_melon: full cubes on the solid pool, block items for the fresh ones, TFC's rotten loot, fresh loot, names), HitboxDemands pool entries; FruitBlocksTest (2). The wild fruit at worldgen is PAR-FARM-27; the food definition ingredient for the block item is not mapped here. Pending in-game check (container cannot run client)"
 tests:
   - "datagen: fruit block ids and states on the real checkout"
 done_criteria:

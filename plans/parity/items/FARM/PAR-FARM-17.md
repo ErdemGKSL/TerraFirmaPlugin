@@ -2,7 +2,7 @@
 id: PAR-FARM-17
 title: "Banana blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement"
 area: FARM
-status: open
+status: done
 wave: 33
 deps: [PAR-FARM-09]
 size: M
@@ -27,12 +27,12 @@ in_game_steps:
   - "tfp debug place tfp:plant/banana_sapling; tfp time add months 6; screenshot"
 plan:
   - "Split from PAR-FARM-09 (2026-11-19). The Paper glue exists: device kinds registered per block id tfp:plant/banana_sapling (no properties), tfp:plant/banana_plant[stage=0..2, lifecycle=dormant|healthy|flowering|fruiting], tfp:plant/dead_banana_plant[stage=0..2] (tfp:device behaviour on each), product item tfp:food/banana (3 to 6 per pick), the dead bush tfp:plant/dead_bush. Needed: CE entries for the 3 blocks (stage x lifecycle = 12 plant states, 3 dead states), TFC models, shapes (PLANT box 2,0,2 to 14,6,14 for stage 2 without collision; TRUNK_0 4..12 and TRUNK_1 5..11 full height with collision for stages 0 and 1), hitbox demands and carriers, loot, the sapling block item, lang, worldgen placement (BananaFeature), hoe overlay lines (hydration and temperature)."
+  - "Done: datagen banana/BananaBlocks (tfp:plant/banana_sapling, banana_plant 12 states, dead_banana_plant 3 states as item displays on hitbox-only carriers with TRUNK_0/TRUNK_1/PLANT rows, loot, sapling block item, names), HitboxDemands, pins; FruitTreeBlocksTest. Placement is PAR-FARM-27, hoe overlay PAR-FARM-28. Pending in-game check (container cannot run client)"
 done_criteria:
   - "A planted banana sapling grows a stalk over months (time add) and fruits in season"
 ---
 
 # PAR-FARM-17: Banana blocks
 
-> Claimed: session_011osUp5o449zjy3Qcb6jpEk, 2026-11-20
 
 Follow-up of PAR-FARM-09. Follow `plans/parity/PROTOCOL.md`.
