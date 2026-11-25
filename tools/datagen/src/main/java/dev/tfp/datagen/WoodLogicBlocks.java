@@ -206,7 +206,7 @@ final class WoodLogicBlocks {
             case "door" -> {
                 props.put("facing", prop("horizontal_direction", List.of("north", "east", "south", "west"), "north"));
                 props.put("half", prop("double_block_half", List.of("upper", "lower"), "lower"));
-                props.put("hinge", prop("hinge", null, "left"));
+                props.put("hinge", prop("hinge", List.of("left", "right"), "left"));
                 props.put("open", bool());
                 props.put("powered", bool());
             }
@@ -224,7 +224,7 @@ final class WoodLogicBlocks {
                 props.put("powered", bool());
             }
             case "button" -> {
-                props.put("face", prop("anchor_type", null, "floor"));
+                props.put("face", prop("anchor_type", List.of("floor", "wall", "ceiling"), "floor"));
                 props.put("facing", prop("horizontal_direction", List.of("north", "east", "south", "west"), "north"));
                 props.put("powered", bool());
             }

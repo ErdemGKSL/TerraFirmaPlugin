@@ -762,7 +762,7 @@ public final class HitboxDemands {
     public static final List<String> WOOD_LOGIC_KINDS = List.of("fence_gate", "door", "trapdoor", "button", "pressure_plate");
     /** PAR-DECO-02: the vanilla block that carries each of {@link #WOOD_LOGIC_KINDS} (same order), hitbox-only. */
     public static final List<String> WOOD_LOGIC_TWINS = List.of("minecraft:oak_fence_gate", "minecraft:oak_door",
-        "minecraft:oak_trapdoor", "minecraft:spruce_button", "minecraft:oak_pressure_plate");
+        "minecraft:oak_trapdoor", "minecraft:jungle_button", "minecraft:oak_pressure_plate");
 
     /** PAR-DECO-02: TFC's block id of a wood logic kind ({@code tfp:wood/door/oak}). */
     public static String woodLogicId(String kind, String wood) {

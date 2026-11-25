@@ -442,6 +442,16 @@ the twin's state of the same properties and lists no rejections of the 1752 twin
 cached allocations). 20 of the ~40 usable stairs and slab sets are now taken: the rock families' stairs and slabs need
 another plan (renderers or merged looks).
 
+**Wood logic twins (PAR-DECO-02).** The wood fence gates, doors, trapdoors, buttons and pressure plates (20 woods, 186 states
+per wood) extend vanilla `FenceGateBlock`, `DoorBlock`, `TrapDoorBlock`, `ButtonBlock` and `PressurePlateBlock` with no shape
+override, so each kind takes one shared vanilla twin hitbox-only (`HitboxDemands.WOOD_LOGIC_TWINS`: `oak_fence_gate`, `oak_door`,
+`oak_trapdoor`, `jungle_button`, `oak_pressure_plate`), the state of the same properties, drawn empty. The look is one item
+display of TFC's blockstate model per state (a quaternion when the blockstate turns about x). The twin keeps the vanilla client
+prediction (opening a wooden door, trapdoor or gate, pressing a button) and its sounds right. The twins carry `only_class`; the
+oak trapdoor leaves `hard_ban` for this. CraftEngine's built-in behaviours (`door_block`, `trapdoor_block`, `fence_gate_block`,
+`button_block` + `face_attached_horizontal_directional_block`, `pressure_plate_block`) do the placement, opening, redstone and
+survival.
+
 ## 10. Packet layer
 
 - Library: **PacketEvents 2.14.x** (M0-NET-01), as an optional plugin dependency (`packetevents` in `paper-plugin.yml` and `compat.yml`). Without it the server runs without seasonal colours and item tooltips.

@@ -158,7 +158,7 @@ class WoodFamiliesTest {
             "trapdoor_block", "button", "button_block", "pressure_plate", "pressure_plate_block");
         Map<String, Integer> states = Map.of("fence_gate", 32, "door", 64, "trapdoor", 64, "button", 24, "pressure_plate", 2);
         Map<String, String> twins = Map.of("fence_gate", "minecraft:oak_fence_gate", "door", "minecraft:oak_door",
-            "trapdoor", "minecraft:oak_trapdoor", "button", "minecraft:spruce_button", "pressure_plate",
+            "trapdoor", "minecraft:oak_trapdoor", "button", "minecraft:jungle_button", "pressure_plate",
             "minecraft:oak_pressure_plate");
         Map<String, double[]> strength = Map.of("fence_gate", new double[] {2, 3}, "door", new double[] {3, 3}, "trapdoor",
             new double[] {3, 3}, "button", new double[] {0.5, 0.5}, "pressure_plate", new double[] {0.5, 0.5});

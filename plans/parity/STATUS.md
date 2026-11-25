@@ -383,7 +383,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-18 | Fishing: rod, hook, bait | FAUNA | 44 | open |
 | PAR-FAUNA-23 | Fertilized egg incubation bar (TFC BarSystem EGG) on the shared item-bar layer | FAUNA | 44 | open |
 | PAR-FAUNA-24 | Wild raids and armadillo scutes: fox berry picking, rabbit garden raids, calendar scutes | FAUNA | 44 | open |
-| PAR-DECO-02 | Wood logic: doors, trapdoors, fence gates, buttons, pressure plates | DECO | 45 | open |
+| PAR-DECO-02 | Wood logic: doors, trapdoors, fence gates, buttons, pressure plates | DECO | 45 | done |
 | PAR-FAUNA-16 | Camels (dromedary, bactrian) | FAUNA | 45 | open |
 | PAR-FAUNA-19 | Lobster traps | FAUNA | 45 | open |
 | PAR-FAUNA-20 | Pluckable feathers, animal sounds | FAUNA | 45 | open |
