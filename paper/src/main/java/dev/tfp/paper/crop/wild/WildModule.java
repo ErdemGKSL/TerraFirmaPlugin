@@ -31,7 +31,7 @@ import org.bukkit.block.Block;
  * registered and idle. Must be listed after the device, tags, food and catchup modules.
  */
 public final class WildModule implements FeatureModule {
-    public static final String ID = "crop-wild";
+    public static final String ID = "crop_wild";
 
     private volatile DeviceKind<Long> wildKind;
     private volatile DeviceKind<FruitDevice.FruitState> fruitKind;

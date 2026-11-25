@@ -46,7 +46,7 @@ public final class CropModule implements FeatureModule {
         CustomBlocks blocks = context.integrations().customBlocks();
         CropWorld world = new CropWorld(context.scheduler(), blocks, context.integrations().customItems(),
             () -> context.integrations().blockVisuals(), tags, () -> devices, () -> context.services().get(CatchUpService.class));
-        // the crop-wild module (listed before this one) provides the spreading crops' fruit service
+        // the crop_wild module (listed before this one) provides the spreading crops' fruit service
         CropDevice.Services services = new CropDevice.Services(world, () -> context.clock().get(), () -> devices,
             ThreadLocalRandom.current(), () -> context.services().get(SpreadingFruit.class).orElse(null));
         kind = devices.register(CropDevice.kind(services));

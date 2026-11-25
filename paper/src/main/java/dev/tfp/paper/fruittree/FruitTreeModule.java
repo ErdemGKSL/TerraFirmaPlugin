@@ -32,7 +32,7 @@ import org.bukkit.block.Block;
  * after the device, tags and catchup modules.
  */
 public final class FruitTreeModule implements FeatureModule {
-    public static final String ID = "fruit-tree";
+    public static final String ID = "fruit_tree";
 
     private final Map<String, DeviceKind<FruitTreeState>> kinds = new ConcurrentHashMap<>();
 

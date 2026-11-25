@@ -30,7 +30,7 @@ import org.bukkit.block.Block;
  * registered and idle. Must be listed after the device, tags and catchup modules.
  */
 public final class SpreadModule implements FeatureModule {
-    public static final String ID = "berry-spread";
+    public static final String ID = "berry_spread";
 
     private volatile DeviceKind<BerryState> kind;
 
