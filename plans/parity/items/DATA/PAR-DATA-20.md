@@ -29,4 +29,6 @@ done_criteria:
 
 # PAR-DATA-20: Field guide BOOK tab
 
+> Claimed: parity worker session_011osUp9Lr5PbNofhx4XEc3S, 2026-11-25
+
 Follow-up created by PAR-DATA-04. Follow `plans/parity/PROTOCOL.md`.
