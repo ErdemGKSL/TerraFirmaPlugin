@@ -31,4 +31,6 @@ done_criteria:
 
 # PAR-DECO-06: Rock families: bricks, cobble, smooth, stairs, slabs, walls, aqueducts, spikes, pressure plates, buttons
 
+> Claimed: Claude session_011osUp892PmKaxtusSgMonq, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
