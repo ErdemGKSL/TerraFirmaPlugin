@@ -29,13 +29,13 @@ import dev.tfp.paper.gui.TfpGui;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.integration.CustomItems;
-import dev.tfp.paper.recipe.ItemIngredientContext;
-import dev.tfp.paper.recipe.Recipes;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import dev.tfp.core.recipe.ingredient.IngredientContext;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -71,19 +71,19 @@ public final class AnvilPlanScreens implements AnvilDevice.Plans {
     private final Scheduler scheduler;
     private final DeviceService devices;
     private final PlanBook book;
-    private final Recipes recipes;
+    private final Supplier<IngredientContext<ItemStack>> ingredients;
     private final CustomItems items;
     private final CustomBlocks blocks;
     private final Function<Player, String> title;
     private volatile AnvilDevice.Chosen chosen = (player, block) -> { };
 
-    public AnvilPlanScreens(GuiService gui, Scheduler scheduler, DeviceService devices, PlanBook book, Recipes recipes,
-            CustomItems items, CustomBlocks blocks, Function<Player, String> title) {
+    public AnvilPlanScreens(GuiService gui, Scheduler scheduler, DeviceService devices, PlanBook book,
+            Supplier<IngredientContext<ItemStack>> ingredients, CustomItems items, CustomBlocks blocks, Function<Player, String> title) {
         this.gui = Objects.requireNonNull(gui, "gui");
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.devices = Objects.requireNonNull(devices, "devices");
         this.book = Objects.requireNonNull(book, "book");
-        this.recipes = Objects.requireNonNull(recipes, "recipes");
+        this.ingredients = Objects.requireNonNull(ingredients, "ingredients");
         this.items = Objects.requireNonNull(items, "items");
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.title = Objects.requireNonNull(title, "title");
@@ -124,8 +124,8 @@ public final class AnvilPlanScreens implements AnvilDevice.Plans {
         return stack;
     }
 
-    private ItemIngredientContext ingredients() {
-        return recipes.ingredients();
+    private IngredientContext<ItemStack> ingredients() {
+        return ingredients.get();
     }
 
     private static ForgingPdc.Forging withPlan(ForgingPdc.Forging old, AnvilRecipe recipe, Block block) {
@@ -138,18 +138,19 @@ public final class AnvilPlanScreens implements AnvilDevice.Plans {
 
     /** Opens the plan screen of the anvil at {@code block} for {@code viewer}, one tick later (off the click). */
     @Override
-    public void open(Player viewer, Block block) {
+    public boolean open(Player viewer, Block block) {
         scheduler.entityDelayed(viewer, 1, () -> {
             if (viewer.isOnline()) {
                 openNow(viewer, block);
             }
         }, () -> { });
+        return true;
     }
 
     /**
      * Opens the screen now.
      *
-     * @return the session, or empty when the anvil has no main input, the input has no plan on this tier, this thread does not own
+     * @return the session, or empty when the anvil has no main input, the input has no plan on this anvil's tier, this thread does not own
      *         the block, or the screen was refused
      */
     public Optional<GuiSession> openNow(Player viewer, Block block) {
@@ -173,6 +174,9 @@ public final class AnvilPlanScreens implements AnvilDevice.Plans {
             return Optional.empty();
         }
         List<AnvilRecipe> plans = book.recipes().candidates(input, tier, ingredients());
+        if (plans.isEmpty()) {
+            return Optional.empty(); // nothing to choose from
+        }
         GuiSession session = gui.open(viewer, screen());
         if (session == null) {
             return Optional.empty();

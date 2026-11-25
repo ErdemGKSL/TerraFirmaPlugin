@@ -41,7 +41,7 @@ public final class AnvilModule implements FeatureModule {
         AnvilClicks clicks = new AnvilClicks();
         Recipes recipes = context.services().require(Recipes.class);
         AnvilPlanScreens plans = new AnvilPlanScreens(context.services().require(GuiService.class), context.scheduler(), devices,
-            new PlanBook(recipes), recipes,
+            new PlanBook(recipes), recipes::ingredients,
             context.integrations().customItems(), context.integrations().customBlocks(),
             p -> context.messages().get(p, "gui.anvil.title"));
         context.services().provide(AnvilPlanScreens.class, plans);

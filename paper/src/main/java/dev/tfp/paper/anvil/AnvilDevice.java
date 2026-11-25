@@ -100,8 +100,9 @@ public final class AnvilDevice {
             return stack;
         }
 
-        /** The plain right click: opens the screen for {@code viewer}. */
-        default void open(Player viewer, Block block) {
+        /** The plain right click: opens the screen for {@code viewer}. Returns whether the click is consumed. */
+        default boolean open(Player viewer, Block block) {
+            return false;
         }
     }
 
@@ -180,7 +181,9 @@ public final class AnvilDevice {
             if (player == null || player.isSneaking()) {
                 return DeviceResult.pass();
             }
-            services.plans().open(player, ctx.block());
+            if (!services.plans().open(player, ctx.block())) {
+                return DeviceResult.pass();
+            }
             services.clicks().mark(player);
             return DeviceResult.consume();
         }

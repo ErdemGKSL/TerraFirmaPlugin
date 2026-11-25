@@ -39,19 +39,26 @@ public final class PlanBook {
     }
 
     private final Supplier<RecipeIndex> index;
+    private final Supplier<AnvilRecipes> fixed;
     private final AtomicReference<Compiled> compiled = new AtomicReference<>(new Compiled(null, AnvilRecipes.EMPTY));
 
     public PlanBook(Recipes recipes) {
-        this(Objects.requireNonNull(recipes, "recipes")::index);
+        this.index = Objects.requireNonNull(recipes, "recipes")::index;
+        this.fixed = null;
     }
 
-    /** A book over any index source (tests). */
-    public PlanBook(Supplier<RecipeIndex> index) {
-        this.index = Objects.requireNonNull(index, "index");
+    /** A book over a given recipe set (tests). */
+    public PlanBook(AnvilRecipes recipes) {
+        Objects.requireNonNull(recipes, "recipes");
+        this.index = null;
+        this.fixed = () -> recipes;
     }
 
     /** The current anvil recipes, in recipe-id order. */
     public AnvilRecipes recipes() {
+        if (fixed != null) {
+            return fixed.get();
+        }
         RecipeIndex now = index.get();
         Compiled c = compiled.get();
         if (c.index() == now) {
