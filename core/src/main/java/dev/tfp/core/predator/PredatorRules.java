@@ -39,8 +39,9 @@ import dev.tfp.core.prey.Sighting;
  * </ul>
  *
  * <p>Distances are squared, as TFC compares them. The caller passes the squared distance from home.
- * Out of scope: the brain and activity priorities, the sensors, the walk and look targets, the melee attack, navigation,
- * the pack alpha and its respect, the temptation, the ram and attack sounds, and the fleeing of prey.
+ * The activity choice is {@link PredatorActivity}, the melee reach and chase {@link PredatorMelee}, the idle movement
+ * and home range {@link PredatorIdle}, the pack alpha and respect {@link PackRules}. Out of scope: the sensors,
+ * navigation, the temptation and the fleeing of prey.
  */
 public final class PredatorRules {
 
