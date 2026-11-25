@@ -6,7 +6,10 @@
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/blocks/devices/PitKilnBlock.java @ c3b4d9536 (STRAW_END, LOG_START, LOG_END,
  *       LIT, useItemOn stage checks, hasFuel, strawValue),
- *       src/main/java/net/dries007/tfc/common/blockentities/PitKilnBlockEntity.java @ c3b4d9536 (isValid, tryLight checks)
+ *       src/main/java/net/dries007/tfc/common/blockentities/PitKilnBlockEntity.java @ c3b4d9536 (isValid, tryLight checks),
+ *       src/main/java/net/dries007/tfc/common/blockentities/PlacedItemBlockEntity.java @ c3b4d9536
+ *       (convertPlacedItemToPitKiln: stage and straw slot),
+ *       src/main/java/net/dries007/tfc/client/render/blockentity/PitKilnBlockEntityRenderer.java @ c3b4d9536 (stage > 9)
  */
 package dev.tfp.core.kiln;
 
@@ -123,6 +126,79 @@ public final class PitKilnLayers {
      */
     public static boolean structureValid(boolean sidesSturdyNotFlammable, boolean baseSturdy) {
         return sidesSturdyNotFlammable && baseSturdy;
+    }
+
+    /**
+     * TFC {@code strawValue(item)}: 4 for {@code #tfc:pit_kiln_4_straw}, 1 for {@code #tfc:pit_kiln_straw}, else 0 (the
+     * 4-straw tag is checked first).
+     */
+    public static int strawValue(boolean fourStraw, boolean straw) {
+        return fourStraw ? STRAW_BUNDLE : straw ? STRAW_SINGLE : 0;
+    }
+
+    /**
+     * TFC {@code convertPlacedItemToPitKiln}: the stage of the kiln a straw item of {@code strawValue} makes from a placed
+     * item block ({@code strawValue - 1}); the straw goes into straw slot {@code stage}.
+     */
+    public static int stageFromPlaced(int strawValue) {
+        if (strawValue != STRAW_SINGLE && strawValue != STRAW_BUNDLE) {
+            throw new IllegalArgumentException("strawValue must be 1 or 4: " + strawValue);
+        }
+        return strawValue - 1;
+    }
+
+    /** TFC {@code useItemOn}: straw added at {@code stage} goes into straw slot {@code stage + strawValue}. */
+    public static int strawSlotAfterAdd(int stage, int strawValue) {
+        return stageAfterStraw(stage, strawValue);
+    }
+
+    /** TFC {@code useItemOn}: a log added at {@code stage} goes into log slot {@code stage - LOG_START + 1}. */
+    public static int logSlotAfterAdd(int stage) {
+        if (!canAddLog(stage)) {
+            throw new IllegalArgumentException("a log does not fit at stage " + stage);
+        }
+        return stage - LOG_START + 1;
+    }
+
+    /**
+     * What an empty-hand click on an unlit kiln takes (TFC {@code useItemOn} with an empty hand): from stage
+     * {@code LOG_START} up the log of log slot {@code stage - LOG_START}, which removes one stage; below it the straw of
+     * straw slot {@code stage}, which removes as many stages as its straw value (0 for an empty slot).
+     *
+     * @param log  whether a log slot is taken (else a straw slot)
+     * @param slot the log or straw slot index ({@code 0..7})
+     */
+    public record Take(boolean log, int slot) {
+    }
+
+    /** The slot an empty-hand click takes at {@code stage}; the lit kiln gives nothing (empty). */
+    public static java.util.Optional<Take> take(int stage) {
+        if (!isUnlitStage(stage)) {
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.of(stage >= LOG_START ? new Take(true, stage - LOG_START) : new Take(false, stage));
+    }
+
+    /**
+     * The stage after taking {@code stagesToRemove} stages at {@code stage}, or {@code -1} when the kiln turns back into a
+     * placed item block (TFC: {@code stage == stagesToRemove - 1}). A result below 0 that TFC would reject as a block
+     * state value also returns {@code -1}.
+     */
+    public static int stageAfterTake(int stage, int stagesToRemove) {
+        requireUnlit(stage);
+        if (stagesToRemove < 0) {
+            throw new IllegalArgumentException("stagesToRemove must be >= 0: " + stagesToRemove);
+        }
+        if (stage == stagesToRemove - 1) {
+            return -1;
+        }
+        int next = stage - stagesToRemove;
+        return next < 0 ? -1 : next;
+    }
+
+    /** TFC {@code PitKilnBlockEntityRenderer}: the contents are drawn up to stage 9 and hidden above. */
+    public static boolean contentsVisible(int stage) {
+        return stage <= 9;
     }
 
     private static void requireUnlit(int stage) {

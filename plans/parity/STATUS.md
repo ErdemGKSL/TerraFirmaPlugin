@@ -271,7 +271,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-TOOL-06 | Knife, scythe and hoe area behaviours; remaining tool items (saw, chisel, propick, tuyere, shears heads) | TOOL | 23 | done |
 | PAR-WORLD-11 | Tree generation: forest placement on every chunk, dead forests, mangroves | WORLD | 23 | open |
 | PAR-GATHER-09 | Natural logs: the branch_direction property on log and wood blocks, set by tree generation | GATHER | 24 | open |
-| PAR-POT-03 | Pit kiln: straw and log stages, lighting, lazy firing | POTTERY | 24 | open |
+| PAR-POT-03 | Pit kiln: straw and log stages, lighting, lazy firing | POTTERY | 24 | done |
 | PAR-POT-04 | Small vessel: inventory, melting contents into metal, pouring | POTTERY | 24 | done |
 | PAR-TOOL-07 | Shields per metal | TOOL | 24 | done |
 | PAR-WORLD-12 | Plant blocks: all TFC plant shapes as CE blocks in generation | WORLD | 24 | done |
@@ -458,3 +458,4 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | open |
 
 | PAR-DECO-18 | Sandstone stairs, slabs and walls and the calcite spike | DECO | 49 | open |
+| PAR-POT-14 | Pit kiln block: CraftEngine entry, hitboxes and look per stage, config keys, self-test kiln.fire, in-game check | POTTERY | 25 | open |
