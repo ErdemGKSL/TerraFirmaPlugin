@@ -74,6 +74,24 @@ public final class HitboxDemands {
     /** PAR-PROC-38: served after every other demand (adding the rack and the side states moves no other carrier). */
     static final int BARREL_SIDE_WEIGHT = -2;
 
+    /** PAR-FARM-26: TFC's soils (SoilBlockType.Variant; FarmlandBlocks checks the list) and the farmland of each. */
+    public static final List<String> FARMLAND_SOILS = List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol",
+        "podzol", "alfisol", "mollisol");
+    public static final String FARMLAND_PREFIX = "tfp:farmland/";
+    public static final String FARMLAND_APPEARANCE = "base";
+    /** PAR-FARM-26: served after every other demand (adding the farmland moves no carrier of another block). */
+    static final int FARMLAND_WEIGHT = -15;
+
+    /** PAR-FARM-26: the CE block id of the farmland of {@code soil}. */
+    public static String farmlandId(String soil) {
+        return FARMLAND_PREFIX + soil;
+    }
+
+    /** PAR-FARM-26: our model of the farmland of {@code soil} (TFC's {@code tfc:block/farmland/<soil>}, renamed). */
+    public static String farmlandModel(String soil) {
+        return "tfp:block/farmland/" + soil;
+    }
+
     /** PAR-PROC-34: the composter block, its stage-0 appearance and the compost types of TFC's {@code CompostType}. */
     public static final String COMPOSTER_ID = "tfp:composter";
     public static final String COMPOSTER_EMPTY = "empty";
@@ -581,6 +599,11 @@ public final class HitboxDemands {
                 d.add(new Demand(id, bananaPattern(stage), TfcShapes.bananaKey(stage), 0, HitboxAllocation.TRANSPARENT, true,
                     BANANA_WEIGHT));
             }
+        }
+        // PAR-FARM-26: the farmland of each soil on TFC's farmland outline (SHAPE 16 x 15 x 16), TFC's model per soil.
+        for (String soil : FARMLAND_SOILS) {
+            d.add(new Demand(farmlandId(soil), FARMLAND_APPEARANCE, "tfc:farmland", 0, farmlandModel(soil), true,
+                FARMLAND_WEIGHT));
         }
         return d;
     }
