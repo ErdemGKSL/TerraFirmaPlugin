@@ -54,14 +54,17 @@ final class VolcanoBlocks {
      * for every rock, {@code tfp:rock/magma/<rock>} for an igneous rock (TFC registers magma blocks for those only; the
      * features take magma only from igneous replacers), else null (the caller keeps its fallback: raw rock, vanilla magma).
      * Datagen's {@code VolcanicRockBlocks} fails when one of these ids is not generated.
+     * <p>
+     * PAR-WORLD-60: the non-rock kinds (air, fluids, groundcover) carry rock -1, so the rock name is read only for the two
+     * rock kinds; a rock kind without a rock also gets null (the caller's fallback) instead of refusing the chunk.
      */
     static String rockBlockId(VolcanicKind kind, int rock) {
+        if ((kind != VolcanicKind.HARDENED_ROCK && kind != VolcanicKind.MAGMA) || rock < 0 || rock >= PlaceholderRocks.count()) {
+            return null;
+        }
         final String name = PlaceholderRocks.names().get(rock);
-        return switch (kind) {
-            case HARDENED_ROCK -> "tfp:rock/hardened/" + name;
-            case MAGMA -> IGNEOUS.contains(name) ? "tfp:rock/magma/" + name : null;
-            default -> null;
-        };
+        return kind == VolcanicKind.HARDENED_ROCK ? "tfp:rock/hardened/" + name
+            : IGNEOUS.contains(name) ? "tfp:rock/magma/" + name : null;
     }
 
     /** {@link #rockBlockId(VolcanicKind, int)} of a volcanic block. */

@@ -37,4 +37,19 @@ class VolcanoRockBlocksTest {
             }
         }
     }
+
+    /**
+     * PAR-WORLD-60: the non-rock volcanic blocks (air, lava, water, groundcover) carry rock -1 ({@code VolcanoLevel.set}); the
+     * census refused every chunk holding one because the rock name was read before the kind. No rock: no CraftEngine rock id,
+     * the caller keeps its fallback.
+     */
+    @Test
+    void blocksWithoutRockHaveNoRockBlockAndDoNotThrow() {
+        for (VolcanicKind kind : VolcanicKind.values()) {
+            assertThat(VolcanoBlocks.rockBlockId(kind, -1)).as("%s", kind).isNull();
+            if (!kind.hasRock()) {
+                assertThat(VolcanoBlocks.rockBlockId(new VolcanicBlock(0, 70, 0, kind, -1, null))).as("%s", kind).isNull();
+            }
+        }
+    }
 }
