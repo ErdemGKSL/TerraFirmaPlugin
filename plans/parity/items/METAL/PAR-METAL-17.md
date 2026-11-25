@@ -32,4 +32,6 @@ done_criteria:
 
 # PAR-METAL-17: Metal weathering of copper-family blocks
 
+> Claimed: metal-17 worker, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
