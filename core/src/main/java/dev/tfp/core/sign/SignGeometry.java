@@ -49,7 +49,7 @@ public final class SignGeometry {
      * sign's centre block differs from the sign's yaw by at most 90 degrees.
      */
     public static boolean isFacingFront(float signYaw, int blockX, int blockZ, double px, double pz) {
-        double angle = Math.atan2(blockZ + 0.5 - pz, blockX + 0.5 - px) * 180.0 / Math.PI - 90.0;
+        double angle = Math.atan2(pz - (blockZ + 0.5), px - (blockX + 0.5)) * 180.0 / Math.PI - 90.0;
         return Math.abs(degreesDifference(signYaw, (float) angle)) <= 90f;
     }
 }

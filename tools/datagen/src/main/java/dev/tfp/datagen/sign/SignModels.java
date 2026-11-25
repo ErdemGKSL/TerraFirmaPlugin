@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/resources/assets/tfc/textures/entity/signs/** @ c3b4d9536 (the sign textures, copied; TFC draws the boards
+ * file: src/main/resources/assets/tfc/textures/entity/signs/** @ c3b4d9536 (the sign textures, copied; TFC draws the boards
  * with vanilla's sign block entity renderers, so the geometry below is vanilla's SignRenderer and HangingSignRenderer model
  * layers re-expressed as block model elements)
  */

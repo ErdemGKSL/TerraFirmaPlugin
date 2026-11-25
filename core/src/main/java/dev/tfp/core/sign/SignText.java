@@ -22,9 +22,14 @@ public final class SignText {
     /** Vanilla {@code SignEditScreen}: a line is at most 90 font pixels wide. */
     public static final int MAX_LINE_WIDTH = 90;
     /** The dye colours (vanilla {@code DyeColor} names); black is the default. */
-    public static final List<String> COLORS = List.of("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink",
-        "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");
+    public static final List<String> COLORS = Colors.LIST;
     public static final String DEFAULT_COLOR = "black";
+
+    /** Holder so {@link Side} does not initialise {@code SignText} (whose {@code EMPTY} needs {@code Side.EMPTY}) while it initialises. */
+    private static final class Colors {
+        static final List<String> LIST = List.of("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink",
+            "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");
+    }
 
     /** One side: its lines, the dye and the glow ink. */
     public record Side(List<String> lines, String color, boolean glowing) {
@@ -34,7 +39,7 @@ public final class SignText {
             if (lines.size() != LINES) {
                 throw new IllegalArgumentException("a sign side has " + LINES + " lines, got " + lines.size());
             }
-            if (!COLORS.contains(color)) {
+            if (!Colors.LIST.contains(color)) {
                 throw new IllegalArgumentException("unknown dye colour " + color);
             }
             lines = List.copyOf(lines);

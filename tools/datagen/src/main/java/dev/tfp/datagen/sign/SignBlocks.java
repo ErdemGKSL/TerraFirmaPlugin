@@ -4,12 +4,12 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/common/blocks/wood/Wood.java (SIGN, WALL_SIGN),
- * src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java (registerHangingSigns),
- * src/main/java/net/dries007/tfc/common/items/TFCItems.java (SIGNS, HANGING_SIGNS),
- * src/main/java/net/dries007/tfc/common/blocks/wood/TFC{StandingSign,WallSign,CeilingHangingSign,WallHangingSign}Block.java @ c3b4d9536,
- * src/generated/resources/data/minecraft/tags/block/ (the sign tag files), src/main/resources/data/tfc/loot_table/blocks/wood/ (the sign tables),
- * assets/tfc/lang/*.json and textures/entity/signs/** @ c3b4d9536 (copied)
+ * file: src/main/java/net/dries007/tfc/common/blocks/wood/Wood.java @ c3b4d9536 (SIGN, WALL_SIGN),
+ *       src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java (registerHangingSigns),
+ *       src/main/java/net/dries007/tfc/common/items/TFCItems.java (SIGNS, HANGING_SIGNS),
+ *       src/main/java/net/dries007/tfc/common/blocks/wood/TFC{StandingSign,WallSign,CeilingHangingSign,WallHangingSign}Block.java,
+ *       src/generated/resources/data/minecraft/tags/block/ (the sign tag files), src/main/resources/data/tfc/loot_table/blocks/wood/ (the sign tables),
+ *       assets/tfc/lang/*.json and textures/entity/signs/** (copied)
  */
 package dev.tfp.datagen.sign;
 

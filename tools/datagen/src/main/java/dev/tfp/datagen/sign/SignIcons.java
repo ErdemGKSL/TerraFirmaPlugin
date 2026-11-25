@@ -4,9 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/resources/assets/tfc/textures/item/wood/{sign_head,sign_head_overlay,hanging_sign_head,hanging_sign_head_overlay}.png,
- * textures/item/wood/sign/*.png, textures/item/metal/hanging_sign/*.png, textures/color_palettes/wood/{planks/palette,plank_items/*}.png,
- * assets/minecraft/atlases/blocks.json (the paletted_permutations of the sign heads) @ c3b4d9536
+ * file: src/main/resources/assets/tfc/textures/item/wood/sign_head.png @ c3b4d9536 (and the other sign_head, hanging_sign_head and overlay pngs,
+ *       textures/item/wood/sign/*.png, textures/item/metal/hanging_sign/*.png, textures/color_palettes/wood/{planks/palette,plank_items/*}.png,
+ *       assets/minecraft/atlases/blocks.json: the paletted_permutations of the sign heads)
  */
 package dev.tfp.datagen.sign;
 
