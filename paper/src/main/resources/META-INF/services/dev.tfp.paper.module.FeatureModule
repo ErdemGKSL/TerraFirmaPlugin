@@ -156,3 +156,4 @@ dev.tfp.paper.crankshaft.CrankshaftModule
 dev.tfp.paper.lobstertrap.LobsterTrapModule
 dev.tfp.paper.powerloom.PowerLoomModule
 dev.tfp.paper.weathering.WeatheringModule
+dev.tfp.paper.chest.ChestModule
