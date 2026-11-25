@@ -62,6 +62,9 @@ public final class RotationModule implements FeatureModule {
         context.services().provide(RotationService.class, networks);
         blocks.onChunkLoad(chunk -> world.chunkLoaded(chunk, index, devices));
         blocks.onChunkUnload(chunk -> world.chunkUnloaded(chunk, index));
+        // PAR-MECH-11: chunks loaded before this module enabled get no chunk load event; re-add their blocks once the server
+        // is up (CraftEngine has restored them by then).
+        scheduler.global(() -> context.plugin().getServer().getWorlds().forEach(w -> world.reAddLoaded(w, index, devices)));
     }
 
     @Override

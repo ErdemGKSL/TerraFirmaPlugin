@@ -136,6 +136,24 @@ public final class PaperRotationWorld implements RotationDevices.Ops, RotationSe
         }
     }
 
+    /**
+     * PAR-MECH-11: re-adds the blocks of every chunk of {@code world} that was already loaded when the module enabled (spawn
+     * chunks, chunks loaded before the plugin): no chunk load event reaches {@link #chunkLoaded} for them, so their blocks
+     * would join a network only at their first interaction or neighbour update. Each chunk is handled on its own region
+     * thread; a chunk that unloaded meanwhile is skipped. Any thread (it only schedules).
+     */
+    public void reAddLoaded(World world, RotationChunkIndex index, RotationDevices kinds) {
+        for (Chunk chunk : world.getLoadedChunks()) {
+            int cx = chunk.getX();
+            int cz = chunk.getZ();
+            scheduler.region(world, cx, cz, () -> {
+                if (world.isChunkLoaded(cx, cz)) {
+                    chunkLoaded(world.getChunkAt(cx, cz), index, kinds);
+                }
+            });
+        }
+    }
+
     /** TFC {@code onChunkUnloaded} REMOVE for every listed block. Region thread of the chunk. */
     public void chunkUnloaded(Chunk chunk, RotationChunkIndex index) {
         RotationService n = networks;

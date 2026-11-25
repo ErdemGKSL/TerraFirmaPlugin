@@ -247,6 +247,29 @@ class RotationMockBukkitTest extends MockServerTest {
         assertThat(report(axle).target().incoming().orElseThrow().direction()).isEqualTo(Direction.UP);
     }
 
+    /** PAR-MECH-11: blocks in chunks that were loaded before the module enabled join their network without an interaction. */
+    @Test
+    void blocksLoadedBeforeEnableAreReAdded() {
+        PaperRotationWorld paper = new PaperRotationWorld(new InlineScheduler(), blocks, () -> null, new FakeCustomItems(),
+            uid -> world);
+        paper.bind(networks, devices);
+        place(0, 64, 0, axis(RotationBlockStates.MOTOR, "y"));
+        Block axle = place(0, 65, 0, axis(AXLE, "y"));
+        // the plugin restarted: a fresh network knows nothing, the chunk (and its index) is already loaded
+        networks = new RotationService(Runnable::run, (w, pos) -> breaks.add(pos), Logger.getLogger("test"));
+        RotationService fresh = networks;
+        RotationDevices freshKinds = new RotationDevices(fresh, ops, index, s -> s.getType() == Material.BLAZE_ROD);
+        devices = new DeviceService(new DeviceKinds(), blocks, () -> store, new AtomicLong(1000)::get, StackCodec.PAPER,
+            new FakeCustomItems(), Logger.getLogger("test"));
+        assertThat(fresh.report(world.getUID(), RotationDevices.pos(axle)).join()).isEmpty();
+        world.getChunkAt(axle.getChunk().getX(), axle.getChunk().getZ()); // loaded
+        paper.bind(fresh, devices);
+        paper.reAddLoaded(world, index, freshKinds);
+        RotationService.Report r = fresh.report(world.getUID(), RotationDevices.pos(axle)).join().orElseThrow();
+        assertThat(r.network()).hasSize(2);
+        assertThat(r.target().incoming().orElseThrow().direction()).isEqualTo(Direction.UP);
+    }
+
     /** RotatingBlockEntity.destroyIfInvalid: the block drops its item and is removed; the motor drops nothing. */
     @Test
     void delayedBreakDropsTheBlock() {
