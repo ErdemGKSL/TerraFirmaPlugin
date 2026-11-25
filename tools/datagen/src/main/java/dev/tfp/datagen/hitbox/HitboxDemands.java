@@ -373,6 +373,14 @@ public final class HitboxDemands {
                 }
             }
         }
+        // PAR-PROC-06: the loom per wood and facing, hitbox-only like the sluice (the look of each wood is TFC's loom model as
+        // an item display, LoomBlock); every wood shares the carriers of one outline.
+        for (String w : BARREL_WOODS) {
+            for (String f : FACINGS) {
+                d.add(new Demand(loomId(w), f, "tfc:wood/loom[facing=" + f + "]", 0, HitboxAllocation.TRANSPARENT, true,
+                    LOOM_WEIGHT));
+            }
+        }
         // PAR-PROC-34: the composter, one outline per stage (TFC's well from max(2, stage * 2)). Every stage carries TFC's
         // bin model (one look, so stages may share a carrier); the compost of each type is an entity_renderer overlay
         // (ComposterBlock), so the 25 looks of TFC's multipart take 8 carriers at most. Stage 8 is a full cube and is no
@@ -1248,6 +1256,13 @@ public final class HitboxDemands {
     public static String barrelSideKey(String axis, boolean rack) {
         return "tfc:wood/barrel[axis=" + axis + ",rack=" + rack + "]";
     }
+
+    /** PAR-PROC-06: the loom block of {@code wood} and the weight of its demands (served after the sluice's). */
+    public static String loomId(String wood) {
+        return "tfp:wood/loom/" + wood;
+    }
+
+    static final int LOOM_WEIGHT = -18;
 
     /** PAR-PROC-13: the sluice block of {@code wood}, its appearance names and the weight (served last of all). */
     public static String sluiceId(String wood) {

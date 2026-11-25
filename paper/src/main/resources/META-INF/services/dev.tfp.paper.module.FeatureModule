@@ -127,3 +127,4 @@ dev.tfp.paper.fruittree.GenModule
 dev.tfp.paper.fruittree.SplicModule
 dev.tfp.paper.aquatic.AquaticModule
 dev.tfp.paper.plant.growth.GrowthModule
+dev.tfp.paper.loom.LoomModule

@@ -323,6 +323,38 @@
       "from": "SluiceBlock.java (ported)"
     },
     {
+      "key": "tfc:wood/loom[facing=north]",
+      "class": "loom",
+      "kind": "object",
+      "selection": [[1, 0, 8, 15, 16, 14]],
+      "collision": [[1, 0, 8, 15, 16, 14]],
+      "from": "TFCLoomBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/loom[facing=east]",
+      "class": "loom",
+      "kind": "object",
+      "selection": [[2, 0, 1, 8, 16, 15]],
+      "collision": [[2, 0, 1, 8, 16, 15]],
+      "from": "TFCLoomBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/loom[facing=south]",
+      "class": "loom",
+      "kind": "object",
+      "selection": [[1, 0, 2, 15, 16, 8]],
+      "collision": [[1, 0, 2, 15, 16, 8]],
+      "from": "TFCLoomBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/loom[facing=west]",
+      "class": "loom",
+      "kind": "object",
+      "selection": [[8, 0, 1, 14, 16, 15]],
+      "collision": [[8, 0, 1, 14, 16, 15]],
+      "from": "TFCLoomBlock.java (ported)"
+    },
+    {
       "key": "tfc:farmland",
       "class": "farmland",
       "kind": "object",

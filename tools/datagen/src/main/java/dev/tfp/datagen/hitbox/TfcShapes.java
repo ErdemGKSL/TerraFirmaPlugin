@@ -186,6 +186,24 @@ public final class TfcShapes {
                     List.of("getCollisionShape"), x -> sluice(x, f, upper)));
             }
         }
+        // PAR-PROC-06: the loom, every wood alike (TFC's one TFCLoomBlock); one row per facing.
+        for (String f : List.of("north", "east", "south", "west")) {
+            s.add(new Spec("tfc:wood/loom[facing=" + f + "]", "loom", Kind.OBJECT, List.of(B + "wood/TFCLoomBlock.java"), null,
+                null, List.of("private static final VoxelShape SHAPE_EAST = box(2, 0, 1, 8, 16, 15);",
+                    "private static final VoxelShape SHAPE_WEST = box(8, 0, 1, 14, 16, 15);",
+                    "private static final VoxelShape SHAPE_SOUTH = box(1, 0, 2, 15, 16, 8);",
+                    "private static final VoxelShape SHAPE_NORTH = box(1, 0, 8, 15, 16, 14);"),
+                List.of("getCollisionShape"), x -> {
+                    x.source(B + "wood/TFCLoomBlock.java");
+                    Shape shape = switch (f) {
+                        case "east" -> Shape.box(2, 0, 1, 8, 16, 15);
+                        case "west" -> Shape.box(8, 0, 1, 14, 16, 15);
+                        case "south" -> Shape.box(1, 0, 2, 15, 16, 8);
+                        default -> Shape.box(1, 0, 8, 15, 16, 14);
+                    };
+                    return new Shape[] {shape, shape};
+                }));
+        }
         s.add(Spec.of("tfc:farmland", "farmland", Kind.OBJECT, List.of(B + "soil/FarmlandBlock.java"), "SHAPE", "same",
             List.of("return SHAPE;"), List.of("getCollisionShape")));
         // PAR-FARM-25: the growing plant shapes (columns, kelp, kelp trees, vines, creepers, epiphytes, branching cacti) are

@@ -364,7 +364,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-04 | Spawning by climate on Paper | FAUNA | 40 | done |
 | PAR-DECO-17 | Wood workbenches: the 20 tfc:wood/workbench blocks as CE blocks that open the 3x3 crafting grid | DECO | 41 | open |
 | PAR-FAUNA-05 | Livestock: feeding, familiarity and breeding interactions | FAUNA | 41 | done |
-| PAR-PROC-06 | Loom: weaving cloth, burlap, wool, silk | PROC | 41 | open |
+| PAR-PROC-06 | Loom: weaving cloth, burlap, wool, silk | PROC | 41 | done |
 | PAR-PROC-07 | Sewing table GUI | PROC | 41 | open |
 | PAR-PROC-15 | Scribing table | PROC | 41 | open |
 | PAR-FAUNA-06 | Animal products: milk, wool, eggs; sheared look | FAUNA | 42 | done |
@@ -468,6 +468,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-20 | Verification: crops grow, die and yield in game (itest crop.grow and screenshots) | FARM | 34 | done |
 | PAR-PROC-46 | Panning in-game verification: deposit pickup, water hint, 6 s pan, small ores | PROC | 33 | open |
 | PAR-PROC-47 | Sluice in-game verification: placement of both halves, water, soil intake, loot, break | PROC | 33 | open |
+| PAR-PROC-48 | Loom in-game verification and the in-progress cloth visual | PROC | 42 | open |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | open |
 | PAR-DECO-18 | Sandstone stairs, slabs and walls and the calcite spike | DECO | 49 | open |
 | PAR-POT-14 | Pit kiln block: CraftEngine entry, hitboxes and look per stage, config keys, self-test kiln.fire, in-game check | POTTERY | 25 | open |
