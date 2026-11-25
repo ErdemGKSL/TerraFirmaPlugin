@@ -11,6 +11,8 @@
  */
 package dev.tfp.paper.pot;
 
+import dev.tfp.paper.advancement.criteria.AdvancementTriggerEvent;
+import dev.tfp.paper.advancement.criteria.CriteriaMap;
 import dev.tfp.paper.barrel.BarrelItemTanks;
 import dev.tfp.paper.device.DeviceService;
 import dev.tfp.paper.scheduler.Scheduler;
@@ -91,6 +93,7 @@ public final class PotInteractListener implements Listener {
                 lastUse.put(player.getUniqueId(), player.getTicksLived());
                 event.setCancelled(true);
                 if (conversion.toPot(clicked)) {
+                    AdvancementTriggerEvent.publish(player, CriteriaMap.POT); // TFC FIREPIT_CREATED(pot)
                     if (player.getGameMode() != GameMode.CREATIVE) {
                         PotDevice.shrink(player, event.getHand());
                     }

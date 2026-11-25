@@ -16,7 +16,10 @@ import dev.tfp.core.barrel.BarrelFluidTransfer;
 import dev.tfp.core.device.DeviceRecord;
 import dev.tfp.core.fluid.FluidTransferRules;
 import dev.tfp.core.lamp.LampData;
+import dev.tfp.core.lamp.LampFuel;
 import dev.tfp.core.lamp.LampRules;
+import dev.tfp.paper.advancement.criteria.AdvancementTriggerEvent;
+import dev.tfp.paper.advancement.criteria.CriteriaMap;
 import dev.tfp.paper.barrel.BarrelItemTanks;
 import dev.tfp.paper.device.DeviceContext;
 import dev.tfp.paper.device.DeviceHandler;
@@ -190,6 +193,9 @@ public final class LampDevice {
                 services.effects().transfer(ctx.block(), r.moved(), r.direction() == FluidTransferRules.BlockTransfer.FILL_ITEM);
                 updateHand(player, ctx.hand(), stack, container, player.getGameMode() == GameMode.CREATIVE);
                 LampData filled = LampRules.afterFill(data.withTank(r.barrel()), metal, true);
+                if (filled.lit() && LampRules.fuel(filled, metal).filter(LampFuel::endless).isPresent()) {
+                    AdvancementTriggerEvent.publish(player, CriteriaMap.LAVA_LAMP); // TFC LAVA_LAMP
+                }
                 return finish(ctx, ctx.record().withState(filled), true);
             }
             if (!tank.get().content().isEmpty()) {

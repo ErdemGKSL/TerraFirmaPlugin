@@ -74,8 +74,9 @@ class CriteriaMapTest {
                 case "minecraft:player_killed_entity" -> assertThat(kind).as(e.getKey().toString()).isEqualTo(Kind.KILL);
                 case "minecraft:location" -> assertThat(kind).as(e.getKey().toString()).isIn(Kind.BIOME, Kind.POSITION);
                 case "tfc:eat_rotten_food", "tfc:full_nutrition" -> assertThat(kind).isEqualTo(Kind.NUTRITION);
-                case "tfc:hooked_entity", "tfc:stab_entity", "tfc:present_day" ->
-                    assertThat(kind).as(e.getKey().toString()).isEqualTo(Kind.EVENT);
+                case "tfc:hooked_entity", "tfc:stab_entity", "tfc:present_day", "tfc:firepit_created", "tfc:lit",
+                    "tfc:perfectly_forged", "tfc:rock_anvil", "tfc:max_windmill", "tfc:fed_animal", "tfc:full_powderkeg",
+                    "tfc:lava_lamp" -> assertThat(kind).as(e.getKey().toString()).isEqualTo(Kind.EVENT);
                 default -> {
                     assertThat(kind).as(e.getKey().toString()).isEqualTo(Kind.PENDING);
                     assertThat(MAP.pendingTrigger(e.getKey())).contains(trigger);
@@ -163,7 +164,7 @@ class CriteriaMapTest {
     @Test
     void tfcTreeIsObtainableThroughScriptedEvents() {
         // Replay one scripted event per criterion and collect what the map awards; every advancement of the tree must end
-        // with at least one criterion it can earn, except those waiting for a feature event (PENDING, PAR-DATA-19).
+        // with at least one criterion it can earn, except those waiting for a feature event (PENDING, PAR-DATA-24).
         Set<CriterionRef> earned = new HashSet<>();
         for (Map.Entry<CriterionRef, Kind> e : MAP.kinds().entrySet()) {
             CriterionRef c = e.getKey();
@@ -185,8 +186,10 @@ class CriteriaMapTest {
                         earned.addAll(MAP.hooked("tfp:probe", (i, t) -> t.equals(tag)));
                     } else if (trigger.equals("tfc:stab_entity")) {
                         MAP.stab("tfp:rabbit", 50).ifPresent(earned::add);
-                    } else {
+                    } else if (trigger.equals("tfc:present_day")) {
                         MAP.presentDay(java.time.LocalDate.of(999, 12, 31), 0, 8).ifPresent(earned::add);
+                    } else if (MAP.publishable(c)) {
+                        earned.add(c); // PAR-DATA-23: the owning feature publishes an AdvancementTriggerEvent for it
                     }
                 }
                 default -> { }
@@ -197,6 +200,6 @@ class CriteriaMapTest {
                 assertThat(earned).as("scripted event for " + e.getKey()).contains(e.getKey());
             }
         }
-        assertThat(MAP.kinds().values().stream().filter(k -> k == Kind.PENDING).count()).isEqualTo(17);
+        assertThat(MAP.kinds().values().stream().filter(k -> k == Kind.PENDING).count()).isEqualTo(5);
     }
 }

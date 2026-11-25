@@ -15,6 +15,8 @@ import dev.tfp.core.firepit.FirepitFuels;
 import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.registry.Registries;
 import dev.tfp.core.world.BlockPos;
+import dev.tfp.paper.advancement.criteria.AdvancementTriggerEvent;
+import dev.tfp.paper.advancement.criteria.CriteriaMap;
 import dev.tfp.paper.device.DeviceService;
 import dev.tfp.paper.fire.FireStarting;
 import dev.tfp.paper.fire.FirepitFactory;
@@ -205,6 +207,7 @@ public final class FirepitModule implements FeatureModule {
                     return false;
                 }
                 device.build(at, logs, devices::neighbourChanged);
+                AdvancementTriggerEvent.publish(player, CriteriaMap.FIREPIT); // TFC FIREPIT_CREATED(firepit)
                 return true;
             }
         };

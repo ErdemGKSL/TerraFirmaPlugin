@@ -123,6 +123,38 @@ class CriteriaListenerTest extends MockServerTest {
     }
 
     @Test
+    void publishedTriggersAwardTheirCriterion() {
+        // PAR-DATA-23: one scripted event per criterion the owning features publish
+        java.util.List<CriterionRef> published = java.util.List.of(CriteriaMap.FIREPIT, CriteriaMap.GRILL, CriteriaMap.POT,
+            CriteriaMap.FORGE, CriteriaMap.PIT_KILN, CriteriaMap.POWDERKEG, CriteriaMap.FULL_POWDERKEG,
+            CriteriaMap.PERFECTLY_FORGED, CriteriaMap.STONE_ANVIL, CriteriaMap.WINDMILL, CriteriaMap.FAMILIARITY,
+            CriteriaMap.LAVA_LAMP);
+        for (CriterionRef c : published) {
+            assertThat(CriteriaMap.DEFAULT.publishable(c)).as(c.toString()).isTrue();
+            listener.onTrigger(new AdvancementTriggerEvent(player, c));
+        }
+        drain();
+        assertThat(awarded).containsExactlyInAnyOrderElementsOf(published);
+    }
+
+    @Test
+    void triggersWithTheirOwnEventsAndUnroutedCriteriaAreIgnored() {
+        listener.onTrigger(new AdvancementTriggerEvent(player, CriteriaMap.FISHING));
+        listener.onTrigger(new AdvancementTriggerEvent(player, CriterionRef.parse("tfp:story/basin_pour#special_condition")));
+        listener.onTrigger(new AdvancementTriggerEvent(player, CriterionRef.parse("tfp:story/bellows#bellows")));
+        assertThat(tasks).isEmpty();
+    }
+
+    @Test
+    void featuresPublishThroughTheBukkitEventBus() {
+        server.getPluginManager().registerEvents(listener, plugin);
+        AdvancementTriggerEvent.publish(player, CriteriaMap.STONE_ANVIL);
+        AdvancementTriggerEvent.publish(null, CriteriaMap.STONE_ANVIL); // a start without a player is a no-op
+        drain();
+        assertThat(awarded).containsExactly(CriteriaMap.STONE_ANVIL);
+    }
+
+    @Test
     void stabAndHookRulesFollowTfc() {
         assertThat(CriteriaMap.DEFAULT.stab("tfp:rabbit", 49.9)).isEmpty();
         assertThat(CriteriaMap.DEFAULT.stab("tfp:rabbit", 50)).contains(CriteriaMap.GREATEST_HUNTER);

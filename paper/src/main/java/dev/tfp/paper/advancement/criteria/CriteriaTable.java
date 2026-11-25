@@ -444,24 +444,12 @@ final class CriteriaTable {
         world/hunter special_condition #tfp:animals
         """;
 
-    /** TFC's own triggers whose feature has no event yet: follow-up {@code PAR-DATA-23} (PAR-DATA-19 wired the rest). */
+    /** TFC's own triggers whose feature has no event yet: follow-up {@code PAR-DATA-24} (PAR-DATA-19 and PAR-DATA-23 wired the rest). */
     static final String PENDING = """
         story/basin_pour special_condition tfc:basin_pour
-        story/firepit special_condition tfc:firepit_created
-        story/forge special_condition tfc:lit
-        story/grill special_condition tfc:firepit_created
-        story/perfectly_forged special_condition tfc:perfectly_forged
-        story/pit_kiln special_condition tfc:lit
-        story/pot special_condition tfc:firepit_created
         story/smooth_stone special_condition tfc:chiseled
-        story/stone_anvil special_condition tfc:rock_anvil
         story/table_pour special_condition tfc:table_pour
-        story/windmill special_condition tfc:max_windmill
-        world/familiarity special_condition tfc:fed_animal
         world/full_fertilizer special_condition tfc:full_fertilizer
-        world/full_powderkeg special_condition tfc:full_powderkeg
-        world/lava_lamp special_condition tfc:lava_lamp
-        world/powderkeg special_condition tfc:lit
         world/rotten_compost special_condition tfc:rotten_compost_kill
         """;
 }

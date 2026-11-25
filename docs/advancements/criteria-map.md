@@ -11,29 +11,18 @@ Every criterion of TFC's 115 advancements (`data/tfc/advancement/**`, 438 criter
 | position | 2 (`world/globe_trotter#high/low`) | block z >= 9999 / z <= -9999 | `PlayerMoveEvent` |
 | kill | 3 (`world/hunter`, `bear_hunter`, `glow_hunter`) | the player kills an animal (`#tfp:animals`), a bear (`#tfp:bears`) or `tfp:octopoteuthis` | `EntityDeathEvent` (species from the animal PDC) |
 | tick | 2 (`story/root`, `world/root`) | vanilla `minecraft:tick` in the datapack | none needed |
-| event | 4 (`world/fishing`, `world/advanced_fishing`, `world/greatest_hunter`, `story/the_future`) | TFC's own trigger earned from a Bukkit event (PAR-DATA-19): pulling in a hooked entity of `#tfp:small_fish` / `#tfp:needs_large_fishing_bait`, a javelin hit on a `tfp:rabbit` at >= 50 blocks horizontal, the calendar date after the real date | `PlayerFishEvent`, `EntityDamageByEntityEvent`, a once-a-minute global check of the clock |
-| pending | 17 | TFC's own trigger; the feature publishes no event yet | follow-up PAR-DATA-23 |
+| event | 16 (`world/fishing`, `world/advanced_fishing`, `world/greatest_hunter`, `story/the_future`, and the 12 PAR-DATA-23 ones below) | TFC's own trigger earned from a Bukkit event (PAR-DATA-19): pulling in a hooked entity of `#tfp:small_fish` / `#tfp:needs_large_fishing_bait`, a javelin hit on a `tfp:rabbit` at >= 50 blocks horizontal, the calendar date after the real date | `PlayerFishEvent`, `EntityDamageByEntityEvent`, a once-a-minute global check of the clock |
+| event (published) | 12 (`story/firepit`, `grill`, `pot`, `forge`, `pit_kiln`, `perfectly_forged`, `stone_anvil`, `windmill`, `world/familiarity`, `powderkeg`, `full_powderkeg`, `lava_lamp`) | PAR-DATA-23: the owning feature publishes `AdvancementTriggerEvent(player, criterion)` after its effect; `CriteriaListener` awards it at MONITOR | firepit factory, `PotInteractListener`, `GrillListener`, the charcoal forge, pit kiln and powder keg `FireLightable`s, the anvil forge screen, `AnvilListener`, `WindmillDevices`, `LivestockModule`, `PowderkegDevice.lightAt`, `LampDevice` |
+| pending | 5 | TFC's own trigger; the feature publishes no event yet | follow-up PAR-DATA-24 |
 
-## Pending criteria (follow-up PAR-DATA-23)
+## Pending criteria (follow-up PAR-DATA-24)
 
 | Criterion | TFC trigger |
 |---|---|
 | `tfp:story/basin_pour#special_condition` | `tfc:basin_pour` |
-| `tfp:story/firepit#special_condition` | `tfc:firepit_created` |
-| `tfp:story/forge#special_condition` | `tfc:lit` |
-| `tfp:story/grill#special_condition` | `tfc:firepit_created` |
-| `tfp:story/perfectly_forged#special_condition` | `tfc:perfectly_forged` |
-| `tfp:story/pit_kiln#special_condition` | `tfc:lit` |
-| `tfp:story/pot#special_condition` | `tfc:firepit_created` |
 | `tfp:story/smooth_stone#special_condition` | `tfc:chiseled` |
-| `tfp:story/stone_anvil#special_condition` | `tfc:rock_anvil` |
 | `tfp:story/table_pour#special_condition` | `tfc:table_pour` |
-| `tfp:story/windmill#special_condition` | `tfc:max_windmill` |
-| `tfp:world/familiarity#special_condition` | `tfc:fed_animal` |
 | `tfp:world/full_fertilizer#special_condition` | `tfc:full_fertilizer` |
-| `tfp:world/full_powderkeg#special_condition` | `tfc:full_powderkeg` |
-| `tfp:world/lava_lamp#special_condition` | `tfc:lava_lamp` |
-| `tfp:world/powderkeg#special_condition` | `tfc:lit` |
 | `tfp:world/rotten_compost#special_condition` | `tfc:rotten_compost_kill` |
 
 ## Inventory rows

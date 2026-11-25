@@ -12,6 +12,8 @@
 package dev.tfp.paper.anvil;
 
 import dev.tfp.core.anvil.AnvilPlacement;
+import dev.tfp.paper.advancement.criteria.AdvancementTriggerEvent;
+import dev.tfp.paper.advancement.criteria.CriteriaMap;
 import dev.tfp.paper.device.DeviceService;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
@@ -150,6 +152,7 @@ public final class AnvilListener implements Listener {
             return false;
         }
         player.swingHand(event.getHand());
+        AdvancementTriggerEvent.publish(player, CriteriaMap.STONE_ANVIL); // TFC ROCK_ANVIL
         return true;
     }
 

@@ -18,6 +18,8 @@ import dev.tfp.core.kiln.PitKilnRules;
 import dev.tfp.core.kiln.PitKilnState;
 import dev.tfp.core.placed.PlacedState;
 import dev.tfp.core.world.BlockPos;
+import dev.tfp.paper.advancement.criteria.AdvancementTriggerEvent;
+import dev.tfp.paper.advancement.criteria.CriteriaMap;
 import dev.tfp.paper.catchup.CatchUpModule;
 import dev.tfp.paper.catchup.CatchUpService;
 import dev.tfp.paper.device.DeviceKind;
@@ -91,8 +93,13 @@ public final class PitKilnModule implements FeatureModule {
             new PaperKilnEffects(() -> context.integrations().blockVisuals()), contents, clock, scheduler));
         DeviceKind<PitKilnState> kind = devices.register(PitKilnDevice.kind(contents, kilns::later, clock));
         kilns.kind(kind);
-        context.services().get(FireStarting.class).ifPresent(fire -> fire.register(ctx -> ctx.strong()
-            && kilns.stageAt(ctx.block()) == PitKilnLayers.LOG_END && kilns.tryLight(ctx.block())));
+        context.services().get(FireStarting.class).ifPresent(fire -> fire.register(ctx -> {
+            boolean lit = ctx.strong() && kilns.stageAt(ctx.block()) == PitKilnLayers.LOG_END && kilns.tryLight(ctx.block());
+            if (lit) {
+                AdvancementTriggerEvent.publish(ctx.player(), CriteriaMap.PIT_KILN); // TFC LIT(pit_kiln)
+            }
+            return lit;
+        }));
         context.listen(new PitKilnListener(kilns, blocks, scheduler));
         Optional<CatchUpService> catchUp = context.services().get(CatchUpService.class);
         blocks.onChunkLoad(chunk -> catchUp.ifPresent(c -> chunkLoaded(chunk, c, kilns, scheduler)));

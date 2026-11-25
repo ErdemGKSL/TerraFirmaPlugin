@@ -14,9 +14,12 @@
 package dev.tfp.paper.powderkeg;
 
 import dev.tfp.core.device.DeviceRecord;
+import dev.tfp.core.device.ItemBlob;
 import dev.tfp.core.powderkeg.PowderkegConfig;
 import dev.tfp.core.powderkeg.PowderkegRules;
 import dev.tfp.core.powderkeg.PowderkegState;
+import dev.tfp.paper.advancement.criteria.AdvancementTriggerEvent;
+import dev.tfp.paper.advancement.criteria.CriteriaMap;
 import dev.tfp.paper.device.DeviceContext;
 import dev.tfp.paper.device.DeviceHandler;
 import dev.tfp.paper.device.DeviceKind;
@@ -134,14 +137,26 @@ public final class PowderkegDevice {
     public static boolean lightAt(DeviceService devices, DeviceKind<PowderkegState> kind, Block block, Player igniter,
             Predicate<PowderkegState> when, Services services) {
         boolean[] lit = {false};
+        boolean[] full = {false};
         Optional<DeviceRecord<PowderkegState>> stored = devices.edit(block, kind, (record, now) -> {
             if (!when.test(record.state())) {
                 return record;
             }
             DeviceRecord<PowderkegState> next = light(record, now, block, igniter, services);
             lit[0] = next != null;
+            if (next != null && igniter != null) {
+                // TFC setLit: a player igniter of a keg at MAX_STRENGTH earns FULL_POWDERKEG
+                int count = 0;
+                for (ItemBlob blob : record.slots()) {
+                    count += devices.stacks().decode(blob).getAmount();
+                }
+                full[0] = services.config().strength(count) >= PowderkegRules.MAX_STRENGTH;
+            }
             return next == null ? record : next;
         });
+        if (full[0]) {
+            AdvancementTriggerEvent.publish(igniter, CriteriaMap.FULL_POWDERKEG);
+        }
         return stored.isPresent() && lit[0];
     }
 

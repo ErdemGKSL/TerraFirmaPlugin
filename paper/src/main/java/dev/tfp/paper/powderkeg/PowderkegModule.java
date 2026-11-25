@@ -18,6 +18,8 @@ import dev.tfp.core.item.ItemWeight;
 import dev.tfp.core.powderkeg.PowderkegConfig;
 import dev.tfp.core.powderkeg.PowderkegState;
 import dev.tfp.core.world.BlockPos;
+import dev.tfp.paper.advancement.criteria.AdvancementTriggerEvent;
+import dev.tfp.paper.advancement.criteria.CriteriaMap;
 import dev.tfp.paper.catchup.CatchUpModule;
 import dev.tfp.paper.catchup.CatchUpService;
 import dev.tfp.paper.device.DeviceKind;
@@ -114,8 +116,14 @@ public final class PowderkegModule implements FeatureModule {
             context.listen(screens);
             hook = devices.hook(PowderkegDevice.ID, new ScreenSync(screens, scheduler));
         }
-        context.services().get(FireStarting.class).ifPresent(fire -> fire.register(ctx -> isKeg(blocks, ctx.block())
-            && PowderkegDevice.lightAt(devices, kind, ctx.block(), ctx.player(), s -> s.lightsFromFire(ctx.strong()), services)));
+        context.services().get(FireStarting.class).ifPresent(fire -> fire.register(ctx -> {
+            boolean lit = isKeg(blocks, ctx.block())
+                && PowderkegDevice.lightAt(devices, kind, ctx.block(), ctx.player(), s -> s.lightsFromFire(ctx.strong()), services);
+            if (lit) {
+                AdvancementTriggerEvent.publish(ctx.player(), CriteriaMap.POWDERKEG); // TFC LIT(powderkeg)
+            }
+            return lit;
+        }));
         Optional<CatchUpService> catchUp = context.services().get(CatchUpService.class);
         blocks.onChunkLoad(chunk -> catchUp.ifPresent(c -> chunkLoaded(chunk, c, blocks, devices, scheduler)));
         sizes.ifPresent(s -> sizer = s.register(id -> id.equals(PowderkegDevice.ID),

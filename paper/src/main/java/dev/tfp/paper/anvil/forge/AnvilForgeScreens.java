@@ -24,6 +24,9 @@ import dev.tfp.core.forge.AnvilScreenLayout;
 import dev.tfp.core.forge.ForgeRule;
 import dev.tfp.core.forge.ForgeStep;
 import dev.tfp.core.forge.ForgeSteps;
+import dev.tfp.core.tool.ForgingQuality;
+import dev.tfp.paper.advancement.criteria.AdvancementTriggerEvent;
+import dev.tfp.paper.advancement.criteria.CriteriaMap;
 import dev.tfp.paper.anvil.AnvilDevice;
 import dev.tfp.paper.anvil.AnvilEffects;
 import dev.tfp.paper.anvil.plan.AnvilPlanScreens;
@@ -366,6 +369,9 @@ public final class AnvilForgeScreens {
                 0.4f, 1.0f);
             case REFUSED -> {
             }
+        }
+        if (o.result() == AnvilForger.Result.COMPLETED && o.bonus() == ForgingQuality.PERFECT) {
+            AdvancementTriggerEvent.publish(viewer, CriteriaMap.PERFECTLY_FORGED); // TFC PERFECTLY_FORGED
         }
         if (o.result() != AnvilForger.Result.REFUSED) {
             effects.show(screen.block, view(screen, after.get()));

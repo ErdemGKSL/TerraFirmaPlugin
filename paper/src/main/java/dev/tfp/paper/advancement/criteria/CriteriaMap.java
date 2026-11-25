@@ -43,9 +43,12 @@ public final class CriteriaMap {
         NUTRITION,
         /** A tab root: the datapack keeps {@code minecraft:tick}, nothing to award. */
         TICK,
-        /** TFC's own trigger earned from a Bukkit event (PAR-DATA-19): {@link #hooked}, {@link #stab}, {@link #presentDay}. */
+        /**
+         * TFC's own trigger earned from a Bukkit event: {@link #hooked}, {@link #stab}, {@link #presentDay} (PAR-DATA-19) and
+         * the {@link AdvancementTriggerEvent} the owning features publish (PAR-DATA-23, {@link #publishable}).
+         */
         EVENT,
-        /** TFC's own trigger whose feature has no event yet (follow-up PAR-DATA-23). */
+        /** TFC's own trigger whose feature has no event yet (follow-up PAR-DATA-24). */
         PENDING
     }
 
@@ -62,6 +65,19 @@ public final class CriteriaMap {
     public static final CriterionRef ADVANCED_FISHING = CriterionRef.parse("tfp:world/advanced_fishing#special_condition");
     public static final CriterionRef GREATEST_HUNTER = CriterionRef.parse("tfp:world/greatest_hunter#special_condition");
     public static final CriterionRef THE_FUTURE = CriterionRef.parse("tfp:story/the_future#special_condition");
+    /** PAR-DATA-23: the criteria the owning features earn by publishing an {@link AdvancementTriggerEvent}. */
+    public static final CriterionRef FIREPIT = CriterionRef.parse("tfp:story/firepit#special_condition");
+    public static final CriterionRef GRILL = CriterionRef.parse("tfp:story/grill#special_condition");
+    public static final CriterionRef POT = CriterionRef.parse("tfp:story/pot#special_condition");
+    public static final CriterionRef FORGE = CriterionRef.parse("tfp:story/forge#special_condition");
+    public static final CriterionRef PIT_KILN = CriterionRef.parse("tfp:story/pit_kiln#special_condition");
+    public static final CriterionRef POWDERKEG = CriterionRef.parse("tfp:world/powderkeg#special_condition");
+    public static final CriterionRef FULL_POWDERKEG = CriterionRef.parse("tfp:world/full_powderkeg#special_condition");
+    public static final CriterionRef PERFECTLY_FORGED = CriterionRef.parse("tfp:story/perfectly_forged#special_condition");
+    public static final CriterionRef STONE_ANVIL = CriterionRef.parse("tfp:story/stone_anvil#special_condition");
+    public static final CriterionRef WINDMILL = CriterionRef.parse("tfp:story/windmill#special_condition");
+    public static final CriterionRef FAMILIARITY = CriterionRef.parse("tfp:world/familiarity#special_condition");
+    public static final CriterionRef LAVA_LAMP = CriterionRef.parse("tfp:world/lava_lamp#special_condition");
     /** {@code world/fishing} tag of the hooked entity. */
     public static final String SMALL_FISH_TAG = "tfp:small_fish";
     /** {@code world/advanced_fishing} tag of the hooked entity. */
@@ -70,6 +86,9 @@ public final class CriteriaMap {
     public static final String STAB_TARGET = "tfp:rabbit";
     /** {@code world/greatest_hunter}: the minimum horizontal distance of the stab, in blocks. */
     public static final double STAB_DISTANCE = 50;
+
+    /** The EVENT criteria earned from their own Bukkit events, never by a published {@link AdvancementTriggerEvent}. */
+    private static final Set<CriterionRef> SPECIAL = Set.of(FISHING, ADVANCED_FISHING, GREATEST_HUNTER, THE_FUTURE);
 
     private static final Set<CriterionRef> ROOTS = Set.of(
         CriterionRef.parse("tfp:story/root#in_game_condition"), CriterionRef.parse("tfp:world/root#in_game_condition"));
@@ -119,7 +138,8 @@ public final class CriteriaMap {
             put(c, Kind.PENDING);
             pending.put(c, r[2]);
         }
-        for (CriterionRef c : List.of(FISHING, ADVANCED_FISHING, GREATEST_HUNTER, THE_FUTURE)) {
+        for (CriterionRef c : List.of(FISHING, ADVANCED_FISHING, GREATEST_HUNTER, THE_FUTURE, FIREPIT, GRILL, POT, FORGE,
+                PIT_KILN, POWDERKEG, FULL_POWDERKEG, PERFECTLY_FORGED, STONE_ANVIL, WINDMILL, FAMILIARITY, LAVA_LAMP)) {
             put(c, Kind.EVENT);
         }
         put(GLOBE_HIGH, Kind.POSITION);
@@ -159,6 +179,11 @@ public final class CriteriaMap {
     /** The route of {@code criterion}, empty for a criterion TFC does not have. */
     public Optional<Kind> kind(CriterionRef criterion) {
         return Optional.ofNullable(kinds.get(criterion));
+    }
+
+    /** Whether a feature may earn {@code criterion} by publishing an {@link AdvancementTriggerEvent}. */
+    public boolean publishable(CriterionRef criterion) {
+        return kinds.get(criterion) == Kind.EVENT && !SPECIAL.contains(criterion);
     }
 
     /** The TFC trigger a {@link Kind#PENDING} criterion waits for (e.g. {@code tfc:lit}), empty for the others. */

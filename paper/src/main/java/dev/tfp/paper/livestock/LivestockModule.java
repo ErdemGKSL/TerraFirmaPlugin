@@ -12,9 +12,13 @@ package dev.tfp.paper.livestock;
 import dev.tfp.core.animal.AnimalRecord;
 import dev.tfp.core.animal.Carrier;
 import dev.tfp.core.clock.ClockSnapshot;
+import dev.tfp.core.livestock.AnimalState;
+import dev.tfp.core.livestock.LivestockAge;
 import dev.tfp.core.livestock.LivestockRules;
 import dev.tfp.core.livestock.LivestockSpecies;
 import dev.tfp.paper.TfpPlugin;
+import dev.tfp.paper.advancement.criteria.AdvancementTriggerEvent;
+import dev.tfp.paper.advancement.criteria.CriteriaMap;
 import dev.tfp.paper.animal.AnimalPdc;
 import dev.tfp.paper.animal.AnimalService;
 import dev.tfp.paper.module.FeatureModule;
@@ -91,6 +95,12 @@ public final class LivestockModule implements FeatureModule, Listener {
             held.subtract(1);
         }
         hint(player, "livestock.fed");
+        // TFC FED_ANIMAL: only when the feeding raised the familiarity (a child, or an adult below its cap)
+        AnimalState caught = LivestockRules.catchUp(record.get().state(), now.playerTicks());
+        if (LivestockRules.ageAt(caught, species.get(), now.playerTicks()) == LivestockAge.CHILD
+                || caught.familiarity() < species.get().familiarityCap()) {
+            AdvancementTriggerEvent.publish(player, CriteriaMap.FAMILIARITY);
+        }
     }
 
     private void hint(Player player, String key) {

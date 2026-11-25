@@ -22,6 +22,8 @@ import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.heat.HeatState;
 import dev.tfp.core.registry.Registries;
 import dev.tfp.core.vessel.FluidAmount;
+import dev.tfp.paper.advancement.criteria.AdvancementTriggerEvent;
+import dev.tfp.paper.advancement.criteria.CriteriaMap;
 import dev.tfp.paper.alloy.AlloyRecipes;
 import dev.tfp.paper.crucible.CrucibleMolds;
 import dev.tfp.paper.recipe.Recipes;
@@ -131,8 +133,18 @@ public final class CharcoalForgeModule implements FeatureModule {
         ctx.services().provide(CharcoalForgeDevice.class, d);
         d.structure(block -> valid(block, tg, sch)); // PAR-METAL-09: the multiblock scan on every callback and neighbour change
         installScreen(ctx, devs, d, sch);
-        ctx.services().get(FireStarting.class).ifPresent(fire -> fire.register(fc -> fc.strong()
-            && lightable(blocks, devs, d, tg, sch, fc.block())));
+        ctx.services().get(FireStarting.class).ifPresent(fire -> fire.register(fc -> {
+            if (!fc.strong()) {
+                return false;
+            }
+            // TFC LIT(state): the state at the click, so only lighting a built forge counts, not making one from the pile
+            boolean forge = blocks.stateAt(fc.block()).map(BlockStateRef::id).filter(CharcoalForgeDevice.ID::equals).isPresent();
+            boolean lit = lightable(blocks, devs, d, tg, sch, fc.block());
+            if (lit && forge) {
+                AdvancementTriggerEvent.publish(fc.player(), CriteriaMap.FORGE);
+            }
+            return lit;
+        }));
         Optional<CatchUpService> catchUp = ctx.services().get(CatchUpService.class);
         blocks.onChunkLoad(chunk -> catchUp.ifPresent(c -> chunkLoaded(chunk, c, blocks, devs, sch)));
         ctx.listen(new ForgeDropListener(blocks, devs, sch));

@@ -9,6 +9,8 @@
  */
 package dev.tfp.paper.grill;
 
+import dev.tfp.paper.advancement.criteria.AdvancementTriggerEvent;
+import dev.tfp.paper.advancement.criteria.CriteriaMap;
 import dev.tfp.paper.firepit.FirepitDevice;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.integration.CustomItems;
@@ -86,6 +88,7 @@ public final class GrillListener implements Listener {
             return;
         }
         lastConverted.put(player.getUniqueId(), player.getTicksLived());
+        AdvancementTriggerEvent.publish(player, CriteriaMap.GRILL); // TFC FIREPIT_CREATED(grill)
         if (player.getGameMode() != GameMode.CREATIVE) {
             ItemStack rest = held.clone();
             rest.setAmount(held.getAmount() - 1);

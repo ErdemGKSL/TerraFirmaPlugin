@@ -15,6 +15,8 @@ import dev.tfp.core.power.ShaftAxis;
 import dev.tfp.core.power.Windmill;
 import dev.tfp.core.windmill.WindmillBlades;
 import dev.tfp.core.windmill.WindmillSample;
+import dev.tfp.paper.advancement.criteria.AdvancementTriggerEvent;
+import dev.tfp.paper.advancement.criteria.CriteriaMap;
 import dev.tfp.paper.device.DeviceContext;
 import dev.tfp.paper.device.DeviceHandler;
 import dev.tfp.paper.device.DeviceInventory;
@@ -149,7 +151,11 @@ public final class WindmillDevices {
                 }
             }
             DeviceRecord<WindmillSample> next = inventory.record();
-            update(ctx.block(), ctx.state(), filled(next));
+            int filled = filled(next);
+            update(ctx.block(), ctx.state(), filled);
+            if (click == WindmillBlades.Click.INSERT && filled == Windmill.SLOTS) {
+                AdvancementTriggerEvent.publish(player, CriteriaMap.WINDMILL); // TFC MAX_WINDMILL
+            }
             return DeviceResult.consume(next);
         }
 

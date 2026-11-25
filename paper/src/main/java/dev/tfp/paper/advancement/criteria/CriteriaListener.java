@@ -43,6 +43,8 @@ import org.bukkit.inventory.ItemStack;
  * fully nourishing meal, killing animals, and standing in a biome or beyond 9999 blocks of the equator. Criteria whose
  * feature publishes no event yet stay {@link CriteriaMap.Kind#PENDING}. PAR-DATA-19 adds the Bukkit-event ones:
  * fishing hooks ({@code hooked_entity}), javelin hits ({@code stab_entity}) and the calendar passing the real date.
+ * PAR-DATA-23 adds the {@link AdvancementTriggerEvent} the owning features publish (firepit, grill, pot, forge, pit
+ * kiln, powder keg, perfect forging, rock anvil, windmill, fed animal, lava lamp).
  *
  * <p>Game modes: as vanilla, advancements are earned in every game mode (spectators cannot pick up or eat, but walk).
  *
@@ -183,6 +185,14 @@ public final class CriteriaListener implements Listener {
                 }
             }
         });
+    }
+
+    /** PAR-DATA-23: a feature says the player did what a TFC trigger watches ({@code TFCAdvancements.X.trigger}). */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onTrigger(AdvancementTriggerEvent event) {
+        if (map.publishable(event.criterion())) {
+            advancements.fire(event.getPlayer(), event.criterion());
+        }
     }
 
     @EventHandler
