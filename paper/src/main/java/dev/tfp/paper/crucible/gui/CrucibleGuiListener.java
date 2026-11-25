@@ -22,7 +22,7 @@ import org.bukkit.inventory.ItemStack;
 /**
  * PAR-METAL-12: the crucible screen's slot limits and sync. A click that places a stack onto a one-item slot puts one item
  * in and leaves the rest on the cursor; a swap with a bigger cursor stack is refused. After a shift-click into the screen
- * the excess goes back at once; after any click or drag {@link CrucibleScreens#touched} queues the commit. Viewer thread.
+ * the excess goes back at once; a shift-click on a molten mold in an input slot makes it pour fast (TFC's shift over a mold); after any click or drag {@link CrucibleScreens#touched} queues the commit. Viewer thread.
  */
 public final class CrucibleGuiListener implements Listener {
     private final CrucibleScreens screens;
@@ -40,6 +40,10 @@ public final class CrucibleGuiListener implements Listener {
         int raw = e.getRawSlot();
         int tfc = raw >= 0 && raw < e.getView().getTopInventory().getSize() ? CrucibleScreenLayout.tfcSlot(raw) : -1;
         if (tfc < 0) {
+            return;
+        }
+        if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY && screens.pourFaster(session, tfc)) {
+            e.setCancelled(true); // a shift-click on a molten mold speeds its pour instead of taking it out
             return;
         }
         int limit = CrucibleScreenLayout.limit(tfc);

@@ -98,6 +98,20 @@ public final class CrucibleScreenLink implements CrucibleLink {
         return env.device().isItemValid(tfcSlot, stack);
     }
 
+    @Override
+    public Optional<CrucibleSnapshot> pourFaster(int tfcSlot) {
+        if (!owned()) {
+            return Optional.empty();
+        }
+        boolean[] set = {false};
+        Optional<DeviceRecord<CrucibleData>> r = env.devices().edit(block, env.kind(), (record, now) -> {
+            DeviceRecord<CrucibleData> faster = env.device().pourFaster(record, tfcSlot);
+            set[0] = faster != null;
+            return faster == null ? record : faster;
+        });
+        return set[0] ? r.map(this::snapshotOf) : Optional.empty();
+    }
+
     /** The ten slots stored. */
     static DeviceRecord<CrucibleData> withSlots(DeviceRecord<CrucibleData> record, List<ItemStack> slots, StackCodec stacks) {
         for (int i = 0; i < CrucibleDevice.SLOTS; i++) {

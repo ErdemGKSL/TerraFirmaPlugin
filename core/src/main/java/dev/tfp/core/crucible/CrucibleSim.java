@@ -154,9 +154,9 @@ public final class CrucibleSim {
                 }
             }
             if (!melted.isEmpty()) {
-                return new Result(new CrucibleData(temperature, alloy), heats, t, List.copyOf(melted));
+                return new Result(new CrucibleData(temperature, alloy, data.pour()), heats, t, List.copyOf(melted));
             }
         }
-        return new Result(new CrucibleData(temperature, alloy), heats, to, List.of());
+        return new Result(new CrucibleData(temperature, alloy, data.pour()), heats, to, List.of());
     }
 }

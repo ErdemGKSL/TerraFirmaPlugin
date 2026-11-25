@@ -156,6 +156,24 @@ public final class CrucibleScreens {
         viewer(key).ifPresent(this::flush);
     }
 
+    /**
+     * TFC's shift over a mold (PourFasterPacket): the molten mold in input {@code tfcSlot} of {@code session} pours fast for
+     * the next units. Commits the copy first. Returns whether the slot held a molten mold. Viewer thread.
+     */
+    boolean pourFaster(GuiSession session, int tfcSlot) {
+        Screen screen = state(session);
+        if (screen == null || session.closed() || screen.crucible == null || tfcSlot < 0 || tfcSlot >= CrucibleScreenLayout.SLOT_OUTPUT) {
+            return false;
+        }
+        flush(session);
+        if (session.closed() || screen.crucible == null) {
+            return false;
+        }
+        Optional<CrucibleSnapshot> after = screen.link.pourFaster(tfcSlot);
+        after.ifPresent(a -> apply(session, screen, a));
+        return after.isPresent();
+    }
+
     /** Re-reads crucible {@code key} into its open screen (if any). Viewer thread. */
     public void reload(Object key) {
         viewer(key).ifPresent(this::reload);

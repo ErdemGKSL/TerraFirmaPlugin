@@ -33,6 +33,8 @@ import dev.tfp.paper.integration.CustomItems;
 import dev.tfp.paper.module.DebugTree;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
+import dev.tfp.paper.mold.MoldItems;
+import dev.tfp.paper.recipe.Recipes;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tags.Tags;
 import dev.tfp.paper.tooltip.TooltipStyles;
@@ -63,6 +65,8 @@ public final class CrucibleModule implements FeatureModule {
     /** The heat sources whose block below a crucible is brought up to date before the crucible is read. */
     static final Set<String> SOURCES = Set.of("tfp:firebox", "tfp:charcoal_forge");
     static final double REACH = 6.0;
+    /** TFC {@code FoodTraits.BURNT_TO_A_CRISP}, ours: what a crucible leaves of melted food. */
+    static final String BURNT_TO_A_CRISP = "tfp:burnt_to_a_crisp";
 
     private volatile AutoCloseable consumer;
     private volatile AutoCloseable hook;
@@ -103,10 +107,14 @@ public final class CrucibleModule implements FeatureModule {
                     p -> ctx.messages().get(p, "gui.crucible.title"));
             }
         }, () -> { });
+        Recipes recipes = ctx.services().require(Recipes.class);
+        CrucibleMolds molds = CrucibleMolds.lazy(() -> ctx.services().get(MoldItems.class), alloys);
         CrucibleDevice d = new CrucibleDevice(new CrucibleDevice.Services(
-            ItemHeatHooks.Capacities.byId(tags::itemId, definitions), CrucibleDevice.Heating.of(heating), HeatConfig.DEFAULT, CrucibleRules.DEFAULT_CAPACITY,
-            stack -> false, // the output slot takes containers once the molds exist (follow-up)
-            open, block -> heatBelow(blocks, devs, block)), devs.stacks());
+            ItemHeatHooks.Capacities.byId(tags::itemId, definitions),
+            CrucibleDevice.Heating.of(heating, stack -> recipes.modifiers().addTrait(stack, BURNT_TO_A_CRISP)),
+            HeatConfig.DEFAULT, CrucibleRules.DEFAULT_CAPACITY,
+            molds::isMold, // TFC: the output slot takes what has a fluid handler; ours the fired molds
+            open, block -> heatBelow(blocks, devs, block), molds), devs.stacks());
         holder[0] = d;
         devs.register(d.kind());
         try {
@@ -116,6 +124,7 @@ public final class CrucibleModule implements FeatureModule {
             ctx.logger().warning("crucible: " + e.getMessage());
         }
         ctx.listen(new CrucibleGuiListener(s));
+        ctx.listen(new CrucibleDrops(ctx.integrations().customItems()));
         hook = devs.hook(CrucibleDevice.ID, new ScreenSync(s, sch));
         ctx.services().provide(CrucibleScreens.class, s);
         this.device = d;

@@ -29,6 +29,14 @@ public interface CrucibleLink {
     /** TFC {@code isItemValid(slot, stack)}: a heatable item, the output only a container. */
     boolean isItemValid(int tfcSlot, ItemStack stack);
 
+    /**
+     * TFC {@code PourFasterPacket}: the viewer asks the molten mold in input {@code tfcSlot} to pour fast. Returns the
+     * crucible after the call, or empty when the slot holds no molten mold (or the crucible is gone).
+     */
+    default Optional<CrucibleSnapshot> pourFaster(int tfcSlot) {
+        return Optional.empty();
+    }
+
     /** The screen closed (after its last commit). */
     default void closed(Player viewer) {
     }

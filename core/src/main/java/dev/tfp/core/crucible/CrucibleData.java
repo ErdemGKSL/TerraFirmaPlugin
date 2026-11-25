@@ -24,8 +24,9 @@ import java.util.Objects;
  *
  * @param temperature TFC {@code temperature}, {@code targetTemperature} and {@code targetTemperatureStabilityTicks}
  * @param alloy       TFC {@code CrucibleInventory.alloy}
+ * @param pour        PAR-METAL-23: TFC {@code lastFillTicks}, {@code fastPourTicks} and {@code fastPourSlot}
  */
-public record CrucibleData(CrucibleTemperature temperature, FluidAlloy alloy) {
+public record CrucibleData(CrucibleTemperature temperature, FluidAlloy alloy, CrucibleRules.Pour pour) {
     /** A new crucible: cold and empty. */
     public static final CrucibleData FRESH = new CrucibleData(CrucibleTemperature.COLD, FluidAlloy.empty());
 
@@ -39,6 +40,9 @@ public record CrucibleData(CrucibleTemperature temperature, FluidAlloy alloy) {
                 .putFloat("target", d.temperature().target())
                 .putInt("stability", d.temperature().stabilityTicks())
                 .putInt("alloyAmount", d.alloy().amount())
+                .putInt("pourWait", d.pour().lastFillTicks())
+                .putInt("fastTicks", d.pour().fastPourTicks())
+                .putInt("fastSlot", d.pour().fastPourSlot())
                 .putList("alloy", entries);
         }, in -> {
             Map<String, Double> content = new LinkedHashMap<>();
@@ -46,20 +50,32 @@ public record CrucibleData(CrucibleTemperature temperature, FluidAlloy alloy) {
                 content.merge(e.getString("fluid", ""), e.getDouble("amount", 0d), Double::sum);
             }
             return new CrucibleData(new CrucibleTemperature(in.getFloat("temperature", 0f), in.getFloat("target", 0f),
-                Math.max(0, in.getInt("stability", 0))), FluidAlloy.of(in.getInt("alloyAmount", 0), content));
+                Math.max(0, in.getInt("stability", 0))), FluidAlloy.of(in.getInt("alloyAmount", 0), content),
+                new CrucibleRules.Pour(Math.max(0, in.getInt("pourWait", 0)), in.getInt("fastTicks", 0),
+                    Math.max(0, in.getInt("fastSlot", 0))));
         });
 
     public CrucibleData {
         Objects.requireNonNull(temperature, "temperature");
         Objects.requireNonNull(alloy, "alloy");
+        Objects.requireNonNull(pour, "pour");
+    }
+
+    /** A crucible that is not pouring. */
+    public CrucibleData(CrucibleTemperature temperature, FluidAlloy alloy) {
+        this(temperature, alloy, CrucibleRules.Pour.IDLE);
     }
 
     public CrucibleData withTemperature(CrucibleTemperature value) {
-        return new CrucibleData(value, alloy);
+        return new CrucibleData(value, alloy, pour);
     }
 
     public CrucibleData withAlloy(FluidAlloy value) {
-        return new CrucibleData(temperature, value);
+        return new CrucibleData(temperature, value, pour);
+    }
+
+    public CrucibleData withPour(CrucibleRules.Pour value) {
+        return new CrucibleData(temperature, alloy, value);
     }
 
     /** The crucible's temperature now. */

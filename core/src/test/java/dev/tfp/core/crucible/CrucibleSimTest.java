@@ -122,6 +122,14 @@ class CrucibleSimTest {
     }
 
     @Test
+    void thePouringStateRoundTripsAndSurvivesAReplay() {
+        CrucibleData d = CrucibleData.FRESH.withPour(new CrucibleRules.Pour(3, 17, 4));
+        assertThat(CrucibleData.CODEC.decode(CrucibleData.CODEC.encode(d)).pour()).isEqualTo(d.pour());
+        CrucibleSim.Result r = CrucibleSim.advance(d, 0, 50, List.of(), inputs(copper(0)), 4000, DEVICE, HEAT);
+        assertThat(r.data().pour()).isEqualTo(d.pour());
+    }
+
+    @Test
     void thePluginsNamespaceOfAMetalMeltsLikeTfcs() {
         assertThat(CrucibleRules.meltTemperature("tfp:metal/copper")).isEqualTo(CrucibleRules.meltTemperature("tfc:metal/copper"));
         assertThat(CrucibleRules.fill(dev.tfp.core.alloy.FluidAlloy.empty(), "tfp:metal/copper", 10, 4000).accepted()).isEqualTo(10);

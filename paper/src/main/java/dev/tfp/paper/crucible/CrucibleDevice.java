@@ -12,6 +12,7 @@
  */
 package dev.tfp.paper.crucible;
 
+import dev.tfp.core.alloy.FluidAlloy;
 import dev.tfp.core.cooking.FirepitRules;
 import dev.tfp.core.crucible.CrucibleData;
 import dev.tfp.core.crucible.CrucibleRecipe;
@@ -21,6 +22,7 @@ import dev.tfp.core.device.DeviceRecord;
 import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.heat.HeatState;
 import dev.tfp.core.heat.HeatingRecipe;
+import dev.tfp.core.vessel.FluidAmount;
 import dev.tfp.paper.device.DeviceContext;
 import dev.tfp.paper.device.DeviceHandler;
 import dev.tfp.paper.device.DeviceKind;
@@ -36,6 +38,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -56,9 +59,10 @@ import org.bukkit.inventory.meta.ItemMeta;
  * <p>Right click, in TFC's {@code useItemOn} order: anything but a sneak opens the crucible screen. The device is removed
  * as {@code SAVE}: the whole record (alloy, temperature, items) goes onto the dropped crucible item.
  *
- * <p>Not here yet (follow-up item): the molds. TFC's output slot fills the container in it with the molten alloy, and a
- * molten mold in an input slot pours into the crucible; the output slot takes only what {@link Services#output} accepts,
- * and nothing is poured.
+ * <p>Molds (PAR-METAL-23): after the heat replay, {@link #moldPass} replays TFC's pouring over the same span. A molten mold
+ * in an input slot drains into the alloy ({@link CrucibleRules#pourTick}: one mB per pouring-rate ticks, fast for the slot
+ * of the last {@link #pourFaster}); while the alloy is molten, one mB per tick fills the mold in the output slot at the
+ * crucible's temperature. The pass uses the temperature at the end of the span (ledger divergence).
  */
 public final class CrucibleDevice {
     public static final String ID = "tfp:crucible";
@@ -79,9 +83,16 @@ public final class CrucibleDevice {
      * @param output      whether a stack may go into the output slot (TFC: it has a fluid handler)
      * @param open        opens the crucible screen (TFC {@code openMenu}); must open it later, never inline
      * @param heatBelow   brings the heat source below up to date (its catch-up pushes its runs here); region thread
+     * @param molds       the molds of the input and output slots (PAR-METAL-23)
      */
     public record Services(ItemHeatHooks.Capacities capacities, Heating heating, HeatConfig heatConfig, int capacity,
-            Predicate<ItemStack> output, BiConsumer<Player, Block> open, Consumer<Block> heatBelow) {
+            Predicate<ItemStack> output, BiConsumer<Player, Block> open, Consumer<Block> heatBelow, CrucibleMolds molds) {
+        /** Without molds. */
+        public Services(ItemHeatHooks.Capacities capacities, Heating heating, HeatConfig heatConfig, int capacity,
+                Predicate<ItemStack> output, BiConsumer<Player, Block> open, Consumer<Block> heatBelow) {
+            this(capacities, heating, heatConfig, capacity, output, open, heatBelow, CrucibleMolds.NONE);
+        }
+
         public Services {
             Objects.requireNonNull(capacities, "capacities");
             Objects.requireNonNull(heating, "heating");
@@ -89,6 +100,7 @@ public final class CrucibleDevice {
             Objects.requireNonNull(output, "output");
             Objects.requireNonNull(open, "open");
             Objects.requireNonNull(heatBelow, "heatBelow");
+            Objects.requireNonNull(molds, "molds");
         }
     }
 
@@ -102,6 +114,11 @@ public final class CrucibleDevice {
 
         /** The heating recipes of the plugin's {@link HeatingService}. */
         static Heating of(HeatingService service) {
+            return of(service, UnaryOperator.identity());
+        }
+
+        /** As {@link #of(HeatingService)}; {@code afterMelt} is applied to what a melt leaves (TFC: burnt to a crisp). */
+        static Heating of(HeatingService service, UnaryOperator<ItemStack> afterMelt) {
             return new Heating() {
                 @Override
                 public Optional<CrucibleRecipe> recipe(ItemStack stack) {
@@ -110,8 +127,9 @@ public final class CrucibleDevice {
 
                 @Override
                 public ItemStack melted(ItemStack heated) {
-                    return service.convertIfReady(heated, Float.MAX_VALUE).map(HeatingService.Conversion::item)
+                    ItemStack left = service.convertIfReady(heated, Float.MAX_VALUE).map(HeatingService.Conversion::item)
                         .orElse(ItemStack.empty());
+                    return StackCodec.isEmpty(left) ? left : afterMelt.apply(left);
                 }
             };
         }
@@ -145,7 +163,7 @@ public final class CrucibleDevice {
         return services;
     }
 
-    /** TFC {@code isItemValid}: a heatable item; the output slot also needs a fluid container. */
+    /** TFC {@code isItemValid}: a heatable item; the output slot also needs a fluid container (a mold). */
     public boolean isItemValid(int slot, ItemStack stack) {
         if (StackCodec.isEmpty(stack) || services.capacities().of(stack) <= 0f) {
             return false;
@@ -202,7 +220,94 @@ public final class CrucibleDevice {
             }
             t = r.stoppedAt();
         }
-        return record;
+        return moldPass(record, to - from);
+    }
+
+    /** The most ticks one pass replays (a full crucible pours in 4000 ticks at one mB each; the pour rate is slower). */
+    static final int POUR_LIMIT = 20_000;
+
+    /**
+     * TFC's serverTick pouring and output, replayed over {@code ticks} ticks at the crucible's temperature now. Per tick: if
+     * a pour is allowed every input slot with a molten mold gives one mB to the alloy ({@link CrucibleRules#pourTick} sets
+     * the wait), then one mB of a molten alloy goes into the output slot's mold. Stops as soon as a tick moves nothing and no
+     * wait is left, since nothing it depends on changes by itself.
+     */
+    DeviceRecord<CrucibleData> moldPass(DeviceRecord<CrucibleData> record, long ticks) {
+        CrucibleMolds molds = services.molds();
+        if (ticks <= 0 || molds == CrucibleMolds.NONE) {
+            return record;
+        }
+        CrucibleData data = record.state();
+        ItemStack[] stacks = new ItemStack[SLOTS];
+        boolean any = false;
+        for (int slot = 0; slot < SLOTS; slot++) {
+            stacks[slot] = this.stacks.decode(record.slot(slot));
+            any |= !StackCodec.isEmpty(stacks[slot]) && molds.isMold(stacks[slot]);
+        }
+        if (!any) {
+            return record;
+        }
+        FluidAlloy alloy = data.alloy();
+        CrucibleRules.Pour pour = data.pour();
+        float temperature = data.degrees();
+        boolean[] dirty = new boolean[SLOTS];
+        boolean changed = false;
+        for (long i = 0; i < Math.min(ticks, POUR_LIMIT); i++) {
+            boolean canFill = pour.lastFillTicks() <= 0;
+            List<Integer> transferred = new ArrayList<>(0);
+            if (canFill) {
+                for (int slot = 0; slot < CrucibleRules.INPUT_SLOTS; slot++) {
+                    ItemStack mold = stacks[slot];
+                    if (StackCodec.isEmpty(mold) || !molds.isMolten(mold)) {
+                        continue;
+                    }
+                    FluidAmount content = molds.content(mold);
+                    FluidAlloy.Fill fill = CrucibleRules.fill(alloy, content.fluid(), 1, services.capacity());
+                    if (fill.accepted() == 1 && molds.drainOne(mold)) {
+                        alloy = fill.alloy();
+                        transferred.add(slot);
+                        dirty[slot] = true;
+                    }
+                }
+            }
+            pour = CrucibleRules.pourTick(pour, transferred, CrucibleRules.POURING_RATE, CrucibleRules.FAST_POURING_RATE);
+            boolean output = false;
+            ItemStack out = stacks[SLOT_OUTPUT];
+            if (!alloy.isEmpty() && !StackCodec.isEmpty(out) && molds.isMold(out)) {
+                String result = molds.result(alloy);
+                if (CrucibleRules.isMolten(result, temperature)
+                    && molds.pourStep(new FluidAmount(result, 1), temperature, out) == 1) {
+                    alloy = CrucibleRules.outputTick(alloy, result, temperature, true);
+                    dirty[SLOT_OUTPUT] = true;
+                    output = true;
+                }
+            }
+            changed |= output || !transferred.isEmpty();
+            if (canFill && transferred.isEmpty() && !output) {
+                break; // nothing moved and nothing waits: nothing will
+            }
+        }
+        for (int slot = 0; slot < SLOTS; slot++) {
+            if (dirty[slot]) {
+                record = record.withSlot(slot, this.stacks.encode(stacks[slot]));
+            }
+        }
+        return changed || !pour.equals(data.pour()) ? record.withState(data.withAlloy(alloy).withPour(pour)) : record;
+    }
+
+    /**
+     * TFC {@code setFastPouring} (PourFasterPacket): the next {@link CrucibleRules#FAST_POUR_TICKS} units from input
+     * {@code slot} pour at the fast rate. Returns the record with it set, or {@code null} when the slot holds no molten mold.
+     */
+    public DeviceRecord<CrucibleData> pourFaster(DeviceRecord<CrucibleData> record, int slot) {
+        if (slot < 0 || slot >= CrucibleRules.INPUT_SLOTS) {
+            return null;
+        }
+        ItemStack mold = stacks.decode(record.slot(slot));
+        if (StackCodec.isEmpty(mold) || !services.molds().isMolten(mold)) {
+            return null;
+        }
+        return record.withState(record.state().withPour(record.state().pour().setFastPouring(slot)));
     }
 
     /** The sim's view of one input: its heat record, capacity and recipe. {@code null} for an empty slot. */
@@ -255,6 +360,12 @@ public final class CrucibleDevice {
             services.heatBelow().accept(ctx.block());
             services.open().accept(player, ctx.block());
             return DeviceResult.consume();
+        }
+
+        /** The dropped crucible item shows its alloy (PAR-METAL-23): see {@link CrucibleDrops}. */
+        @Override
+        public void removed(DeviceContext<CrucibleData> ctx) {
+            CrucibleDrops.expect(ctx.block(), ctx.deviceState().alloy());
         }
     }
 }
