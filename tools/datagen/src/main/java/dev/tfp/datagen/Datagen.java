@@ -139,6 +139,9 @@ public final class Datagen {
         if (dev.tfp.datagen.shield.ShieldItems.available(tfc)) { // PAR-TOOL-07: metal shields; before the coverage gate
             dev.tfp.datagen.shield.ShieldItems.run(tfc, out);
         }
+        if (dev.tfp.datagen.pan.PanItems.available(tfc)) { // PAR-PROC-12: pan items, models and deposit loot tables; before the coverage gate; fixtures have no pan
+            dev.tfp.datagen.pan.PanItems.run(tfc, out);
+        }
         if (dev.tfp.datagen.material.MaterialItems.available(tfc)) { // PAR-PROC-19: plain TFC material items + TFCItems coverage gate; fixtures have no TFCItems
             dev.tfp.datagen.material.MaterialItems.run(tfc, out);
             dev.tfp.datagen.material.ItemCoverage.run(tfc, out);
@@ -220,6 +223,9 @@ public final class Datagen {
         }
         if (dev.tfp.datagen.rotation.RotationBlocks.available(tfc)) { // PAR-MECH-01: axles, encased axles, clutches, gearboxes, creative motor; fixtures have no rotation blocks
             dev.tfp.datagen.rotation.RotationBlocks.run(tfc, out);
+        }
+        if (dev.tfp.datagen.pump.PumpBlocks.available(tfc)) { // PAR-MECH-09: steel pipe and steel pump; fixtures have no pump blocks
+            dev.tfp.datagen.pump.PumpBlocks.run(tfc, out);
         }
         if (dev.tfp.datagen.coverage.BlockCoverage.available(tfc)) { // PAR-INFRA-49: TFC blockstate coverage gate; after every block generator and ItemCoverage; fixtures have no TFCItems
             dev.tfp.datagen.coverage.BlockCoverage.run(tfc, out);
