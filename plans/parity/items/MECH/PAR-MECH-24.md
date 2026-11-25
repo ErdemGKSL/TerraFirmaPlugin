@@ -28,4 +28,6 @@ done_criteria:
 
 # PAR-MECH-24: Rotation blocks cannot be placed by item
 
+> Claimed: claude-heat-mech-proc-infra, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.
