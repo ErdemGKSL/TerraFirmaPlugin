@@ -435,7 +435,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-16 | Rotation in game: PAR-MECH-01 in-game steps and the rotation.stress itest on Paper and Folia | MECH | 53 | open |
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |
 | PAR-REL-03 | Dependency and version updates (MC, Paper, Folia, CE, BetterModel, BetterHud) | REL | 52 | done |
-| PAR-REL-04 | Stone-age run self-test | REL | 52 | open |
+| PAR-REL-04 | Stone-age run self-test | REL | 52 | done |
 | PAR-REL-05 | Metal run self-test | REL | 53 | open |
 | PAR-REL-06 | Husbandry run self-test and 200-animal load test | REL | 53 | open |
 | PAR-REL-10 | Art backlog: replace every placeholder texture | REL | 53 | blocked |
