@@ -232,6 +232,9 @@ public final class Datagen {
         if (dev.tfp.datagen.chest.ChestBlocks.available(tfc)) { // PAR-DECO-04: tfp:wood/chest and trapped_chest device blocks drawn as item displays; fixtures have none
             dev.tfp.datagen.chest.ChestBlocks.run(tfc, out);
         }
+        if (dev.tfp.datagen.rack.RackBlocks.available(tfc)) { // PAR-DECO-05: tfp:wood/tool_rack, shelf, bookshelf and lectern device blocks drawn as item displays; fixtures have none
+            dev.tfp.datagen.rack.RackBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.plant.GrowingPlantBlocks.available(tfc)) { // PAR-FARM-25: tfp:plant/* growing shapes (columns, kelp, vines, creepers, epiphytes) as item displays on the hitbox carriers
             dev.tfp.datagen.plant.GrowingPlantBlocks.run(tfc, out);
         }
