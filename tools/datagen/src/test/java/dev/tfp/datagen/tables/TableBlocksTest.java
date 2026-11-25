@@ -62,11 +62,13 @@ class TableBlocksTest {
     void entriesHaveTfcsStateSettingsAndHitboxOnlyCarriers() {
         for (String kind : List.of("scribing_table", "sewing_table")) {
             Map<String, Object> b = block(kind, "oak");
-            assertThat(b.get("template")).isEqualTo("tfp:block/device_rendered");
-            Map<String, Object> args = (Map<String, Object>) b.get("arguments");
-            assertThat(args.get("device_hardness")).isEqualTo(2.5);
-            assertThat(args.get("device_tool_tag")).isEqualTo("minecraft:mineable/axe");
-            assertThat(((Map<String, Object>) b.get("loot")).get("template")).isEqualTo("tfp:loot_table/self");
+            // the tables are not devices (no tfp:device behaviour: PAR-PROC-15 uses an anvil screen), so the entry is
+            // written literally: settings and loot in the entry, no device template
+            assertThat(b).doesNotContainKey("template").doesNotContainKey("behavior");
+            Map<String, Object> settings = (Map<String, Object>) b.get("settings");
+            assertThat(settings.get("hardness")).isEqualTo(2.5);
+            assertThat(settings.toString()).contains("minecraft:mineable/axe");
+            assertThat(b.get("loot")).isNotNull();
             Map<String, Object> apps = (Map<String, Object>) ((Map<String, Object>) b.get("states")).get("appearances");
             assertThat(apps).hasSize(4);
             for (String facing : List.of("north", "east", "south", "west")) {
