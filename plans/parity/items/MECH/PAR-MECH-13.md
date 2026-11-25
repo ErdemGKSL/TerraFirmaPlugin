@@ -20,6 +20,7 @@ in_game_steps:
 plan:
   - "PAR-MECH-06 starts and finishes powered grinds through the device state, with no effects: expose `PaperQuernEffects` start sound (QUERN_DRAG), the input item particles each tick while grinding, and the handstone's spin to the powered service (a `PoweredQuernAccess.started(key)` hook), the spin at the network angle (PAR-MECH-02 `RotationAnglesSpin`, TFC's `getRotationAngle`: -recipeTimer * speed while off the network)."
   - "Run the in-game steps and store the evidence."
+  - "Partial 2026-11-25 (docs/verification/PAR-MECH-13/verdict.md): quern, handstone and axle placed; the motor above the axle could not be placed with the headless bot, so no grind was run. Pending in-game check; needs PAR-MECH-24 for placing the axle/motor by item."
 tests:
   - "paper: effects fire once per powered grind start"
 done_criteria:

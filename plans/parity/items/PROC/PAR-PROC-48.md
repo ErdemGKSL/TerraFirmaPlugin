@@ -20,6 +20,7 @@ in_game_steps:
   - "Sneak + empty hand takes the yarn back; the loom faces the player when placed"
 plan:
   - "Verify PAR-PROC-06 in game. Then draw the cloth in progress (TFC renders the recipe's texture growing with the progress and the push animation getAnimPos) as an item display / entity_renderer element keyed by the stored progress; the loom recipe's texture field names the vanilla or TFC texture."
+  - "In-game run 2026-11-25 (docs/verification/PAR-PROC-48/verdict.md): placement, 16 yarn, 16 pushes and the cloth pass; the in-progress cloth is not drawn yet (still to build here). Item stays open for that visual."
 tests:
   - "Screenshots + verdict.md in docs/verification/PAR-PROC-48/"
 done_criteria:

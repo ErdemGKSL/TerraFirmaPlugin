@@ -449,6 +449,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-17 | Water wheel and windmill as rotation network sources: source states in core/rotation, the WaterWheelNetwork and WindmillNetwork services | MECH | 53 | done |
 | PAR-MECH-18 | Water wheel and windmill in game: CE blocks, wheel and blade items, spinning models, in-game checks of PAR-MECH-03 and PAR-MECH-04 | MECH | 54 | open |
 | PAR-MECH-19 | Spinning shafts in game: axles turn at the right speed and hand on 1.21.11 and 26.x (PAR-MECH-12 in-game check) | MECH | 53 | open |
+| PAR-MECH-24 | Axle, encased axle, clutch and creative motor cannot be placed by item: CraftEngine's hardcoded axis behaviour casts the string property | MECH | 54 | open |
 | PAR-MECH-20 | Bladed axle as TFC: the axle with a steel blade, its network node and spinning blade, the trip hammer's drive | MECH | 53 | done |
 | PAR-MECH-21 | Crankshaft in game: the tfp:crankshaft CE block, its sink node in the rotation network (CrankRotation), the powered bellows in-game check | MECH | 54 | open |
 | PAR-MECH-23 | Bladed axle in game: craft, place, spin with its blade, debug readout, drop (PAR-MECH-20 in-game check) | MECH | 54 | open |
@@ -479,11 +480,13 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-24 | Wire SpreadingFruit into the crop device: fruit placement at full growth, crowding limit, fruit sides | FARM | 31 | done |
 | PAR-FARM-21 | Flower cutting item and plant block items: tfp:flower_cutting content | FARM | 34 | done |
 | PAR-FARM-25 | CraftEngine blocks and runtime for the growing plant shapes: vines, columns, kelp, kelp trees, branching cacti | FARM | 35 | done |
-| PAR-PROC-46 | Panning in-game verification: deposit pickup, water hint, 6 s pan, small ores | PROC | 33 | open |
+| PAR-PROC-46 | Panning in-game verification: deposit pickup, water hint, 6 s pan, small ores | PROC | 33 | done |
 | PAR-PROC-47 | Sluice in-game verification: placement of both halves, water, soil intake, loot, break | PROC | 33 | open |
 | PAR-PROC-48 | Loom in-game verification and the in-progress cloth visual | PROC | 42 | open |
 | PAR-PROC-49 | Scribing table and sewing table blocks (tfp:wood/scribing_table/<wood>, tfp:wood/sewing_table/<wood>) | PROC | 41 | done |
 | PAR-PROC-50 | Scribing table in-game verification and TFC screen art | PROC | 42 | open |
+| PAR-PROC-53 | Sluice in game: water arrival is not noticed, thrown deposits give no loot in 20 s, outline and model check | PROC | 34 | open |
+| PAR-PROC-54 | Scribing table: right-click does not open the screen in game | PROC | 43 | open |
 | PAR-PROC-52 | Glassworking items in CraftEngine and the in-game blowpipe check | PROC | 31 | open |
 | PAR-PROC-51 | Sewing table in-game verification and TFC screen art (tfp:gui/sewing) | PROC | 42 | open |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | done |

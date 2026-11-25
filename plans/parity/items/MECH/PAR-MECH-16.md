@@ -22,6 +22,7 @@ in_game_steps:
   - "run the itest case rotation.stress (itest/.../rotation/RotationStressCase) with spikes/run-matrix.sh on Paper 1.21.11 and Folia: passes and the server log has no thread-ownership findings"
 plan:
   - "Moved from PAR-MECH-11 (PROTOCOL 6.5): its code is done (RotationStressCase written and registered in SelfTestSuite, PaperRotationWorld.reAddLoaded called from RotationModule.enable) but the server runs and the in-game steps were not run in that session. Run them with a cheap-model agent (exact commands in docs/testing/headless.md and spikes/run-matrix.sh), look at the screenshots in the main session, store evidence in docs/verification/PAR-MECH-16/ (and note PAR-MECH-01 and PAR-MECH-11 in the verdict). SelfTestSuiteTest counts the cases: raise its expected count by one if it is still hard-coded."
+  - "Partial in-game run 2026-11-25 (docs/verification/PAR-MECH-16/verdict.md): 9 blocks at 30.00 rpm, hammered gearbox, clutch cut and join, restart re-add pass. Not run: sixth axle, feel checklist, rotation.stress. Items cannot be placed by item without PAR-MECH-24. Pending in-game check."
 tests:
   - "itest: rotation.stress on Paper and Folia"
 done_criteria:

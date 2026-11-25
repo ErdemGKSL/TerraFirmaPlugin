@@ -2,7 +2,7 @@
 id: PAR-PROC-46
 title: "Panning in-game verification: deposit pickup, water hint, 6 s pan, small ores; deposit loot items"
 area: PROC
-status: open
+status: done
 wave: 33
 deps: [PAR-PROC-12, PAR-WORLD-31]
 size: S
@@ -19,6 +19,7 @@ in_game_steps:
   - "Creative: the empty pan is not used up by taking a deposit; off-hand use of the filled pan does nothing"
 plan:
   - "Verification of PAR-PROC-12 once the deposit blocks and the small ores exist. Check the loot lines of data/tfp/loot_table/deposit/* log no 'unknown item' warning."
+  - "Done: in-game verification 2026-11-25 on Paper 1.21.11 (pickup, dry-land hint, 6 s pan, small native copper; sound and off-hand not checkable headless). Evidence and verdict in docs/verification/PAR-PROC-46/."
 tests:
   - "Screenshots + verdict.md in docs/verification/PAR-PROC-46/"
 done_criteria:

@@ -19,6 +19,7 @@ in_game_steps:
   - "Remove the water source: the countdown stops; break one half: the other half and the output water go, soil is dropped"
 plan:
   - "Verification of PAR-PROC-13 once deposit items exist. Also check the selection outline of both halves against TFC (hitbox-only carriers farmland / daylight detector) and the model alignment with the display rotation per facing."
+  - "Partial in-game run 2026-11-25 (docs/verification/PAR-PROC-47/verdict.md): placement and output water pass; water arrival is not noticed and thrown deposits gave no loot in 25 s. Pending in-game check, fixes in PAR-PROC-53; rerun the steps after it."
 tests:
   - "Screenshots + verdict.md in docs/verification/PAR-PROC-47/"
 done_criteria:

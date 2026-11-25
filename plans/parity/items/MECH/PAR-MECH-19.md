@@ -21,6 +21,7 @@ plan:
   - "Created by PAR-MECH-12 (PROTOCOL 6.5: its in-game check was not run in that session). Run the steps with a cheap-model agent (docs/testing/headless.md, the bot named Bot, CraftEngine self-host so the pack applies, PacketEvents installed), judge the frames in the main session, store crops and verdict.md in docs/verification/PAR-MECH-19/ (note PAR-MECH-12 in the verdict)."
   - "Check what PAR-MECH-12 assumed: the left/right rotation pair interpolates to up to 340 degrees per packet (else lower core RotationAnglesSpin.MAX_SWEEP to one arc, a PAR-MECH-02 file: follow-up), display metadata indices 8/9/11-14/17/23/24 on 26.x, the render item draws with item_model = tfp:render/rotation/wood/axle/<wood> in display context none, a display spawned with the chunk interpolates from its second tick (SpinShafts sends the segment one tick after the spawn)."
   - "Follow-up note: integration/craftengine/rotation/SpinVisualService and SpinSink (PAR-MECH-02) are unused since PAR-MECH-12 (the paper module cannot reach the integration module); remove them in an item that owns those files."
+  - "Partial in-game run 2026-11-25 (docs/verification/PAR-MECH-19/verdict.md): the shaft turns (8 frames at different angles); rate, hands, step 0, relog and 26.x not measured. Pending in-game check."
 tests:
   - "none new unless a fix needs one (paper: SpinShaftsTest)"
 done_criteria:
