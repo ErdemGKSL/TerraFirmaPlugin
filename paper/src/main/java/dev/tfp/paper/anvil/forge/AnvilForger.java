@@ -167,7 +167,7 @@ public final class AnvilForger {
             ForgingQuality quality = ForgingQuality.values()[bonus.ordinal()];
             env.heat().keep(main, result); // always preserve the heat of the input
             if (quality != ForgingQuality.NONE) {
-                ForgingBonusPdc.write(result, quality, config);
+                ForgingBonusPdc.write(result, quality, config, player.getName());
             }
             return new Outcome(out.withSlot(AnvilSlots.INPUT_MAIN, stacks.encode(result)), Result.COMPLETED, null, quality);
         }

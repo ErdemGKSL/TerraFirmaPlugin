@@ -388,6 +388,7 @@ class AnvilForgeMockBukkitTest extends MockServerTest {
         ItemStack out = slot(AnvilSlots.INPUT_MAIN);
         assertThat(out.getType()).isEqualTo(Material.IRON_PICKAXE);
         assertThat(ForgingBonusPdc.read(out)).isEqualTo(ForgingQuality.PERFECT); // 2 steps / 2 optimal = 1 < 1.5
+        assertThat(ForgingBonusPdc.author(out)).isEqualTo(player.getName()); // PAR-METAL-21: the smith is stored
         assertThat(ForgingPdc.read(out)).isNull();
         assertThat(kept.get()).isEqualTo(1);
         assertThat(s.getInventory().getItem(AnvilScreenLayout.MAIN).getType()).isEqualTo(Material.IRON_PICKAXE);

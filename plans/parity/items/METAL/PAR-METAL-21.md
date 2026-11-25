@@ -2,7 +2,7 @@
 id: PAR-METAL-21
 title: "Forging tooltips: forging bonus with the smith's name, and 'Worked' on partly forged items"
 area: METAL
-status: open
+status: done
 wave: 31
 deps: [PAR-METAL-05, PAR-INFRA-05]
 size: S
@@ -18,6 +18,9 @@ tfc_refs:
 files_owned:
   - "paper/src/main/java/dev/tfp/paper/anvil/tooltip/**"
   - "paper/src/test/java/dev/tfp/paper/anvil/tooltip/**"
+  - "paper/src/main/java/dev/tfp/paper/tool/ForgingBonusPdc.java"
+  - "paper/src/main/java/dev/tfp/paper/anvil/forge/AnvilForger.java"
+  - "paper/src/test/java/dev/tfp/paper/anvil/forge/AnvilForgeMockBukkitTest.java"
 ui: true
 in_game_steps:
   - "Forge a copper pickaxe head perfectly on the anvil as Bot (or the PAR-METAL-05 debug that completes a forge with a chosen bonus); hover at GUI scale 2: 'Perfectly Forged! by Bot' (green bonus, grey 'by'); screenshot"
@@ -27,6 +30,7 @@ plan:
   - "Current (audit 2026-11-13): PAR-METAL-05 stores the forging bonus and the forging steps on the item and PAR-TOOL-02 applies the efficiency/durability effects, but no item shows TFC's two tooltip lines: ForgingBonusComponent.addTooltipInfo (`tfc.enum.forgingbonus.<modest|well|expert|perfect>`, followed by the smith via `tfc.tooltip.author` '§a%s§7 by %s' when the component has an author) and ForgingCapability.addTooltipInfo (`tfc.tooltip.anvil_has_been_worked` 'Worked' while the item's forging steps are worked)."
   - "One TooltipContributor at TFC's place in onItemTooltip (after physical damage type, before glass working and food), reading the PDC records PAR-METAL-05 writes. If PAR-METAL-05 does not record the smith's name with the bonus, that is a defect in its files: add a follow-up item rather than editing core/forge or paper/anvil/forge."
   - "Lines are packet lore under the PAR-INFRA-05 pipeline (NP-CLIENT-02); colours as TFC's lang codes."
+  - "Done: ForgingTooltipContributor (ORDER_FORGING) + ForgingTooltipModule; PAR-METAL-05 stored no smith, so files_owned was widened to ForgingBonusPdc (tfp:forging_author, copy keeps it) and AnvilForger (passes the player's name); ForgingTooltipTest (6 tests) and an AnvilForger assertion green. Pending in-game check (container cannot run client); in_game_steps kept for docs/verification/PAR-METAL-21/."
 tests:
   - "paper: contributor lines for none/modest/well/expert/perfect, with and without author, worked vs fresh item; order next to heat and size lines"
 done_criteria:

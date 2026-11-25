@@ -37,6 +37,10 @@ import org.bukkit.persistence.PersistentDataType;
  */
 public final class ForgingBonusPdc {
     public static final NamespacedKey KEY = Objects.requireNonNull(NamespacedKey.fromString("tfp:forging_bonus"));
+    /** The smith's name (TFC {@code ForgingBonusComponent.author}, at most 32 characters), PDC string; absent for none. */
+    public static final NamespacedKey AUTHOR = Objects.requireNonNull(NamespacedKey.fromString("tfp:forging_author"));
+    /** TFC's limit of the stored author name. */
+    public static final int MAX_AUTHOR = 32;
     /** The id of the attribute modifier that carries the mining efficiency. */
     public static final NamespacedKey MODIFIER = Objects.requireNonNull(NamespacedKey.fromString("tfp:forging_bonus_efficiency"));
 
@@ -59,20 +63,38 @@ public final class ForgingBonusPdc {
         }
     }
 
+    /** The smith's name stored with the bonus, or null for none (PAR-METAL-21). */
+    public static String author(ItemStack stack) {
+        if (stack == null || stack.getType().isAir() || !stack.hasItemMeta()) {
+            return null;
+        }
+        return stack.getItemMeta().getPersistentDataContainer().get(AUTHOR, PersistentDataType.STRING);
+    }
+
     /**
-     * Sets {@code quality} on {@code stack} (replacing an earlier one; {@link ForgingQuality#NONE} removes it) and the
-     * efficiency modifier for the stack's fastest tool rule.
+     * Sets {@code quality} on {@code stack} (replacing an earlier one and its author; {@link ForgingQuality#NONE} removes
+     * it) and the efficiency modifier for the stack's fastest tool rule.
      */
     public static void write(ItemStack stack, ForgingQuality quality, ForgingConfig config) {
+        write(stack, quality, config, null);
+    }
+
+    /** As {@link #write(ItemStack, ForgingQuality, ForgingConfig)}, with the smith's name (TFC {@code set(stack, bonus, player)}). */
+    public static void write(ItemStack stack, ForgingQuality quality, ForgingConfig config, String author) {
         Objects.requireNonNull(quality, "quality");
         stack.editMeta(meta -> {
             meta.removeAttributeModifier(Attribute.MINING_EFFICIENCY, new AttributeModifier(MODIFIER, 0,
                 AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+            meta.getPersistentDataContainer().remove(AUTHOR);
             if (quality == ForgingQuality.NONE) {
                 meta.getPersistentDataContainer().remove(KEY);
                 return;
             }
             meta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, quality.name());
+            if (author != null && !author.isEmpty()) {
+                meta.getPersistentDataContainer().set(AUTHOR, PersistentDataType.STRING,
+                    author.length() > MAX_AUTHOR ? author.substring(0, MAX_AUTHOR) : author);
+            }
             double extra = bestSpeed(meta) * (quality.efficiency(config) - 1.0);
             if (extra > 0) {
                 meta.addAttributeModifier(Attribute.MINING_EFFICIENCY, new AttributeModifier(MODIFIER, extra,
@@ -85,7 +107,7 @@ public final class ForgingBonusPdc {
     public static ItemStack copy(ItemStack to, ItemStack from, ForgingConfig config) {
         ForgingQuality q = read(from);
         if (q != ForgingQuality.NONE) {
-            write(to, q, config);
+            write(to, q, config, author(from));
         }
         return to;
     }
