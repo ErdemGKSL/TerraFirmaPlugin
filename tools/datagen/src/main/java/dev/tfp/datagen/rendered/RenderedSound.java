@@ -55,8 +55,11 @@ public record RenderedSound(BigDecimal volume, BigDecimal pitch) {
     public static final DeviceSound WOOL = vanillaGroup("wool");
     /** PAR-DECO-09: vanilla {@code SoundType.COPPER_GRATE} (1.0, 1.0): the TFC metal grates' sound set. */
     public static final DeviceSound COPPER_GRATE = vanillaGroup("copper_grate");
+    /** PAR-DECO-12: vanilla {@code SoundType.BAMBOO_WOOD} (1.0, 1.0): the palm mosaic's sound set. */
+    public static final DeviceSound BAMBOO_WOOD = vanillaGroup("bamboo_wood");
     private static final Map<DeviceSound, RenderedSound> VANILLA = Map.of(DeviceSound.STONE, UNIT, DeviceSound.WOOD, UNIT,
-        DeviceSound.NETHER_WART, UNIT, DeviceSound.METAL, METAL, CANDLE, UNIT, WOOL, UNIT, COPPER_GRATE, UNIT);
+        DeviceSound.NETHER_WART, UNIT, DeviceSound.METAL, METAL, CANDLE, UNIT, WOOL, UNIT, COPPER_GRATE, UNIT,
+        BAMBOO_WOOD, UNIT);
     private static final BigDecimal TWO = BigDecimal.valueOf(2);
     private static final BigDecimal EIGHT = BigDecimal.valueOf(8);
 

@@ -404,7 +404,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-TOOL-09 | Chisel: smoothing, slabs and stairs with mode cycling | TOOL | 47 | open |
 | PAR-INFRA-53 | Hitbox carrier in-game verification of the classes added by family items: piles, rocks, ores, groundcover, placed items, containers, seals, heavy_core | INFRA | 47 | open |
 | PAR-DECO-11 | Boats, chest boats and minecarts | DECO | 48 | open |
-| PAR-DECO-12 | Misc blocks: crates, buoys, cakes, golden bamboo, palm mosaic, tree roots, light block | DECO | 48 | open |
+| PAR-DECO-12 | Misc blocks: crates, buoys, cakes, golden bamboo, palm mosaic, tree roots, light block | DECO | 48 | done |
 | PAR-METAL-17 | Metal weathering of copper-family blocks | METAL | 48 | open |
 | PAR-METAL-19 | Metal lamps: fuel, light, lit state | METAL | 48 | open |
 | PAR-WORLD-20 | Underground decoration and erosion: cave spikes and columns, calcite, cave vegetation, hanging roots, underground lakes, the erosion pass | WORLD | 48 | open |
@@ -509,4 +509,6 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-POT-15 | Bowl automation: hoppers fill and empty powder bowls, the powder layer follows (follow-up of PAR-POT-09) | POTTERY | 28 | open |
 | PAR-DATA-19 | Advancement triggers left from PAR-DATA-03: feature events for TFC's 21 own triggers | DATA | 40 | open |
 | PAR-DECO-22 | Rock walls, aqueducts and rope anchors (follow-up of PAR-DECO-06) | DECO | 49 | open |
+| PAR-DECO-23 | Golden bamboo block, palm mosaic stairs and slabs, tree roots, light block (follow-up of PAR-DECO-12) | DECO | 49 | open |
+| PAR-DECO-24 | Crate storage, buoys and cakes (follow-up of PAR-DECO-12) | DECO | 49 | open |
 | PAR-METAL-27 | Blast furnace textured screen: temperature bar and tank bars | METAL | 37 | open |

@@ -2,7 +2,7 @@
 id: PAR-DECO-12
 title: "Misc blocks: crates, buoys, cakes, golden bamboo, palm mosaic, tree roots, light block"
 area: DECO
-status: open
+status: done
 wave: 48
 deps: [PAR-INFRA-02, PAR-INFRA-13, PAR-INFRA-17]
 size: M
@@ -28,6 +28,7 @@ in_game_steps:
 plan:
   - "Crates (storage, crateEnableAutomation, content preview on look via actionbar instead of CrateOverlays), buoys floating, TFC cakes, decorative blocks."
   - "Crates and workbenches drawn as renderer cubes (level-1 and up) use PAR-INFRA-17's `tfp:block/rendered_cube` template with destroy_stages, TFC wood sounds and material particles."
+  - "Done 2026-11-25: the 20 crates and the palm mosaic are renderer cubes (MiscCubes, configuration/misc/cubes.yml; TFC strength, sounds, axe, models, textures, names, self drops); test MiscCubesTest. Golden bamboo block, palm mosaic stairs and slabs, tree roots and light moved to PAR-DECO-23; crate storage, buoys and cakes to PAR-DECO-24. PAR-WORLD-21 uses the plant tfc:plant/golden_bamboo, not the block. Pending in-game check (no client in the build container)."
 tests:
   - "tools/datagen counts"
 done_criteria:
@@ -37,7 +38,6 @@ done_criteria:
 
 # PAR-DECO-12: Misc blocks: crates, buoys, cakes, golden bamboo, palm mosaic, tree roots, light block
 
-> Claimed: claude session_011osUp8, 2026-11-25
 
 > see_not_parity: NP-UI-01, NP-VIS-02, NP-CLIENT-03 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
