@@ -43,4 +43,6 @@ done_criteria:
 
 # PAR-DECO-25: Sign runtime (follow-up of PAR-DECO-03)
 
+> Claimed: claude session_011osUp8LgspZkGFjFNWFDqQ (DECO helper), 2026-11-25
+
 All fields live in the front matter above. Follow `plans/parity/PROTOCOL.md`. PAR-DECO-03 shipped the blocks (`dev.tfp.datagen.sign.SignBlocks`, `configuration/sign/<wood>.yml`), the models of `SignModels`, the item icons, names, and the pure `core/sign` value types (`SignText`, `SignGeometry`).
