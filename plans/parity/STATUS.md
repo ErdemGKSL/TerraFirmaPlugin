@@ -478,4 +478,5 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-55 | In-game verification of PAR-WORLD-11 and PAR-WORLD-44: dead forests and mangroves; wood plant blocks | WORLD | 24 | open |
 | PAR-WORLD-56 | Per-world TFC settings in the remaining climate readers (fog, crops, farmland, wild crops, rising rocks, regrowth, water terrain, calendar sample) | WORLD | 30 | done |
 | PAR-WORLD-56 | Per-world TFC settings in the remaining climate readers (fog, crops, farmland, wild crops, rising rocks, regrowth, water terrain, calendar sample) | WORLD | 30 | open |
-| PAR-FARM-29 | Growing plant shapes part 2: vine, kelp tree and branching cactus growth, survival, per-shape outlines, worldgen wiring | FARM | 36 | open |
+| PAR-FARM-29 | Growing plant shapes part 2: vine, kelp tree and branching cactus growth, survival, per-shape outlines, worldgen wiring | FARM | 36 | done |
+| PAR-FARM-30 | Growing plant shapes part 3: per-shape outlines and the saguaro fruit block | FARM | 37 | open |

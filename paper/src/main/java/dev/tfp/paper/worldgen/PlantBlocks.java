@@ -74,6 +74,17 @@ final class PlantBlocks {
             case DRY, CACTUSBED -> Material.DEAD_BUSH;
             case PASSABLE_CACTUS -> upper ? null : Material.DEAD_BUSH;
             case FLOATING, FLOATING_FRESH -> Material.LILY_PAD;
+            // PAR-FARM-29: the growing shapes the terrain can draw without block data (a vine, creeping plant or epiphyte needs
+            // its faces, so those have no placeholder and are not written until the terrain places CraftEngine blocks)
+            case WEEPING -> Material.WEEPING_VINES_PLANT;
+            case WEEPING_TOP -> Material.WEEPING_VINES;
+            case TWISTING, TWISTING_SOLID -> Material.TWISTING_VINES_PLANT;
+            case TWISTING_TOP, TWISTING_TOP_SHORT, TWISTING_SOLID_TOP -> Material.TWISTING_VINES;
+            case KELP, KELP_TREE, KELP_TREE_FLOWER -> Material.KELP_PLANT;
+            case KELP_TOP -> Material.KELP;
+            case BRANCHING_CACTUS, BRANCHING_CACTUS_TOP -> Material.CACTUS;
+            case PERCHED_EPIPHYTE -> Material.FERN;
+            case VINE, CREEPING, CREEPING_STONE, EPIPHYTE -> null;
             case WATER, WATER_FRESH, GRASS_WATER, GRASS_WATER_FRESH -> Material.SEAGRASS;
             // submerged (both halves in water): tall seagrass; emergent (the upper half in air): seagrass under the surface only
             case TALL_WATER, TALL_WATER_FRESH -> upper && fluid == PlantState.Fluid.EMPTY ? null : Material.TALL_SEAGRASS;
@@ -110,6 +121,9 @@ final class PlantBlocks {
             default -> {
             }
         }
+        if (state.kind() == PlantState.Kind.PLANT && GROWING_TYPES.contains(state.type())) {
+            return growingRef(state);
+        }
         if (state.kind() != PlantState.Kind.PLANT || !CE_TYPES.contains(state.type())) {
             return null;
         }
@@ -143,6 +157,67 @@ final class PlantBlocks {
             case SEA_PICKLE -> state.block() + "[pickles=" + Math.clamp(state.extra(), 1, 4) + "," + wet + "]";
             default -> null;
         };
+    }
+
+    /** The growing plant shapes generated as CraftEngine blocks (PAR-FARM-25, {@code GrowingPlantBlocks}). */
+    static final java.util.Set<PlantType> GROWING_TYPES = java.util.EnumSet.of(PlantType.VINE, PlantType.WEEPING,
+        PlantType.WEEPING_TOP, PlantType.TWISTING, PlantType.TWISTING_TOP, PlantType.TWISTING_TOP_SHORT,
+        PlantType.TWISTING_SOLID, PlantType.TWISTING_SOLID_TOP, PlantType.KELP, PlantType.KELP_TOP, PlantType.KELP_TREE,
+        PlantType.KELP_TREE_FLOWER, PlantType.BRANCHING_CACTUS, PlantType.BRANCHING_CACTUS_TOP, PlantType.CREEPING,
+        PlantType.CREEPING_STONE, PlantType.EPIPHYTE, PlantType.PERCHED_EPIPHYTE);
+
+    /** The {@code get3DDataValue} order of the face and facing properties the shapes' {@code extra} masks and indices use. */
+    private static final String[] FACES = {"down", "up", "north", "south", "west", "east"};
+
+    /**
+     * PAR-FARM-29: the CraftEngine state of a growing shape ({@code tfp:plant/hanging_vines[age=21]},
+     * {@code tfp:plant/jungle_vines[north=true,up=true]}, {@code tfp:plant/giant_kelp_flower[age=5,facing=up,fluid=salt_water]}).
+     * A column head's {@code age} is the one worldgen drew (0..25), a kelp flower's 0..5; the faces of a vine, creeping plant,
+     * giant kelp body and saguaro are the bits of {@link PlantState#extra()} ({@code 1 << direction index}, a saguaro top's
+     * {@code grows_branches} is bit 6), an epiphyte's or a flower's {@code facing} its direction index.
+     */
+    static String growingRef(PlantState state) {
+        final PlantType type = state.type();
+        final List<String> props = new java.util.ArrayList<>(8);
+        final int extra = Math.max(0, state.extra());
+        final String fluid = state.fluid() == PlantState.Fluid.SALT_WATER ? "salt_water" : "empty";
+        switch (type) {
+            case WEEPING_TOP, TWISTING_TOP, TWISTING_TOP_SHORT, TWISTING_SOLID_TOP -> props.add("age=" + Math.clamp(state.age(), 0, 25));
+            case KELP -> props.add("fluid=" + fluid);
+            case KELP_TOP -> {
+                props.add("age=" + Math.clamp(state.age(), 0, 25));
+                props.add("fluid=" + fluid);
+            }
+            case VINE -> {
+                for (int i = 1; i < FACES.length; i++) {
+                    props.add(FACES[i] + "=" + ((extra & (1 << i)) != 0));
+                }
+            }
+            case CREEPING, CREEPING_STONE, BRANCHING_CACTUS -> faces(props, extra);
+            case BRANCHING_CACTUS_TOP -> {
+                faces(props, extra);
+                props.add("grows_branches=" + ((extra & (1 << 6)) != 0));
+            }
+            case KELP_TREE -> {
+                faces(props, extra);
+                props.add("fluid=" + fluid);
+            }
+            case KELP_TREE_FLOWER -> {
+                props.add("age=" + Math.clamp(state.age(), 0, 5));
+                props.add("facing=" + FACES[Math.clamp(state.extra(), 0, 5)]);
+                props.add("fluid=" + fluid);
+            }
+            case EPIPHYTE -> props.add("facing=" + FACES[state.extra() >= 2 && state.extra() <= 5 ? state.extra() : 2]);
+            default -> {
+            }
+        }
+        return props.isEmpty() ? state.block() : state.block() + "[" + String.join(",", props) + "]";
+    }
+
+    private static void faces(List<String> props, int mask) {
+        for (int i = 0; i < FACES.length; i++) {
+            props.add(FACES[i] + "=" + ((mask & (1 << i)) != 0));
+        }
     }
 
     /** The plant types generated as CraftEngine blocks (PAR-WORLD-12). */

@@ -8,6 +8,7 @@
  */
 package dev.tfp.paper.plant.growth;
 
+import dev.tfp.core.regrowth.PlantSweepRules;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.scheduler.Scheduler;
@@ -19,6 +20,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BiPredicate;
+import java.util.function.BooleanSupplier;
 import java.util.function.ToIntFunction;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -32,7 +35,11 @@ import org.bukkit.persistence.PersistentDataType;
  * is seen is scanned in slices over the region thread for column heads, each head draws the Poisson number of random ticks of the
  * time since the chunk's last column sweep, the pure decision ({@link ColumnGrowth#grown}) runs on a CPU thread, and the region
  * thread re-reads the head and writes the column (the old head becomes a body, the new head is {@code age + n}) in batches.
- * Vines, kelp trees and branching cacti are not covered here (follow-up item).
+ *
+ * <p>PAR-FARM-29 adds the shapes whose rule reads the blocks around them (the jungle vine, the giant kelp flower, the saguaro top,
+ * {@link ShapeGrowth}): the scan collects them too, a CPU thread draws their Poisson number of random ticks, and the region thread
+ * plays those ticks through the pure rules in small batches (a rule reads a live neighbourhood, so its decision runs on the region
+ * thread under the budget; ledger divergence).
  */
 public final class ColumnSweeper {
     static final int SLICE = 4096;
@@ -44,15 +51,41 @@ public final class ColumnSweeper {
     record Growth(Block block, BlockStateRef state, ColumnGrowth.Kind kind, int free, int grown) {
     }
 
+    /** A vine, kelp flower or saguaro top found by the scan: where, its state, and the random ticks drawn for it. */
+    record Shaped(Block block, BlockStateRef state, int ticks) {
+    }
+
+    /** What one scan found. */
+    private record Found(List<Growth> columns, List<Shaped> shapes) {
+    }
+
+    /** How many of {@link ShapeGrowth#TEMPERATURE_SAMPLES} instants of the elapsed time a vine at the block was above 0 C. */
+    @FunctionalInterface
+    public interface Warmth {
+        int samples(World world, int x, int y, int z, long elapsedTicks);
+    }
+
+    /** The shapes' cost in {@link #BATCH} units: a rule reads dozens of blocks. */
+    static final int SHAPE_COST = 4;
+
     private final CustomBlocks blocks;
     private final Scheduler scheduler;
     private final ToIntFunction<World> randomTickSpeed;
     private final Set<Long> inFlight = ConcurrentHashMap.newKeySet();
+    private final BiPredicate<Block, String> tags;
+    private final Warmth warmth;
 
     public ColumnSweeper(CustomBlocks blocks, Scheduler scheduler, ToIntFunction<World> randomTickSpeed) {
+        this(blocks, scheduler, randomTickSpeed, null, null);
+    }
+
+    /** With the shapes of PAR-FARM-29 (vines, giant kelp flowers, saguaro tops) when {@code tags} is given. */
+    public ColumnSweeper(CustomBlocks blocks, Scheduler scheduler, ToIntFunction<World> randomTickSpeed, BiPredicate<Block, String> tags, Warmth warmth) {
         this.blocks = blocks;
         this.scheduler = scheduler;
         this.randomTickSpeed = randomTickSpeed;
+        this.tags = tags;
+        this.warmth = warmth == null ? (w, x, y, z, e) -> ShapeGrowth.TEMPERATURE_SAMPLES : warmth;
     }
 
     /** Region thread of the chunk. */
@@ -77,12 +110,12 @@ public final class ColumnSweeper {
             return false;
         }
         chunk.getPersistentDataContainer().set(STAMP, PersistentDataType.LONG, now);
-        scan(world, chunkX, chunkZ, elapsed, key, new ArrayList<>(), 0);
+        scan(world, chunkX, chunkZ, elapsed, key, new Found(new ArrayList<>(), new ArrayList<>()), 0);
         return true;
     }
 
     /** Scans {@link #SLICE} blocks of the chunk from {@code from} (an index over x, z, y), then the next slice a tick later. */
-    private void scan(World world, int chunkX, int chunkZ, long elapsed, long key, List<Growth> found, int from) {
+    private void scan(World world, int chunkX, int chunkZ, long elapsed, long key, Found found, int from) {
         int minY = world.getMinHeight();
         int height = world.getMaxHeight() - minY;
         int total = 256 * height;
@@ -96,15 +129,20 @@ public final class ColumnSweeper {
                     continue;
                 }
                 Optional<BlockStateRef> state = blocks.stateAt(block);
-                if (state.isEmpty() || state.get().properties().get("age") == null) {
+                if (state.isEmpty()) {
+                    continue;
+                }
+                if (state.get().properties().get("age") == null && !ShapeGrowth.shape(state.get().id()).isPresent()) {
                     continue;
                 }
                 Optional<ColumnGrowth.Kind> kind = ColumnGrowth.kind(state.get().id());
                 if (kind.isPresent()) {
                     int age = ColumnGrowth.age(state.get());
                     if (age < ColumnGrowth.MAX_AGE) {
-                        found.add(new Growth(block, state.get(), kind.get(), free(block, kind.get(), ColumnGrowth.room(age)), 0));
+                        found.columns().add(new Growth(block, state.get(), kind.get(), free(block, kind.get(), ColumnGrowth.room(age)), 0));
                     }
+                } else if (tags != null && ShapeGrowth.shape(state.get().id()).isPresent() && ShapeGrowth.ticks(state.get())) {
+                    found.shapes().add(new Shaped(block, state.get(), 0));
                 }
             }
         } catch (RuntimeException e) {
@@ -118,46 +156,77 @@ public final class ColumnSweeper {
         decide(world, chunkX, chunkZ, elapsed, key, found);
     }
 
-    private void decide(World world, int chunkX, int chunkZ, long elapsed, long key, List<Growth> heads) {
-        if (heads.isEmpty()) {
+    private void decide(World world, int chunkX, int chunkZ, long elapsed, long key, Found found) {
+        if (found.columns().isEmpty() && found.shapes().isEmpty()) {
             inFlight.remove(key);
             return;
         }
         int speed = randomTickSpeed.applyAsInt(world);
         scheduler.cpu(() -> {
             List<Growth> changed = new ArrayList<>();
+            List<Shaped> ticking = new ArrayList<>();
             try {
                 Random random = new Random(ThreadLocalRandom.current().nextLong());
-                for (Growth g : heads) {
+                for (Growth g : found.columns()) {
                     int n = ColumnGrowth.grown(ColumnGrowth.age(g.state()), g.free(), elapsed, speed, random);
                     if (n > 0) {
                         changed.add(new Growth(g.block(), g.state(), g.kind(), g.free(), n));
+                    }
+                }
+                for (Shaped s : found.shapes()) {
+                    int n = PlantSweepRules.poisson(PlantSweepRules.lambda(elapsed, speed), random);
+                    if (n > 0) {
+                        ticking.add(new Shaped(s.block(), s.state(), n));
                     }
                 }
             } catch (RuntimeException e) {
                 inFlight.remove(key);
                 throw e;
             }
-            if (changed.isEmpty()) {
+            if (changed.isEmpty() && ticking.isEmpty()) {
                 inFlight.remove(key);
                 return;
             }
-            scheduler.region(world, chunkX, chunkZ, () -> apply(world, chunkX, chunkZ, new ArrayDeque<>(changed), key));
+            ArrayDeque<Work> queue = new ArrayDeque<>();
+            changed.forEach(g -> queue.add(new Work(1, () -> grow(g))));
+            ticking.forEach(s -> queue.add(new Work(SHAPE_COST, () -> play(s, elapsed))));
+            scheduler.region(world, chunkX, chunkZ, () -> apply(world, chunkX, chunkZ, queue, key));
         });
     }
 
-    private void apply(World world, int chunkX, int chunkZ, ArrayDeque<Growth> queue, long key) {
-        int written = 0;
-        while (!queue.isEmpty() && written < BATCH) {
-            if (grow(queue.poll())) {
-                written++;
+    /** One unit of region work and its cost in {@link #BATCH} units. */
+    private record Work(int cost, BooleanSupplier run) {
+    }
+
+    private void apply(World world, int chunkX, int chunkZ, ArrayDeque<Work> queue, long key) {
+        int spent = 0;
+        try {
+            while (!queue.isEmpty() && spent < BATCH) {
+                Work work = queue.poll();
+                spent += work.cost();
+                work.run().getAsBoolean();
             }
+        } catch (RuntimeException e) {
+            inFlight.remove(key);
+            throw e;
         }
         if (queue.isEmpty()) {
             inFlight.remove(key);
         } else {
             scheduler.regionDelayed(world, chunkX, chunkZ, 1, () -> apply(world, chunkX, chunkZ, queue, key));
         }
+    }
+
+    /** Region thread: plays the random ticks drawn for a vine, kelp flower or saguaro top that still is what the scan saw. */
+    boolean play(Shaped s, long elapsed) {
+        Block block = s.block();
+        Optional<BlockStateRef> now = blocks.stateAt(block);
+        if (now.isEmpty() || !now.get().equals(s.state())) {
+            return false;
+        }
+        GrowthWorld world = new BlockGrowthWorld(block.getWorld(), blocks, tags);
+        int warm = warmth.samples(block.getWorld(), block.getX(), block.getY(), block.getZ(), elapsed);
+        return ShapeGrowth.run(world, block.getX(), block.getY(), block.getZ(), s.ticks(), warm, new Random(ThreadLocalRandom.current().nextLong())) > 0;
     }
 
     /** Region thread: re-reads the head and the free cells and writes the column. Returns whether it grew. */

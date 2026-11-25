@@ -2,7 +2,7 @@
 id: PAR-FARM-29
 title: "Growing plant shapes, part 2: vine, kelp tree and branching cactus growth, survival of columns, kelp and creepers, per-shape outlines, worldgen wiring"
 area: FARM
-status: open
+status: done
 wave: 36
 deps: [PAR-FARM-25]
 size: L
@@ -23,6 +23,7 @@ in_game_steps:
   - "place tfp:plant/jungle_vines, tfp:plant/giant_kelp_flower and tfp:plant/saguaro; let them grow; screenshot within TFC's caps"
 plan:
   - "PAR-FARM-25 wrote the 40 blocks (tfp:plant/<name>) and the lazy column growth (weeping, twisting, kelp heads). Left: PlantGrowth.vineMayGrow (vine spread, needs the instant temperature), kelpTreeGrows (KelpTreeFlowerBlock), branchingCactusGrows (GrowingBranchingCactusBlock) in the lazy sweep; PlantSurvival for columns, kelp, creepers, epiphytes and the perched epiphytes (PlantSupportQueue only covers the PAR-WORLD-12 types); PlantResources.WRITTEN_TYPES and PlantBlocks.ceRef writing these blocks in worldgen (PAR-WORLD-46); TFC's per-shape outlines (BodyPlantBlock WEEPING/TWISTING/THIN shapes, CreepingPlantBlock face boxes, EpiphytePlantBlock side boxes) as tfc-shapes rows instead of the one body-plant row; the cactus and cactus-flower block types (CACTUS, CACTUS_FLOWER) that neither generator writes."
+  - "Done: paper plant/growth/{GrowthWorld,Face,VineGrowth,KelpTreeGrowth,CactusGrowth,PipePlants,PipeRefresh,ShapeGrowth,ShapeSurvival,CubeSnapshot,BlockGrowthWorld,ShapeSurvivalQueue,ShapeSurvivalListener}: TFC's vine spread (only above 0 C: the instant temperature sampled at 8 instants over the time away), KelpTreeFlowerBlock.randomTick, GrowingBranchingCactusBlock.growthTick and the survival of columns, kelp, vines, creeping plants, epiphytes, giant kelp and saguaros as pure rules over a GrowthWorld; ColumnSweeper also scans vines, kelp flowers and saguaro tops and plays their capped Poisson random ticks (region thread, batched); ShapeSurvivalQueue snapshots a cube around the plant, decides on a CPU thread and removes or corrects faces on the region thread (ShapeSurvivalListener: physics and breaks); PlantResources.WRITTEN_TYPES and PlantBlocks (placeholders and growingRef CE states) write the columns, kelp, giant kelp, saguaro and perched epiphytes (vines, creepers and epiphytes need block data the placeholder cannot carry and stay out). Perched epiphyte survival was already in PAR-FARM-12's queue. Tests: ShapeRulesTest (13), ShapeGrowthMockBukkitTest (4) in paper/plant/growth, PlantGrowingWiringTest (3) in paper/worldgen (a new file outside files_owned, test only). Left to the new PAR-FARM-30: per-shape outlines (HitboxDemands/tfc-shapes are datagen files) and the saguaro fruit block. Pending in-game check (container cannot run client)"
 tests:
   - "paper: MockBukkit vine spread, kelp tree and branching cactus growth within the caps"
 done_criteria:
@@ -30,7 +31,5 @@ done_criteria:
 ---
 
 # PAR-FARM-29: Growing plant shapes, part 2
-
-> Claimed: farm29 agent, 2026-11-25
 
 Follow-up of PAR-FARM-25. Follow `plans/parity/PROTOCOL.md`.

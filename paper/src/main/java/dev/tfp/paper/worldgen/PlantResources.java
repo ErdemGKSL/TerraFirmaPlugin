@@ -22,14 +22,18 @@ import java.util.Set;
  */
 final class PlantResources {
     /**
-     * The plant block types {@link PlantBlocks} has blocks for. The features of the other shapes (PAR-WORLD-13: creeping
-     * plants, epiphytes, columns, kelp, vines, cacti) are left out until PAR-WORLD-46 writes them.
+     * The plant block types {@link PlantBlocks} has blocks for. PAR-FARM-29 adds the columns, kelp, giant kelp, saguaro and
+     * perched epiphytes (vanilla placeholders until the terrain places CraftEngine blocks, PAR-WORLD-46); the features of the
+     * creeping plants, epiphytes and vines stay out (their faces need block data the placeholder cannot carry).
      */
     static final Set<PlantType> WRITTEN_TYPES = EnumSet.of(PlantType.STANDARD, PlantType.SHORT_SHRUB, PlantType.SHRUB,
         PlantType.FLOWERBED, PlantType.CACTUSBED, PlantType.PASSABLE_CACTUS, PlantType.DRY, PlantType.SHORT_GRASS,
         PlantType.BEACH_GRASS, PlantType.TALL_GRASS, PlantType.TALL_SHRUB, PlantType.FLOATING, PlantType.FLOATING_FRESH,
         PlantType.WATER, PlantType.WATER_FRESH, PlantType.GRASS_WATER, PlantType.GRASS_WATER_FRESH, PlantType.TALL_WATER,
-        PlantType.TALL_WATER_FRESH);
+        PlantType.TALL_WATER_FRESH, PlantType.WEEPING, PlantType.WEEPING_TOP, PlantType.TWISTING, PlantType.TWISTING_TOP,
+        PlantType.TWISTING_TOP_SHORT, PlantType.TWISTING_SOLID, PlantType.TWISTING_SOLID_TOP, PlantType.KELP,
+        PlantType.KELP_TOP, PlantType.KELP_TREE, PlantType.KELP_TREE_FLOWER, PlantType.BRANCHING_CACTUS,
+        PlantType.BRANCHING_CACTUS_TOP, PlantType.PERCHED_EPIPHYTE);
 
     private PlantResources() {}
 
