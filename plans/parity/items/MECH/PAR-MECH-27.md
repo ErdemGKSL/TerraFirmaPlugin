@@ -31,6 +31,7 @@ plan:
   - "PAR-MECH-07 holds the logic (core/triphammer TripHammerRun over core/machine TripHammerRules; paper/triphammer: device kind tfp:trip_hammer with its hammer slot, the 20-tick strike task reading the bladed axle above, placement facing, chunk index) and is blocked only on this block and PAR-METAL-28's remote work."
   - "Datagen triphammer/TripHammerBlock: tfp:trip_hammer (facing, TFC strength and sounds, tfp:device, loot, TFC's model turned per facing, item, names); TFC's BASE_SHAPES outline from the hitbox allocation where a carrier fits, else a barrier carrier with a ledger divergence; TFC's renderer draws the held hammer swinging (a static display of the held item, or a follow-up)."
   - "Move the trip_hammer owner rule of BlockCoverage to this item (the block becomes generated); when this item is done set PAR-MECH-07 to done in its item file and STATUS (its Done line: in-game check here)."
+  - "Pending in-game check (container cannot run client): 2026-11-25 retry, the headless bot cannot place or click blocks here (no xdotool; the install was denied), RCON /tfp debug and ce commands need a player, vanilla /setblock does not know CE ids. Run on a host with xdotool: place by right-click per in_game_steps."
 tests:
   - "datagen: the trip hammer block (4 states, loot, behaviour, look per facing)"
 done_criteria:

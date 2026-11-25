@@ -23,6 +23,7 @@ plan:
   - "PAR-MECH-09 left the pump complete except its power: PumpService reads the crankshaft rotation through the paper/pump ShaftSource service (TFC CrankshaftBlockEntity.getCrankShaftAt: a SHAFT part next to the pump and the BASE part two blocks away, both facing the pump). The crankshaft module (PAR-MECH-05) provides ShaftSource through ModuleContext.services(); if it did not, add the provider here. Without it no pump runs."
   - "Code done 0d7140e: ShaftSource provider (already CrankshaftModule.shaftSource, PAR-MECH-05; nothing to add), test; pending in-game check"
   - "Run the in-game steps on Paper 1.21.11 and keep the evidence in docs/verification/PAR-MECH-14/ (the PAR-MECH-09 divergence 'full-cube outline' is expected)."
+  - "Pending in-game check (container cannot run client): 2026-11-25 retry, the headless bot cannot place or click blocks here (no xdotool; the install was denied), RCON /tfp debug and ce commands need a player, vanilla /setblock does not know CE ids. Run on a host with xdotool: place by right-click per in_game_steps."
 tests:
   - "MockBukkit: a ShaftSource provided by the crankshaft module powers the pump"
 done_criteria:

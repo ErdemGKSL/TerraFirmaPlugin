@@ -19,6 +19,7 @@ in_game_steps:
   - "break the shaft: it drops a steel rod; break the base: it drops the crankshaft and the shaft goes with it"
 plan:
   - "Created by PAR-MECH-21 (deferred in-game check, PROTOCOL 6.5): the CE block tfp:crankshaft, its sink node (paper/rotation CrankSinks) and the CrankRotation service are done and tested off-server. A failure is fixed through PAR-MECH-21's files (tools/datagen crankshaft, paper/rotation, core/rotation MechanicalBlock) or a follow-up."
+  - "Pending in-game check (container cannot run client): 2026-11-25 retry, the headless bot cannot place or click blocks here (no xdotool; the install was denied), RCON /tfp debug and ce commands need a player, vanilla /setblock does not know CE ids. Run on a host with xdotool: place by right-click per in_game_steps."
 tests:
   - "none (in-game check)"
 done_criteria:

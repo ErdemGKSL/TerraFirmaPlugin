@@ -27,6 +27,7 @@ plan:
   - "PAR-MECH-21 draws the base, its wheel and the shaft at rest (static entity_renderer item displays) on full-cube barrier carriers. TFC's renderer turns the wheel (Axis.XP of calculateRealRotationAngle + pi), moves the shaft (lengthEH, raiseAngle) and draws a 6/16 axle stub on the sink face while connected."
   - "Moving parts: packet displays like the spinning shafts (PAR-MECH-12), fed by the network actor's rotation of the base (CrankSinks / RotationService.rotation): the wheel as a turning display, the shaft as interpolated transforms of its three cuboids."
   - "Outlines: demands for tfp:crankshaft (BASE_SHAPES per facing, SHAFT_SHAPES with TFC's (index + 3) % 4) in HitboxDemands, carriers from HitboxAllocation.agreed instead of the barrier."
+  - "Pending in-game check (container cannot run client): 2026-11-25 retry, the headless bot cannot place or click blocks here (no xdotool; the install was denied), RCON /tfp debug and ce commands need a player, vanilla /setblock does not know CE ids. Run on a host with xdotool: place by right-click per in_game_steps."
 tests:
   - "datagen: the carriers per state; paper: the wheel display's angle follows the rotation, the shaft transform follows shaftMovement"
 done_criteria:

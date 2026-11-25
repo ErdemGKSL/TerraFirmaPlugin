@@ -16,6 +16,7 @@ in_game_steps:
   - "craft an oak bladed axle (oak axle + steel ingot, shapeless); place it in a line driven by the creative motor at step 8: it turns with the line at 30 rpm, its steel blade turning with the shaft; /tfp debug rotation lists it; break it: it drops itself. Screenshots at GUI scale 2 of the line at rest and turning (two frames), on 1.21.11"
 plan:
   - "Created by PAR-MECH-20 (deferred in-game check, PROTOCOL 6.5): the bladed axle's CE blocks, its axle node and its spinning display (TFC's shaft-and-blade model) are done and tested off-server; this item runs the headless client check. A failure is fixed through PAR-MECH-20's files (tools/datagen rotation, paper/rotation) or a follow-up."
+  - "Pending in-game check (container cannot run client): 2026-11-25 retry, the headless bot cannot place or click blocks here (no xdotool; the install was denied), RCON /tfp debug and ce commands need a player, vanilla /setblock does not know CE ids. Run on a host with xdotool: place by right-click per in_game_steps."
 tests:
   - "none (in-game check)"
 done_criteria:

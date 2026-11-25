@@ -23,6 +23,7 @@ in_game_steps:
 plan:
   - "Moved from PAR-MECH-11 (PROTOCOL 6.5): its code is done (RotationStressCase written and registered in SelfTestSuite, PaperRotationWorld.reAddLoaded called from RotationModule.enable) but the server runs and the in-game steps were not run in that session. Run them with a cheap-model agent (exact commands in docs/testing/headless.md and spikes/run-matrix.sh), look at the screenshots in the main session, store evidence in docs/verification/PAR-MECH-16/ (and note PAR-MECH-01 and PAR-MECH-11 in the verdict). SelfTestSuiteTest counts the cases: raise its expected count by one if it is still hard-coded."
   - "Partial in-game run 2026-11-25 (docs/verification/PAR-MECH-16/verdict.md): 9 blocks at 30.00 rpm, hammered gearbox, clutch cut and join, restart re-add pass. Not run: sixth axle, feel checklist, rotation.stress. Items cannot be placed by item without PAR-MECH-24. Pending in-game check."
+  - "Pending in-game check (container cannot run client): 2026-11-25 retry, the headless bot cannot place or click blocks here (no xdotool; the install was denied), RCON /tfp debug and ce commands need a player, vanilla /setblock does not know CE ids. Run on a host with xdotool: place by right-click per in_game_steps."
 tests:
   - "itest: rotation.stress on Paper and Folia"
 done_criteria:
@@ -34,3 +35,5 @@ done_criteria:
 # PAR-MECH-16: Rotation in game: PAR-MECH-01 in-game steps and the rotation.stress itest
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+> 2026-11-25 itest note: `:itest:runSelfTest` on Paper and Folia 1.21.11 skips `rotation.stress` ("generated pack was not installed this run"): CraftEngine reports ~18,9xx "Cannot allocate enough real block states" because the harness does not raise `serverside-blocks` (the headless recipe primes the server first; itest does not). Needs the itest harness to prime or set `serverside-blocks: 99000` (not in this item's files). Also on Folia: `IllegalStateException: Cannot modify server settings off of the global region` from `TfcWorldRules.apply` (WorldSettingsModule WorldLoadEvent): a real Folia bug outside MECH.
