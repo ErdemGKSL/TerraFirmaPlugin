@@ -28,4 +28,6 @@ done_criteria:
 
 # PAR-FAUNA-25: Mob bucket items
 
+> Claimed: worker session_011osUp8LArwstSDt7X82o4E, 2026-11-25
+
 Follow `plans/parity/PROTOCOL.md`.
