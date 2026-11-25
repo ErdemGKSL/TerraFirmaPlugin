@@ -161,7 +161,8 @@ public final class ConfigCodec {
                 r.bool(am, ap, Automation.FIRE_PIT_KEY, ad.firePit()),
                 r.bool(am, ap, Automation.QUERN_KEY, ad.quern()),
                 r.bool(am, ap, Automation.COMPOSTER_KEY, ad.composter()),
-                r.bool(am, ap, Automation.POWDER_KEG_KEY, ad.powderKeg()));
+                r.bool(am, ap, Automation.POWDER_KEG_KEY, ad.powderKeg()),
+                r.bool(am, ap, Automation.POWDER_BOWL_KEY, ad.powderBowl()));
         return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto, catchUp, hud, buckets,
                 survival, itemBars, automation), r.warnings, r.defaulted);
     }
@@ -218,6 +219,7 @@ public final class ConfigCodec {
         automation.put(Automation.QUERN_KEY, au.quern());
         automation.put(Automation.COMPOSTER_KEY, au.composter());
         automation.put(Automation.POWDER_KEG_KEY, au.powderKeg());
+        automation.put(Automation.POWDER_BOWL_KEY, au.powderBowl());
         root.put(Automation.SECTION, automation);
         return root;
     }

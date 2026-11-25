@@ -10,6 +10,7 @@ package dev.tfp.paper.bowl;
 
 import dev.tfp.core.food.FoodTrait;
 import dev.tfp.paper.device.DeviceService;
+import dev.tfp.paper.device.automation.DeviceAutomation;
 import dev.tfp.paper.food.FoodPdc;
 import dev.tfp.paper.food.ItemFoodHooks;
 import dev.tfp.paper.integration.CustomBlocks;
@@ -30,6 +31,8 @@ import org.bukkit.inventory.ItemStack;
 public final class BowlModule implements FeatureModule {
     public static final String ID = "bowl";
 
+    private final java.util.List<AutoCloseable> registrations = new java.util.ArrayList<>();
+
     @Override
     public String id() {
         return ID;
@@ -46,8 +49,27 @@ public final class BowlModule implements FeatureModule {
         BowlEffects effects = new PaperBowlEffects(items);
         BowlDevices bowls = new BowlDevices(tags::is, items, effects, new HookFood(hooks), glass);
         bowls.kinds().forEach(devs::register);
+        // PAR-POT-15: TFC powderBowlEnableAutomation; the automation module enables before this one (service file order)
+        ctx.services().get(DeviceAutomation.class).ifPresent(a -> {
+            for (String kind : new String[] {BowlDevices.CERAMIC, BowlDevices.WOODEN}) {
+                registrations.add(a.register(BowlAutomation.spec(kind, () -> ctx.config().current().automation().powderBowl(),
+                    effects, devs.stacks())));
+            }
+        });
         ctx.listen(new BowlPlacement(blocks, effects));
         ctx.services().get(NeighbourService.class).ifPresent(n -> n.register(new BowlSupport(id -> !BowlDevices.isBowl(id) && PlacedSupport.solidId(id))));
+    }
+
+    @Override
+    public void disable() {
+        for (AutoCloseable c : registrations) {
+            try {
+                c.close();
+            } catch (Exception ignored) {
+                // map removal does not throw
+            }
+        }
+        registrations.clear();
     }
 
     /** TFC {@code FoodCapability.applyTrait(stack, SALTED)} on the stack's own food state. */

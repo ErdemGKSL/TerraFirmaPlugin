@@ -2,7 +2,7 @@
 id: PAR-POT-15
 title: "Bowl automation: hoppers fill and empty powder bowls, the powder layer follows"
 area: POTTERY
-status: open
+status: done
 wave: 28
 deps: [PAR-POT-09, PAR-INFRA-60]
 size: S
@@ -16,6 +16,9 @@ files_owned:
   - "paper/src/main/java/dev/tfp/paper/device/automation/**"
   - "paper/src/test/java/dev/tfp/paper/device/automation/**"
   - "paper/src/main/resources/config.yml"
+  - "core/src/main/java/dev/tfp/core/config/TfpConfig.java"
+  - "core/src/main/java/dev/tfp/core/config/ConfigCodec.java"
+  - "core/src/test/java/dev/tfp/core/config/ConfigCodecTest.java"
   - "docs/config.md"
 ui: false
 in_game_steps: []
@@ -27,6 +30,8 @@ tests:
 done_criteria:
   - "A hopper above a powder bowl fills it, one beside it empties it, and the layer matches the slot after each move"
 ---
+
+Done: PAR-POT-15 `paper/bowl/BowlAutomation` (side table: insert all from above, extract all from the other five sides; switch `automation.powder-bowl` added to `TfpConfig.Automation` with a five-argument constructor kept; settle redraws the powder layer after each hopper move), registered by `BowlModule` with the `DeviceAutomation` service. Tests: paper `BowlAutomationMockBukkitTest` 5, `ConfigCodecTest` updated. No UI.
 
 # PAR-POT-15: Bowl automation: hoppers fill and empty powder bowls, the powder layer follows
 

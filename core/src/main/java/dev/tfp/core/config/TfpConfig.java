@@ -306,17 +306,26 @@ public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall auto
      * @param quern      TFC {@code quernEnableAutomation}
      * @param composter  TFC {@code composterEnableAutomation}
      * @param powderKeg  TFC {@code powderKegEnableAutomation}
+     * @param powderBowl TFC {@code powderBowlEnableAutomation} (PAR-POT-15)
      */
-    public record Automation(boolean barrel, boolean firePit, boolean quern, boolean composter, boolean powderKeg) {
+    public record Automation(boolean barrel, boolean firePit, boolean quern, boolean composter, boolean powderKeg,
+            boolean powderBowl) {
+        /** The five switches of PAR-INFRA-64; the bowl's is TFC's default (on). */
+        public Automation(boolean barrel, boolean firePit, boolean quern, boolean composter, boolean powderKeg) {
+            this(barrel, firePit, quern, composter, powderKeg, true);
+        }
+
         public static final String SECTION = "automation";
         public static final String BARREL_KEY = "barrel";
         public static final String FIRE_PIT_KEY = "fire-pit";
         public static final String QUERN_KEY = "quern";
         public static final String COMPOSTER_KEY = "composter";
         public static final String POWDER_KEG_KEY = "powder-keg";
+        public static final String POWDER_BOWL_KEY = "powder-bowl";
         /** The keys of the section, in config.yml order (the order of this record's components). */
-        public static final List<String> KEYS = List.of(BARREL_KEY, FIRE_PIT_KEY, QUERN_KEY, COMPOSTER_KEY, POWDER_KEG_KEY);
+        public static final List<String> KEYS = List.of(BARREL_KEY, FIRE_PIT_KEY, QUERN_KEY, COMPOSTER_KEY, POWDER_KEG_KEY,
+            POWDER_BOWL_KEY);
         /** TFC's {@code ServerConfig} defaults: every switch on. */
-        public static final Automation DEFAULTS = new Automation(true, true, true, true, true);
+        public static final Automation DEFAULTS = new Automation(true, true, true, true, true, true);
     }
 }

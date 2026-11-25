@@ -56,7 +56,7 @@ class ConfigCodecTest {
         ConfigCodec.Parsed p = ConfigCodec.parse(Map.of());
         assertThat(p.config()).isEqualTo(TfpConfig.DEFAULTS);
         assertThat(p.warnings()).isEmpty();
-        assertThat(p.defaulted()).hasSize(30).contains("automation.barrel", "automation.fire-pit", "automation.quern",
+        assertThat(p.defaulted()).hasSize(31).contains("automation.barrel", "automation.fire-pit", "automation.quern",
                 "automation.composter", "automation.powder-keg", "item-bars.heat", "survival.keep-nutrition-after-death",
                 "survival.peaceful-passive-regeneration", "survival.natural-regeneration-modifier",
                 "buckets.wooden-bucket-can-place-sources",
@@ -378,10 +378,10 @@ class ConfigCodecTest {
     void automationKeysAreReadWrittenAndDefaulted() {
         assertThat(TfpConfig.DEFAULTS.automation()).isEqualTo(new TfpConfig.Automation(true, true, true, true, true));
         assertThat(ConfigCodec.toMap(TfpConfig.DEFAULTS).get("automation")).isEqualTo(Map.of("barrel", true,
-                "fire-pit", true, "quern", true, "composter", true, "powder-keg", true));
+                "fire-pit", true, "quern", true, "composter", true, "powder-keg", true, "powder-bowl", true));
         TfpConfig custom = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS, CatchUp.DEFAULTS,
                 TfpConfig.Hud.DEFAULTS, BucketConfig.DEFAULTS, TfpConfig.Survival.DEFAULTS, TfpConfig.ItemBars.DEFAULTS,
-                new TfpConfig.Automation(false, true, false, true, false));
+                new TfpConfig.Automation(false, true, false, true, false, false));
         ConfigCodec.Parsed p = ConfigCodec.parse(ConfigCodec.toMap(custom));
         assertThat(p.warnings()).isEmpty();
         assertThat(p.defaulted()).isEmpty();
@@ -391,7 +391,7 @@ class ConfigCodecTest {
         assertThat(one.warnings()).isEmpty();
         assertThat(one.config().automation()).isEqualTo(new TfpConfig.Automation(true, true, false, true, true));
         assertThat(one.defaulted()).contains("automation.barrel", "automation.fire-pit", "automation.composter",
-                "automation.powder-keg").doesNotContain("automation.quern");
+                "automation.powder-keg", "automation.powder-bowl").doesNotContain("automation.quern");
         // A bad value warns and keeps TFC's default; an unknown key warns.
         ConfigCodec.Parsed bad = ConfigCodec.parse(Map.of("automation", Map.of("barrel", "no", "loom", true)));
         assertThat(bad.config().automation().barrel()).isTrue();

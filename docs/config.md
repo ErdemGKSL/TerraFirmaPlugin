@@ -144,7 +144,7 @@ Every `define(...)` key of TFC's `ServerConfig`, `CommonConfig`, `ClientConfig` 
 | ServerConfig | `wildCropMaturityStartMonth` | `Month.JUNE` | — | pending: consumer item |
 | ServerConfig | `wildCropMaturityEndMonth` | `Month.OCTOBER` | — | pending: consumer item |
 | ServerConfig | `dispenserEnableLighting` | `true` | — | pending: consumer item |
-| ServerConfig | `powderBowlEnableAutomation` | `true` | — | pending: consumer item |
+| ServerConfig | `powderBowlEnableAutomation` | `true` | `automation.powder-bowl` | mapped |
 | ServerConfig | `smallVesselCapacity` | `3000` | — | pending: consumer item |
 | ServerConfig | `smallVesselMaximumItemSize` | `Size.SMALL` | — | pending: consumer item |
 | ServerConfig | `enableSmallVesselInventoryInteraction` | `true` | — | pending: consumer item |

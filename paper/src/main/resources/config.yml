@@ -117,12 +117,14 @@ item-bars:
 # hopper move reads the new value.
 # barrel: barrelEnableAutomation. fire-pit: firePitEnableAutomation (the firepit, grill and pot).
 # quern: quernEnableAutomation. composter: composterEnableAutomation. powder-keg: powderKegEnableAutomation.
+# powder-bowl: powderBowlEnableAutomation (hoppers fill a bowl from above and empty it to the sides).
 automation:
   barrel: true
   fire-pit: true
   quern: true
   composter: true
   powder-keg: true
+  powder-bowl: true
 
 # Bloomery (TFC server config bloomeryCapacity and bloomeryMaxChimneyHeight). Apply changes with /tfp reload config.
 # capacity: items a bloomery holds per level of chimney (TFC default 16, at least 1; at most 128 here, the slots of its record).
