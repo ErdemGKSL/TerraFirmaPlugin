@@ -158,3 +158,4 @@ dev.tfp.paper.powerloom.PowerLoomModule
 dev.tfp.paper.weathering.WeatheringModule
 dev.tfp.paper.chest.ChestModule
 dev.tfp.paper.itembar.egg.EggBarModule
+dev.tfp.paper.guide.FieldGuideModule

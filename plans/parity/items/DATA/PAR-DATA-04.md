@@ -2,7 +2,7 @@
 id: PAR-DATA-04
 title: "Field guide: decide the form and convert the book"
 area: DATA
-status: open
+status: done
 wave: 35
 deps: []
 size: M
@@ -27,6 +27,10 @@ plan:
   - "OWNER DECISION (2026-11-18, delegated to the manager: decide without asking): take the recommendation: vanilla written books per category (works on every client, no art) plus a web export; no textured GUI book. Record the form in the ledger and ARCHITECTURE.md/PRD.md open-question line in the same change."
   - "BLOCKED: PRD open question on the form (textured GUI book, written book, web guide). Recommendation for the owner: vanilla written books per category (works on every client, no art) + a web export."
   - "After the decision: convert pages (text, crafting/knapping/heating recipe pages as text tables), the book item, open via item use."
+  - "Form recorded 2026-11-25 in ARCHITECTURE.md section 9 (Field guide row), PRD.md section 10 and the ledger: vanilla written books (a contents book with category page links and entry links, one book per entry, volumes over 100 pages) plus the web export content/guide/field_guide.html. Datagen (FieldGuide + datagen/guide) converts every page (recipes as text tables, $(cfg:...) with TFC's default config); core/guide lays the pages out with the vanilla font widths; paper/guide (FieldGuideModule) opens the contents when tfp:field_guide (crafted from one book) is used."
+  - "Pending in-game check (container cannot run client)"
+  - "Follow-ups: PAR-DATA-20 (BOOK inventory tab), PAR-DATA-21 (the nine other book locales)."
+  - "Done: PAR-DATA-04 commit (Field guide: decide the form and convert the book); tests FieldGuideTest (15, real checkout + fixtures), GuideConfigTest (4), core guide PatchouliMarkupTest/BookPaginatorTest/GuideBooksTest (19), paper FieldGuideContentTest (4, real generated guide) and FieldGuideMockBukkitTest (5); in-game screenshot check pending (no client in the container)."
 tests:
   - "tools/datagen: FieldGuideTest"
 done_criteria:

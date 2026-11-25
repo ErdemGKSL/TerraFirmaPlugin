@@ -110,4 +110,4 @@ Status per feature is tracked in `docs/porting/ledger.md`.
 - Final product name chosen: Cairnlands (docs/release/product-name.md). Still open: Java package and content namespace (provisional: `tfp`, `dev.tfp`).
 - Bedrock (Geyser) players: unsupported, or a degraded mode?
 - Server-owner configurability vs TFC defaults: which TFC config options are exposed in v1?
-- Field guide form: CE-textured GUI book, written book, or a web guide?
+- Field guide form: decided 2026-11-18 (PAR-DATA-04): vanilla written books per entry with a contents book, plus a web export; no textured GUI book.

@@ -224,6 +224,113 @@ class FieldGuideTest {
             .isInstanceOf(DatagenException.class).hasMessageContaining("non-JSON or nested field guide file");
     }
 
+    /** PAR-DATA-04: every page of the real book is converted to text; recipes are text tables; links resolve. */
+    @Test
+    void realCheckoutConvertsEveryPageToText() throws IOException {
+        TfcCheckout tfc = realCheckout();
+        OutputTree out = new OutputTree();
+        FieldGuide.run(tfc, out);
+        JsonObject root = JsonParser.parseString(text(out, FieldGuide.OUTPUT)).getAsJsonObject();
+        JsonArray entries = root.getAsJsonArray("entries");
+        Set<String> ids = new TreeSet<>();
+        entries.forEach(e -> ids.add(e.getAsJsonObject().get("id").getAsString()));
+        java.util.regex.Pattern link = java.util.regex.Pattern.compile("\\$\\(l:([^)]+)\\)");
+        int pages = 0;
+        for (var e : entries) {
+            JsonObject o = e.getAsJsonObject();
+            JsonArray content = o.getAsJsonArray("content");
+            assertThat(content).as(o.get("id") + " content").isNotEmpty();
+            for (var p : content) {
+                String t = p.getAsJsonObject().get("text").getAsString();
+                pages++;
+                assertThat(t).as(o.get("id") + " config values").doesNotContain("$(cfg:");
+                var m = link.matcher(t);
+                while (m.find()) {
+                    String target = m.group(1);
+                    if (target.startsWith("http")) {
+                        continue;
+                    }
+                    String path = target.contains("#") ? target.substring(0, target.indexOf('#')) : target;
+                    assertThat(ids).as(o.get("id") + " link " + target).contains("tfp:" + path);
+                }
+            }
+        }
+        assertThat(pages).isGreaterThan(800);
+        assertThat(root.getAsJsonObject("book").get("name").getAsString()).isEqualTo("Field Guide");
+        assertThat(root.getAsJsonObject("book").get("landing_text").getAsString()).startsWith("Welcome traveller!");
+
+        String firepit = find(entries, "tfp:getting_started/firepit").getAsJsonArray("content").toString();
+        assertThat(firepit).contains("$(l)Crafting$(): Firestarter$(br)-S$(br)S-$(br)S = Wooden Rods");
+        assertThat(firepit).contains("$(l)Heating$(): Wooden Rods -> 2 x Torch$(br)at $(7)Warming$() (60\u00B0C)");
+        // TFC's climate table (wild crops) resolves $(cfg:temperature:..) as %.1f°C
+        String crops = find(entries, "tfp:the_world/wild_crops").getAsJsonArray("content").toString();
+        assertThat(crops).contains("Cassava").contains("10.4\u00B0C - 40.0\u00B0C");
+        String knapping = find(entries, "tfp:getting_started/pottery").getAsJsonArray("content").toString();
+        assertThat(knapping).contains("Clay Knapping").contains("X = keep, - = remove");
+
+        String html = text(out, FieldGuide.WEB);
+        assertThat(html).startsWith("<!doctype html>").contains("id=\"tfp-getting_started-firepit\"")
+            .contains("<kbd>Right Click</kbd>");
+        for (String id : ids) {
+            assertThat(html).contains("id=\"" + id.replace(':', '-').replace('/', '-') + "\"");
+        }
+        assertThat(text(out, FieldGuide.ITEM_CONFIG)).contains("tfp:field_guide:").contains("item_name: '<!i><lang:item.tfp.field_guide>'")
+            .contains("- minecraft:book");
+        assertThat(text(out, FieldGuide.LANG_RP + "en_us.json")).contains("\"item.tfp.field_guide\": \"Field Guide\"");
+    }
+
+    /** PAR-DATA-04: page conversion on a hand-made checkout: a recipe page, a spotlight, a table, config values. */
+    @Test
+    void fixturePagesConvertRecipesTablesAndConfigValues() throws IOException {
+        Path root = guideCheckout();
+        write(root, TfcCheckout.ASSETS + "lang/en_us.json", "{\"item.tfc.firestarter\": \"Firestarter\", "
+            + "\"tfc.tab.field_guide\": \"Field Guide\", \"tfc.field_guide.book_landing_text\": \"Hello\"}");
+        write(root, TfcCheckout.GENERATED + "data/tfc/recipe/crafting/firestarter.json", "{\"type\": \"minecraft:crafting_shaped\", "
+            + "\"key\": {\"S\": {\"tag\": \"c:rods/wooden\"}}, \"pattern\": [\" S\", \"S \"], \"result\": {\"count\": 1, \"id\": \"tfc:firestarter\"}}");
+        write(root, TfcCheckout.GENERATED + "data/tfc/tfc/climate_range/crop/wheat.json",
+            "{\"max_hydration\": 85, \"max_temperature\": 22.0, \"min_hydration\": 15, \"min_temperature\": -7.0}");
+        write(root, FieldGuide.SOURCE + "entries/getting_started/firepit.json", "{\"name\": \"Firepit\", \"category\": \"tfc:getting_started\", "
+            + "\"icon\": \"tfc:firepit\", \"read_by_default\": true, \"sortnum\": 1, \"pages\": ["
+            + "{\"type\": \"patchouli:crafting\", \"recipe\": \"tfc:crafting/firestarter\", \"text\": \"Two sticks.\"},"
+            + "{\"type\": \"patchouli:crafting\", \"recipe\": \"minecraft:book\"},"
+            + "{\"type\": \"patchouli:spotlight\", \"item\": \"tfc:firestarter,minecraft:blue_dye\", \"text\": \"x\"},"
+            + "{\"type\": \"patchouli:empty\"},"
+            + "{\"type\": \"patchouli:text\", \"text\": \"Torch: $(cfg:torchTicks), wheat $(cfg:climate.wheat.temperature) $(cfg:climate.wheat.hydration), $(cfg:heat:930)hot\"},"
+            + "{\"type\": \"tfc:table\", \"columns\": 2, \"title\": \"T\", \"legend\": [{\"text\": \"Ok\", \"color\": \"0x3eb340\"}], \"strings\": ["
+            + "{\"text\": \"Crop\", \"bold\": true}, {\"text\": \"A\", \"bold\": true}, {\"text\": \"B\", \"bold\": true},"
+            + "{\"text\": \"Rice\"}, {\"fill\": \"0x3eb340\"}, {\"text\": \"1\"}]}"
+            + "]}");
+        TfcCheckout tfc = TfcCheckout.open(root, PIN);
+        FieldGuide.Guide g = FieldGuide.read(tfc);
+        FieldGuide.Entry firepit = g.entries().stream().filter(e -> e.id().equals("tfp:getting_started/firepit")).findFirst().orElseThrow();
+        assertThat(firepit.pages()).isEqualTo(6);
+        var c = firepit.content();
+        assertThat(c).hasSize(5); // the empty page is dropped
+        assertThat(c.get(0).text()).isEqualTo("$(l)Crafting$(): Firestarter$(br)-S$(br)S-$(br)S = Wooden Rods$(br2)Two sticks.");
+        assertThat(c.get(1).text()).isEqualTo("$(l)Crafting$(): Book");
+        assertThat(c.get(2).title()).isEqualTo("Firestarter / Blue Dye");
+        // torch: 86400 player ticks * 20/24 = 3 days; heat 930 is Orange (gold)
+        assertThat(c.get(3).text()).isEqualTo("Torch: 3 day(s), wheat -7.0\u00B0C - 22.0\u00B0C 15 - 85, $(6)Orangehot");
+        assertThat(c.get(4).title()).isEqualTo("T");
+        assertThat(c.get(4).text()).isEqualTo("$(l)Crop$(): $(l)A$(), $(l)B$()$(br)$(l)Rice$(): $(#3eb340)\u25A0$() 1$(br)$(#3eb340)\u25A0$() Ok");
+        assertThat(g.book().name()).isEqualTo("Field Guide");
+        assertThat(g.book().landingText()).isEqualTo("Hello");
+    }
+
+    @Test
+    void refusesUnknownPageTypeMissingRecipeAndUnknownConfig() throws IOException {
+        for (String page : new String[] {"{\"type\": \"patchouli:mystery\"}",
+            "{\"type\": \"patchouli:crafting\", \"recipe\": \"tfc:crafting/nope\"}",
+            "{\"type\": \"patchouli:text\", \"text\": \"$(cfg:nope)\"}"}) {
+            Path root = guideCheckout();
+            write(root, FieldGuide.SOURCE + "entries/getting_started/bad.json", "{\"name\": \"Bad\", \"category\": \"tfc:getting_started\", "
+                + "\"icon\": \"tfc:stick\", \"read_by_default\": true, \"pages\": [" + page + "]}");
+            TfcCheckout tfc = TfcCheckout.open(root, PIN);
+            assertThatThrownBy(() -> FieldGuide.read(tfc)).as(page).isInstanceOf(DatagenException.class)
+                .hasMessageContaining("bad.json");
+        }
+    }
+
     private static JsonObject find(JsonArray entries, String id) {
         return entries.asList().stream().map(JsonObject.class::cast)
             .filter(o -> o.get("id").getAsString().equals(id)).findFirst().orElseThrow();
