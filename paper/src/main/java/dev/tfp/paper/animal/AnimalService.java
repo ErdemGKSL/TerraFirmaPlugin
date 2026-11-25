@@ -71,8 +71,9 @@ import org.bukkit.persistence.PersistentDataType;
  *       vanilla baby flag follows TFC's {@code isBaby} (age locked), which halves its hitbox as in TFC.</li>
  *   <li><b>Check</b>: an entity-scheduler task every {@value #PERIOD} ticks, first after {@code 1 + uuid hash mod 20}
  *       ticks so animals do not all run on one tick. It snapshots the PDC record and the clock and asks
- *       {@link AnimalCheck#decide} (pure, core); it writes the record only when the old-age mark is set, and re-applies
- *       the scale only when the stage changed. Started on {@link EntityAddToWorldEvent} (spawn and chunk load), stopped
+ *       {@link AnimalCheck#decide} (pure, core), runs every species hook on that one record and writes it once at the
+ *       end, only when the old-age mark is set or a hook changed it (PAR-FAUNA-28); it re-applies the scale only when
+ *       the stage changed. Started on {@link EntityAddToWorldEvent} (spawn and chunk load), stopped
  *       on {@link EntityRemoveFromWorldEvent} and when the entity scheduler retires the task.</li>
  *   <li><b>Re-apply</b>: on every model (re)creation ({@link EntityModels#onModelCreated}), and on every model load
  *       ({@link EntityModels#onReady}) for carriers that loaded before the models existed.</li>
@@ -335,11 +336,29 @@ public final class AnimalService implements Listener {
      * Owning thread; no-op for an entity that is not one of our animals.
      */
     public void refreshModel(Entity e) {
-        Optional<AnimalRecord> record = record(e);
+        record(e).ifPresent(r -> refreshModel(e, r));
+    }
+
+    /** {@link #refreshModel(Entity)} with the record already in hand (a check hook). Owning thread. */
+    public void refreshModel(Entity e, AnimalRecord record) {
         ClockSnapshot now = clock.get();
-        if (record.isPresent() && now.isSet()) {
-            ensureModel(e, record.get(), AnimalCheck.ageAt(record.get(), now.playerTicks()));
+        if (now.isSet()) {
+            ensureModel(e, record, AnimalCheck.ageAt(record, now.playerTicks()));
         }
+    }
+
+    /**
+     * Whether the model the carrier wears (its id kept in the PDC) differs from the one it should wear now, so a check
+     * hook swaps it only when its look changed. Owning thread.
+     */
+    public boolean modelOutdated(Entity e, AnimalRecord record) {
+        ClockSnapshot now = clock.get();
+        if (!now.isSet()) {
+            return false;
+        }
+        Optional<String> want = modelFor(e, record, AnimalCheck.ageAt(record, now.playerTicks()));
+        String current = e.getPersistentDataContainer().get(MODEL_KEY, PersistentDataType.STRING);
+        return want.isPresent() && !want.get().equals(current);
     }
 
     /** {@link EntityModels#onModelCreated}: the model plugin (re)created a model; owning thread. */
@@ -415,40 +434,83 @@ public final class AnimalService implements Listener {
         }
     }
 
+    /** Where a check reads and writes the carrier's record: its PDC in the server, a counter in tests. */
+    interface RecordStore {
+        Optional<AnimalRecord> read(Entity e);
+
+        void write(Entity e, AnimalRecord record);
+
+        RecordStore PDC = new RecordStore() {
+            @Override
+            public Optional<AnimalRecord> read(Entity e) {
+                return AnimalPdc.read(e.getPersistentDataContainer());
+            }
+
+            @Override
+            public void write(Entity e, AnimalRecord record) {
+                AnimalPdc.write(e.getPersistentDataContainer(), record);
+            }
+        };
+    }
+
+    /** What one check body did: no record (stop the check), not run (calendar unset), or ran with the stage applied. */
+    record CheckOutcome(boolean stop, boolean ran, LivestockAge applied) {
+    }
+
     /** One staggered check, on the carrier's thread: snapshot, decide (core), write only what changed. */
     private void check(Tracked t) {
         Entity e = t.entity;
         try {
-            Optional<AnimalRecord> record = record(e);
-            if (record.isEmpty()) {
+            CheckOutcome out = checkBody(e, t.applied, RecordStore.PDC);
+            if (out.stop()) {
                 stop(t);
                 return;
             }
-            ClockSnapshot now = clock.get();
-            if (!now.isSet()) {
-                return;
+            if (out.ran()) {
+                t.applied = out.applied();
+                t.checks++;
             }
-            int dayDraw = ThreadLocalRandom.current().nextInt(LivestockRules.OLD_DAY_DRAWS);
-            AnimalCheck.Decision d = AnimalCheck.decide(record.get(), now.playerTicks(), dayDraw, t.applied);
-            if (d.recordChanged()) {
-                AnimalPdc.write(e.getPersistentDataContainer(), d.record());
-            }
-            // Carriers can come back from a restart with NoAI (M0-BM-01), so the first check after load restores AI. It
-            // is deliberately not re-checked later: NoAI set afterwards comes from an operator or another plugin
-            // (/data, a freeze command) and is theirs to undo.
-            if (t.applied == null && e instanceof Mob mob && !mob.hasAI()) {
-                mob.setAI(true);
-            }
-            if (d.stageChanged()) {
-                ensureModel(e, d.record(), d.age());
-                t.applied = d.age();
-            }
-            behaviours.onCheck(new SpeciesBehaviour.Check(e, d.record(), d.age(), now.playerTicks()));
-            t.checks++;
         } catch (RuntimeException ex) {
             logger.log(Level.SEVERE, "Animal check failed for " + e.getUniqueId() + "; stopping it", ex);
             stop(t);
         }
+    }
+
+    /**
+     * The check body (PAR-FAUNA-28): reads the record once, runs the age step and every species hook on that one record
+     * ({@link SpeciesBehaviours#update} collects their changes), and writes it once at the end, only when the age step
+     * or a hook changed it. Owning thread.
+     *
+     * @param applied the stage last applied to the carrier, null before the first check after an add
+     */
+    CheckOutcome checkBody(Entity e, LivestockAge applied, RecordStore store) {
+        Optional<AnimalRecord> record = store.read(e);
+        if (record.isEmpty()) {
+            return new CheckOutcome(true, false, applied);
+        }
+        ClockSnapshot now = clock.get();
+        if (!now.isSet()) {
+            return new CheckOutcome(false, false, applied);
+        }
+        int dayDraw = ThreadLocalRandom.current().nextInt(LivestockRules.OLD_DAY_DRAWS);
+        AnimalCheck.Decision d = AnimalCheck.decide(record.get(), now.playerTicks(), dayDraw, applied);
+        // Carriers can come back from a restart with NoAI (M0-BM-01), so the first check after load restores AI. It
+        // is deliberately not re-checked later: NoAI set afterwards comes from an operator or another plugin
+        // (/data, a freeze command) and is theirs to undo.
+        if (applied == null && e instanceof Mob mob && !mob.hasAI()) {
+            mob.setAI(true);
+        }
+        LivestockAge nowApplied = applied;
+        if (d.stageChanged()) {
+            ensureModel(e, d.record(), d.age());
+            nowApplied = d.age();
+        }
+        SpeciesBehaviours.Pending pending = behaviours.dispatchCheck(
+                new SpeciesBehaviour.Check(e, d.record(), d.age(), now.playerTicks()), d.recordChanged());
+        if (pending.changed) {
+            store.write(e, pending.current);
+        }
+        return new CheckOutcome(false, true, nowApplied);
     }
 
     private void stop(Tracked t) {

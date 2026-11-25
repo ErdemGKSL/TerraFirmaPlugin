@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/common/entities/livestock/TFCAnimalProperties.java, Mammal.java,
- * MammalProperties.java @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/TFCAnimalProperties.java @ c3b4d9536,
+ * and Mammal.java, MammalProperties.java in the same directory, same commit
  */
 package dev.tfp.paper.livestock;
 
@@ -19,6 +19,7 @@ import dev.tfp.core.livestock.LivestockSpecies;
 import dev.tfp.paper.animal.AnimalPdc;
 import dev.tfp.paper.animal.AnimalService;
 import dev.tfp.paper.animal.SpeciesBehaviour;
+import dev.tfp.paper.animal.SpeciesBehaviours;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.util.Optional;
 import java.util.Set;
@@ -63,12 +64,15 @@ final class LivestockBehaviour implements SpeciesBehaviour {
 
     @Override
     public void onCheck(Check check) {
+        if (SpeciesBehaviours.current(check).state().male()) {
+            return; // nothing is ever due for a male here: the female's check pairs and gives birth (PAR-FAUNA-28)
+        }
         Optional<LivestockSpecies> species = animals.table().find(check.record().species()).flatMap(Carrier::livestock);
         ClockSnapshot now = clock.get();
         if (species.isEmpty() || !now.isSet()) {
             return;
         }
-        AnimalState state = check.record().state();
+        AnimalState state = SpeciesBehaviours.current(check).state();
         LivestockSpecies sp = species.get();
         if (!state.male() && state.fertilized() && sp.kind() == LivestockSpecies.Kind.MAMMAL) {
             giveBirth(check, sp, now);
@@ -80,14 +84,14 @@ final class LivestockBehaviour implements SpeciesBehaviour {
     /** TFC {@code MammalProperties.tickAnimalData}: the birth check of a pregnant mammal. */
     private void giveBirth(Check check, LivestockSpecies sp, ClockSnapshot now) {
         int draw = ThreadLocalRandom.current().nextInt(sp.childCount());
-        Optional<BreedingRules.Birth> birth = BreedingRules.birth(check.record().state(), sp, now.playerTicks(),
+        AnimalRecord record = SpeciesBehaviours.current(check);
+        Optional<BreedingRules.Birth> birth = BreedingRules.birth(record.state(), sp, now.playerTicks(),
                 now.calendarTicks(), now.playerTicks(), draw);
         if (birth.isEmpty()) {
             return;
         }
         Entity mother = check.entity();
-        AnimalRecord record = check.record();
-        AnimalPdc.write(mother.getPersistentDataContainer(), record.withState(birth.get().mother()));
+        SpeciesBehaviours.update(check, record.withState(birth.get().mother()));
         Carrier carrier = animals.table().find(record.species()).orElseThrow();
         for (int i = 0; i < birth.get().kids(); i++) {
             animals.spawnOffspring(mother.getLocation(), carrier, birth.get().offspringFamiliarity());
@@ -97,21 +101,23 @@ final class LivestockBehaviour implements SpeciesBehaviour {
     /** TFC's mating: a ready female and a ready male of one species within range are paired; the female is fertilized. */
     private void mate(Check check, LivestockSpecies sp, ClockSnapshot now) {
         Entity female = check.entity();
+        AnimalRecord record = SpeciesBehaviours.current(check);
         for (Entity other : female.getNearbyEntities(MATE_RANGE, MATE_RANGE / 2, MATE_RANGE)) {
-            if (other == female || !Bukkit.isOwnedByCurrentRegion(other)) {
+            // a species always rides the same carrier type, so another type is skipped before its record is decoded
+            if (other == female || other.getType() != female.getType() || !Bukkit.isOwnedByCurrentRegion(other)) {
                 continue;
             }
             Optional<AnimalRecord> maybe = animals.record(other);
-            if (maybe.isEmpty() || !maybe.get().species().equals(check.record().species())) {
+            if (maybe.isEmpty() || !maybe.get().species().equals(record.species())) {
                 continue;
             }
             AnimalState male = maybe.get().state();
-            if (!male.male() || !BreedingRules.canMate(check.record().state(), male, sp, now.playerTicks())) {
+            if (!male.male() || !BreedingRules.canMate(record.state(), male, sp, now.playerTicks())) {
                 continue;
             }
-            BreedingRules.Pairing pairing = BreedingRules.fertilize(check.record().state(), male, sp, now.playerTicks(),
+            BreedingRules.Pairing pairing = BreedingRules.fertilize(record.state(), male, sp, now.playerTicks(),
                     now.calendarTicks());
-            AnimalPdc.write(female.getPersistentDataContainer(), check.record().withState(pairing.female()));
+            SpeciesBehaviours.update(check, record.withState(pairing.female()));
             AnimalPdc.write(other.getPersistentDataContainer(), maybe.get().withState(pairing.male()));
             return;
         }

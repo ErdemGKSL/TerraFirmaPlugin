@@ -21,6 +21,11 @@ import org.bukkit.entity.Mob;
  * The registry of {@link SpeciesBehaviour}s and the dispatch {@link AnimalService} calls into (PAR-FAUNA-21). A species
  * without a behaviour keeps its carrier's vanilla goals. A failing behaviour is logged and never stops the animal's
  * check, so one feature's bug cannot freeze the age step of every animal.
+ *
+ * <p>One record per check (PAR-FAUNA-28): {@link AnimalService} reads the record once and hands it to every hook; a hook
+ * that changes the carrier's own record calls {@link #update} instead of writing the PDC, a later hook of the same check
+ * sees the change through {@link #current}, and the service writes the record once after the last hook, only when
+ * something changed. Outside a dispatch (a self-test calling a hook directly) {@link #update} writes at once.
  */
 public final class SpeciesBehaviours {
     /** Where goals are written: Paper's {@code MobGoals} in the server, a recorder in tests. */
@@ -42,6 +47,22 @@ public final class SpeciesBehaviours {
             Bukkit.getMobGoals().addGoal(mob, priority, goal);
         }
     };
+
+    /** The record of the check being dispatched on this thread, and whether a hook changed it. */
+    static final class Pending {
+        final SpeciesBehaviour.Check check;
+        AnimalRecord current;
+        boolean changed;
+
+        Pending(SpeciesBehaviour.Check check, boolean changed) {
+            this.check = check;
+            this.current = check.record();
+            this.changed = changed;
+        }
+    }
+
+    /** Checks run synchronously on the carrier's owning thread, so the dispatch in progress is per thread. */
+    private static final ThreadLocal<Pending> DISPATCH = new ThreadLocal<>();
 
     private final Map<String, List<SpeciesBehaviour>> bySpecies = new ConcurrentHashMap<>();
     private final Logger logger;
@@ -107,13 +128,56 @@ public final class SpeciesBehaviours {
     }
 
     void onCheck(SpeciesBehaviour.Check check) {
-        for (SpeciesBehaviour b : all(check.record().species())) {
-            try {
-                b.onCheck(check);
-            } catch (RuntimeException ex) {
-                logger.log(Level.SEVERE, "Species behaviour for " + check.record().species() + " failed in its check", ex);
+        dispatchCheck(check, false);
+    }
+
+    /**
+     * Runs every check hook of the species with one shared record and returns the record to write (with the age step's
+     * {@code changed} flag folded in), so the caller writes at most once. Hooks run in registration order.
+     */
+    Pending dispatchCheck(SpeciesBehaviour.Check check, boolean changed) {
+        Pending pending = new Pending(check, changed);
+        Pending outer = DISPATCH.get();
+        DISPATCH.set(pending);
+        try {
+            for (SpeciesBehaviour b : all(check.record().species())) {
+                try {
+                    b.onCheck(check);
+                } catch (RuntimeException ex) {
+                    logger.log(Level.SEVERE, "Species behaviour for " + check.record().species() + " failed in its check", ex);
+                }
+            }
+        } finally {
+            if (outer == null) {
+                DISPATCH.remove();
+            } else {
+                DISPATCH.set(outer);
             }
         }
+        return pending;
+    }
+
+    /** The carrier's record as the earlier hooks of {@code check} left it ({@code check.record()} outside a dispatch). */
+    public static AnimalRecord current(SpeciesBehaviour.Check check) {
+        Pending p = DISPATCH.get();
+        return p != null && p.check == check ? p.current : check.record();
+    }
+
+    /**
+     * Replaces the carrier's record for the rest of {@code check}; the service writes it once after the last hook.
+     * Outside a dispatch of {@code check} (a hook called directly) it is written to the carrier's PDC at once. Owning
+     * thread.
+     */
+    public static void update(SpeciesBehaviour.Check check, AnimalRecord next) {
+        Pending p = DISPATCH.get();
+        if (p != null && p.check == check) {
+            if (!next.equals(p.current)) {
+                p.current = next;
+                p.changed = true;
+            }
+            return;
+        }
+        AnimalPdc.write(check.entity().getPersistentDataContainer(), next);
     }
 
     /** Entry points for code outside the package (tests, self-tests) to drive the dispatch. */

@@ -2,7 +2,7 @@
 id: PAR-FAUNA-28
 title: "200-animal load: staggered check phase and goal spikes within the tick budget (follow-up of PAR-FAUNA-26)"
 area: FAUNA
-status: open
+status: blocked
 wave: 55
 deps: [PAR-FAUNA-26]
 size: M
@@ -20,10 +20,12 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
+  - "Blocked on PAR-FAUNA-33 (2026-11-25): the check phase is cut (worst phase 1.36 -> 0.90 ms Paper, 1.18 -> 0.91 Folia; slice mean 2.01 -> 1.41 / 1.60 -> 1.45, p99 2.92 -> 2.00 / 2.32 -> 1.88, max 39.7 -> 9.7 / 5.2 -> 4.7), but husbandry.load_200 still fails both budgets: the max is single goal calls of up to 13 ms (pathfinding started inside shouldActivate of LivestockGoals$Breed/FollowAdult/Tempt/Panic and PreyIdleGoals$FollowAdult, scans in SmallPreyGoals$AvoidPredator / LivestockGoals$Avoid; GC in 2 of 18 spike ticks), which is code in paper/livestockai and paper/prey (PAR-FAUNA-26 files, outside files_owned). Numbers: docs/perf/animals-200.md, After PAR-FAUNA-28."
   - "Current (2026-11-25, after PAR-FAUNA-26, docs/perf/animals-200.md): husbandry.load_200 goals are 0.65 ms/tick mean on Paper 1.21.11 (p99 1.55, max 38.3) and 0.42 on Folia 1.21.11 (p99 1.14, max 4.1), but the plugin slice is 2.01 / 1.60 ms mean, p99 2.92 / 2.32, because the case adds the heaviest staggered-check phase (1.36 Paper, 1.18 Folia) to every tick: the AnimalService age step plus every SpeciesBehaviour.onCheck (livestock, products, sounds, aquatic). Check per animal: mean 41-44 us, max 857-963 us."
   - "Profile one check body (record read/write through AnimalPdc, the onCheck hooks) and cut it: read the record once per check and pass it to every behaviour, write once at the end only when something changed, skip hooks that have nothing due (lazy timestamps). Target: worst phase well under 0.5 ms for 200 animals (10 per phase)."
   - "Find the single-tick goal spikes (Paper max 38.3 ms): log the slowest timed call per tick with its goal class; if it is a pathfinding burst, spread repaths (Idle/strolls) per tick; if it is a GC pause, record it and discuss with PAR-REL-07."
   - "Do not loosen PERF-TICK-01 / PERF-COMMIT-01 or the case; do not change TFC behaviour (FAUNA-05/08/09 goldens)."
+  - "Done: one record per check (AnimalService.checkBody reads once; hooks share it through SpeciesBehaviours.current/update; one write at the end, only if changed); hooks with nothing due return early (male livestock, milk animals, hens below the laying familiarity, wool animals whose model is already right); sounds take the species from the check and cache the event name; mating skips other carrier types before decoding records. Fixes a lost fertilization when a hen mated and laid in one check. Test AnimalCheckOnceTest (4); FAUNA-05/08/09 goldens and paper animal/livestock/livestockai tests pass. Paper and Folia 1.21.11 runs: docs/perf/animals-200.md. Still over budget; goal spikes in PAR-FAUNA-33."
 tests:
   - "itest husbandry.load_200 (exists)"
   - "paper: a test that one check reads and writes the record at most once"
@@ -33,7 +35,5 @@ done_criteria:
 ---
 
 # PAR-FAUNA-28: 200-animal load: staggered check phase and goal spikes within the tick budget (follow-up of PAR-FAUNA-26)
-
-> Claimed: REL session_011osUpAJcukeqydbqrkqw9X, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

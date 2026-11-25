@@ -5,6 +5,11 @@ The self-test case `husbandry.load_200` (`itest/src/main/java/dev/tfp/itest/case
 `docs/perf/budgets.md`: PERF-TICK-01 (plugin share 2 ms per tick, hard cap per tick) and PERF-COMMIT-01 (1.5 ms per tick,
 checked on the 99th percentile).
 
+**Update (2026-11-25, PAR-FAUNA-28): worst check phase 1.36 -> 0.90 ms (Paper) and 1.18 -> 0.91 (Folia), slice mean
+2.01 -> 1.41 and 1.60 -> 1.45, p99 2.92 -> 2.00 and 2.32 -> 1.88; still over budget** (p99 above 1.5 ms, max 9.7 / 4.7 ms)
+because of single-call goal spikes in the AI packages (pathfinding inside `shouldActivate`, up to 13 ms in one call), not
+GC. Numbers in "After PAR-FAUNA-28" below; the goal spikes are tracked in PAR-FAUNA-33.
+
 **Update (2026-11-25, PAR-FAUNA-26): goals 13.2 -> 0.65 ms/tick (Paper) and 13.1 -> 0.42 (Folia), no Folia crash; still
 over budget** because the staggered check phase (about 1.2 to 1.4 ms on every tick, outside the AI code) and single-tick
 spikes remain. Numbers in "After PAR-FAUNA-26" below; the rest is tracked in PAR-FAUNA-28.
@@ -108,6 +113,55 @@ What is left (PAR-FAUNA-28): the case adds the heaviest staggered-check phase (1
 and the `onCheck` of livestock, products, sounds and aquatic, outside the AI packages) to every tick, so the slice p50 is
 already at or above the 1.5 ms p99 budget with the goals at 0.36 to 0.59 ms; and single-tick spikes in the goals (Paper
 max 38.3 ms, Folia 4.1 ms, likely pathfinding bursts or a GC pause inside a timed call).
+
+## After PAR-FAUNA-28
+
+What changed in the check (`AnimalService`, `SpeciesBehaviours`, the livestock, products and sounds hooks):
+
+- One record per check: the service reads the record once, every hook gets it (`SpeciesBehaviours.current`), a hook that
+  changes the carrier's own record calls `SpeciesBehaviours.update`, and the service writes once after the last hook,
+  only when the age step or a hook changed it (test `AnimalCheckOnceTest`: two changing hooks give one read and one
+  write; no change gives no write). Before, the age step, the mating, the birth and the egg each wrote the PDC, and a hen
+  mated and laying in the same check had her fertilization overwritten by the laying hook's stale record.
+- Hooks with nothing due return before any lookup: a male in the livestock hook; milk animals in the products hook
+  (milk is taken on interaction); a hen below the laying familiarity before her product state is read; a wool animal only
+  re-applies its model when it was shorn, the wool is back and the model on the carrier is not the one it should wear
+  (before: a model refresh, with attribute and model writes, on every check of every sheep shorn once).
+- The sounds hook takes the species from the check (no second record read) and caches the TFC event name per species
+  (no regex per ambient sound); mating skips neighbours of another carrier type before decoding their record.
+
+Same setup and commands as above, plugin at d6ac357 plus PAR-FAUNA-28, 2026-11-25. Times in ms per tick.
+
+| Platform | Slice mean | p50 | p99 | max | Goals mean | Goals p99 | Goals max | Worst check phase | Check per animal mean / max (µs) | Ticks > 1.5 ms | Region tick interval p99 / max | Server MSPT mean / p99 / max |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Paper 1.21.11-132 | 1.411 | 1.370 | 2.002 | 9.678 | 0.514 | 1.105 | 8.781 | 0.897 | 39.4 / 702.9 | 289 of 1199 | 50.268 / 52.971 | 4.257 / 7.552 / 31.786 |
+| Folia 1.21.11-14 | 1.445 | 1.410 | 1.884 | 4.701 | 0.536 | 0.974 | 3.792 | 0.910 | 39.4 / 771.6 | 267 of 1199 | 50.100 / 65.171 | n/a |
+
+Before (same machine, same day, PAR-FAUNA-26 table above): Paper slice 2.013 / p99 2.917 / max 39.665, worst phase
+1.364; Folia 1.602 / 2.323 / 5.245, worst phase 1.182. A re-run of the Paper baseline at d6ac357 with a local diagnostic
+patch (below) gave slice mean 3.401, p99 4.024, max 6.804, worst phase 2.759, check per animal 110 µs: the check phase is
+a one-shot sample (worst of three runs per animal), so one pause inside one animal's check moves it by milliseconds.
+
+Verdict: **still over budget on Paper and Folia** (p99 2.00 / 1.88 > 1.5 ms; max 9.7 / 4.7 > 2 ms). The p99 is goals p99
+(about 1.0 to 1.1 ms) plus the worst check phase (0.9 ms); the max is a goal spike.
+
+Where the goal spikes come from (local diagnostic patch on `HusbandryRunCase`, not committed: the slowest timed goal call
+per tick with its goal class and method, and the JVM's total GC time at each sample; and the check body timed per hook).
+Ticks with goals above 1.5 ms, three runs (Paper before, Paper after, Folia after):
+
+| Run | Slowest single call in the tick (ms) | GC time changed in that tick? |
+|---|---|---|
+| Paper | `PreyIdleGoals$FollowAdult#shouldActivate` 2.25, `LivestockGoals$Breed#shouldActivate` 1.18, `LivestockGoals$FollowAdult#shouldActivate` 0.92, `SmallPreyGoals$AvoidPredator#shouldActivate` 0.82 | in one of the five ticks (the `Breed` one, +75 ms of GC since the previous logged tick), not in the others |
+| Paper | `LivestockGoals$FollowAdult#shouldActivate` 4.44, `LivestockGoals$Panic#shouldActivate` 2.29, `LivestockGoals$Tempt#shouldActivate` 2.10 / 1.05, `SmallPreyGoals$AvoidPredator#shouldActivate` 1.19 | no |
+| Folia | `LivestockGoals$Breed#shouldActivate` 13.19, `LivestockGoals$Avoid#shouldActivate` 2.29, `LivestockGoals$Tempt#shouldActivate` 1.40, `LivestockGoals$FollowAdult#shouldActivate` 1.24, `LivestockGoals$Swim#shouldStayActive` 1.08 | in one of the eight ticks (the `Avoid` one, +43 ms), not in the others |
+
+So the spikes are single `shouldActivate` calls of the goals that start a path (`Breed`, `FollowAdult`, `Tempt`, `Panic`
+call `moveTo`, which computes the vanilla path in the same call) or scan (`AvoidPredator`, `Avoid`), mostly not GC pauses
+(the GC total moved in two of the 18 logged ticks; GC pauses are recorded here only, for PAR-REL-07). Spreading the path starts over ticks, as the plan asked, is code in
+`paper/livestockai` and `paper/prey` (PAR-FAUNA-26's files, outside PAR-FAUNA-28's): tracked in PAR-FAUNA-33. The same
+patch put the check body at about 7 µs for the record read and 1 to 15 µs per hook (cold caches; the warm cost is lower),
+with single outliers of 0.4 to 38 ms in one call of a hook that does nothing but compare two fields: host pauses, which
+the worst-of-three sample adds to the phase.
 
 ## Machine and command
 

@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/resources/assets/tfc/sounds.json (entity.*) @ c3b4d9536
+ * file: src/main/resources/assets/tfc/sounds.json @ c3b4d9536 (entity.*)
  */
 package dev.tfp.paper.animal.sound;
 
@@ -21,8 +21,10 @@ import dev.tfp.paper.module.ModuleContext;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
@@ -83,7 +85,15 @@ public final class AnimalSoundsModule implements FeatureModule, Listener {
         if (record.isEmpty()) {
             return;
         }
-        Optional<String> event = event(events, record.get().species(), kind);
+        play(e, record.get().species(), kind);
+    }
+
+    /** The resolved events per species and kind, so a check does not rebuild the candidate names each time. */
+    private final Map<String, Optional<String>> resolved = new ConcurrentHashMap<>();
+
+    /** {@link #play(Entity, String)} with the species known (a check hook has the record in hand). */
+    void play(Entity e, String species, String kind) {
+        Optional<String> event = resolved.computeIfAbsent(species + '|' + kind, k -> event(events, species, kind));
         if (event.isPresent()) {
             e.getWorld().playSound(e.getLocation(), "tfp_animals:" + event.get(), SoundCategory.NEUTRAL, 1f, 1f);
             return;
@@ -127,7 +137,7 @@ public final class AnimalSoundsModule implements FeatureModule, Listener {
         @Override
         public void onCheck(Check check) {
             if (ThreadLocalRandom.current().nextDouble() < AMBIENT_CHANCE) {
-                play(check.entity(), "ambient");
+                play(check.entity(), check.record().species(), "ambient");
             }
         }
     }

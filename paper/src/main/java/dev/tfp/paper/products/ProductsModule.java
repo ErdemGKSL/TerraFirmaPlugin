@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/common/entities/livestock/DairyAnimal.java, WoolyAnimal.java,
- * ProducingAnimal.java, OviparousAnimal.java (makeEgg) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/entities/livestock/DairyAnimal.java @ c3b4d9536,
+ * and WoolyAnimal.java, ProducingAnimal.java, OviparousAnimal.java (makeEgg) in the same directory, same commit
  */
 package dev.tfp.paper.products;
 
@@ -26,6 +26,7 @@ import dev.tfp.paper.animal.AnimalPdc;
 import dev.tfp.paper.animal.AnimalService;
 import dev.tfp.paper.animal.ProductPdc;
 import dev.tfp.paper.animal.SpeciesBehaviour;
+import dev.tfp.paper.animal.SpeciesBehaviours;
 import dev.tfp.paper.fluid.FluidContainerItems;
 import dev.tfp.paper.itemdata.ItemFluids;
 import dev.tfp.paper.module.FeatureModule;
@@ -165,6 +166,8 @@ public final class ProductsModule implements FeatureModule, Listener {
     /** Egg laying and the wool growing back, on each staggered check. */
     private final class LayingBehaviour implements SpeciesBehaviour {
         private final AnimalService animals;
+        /** {@link ProductPdc#specOf} per species, so a check does no string work. */
+        private final java.util.Map<String, Optional<ProductSpec>> specs = new java.util.concurrent.ConcurrentHashMap<>();
 
         LayingBehaviour(AnimalService animals) {
             this.animals = animals;
@@ -183,17 +186,23 @@ public final class ProductsModule implements FeatureModule, Listener {
 
         @Override
         public void onCheck(Check c) {
-            Optional<ProductSpec> spec = ProductPdc.specOf(c.record().species());
+            Optional<ProductSpec> spec = specs.computeIfAbsent(c.record().species(), ProductPdc::specOf);
+            if (spec.isEmpty() || spec.get().kind() == ProductKind.MILK) {
+                return; // milk is taken on interaction; nothing is due on a check (PAR-FAUNA-28)
+            }
             Optional<LivestockSpecies> species = animals.table().find(c.record().species()).flatMap(Carrier::livestock);
             ClockSnapshot now = ctx.clock().get();
             if (spec.isEmpty() || species.isEmpty() || !now.isSet()) {
                 return;
             }
             if (spec.get().kind() == ProductKind.SHEAR) {
-                // the wool grew back: swap the sheared model for the normal one
-                if (!ProductPdc.isSheared(c.entity(), c.record(), now.playerTicks())
-                        && ProductPdc.read(c.entity()).producedTick() > 0L) {
-                    animals.refreshModel(c.entity());
+                // the wool grew back: swap the sheared model for the normal one. Nothing is due for an animal that was
+                // never shorn or already wears the model it should (PAR-FAUNA-28: no model work on every check).
+                AnimalRecord record = SpeciesBehaviours.current(c);
+                if (ProductPdc.read(c.entity()).producedTick() > 0L
+                        && !ProductPdc.isSheared(c.entity(), record, now.playerTicks())
+                        && animals.modelOutdated(c.entity(), record)) {
+                    animals.refreshModel(c.entity(), record);
                 }
             } else if (spec.get().kind() == ProductKind.EGG) {
                 lay(c, spec.get(), species.get(), now);
@@ -201,17 +210,22 @@ public final class ProductsModule implements FeatureModule, Listener {
         }
 
         private void lay(Check c, ProductSpec spec, LivestockSpecies species, ClockSnapshot now) {
-            ProductState product = ProductPdc.read(c.entity());
-            if (!ProductRules.isReady(spec, species, c.record().state(), product, now.playerTicks())) {
+            AnimalRecord record = SpeciesBehaviours.current(c);
+            // isReady's first test, before the product state is read: a hen below the familiarity never lays
+            if (!(dev.tfp.core.livestock.LivestockRules.familiarityAt(record.state(), now.playerTicks())
+                    > spec.produceFamiliarity())) {
                 return;
             }
-            EggRules.Laying laying = EggRules.makeEgg(species, c.record().state(), now.playerTicks(), now.calendarTicks(),
+            ProductState product = ProductPdc.read(c.entity());
+            if (!ProductRules.isReady(spec, species, record.state(), product, now.playerTicks())) {
+                return;
+            }
+            EggRules.Laying laying = EggRules.makeEgg(species, record.state(), now.playerTicks(), now.calendarTicks(),
                     ThreadLocalRandom.current().nextBoolean());
             ItemStack egg = new ItemStack(Material.EGG);
             laying.egg().ifPresent(f -> EggPdc.write(egg, new FeatureData.Egg(true, f.hatchDay())));
             c.entity().getWorld().dropItemNaturally(c.entity().getLocation(), egg);
-            AnimalPdc.write(c.entity().getPersistentDataContainer(),
-                    c.record().withState(laying.hen().withFertilized(false)));
+            SpeciesBehaviours.update(c, record.withState(laying.hen().withFertilized(false)));
             ProductPdc.write(c.entity(), new ProductState(now.playerTicks()));
         }
     }
