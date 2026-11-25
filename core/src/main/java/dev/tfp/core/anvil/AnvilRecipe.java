@@ -5,7 +5,7 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/recipes/AnvilRecipe.java @ c3b4d9536 (matches, checkComplete, isCorrectTier,
- * isWorkMatched, shouldApplyForgingBonus and the bonus ratio of AnvilBlockEntity.work)
+ * isWorkMatched, shouldApplyForgingBonus, computeTarget and the bonus ratio of AnvilBlockEntity.work)
  */
 package dev.tfp.core.anvil;
 
@@ -14,6 +14,8 @@ import dev.tfp.core.forge.ForgeRule;
 import dev.tfp.core.forge.ForgingBonus;
 import dev.tfp.core.recipe.ingredient.Ingredient;
 import dev.tfp.core.recipe.ingredient.IngredientContext;
+import dev.tfp.core.worldgen.random.PositionalRandom;
+import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,8 +23,9 @@ import java.util.Objects;
  * An anvil recipe: the input ingredient, the minimum anvil tier, the forging rules (the plan) the step history must satisfy, whether
  * the forging bonus applies, and the fixed result. Pure, immutable and thread-safe.
  *
- * <p>The work target is not computed here. TFC derives it from the world seed and the result item, and the caller supplies it, as
- * an {@code int}, to {@link #checkComplete(ForgingProgress, int, int)} and {@link #bonusFor(ForgingProgress, int, double[])}.
+ * <p>The work target of an item being forged comes from {@link #computeTarget(long)} (TFC: the world seed and the result item); the
+ * caller keeps it with the item and supplies it, as an {@code int}, to {@link #checkComplete(ForgingProgress, int, int)} and
+ * {@link #bonusFor(ForgingProgress, int, double[])}.
  *
  * @param id                 the recipe id, unique in its registry
  * @param input              the input ingredient
@@ -82,6 +85,26 @@ public record AnvilRecipe(String id, Ingredient input, int minTier, List<ForgeRu
         }
         final float ratio = (float) progress.steps().total() / ForgeRule.calculateOptimalStepsToTarget(target, rules);
         return ForgingBonus.byRatio(ratio, thresholds);
+    }
+
+    /** The lowest work target. */
+    public static final int TARGET_MIN = 40;
+    /** The highest work target plus one: the target is {@code 40 + nextInt(154 - 2 * 40)}, so 40 to 113. */
+    public static final int TARGET_BOUND = 154;
+
+    /**
+     * TFC {@code computeTarget}: the work target the player has to hit when this recipe is selected for an item on an anvil of a world
+     * with {@code worldSeed}: {@code 40 + XoroshiroRandomSource(seed).forkPositional().fromHashOf(resultItemId).nextInt(154 - 2 * 40)}.
+     * The same result item always has the same target in a world.
+     */
+    public int computeTarget(long worldSeed) {
+        return workTarget(worldSeed, output.item());
+    }
+
+    /** {@link #computeTarget(long)} for the result item id {@code resultItem} (the registry key, {@code namespace:path}). */
+    public static int workTarget(long worldSeed, String resultItem) {
+        return TARGET_MIN + PositionalRandom.fork(new XoroshiroRandomSource(worldSeed)).fromHashOf(resultItem)
+            .nextInt(TARGET_BOUND - 2 * TARGET_MIN);
     }
 
     private static boolean isWorkMatched(int work, int target, int leeway) {

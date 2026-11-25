@@ -16,6 +16,11 @@ files_owned:
   - "paper/src/test/java/dev/tfp/paper/anvil/plan/**"
   - "core/src/main/java/dev/tfp/core/anvil/AnvilRecipe*"
   - "core/src/test/java/dev/tfp/core/anvil/AnvilRecipe*"
+  - "paper/src/main/java/dev/tfp/paper/anvil/AnvilDevice.java"
+  - "paper/src/main/java/dev/tfp/paper/anvil/AnvilModule.java"
+  - "paper/src/test/java/dev/tfp/paper/anvil/AnvilMockBukkitTest.java"
+  - "tools/datagen/src/main/java/dev/tfp/datagen/anvil/AnvilPlanArt.java"
+  - "tools/datagen/src/test/java/dev/tfp/datagen/anvil/AnvilPlanArtTest.java"
 ui: true
 in_game_steps:
   - "copper anvil with a hot double ingot; shift-right-click? (open plan button); screenshot"
