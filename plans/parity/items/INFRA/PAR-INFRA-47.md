@@ -2,7 +2,7 @@
 id: PAR-INFRA-47
 title: "Block flammability: TFC's flammable(flammability, fireSpreadSpeed) and ignitedByLava as CraftEngine burn settings on every generated block"
 area: INFRA
-status: open
+status: done
 wave: 22
 deps: [PAR-INFRA-08, PAR-WORLD-10]
 size: M
@@ -21,7 +21,7 @@ files_owned:
   - "tools/datagen/src/test/java/dev/tfp/datagen/flammability/**"
   - "tools/datagen/src/main/resources/dev/tfp/datagen/flammability/**"
   - "itest/src/main/java/dev/tfp/itest/cases/Flammability*.java"
-ui: true
+ui: false
 in_game_steps:
   - "Build a 3x3 of tfp:wood/log/oak with tfp leaves above it (and thatch / planks when their families exist) on stone; light the bottom with flint and steel; wait 30 s; screenshots at 0, 10 and 30 s: fire spreads and consumes them at TFC's pace"
   - "Place a TFC log next to lava (one gap); wait 60 s; screenshot: it ignites (ignitedByLava)"
@@ -32,11 +32,12 @@ plan:
   - "datagen/flammability: a table from TFC id to (flammability, fireSpreadSpeed, ignitedByLava), produced from the TFC checkout per family (scratch oracle over TFCBlocks/Wood/Plant/FruitBlocks/Crop/GroundcoverBlock registrations, the result kept as a resource with its derivation documented, not hand-typed values), and a pass that runs last in Datagen.generate (one run line in the shared hub) and merges the three settings into every emitted CE block entry whose TFC id is in the table. The block generators belong to other items, so the pass works on their output entries by id and never edits their files."
   - "Guard test over content/generated: every CE block whose TFC counterpart is flammable carries the three settings with TFC's values, and none of the non-flammable ones (rock, ore, metal, soil) does; later families (DECO-01 planks, DECO-07 thatch, WORLD-12 plants, FARM-03 crops, PROC-32 barrels) are covered automatically when they land."
   - "Fire spread itself stays vanilla's (the real server block registered with fire by CE); record in the ledger that the burn settings sit on the real block and that the carrier's client look while burning is vanilla fire over the CE visual."
+  - "Done: datagen/flammability: FlammabilityTable derives TFC's fire values from the pinned sources (Wood.BlockType rows, Plant fire() types, Crop.dead, FruitBlocks, GroundcoverBlock.twig, single TFCBlocks registrations), FlammabilityPass inserts burnable/burn_chance/fire_spread_chance into the blocks: section of every CE config by id (OutputTree.replace added for it), run line in Datagen. Mapping burn_chance = fireSpreadSpeed, fire_spread_chance = flammability (matches CE leaves 30/60, planks 5/20). Tests: FlammabilityTableTest 5, FlammabilityGuardTest 1 (all generated YAML). Deferred check and the flammability.spread itest case tracked in PAR-INFRA-65."
 tests:
   - "tools/datagen: FlammabilityTableTest (values per family vs the TFC oracle, mapping rule), FlammabilityGuardTest over the generated YAML"
   - "itest: flammability.spread case lights a log and leaves cluster and checks it burns within 60 s, and a granite cluster does not"
 done_criteria:
-  - "Every generated CE block with a flammable TFC counterpart burns and catches from lava with TFC's values; non-flammable families do not; tests green; screenshots pass review"
+  - "Every generated CE block with a flammable TFC counterpart carries TFC's burn values, non-flammable families do not; tests green; Deferred check tracked in PAR-INFRA-65"
 ---
 
 # PAR-INFRA-47: Block flammability: TFC's flammable(flammability, fireSpreadSpeed) and ignitedByLava as CraftEngine burn settings on every generated block

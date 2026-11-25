@@ -259,7 +259,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-44 | Wood plant blocks: saplings, potted saplings, fallen leaves and twigs as CE blocks (datagen, carriers, visuals) | WORLD | 22 | open |
 | PAR-GATHER-07 | Item placement interactions: vanilla stick, bone, feather, flint, rotten flesh and salt place as TFC groundcover; a snow item over plants places a snow pile | GATHER | 22 | done |
 | PAR-GATHER-08 | Axe stripping: TFC logs and woods to their stripped forms, golden bamboo block to stripped bamboo | GATHER | 22 | done |
-| PAR-INFRA-47 | Block flammability: TFC's flammable(flammability, fireSpreadSpeed) and ignitedByLava as CraftEngine burn settings on every generated block | INFRA | 22 | open |
+| PAR-INFRA-47 | Block flammability: TFC's flammable(flammability, fireSpreadSpeed) and ignitedByLava as CraftEngine burn settings on every generated block | INFRA | 22 | done |
 | PAR-PHYS-04 | Support beams: blocks, connections, collapse prevention | PHYS | 22 | open |
 | PAR-PROC-13 | Sluice | PROC | 22 | open |
 | PAR-INFRA-29 | Loot delegation check: loose rocks and leaves drop by their TFC tables in the self-test | INFRA | 22 | blocked |
@@ -455,3 +455,4 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-23 | Fruit and wild spreading crop blocks: tfp:fruit pumpkin/melon (and rotten), hitbox rows, loot, wild crop worldgen fruit | FARM | 31 | open |
 | PAR-FARM-24 | Wire SpreadingFruit into the crop device: fruit placement at full growth, crowding limit, fruit sides | FARM | 31 | open |
 | PAR-PROC-46 | Panning in-game verification: deposit pickup, water hint, 6 s pan, small ores | PROC | 33 | open |
+| PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | open |

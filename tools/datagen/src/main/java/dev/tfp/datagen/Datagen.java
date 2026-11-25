@@ -239,6 +239,9 @@ public final class Datagen {
         dev.tfp.datagen.animal.AnimalSounds.run(tfc, out); // PAR-FAUNA-20: TFC's entity sound events and oggs as tfp_animals
         dev.tfp.datagen.spawn.SpawnTable.run(tfc, out); // PAR-FAUNA-04: biome spawners and fauna gates for the spawn pass
         dev.tfp.datagen.plantslow.PlantSlowFactors.run(tfc, out); // PAR-GATHER-10: Plant.speedFactor per plant for the slow-block provider
+        if (dev.tfp.datagen.flammability.FlammabilityPass.available(tfc)) { // PAR-INFRA-47: CE burn settings on every block whose TFC counterpart is flammable; after every block generator
+            dev.tfp.datagen.flammability.FlammabilityPass.run(tfc, out);
+        }
         LootTableExport.run(tfc, out); // PAR-INFRA-21: TFC loot tables of delegated blocks and spawned entities for the Paper runtime
         Advancements.run(tfc, out);
         FieldGuide.run(tfc, out);

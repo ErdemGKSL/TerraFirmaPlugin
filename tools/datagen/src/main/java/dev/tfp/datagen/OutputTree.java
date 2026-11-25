@@ -46,6 +46,17 @@ public final class OutputTree {
         }
     }
 
+    /**
+     * PAR-INFRA-47: replaces the bytes already written at {@code path} (a post-pass that edits another generator's output
+     * by id). Unlike {@link #put} it requires the path to exist.
+     */
+    public synchronized void replace(String path, byte[] bytes) {
+        if (!files.containsKey(path)) {
+            throw new DatagenException("nothing to replace at " + path);
+        }
+        files.put(path, bytes);
+    }
+
     public void put(String path, String text) {
         put(path, text.getBytes(StandardCharsets.UTF_8));
     }
