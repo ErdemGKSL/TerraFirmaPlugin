@@ -112,7 +112,8 @@ class GeneratedCarrierTest {
         // PAR-CLIM-04: the snow pile (8 layer counts, hitbox-only), the icicle (tip, pillar) and, on the leaves pool, the
         // ice pile and sea ice.
         // PAR-FARM-03: the crops, dead crops and wild crops of the 29 crops (87 block ids; every appearance is explicit).
-        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3 + 17 * 16 + 17 * 2 + 4 + 10 + 87 + 75 + 150 + 267);
+        assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3 + 17 * 16 + 17 * 2 + 4 + 10 + 87 + 75 + 150 + 267
+            + 20 * (80 + 4 + 32 + 32)); // PAR-DECO-01: per wood stairs, slab (double draws the planks' visual), fence, log fence
         // PAR-CLIM-04: the ice pile and sea ice (one leaves pool appearance each).
         assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2);
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
@@ -144,7 +145,11 @@ class GeneratedCarrierTest {
         }
         expected.addAll(List.of(HitboxDemands.SPREADING_PREFIX + "cranberry", HitboxDemands.SPREADING_PREFIX + "dead",
             HitboxDemands.SPREADING_PREFIX + "dead_cane"));
-        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11);
+        for (String w : HitboxDemands.BARREL_WOODS) { // PAR-DECO-01
+            expected.addAll(List.of(HitboxDemands.woodStairsId(w), HitboxDemands.woodSlabId(w), HitboxDemands.woodFenceId(w),
+                HitboxDemands.woodLogFenceId(w)));
+        }
+        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4);
         java.util.SortedSet<String> grass = new java.util.TreeSet<>();
         for (String soil : List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol", "podzol", "alfisol", "mollisol")) {
             dev.tfp.datagen.soil.SoilBlocks.GRASS_TYPES.forEach(t -> grass.add("tfp:" + t + "/" + soil));
@@ -568,7 +573,8 @@ class GeneratedCarrierTest {
             }
         }
         // every barrel (2 upright + 16 side appearances per wood) and the rack
-        assertThat(checked).isGreaterThanOrEqualTo(HitboxDemands.BARREL_WOODS.size() * 18 + 1);
+        // PAR-DECO-01: plus 32 states of every fence and log fence
+        assertThat(checked).isGreaterThanOrEqualTo(HitboxDemands.BARREL_WOODS.size() * (18 + 2 * 32) + 1);
         assertThat(drawnEmpty).contains("minecraft:cactus[age=10]",
             "minecraft:iron_trapdoor[facing=east,half=top,open=false,powered=false,waterlogged=false]");
         assertThat(problems).isEmpty();

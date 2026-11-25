@@ -72,7 +72,9 @@ class BlockCoverageTest {
         assertThat(blocks.get("tfc:quern").getAsString()).startsWith("ce:configuration/");
         assertThat(blocks.get("tfc:firepit").getAsString()).isEqualTo("ce:configuration/devices/firepit.yml");
         assertThat(blocks.get("tfc:grill").getAsString()).isEqualTo("ce:configuration/devices/grill.yml"); // PAR-HEAT-24
-        assertThat(blocks.get("tfc:wood/planks/oak_stairs").getAsString()).isEqualTo("family:families/wood.yml");
+        // PAR-DECO-01: the wood stairs, slabs, fences and log fences are CE blocks; the fence gates stay family data.
+        assertThat(blocks.get("tfc:wood/planks/oak_stairs").getAsString()).isEqualTo("ce:configuration/woodfamily/oak.yml");
+        assertThat(blocks.get("tfc:wood/fence_gate/oak").getAsString()).isEqualTo("family:families/wood.yml");
         assertThat(blocks.get("tfc:wood/workbench/oak").getAsString()).isEqualTo("PAR-DECO-17");
         assertThat(blocks.get("tfc:fluid/river_water").getAsString()).isEqualTo("np:NP-FLUID-01");
         assertThat(blocks.get("tfc:fluid/spring_water").getAsString()).isEqualTo("np:NP-FLUID-01");
@@ -88,7 +90,7 @@ class BlockCoverageTest {
             assertThat(c.kind() == BlockCoverage.Kind.GENERATED).as(c.id()).isEqualTo(isLoaded);
         }
         assertThat(rows.stream().filter(c -> c.kind() == BlockCoverage.Kind.GENERATED)).hasSizeGreaterThan(1300);
-        assertThat(rows.stream().filter(c -> c.kind() == BlockCoverage.Kind.FAMILY)).hasSizeGreaterThan(1600);
+        assertThat(rows.stream().filter(c -> c.kind() == BlockCoverage.Kind.FAMILY)).hasSizeGreaterThan(1500); // PAR-DECO-01 moved 80 wood blocks to CE blocks
     }
 
     /** Every owner names an existing, not-done parity item while it still owns ids, and no rule is stale. */

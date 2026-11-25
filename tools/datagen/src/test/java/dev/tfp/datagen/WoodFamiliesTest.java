@@ -50,6 +50,111 @@ class WoodFamiliesTest {
         assertThat(families.stream().mapToInt(f -> f.blocks().size()).sum()).isEqualTo(20 * 39);
     }
 
+    /**
+     * PAR-DECO-01: the stairs, slabs, fences and log fences of every wood are CraftEngine blocks with TFC's properties,
+     * strengths, tags, drops and names; stairs and slabs carry TFC's models on their own vanilla twin, the double slab draws
+     * the planks' visual, fences are drawn by item displays on the shared oak fence carrier.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    void realCheckoutWritesTheStairsSlabsAndFencesAsCraftEngineBlocks() {
+        Path checkout = Path.of(System.getProperty("tfc.checkout", "/opt/tfc"));
+        Assumptions.assumeTrue(Files.isDirectory(checkout.resolve(".git")), "no TFC checkout at " + checkout);
+        Assumptions.assumeTrue(PIN.equals(TfcCheckout.resolveHead(checkout)), "TFC checkout is not at the pinned commit");
+        TfcCheckout tfc = TfcCheckout.open(checkout, PIN);
+        List<String> woods = WoodFamilies.families(tfc).stream().map(WoodFamilies.Family::wood).toList();
+        OutputTree out = new OutputTree();
+        assertThat(WoodFamilies.writeBlocks(tfc, out, woods)).isEqualTo(20 * (80 + 6 + 32 + 32));
+        Set<String> modelCarriers = new java.util.HashSet<>();
+        for (String wood : woods) {
+            String file = WoodFamilies.CONFIG_DIR + wood + ".yml";
+            Map<String, Object> root = (Map<String, Object>) CeYamlCheck.parse(
+                new String(out.get(file), StandardCharsets.UTF_8), file);
+            Map<String, Object> blocks = (Map<String, Object>) root.get("blocks");
+            String stairs = "tfp:wood/planks/" + wood + "_stairs";
+            String slab = "tfp:wood/planks/" + wood + "_slab";
+            assertThat(blocks.keySet()).containsExactly(stairs, slab, "tfp:wood/fence/" + wood, "tfp:wood/log_fence/" + wood);
+            for (Map.Entry<String, Object> b : blocks.entrySet()) {
+                Map<String, Object> block = (Map<String, Object>) b.getValue();
+                Map<String, Object> settings = (Map<String, Object>) block.get("settings");
+                boolean fence = b.getKey().contains("fence");
+                assertThat(settings.get("hardness")).as(b.getKey()).isEqualTo(fence ? 2.0 : 1.5);
+                assertThat(settings.get("resistance")).as(b.getKey()).isEqualTo(3.0);
+                assertThat((List<String>) settings.get("tags")).as(b.getKey()).contains("minecraft:mineable/axe",
+                    fence ? "minecraft:wooden_fences" : b.getKey().endsWith("_slab") ? "minecraft:wooden_slabs" : "minecraft:wooden_stairs");
+                Map<String, Object> states = (Map<String, Object>) block.get("states");
+                Map<String, Object> apps = (Map<String, Object>) states.get("appearances");
+                Map<String, Object> variants = (Map<String, Object>) states.get("variants");
+                assertThat(apps.keySet()).as(b.getKey()).isEqualTo(variants.keySet());
+                assertThat(apps).hasSize(fence ? 32 : b.getKey().equals(slab) ? 6 : 80);
+                String twin = dev.tfp.datagen.hitbox.HitboxDemands.twin(b.getKey());
+                for (Map.Entry<String, Object> a : apps.entrySet()) {
+                    Map<String, Object> app = (Map<String, Object>) a.getValue();
+                    Map<String, Object> variant = (Map<String, Object>) variants.get(a.getKey());
+                    boolean wet = a.getKey().contains("waterlogged=true") && !a.getKey().contains("type=double");
+                    assertThat(variant.containsKey("settings")).as(b.getKey() + "#" + a.getKey()).isEqualTo(wet);
+                    if (a.getKey().startsWith("type=double")) {
+                        assertThat(app).isEqualTo(Map.of("template", "tfp:visual/wood/planks/" + wood));
+                        continue;
+                    }
+                    assertThat((String) app.get("state")).isEqualTo(twin + "[" + a.getKey() + "]");
+                    if (fence) {
+                        assertThat(app.get("transparent")).isEqualTo(true);
+                        long sides = java.util.Arrays.stream(a.getKey().split(",")).filter(kv -> kv.endsWith("=true")
+                            && !kv.startsWith("waterlogged")).count();
+                        assertThat((List<Object>) app.get("entity_renderer")).hasSize((int) sides + 1);
+                    } else {
+                        assertThat(modelCarriers.add((String) app.get("state"))).as("shared " + app.get("state")).isTrue();
+                    }
+                }
+            }
+            Map<String, Object> items = (Map<String, Object>) root.get("items");
+            assertThat(items).hasSize(4 + 4);
+            for (String id : items.keySet()) {
+                if (!id.startsWith("tfp:render/")) {
+                    assertThat(out.contains(AssetPipeline.RP + "models/item/" + id.substring(4) + ".json")).as(id).isTrue();
+                }
+            }
+        }
+        assertThat(modelCarriers).hasSize(20 * (80 + 4));
+        // TFC's multipart turns the east side y 90: the display turns 180 - 90 about +y.
+        String acacia = new String(out.get(WoodFamilies.CONFIG_DIR + "acacia.yml"), StandardCharsets.UTF_8);
+        assertThat(acacia).contains("        'east=true,north=false,south=false,waterlogged=false,west=false':\n"
+            + "          state: 'minecraft:oak_fence[east=true,north=false,south=false,waterlogged=false,west=false]'\n"
+            + "          transparent: true\n          entity_renderer:\n"
+            + "            - item: tfp:render/wood/fence/acacia_post\n              rotation: '0,180,0'\n"
+            + "            - item: tfp:render/wood/fence/acacia_side\n              rotation: '0,90,0'\n");
+        // The slab drops two when double (TFC's set_count under block_state_property type=double).
+        assertThat(acacia).contains("                    - type: match_block_property\n                      properties:\n"
+            + "                        type: double\n");
+        String lang = new String(out.get(WoodFamilies.LANG_RP + "en_us.json"), StandardCharsets.UTF_8);
+        assertThat(lang).contains("\"block.tfp.wood.planks.acacia_stairs\": \"Acacia Stairs\"",
+            "\"block.tfp.wood.log_fence.willow\": \"Willow Log Fence\"");
+        assertThat(lang.lines().filter(l -> l.contains("\"block.tfp.")).count()).isEqualTo(20 * 4);
+    }
+
+    /** PAR-DECO-01: the ported vanilla outlines in tfc-shapes.json equal the vanilla dump rows of every twin state. */
+    @Test
+    void portedStairsSlabAndFenceShapesEqualTheVanillaDump() {
+        Map<String, dev.tfp.datagen.hitbox.TfcShapes.Row> rows = dev.tfp.datagen.hitbox.TfcShapes.load();
+        dev.tfp.datagen.hitbox.VanillaCandidates v = dev.tfp.datagen.hitbox.VanillaCandidates.load();
+        int checked = 0;
+        for (dev.tfp.datagen.hitbox.HitboxAllocation.Demand d : dev.tfp.datagen.hitbox.HitboxDemands.all()) {
+            String twin = dev.tfp.datagen.hitbox.HitboxDemands.twin(d.blockId());
+            if (twin == null || !d.blockId().startsWith("tfp:wood/")) {
+                continue;
+            }
+            dev.tfp.datagen.hitbox.TfcShapes.Row row = rows.get(d.tfcKey());
+            for (String version : v.versions()) {
+                var s = v.get(version, twin + "[" + d.appearance() + "]");
+                assertThat(s.selection()).as(d.id() + " " + version).isEqualTo(row.selection());
+                assertThat(s.collision()).as(d.id() + " " + version).isEqualTo(row.collision());
+            }
+            checked++;
+        }
+        assertThat(checked).isEqualTo(20 * (80 + 4 + 2 * 32));
+    }
+
     @Test
     void fixtureFamiliesHaveEveryKindAndMetalAndTheYamlMatches() throws IOException {
         Path root = fixture(List.of("acacia", "oak"), List.of("bronze", "steel"));

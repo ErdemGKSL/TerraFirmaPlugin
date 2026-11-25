@@ -1857,6 +1857,950 @@
       "selection": [[0, 0, 0, 16, 14, 16]],
       "collision": [[0, 0, 0, 16, 14, 16]],
       "from": "RockAnvilBlock.java SHAPE / same"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=bottom,shape=straight,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=bottom,shape=straight,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=bottom,shape=inner_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=bottom,shape=inner_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=bottom,shape=inner_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=bottom,shape=inner_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=bottom,shape=outer_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 8]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=bottom,shape=outer_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 8]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=bottom,shape=outer_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=bottom,shape=outer_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=top,shape=straight,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 16, 16], [0, 8, 0, 8, 16, 16]],
+      "collision": [[8, 0, 0, 16, 16, 16], [0, 8, 0, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=top,shape=straight,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 16, 16], [0, 8, 0, 8, 16, 16]],
+      "collision": [[8, 0, 0, 16, 16, 16], [0, 8, 0, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=top,shape=inner_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 8], [8, 0, 8, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 8], [8, 0, 8, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=top,shape=inner_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 8], [8, 0, 8, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 8], [8, 0, 8, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=top,shape=inner_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 16, 16], [0, 0, 8, 8, 16, 16], [0, 8, 0, 8, 16, 8]],
+      "collision": [[8, 0, 0, 16, 16, 16], [0, 0, 8, 8, 16, 16], [0, 8, 0, 8, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=top,shape=inner_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 16, 16], [0, 0, 8, 8, 16, 16], [0, 8, 0, 8, 16, 8]],
+      "collision": [[8, 0, 0, 16, 16, 16], [0, 0, 8, 8, 16, 16], [0, 8, 0, 8, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=top,shape=outer_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 16, 8], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[8, 0, 0, 16, 16, 8], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=top,shape=outer_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 16, 8], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[8, 0, 0, 16, 16, 8], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=top,shape=outer_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 8, 16, 16, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "collision": [[8, 0, 8, 16, 16, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=east,half=top,shape=outer_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 8, 16, 16, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "collision": [[8, 0, 8, 16, 16, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=bottom,shape=straight,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=bottom,shape=straight,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=bottom,shape=inner_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=bottom,shape=inner_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=bottom,shape=inner_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=bottom,shape=inner_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=bottom,shape=outer_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 8]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=bottom,shape=outer_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 8]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=bottom,shape=outer_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 8]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=bottom,shape=outer_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 8]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=top,shape=straight,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 8], [0, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 8], [0, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=top,shape=straight,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 8], [0, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 8], [0, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=top,shape=inner_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 8], [0, 0, 8, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 8], [0, 0, 8, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=top,shape=inner_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 8], [0, 0, 8, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 8], [0, 0, 8, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=top,shape=inner_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 8], [8, 0, 8, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 8], [8, 0, 8, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=top,shape=inner_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 8], [8, 0, 8, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 8], [8, 0, 8, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=top,shape=outer_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 16, 8], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 8, 16, 8], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=top,shape=outer_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 16, 8], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 8, 16, 8], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=top,shape=outer_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 16, 8], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[8, 0, 0, 16, 16, 8], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=north,half=top,shape=outer_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 16, 8], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[8, 0, 0, 16, 16, 8], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=bottom,shape=straight,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=bottom,shape=straight,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=bottom,shape=inner_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=bottom,shape=inner_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=bottom,shape=inner_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=bottom,shape=inner_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=bottom,shape=outer_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=bottom,shape=outer_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=bottom,shape=outer_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=bottom,shape=outer_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=top,shape=straight,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 8, 16, 16, 16], [0, 8, 0, 16, 16, 8]],
+      "collision": [[0, 0, 8, 16, 16, 16], [0, 8, 0, 16, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=top,shape=straight,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 8, 16, 16, 16], [0, 8, 0, 16, 16, 8]],
+      "collision": [[0, 0, 8, 16, 16, 16], [0, 8, 0, 16, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=top,shape=inner_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 16, 16], [0, 0, 8, 8, 16, 16], [0, 8, 0, 8, 16, 8]],
+      "collision": [[8, 0, 0, 16, 16, 16], [0, 0, 8, 8, 16, 16], [0, 8, 0, 8, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=top,shape=inner_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 0, 16, 16, 16], [0, 0, 8, 8, 16, 16], [0, 8, 0, 8, 16, 8]],
+      "collision": [[8, 0, 0, 16, 16, 16], [0, 0, 8, 8, 16, 16], [0, 8, 0, 8, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=top,shape=inner_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 16, 16], [8, 0, 8, 16, 16, 16], [8, 8, 0, 16, 16, 8]],
+      "collision": [[0, 0, 0, 8, 16, 16], [8, 0, 8, 16, 16, 16], [8, 8, 0, 16, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=top,shape=inner_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 16, 16], [8, 0, 8, 16, 16, 16], [8, 8, 0, 16, 16, 8]],
+      "collision": [[0, 0, 0, 8, 16, 16], [8, 0, 8, 16, 16, 16], [8, 8, 0, 16, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=top,shape=outer_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 8, 16, 16, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "collision": [[8, 0, 8, 16, 16, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=top,shape=outer_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[8, 0, 8, 16, 16, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "collision": [[8, 0, 8, 16, 16, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=top,shape=outer_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 8, 8, 16, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 8, 8, 16, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=south,half=top,shape=outer_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 8, 8, 16, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 8, 8, 16, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=bottom,shape=straight,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=bottom,shape=straight,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=bottom,shape=inner_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=bottom,shape=inner_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=bottom,shape=inner_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=bottom,shape=inner_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 16, 16, 8], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=bottom,shape=outer_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=bottom,shape=outer_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=bottom,shape=outer_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 8]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=bottom,shape=outer_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 8]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=top,shape=straight,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 16, 16], [8, 8, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 8, 16, 16], [8, 8, 0, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=top,shape=straight,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 16, 16], [8, 8, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 8, 16, 16], [8, 8, 0, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=top,shape=inner_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 16, 16], [8, 0, 8, 16, 16, 16], [8, 8, 0, 16, 16, 8]],
+      "collision": [[0, 0, 0, 8, 16, 16], [8, 0, 8, 16, 16, 16], [8, 8, 0, 16, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=top,shape=inner_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 16, 16], [8, 0, 8, 16, 16, 16], [8, 8, 0, 16, 16, 8]],
+      "collision": [[0, 0, 0, 8, 16, 16], [8, 0, 8, 16, 16, 16], [8, 8, 0, 16, 16, 8]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=top,shape=inner_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 8], [0, 0, 8, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 8], [0, 0, 8, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=top,shape=inner_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 8], [0, 0, 8, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 8], [0, 0, 8, 8, 16, 16], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=top,shape=outer_left,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 8, 8, 16, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 8, 8, 16, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=top,shape=outer_left,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 8, 8, 16, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "collision": [[0, 0, 8, 8, 16, 16], [0, 8, 0, 16, 16, 8], [8, 8, 8, 16, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=top,shape=outer_right,waterlogged=false]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 16, 8], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 8, 16, 8], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/stairs[facing=west,half=top,shape=outer_right,waterlogged=true]",
+      "class": "stairs",
+      "kind": "object",
+      "selection": [[0, 0, 0, 8, 16, 8], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "collision": [[0, 0, 0, 8, 16, 8], [8, 8, 0, 16, 16, 16], [0, 8, 8, 8, 16, 16]],
+      "from": "TFCStairBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/slab[type=bottom,waterlogged=false]",
+      "class": "slab",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16]],
+      "from": "TFCSlabBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/slab[type=bottom,waterlogged=true]",
+      "class": "slab",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16]],
+      "from": "TFCSlabBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/slab[type=top,waterlogged=false]",
+      "class": "slab",
+      "kind": "object",
+      "selection": [[0, 8, 0, 16, 16, 16]],
+      "collision": [[0, 8, 0, 16, 16, 16]],
+      "from": "TFCSlabBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/slab[type=top,waterlogged=true]",
+      "class": "slab",
+      "kind": "object",
+      "selection": [[0, 8, 0, 16, 16, 16]],
+      "collision": [[0, 8, 0, 16, 16, 16]],
+      "from": "TFCSlabBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/slab[type=double,waterlogged=false]",
+      "class": "slab",
+      "kind": "cube",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "from": "TFCSlabBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/slab[type=double,waterlogged=true]",
+      "class": "slab",
+      "kind": "cube",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "from": "TFCSlabBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=false,south=false,waterlogged=false,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 6, 10, 16, 10]],
+      "collision": [[6, 0, 6, 10, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=false,south=false,waterlogged=true,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 6, 10, 16, 10]],
+      "collision": [[6, 0, 6, 10, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=true,south=false,waterlogged=false,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=true,south=false,waterlogged=true,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=false,south=false,waterlogged=false,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 6, 16, 16, 10]],
+      "collision": [[6, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=false,south=false,waterlogged=true,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 6, 16, 16, 10]],
+      "collision": [[6, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=true,south=false,waterlogged=false,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 10], [10, 0, 6, 16, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 10], [10, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=true,south=false,waterlogged=true,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 10], [10, 0, 6, 16, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 10], [10, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=false,south=true,waterlogged=false,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 6, 10, 16, 16]],
+      "collision": [[6, 0, 6, 10, 24, 16]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=false,south=true,waterlogged=true,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 6, 10, 16, 16]],
+      "collision": [[6, 0, 6, 10, 24, 16]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=true,south=true,waterlogged=false,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16]],
+      "collision": [[6, 0, 0, 10, 24, 16]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=true,south=true,waterlogged=true,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16]],
+      "collision": [[6, 0, 0, 10, 24, 16]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=false,south=true,waterlogged=false,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 6, 16, 16, 10], [6, 0, 10, 10, 16, 16]],
+      "collision": [[6, 0, 6, 16, 24, 10], [6, 0, 10, 10, 24, 16]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=false,south=true,waterlogged=true,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 6, 16, 16, 10], [6, 0, 10, 10, 16, 16]],
+      "collision": [[6, 0, 6, 16, 24, 10], [6, 0, 10, 10, 24, 16]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=true,south=true,waterlogged=false,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16], [10, 0, 6, 16, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 16], [10, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=true,south=true,waterlogged=true,west=false]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16], [10, 0, 6, 16, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 16], [10, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=false,south=false,waterlogged=false,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[0, 0, 6, 10, 16, 10]],
+      "collision": [[0, 0, 6, 10, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=false,south=false,waterlogged=true,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[0, 0, 6, 10, 16, 10]],
+      "collision": [[0, 0, 6, 10, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=true,south=false,waterlogged=false,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 10], [0, 0, 6, 6, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 10], [0, 0, 6, 6, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=true,south=false,waterlogged=true,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 10], [0, 0, 6, 6, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 10], [0, 0, 6, 6, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=false,south=false,waterlogged=false,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 16, 10]],
+      "collision": [[0, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=false,south=false,waterlogged=true,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 16, 10]],
+      "collision": [[0, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=true,south=false,waterlogged=false,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 10], [0, 0, 6, 6, 16, 10], [10, 0, 6, 16, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 10], [0, 0, 6, 6, 24, 10], [10, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=true,south=false,waterlogged=true,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 10], [0, 0, 6, 6, 16, 10], [10, 0, 6, 16, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 10], [0, 0, 6, 6, 24, 10], [10, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=false,south=true,waterlogged=false,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[0, 0, 6, 10, 16, 10], [6, 0, 10, 10, 16, 16]],
+      "collision": [[0, 0, 6, 10, 24, 10], [6, 0, 10, 10, 24, 16]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=false,south=true,waterlogged=true,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[0, 0, 6, 10, 16, 10], [6, 0, 10, 10, 16, 16]],
+      "collision": [[0, 0, 6, 10, 24, 10], [6, 0, 10, 10, 24, 16]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=true,south=true,waterlogged=false,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16], [0, 0, 6, 6, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 16], [0, 0, 6, 6, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=false,north=true,south=true,waterlogged=true,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16], [0, 0, 6, 6, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 16], [0, 0, 6, 6, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=false,south=true,waterlogged=false,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 16, 10], [6, 0, 10, 10, 16, 16]],
+      "collision": [[0, 0, 6, 16, 24, 10], [6, 0, 10, 10, 24, 16]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=false,south=true,waterlogged=true,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 16, 10], [6, 0, 10, 10, 16, 16]],
+      "collision": [[0, 0, 6, 16, 24, 10], [6, 0, 10, 10, 24, 16]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=true,south=true,waterlogged=false,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16], [0, 0, 6, 6, 16, 10], [10, 0, 6, 16, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 16], [0, 0, 6, 6, 24, 10], [10, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence[east=true,north=true,south=true,waterlogged=true,west=true]",
+      "class": "fence",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16], [0, 0, 6, 6, 16, 10], [10, 0, 6, 16, 16, 10]],
+      "collision": [[6, 0, 0, 10, 24, 16], [0, 0, 6, 6, 24, 10], [10, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceBlock.java (ported)"
     }
   ]
 }

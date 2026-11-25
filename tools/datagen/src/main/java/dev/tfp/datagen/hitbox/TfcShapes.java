@@ -432,7 +432,116 @@ public final class TfcShapes {
         }
         s.add(Spec.of("tfc:rock/anvil", "rock_anvil", Kind.OBJECT, List.of(B + "rock/RockAnvilBlock.java"), "SHAPE", "same",
             List.of("return SHAPE;"), List.of("getCollisionShape")));
+        // PAR-DECO-01: the wood stairs, slabs, fences and log fences extend vanilla StairBlock / SlabBlock / FenceBlock with no
+        // shape override (Wood.BlockType STAIRS, SLAB, FENCE and LOG_FENCE), so their outlines are vanilla's (ported:
+        // stairsShape, SLAB_SHAPES, fenceShape). One row per state, shared by every wood (as the candle colours share theirs).
+        String wood = B + "wood/Wood.java";
+        List<String> stairNeedles = List.of("public class TFCStairBlock extends StairBlock",
+            "STAIRS(wood -> new TFCStairBlock(");
+        List<String> shapeAbsent = List.of("getShape(", "getCollisionShape", "getVisualShape");
+        for (String facing : STAIRS_FACINGS) {
+            for (String half : STAIRS_HALVES) {
+                for (String shape : STAIRS_SHAPES) {
+                    for (boolean wet : new boolean[] {false, true}) {
+                        final Shape outline = stairsShape(facing, half, shape);
+                        s.add(new Spec(stairsKey(facing, half, shape, wet), "stairs", Kind.OBJECT,
+                            List.of(B + "wood/TFCStairBlock.java", wood), null, null, stairNeedles, shapeAbsent,
+                            x -> new Shape[] {outline, outline}));
+                    }
+                }
+            }
+        }
+        for (String type : SLAB_TYPES) {
+            for (boolean wet : new boolean[] {false, true}) {
+                final Shape outline = SLAB_SHAPES.get(type);
+                s.add(new Spec(slabKey(type, wet), "slab", type.equals("double") ? Kind.CUBE : Kind.OBJECT,
+                    List.of(B + "wood/TFCSlabBlock.java", wood), null, null,
+                    List.of("public class TFCSlabBlock extends SlabBlock", "SLAB(wood -> new TFCSlabBlock("), shapeAbsent,
+                    x -> new Shape[] {outline, outline}));
+            }
+        }
+        for (int mask = 0; mask < 16; mask++) {
+            for (boolean wet : new boolean[] {false, true}) {
+                final int m = mask;
+                s.add(new Spec(fenceKey(mask, wet), "fence", Kind.OBJECT, List.of(B + "wood/TFCFenceBlock.java", wood), null,
+                    null, List.of("public class TFCFenceBlock extends FenceBlock", "FENCE(wood -> new TFCFenceBlock(",
+                        "LOG_FENCE(wood -> new TFCFenceBlock("), shapeAbsent,
+                    x -> new Shape[] {fenceShape(m, FENCE_HEIGHT), fenceShape(m, FENCE_COLLISION_HEIGHT)}));
+            }
+        }
         return s;
+    }
+
+    /** PAR-DECO-01: blockstate-file order of the facings, halves and shapes. */
+    public static final List<String> STAIRS_FACINGS = List.of("east", "north", "south", "west");
+    public static final List<String> STAIRS_HALVES = List.of("bottom", "top");
+    /** Vanilla {@code StairsShape} in ordinal order. */
+    public static final List<String> STAIRS_SHAPES = List.of("straight", "inner_left", "inner_right", "outer_left", "outer_right");
+    public static final List<String> SLAB_TYPES = List.of("bottom", "top", "double");
+    /** PAR-DECO-01: the fence sides in the bit order of {@link #fenceKey} (north 1, east 2, south 4, west 8). */
+    public static final List<String> FENCE_SIDES = List.of("north", "east", "south", "west");
+
+    /** PAR-DECO-01: the shared tfc-shapes row of a wood stairs state. */
+    public static String stairsKey(String facing, String half, String shape, boolean waterlogged) {
+        return "tfc:wood/stairs[facing=" + facing + ",half=" + half + ",shape=" + shape + ",waterlogged=" + waterlogged + "]";
+    }
+
+    /** PAR-DECO-01: the shared tfc-shapes row of a wood slab state. */
+    public static String slabKey(String type, boolean waterlogged) {
+        return "tfc:wood/slab[type=" + type + ",waterlogged=" + waterlogged + "]";
+    }
+
+    /** PAR-DECO-01: the shared tfc-shapes row of a fence state ({@code mask}: bit i set = side {@link #FENCE_SIDES}[i]). */
+    public static String fenceKey(int mask, boolean waterlogged) {
+        return "tfc:wood/fence[east=" + bit(mask, 1) + ",north=" + bit(mask, 0) + ",south=" + bit(mask, 2) + ",waterlogged="
+            + waterlogged + ",west=" + bit(mask, 3) + "]";
+    }
+
+    private static boolean bit(int mask, int i) {
+        return (mask & (1 << i)) != 0;
+    }
+
+    /** Vanilla 1.21.1 {@code SlabBlock.BOTTOM_AABB}, {@code TOP_AABB} and a full block for {@code double}. */
+    static final Map<String, Shape> SLAB_SHAPES = Map.of("bottom", Shape.box(0, 0, 0, 16, 8, 16),
+        "top", Shape.box(0, 8, 0, 16, 16, 16), "double", Shape.FULL);
+
+    /** Vanilla 1.21.1 {@code StairBlock.SHAPE_BY_STATE}, indexed by {@code shape.ordinal() * 4 + facing.get2DDataValue()}. */
+    private static final int[] STAIRS_SHAPE_BY_STATE = {12, 5, 3, 10, 14, 13, 7, 11, 13, 7, 11, 14, 8, 4, 1, 2, 4, 1, 2, 8};
+    /** Vanilla {@code Direction.get2DDataValue}: south 0, west 1, north 2, east 3. */
+    private static final List<String> DATA_2D = List.of("south", "west", "north", "east");
+
+    /**
+     * Vanilla 1.21.1 {@code StairBlock.getShape}: the half slab plus the octets of {@code SHAPE_BY_STATE} (bits 1, 2, 4, 8 =
+     * octets NN, PN, NP, PP of the other half; checked against the 1.21.11 server's own shapes). Selection = collision.
+     */
+    static Shape stairsShape(String facing, String half, String shape) {
+        boolean top = half.equals("top");
+        int bits = STAIRS_SHAPE_BY_STATE[STAIRS_SHAPES.indexOf(shape) * 4 + DATA_2D.indexOf(facing)];
+        double y0 = top ? 0 : 8; // the octets sit in the other half
+        Shape out = top ? Shape.box(0, 8, 0, 16, 16, 16) : Shape.box(0, 0, 0, 16, 8, 16);
+        double[][] octets = {{0, 0}, {8, 0}, {0, 8}, {8, 8}}; // NN, PN, NP, PP as (x, z)
+        for (int i = 0; i < 4; i++) {
+            if ((bits & (1 << i)) != 0) {
+                out = out.union(Shape.box(octets[i][0], y0, octets[i][1], octets[i][0] + 8, y0 + 8, octets[i][1] + 8));
+            }
+        }
+        return out;
+    }
+
+    /** Vanilla 1.21.1 {@code FenceBlock}: outline 16 px, collision 24 px. */
+    static final double FENCE_HEIGHT = 16;
+    static final double FENCE_COLLISION_HEIGHT = 24;
+
+    /** The 4 px post plus a 4 px wide arm to each connected side, {@code h} high. */
+    static Shape fenceShape(int mask, double h) {
+        Shape out = Shape.box(6, 0, 6, 10, h, 10);
+        double[][] arms = {{6, 0, 10, 8}, {8, 6, 16, 10}, {6, 8, 10, 16}, {0, 6, 8, 10}}; // north, east, south, west (x1 z1 x2 z2)
+        for (int i = 0; i < 4; i++) {
+            if (bit(mask, i)) {
+                out = out.union(Shape.box(arms[i][0], 0, arms[i][1], arms[i][2], h, arms[i][3]));
+            }
+        }
+        return out;
     }
 
     /** PAR-HEAT-26: the tfc-shapes row of a TFC candle state (every colour shares it). */

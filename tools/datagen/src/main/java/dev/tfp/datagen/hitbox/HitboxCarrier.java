@@ -203,7 +203,17 @@ public final class HitboxCarrier {
         List<Scored> ranked = new ArrayList<>();
         List<Rejected> rejected = new ArrayList<>();
         Set<String> all = v.allStates();
+        // PAR-DECO-01: a shape twin (stairs, slab, fence) is served only by the twin's state of the same properties (the
+        // row key lists them in vanilla's order), and no other class lists the twin blocks' states as rejections.
+        String exactTwin = tfc.twin() != null && TWIN_ONLY_CLASSES.contains(row.shapeClass()) && row.key().contains("[")
+            ? tfc.twin() + row.key().substring(row.key().indexOf('[')) : null;
         for (String state : all) {
+            if (exactTwin != null && !state.equals(exactTwin)) {
+                continue;
+            }
+            if (tfc.twin() == null && twinOnly(v, state, row.shapeClass())) {
+                continue;
+            }
             if (tfc.twin() != null && !state.equals(tfc.twin()) && !state.startsWith(tfc.twin() + "[")) {
                 continue; // PAR-HEAT-26: a twin demand looks at its twin only (no rejection list of every other state)
             }
@@ -242,6 +252,19 @@ public final class HitboxCarrier {
             }
         }
         return new Choice(tfc, family, null, null, -1, ranked, rejected);
+    }
+
+    /** PAR-DECO-01: the classes whose blocks serve only their own twin demands (carrier-policy.json only_class). */
+    static final Set<String> TWIN_ONLY_CLASSES = Set.of("stairs", "slab", "fence");
+
+    /** Whether {@code state} belongs to a block reserved for a twin-only class other than {@code shapeClass}. */
+    static boolean twinOnly(VanillaCandidates v, String state, String shapeClass) {
+        if (v.isPool(state)) {
+            return false;
+        }
+        BlockPolicy p = v.policy(state.substring(0, state.contains("[") ? state.indexOf('[') : state.length()));
+        return p != null && p.onlyClass() != null && TWIN_ONLY_CLASSES.contains(p.onlyClass())
+            && !p.onlyClass().equals(shapeClass);
     }
 
     /** The first hard filter that rejects {@code state} for {@code tfc}, or null. */

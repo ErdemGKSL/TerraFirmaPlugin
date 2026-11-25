@@ -429,6 +429,19 @@ CE block loads and records failed carriers in `hitbox/unusable.json` (the select
 device entries stay literal and outside `configuration/` (§ device block datagen), so the firepit family is checked only
 after PAR-INFRA-19/PAR-HEAT-06.
 
+**Shape twins (PAR-DECO-01).** TFC's wood stairs, slabs and fences extend vanilla `StairBlock`, `SlabBlock` and
+`FenceBlock` with no shape override, so `HitboxDemands.twin` names a vanilla twin for each and the selector serves every
+state from the twin's state of the same properties (shared `tfc-shapes` rows `tfc:wood/stairs|slab|fence[...]`, ported
+outlines equal to the server dump). Unlike the candle twins the look is ours: each wood's stairs and slabs own one vanilla
+stairs / slab block (`WOOD_STAIRS_TWINS`, `WOOD_SLAB_TWINS`: vanilla wood and stone sets whose material never exists in a
+TFC world; not the oak / petrified oak slabs, which CraftEngine's internal mappings use, nor cut copper or Nether wood) with
+TFC's model and turn per state; the double slab draws the planks' full-cube visual. All 40 fences and log fences share
+`minecraft:oak_fence` hitbox-only and draw TFC's post and side models as item displays (CE's own fence approach). The twin
+blocks carry `only_class` in `carrier-policy.json`, so no other class takes them; the selector serves a shape twin only from
+the twin's state of the same properties and lists no rejections of the 1752 twin states for other classes (memory of the
+cached allocations). 20 of the ~40 usable stairs and slab sets are now taken: the rock families' stairs and slabs need
+another plan (renderers or merged looks).
+
 ## 10. Packet layer
 
 - Library: **PacketEvents 2.14.x** (M0-NET-01), as an optional plugin dependency (`packetevents` in `paper-plugin.yml` and `compat.yml`). Without it the server runs without seasonal colours and item tooltips.

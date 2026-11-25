@@ -436,7 +436,123 @@ public final class HitboxDemands {
                     HitboxAllocation.TRANSPARENT, true, SPREADING_WEIGHT));
             }
         }
+        // PAR-DECO-01: the wood stairs, slabs, fences and log fences. TFC's blocks extend vanilla StairBlock, SlabBlock and
+        // FenceBlock, so each takes the states of one vanilla twin of the same properties (woodTwin): the stairs and slabs
+        // of each wood their own vanilla block with our models (TFC's model per state); the double slab is no demand (it
+        // draws the planks' full-cube visual); every fence and log fence shares oak_fence drawn empty, the look is item
+        // displays of TFC's post and side models (WoodFamilies).
+        for (String w : BARREL_WOODS) {
+            for (String facing : TfcShapes.STAIRS_FACINGS) {
+                for (String half : TfcShapes.STAIRS_HALVES) {
+                    for (String shape : TfcShapes.STAIRS_SHAPES) {
+                        for (boolean wet : new boolean[] {false, true}) {
+                            d.add(new Demand(woodStairsId(w), woodStairsAppearance(facing, half, shape, wet),
+                                TfcShapes.stairsKey(facing, half, shape, wet), 0, woodStairsLook(w, facing, half, shape), false,
+                                WOOD_FAMILY_WEIGHT));
+                        }
+                    }
+                }
+            }
+            for (String type : WOOD_SLAB_CARRIED_TYPES) {
+                for (boolean wet : new boolean[] {false, true}) {
+                    d.add(new Demand(woodSlabId(w), woodSlabAppearance(type, wet), TfcShapes.slabKey(type, wet), 0,
+                        woodSlabLook(w, type), false, WOOD_FAMILY_WEIGHT));
+                }
+            }
+            for (String fence : List.of(woodFenceId(w), woodLogFenceId(w))) {
+                for (int mask = 0; mask < 16; mask++) {
+                    for (boolean wet : new boolean[] {false, true}) {
+                        d.add(new Demand(fence, woodFenceAppearance(mask, wet), TfcShapes.fenceKey(mask, wet), 0,
+                            HitboxAllocation.TRANSPARENT, false, WOOD_FAMILY_WEIGHT));
+                    }
+                }
+            }
+        }
         return d;
+    }
+
+    /** PAR-DECO-01: served after every other demand (the twins are reserved by only_class, so nothing else moves). */
+    static final int WOOD_FAMILY_WEIGHT = -13;
+    /** PAR-DECO-01: the slab types drawn on a twin state; {@code double} draws the planks' full-cube visual instead. */
+    public static final List<String> WOOD_SLAB_CARRIED_TYPES = List.of("bottom", "top");
+    /**
+     * PAR-DECO-01: the vanilla stairs twin of each wood of {@link #BARREL_WOODS} (same index): vanilla blocks whose planks or
+     * stone never exist in a TFC world (carrier-policy.json, only_class stairs). Not the oak and petrified oak slabs
+     * (CraftEngine's internal mappings use them), no cut copper, no Nether wood.
+     */
+    public static final List<String> WOOD_STAIRS_TWINS = List.of("oak", "spruce", "birch", "jungle", "acacia", "dark_oak",
+        "mangrove", "cherry", "pale_oak", "bamboo", "bamboo_mosaic", "polished_granite", "polished_diorite",
+        "polished_andesite", "smooth_sandstone", "smooth_red_sandstone", "prismarine", "prismarine_brick", "dark_prismarine",
+        "polished_deepslate");
+    /** PAR-DECO-01: the vanilla slab twin of each wood (same index); their double states stay VisualAllocator's. */
+    public static final List<String> WOOD_SLAB_TWINS = List.of("spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove",
+        "cherry", "pale_oak", "bamboo", "bamboo_mosaic", "polished_granite", "polished_diorite", "polished_andesite",
+        "smooth_sandstone", "smooth_red_sandstone", "prismarine", "prismarine_brick", "dark_prismarine", "polished_deepslate",
+        "deepslate_tile");
+    /** PAR-DECO-01: the one vanilla fence every TFC fence and log fence is carried by (hitbox-only). */
+    public static final String WOOD_FENCE_TWIN = "minecraft:oak_fence";
+
+    /** PAR-DECO-01: TFC's block ids (Wood.BlockType STAIRS, SLAB, FENCE, LOG_FENCE paths). */
+    public static String woodStairsId(String wood) {
+        return "tfp:wood/planks/" + wood + "_stairs";
+    }
+
+    public static String woodSlabId(String wood) {
+        return "tfp:wood/planks/" + wood + "_slab";
+    }
+
+    public static String woodFenceId(String wood) {
+        return "tfp:wood/fence/" + wood;
+    }
+
+    public static String woodLogFenceId(String wood) {
+        return "tfp:wood/log_fence/" + wood;
+    }
+
+    /** PAR-DECO-01: the appearance of a stairs state (its full CE variant key). */
+    public static String woodStairsAppearance(String facing, String half, String shape, boolean waterlogged) {
+        return "facing=" + facing + ",half=" + half + ",shape=" + shape + ",waterlogged=" + waterlogged;
+    }
+
+    public static String woodSlabAppearance(String type, boolean waterlogged) {
+        return "type=" + type + ",waterlogged=" + waterlogged;
+    }
+
+    /** PAR-DECO-01: the appearance of a fence state ({@code mask} as {@link TfcShapes#fenceKey}). */
+    public static String woodFenceAppearance(int mask, boolean waterlogged) {
+        String key = TfcShapes.fenceKey(mask, waterlogged);
+        return key.substring(key.indexOf('[') + 1, key.length() - 1);
+    }
+
+    /** PAR-DECO-01: the look key of a stairs state: TFC draws one model and turn per (facing, half, shape). */
+    public static String woodStairsLook(String wood, String facing, String half, String shape) {
+        return "tfp:block/wood/planks/" + wood + "_stairs#facing=" + facing + ",half=" + half + ",shape=" + shape;
+    }
+
+    /** PAR-DECO-01: TFC's slab model of {@code type} ({@code <wood>_slab}, {@code <wood>_slab_top}). */
+    public static String woodSlabLook(String wood, String type) {
+        return switch (type) {
+            case "bottom" -> "tfp:block/wood/planks/" + wood + "_slab";
+            case "top" -> "tfp:block/wood/planks/" + wood + "_slab_top";
+            default -> throw new IllegalArgumentException("not a carried slab type: " + type);
+        };
+    }
+
+    /** PAR-DECO-01: the vanilla twin of a wood stairs, slab, fence or log fence block id, or null for every other id. */
+    static String woodTwin(String blockId) {
+        for (int i = 0; i < BARREL_WOODS.size(); i++) {
+            String w = BARREL_WOODS.get(i);
+            if (blockId.equals(woodStairsId(w))) {
+                return "minecraft:" + WOOD_STAIRS_TWINS.get(i) + "_stairs";
+            }
+            if (blockId.equals(woodSlabId(w))) {
+                return "minecraft:" + WOOD_SLAB_TWINS.get(i) + "_slab";
+            }
+            if (blockId.equals(woodFenceId(w)) || blockId.equals(woodLogFenceId(w))) {
+                return WOOD_FENCE_TWIN;
+            }
+        }
+        return null;
     }
 
     /** PAR-METAL-03: the metals that have an anvil (TFC {@code Metal.BlockType.ANVIL}, tool-tier metals), in tier order. */
@@ -502,6 +618,10 @@ public final class HitboxDemands {
      * block ({@link HitboxCarrier.TfcState#twin}).
      */
     public static String twin(String blockId) {
+        String wood = woodTwin(blockId);
+        if (wood != null) {
+            return wood; // PAR-DECO-01: same outline class, our models (or drawn empty) on the twin's states
+        }
         if (blockId.equals(JACK_O_LANTERN_ID)) {
             return "minecraft:jack_o_lantern";
         }
