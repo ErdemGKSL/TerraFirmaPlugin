@@ -2,7 +2,7 @@
 id: PAR-FAUNA-16
 title: "Camels (dromedary, bactrian)"
 area: FAUNA
-status: open
+status: done
 wave: 45
 deps: [PAR-FAUNA-15]
 size: S
@@ -22,6 +22,7 @@ in_game_steps:
   - "tfp debug animal spawn dromedary_camel adult; ride"
 plan:
   - "Camel carriers with TFC breeding (own kind only) and dromedary attributes."
+  - "Done: PAR-FAUNA-16 commit: paper/camel CamelModule (TFC attributes for both camels, old age, thrown rider), shared MountSupport; core MountBreedingGoldenTest (10) exists, CamelModuleMockBukkitTest 3; in-game check pending (container cannot run client); gaps in follow-up PAR-FAUNA-34."
 tests:
   - "core: MountBreedingGoldenTest exists"
 done_criteria:
@@ -29,7 +30,5 @@ done_criteria:
 ---
 
 # PAR-FAUNA-16: Camels (dromedary, bactrian)
-
-> Claimed: claude session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

@@ -148,3 +148,4 @@ dev.tfp.paper.bowl.BowlModule
 dev.tfp.paper.advancement.criteria.CriteriaModule
 dev.tfp.paper.mount.MountModule
 dev.tfp.paper.blastfurnace.BlastFurnaceModule
+dev.tfp.paper.camel.CamelModule

@@ -387,7 +387,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-24 | Wild raids and armadillo scutes: fox berry picking, rabbit garden raids, calendar scutes | FAUNA | 44 | open |
 | PAR-FAUNA-27 | Nest box block and ground-laying hand-off (follow-up of PAR-FAUNA-07) | FAUNA | 44 | done |
 | PAR-DECO-02 | Wood logic: doors, trapdoors, fence gates, buttons, pressure plates | DECO | 45 | done |
-| PAR-FAUNA-16 | Camels (dromedary, bactrian) | FAUNA | 45 | open |
+| PAR-FAUNA-16 | Camels (dromedary, bactrian) | FAUNA | 45 | done |
 | PAR-FAUNA-19 | Lobster traps | FAUNA | 45 | open |
 | PAR-FAUNA-20 | Pluckable feathers, animal sounds | FAUNA | 45 | open |
 | PAR-FAUNA-29 | Pack predator taming and temptation, predator sleep sound (follow-up of PAR-FAUNA-10) | FAUNA | 45 | done |
