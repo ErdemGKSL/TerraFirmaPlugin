@@ -257,4 +257,28 @@ class SluiceMockBukkitTest extends MockServerTest {
         assertThat(SluiceDevice.inGatherBox(0.5, 0.4, 0.5)).isFalse();
         assertThat(SluiceDevice.inGatherBox(1.3, 0.9, 0.5)).isFalse();
     }
+
+    @Test
+    void waterArrivingAtTheInputWakesOnlyTheSluiceItBelongsTo() {
+        // upper at 0,64,0 facing north: its input cell is one up and one back (south): 0,65,1
+        SluiceWater water = new SluiceWater(blocks, effects, null);
+        water.wakeAround(world.getBlockAt(0, 65, 1));
+        assertThat(effects.wakes).hasSize(1);
+        water.wakeAround(world.getBlockAt(0, 65, -1)); // the cell in front of it is no input of this sluice
+        water.wakeAround(world.getBlockAt(5, 65, 5));
+        assertThat(effects.wakes).hasSize(1);
+    }
+
+    @Test
+    void theIntakeFindsTheRealBlockFamilyAndNotAnotherBlock() {
+        assertThat(SluiceIntake.isSluice("tfp:wood/sluice/oak")).isTrue();
+        assertThat(SluiceIntake.isSluice(SluiceDevice.ID)).isTrue();
+        assertThat(SluiceIntake.isSluice("tfp:wood/sluice_other/oak")).isFalse();
+        Block real = world.getBlockAt(10, 64, 10);
+        blocks.known("tfp:wood/sluice/oak").place(real,
+            BlockStateRef.of("tfp:wood/sluice/oak").with("upper", "true").with("facing", "south"), true);
+        SluiceIntake intake = new SluiceIntake(service, kind, blocks, new SluiceDevice.Services(s -> Optional.empty(), 100,
+            effects, stacks), null);
+        assertThat(intake.find(real.getLocation().add(0.5, 0.9, 0.5))).contains(real);
+    }
 }

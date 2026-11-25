@@ -96,7 +96,12 @@ final class SluiceIntake implements Listener {
 
     private boolean isUpperSluice(Block block) {
         Optional<BlockStateRef> state = blocks.stateAt(block);
-        return state.isPresent() && state.get().id().equals(SluiceDevice.ID) && SluiceDevice.isUpper(state.get());
+        // the block family is tfp:wood/sluice/<wood> (PAR-PROC-53: an exact match never found a real sluice)
+        return state.isPresent() && isSluice(state.get().id()) && SluiceDevice.isUpper(state.get());
+    }
+
+    static boolean isSluice(String id) {
+        return id.equals(SluiceDevice.ID) || id.startsWith(SluiceDevice.ID + "/");
     }
 
     /**

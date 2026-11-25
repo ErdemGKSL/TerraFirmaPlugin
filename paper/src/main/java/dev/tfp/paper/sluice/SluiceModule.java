@@ -52,6 +52,7 @@ public final class SluiceModule implements FeatureModule {
         DeviceKind<SluiceState> kind = devices.register(SluiceDevice.kind(services));
         context.listen(new SluiceIntake(devices, kind, blocks, services, context.scheduler()));
         context.listen(new SluiceListener(blocks, effects, context.scheduler()));
+        context.listen(new SluiceWater(blocks, effects, context.scheduler()));
     }
 
     /** The deposit table rebuilt when the registries change version. Thread-safe. */

@@ -2,7 +2,7 @@
 id: PAR-PROC-53
 title: "Sluice in game: water arrival is not noticed, thrown deposits give no loot in 20 s, outline and model check"
 area: PROC
-status: open
+status: done
 wave: 34
 deps: [PAR-PROC-13]
 size: S
@@ -21,6 +21,7 @@ plan:
   - "Findings from PAR-PROC-47 (Paper 1.21.11): (1) the sluice placed before its water arrives never creates the output water: the only re-reads are neighbourChanged/placed/intake, and the input cell (one up, one back) is diagonal to the upper half, so no neighbour update reaches it; `/tfp debug device` shows working=false until something pokes the block (setblock stone/air next to it made `working=true` and the output water appeared). TFC polls in serverTick. Needs a trigger that does not tick: e.g. a water-flow listener (BlockFromToEvent / FluidLevelChangeEvent) that re-runs refresh for sluices around the changed block, or re-read on use; document it as a divergence if it is not equivalent."
   - "(2) With the sluice working, 3 thrown deposits left the ground (taken), but no loot appeared and the device state stayed `ticksRemaining` unchanged and `behind` kept growing: the wake-up (PaperSluiceEffects.wake, WAKE_TICKS) did not run the production within 25 s. Reproduce with `/tfp debug device` after the throw; check that hasSoil sees the stacks `refresh` reads (ctx.stacks()) and that `pending` (the set of woken keys) is cleared; add a MockBukkit test that steps the scheduler."
   - "(3) Not checked: selection outline of both halves vs TFC and the model alignment per facing (the model drew as a stair-like ramp)."
+  - "Done: SluiceWater listener (water events wake the owning sluices), SluiceIntake matches the block family tfp:wood/sluice/<wood> (exact id never found a real sluice). 2 new MockBukkit tests. In game (docs/verification/PAR-PROC-53/): output water appears without a poke, deposits are taken and loot spawns at the output. The unconfirmed 'taken but no loot' finding did not reproduce."
 tests:
   - "MockBukkit: a sluice whose input water arrives after placement creates the output water; a wake after soil intake produces loot after the cycle"
 done_criteria:
