@@ -27,5 +27,7 @@ done_criteria:
 
 # PAR-WORLD-60: Volcanic feature blocks with rock index -1 refuse chunks
 
+> Claimed: worker session_011osUp5, 2026-11-25
+
 Found by PAR-WORLD-19. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in
 `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
