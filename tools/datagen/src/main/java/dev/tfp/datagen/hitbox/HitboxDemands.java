@@ -600,6 +600,35 @@ public final class HitboxDemands {
                 }
             }
         }
+        // PAR-DECO-09: the metal stairs, slabs and trapdoors, hitbox-only on shared vanilla twins (every metal shares the
+        // carriers of one outline, the look is item displays; MetalFamilies). The double slab is no demand: it draws the
+        // metal block's cube on the barrier carrier.
+        for (String id : metalIds("stairs")) {
+            for (String facing : TfcShapes.STAIRS_FACINGS) {
+                for (String half : TfcShapes.STAIRS_HALVES) {
+                    for (String shape : TfcShapes.STAIRS_SHAPES) {
+                        for (boolean wet : new boolean[] {false, true}) {
+                            d.add(new Demand(id, woodStairsAppearance(facing, half, shape, wet),
+                                TfcShapes.stairsKey(facing, half, shape, wet), 0, HitboxAllocation.TRANSPARENT, false,
+                                WOOD_FAMILY_WEIGHT));
+                        }
+                    }
+                }
+            }
+        }
+        for (String id : metalIds("slab")) {
+            for (String type : WOOD_SLAB_CARRIED_TYPES) {
+                for (boolean wet : new boolean[] {false, true}) {
+                    d.add(new Demand(id, woodSlabAppearance(type, wet), TfcShapes.slabKey(type, wet), 0,
+                        HitboxAllocation.TRANSPARENT, false, WOOD_FAMILY_WEIGHT));
+                }
+            }
+        }
+        for (String id : metalIds("trapdoor")) {
+            for (String[] state : woodLogicStates("trapdoor")) {
+                d.add(new Demand(id, state[0], state[1], 0, HitboxAllocation.TRANSPARENT, false, WOOD_FAMILY_WEIGHT));
+            }
+        }
         // PAR-WORLD-44 (PAR-WORLD-53 option a): the sapling, the potted sapling and the fallen leaves of every wood,
         // hitbox-only on the no-collision plant outlines (the look is TFC's model as an item display, WoodPlantBlocks);
         // the twigs share one tripwire pool state (POOLS), no demand.
@@ -857,6 +886,62 @@ public final class HitboxDemands {
         return out;
     }
 
+    /** PAR-DECO-09: TFC's metals that have a metal block ({@code Metal.PartType} above INGOT; MetalFamilies checks the list). */
+    public static final List<String> METAL_BLOCK_METALS = List.of("bismuth", "bismuth_bronze", "black_bronze", "black_steel",
+        "blue_steel", "brass", "bronze", "cast_iron", "copper", "gold", "nickel", "red_steel", "rose_gold", "silver",
+        "sterling_silver", "steel", "tin", "wrought_iron", "zinc");
+    /** PAR-DECO-09: the metals that weather (exposed, weathered and oxidized blocks, slabs and stairs). */
+    public static final List<String> METAL_WEATHERING = List.of("brass", "bronze", "copper", "silver", "sterling_silver", "steel",
+        "wrought_iron");
+    /** PAR-DECO-09: the metals with the {@code ALL} part type (grates, bars, chains, lamps and trapdoors). */
+    public static final List<String> METAL_ALL = List.of("bismuth_bronze", "black_bronze", "black_steel", "blue_steel", "bronze",
+        "copper", "red_steel", "steel", "wrought_iron");
+    /** PAR-DECO-09: the block folders of the four ages. */
+    public static final List<String> METAL_AGES = List.of("block", "exposed_block", "weathered_block", "oxidized_block");
+    /** PAR-DECO-09: the one vanilla block each metal shape is carried by (hitbox-only, drawn empty). */
+    public static final String METAL_STAIRS_TWIN = "minecraft:stone_brick_stairs";
+    public static final String METAL_SLAB_TWIN = "minecraft:stone_brick_slab";
+    public static final String METAL_TRAPDOOR_TWIN = "minecraft:oak_trapdoor";
+
+    /** PAR-DECO-09: the block id of a metal block ({@code tfp:metal/block/copper_stairs}); {@code suffix} is empty, {@code _slab} or {@code _stairs}. */
+    public static String metalId(String folder, String metal, String suffix) {
+        return "tfp:metal/" + folder + "/" + metal + suffix;
+    }
+
+    /** PAR-DECO-09: every metal block id of {@code shape} ({@code stairs}, {@code slab} or {@code trapdoor}). */
+    public static List<String> metalIds(String shape) {
+        List<String> ids = new ArrayList<>();
+        if (shape.equals("trapdoor")) {
+            for (String m : METAL_ALL) {
+                ids.add(metalId("trapdoor", m, ""));
+            }
+            return ids;
+        }
+        for (String age : METAL_AGES) {
+            for (String m : age.equals("block") ? METAL_BLOCK_METALS : METAL_WEATHERING) {
+                ids.add(metalId(age, m, "_" + shape));
+            }
+        }
+        return ids;
+    }
+
+    /** PAR-DECO-09: the vanilla twin of a metal stairs, slab or trapdoor block id, or null for every other id. */
+    static String metalTwin(String blockId) {
+        if (!blockId.startsWith("tfp:metal/")) {
+            return null;
+        }
+        if (blockId.startsWith("tfp:metal/trapdoor/")) {
+            return metalIds("trapdoor").contains(blockId) ? METAL_TRAPDOOR_TWIN : null;
+        }
+        if (blockId.endsWith("_stairs")) {
+            return metalIds("stairs").contains(blockId) ? METAL_STAIRS_TWIN : null;
+        }
+        if (blockId.endsWith("_slab")) {
+            return metalIds("slab").contains(blockId) ? METAL_SLAB_TWIN : null;
+        }
+        return null;
+    }
+
     /** PAR-DECO-01: the vanilla twin of a wood stairs, slab, fence or log fence block id, or null for every other id. */
     static String woodTwin(String blockId) {
         for (int i = 0; i < BARREL_WOODS.size(); i++) {
@@ -1020,6 +1105,10 @@ public final class HitboxDemands {
         String wood = woodTwin(blockId);
         if (wood != null) {
             return wood; // PAR-DECO-01: same outline class, our models (or drawn empty) on the twin's states
+        }
+        String metal = metalTwin(blockId);
+        if (metal != null) {
+            return metal; // PAR-DECO-09: the metal stairs, slabs and trapdoors, drawn empty on a shared twin
         }
         if (blockId.equals(JACK_O_LANTERN_ID)) {
             return "minecraft:jack_o_lantern";

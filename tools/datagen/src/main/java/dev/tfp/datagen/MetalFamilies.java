@@ -8,12 +8,23 @@
  */
 package dev.tfp.datagen;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import dev.tfp.datagen.device.DeviceBlockSpec;
+import dev.tfp.datagen.hitbox.HitboxAllocation;
+import dev.tfp.datagen.hitbox.HitboxDemands;
+import dev.tfp.datagen.hitbox.TfcShapes;
+import dev.tfp.datagen.rendered.RenderedCubeSpec;
+import dev.tfp.datagen.rendered.RenderedSound;
+import dev.tfp.datagen.rendered.RenderedTemplates;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,6 +44,18 @@ import java.util.regex.Pattern;
  * so CraftEngine does not load it. The {@code kind} is the blockstate folder under {@code blockstates/metal/}, and the
  * {@code shape} is {@code full}, {@code slab} or {@code stairs}. Ids are the TFC blockstate paths in our namespace.
  * Unlike the wood families, a missing source or blockstate is an error.
+ *
+ * <p>PAR-DECO-09: the metal blocks, slabs, stairs, grates and trapdoors are CraftEngine blocks, one file per metal in
+ * {@code configuration/metalfamily/<metal>.yml} ({@link #writeBlocks}):
+ * <ul>
+ *   <li>The four ages of the block and the four of the grate are renderer cubes ({@code tfp:block/rendered_cube}: barrier
+ *       carrier, one {@code item_display}, {@code destroy_stages} cracks, TFC's strength 5 / 6, {@code SoundType.METAL} or
+ *       {@code COPPER_GRATE}, pickaxe required).</li>
+ *   <li>Slabs, stairs and trapdoors use CraftEngine's {@code slab_block}, {@code stairs_block} and {@code trapdoor_block}
+ *       behaviours, hitbox-only on the shared vanilla twins of {@link HitboxDemands#metalTwin} and draw TFC's model of each
+ *       state as one item display; the double slab draws the block's cube on the barrier carrier.</li>
+ *   <li>Bars, chains and lamps are left out (follow-up PAR-DECO-20, lamps PAR-METAL-19).</li>
+ * </ul>
  */
 final class MetalFamilies {
     static final String SOURCE = "src/main/java/net/dries007/tfc/util/Metal.java";
@@ -76,6 +99,9 @@ final class MetalFamilies {
     static int run(TfcCheckout tfc, OutputTree out) {
         List<Family> families = families(tfc);
         out.put(OUTPUT, Yaml.write(HEADER, yaml(families)));
+        if (tfc.exists(WoodFamilies.LOOT + "metal/block/copper.json")) { // the small fixture checkouts have only blockstates
+            writeBlocks(tfc, out, families);
+        }
         return families.stream().mapToInt(f -> f.blocks().size()).sum();
     }
 
@@ -273,5 +299,347 @@ final class MetalFamilies {
         Map<String, Object> root = new LinkedHashMap<>();
         root.put("families", byMetal);
         return root;
+    }
+
+    // ---- PAR-DECO-09: the CraftEngine blocks ---------------------------------------------------------------------------
+
+    public static final String CONFIG_DIR = AssetPipeline.CONFIG + "metalfamily/";
+    static final String LANG_RP = AssetPipeline.PACK + "resourcepack/assets/" + Json.TO_NS + "_metal_family/lang/";
+    /** The folders that are renderer cubes: the four ages of the block and of the grate. */
+    static final Set<String> CUBE_FOLDERS = Set.of("block", "exposed_block", "weathered_block", "oxidized_block", "grate",
+        "exposed_grate", "weathered_grate", "oxidized_grate");
+    /** Kinds left out: bars and chains (PAR-DECO-20), lamps (PAR-METAL-19). */
+    static final Set<String> LEFT_OUT = Set.of("bars", "chain", "lamp");
+    /** TFC's iron {@code BlockSetType}: the trapdoor sounds; it is not opened by hand. */
+    private static final Map<String, String> TRAPDOOR_SOUNDS = Map.of("open", "minecraft:block.iron_trapdoor.open", "close",
+        "minecraft:block.iron_trapdoor.close");
+    static final String INSTRUMENT = "iron_xylophone";
+
+    /** The CE states of every written block, by kind: stairs 80, slab 6, trapdoor 64; cubes are one state. */
+    static final Map<String, Integer> STATES = Map.of("stairs", 80, "slab", 6, "trapdoor", 64, "cube", 1);
+
+    /** Writes every metal's file, models, textures and names. Returns the number of CraftEngine states. */
+    static int writeBlocks(TfcCheckout tfc, OutputTree out, List<Family> families) {
+        Map<String, List<String>> tags = tags(tfc);
+        List<String> metals = new ArrayList<>();
+        int states = 0;
+        for (Family f : families) {
+            metals.add(f.metal());
+            Map<String, Object> blocks = new LinkedHashMap<>();
+            Map<String, Object> items = new LinkedHashMap<>();
+            Map<String, Object> renderItems = new LinkedHashMap<>();
+            for (Block b : f.blocks()) {
+                if (LEFT_OUT.contains(b.kind().replaceAll("^(exposed_|weathered_|oxidized_)", ""))) {
+                    continue;
+                }
+                String id = Json.TO_NS + ":" + b.path();
+                List<String> blockTags = tags.getOrDefault(Json.FROM_NS + ":" + b.path(), List.of());
+                boolean cube = CUBE_FOLDERS.contains(b.kind()) && b.shape().equals("full");
+                WoodFamilies.loot(tfc, b.shape().equals("slab") ? "slab" : "block", b.path()); // must be TFC's plain self drop
+                if (cube) {
+                    states += cube(tfc, out, f.metal(), b, blockTags, blocks, items, renderItems);
+                    continue;
+                }
+                Map<String, Object> entry = new LinkedHashMap<>();
+                String kind = b.kind().equals("trapdoor") ? "trapdoor" : b.shape();
+                entry.put("settings", settings(tfc, f.metal(), blockTags, b.path()));
+                entry.put("behavior", behavior(kind));
+                entry.put("loot", WoodFamilies.loot(tfc, kind.equals("slab") ? "slab" : "block", b.path()));
+                entry.put("states", switch (kind) {
+                    case "stairs" -> stairs(tfc, out, id, b.path(), renderItems);
+                    case "slab" -> slab(tfc, out, id, b.path(), renderItems);
+                    default -> trapdoor(tfc, out, id, b.path(), renderItems);
+                });
+                states += STATES.get(kind);
+                blocks.put(id, entry);
+                WoodFamilies.copyModel(tfc, out, "item/" + b.path());
+                items.put(id, CeBlockStates.call("tfp:item/block_item", Map.of("item_lang_key", WoodFamilies.langKey(b.path()))));
+            }
+            Map<String, Object> all = new LinkedHashMap<>(items);
+            all.putAll(renderItems);
+            Map<String, Object> root = new LinkedHashMap<>();
+            root.put("blocks", blocks);
+            root.put("items", all);
+            out.put(CONFIG_DIR + f.metal() + ".yml", Yaml.write(HEADER, root));
+        }
+        writeLang(tfc, out, families);
+        return states;
+    }
+
+    /** One renderer cube: the block or the grate of one age. */
+    private static int cube(TfcCheckout tfc, OutputTree out, String metal, Block b, List<String> blockTags,
+            Map<String, Object> blocks, Map<String, Object> items, Map<String, Object> renderItems) {
+        String id = Json.TO_NS + ":" + b.path();
+        String model = cubeModel(tfc, b.path());
+        WoodFamilies.copyModel(tfc, out, model.substring(Json.TO_NS.length() + 1));
+        WoodFamilies.copyModel(tfc, out, "item/" + b.path());
+        DeviceBlockSpec.Settings base = RenderedCubeSpec.tfcMetalBlock(tfc, metal); // TFC blockProperties: 5 / 6, METAL, tool
+        String tool = tool(blockTags, b.path());
+        DeviceBlockSpec.Settings settings = new DeviceBlockSpec.Settings(base.hardness(), base.resistance(),
+            b.kind().endsWith("grate") ? RenderedSound.COPPER_GRATE : base.sound(), "minecraft:mineable/" + tool);
+        RenderedCubeSpec spec = RenderedCubeSpec.of(id, model, settings, true, WoodFamilies.langKey(b.path()));
+        Map<String, Object> yaml = spec.yaml();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> specBlocks = (Map<String, Object>) yaml.get("blocks");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> specItems = (Map<String, Object>) yaml.get("items");
+        blocks.putAll(specBlocks);
+        specItems.forEach((k, v) -> {
+            if (k.startsWith(Json.TO_NS + ":render/")) {
+                renderItems.put(k, v);
+            } else {
+                items.put(k, v);
+            }
+        });
+        return STATES.get("cube");
+    }
+
+    /** The one model of a full block's blockstate ({@code "": {model}}), renamed. */
+    static String cubeModel(TfcCheckout tfc, String path) {
+        String src = WoodFamilies.BLOCKSTATES + path + ".json";
+        JsonObject vs = Json.rename(Json.parse(tfc.readString(src), src)).getAsJsonObject().getAsJsonObject("variants");
+        if (vs == null || vs.size() != 1 || !vs.has("") || vs.getAsJsonObject("").size() != 1) {
+            throw new DatagenException(src + " is no longer one plain model");
+        }
+        return vs.getAsJsonObject("").get("model").getAsString();
+    }
+
+    /** The display-only item of a model {@code tfp:block/<path>}: {@code tfp:render/<path>} (as {@link RenderedCubeSpec#of}). */
+    static String renderItem(String model) {
+        return Json.TO_NS + ":render/" + model.substring((Json.TO_NS + ":block/").length());
+    }
+
+    private static String tool(List<String> tags, String path) {
+        for (String t : tags) {
+            if (t.startsWith("minecraft:mineable/")) {
+                return t.substring("minecraft:mineable/".length());
+            }
+        }
+        throw new DatagenException(Json.FROM_NS + ":" + path + " is in no minecraft:mineable tag");
+    }
+
+    /** TFC's {@code blockProperties}: strength 5 / 6 (the trapdoor 5), the metal sound set, a pickaxe, no loot without it. */
+    private static Map<String, Object> settings(TfcCheckout tfc, String metal, List<String> blockTags, String path) {
+        DeviceBlockSpec.Settings base = RenderedCubeSpec.tfcMetalBlock(tfc, metal);
+        boolean trapdoor = path.startsWith("metal/trapdoor/");
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("hardness", trapdoor ? new java.math.BigDecimal("5.0") : base.hardness());
+        m.put("resistance", trapdoor ? new java.math.BigDecimal("5.0") : base.resistance());
+        RenderedSound vp = RenderedSound.of(base.sound());
+        Map<String, Object> sounds = new LinkedHashMap<>();
+        String[] ids = {base.sound().breakSound(), base.sound().step(), base.sound().place(), base.sound().hit(),
+            base.sound().fall()};
+        List<String> events = List.of("break", "step", "place", "hit", "fall");
+        for (int i = 0; i < events.size(); i++) {
+            Map<String, Object> sound = new LinkedHashMap<>();
+            sound.put("id", ids[i]);
+            sound.put("volume", vp.volume(events.get(i)));
+            sound.put("pitch", vp.pitch(events.get(i)));
+            sounds.put(events.get(i), sound);
+        }
+        m.put("sounds", sounds);
+        m.put("instrument", INSTRUMENT);
+        String tool = tool(blockTags, path);
+        m.put("tags", blockTags);
+        m.put("correct_tools", List.of("#minecraft:" + tool + "s", "#tfp:tools/" + tool));
+        return m;
+    }
+
+    private static List<Object> behavior(String kind) {
+        Map<String, Object> b = new LinkedHashMap<>();
+        b.put("type", switch (kind) {
+            case "stairs" -> "stairs_block";
+            case "slab" -> "slab_block";
+            default -> "trapdoor_block";
+        });
+        if (kind.equals("trapdoor")) {
+            b.put("can_open_with_hand", false); // BlockSetType.IRON: only redstone opens it
+            b.put("sounds", TRAPDOOR_SOUNDS);
+        }
+        return List.of(b);
+    }
+
+    /** Every {@code minecraft:} block tag of TFC's tag files that lists a {@code tfc:metal/...} id directly, by id. */
+    static Map<String, List<String>> tags(TfcCheckout tfc) {
+        Map<String, Set<String>> out = new TreeMap<>();
+        for (String base : List.of(TfcCheckout.GENERATED + "data/minecraft/tags/block/", TfcCheckout.MAIN + "data/minecraft/tags/block/")) {
+            for (String f : tfc.list(base)) {
+                if (!f.endsWith(".json")) {
+                    continue;
+                }
+                String tag = "minecraft:" + f.substring(base.length(), f.length() - ".json".length());
+                JsonArray values = Json.parse(tfc.readString(f), f).getAsJsonObject().getAsJsonArray("values");
+                if (values == null) {
+                    continue;
+                }
+                for (JsonElement v : values) {
+                    String id = v.isJsonPrimitive() ? v.getAsString()
+                        : v.getAsJsonObject().has("id") ? v.getAsJsonObject().get("id").getAsString() : "";
+                    if (id.startsWith(Json.FROM_NS + ":metal/")) {
+                        out.computeIfAbsent(id, k -> new TreeSet<>()).add(tag);
+                    }
+                }
+            }
+        }
+        Map<String, List<String>> lists = new TreeMap<>();
+        out.forEach((k, v) -> lists.put(k, List.copyOf(v)));
+        return lists;
+    }
+
+    // ---- states ---------------------------------------------------------------------------------------------------------
+
+    private static Map<String, Object> property(String type, List<String> values, String dflt) {
+        Map<String, Object> p = new LinkedHashMap<>();
+        p.put("type", type);
+        if (values != null) {
+            p.put("values", values);
+        }
+        p.put("default", dflt);
+        return p;
+    }
+
+    private static Map<String, Object> bool() {
+        Map<String, Object> p = new LinkedHashMap<>();
+        p.put("type", "boolean");
+        p.put("default", false);
+        return p;
+    }
+
+    private static Map<String, Object> stairs(TfcCheckout tfc, OutputTree out, String id, String path, Map<String, Object> items) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("facing", property("horizontal_direction", List.of("north", "east", "south", "west"), "north"));
+        props.put("half", property("single_block_half", TfcShapes.STAIRS_HALVES, "bottom"));
+        props.put("shape", property("stairs_shape", TfcShapes.STAIRS_SHAPES, "straight"));
+        props.put("waterlogged", bool());
+        List<String> names = new ArrayList<>();
+        for (String facing : TfcShapes.STAIRS_FACINGS) {
+            for (String half : TfcShapes.STAIRS_HALVES) {
+                for (String shape : TfcShapes.STAIRS_SHAPES) {
+                    for (boolean wet : new boolean[] {false, true}) {
+                        names.add(HitboxDemands.woodStairsAppearance(facing, half, shape, wet));
+                    }
+                }
+            }
+        }
+        return carried(tfc, out, id, path, items, props, names);
+    }
+
+    private static Map<String, Object> slab(TfcCheckout tfc, OutputTree out, String id, String path, Map<String, Object> items) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("type", property("slab_type", TfcShapes.SLAB_TYPES, "bottom"));
+        props.put("waterlogged", bool());
+        List<String> names = new ArrayList<>();
+        for (String type : TfcShapes.SLAB_TYPES) {
+            for (boolean wet : new boolean[] {false, true}) {
+                names.add(HitboxDemands.woodSlabAppearance(type, wet));
+            }
+        }
+        return carried(tfc, out, id, path, items, props, names);
+    }
+
+    private static Map<String, Object> trapdoor(TfcCheckout tfc, OutputTree out, String id, String path, Map<String, Object> items) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("facing", property("horizontal_direction", List.of("north", "east", "south", "west"), "north"));
+        props.put("half", property("single_block_half", TfcShapes.STAIRS_HALVES, "bottom"));
+        props.put("open", bool());
+        props.put("powered", bool());
+        props.put("waterlogged", bool());
+        List<String> names = new ArrayList<>();
+        for (String[] s : HitboxDemands.woodLogicStates("trapdoor")) {
+            names.add(s[0]);
+        }
+        return carried(tfc, out, id, path, items, props, names);
+    }
+
+    /**
+     * One appearance per state on the shared hitbox-only twin: TFC's blockstate model of the state as one item display
+     * turned by its {@code x} and {@code y}. A double slab draws the block's cube on the barrier carrier instead.
+     */
+    private static Map<String, Object> carried(TfcCheckout tfc, OutputTree out, String id, String path,
+            Map<String, Object> items, Map<String, Object> props, List<String> names) {
+        Map<Map<String, String>, WoodLogicBlocks.Variant> variants = WoodLogicBlocks.variants(tfc, path);
+        Map<String, String> renderOf = new LinkedHashMap<>(); // TFC model id -> display item id
+        java.util.Set<String> used = new TreeSet<>();
+        Map<String, Object> appearances = new LinkedHashMap<>();
+        Map<String, Object> variantsOut = new LinkedHashMap<>();
+        for (String name : names) {
+            Map<String, String> state = new LinkedHashMap<>();
+            for (String kv : name.split(",")) {
+                String[] p = kv.split("=");
+                state.put(p[0], p[1]);
+            }
+            WoodLogicBlocks.Variant v = WoodLogicBlocks.match(variants, state, path);
+            used.add(v.model());
+            if (!renderOf.containsKey(v.model())) {
+                WoodFamilies.copyModel(tfc, out, v.model().substring(Json.TO_NS.length() + 1));
+                String item = renderItem(v.model());
+                items.put(item, CeBlockStates.call("tfp:item/render", Map.of("render_model", v.model())));
+                renderOf.put(v.model(), item);
+            }
+            Map<String, Object> renderer = new LinkedHashMap<>();
+            renderer.put("item", renderOf.get(v.model()));
+            Map<String, Object> app = new LinkedHashMap<>();
+            if ("double".equals(state.get("type"))) {
+                // a full cube on the barrier carrier (full outline and collision, no model), as the renderer cubes
+                app.put("state", RenderedTemplates.CARRIER);
+            } else {
+                HitboxAllocation.Assignment a = HitboxAllocation.agreed(id, name);
+                String want = HitboxDemands.twin(id) + "[" + name + "]";
+                if (a.mode() != HitboxAllocation.Mode.HITBOX_ONLY || !a.state().equals(want) || a.hideTarget() != null) {
+                    throw new DatagenException(id + "#" + name + ": carrier " + a.state() + " (" + a.mode() + "), expected "
+                        + want + " drawn empty");
+                }
+                app.put("state", a.state());
+                app.put("transparent", true);
+                renderer.put("rotation", WoodLogicBlocks.rotation(v.x(), v.y()));
+            }
+            app.put("entity_renderer", List.of(renderer));
+            appearances.put(name, app);
+            Map<String, Object> variant = new LinkedHashMap<>();
+            variant.put("appearance", name);
+            if ("true".equals(state.get("waterlogged")) && !"double".equals(state.get("type"))) {
+                variant.put("settings", Map.of("fluid_state", "water"));
+            }
+            variantsOut.put(name, variant);
+        }
+        if (!used.equals(new TreeSet<>(variants.values().stream().map(WoodLogicBlocks.Variant::model).toList()))) {
+            throw new DatagenException(path + ": the blockstate names models no state draws");
+        }
+        Map<String, Object> states = new LinkedHashMap<>();
+        states.put("properties", props);
+        states.put("appearances", appearances);
+        states.put("variants", variantsOut);
+        return states;
+    }
+
+    /** The names of every written block in every TFC locale that has them (English is required). */
+    static void writeLang(TfcCheckout tfc, OutputTree out, List<Family> families) {
+        for (String f : tfc.list(WoodFamilies.LANG)) {
+            if (!f.endsWith(".json")) {
+                continue;
+            }
+            String locale = f.substring(WoodFamilies.LANG.length(), f.length() - ".json".length());
+            JsonObject src = Json.parse(tfc.readString(f), f).getAsJsonObject();
+            Map<String, String> keys = new TreeMap<>();
+            for (Family fam : families) {
+                for (Block b : fam.blocks()) {
+                    if (LEFT_OUT.contains(b.kind().replaceAll("^(exposed_|weathered_|oxidized_)", ""))) {
+                        continue;
+                    }
+                    String tfcKey = "block." + Json.FROM_NS + "." + b.path().replace('/', '.');
+                    if (src.has(tfcKey)) {
+                        keys.put(WoodFamilies.langKey(b.path()), src.get(tfcKey).getAsString());
+                    } else if (locale.equals("en_us")) {
+                        throw new DatagenException("TFC has no English name " + tfcKey);
+                    }
+                }
+            }
+            if (keys.isEmpty()) {
+                continue;
+            }
+            JsonObject o = new JsonObject();
+            keys.forEach(o::addProperty);
+            out.put(LANG_RP + locale + ".json", Json.write(o));
+        }
     }
 }
