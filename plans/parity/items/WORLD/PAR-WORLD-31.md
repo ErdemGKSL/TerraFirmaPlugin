@@ -2,7 +2,7 @@
 id: PAR-WORLD-31
 title: "Groundcover CE blocks: loose rocks, small ores, groundcover types and deposits (datagen, hitbox demands, visuals)"
 area: WORLD
-status: open
+status: done
 wave: 21
 deps: [PAR-WORLD-09, PAR-INFRA-13]
 size: M
@@ -28,6 +28,8 @@ plan:
   - "Remove the skip reasons for ore/small_*, rock/loose and rock/mossy_loose from AssetPipeline.skipReason once emitted; copy TFC's models and textures through the generator (as CharcoalBlocks does); random rotation through a weighted model list where CE allows it."
 tests:
   - "tools/datagen: counts vs TFC registries (loose rocks 42 blocks x 3 counts, small ores 12, groundcover types = GroundcoverBlockType values, deposits 84); CeYamlCheck clean; hitbox report has no overflow"
+  - "VISUAL BUDGET DECISION (2026-11-25, option c): loose rocks hitbox-only on a shared carrier per count (red mushroom, heavy weighted pressure plate; same on both families), the look TFC's model as an item display; small ores and the 17 groundcover types with TFC's model list (random y turns, the driftwood and stick model sets) on a carrier of their outline where the selector has one free (buttons, pink petals on 1.21.x, wildflowers and leaf litter on 26.x), else hitbox-only with the first model; where the families' carriers differ the appearance is a `$$>=26.1` / `$$fallback` version selector and the hide mappings are split under `$$>=26.1` / `$$<26.1`. Deposits: 84 gravel-like cubes in the AssetPipeline (family `deposit`, TFC strength rock.category().hardness(2.0f), gravel sounds), drawn by the visual allocator (flattened gravel + specks model; the level-2 rock-agnostic deposit rule stays pending). No fluid state (follow-up PAR-WORLD-58)."
+  - "Done: tools/datagen groundcover/GroundcoverCeBlocks (3 files: loose_rocks.yml 42 blocks x count 1..3, small_ores.yml 12, groundcover.yml 17; models, render items, block items for small ores, mossy loose rocks and the 11 groundcover types without a vanilla item, names in tfp_groundcover lang, drops through LootTableExport.delegateBlock), HitboxDemands groundcover demands (weight -15, served last), AssetPipeline deposit family and skip list, Datagen run line. Test GroundcoverCeBlocksTest (5). In-game check: PAR-WORLD-57."
 done_criteria:
   - "Every id GroundcoverBlocks.ceId can return exists as a CE block in content/generated"
   - "Hitbox report lists the groundcover demands with a carrier on 1.21.x and 26.x"

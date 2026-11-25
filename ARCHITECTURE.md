@@ -452,6 +452,8 @@ oak trapdoor leaves `hard_ban` for this. CraftEngine's built-in behaviours (`doo
 `button_block` + `face_attached_horizontal_directional_block`, `pressure_plate_block`) do the placement, opening, redstone and
 survival.
 
+**Groundcover (PAR-WORLD-31, decided 2026-11-25).** Loose rocks (42 blocks x 3 counts) are hitbox-only on one shared carrier per count and drawn as item displays of TFC's model (a few per chunk). Small ores and the groundcover types take TFC's model list on a carrier of their outline where the selector has one free, else hitbox-only. When the two version families pick different carriers, the generator writes a `$$>=26.1` / `$$fallback` value selector for the appearance and splits the hide mappings under `$$>=26.1` / `$$<26.1` instead of failing `HitboxAllocation.agreed`. Deposits are cubes from the visual allocator. No fluid state yet (PAR-WORLD-58).
+
 ## 10. Packet layer
 
 - Library: **PacketEvents 2.14.x** (M0-NET-01), as an optional plugin dependency (`packetevents` in `paper-plugin.yml` and `compat.yml`). Without it the server runs without seasonal colours and item tooltips.

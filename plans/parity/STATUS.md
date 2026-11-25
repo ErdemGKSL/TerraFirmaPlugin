@@ -211,7 +211,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PHYS-03 | Landslides and gravity soils | PHYS | 17 | done |
 | PAR-WORLD-03 | Worldgen performance: JMH chunk budget, vanilla baseline and exposed-gem decision | WORLD | 17 | done |
 | PAR-WORLD-04 | TFC soil and gravel block set in generation: grass, dirt, coarse dirt, clay, peat, kaolin, mud, rock gravel | WORLD | 17 | done |
-| PAR-WORLD-42 | Remaining soil blocks: duff and clay duff, grass path, muddy roots per soil | WORLD | 18 | open |
+| PAR-WORLD-42 | Remaining soil blocks: duff and clay duff, grass path, muddy roots per soil | WORLD | 18 | done |
 | PAR-WORLD-41 | Terrain writes the TFC soil blocks: soil variant per surface rule and the RockPalette surface ids in TfcTerrain | WORLD | 27 | done |
 | PAR-PROC-44 | Barrel wiring in-game verification: GUI from the block, five buckets in and one out, half-tank surface, lazy rain fill (the checks PAR-PROC-35 closed without) | PROC | 17 | done |
 | PAR-PROC-45 | Newer vanilla recipe removal in-game verification: copper tools/armour and spears do not craft, kept recipes still do (the check PAR-PROC-43 closed without) | PROC | 19 | done |
@@ -254,7 +254,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-12 | Panning | PROC | 21 | done |
 | PAR-WORLD-10 | Wood blocks: logs, wood, stripped, leaves, saplings as CE blocks | WORLD | 21 | done |
 | PAR-WORLD-24 | Noise and noodle caves: TFC's density caves (cave cheese, cave layer, spaghetti, pillars, noodles) in the terrain fill, and the surface over carved blocks | WORLD | 21 | done |
-| PAR-WORLD-31 | Groundcover CE blocks: loose rocks, small ores, groundcover types and deposits (datagen, hitbox demands, visuals) | WORLD | 21 | open |
+| PAR-WORLD-31 | Groundcover CE blocks: loose rocks, small ores, groundcover types and deposits (datagen, hitbox demands, visuals) | WORLD | 21 | done |
 | PAR-GATHER-03 | Tree felling: the whole tree falls when the trunk is cut with an axe | GATHER | 22 | done |
 | PAR-GATHER-04 | Leaves: slow decay, movement slowdown, fallen leaves; plant movement slowdown | GATHER | 22 | done |
 | PAR-WORLD-44 | Wood plant blocks: saplings, potted saplings, fallen leaves and twigs as CE blocks (datagen, carriers, visuals) | WORLD | 22 | done |
@@ -266,7 +266,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-INFRA-29 | Loot delegation check: loose rocks and leaves drop by their TFC tables in the self-test | INFRA | 22 | blocked |
 | PAR-WORLD-26 | Amethyst geodes: tfc:geode (hardened basalt shell, quartzite layers, amethyst ore) in the vein step | WORLD | 22 | done |
 | PAR-WORLD-30 | Vein step wiring: biome vein passes, kaolin disc, projected, near-lava and rock-writing veins in TfcTerrain | WORLD | 22 | done |
-| PAR-WORLD-32 | Wire groundcover, boulders, cave loose rocks and the new soil features into TfcTerrain with CE blocks, and the in-game groundcover check | WORLD | 22 | open |
+| PAR-WORLD-32 | Wire groundcover, boulders, cave loose rocks and the new soil features into TfcTerrain with CE blocks, and the in-game groundcover check | WORLD | 22 | done |
 | PAR-POT-02 | Unfired and fired pottery items, clay knapping outputs | POTTERY | 23 | done |
 | PAR-TOOL-05 | Javelins: throwing, damage, pickup, javelin AI for skeletons | TOOL | 23 | done |
 | PAR-TOOL-06 | Knife, scythe and hoe area behaviours; remaining tool items (saw, chisel, propick, tuyere, shears heads) | TOOL | 23 | done |
@@ -483,9 +483,10 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-19 | Alabaster and mud brick stairs, slabs and walls; wattle and daub | DECO | 49 | open |
 | PAR-WORLD-55 | In-game verification of PAR-WORLD-11 and PAR-WORLD-44: dead forests and mangroves; wood plant blocks | WORLD | 24 | open |
 | PAR-WORLD-56 | Per-world TFC settings in the remaining climate readers (fog, crops, farmland, wild crops, rising rocks, regrowth, water terrain, calendar sample) | WORLD | 30 | done |
-| PAR-WORLD-56 | Per-world TFC settings in the remaining climate readers (fog, crops, farmland, wild crops, rising rocks, regrowth, water terrain, calendar sample) | WORLD | 30 | open |
 | PAR-FARM-29 | Growing plant shapes part 2: vine, kelp tree and branching cactus growth, survival, per-shape outlines, worldgen wiring | FARM | 36 | done |
 | PAR-FARM-30 | Growing plant shapes part 3: per-shape outlines and the saguaro fruit block | FARM | 37 | open |
 | PAR-METAL-26 | Bellows visuals: pressed animation, TFC model and the blow sound | METAL | 33 | open |
 | PAR-PHYS-07 | Collapse follow-ups: Folia stress self-test, TFC rock-slide sounds in the pack, collapse server config keys | PHYS | 18 | open |
 | PAR-FAUNA-28 | 200-animal load: staggered check phase and goal spikes within the tick budget (follow-up of PAR-FAUNA-26) | FAUNA | 55 | open |
+| PAR-WORLD-58 | Waterlogged groundcover: TFC's FLUID property on the CE loose rocks, small ores and groundcover, wet hitbox rows, and the worldgen writing them under water | WORLD | 23 | open |
+| PAR-WORLD-57 | In-game verification of PAR-WORLD-31, PAR-WORLD-32 and PAR-WORLD-42: groundcover, boulders and cave rocks in a fresh world; the remaining soil blocks | WORLD | 24 | open |

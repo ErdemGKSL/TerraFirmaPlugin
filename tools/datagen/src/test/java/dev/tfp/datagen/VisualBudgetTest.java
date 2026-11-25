@@ -177,10 +177,10 @@ class VisualBudgetTest {
                         ne, supply, OreLook.HOST_ROCK);
                     assertThat(a.units().stream().filter(u -> !u.id().startsWith("wood/")
                         && !u.id().matches("(raw|smooth|cut)_sandstone/.+|hardened_clay|halite|lignite|bituminous_coal"
-                        + "|alabaster/.+|fire_bricks|aggregate|mud_bricks/.+"))).as(key)
+                        + "|alabaster/.+|fire_bricks|aggregate|mud_bricks/.+|deposit/.+"))).as(key) // deposits: PAR-WORLD-31
                         .hasSize(261); // wood: PAR-WORLD-10; sandstones, hardened clay, halite, coal: PAR-DECO-08
-                    assertThat(a.solidUsed()).as(key).as("solid pool: wood blocks (PAR-WORLD-10) and the 25 natural cubes (PAR-DECO-08) may use it").isLessThanOrEqualTo(185); // +60 cubes of PAR-DECO-07
-                    assertThat(a.used().get("absent_minor")).as(key + " absent_minor: wood (PAR-WORLD-10) and natural cubes (PAR-DECO-08)").isLessThanOrEqualTo(385); // +60 cubes of PAR-DECO-07
+                    assertThat(a.solidUsed()).as(key).as("solid pool: wood blocks (PAR-WORLD-10) and the 25 natural cubes (PAR-DECO-08) may use it").isLessThanOrEqualTo(185 + 84); // +60 cubes of PAR-DECO-07, +84 deposits of PAR-WORLD-31
+                    assertThat(a.used().get("absent_minor")).as(key + " absent_minor: wood (PAR-WORLD-10) and natural cubes (PAR-DECO-08)").isLessThanOrEqualTo(385 + 84); // +60 cubes of PAR-DECO-07, +84 deposits of PAR-WORLD-31
                     assertThat(a.units()).as(key).noneMatch(u -> u.id().startsWith("ore/"));
                     assertWithinBudget(key, a.used(), budgetOf(f, a.capacity()));
                     if (p == Profile.defaultFor(f)) {
