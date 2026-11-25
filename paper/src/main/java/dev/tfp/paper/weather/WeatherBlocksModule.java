@@ -45,6 +45,10 @@ public final class WeatherBlocksModule implements FeatureModule {
         CustomBlocks blocks = context.integrations().customBlocks();
         WorldBlocks.install(new WorldBlocks.Custom(blocks, () -> context.integrations().blockVisuals()));
         context.listen(new PileBreaks(blocks, context.scheduler(), WorldBlocks::new));
+        // PAR-GATHER-13: the snow item over a plant or loose rock writes the same piles (ItemPlaceListener asks for the service)
+        context.services().provide(dev.tfp.paper.itemplace.SnowPilePlacer.class, new SnowPileItemPlacer(WorldBlocks::new,
+                block -> context.services().get(dev.tfp.paper.tags.Tags.class)
+                        .map(tags -> tags.is(block, "tfc:can_be_snow_piled")).orElse(false)));
     }
 
     @Override
