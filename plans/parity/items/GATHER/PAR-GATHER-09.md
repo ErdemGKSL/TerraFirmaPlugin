@@ -36,4 +36,6 @@ done_criteria:
 
 # PAR-GATHER-09: Natural logs and leaves: branch_direction on logs, persistent on leaves, set by tree generation and placement
 
+> Claimed: sapling worker, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
