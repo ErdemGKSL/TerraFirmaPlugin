@@ -638,6 +638,142 @@
       "from": "CrucibleBlock.java (ported)"
     },
     {
+      "key": "tfc:channel[east=false,south=false,west=false,north=false]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[5, 0, 5, 11, 5, 11]],
+      "collision": [[5, 0, 5, 11, 5, 11]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=false,south=true,west=false,north=false]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[5, 0, 5, 11, 5, 16]],
+      "collision": [[5, 0, 5, 11, 5, 16]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=false,south=false,west=true,north=false]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[0, 0, 5, 11, 5, 11]],
+      "collision": [[0, 0, 5, 11, 5, 11]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=false,south=true,west=true,north=false]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[0, 0, 5, 11, 5, 11], [5, 0, 11, 11, 5, 16]],
+      "collision": [[0, 0, 5, 11, 5, 11], [5, 0, 11, 11, 5, 16]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=false,south=false,west=false,north=true]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[5, 0, 0, 11, 5, 11]],
+      "collision": [[5, 0, 0, 11, 5, 11]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=false,south=true,west=false,north=true]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[5, 0, 0, 11, 5, 16]],
+      "collision": [[5, 0, 0, 11, 5, 16]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=false,south=false,west=true,north=true]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[5, 0, 0, 11, 5, 11], [0, 0, 5, 5, 5, 11]],
+      "collision": [[5, 0, 0, 11, 5, 11], [0, 0, 5, 5, 5, 11]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=false,south=true,west=true,north=true]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[5, 0, 0, 11, 5, 16], [0, 0, 5, 5, 5, 11]],
+      "collision": [[5, 0, 0, 11, 5, 16], [0, 0, 5, 5, 5, 11]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=true,south=false,west=false,north=false]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[5, 0, 5, 16, 5, 11]],
+      "collision": [[5, 0, 5, 16, 5, 11]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=true,south=true,west=false,north=false]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[5, 0, 5, 16, 5, 11], [5, 0, 11, 11, 5, 16]],
+      "collision": [[5, 0, 5, 16, 5, 11], [5, 0, 11, 11, 5, 16]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=true,south=false,west=true,north=false]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[0, 0, 5, 16, 5, 11]],
+      "collision": [[0, 0, 5, 16, 5, 11]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=true,south=true,west=true,north=false]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[0, 0, 5, 16, 5, 11], [5, 0, 11, 11, 5, 16]],
+      "collision": [[0, 0, 5, 16, 5, 11], [5, 0, 11, 11, 5, 16]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=true,south=false,west=false,north=true]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[5, 0, 0, 11, 5, 11], [11, 0, 5, 16, 5, 11]],
+      "collision": [[5, 0, 0, 11, 5, 11], [11, 0, 5, 16, 5, 11]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=true,south=true,west=false,north=true]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[5, 0, 0, 11, 5, 16], [11, 0, 5, 16, 5, 11]],
+      "collision": [[5, 0, 0, 11, 5, 16], [11, 0, 5, 16, 5, 11]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=true,south=false,west=true,north=true]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[5, 0, 0, 11, 5, 11], [0, 0, 5, 5, 5, 11], [11, 0, 5, 16, 5, 11]],
+      "collision": [[5, 0, 0, 11, 5, 11], [0, 0, 5, 5, 5, 11], [11, 0, 5, 16, 5, 11]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:channel[east=true,south=true,west=true,north=true]",
+      "class": "channel",
+      "kind": "object",
+      "selection": [[5, 0, 0, 11, 5, 16], [0, 0, 5, 5, 5, 11], [11, 0, 5, 16, 5, 11]],
+      "collision": [[5, 0, 0, 11, 5, 16], [0, 0, 5, 5, 5, 11], [11, 0, 5, 16, 5, 11]],
+      "from": "ChannelBlock.java (ported)"
+    },
+    {
+      "key": "tfc:mold_table",
+      "class": "mold_table",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 5, 16]],
+      "collision": [[0, 0, 0, 16, 5, 16]],
+      "from": "MoldTableBlock.java SHAPE / same"
+    },
+    {
       "key": "tfc:wood/shelf[thick=false]",
       "class": "shelf",
       "kind": "object",

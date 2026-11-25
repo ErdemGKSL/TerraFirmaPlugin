@@ -39,6 +39,18 @@ public final class HitboxDemands {
     public static final String CRUCIBLE_MODEL = "tfp:block/crucible";
     /** PAR-METAL-12: served after every other demand, so adding the crucible moves no carrier of another block. */
     static final int CRUCIBLE_WEIGHT = -11;
+    /** PAR-METAL-13: the channel (one appearance pattern per horizontal-connection mask) and the mold table. */
+    public static final String CHANNEL_ID = "tfp:channel";
+    public static final String MOLD_TABLE_ID = "tfp:mold_table";
+    public static final String MOLD_TABLE_APPEARANCE = "table";
+    /** PAR-METAL-13: served after every other demand, so adding them moves no carrier of another block. */
+    static final int CHANNEL_WEIGHT = -13;
+
+    /** PAR-METAL-13: the demand of the channels with the connections of {@code mask} (see {@link TfcShapes#channelKey}). */
+    public static String channelPattern(int mask) {
+        return "m" + mask;
+    }
+
     /** PAR-PROC-29: the scraping surface block and its one appearance (WAXED is the plugin's record state, no CE state). */
     public static final String SCRAPING_ID = "tfp:scraping";
     public static final String SCRAPING_APPEARANCE = "base";
@@ -408,6 +420,13 @@ public final class HitboxDemands {
         }
         // PAR-METAL-12: the crucible, TFC's shell outline (no channel nubs) with TFC's crucible model.
         d.add(new Demand(CRUCIBLE_ID, CRUCIBLE_APPEARANCE, "tfc:crucible", 0, CRUCIBLE_MODEL, true, CRUCIBLE_WEIGHT));
+        // PAR-METAL-13: the channels (16 horizontal-connection outlines) and the mold table, hitbox-only; the look is item displays.
+        for (int mask = 0; mask < 16; mask++) {
+            d.add(new Demand(CHANNEL_ID, channelPattern(mask), TfcShapes.channelKey(mask), 0, HitboxAllocation.TRANSPARENT, true,
+                CHANNEL_WEIGHT));
+        }
+        d.add(new Demand(MOLD_TABLE_ID, MOLD_TABLE_APPEARANCE, TfcShapes.MOLD_TABLE_KEY, 0, HitboxAllocation.TRANSPARENT, true,
+            CHANNEL_WEIGHT));
         // PAR-CLIM-27: the four climate instruments, hitbox-only per TFC outline; the look is an item display (InstrumentBlocks).
         for (String f : FACINGS) {
             d.add(new Demand(THERMOMETER_ID, f + "_*", TfcShapes.instrumentKey("thermometer", "facing=" + f), 0,

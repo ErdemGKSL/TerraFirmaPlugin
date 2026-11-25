@@ -209,6 +209,9 @@ public final class Datagen {
         if (dev.tfp.datagen.firepitgui.FirepitScreenArt.available(tfc)) { // PAR-HEAT-20: firepit screen art and thermometer; fixtures have no firepit screen
             dev.tfp.datagen.firepitgui.FirepitScreenArt.run(tfc, out);
         }
+        if (dev.tfp.datagen.channel.ChannelBlocks.available(tfc)) { // PAR-METAL-13: tfp:channel and tfp:mold_table blocks, models, names; fixtures have none
+            dev.tfp.datagen.channel.ChannelBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.crucible.CrucibleScreenArt.available(tfc)) { // PAR-METAL-12: crucible screen art, thermometer and fill; fixtures have no crucible screen
             dev.tfp.datagen.crucible.CrucibleScreenArt.run(tfc, out);
         }

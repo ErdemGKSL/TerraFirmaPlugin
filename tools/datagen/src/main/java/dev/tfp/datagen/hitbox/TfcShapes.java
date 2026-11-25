@@ -261,6 +261,16 @@ public final class TfcShapes {
         s.add(new Spec("tfc:crucible", "crucible", Kind.OBJECT, List.of(D + "CrucibleBlock.java"), null, null,
             List.of("VoxelShape shape = base;", "return SHAPES[(state.getValue(NORTH) ? 1 << Direction.NORTH.get2DDataValue() : 0) |"),
             List.of("getCollisionShape"), TfcShapes::crucible));
+        // PAR-METAL-13: the channel (SHAPES by the four horizontal connections) and the mold table (one slab).
+        for (int mask = 0; mask < 16; mask++) {
+            final int m = mask;
+            s.add(new Spec(channelKey(mask), "channel", Kind.OBJECT, List.of(D + "ChannelBlock.java"), null, null,
+                List.of("final VoxelShape[] directions = new VoxelShape[] {south, west, north, east};",
+                    "if (((i >> direction.get2DDataValue()) & 1) == 1)"),
+                List.of("getCollisionShape"), x -> channel(x, m)));
+        }
+        s.add(Spec.of(MOLD_TABLE_KEY, "mold_table", Kind.OBJECT, List.of(D + "MoldTableBlock.java"), "SHAPE", "same",
+            List.of("static final VoxelShape SHAPE = box(0, 0, 0, 16, 5, 16);", "return SHAPE;"), List.of("getCollisionShape")));
         String shelf = B + "ShelfBlock.java";
         for (String thick : List.of("false", "true")) {
             s.add(Spec.of("tfc:wood/shelf[thick=" + thick + "]", "shelf", Kind.OBJECT, List.of(shelf),
@@ -750,6 +760,31 @@ public final class TfcShapes {
             }
         }
         return new Shape[] {shape, Shape.EMPTY};
+    }
+
+    /** PAR-METAL-13: the mold table's row. */
+    public static final String MOLD_TABLE_KEY = "tfc:mold_table";
+
+    /**
+     * PAR-METAL-13: the row of the channel whose connections are the bits of {@code mask}, TFC's index of
+     * {@code ChannelBlock.SHAPES}: bit {@code get2DDataValue} (south 0, west 1, north 2, east 3).
+     */
+    public static String channelKey(int mask) {
+        return "tfc:channel[east=" + ((mask & 8) != 0) + ",south=" + ((mask & 1) != 0) + ",west=" + ((mask & 2) != 0)
+            + ",north=" + ((mask & 4) != 0) + "]";
+    }
+
+    /** {@code ChannelBlock.SHAPES[mask]}: the base post or'd with the arm of each set connection. */
+    private static Shape[] channel(TfcShapeExpressions x, int mask) {
+        List<String> file = List.of(D + "ChannelBlock.java");
+        Shape shape = x.shape(file, "base");
+        String[] arms = {"south", "west", "north", "east"};
+        for (int bit = 0; bit < 4; bit++) {
+            if ((mask & (1 << bit)) != 0) {
+                shape = shape.union(x.shape(file, arms[bit]));
+            }
+        }
+        return new Shape[] {shape, shape};
     }
 
     /** {@code CrucibleBlock.SHAPES[0]}: the base shell without channel nubs (no neighbour connected). */

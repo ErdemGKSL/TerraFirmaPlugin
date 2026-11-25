@@ -113,7 +113,8 @@ class GeneratedCarrierTest {
         // ice pile and sea ice.
         // PAR-FARM-03: the crops, dead crops and wild crops of the 29 crops (87 block ids; every appearance is explicit).
         assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3 + 17 * 16 + 17 * 2 + 4 + 10 + 87 + 75 + 150 + 267
-            + 20 * (80 + 4 + 32 + 32)); // PAR-DECO-01: per wood stairs, slab (double draws the planks' visual), fence, log fence
+            + 20 * (80 + 4 + 32 + 32) // PAR-DECO-01: per wood stairs, slab (double draws the planks' visual), fence, log fence
+            + 144); // PAR-METAL-13: the channel (128 states) and the mold table (16)
         // PAR-CLIM-04: the ice pile and sea ice (one leaves pool appearance each).
         assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2);
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
@@ -136,6 +137,8 @@ class GeneratedCarrierTest {
         expected.add(HitboxDemands.BERRY_DEAD_ID);
         // PAR-METAL-12: the crucible (one appearance for its 16 channel-connection states).
         expected.add(HitboxDemands.CRUCIBLE_ID);
+        // PAR-METAL-13: the channel (128 states, 64 appearances on 16 outlines) and the mold table (16 states), hitbox-only.
+        expected.addAll(List.of(HitboxDemands.CHANNEL_ID, HitboxDemands.MOLD_TABLE_ID));
         // PAR-CLIM-27: the thermometer, anemometer, vane and calendar clock (150 states, hitbox-only).
         expected.addAll(List.of(HitboxDemands.THERMOMETER_ID, HitboxDemands.ANEMOMETER_ID, HitboxDemands.VANE_ID, HitboxDemands.CLOCK_ID));
         // PAR-FARM-15: the four spreading bushes, their canes, the cranberry, the dead bush and the dead cane (267 states).
@@ -149,7 +152,7 @@ class GeneratedCarrierTest {
             expected.addAll(List.of(HitboxDemands.woodStairsId(w), HitboxDemands.woodSlabId(w), HitboxDemands.woodFenceId(w),
                 HitboxDemands.woodLogFenceId(w)));
         }
-        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4);
+        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 2);
         java.util.SortedSet<String> grass = new java.util.TreeSet<>();
         for (String soil : List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol", "podzol", "alfisol", "mollisol")) {
             dev.tfp.datagen.soil.SoilBlocks.GRASS_TYPES.forEach(t -> grass.add("tfp:" + t + "/" + soil));
