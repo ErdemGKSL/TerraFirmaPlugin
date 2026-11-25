@@ -420,7 +420,7 @@ Totals: 387 items; open 207, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-05 | Crankshaft and powered bellows | MECH | 50 | done |
 | PAR-MECH-06 | Quern automation | MECH | 50 | done |
 | PAR-MECH-07 | Trip hammer | MECH | 50 | blocked |
-| PAR-WORLD-21 | Untracked surface features: forest-floor patches, tide pools, guano islands, bamboo, sea stack patches and five volcanic ids | WORLD | 50 | open |
+| PAR-WORLD-21 | Untracked surface features: forest-floor patches, tide pools, guano islands, bamboo, sea stack patches and five volcanic ids | WORLD | 50 | done |
 | PAR-WORLD-46 | Write the CE plant blocks in generation: TfcTerrain places tfp:plant/* through PlantBlocks.ceRef, placeholders only as fallback | WORLD | 27 | done |
 | PAR-WORLD-47 | Remaining plant shapes as CE blocks: water plants (waterlogged), creeping, epiphytes, vines, weeping/twisting columns, kelp, cacti, bamboo, intertidal plant-likes | WORLD | 27 | done |
 | PAR-WORLD-48 | Plant lifecycle looks, climate tint and soil rules: TFC's seasonal plant stages (tfc:plant model loader), per-climate grass/foliage colour, TFC canSurvive per plant type | WORLD | 28 | done |
@@ -436,6 +436,8 @@ Totals: 387 items; open 207, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-62 | Ore overlay default radius from the PAR-WORLD-19 census | WORLD | 29 | done |
 | PAR-WORLD-63 | Plant stage packet handler: CHUNK_DATA / BLOCK_CHANGE / MULTI_BLOCK_CHANGE rewrite through PlantStageRemap, CE state id resolution and the module wiring | WORLD | 30 | done |
 | PAR-WORLD-64 | Cave decoration in generation: wire the PAR-WORLD-20 cave rules and erosion into TfcTerrain, the underground flood-fill lake, the worldgen.cave itest | WORLD | 49 | open |
+| PAR-WORLD-65 | Tide pools, sea stack patches and bamboo rules, and the placed-feature coverage guard over every TFC biome tag | WORLD | 51 | open |
+| PAR-WORLD-66 | Surface decoration in generation: wire the forest floor, island guano, tide pools, sea stacks and bamboo into TfcTerrain, the worldgen.decoration itest | WORLD | 52 | open |
 | PAR-WORLD-54 | Bubble columns above the CE magma blocks: drag-down columns that survive vanilla's support check, and the hot spring tracker | WORLD | 30 | done |
 | PAR-MECH-03 | Water wheel | MECH | 51 | done |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | done |
