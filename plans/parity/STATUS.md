@@ -327,7 +327,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DATA-01 | Commands under /tfp: player, count block, clear world, add trim, weather hooks | DATA | 32 | open |
 | PAR-FARM-09 | Bananas | FARM | 32 | done |
 | PAR-FARM-10 | Sapling growth into trees | FARM | 32 | open |
-| PAR-METAL-11 | Bellows: push, air boost, crank, animation | METAL | 32 | open |
+| PAR-METAL-11 | Bellows: push, air boost, crank, animation | METAL | 32 | done |
 | PAR-CLIM-07 | Weather command and TFC weather state (`/tfp weather`) | CLIMATE | 33 | open |
 | PAR-FARM-11 | Plant regrowth, plant growth/spread, flower cuttings | FARM | 33 | done |
 | PAR-FARM-13 | Plant info and fertilizer tooltips: climate range, nutrients, growth time and lifecycle on seeds and saplings; N/P/K on fertilizers | FARM | 33 | open |
@@ -480,3 +480,4 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-56 | Per-world TFC settings in the remaining climate readers (fog, crops, farmland, wild crops, rising rocks, regrowth, water terrain, calendar sample) | WORLD | 30 | open |
 | PAR-FARM-29 | Growing plant shapes part 2: vine, kelp tree and branching cactus growth, survival, per-shape outlines, worldgen wiring | FARM | 36 | done |
 | PAR-FARM-30 | Growing plant shapes part 3: per-shape outlines and the saguaro fruit block | FARM | 37 | open |
+| PAR-METAL-26 | Bellows visuals: pressed animation, TFC model and the blow sound | METAL | 33 | open |

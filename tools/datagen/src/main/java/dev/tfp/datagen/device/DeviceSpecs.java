@@ -149,6 +149,7 @@ public final class DeviceSpecs {
             b.appearance(DeviceAppearance.vanilla(f, DeviceAppearance.Carrier.state(carrierByFacing.apply(f))));
         }
         return b.everyState(s -> s.get(facing.name()), null)
+            .deviceBehaviour() // PAR-METAL-11: the bellows keeps a device record (the last push)
             .settings(settings)
             .loot(loot)
             .blockItem(itemLangKey)
