@@ -22,7 +22,27 @@ class JavaLayer(unittest.TestCase):
         for key in J.SPECIES:
             data = json.loads((HERE / "out" / f"tfp_{key}.bbmodel").read_text())
             self.assertEqual([], check(data, model_id=f"tfp_{key}", strict=False), key)
-            self.assertEqual({"idle", "walk"}, {a["name"] for a in data["animations"]}, key)
+            want = {"idle", "walk"} | ({"play_dead"} if key in J.PLAY_DEAD_HIDES else set())
+            self.assertEqual(want, {a["name"] for a in data["animations"]}, key)
+
+    def test_turtle_play_dead_hides_head_and_four_legs(self):
+        data = json.loads((HERE / "out" / "tfp_turtle.bbmodel").read_text())
+        anim = next(a for a in data["animations"] if a["name"] == "play_dead")
+        self.assertTrue(anim["override"])
+        bones = {v["name"]: v["keyframes"] for v in anim["animators"].values()}
+        self.assertEqual(set(J.PLAY_DEAD_HIDES["turtle"]), set(bones))
+        for frames in bones.values():
+            self.assertEqual("scale", frames[0]["channel"])
+            self.assertLess(float(frames[0]["data_points"][0]["x"]), 0.01)
+
+    def test_penguin_play_dead_turns_core_back(self):
+        import play_dead as P
+        data = json.loads((HERE.parents[1] / "imported" / "tfp_penguin.bbmodel").read_text())
+        anim = next(a for a in data["animations"] if a["name"] == "play_dead")
+        (animator,) = anim["animators"].values()
+        self.assertEqual("core", animator["name"])
+        self.assertEqual("-90.0", animator["keyframes"][0]["data_points"][0]["x"])
+        self.assertFalse(P.add_play_dead(data))  # idempotent
 
     def test_arithmetic_and_suffixes(self):
         self.assertAlmostEqual(J._eval("-0.4363F"), -0.4363)

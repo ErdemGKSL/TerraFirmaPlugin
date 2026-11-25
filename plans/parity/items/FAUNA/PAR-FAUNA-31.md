@@ -2,7 +2,7 @@
 id: PAR-FAUNA-31
 title: "Amphibian play-dead pose: penguin and turtle models (follow-up of PAR-FAUNA-12)"
 area: FAUNA
-status: open
+status: done
 wave: 46
 deps: [PAR-FAUNA-12]
 size: S
@@ -21,6 +21,7 @@ in_game_steps:
 plan:
   - "PAR-FAUNA-12 plays the BetterModel animation play_dead while an amphibian plays dead (PaperAmphibianBody.PLAY_DEAD, looped) and stops it after; no model has that animation yet."
   - "Penguin (PenguinModel.setupAnim): core.xRot = -90 degrees while playing dead. Turtle (TFCTurtleModel.setupAnim): head and the four legs hidden; the turtle has no model of ours yet (vanilla turtle carrier), so it needs the TFC turtle model through the model-authoring skill first."
+  - "Done: penguin play_dead (tools/models/tfpmodels/species/play_dead.py on the imported model) and turtle play_dead (java_layer.py PLAY_DEAD_HIDES, regenerated tfp_turtle.bbmodel); validate.py clean, renders reviewed (docs/verification/PAR-FAUNA-31/verdict.md), test_java_layer.py 6 tests. The published jar copies are rewritten by publish_models.py, outside files_owned: PAR-FAUNA-40 runs it and does the in-game check."
 tests:
   - "tools/models validate.py on the changed models; render PNGs reviewed"
 done_criteria:
@@ -29,6 +30,5 @@ done_criteria:
 
 # PAR-FAUNA-31: Amphibian play-dead pose: penguin and turtle models
 
-> Claimed: worker session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 Follow `plans/parity/PROTOCOL.md`.

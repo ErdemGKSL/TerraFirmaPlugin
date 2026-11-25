@@ -397,7 +397,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-05 | Tool racks, shelves, bookshelves, lecterns | DECO | 46 | open |
 | PAR-DECO-06 | Rock families: bricks, cobble, smooth, stairs, slabs, walls, aqueducts, spikes, pressure plates, buttons | DECO | 46 | done |
 | PAR-FAUNA-30 | Crocodile without the aggressive swim goal, diving in water (follow-up of PAR-FAUNA-12) | FAUNA | 46 | done |
-| PAR-FAUNA-31 | Amphibian play-dead pose: penguin and turtle models (follow-up of PAR-FAUNA-12) | FAUNA | 46 | open |
+| PAR-FAUNA-31 | Amphibian play-dead pose: penguin and turtle models (follow-up of PAR-FAUNA-12) | FAUNA | 46 | done |
 | PAR-FAUNA-32 | Pest infestation of large vessels and nest boxes (follow-up of PAR-FAUNA-13) | FAUNA | 46 | done |
 | PAR-DECO-07 | Mud bricks, alabaster, aggregate, fire bricks, wattle and daub, thatch | DECO | 47 | done |
 | PAR-DECO-08 | Sand, sandstone families, hardened clay, halite, coal, calcite, misc natural blocks | DECO | 47 | done |
@@ -521,6 +521,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-37 | Lobster trap placement state and waterlogged carrier: facing, fluid and the water of a wet trap (follow-up of PAR-FAUNA-36) | FAUNA | 47 | done |
 | PAR-FAUNA-38 | Pest infestation when a large vessel is opened (follow-up of PAR-FAUNA-32) | FAUNA | 47 | open |
 | PAR-FAUNA-39 | Water around a wet lobster trap: a waterlogged carrier needs a selector override (follow-up of PAR-FAUNA-37) | FAUNA | 48 | open |
+| PAR-FAUNA-40 | Publish the penguin and turtle play_dead models into the BetterModel jar (follow-up of PAR-FAUNA-31) | FAUNA | 47 | open |
 | PAR-POT-15 | Bowl automation: hoppers fill and empty powder bowls, the powder layer follows (follow-up of PAR-POT-09) | POTTERY | 28 | open |
 | PAR-DATA-19 | Advancement triggers left from PAR-DATA-03: feature events for TFC's 21 own triggers | DATA | 40 | open |
 | PAR-DECO-22 | Rock walls, aqueducts and rope anchors (follow-up of PAR-DECO-06) | DECO | 49 | open |

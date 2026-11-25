@@ -201,6 +201,21 @@ def animations(bone_names: list[str]) -> list[Animation]:
     return out
 
 
+# PAR-FAUNA-31: TFCTurtleModel.setupAnim hides the head and the four legs while the turtle plays dead. BetterModel has no
+# per-bone visibility call, so the `play_dead` animation (played while an amphibian plays dead, PaperAmphibianBody) scales
+# those bones to ~0 (not exactly 0: a zero scale makes the bone matrix singular).
+PLAY_DEAD_HIDES = {"turtle": ("h_head", "right_hind_leg", "left_hind_leg", "right_front_leg", "left_front_leg")}
+HIDDEN_SCALE = 0.001
+
+
+def play_dead(key: str, bone_names: list[str]) -> list[Animation]:
+    bones = [b for b in PLAY_DEAD_HIDES.get(key, ()) if b in bone_names]
+    if not bones:
+        return []
+    hide = [Keyframe(0.0, "scale", (HIDDEN_SCALE, HIDDEN_SCALE, HIDDEN_SCALE))]
+    return [Animation("play_dead", 1.0, "loop", True, {b: list(hide) for b in bones})]
+
+
 def build(tfc: pathlib.Path, key: str) -> Model:
     cls, tex = SPECIES[key]
     root, size = parse_layer((tfc / ENTITY_DIR / f"{cls}.java").read_text(encoding="utf-8"))
@@ -211,7 +226,7 @@ def build(tfc: pathlib.Path, key: str) -> Model:
     png = (tfc / TEX_DIR / tex).read_bytes()
     model = Model(f"tfp_{key}", top, size, png)
     names = [b.name for b in model.bones()]
-    model.animations = animations(names)
+    model.animations = animations(names) + play_dead(key, names)
     return model
 
 

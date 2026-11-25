@@ -1286,6 +1286,41 @@
      ]
     }
    }
+  },
+  {
+   "uuid": "a1bfb18a-c1d9-5f03-a0bc-c1318fb85ecb",
+   "name": "play_dead",
+   "loop": "loop",
+   "override": true,
+   "length": 1.0,
+   "snapping": 24,
+   "selected": false,
+   "anim_time_update": "",
+   "blend_weight": "",
+   "start_delay": "",
+   "loop_delay": "",
+   "animators": {
+    "2aada6e4-8dff-6890-7474-789fa1a28af6": {
+     "name": "core",
+     "type": "bone",
+     "keyframes": [
+      {
+       "channel": "rotation",
+       "data_points": [
+        {
+         "x": "-90.0",
+         "y": "0.0",
+         "z": "0.0"
+        }
+       ],
+       "uuid": "bec88052-37d1-5515-90d0-46c9c00598ae",
+       "time": 0.0,
+       "color": -1,
+       "interpolation": "linear"
+      }
+     ]
+    }
+   }
   }
  ]
 }
