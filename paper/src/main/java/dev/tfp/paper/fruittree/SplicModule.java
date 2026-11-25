@@ -21,7 +21,7 @@ import java.util.function.Function;
  * ({@link SplicOverlay}). Must be listed after the fruit tree, banana, device, tags and catchup modules.
  */
 public final class SplicModule implements FeatureModule {
-    public static final String ID = "fruit-splice";
+    public static final String ID = "fruit_splice";
     static final String HOES = "minecraft:hoes";
 
     @Override

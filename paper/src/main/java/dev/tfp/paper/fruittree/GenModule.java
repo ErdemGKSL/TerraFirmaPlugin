@@ -56,7 +56,7 @@ import org.bukkit.event.world.ChunkLoadEvent;
  * after the fruit tree, banana, wild crop, device, tags and catchup modules.
  */
 public final class GenModule implements FeatureModule, Listener {
-    public static final String ID = "fruit-gen";
+    public static final String ID = "fruit_gen";
 
     private ModuleContext context;
     private GenTrees trees;
