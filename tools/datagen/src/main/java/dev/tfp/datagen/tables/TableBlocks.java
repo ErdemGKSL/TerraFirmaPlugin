@@ -131,7 +131,7 @@ public final class TableBlocks {
                 copyModels(tfc, out, kind, wood);
                 DeviceBlockSpec spec = spec(kind, wood, strength, tool, turns);
                 states += (int) spec.stateCount();
-                merge(DeviceYaml.templated(spec), blocks, items, mappings);
+                merge(spec.behaviour() && spec.settings() != null ? DeviceYaml.templated(spec) : DeviceYaml.literal(spec), blocks, items, mappings);
             }
             String baseSrc = MODELS + "block/" + kind.name() + ".json";
             String base = tfc.readString(baseSrc);
