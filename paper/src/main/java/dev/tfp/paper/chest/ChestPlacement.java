@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: vanilla net.minecraft.world.level.block.ChestBlock @ c3b4d9536 (getStateForPlacement, updateShape; TFCChestBlock
- *       inherits both)
+ * file: src/main/java/net/dries007/tfc/common/blocks/wood/TFCChestBlock.java @ c3b4d9536 (extends vanilla ChestBlock and
+ *       inherits getStateForPlacement and updateShape, which this ports)
  */
 package dev.tfp.paper.chest;
 

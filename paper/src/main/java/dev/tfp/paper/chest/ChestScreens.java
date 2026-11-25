@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/common/container/RestrictedChestContainer.java @ c3b4d9536 (two or four rows of
+ * file: src/main/java/net/dries007/tfc/common/container/RestrictedChestContainer.java @ c3b4d9536 (two or four rows of
  *       restricted slots: a stack above the chest's item size is refused),
  *       src/main/java/net/dries007/tfc/common/blockentities/TFCChestBlockEntity.java @ c3b4d9536 (isValid)
  */

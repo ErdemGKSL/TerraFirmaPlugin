@@ -4,7 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/resources/assets/tfc/textures/entity/chest/** @ c3b4d9536 (the chest textures, copied; TFC draws a chest
+ * file: src/main/java/net/dries007/tfc/common/blocks/wood/TFCChestBlock.java @ c3b4d9536 (textureLocation), the chest textures
+ * src/main/resources/assets/tfc/textures/entity/chest/** @ c3b4d9536 (copied; TFC draws a chest
  * with vanilla's chest block entity renderer, so the geometry below is vanilla's ChestRenderer model layers
  * re-expressed as block model elements)
  */

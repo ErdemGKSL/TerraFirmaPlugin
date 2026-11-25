@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/common/blocks/wood/Wood.java (CHEST, TRAPPED_CHEST),
+ * file: src/main/java/net/dries007/tfc/common/blocks/wood/Wood.java @ c3b4d9536 (CHEST, TRAPPED_CHEST),
  * src/main/java/net/dries007/tfc/common/blocks/wood/TFC{Chest,TrappedChest}Block.java,
  * src/generated/resources/data/minecraft/tags/block/mineable/axe.json, src/main/resources/data/tfc/loot_table/blocks/wood/chest/**,
  * assets/tfc/textures/entity/chest/** and assets/tfc/lang/*.json @ c3b4d9536 (copied)

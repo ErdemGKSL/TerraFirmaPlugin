@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/common/blocks/wood/TFCChestBlock.java @ c3b4d9536 (the combiner: a double chest is
+ * file: src/main/java/net/dries007/tfc/common/blocks/wood/TFCChestBlock.java @ c3b4d9536 (the combiner: a double chest is
  *        the first and the second chest as one 36 slot container),
  *        src/main/java/net/dries007/tfc/common/blockentities/TFCChestBlockEntity.java @ c3b4d9536 (getContainerSize 18),
  *        vanilla net.minecraft.world.level.block.ChestBlock (getStateForPlacement, candidatePartnerFacing, updateShape,
