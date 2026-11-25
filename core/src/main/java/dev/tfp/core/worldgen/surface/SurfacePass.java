@@ -7,6 +7,7 @@ package dev.tfp.core.worldgen.surface;
 
 import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
 import java.util.Arrays;
+import java.util.function.IntFunction;
 
 /**
  * The state of one column while a surface builder runs: what each height holds before the surface (rock, water or air),
@@ -27,6 +28,7 @@ public final class SurfacePass {
     private final int endY;
     private final int minY;
     private final XoroshiroRandomSource random;
+    private final IntFunction<Fill> open;
     private double slope;
     private int baseY;
     private SurfaceBlock[] out;
@@ -40,8 +42,13 @@ public final class SurfacePass {
      * @param minY        the lowest height of the world
      * @param random      the random source of the chunk, shared by its columns in TFC's order (x outer, z inner); null for
      *                    builders that draw nothing
+     * @param open        what a height at or below {@code topY} that the terrain density or the density caves opened holds
+     *                    ({@link Fill#AIR} or {@link Fill#WATER}, or {@link Fill#OTHER} for a block that is neither air nor
+     *                    rock), or null where it holds rock; the function itself may be null when nothing is open
      */
-    SurfacePass(SurfaceColumn column, int topY, int oceanFloorY, int startY, int endY, int minY, XoroshiroRandomSource random) {
+    SurfacePass(SurfaceColumn column, int topY, int oceanFloorY, int startY, int endY, int minY, XoroshiroRandomSource random,
+                IntFunction<Fill> open) {
+        this.open = open;
         this.column = column;
         this.topY = topY;
         this.oceanFloorY = oceanFloorY;
@@ -98,7 +105,8 @@ public final class SurfacePass {
             return written.isRawRock() ? Fill.ROCK : Fill.OTHER;
         }
         if (y <= topY) {
-            return Fill.ROCK;
+            final Fill opened = open == null ? null : open.apply(y);
+            return opened == null ? Fill.ROCK : opened;
         }
         return y <= column.seaLevel() - 1 ? Fill.WATER : Fill.AIR;
     }

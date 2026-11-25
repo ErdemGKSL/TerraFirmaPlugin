@@ -55,6 +55,7 @@ import dev.tfp.core.worldgen.surface.ColumnSurface;
 import dev.tfp.core.worldgen.surface.SurfaceColumn;
 import dev.tfp.core.worldgen.surface.BiomeSurfaces;
 import dev.tfp.core.worldgen.surface.SurfaceBlock;
+import dev.tfp.core.worldgen.surface.SurfacePass;
 import dev.tfp.core.worldgen.surface.SurfaceKind;
 import dev.tfp.core.worldgen.surface.SurfaceNoise;
 import dev.tfp.core.worldgen.surface.SurfaceSlope;
@@ -945,6 +946,22 @@ final class TfcTerrain {
             return carvedTop(terrainTop(x, z), minY, y -> densityOpened(x, y, z) || noiseCarve(x, y, z) != Carve.KEEP);
         }
 
+        /**
+         * PAR-WORLD-49: what the surface pass sees at a height the terrain density or a density cave opens (the carvers run
+         * after the surface, so they do not count): water up to the block below sea level, else air; null where the block is rock.
+         */
+        private SurfacePass.Fill openFill(int x, int y, int z) {
+            if (densityOpened(x, y, z)) {
+                return y <= ChunkData.SEA_LEVEL_Y - 1 ? SurfacePass.Fill.WATER : SurfacePass.Fill.AIR;
+            }
+            return switch (noiseCarve(x, y, z)) {
+                case KEEP -> null;
+                case WATER -> SurfacePass.Fill.WATER;
+                case AIR -> SurfacePass.Fill.AIR;
+                default -> SurfacePass.Fill.OTHER;
+            };
+        }
+
         /** PAR-WORLD-24: the density cave decision of a block at or below the terrain top that the density keeps. */
         Carve noiseCarve(int x, int y, int z) {
             if (y <= minY || y > terrainTop(x, z) || densityOpened(x, y, z)) {
@@ -1072,7 +1089,7 @@ final class TfcTerrain {
                     final SurfaceColumn column = column(x, z, cols.heights()[i], climate, SurfaceSlope.sample(slope, lx, lz),
                         cols.samples()[i], cinderFrequency);
                     surfaces.put(key(x, z), ColumnSurface.build(biomeSurfaces.builder(cols.biomes()[i]), column,
-                        surfaceTop(x, z), minY, random));
+                        surfaceTop(x, z), minY, random, y -> openFill(x, y, z)));
                 }
             }
         }

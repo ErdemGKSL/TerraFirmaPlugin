@@ -57,13 +57,26 @@ public final class ColumnSurface {
      * @param random  the chunk's random source ({@link #chunkRandom}); the lowlands and the icebergs draw from it
      */
     public static ColumnSurface build(SurfaceBuilder builder, SurfaceColumn column, int topY, int minY, XoroshiroRandomSource random) {
+        return build(builder, column, topY, minY, random, null);
+    }
+
+    /**
+     * Builds the surface of a column with air gaps below its top (PAR-WORLD-49): TFC's builders scan the whole column and
+     * reset the surface depth at every air block, so the floors of caves, arches and overhangs get surface blocks too.
+     *
+     * @param open what an opened height at or below {@code topY} holds: {@link SurfacePass.Fill#AIR}, {@link
+     *             SurfacePass.Fill#WATER} or {@link SurfacePass.Fill#OTHER}; null for a height that holds rock. Only
+     *             the terrain density and the density caves count: the carvers run after the surface pass.
+     */
+    public static ColumnSurface build(SurfaceBuilder builder, SurfaceColumn column, int topY, int minY, XoroshiroRandomSource random,
+                                      java.util.function.IntFunction<SurfacePass.Fill> open) {
         final int seaLevel = column.seaLevel();
         // getHeight(WORLD_SURFACE_WG) is the top block, water included; getHeight(OCEAN_FLOOR_WG) is the top rock block
         final int worldSurface = Math.max(topY, seaLevel - 1);
         final int oceanFloor = topY;
         final int startY = worldSurface + 1;
         final int endY = Math.max(minY, Math.min(startY, oceanFloor) - DEPTH_BELOW_FLOOR);
-        final SurfacePass pass = new SurfacePass(column, topY, oceanFloor, Math.max(startY, endY), endY, minY, random);
+        final SurfacePass pass = new SurfacePass(column, topY, oceanFloor, Math.max(startY, endY), endY, minY, random, open);
         builder.build(pass, startY, endY);
         return new ColumnSurface(endY, pass.baseY(), pass.blocks());
     }
