@@ -461,7 +461,7 @@ Totals: 387 items; open 207, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |
 | PAR-REL-03 | Dependency and version updates (MC, Paper, Folia, CE, BetterModel, BetterHud) | REL | 52 | done |
 | PAR-REL-04 | Stone-age run self-test | REL | 52 | done |
-| PAR-DATA-22 | Piglin currency: TFC gold ingots barter with piglins (follow-up of PAR-DATA-14) | DATA | 52 | open |
+| PAR-DATA-22 | Piglin currency: TFC gold ingots barter with piglins (follow-up of PAR-DATA-14) | DATA | 52 | done |
 | PAR-REL-05 | Metal run self-test | REL | 53 | done |
 | PAR-REL-06 | Husbandry run self-test and 200-animal load test | REL | 53 | blocked |
 | PAR-REL-10 | Art backlog: replace every placeholder texture | REL | 53 | blocked |
