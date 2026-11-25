@@ -27,6 +27,8 @@ done_criteria:
 
 # PAR-DATA-12: Block info readout (Jade-like tooltips) on the actionbar
 
+> Claimed: parity worker session_011osUp9Lr5PbNofhx4XEc3S, 2026-11-25
+
 > see_not_parity: NP-UI-01, NP-CLIENT-03, NP-MOD-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
