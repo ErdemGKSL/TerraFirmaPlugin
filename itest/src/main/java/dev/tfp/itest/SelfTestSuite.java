@@ -73,6 +73,7 @@ public final class SelfTestSuite {
                 new dev.tfp.itest.cases.CollapseStressCase(),
                 new dev.tfp.itest.cases.PistonNoWaterDupeCase(),
                 new WorldgenTerrainCase(),
+                new dev.tfp.itest.cases.WorldgenCaveCase(),
                 new dev.tfp.itest.cases.SpawnRulesCase(),
                 new OreExposureCensusCase(),
                 new dev.tfp.itest.cases.OreOverlayCase(),

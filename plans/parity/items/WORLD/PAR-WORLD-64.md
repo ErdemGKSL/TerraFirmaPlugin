@@ -2,7 +2,7 @@
 id: PAR-WORLD-64
 title: "Cave decoration in generation: wire the PAR-WORLD-20 cave rules and erosion into TfcTerrain, the underground flood-fill lake, the worldgen.cave itest"
 area: WORLD
-status: open
+status: done
 wave: 49
 deps: [PAR-WORLD-20, PAR-DECO-06, PAR-WORLD-15]
 size: M
@@ -33,6 +33,8 @@ plan:
   - "Underground flood-fill lake: expose Caldera.place with Config.WATER (replace_fluids empty, overfill) through a public entry and run underground_flood_fill_lake (rarity 3, in_square, uniform y -56..63) from core/worldgen/cave over the cave level; remove it from open_gaps.txt (empty at done)."
   - "Wiring in TfcTerrain.fill/decorate in TFC's step order: erosion first in its biome step (in_biome/erosion), the underground lakes (lakes step), cave_vegetation with the large features, then CaveDecoration in underground_decoration after the vein indicators and before the cave loose rocks. Per NP-WORLD-01 run the features of this chunk and its 8 neighbours over a CaveLevel that reads the neighbours' blocks from the Ground view (carves, terrain, rock) and writes only this chunk's blocks; erosion runs on this chunk's columns only (TFC does the same)."
   - "Blocks: rock spikes as tfp:rock/spike/<rock>[part, waterlogged] (PAR-DECO-06 has no lava or salt water fluid: lava-filled spikes are written dry, salt water as waterlogged; ledger divergence), hardened rock, tfp:rock/mossy_cobble and cobble, the CE guano groundcover, vanilla cobweb and hanging roots; the cave spring is a water source (no scheduled fluid tick: the first fluid update flows it). Map our blocks to CaveCell and Erosion.Column (FallRules.canFallThrough, the landslide soils of PAR-PHYS-03, the aquifer substance of the column)."
+  - "Done 2026-11-25: core cave/UndergroundLakes (rarity 3, in_square, uniform -56..63, through the new public volcano/Caldera.waterLake) with UndergroundLakesGoldenTest (5 oracle hashes), CaveVegetation.placesIn (the 99 biomes that list it), cave/open_gaps.txt empty. paper worldgen/CaveDecorationStep decides the 3x3 origin chunks, each over a fresh CaveLevel on the noise-stage terrain (Ground carves, rock, surface), keeps only this chunk's blocks; TfcTerrain writes them by stage (lake at the start of decorate, spikes and columns before the cave loose rocks, cave vegetation after the forest) where the real block still is the cell the decision saw, and runs erosion on its own columns after the fill (TfcTerrain.erode). CE spike/hardened/mossy cobble/guano with vanilla fallbacks. CaveDecorationStepTest 5; itest worldgen.cave case written (WorldgenCaveCase, not run here). Ledger: feature row + 4 divergences (decision view, spike fluids, spike carrier hitbox, spring tick and erosion inputs)."
+  - "Pending in-game check (container cannot run client): the screenshots of in_game_steps into docs/verification/PAR-WORLD-64/, and the itest run of worldgen.cave."
 tests:
   - "core: open_gaps.txt empty; a golden for the underground flood-fill lake from the oracle"
   - "paper: CaveDecoration adapter test (CaveCell mapping both ways, only this chunk written)"
@@ -44,8 +46,6 @@ done_criteria:
 ---
 
 # PAR-WORLD-64: Cave decoration in generation
-
-> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-25
 
 > see_not_parity: NP-WORLD-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

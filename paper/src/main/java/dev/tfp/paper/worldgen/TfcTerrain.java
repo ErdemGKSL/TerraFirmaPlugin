@@ -20,6 +20,7 @@ import dev.tfp.core.worldgen.carver.Carve;
 import dev.tfp.core.worldgen.carver.CaveCarver;
 import dev.tfp.core.worldgen.carver.TunnelCarvers;
 import dev.tfp.core.worldgen.carver.TunnelMask;
+import dev.tfp.core.worldgen.cave.CaveCell;
 import dev.tfp.core.worldgen.biome.TfcBiomes;
 import dev.tfp.core.worldgen.chunk.ChunkData;
 import dev.tfp.core.worldgen.chunk.ChunkDataGenerator;
@@ -173,6 +174,8 @@ final class TfcTerrain {
     private final Volcanoes volcanoes;
     /** PAR-WORLD-27: every volcanic feature of this world (the cinder cones of {@link #volcanoes} among them). */
     private final VolcanicFeatures volcanicFeatures;
+    /** PAR-WORLD-64: the underground lakes, cave decorations and cave vegetation of this world. */
+    private final CaveDecorationStep caveStep;
     /** The placeholder block data by material and waterlogging. */
     private final Map<String, BlockData> placeholders = new ConcurrentHashMap<>();
     /** TFC's surface heights of this seed (M2-GEN-06), with the river samplers and the cinder cones; pure, shared by the workers. */
@@ -233,6 +236,7 @@ final class TfcTerrain {
         this.plants = new Plants(seed, PlantResources.fromJar(TfcTerrain.class.getClassLoader()), settings.grassDensity());
         this.volcanoes = new Volcanoes(seed);
         this.volcanicFeatures = new VolcanicFeatures(seed, volcanoes);
+        this.caveStep = new CaveDecorationStep(seed);
         this.surfaceHeights = new SurfaceHeights(seed, regions, layers, RiverBlendType.createSamplers(seed), volcanoes.cones());
     }
 
@@ -417,6 +421,8 @@ final class TfcTerrain {
                 }
             }
         }
+        // PAR-WORLD-64: TFC's erosion (the raw generation step) over this chunk's filled columns
+        erode(data, chunkX, chunkZ, view, palette);
         // PAR-WORLD-26: the geodes of the vein tag, over the filled and carved blocks (the carvers run before the features)
         final int maxY = data.getMaxHeight();
         geodes.chunk(chunkX, chunkZ, view.geodeWorld(), (x, y, z, layer) -> {
@@ -602,6 +608,10 @@ final class TfcTerrain {
         final int minY = data.getMinHeight();
         final int maxY = data.getMaxHeight();
         final Map<BlockData, DepositMaterial> materials = depositMaterials(palette);
+        // PAR-WORLD-64: the underground lakes (lakes step), cave decorations and cave vegetation, decided together
+        final Map<CaveDecorationStep.Stage, List<CaveDecorationStep.Write>> cave = caveStep.decide(chunkX, chunkZ, view,
+            caveTerrain(view), maxY);
+        writeCave(data, cave.get(CaveDecorationStep.Stage.LAKE), palette);
         for (DepositBlock block : deposits.chunk(chunkX, chunkZ, view,
             (x, y, z) -> y < minY || y >= maxY ? null : materials.get(data.getBlockData(x & 15, y, z & 15)))) {
             // PAR-WORLD-32: MOLLISOL only changes the soil variant, which the placeholder terrain does not show: keep the block
@@ -628,6 +638,8 @@ final class TfcTerrain {
         };
         indicators.place(chunkX, chunkZ, view, view::rock, covers);
         GroundcoverBlocks.write(covers, chunkX, chunkZ, minY, maxY, coverTarget);
+        // PAR-WORLD-64: the spikes and columns of underground decoration, after the vein indicators
+        writeCave(data, cave.get(CaveDecorationStep.Stage.DECORATION), palette);
         // PAR-WORLD-32: the cave floor loose rocks (underground decoration, after the vein indicators), read from this chunk's
         // blocks; outside the chunk nothing matches
         covers.clear();
@@ -676,6 +688,8 @@ final class TfcTerrain {
                 data.setBlock(localX, y, localZ, water ? placeholderData(Material.MANGROVE_ROOTS, true) : treeData(block));
             }
         });
+        // PAR-WORLD-64: the cave vegetation (a large feature, after the forest)
+        writeCave(data, cave.get(CaveDecorationStep.Stage.VEGETATION), palette);
         // M2-GEN-14, PAR-WORLD-27: every volcanic feature (large features, after the forest: the rivulets, crater lakes,
         // fissures and patches of the cinder cones, tuyas, stratovolcanoes and shield volcanoes, the calderas, the hot
         // springs, the ocean ridges), then the chunk's underground springs in their tag order
@@ -793,6 +807,141 @@ final class TfcTerrain {
             return custom;
         }
         return placeholderData(GroundcoverBlocks.placeholder(cover.kind(), cover.waterlogged()), cover.waterlogged());
+    }
+
+    /** PAR-WORLD-64: what the cave features read of the terrain beyond the view (carves, rock, terrain top, carver mask). */
+    private static CaveDecorationStep.Terrain caveTerrain(Ground view) {
+        return new CaveDecorationStep.Terrain() {
+            @Override
+            public Carve caveCarve(int x, int y, int z) {
+                return view.caveCarve(x, y, z);
+            }
+
+            @Override
+            public int rock(int x, int y, int z) {
+                return view.rock(x, y, z);
+            }
+
+            @Override
+            public int terrainTop(int x, int z) {
+                return view.terrainTop(x, z);
+            }
+
+            @Override
+            public boolean carved(int x, int y, int z) {
+                return view.carverMasked(x, y, z);
+            }
+        };
+    }
+
+    /**
+     * PAR-WORLD-64: writes this chunk's cave blocks where the real block still is the terrain cell the decision saw (a vein,
+     * geode or earlier feature block stays): the CraftEngine rock spike, hardened rock, (mossy) cobble and guano, else the
+     * vanilla placeholders; water, lava, cobwebs and hanging roots as vanilla blocks.
+     */
+    private void writeCave(ChunkGenerator.ChunkData data, List<CaveDecorationStep.Write> writes, RockPalette<BlockData> palette) {
+        for (CaveDecorationStep.Write w : writes) {
+            final int lx = w.x() & 15;
+            final int lz = w.z() & 15;
+            final Material type = data.getType(lx, w.y(), lz);
+            final boolean airOrFluid = type == Material.AIR || type == Material.CAVE_AIR || type == Material.WATER || type == Material.LAVA;
+            final boolean raw = w.before().rock() >= 0 && data.getBlockData(lx, w.y(), lz).equals(palette.block(w.before().rock()));
+            if (!CaveDecorationStep.fits(w.before(), airOrFluid, raw)) {
+                continue;
+            }
+            final CaveCell cell = w.cell();
+            final String ref = CaveDecorationStep.ceRef(cell);
+            final BlockData custom = ref == null ? null : customBlockData(ref);
+            final BlockData block = custom != null ? custom : switch (cell.kind()) {
+                case CAVE_AIR -> caveAir;
+                case AIR -> air;
+                case FLUID -> cell.fluid() == CaveCell.Fluid.LAVA ? lava : water;
+                case RAW, HARDENED -> palette.block(cell.rock());
+                case SPIKE -> placeholderData(Material.POINTED_DRIPSTONE, cell.fluid() != CaveCell.Fluid.EMPTY
+                    && cell.fluid() != CaveCell.Fluid.LAVA);
+                case MOSSY_COBBLE -> placeholderData(Material.MOSSY_COBBLESTONE, false);
+                case COBBLE -> placeholderData(Material.COBBLESTONE, false);
+                case GUANO -> placeholderData(Material.LIGHT_GRAY_CARPET, false);
+                case COBWEB -> placeholderData(Material.COBWEB, false);
+                case HANGING_ROOTS -> placeholderData(Material.HANGING_ROOTS, false);
+                default -> null;
+            };
+            if (block != null) {
+                data.setBlock(lx, w.y(), lz, block);
+            }
+        }
+    }
+
+    /**
+     * PAR-WORLD-64: TFC's erosion over this chunk's filled columns: unsupported soil, sand and gravel runs are held up by the
+     * hardened rock of their rock layer (CraftEngine's, else the palette's raw rock) or removed to the aquifer's air or fluid,
+     * and raw rock over air or a fluid hardens, so nothing generated falls on the first update.
+     */
+    private void erode(ChunkGenerator.ChunkData data, int chunkX, int chunkZ, Ground view, RockPalette<BlockData> palette) {
+        final int minY = data.getMinHeight();
+        final int maxY = data.getMaxHeight();
+        CaveDecorationStep.erode(chunkX, chunkZ, view, new CaveDecorationStep.ErosionTarget() {
+            private boolean inside(int y) {
+                return y >= minY && y < maxY;
+            }
+
+            @Override
+            public boolean air(int x, int y, int z) {
+                final Material type = inside(y) ? data.getType(x & 15, y, z & 15) : Material.AIR;
+                return type == Material.AIR || type == Material.CAVE_AIR;
+            }
+
+            @Override
+            public boolean landslides(int x, int y, int z) {
+                if (!inside(y) || y > view.terrainTop(x, z) || fragile(x, y, z)) {
+                    return false;
+                }
+                final SurfaceKind kind = view.surface(x, z).kind(y);
+                return kind == SurfaceKind.GRASS || kind == SurfaceKind.DIRT || kind == SurfaceKind.COARSE_DIRT
+                    || kind == SurfaceKind.MUD || kind == SurfaceKind.GRAVEL || kind == SurfaceKind.SAND;
+            }
+
+            @Override
+            public boolean fragile(int x, int y, int z) {
+                if (!inside(y)) {
+                    return y >= maxY;
+                }
+                final Material type = data.getType(x & 15, y, z & 15);
+                return type == Material.AIR || type == Material.CAVE_AIR || type == Material.WATER || type == Material.LAVA;
+            }
+
+            @Override
+            public int rawRock(int x, int y, int z) {
+                if (!inside(y)) {
+                    return -1;
+                }
+                final int rock = view.rock(x, y, z);
+                return rock >= 0 && data.getBlockData(x & 15, y, z & 15).equals(palette.block(rock)) ? rock : -1;
+            }
+
+            @Override
+            public int rockAt(int x, int y, int z) {
+                return view.rockAt(x, y, z);
+            }
+
+            @Override
+            public void setHardened(int x, int y, int z, int rock) {
+                if (inside(y) && rock >= 0 && rock < PlaceholderRocks.count()) {
+                    final BlockData custom = customBlockData("tfp:rock/hardened/" + PlaceholderRocks.names().get(rock));
+                    data.setBlock(x & 15, y, z & 15, custom != null ? custom : palette.block(rock));
+                }
+            }
+
+            @Override
+            public Carve substance(int x, int y, int z) {
+                return inside(y) ? view.aquiferSubstance(x, y, z) : Carve.KEEP;
+            }
+
+            @Override
+            public void setSubstance(int x, int y, int z, Carve substance) {
+                data.setBlock(x & 15, y, z & 15, carvedBlock(substance));
+            }
+        });
     }
 
     /** PAR-WORLD-58: a groundcover CE state with {@code fluid=water} added when {@code water}. */
@@ -1245,6 +1394,16 @@ final class TfcTerrain {
          */
         Carve caveCarve(int x, int y, int z) {
             return settledCave(this::cavesOf, x, y, z);
+        }
+
+        /** PAR-WORLD-64: whether a carver's tunnel shape holds the position (TFC's carving mask, {@code Carving.AIR}). */
+        boolean carverMasked(int x, int y, int z) {
+            return cavesOf(x >> 4, z >> 4).mask().contains(x & 15, y, z & 15);
+        }
+
+        /** PAR-WORLD-64: the aquifer's {@code computeSubstance(point, -1)}: air, water, lava, or {@link Carve#KEEP} (a barrier). */
+        Carve aquiferSubstance(int x, int y, int z) {
+            return cavesOf(x >> 4, z >> 4).aquifer.sample(x, y, z, -1);
         }
 
         private CaveChunk cavesOf(int cx, int cz) {

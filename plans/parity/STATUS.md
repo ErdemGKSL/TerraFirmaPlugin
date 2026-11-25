@@ -435,7 +435,7 @@ Totals: 388 items; open 208, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-61 | Plant stage looks at packet time: blooming/dormant client states per plant from the selector's left-over pool states, chosen per viewer by PlantLifecycle | WORLD | 29 | done |
 | PAR-WORLD-62 | Ore overlay default radius from the PAR-WORLD-19 census | WORLD | 29 | done |
 | PAR-WORLD-63 | Plant stage packet handler: CHUNK_DATA / BLOCK_CHANGE / MULTI_BLOCK_CHANGE rewrite through PlantStageRemap, CE state id resolution and the module wiring | WORLD | 30 | done |
-| PAR-WORLD-64 | Cave decoration in generation: wire the PAR-WORLD-20 cave rules and erosion into TfcTerrain, the underground flood-fill lake, the worldgen.cave itest | WORLD | 49 | open |
+| PAR-WORLD-64 | Cave decoration in generation: wire the PAR-WORLD-20 cave rules and erosion into TfcTerrain, the underground flood-fill lake, the worldgen.cave itest | WORLD | 49 | done |
 | PAR-WORLD-65 | Tide pools, sea stack patches and bamboo rules, and the placed-feature coverage guard over every TFC biome tag | WORLD | 51 | done |
 | PAR-WORLD-66 | Surface decoration in generation: wire the forest floor, island guano, tide pools, sea stacks and bamboo into TfcTerrain, the worldgen.decoration itest | WORLD | 52 | open |
 | PAR-WORLD-67 | Surface flood-fill lakes (tfc:flood_fill_lake): the rule, its golden and the generation wiring | WORLD | 53 | open |
