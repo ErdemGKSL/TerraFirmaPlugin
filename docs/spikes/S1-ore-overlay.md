@@ -1,6 +1,12 @@
-# S1: ore overlay census and entity budget (PAR-WORLD-17)
+# S1: ore overlay census and entity budget (PAR-WORLD-17, rerun PAR-WORLD-19)
 
-**Status:** measured 2026-11-04 on Paper 1.21.11 build 132 (census also on Folia 1.21.11), client 1.21.11 under Xvfb +
+**Update 2026-11-25 (PAR-WORLD-19):** census rerun on our world **with caves** (PAR-WORLD-06/28/24 carvers and noise
+caves) and **every vein type** (PAR-WORLD-08/30: cluster, disc and pipe veins, the montane / collisional_mountains / river
+biome tags, PAR-WORLD-26 geode amethyst), Paper 1.21.11 build 132, tree `30332e3`. Measured numbers in §2.3 replace the
+combined estimate; verdict in §4. **The gate still fails on 2 of 3 seeds at 48 m; 40 m passes on 2 of 3 and only just
+fails on seed 2.** The GPU client cost and the cave-wall reference shots are still pending (container cannot run a client).
+
+**Status (PAR-WORLD-17):** measured 2026-11-04 on Paper 1.21.11 build 132 (census also on Folia 1.21.11), client 1.21.11 under Xvfb +
 Mesa llvmpipe. CraftEngine 26.9.2, BetterModel 3.5.1, BetterHud 2.2.0-SNAPSHOT-449, PacketEvents 2.14.0. Tree at
 `1b912b5` plus this item; the client cost was re-measured on `71fbeb0` plus the review fix (quads on real faces, F3 + 2
 frame times). **Verdict: FAIL, owner question below. Defaults not changed** (`ore-overlay.cutoff-blocks: 48`,
@@ -22,7 +28,9 @@ faces, ARCHITECTURE.md §9.1).
 - Depth band of a face: **surface** when the open cell is at or above the column's `WORLD_SURFACE` height − 8, else
   **cave**.
 - Targets:
-  - our TFC world: every ore id the cluster veins can place (counted) and the 21 raw rocks (per-target only);
+  - our TFC world: every ore id the veins can place (counted) and the 21 raw rocks (per-target only). PAR-WORLD-17 used
+    the cluster veins only; since PAR-WORLD-19 every type of the main vein tag (cluster, disc, pipe), of the biome vein
+    tags (montane, collisional_mountains, river) and the geode's ore layer (`tfp:ore/amethyst/quartzite`);
   - plain vanilla world, same seed: stone, deepslate, granite, diorite, andesite, tuff and every `*_ORE` (all counted). This
     is the cave-exposure proxy, because our world has no tunnels yet (PAR-WORLD-06).
 - Radius totals: overlays a player sees with the gated radius (4 chunks, 81 chunks: the 48 m cutoff) and with full view
@@ -37,7 +45,11 @@ faces, ARCHITECTURE.md §9.1).
     `cave_cheese`, `cave_layer`, `cave_entrance` and `spaghetti_roughness` without vanilla's `spaghetti_2d`/`3d` and pillar
     noises (noodle caves are separate: `noodle_caves.json`, `noodle_ridge_a/b.json`, `noodle_thickness.json`);
   - our ore count **under-states** TFC's (§2: only the cluster veins are placed).
+- Exhaustive window figures: `python3 -I spikes/ore-overlay/analyze.py <report.json>...` (every square window of
+  (2r+1)² chunks inside the area, radius 3, 4 and VD 6/8/10: p50 / p95 / max and share above 8 k; measured, and the combined
+  estimate when the report carries one).
 - Run: `spikes/ore-overlay/run-all.sh <scratch> <port> 32` (vanilla seeds 1, 2, 3; TFC seeds 1, 2, 3; then Folia).
+  `SKIP_VANILLA=1` reuses the vanilla reports.
   Reports: `spikes/ore-overlay/out/ore-census-<kind>-<seed>-<platform>.json`. A census of 32 × 32 chunks takes
   50-65 s (vanilla) and 100-125 s (TFC, generation included) on 4 cores.
 
@@ -89,7 +101,10 @@ Surface-band exposure of stone in vanilla is close to zero (0.03-0.09 % of block
 vanilla, nearly every exposed face is a cave face. Round 1 assumed 5 % exposure and 1.5 faces per exposed ore. The measured
 3.5-5.1 % and 1.55-1.57 agree.
 
-### Our TFC world (measured, no tunnels yet), 32 × 32 chunks
+### Our TFC world (PAR-WORLD-17, measured, no tunnels yet, cluster veins only), 32 × 32 chunks
+
+Superseded by §2.3; kept for history. The JSON reports in `spikes/ore-overlay/out/` are now the PAR-WORLD-19 ones (the
+earlier ones are in git history before `30332e3`).
 
 | Seed | Origin chunk | Ore blocks per chunk p50 / p95 / max (mean) | Exposed ore faces, whole area | Faces per chunk max | Gated radius p95 | Raw rock exposed per block |
 |---|---|---|---|---|---|---|
@@ -129,6 +144,40 @@ worst. The measured median chunk (4-23) is close to "typical". The mean (41-71) 
 because the cluster veins are denser than estimated, and the overlay count follows the ore count. Per-ore entities
 instead of per-face would divide everything by 1.55.
 
+### 2.3 Our TFC world with caves and every vein type (PAR-WORLD-19, measured), 32 × 32 chunks
+
+Paper 1.21.11 build 132, tree `30332e3`, 230-280 s per census. Faces = surface + cave band. Windows: every square of
+(2r+1)² chunks inside the area (`analyze.py`; radius 4: 576 windows, radius 3: 676).
+
+| Seed | Origin chunk | Ore blocks per chunk p50 / p95 / max (mean) | Exposed ore / per block | Faces per exposed | Cave faces per ore block | Faces per chunk p50 / p95 / max (mean) | Surface-band faces, whole area |
+|---|---|---|---|---|---|---|---|
+| 1 | 9, -149 | 209 / 3 070 / 7 547 (687) | 38 569 / 5.5 % | 1.59 | 0.087 | 1 / 326 / 1 213 (60) | 101 |
+| 2 | 87, 5 | 137 / 3 133 / 5 562 (582) | 41 120 / 6.9 % | 1.63 | 0.113 | 6 / 366 / 1 050 (66) | 21 |
+| 3 | -100, 192 | 83 / 1 409 / 4 034 (313) | 17 378 / 5.4 % | 1.67 | 0.090 | 0 / 157 / 633 (28) | 40 |
+
+| Seed | Gated radius 4 (48 m), all windows p50 / p95 / max (share > 8 k) | 20 samples p50 / p95 / max | Radius 3 (40 m), all windows p50 / p95 / max (share > 8 k) | VD 6 p50 / p95 | VD 8 p50 / p95 | VD 10 p50 / p95 |
+|---|---|---|---|---|---|---|
+| 1 | 3 786 / **8 901** / 13 000 (9.2 %) | 3 360 / 6 693 / 7 006 | 2 192 / 6 969 / 11 171 (1.9 %) | 8 338 / 13 845 | 13 515 / 21 482 | 20 322 / 30 271 |
+| 2 | 4 971 / **11 293** / 13 108 (21 %) | 4 921 / 11 199 / 13 070 | 2 807 / 7 615 / 10 528 (3.8 %) | 12 991 / 18 109 | 22 588 / 25 034 | 30 783 / 39 271 |
+| 3 | 2 197 / 4 613 / 5 761 (0 %) | 1 777 / 4 242 / 4 693 | 1 246 / 3 136 / 3 919 (0 %) | 4 545 / 7 394 | 8 197 / 10 259 | 12 594 / 15 027 |
+
+- **Caves now dominate**: 99.8 % of the exposed ore faces are cave-band faces; the surface band stays tiny (21-101 faces in
+  1 024 chunks; outcrops remain rare).
+- **The vanilla proxy under-stated TFC's cave exposure of ore**, not over-stated it (§1's expected bias): measured cave
+  faces per ore block are 0.087-0.113 against vanilla's 0.0659. Raw rock is exposed about as in vanilla (0.065-0.084 cave
+  faces per block, 4.0-5.2 % of blocks exposed), so ores sit preferentially where caves are (the deep cluster veins at
+  y −80..20 overlap the carvers' y −56..48 band; sulfur and the near-lava veins hug cave lava).
+- Ore counts per chunk are lower than PAR-WORLD-17's (mean 313-687 against 620-1 074) even with every vein type, because
+  the carvers remove ore and the census areas moved (the spawn changed with the terrain work since `1b912b5`).
+- Measured gated totals are of the same order as the PAR-WORLD-17 combined estimate (p95 8.9 k / 11.3 k / 4.6 k against
+  9.4 k / 6.8 k / 8.6 k); the 20-sample JSON figures under-state the tails (use the all-window figures).
+- **Refused chunks:** 65, 62 and 12 of the 1 156 generated chunks came back empty (`empty_chunks` in the reports, treated
+  as solid, so the totals are a slight lower bound). The logged cause is `ArrayIndexOutOfBoundsException: Index -1` in
+  `VolcanoBlocks.rockBlockId` (from `TfcTerrain.volcanicData`, a volcanic feature block with rock index −1). Follow-up:
+  PAR-WORLD-60.
+- Folia: see §2.4.
+
+
 ## 3. Client cost (seed 2, Paper 1.21.11, client 1.21.11 on Xvfb + llvmpipe, 1280 × 720)
 
 Quads on real exposed faces of a stone quarry and the terrain around it (§1). Frame time = the F3 + 2 chart over its last
@@ -167,25 +216,37 @@ Quads on real exposed faces of a stone quarry and the terrain around it (§1). F
 
 | Gate (design §4.3) | Result |
 |---|---|
-| p95 faces within the gated radius ≤ 8 k per player | **Fails on the combined estimate** for 2 of 3 seeds (all-window p95 9.4 k and 8.6 k; 8 % and 17 % of positions above 8 k; max 10.3 k). Passes on today's world (0, no caves) and at a 40 m cutoff (p95 ≤ 6.3 k). Both the cluster-only ore count (higher in TFC) and the vanilla cave proxy (probably lower in TFC) are approximations, see §1 and §2 |
-| Client frame time + ≤ 2 ms at 8 k | **Fails on the test client**: +6 ms average over 240 frames at 8 k (+2 ms at 2 k) on llvmpipe. A GPU measurement is still needed (PAR-WORLD-19) |
+| p95 faces within the gated radius ≤ 8 k per player (PAR-WORLD-19, measured with caves) | **Fails for 2 of 3 seeds**: all-window p95 8.9 k, 11.3 k and 4.6 k; 9 %, 21 % and 0 % of positions above 8 k; max 13.1 k (§2.3). At a 40 m cutoff (radius 3) p95 7.0 k, **7.6 k** and 3.1 k: passes on every seed, 1.9-3.8 % of positions above 8 k (max 11.2 k) |
+| (PAR-WORLD-17, superseded) | **Fails on the combined estimate** for 2 of 3 seeds (all-window p95 9.4 k and 8.6 k; 8 % and 17 % of positions above 8 k; max 10.3 k). Passes on today's world (0, no caves) and at a 40 m cutoff (p95 ≤ 6.3 k). Both the cluster-only ore count (higher in TFC) and the vanilla cave proxy (probably lower in TFC) are approximations, see §1 and §2 |
+| Client frame time + ≤ 2 ms at 8 k | **Fails on the test client**: +6 ms average over 240 frames at 8 k (+2 ms at 2 k) on llvmpipe. A GPU measurement is still needed: **pending in-game check (container cannot run client)**, PAR-WORLD-19 |
 | Join MSPT unchanged within noise | Passes (2.4 → 1.9 ms at 8 k; 1.8 ms at 20 k) |
 
 **Owner question (recorded, defaults unchanged):** the overlay as designed needs a decision before PAR-INFRA-16:
-1. **Lower the cutoff to 40 m** (3-chunk radius, 49 chunks): p95 4.6-6.2 k on the estimate, within the cap everywhere
-   measured. Specks fade one ring earlier.
-2. **Keep 48 m and rely on `max-per-player: 8000` nearest-first**: in 8-17 % of positions near large veins the farthest
-   faces (> ≈ 40 m) are dropped. This does not reduce client cost below 8 k.
+1. **Lower the cutoff to 40 m** (3-chunk radius, 49 chunks): measured p95 3.1-7.6 k with caves (PAR-WORLD-19), within
+   the 8 k cap at p95 on every seed, above it in 0-3.8 % of positions (max 11.2 k, where the cap then binds). Specks fade
+   one ring earlier.
+2. **Keep 48 m and rely on `max-per-player: 8000` nearest-first**: in 0-21 % of positions (measured with caves) the
+   farthest faces are dropped. This does not reduce client cost below 8 k.
 3. **Lower the cap** (for example 4 000) to cut client cost. The cap then binds in most positions near veins.
 4. **Per-ore entities instead of per-face** (÷ 1.55 entities, lighting error, see design §3.1), or a different client
    path entirely if the GPU measurement also shows several ms at 8 k.
 
 Recommended defaults if the owner picks option 1: `ore-overlay.cutoff-blocks: 40`, `max-per-player: 6000`,
-`surface-outcrops-full-range: true` (outcrops are rare: 0-42 faces per 1 024 chunks today).
+`surface-outcrops-full-range: true` (outcrops are rare: 21-101 surface-band faces per 1 024 chunks with caves).
+PAR-WORLD-19 changes the size of the problem, not its shape: with option 1 the cap of 6 000 binds in 8 % and 13 % of
+positions on the two vein-rich seeds (0 % on seed 3); the owner decision stays open.
 
 ## 5. Exposed vein reference
 
-Our world has no tunnels yet, so it has no exposed ore on a cave wall or cliff. The only exposed ores are on lake and sea
+**PAR-WORLD-19:** our world now has caves; the reference shots of a cave-wall ore are a **pending in-game check
+(container cannot run client)**. Steps: start the seed of a report in `spikes/ore-overlay/out/`, take a cave-wall ore
+from the census (the reports' `exposed_example` is the first ore with a surface-band face: 502, 128, -1888 seed 1;
+1443, 69, 574 seed 2; -1418, 65, 3087 seed 3; for a cave wall pick a chunk with high `per_chunk_raw.faces_cave` and
+look for the ore there), run `spikes/ore-overlay/run-vein-shots.sh` at noon, pitch 20°, at 4, 16, 32, 48 and 64 blocks,
+8× crop of one ore face, into `docs/verification/PAR-WORLD-19/`. Then the GPU client cost (`run-client-cost.sh` steps
+for 0 / 2 k / 8 k / 20 k quads on a real GPU, BetterHud panel off, AFK cap off).
+
+PAR-WORLD-17: our world had no tunnels then, so it had no exposed ore on a cave wall or cliff. The only exposed ores are on lake and sea
 beds at water level. The attempted reference (`docs/verification/PAR-WORLD-17/vein-seabed-*.png`, the exposed example
 336, 61, 547 of seed 2) shows water and no recognisable ore at 4 m or 64 m. The cave-wall reference at 4/16/32/48/64 m
 and its 8× crop are deferred to **PAR-WORLD-19** (depends on PAR-WORLD-06 and PAR-WORLD-08), together with the census
@@ -198,7 +259,7 @@ by design; it is no vein reference.
 
 ## 6. For PAR-WORLD-06 and later
 
-- Rerun `ore.census` (`spikes/ore-overlay/run-all.sh`) once tunnels and canyons exist and replace the combined estimate
-  with measured numbers (PAR-WORLD-19).
+- Done (PAR-WORLD-19): `ore.census` rerun with caves and every vein type, §2.3. Rerun it when the cave carvers or the
+  vein placement change, and after PAR-WORLD-60 removes the refused chunks.
 - The default self-test suite runs `ore.census` on a 4 × 4 area (`-Dtfp.oreCensus.chunks=<n>` for more,
   `-Dtfp.oreCensus.caveFacesPerBlock=<x>` adds the estimate).
