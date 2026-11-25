@@ -177,6 +177,15 @@ public final class TfcShapes {
                 null, null, List.of("COMPLETE_SHAPES = Helpers.computeHorizontalShapes(d -> createShapeFor(d, 0.875f));"),
                 List.of("getCollisionShape"), x -> bellows(x, f)));
         }
+        // PAR-PROC-13: the sluice, every wood alike (TFC's one SluiceBlock); one row per facing and half.
+        for (String f : List.of("north", "east", "south", "west")) {
+            for (boolean upper : new boolean[] {true, false}) {
+                s.add(new Spec("tfc:wood/sluice[facing=" + f + ",upper=" + upper + "]", "sluice", Kind.OBJECT,
+                    List.of(D + "SluiceBlock.java", HELPERS), null, null,
+                    List.of("return state.getValue(UPPER) ? TOP_SHAPES[idx] : BOTTOM_SHAPES[idx];"),
+                    List.of("getCollisionShape"), x -> sluice(x, f, upper)));
+            }
+        }
         s.add(Spec.of("tfc:farmland", "farmland", Kind.OBJECT, List.of(B + "soil/FarmlandBlock.java"), "SHAPE", "same",
             List.of("return SHAPE;"), List.of("getCollisionShape")));
         // PAR-FARM-25: the growing plant shapes (columns, kelp, kelp trees, vines, creepers, epiphytes, branching cacti) are
@@ -584,14 +593,6 @@ public final class TfcShapes {
         return s;
     }
 
-    /** PAR-MECH-15: TFC {@code RotatedPillarBlock.AXIS}, the axle's axes. */
-    public static final List<String> AXLE_AXES = List.of("x", "y", "z");
-
-    /** PAR-MECH-15: the shared tfc-shapes row of the axle along {@code axis} (every wood). */
-    public static String axleKey(String axis) {
-        return "tfc:wood/axle[axis=" + axis + "]";
-    }
-
     static final List<Boolean> BOOLS = List.of(false, true);
     /** PAR-DECO-02: the horizontal facings in alphabetical order (the order of the vanilla twin's state keys). */
     public static final List<String> DOOR_FACINGS = List.of("north", "south", "west", "east");
@@ -676,6 +677,14 @@ public final class TfcShapes {
                 default -> Shape.box(0, 6, 5, d, 10, 11); // east
             };
         };
+    }
+
+    /** PAR-MECH-15: TFC {@code RotatedPillarBlock.AXIS}, the axle's axes. */
+    public static final List<String> AXLE_AXES = List.of("x", "y", "z");
+
+    /** PAR-MECH-15: the shared tfc-shapes row of the axle along {@code axis} (every wood). */
+    public static String axleKey(String axis) {
+        return "tfc:wood/axle[axis=" + axis + "]";
     }
 
     /** PAR-DECO-01: blockstate-file order of the facings, halves and shapes. */
@@ -966,6 +975,37 @@ public final class TfcShapes {
             p.add("item_" + i + "=" + ((mask & (1 << i)) != 0));
         }
         return String.join(",", p);
+    }
+
+    /** TFC's {@code SluiceBlock.createTopShape} and {@code createBottomShape}: eight stacked steps, north as the base. */
+    private static final double[][] SLUICE_TOP = {{0, 0, 0, 16, 10, 1}, {0, 0, 1, 16, 9, 4}, {0, 0, 4, 16, 12, 5},
+        {0, 0, 5, 16, 11, 8}, {0, 0, 8, 16, 14, 9}, {0, 0, 9, 16, 13, 12}, {0, 0, 12, 16, 16, 13}, {0, 0, 13, 16, 15, 16}};
+    private static final double[][] SLUICE_BOTTOM = {{0, 0, 0, 16, 2, 1}, {0, 0, 1, 16, 1, 4}, {0, 0, 4, 16, 4, 5},
+        {0, 0, 5, 16, 3, 8}, {0, 0, 8, 16, 6, 9}, {0, 0, 9, 16, 5, 12}, {0, 0, 12, 16, 8, 13}, {0, 0, 13, 16, 7, 16}};
+
+    /** {@code SluiceBlock.getShape}: the steps of the half, turned like {@code Helpers.rotateShape} turns north. */
+    private static Shape[] sluice(TfcShapeExpressions x, String facing, boolean upper) {
+        String src = x.source(D + "SluiceBlock.java");
+        for (double[][] boxes : new double[][][] {SLUICE_TOP, SLUICE_BOTTOM}) {
+            for (double[] b : boxes) {
+                require(src, "Helpers.rotateShape(direction, " + n(b[0]) + ", " + n(b[1]) + ", " + n(b[2]) + ", " + n(b[3])
+                    + ", " + n(b[4]) + ", " + n(b[5]) + ")", "SluiceBlock.java");
+            }
+        }
+        require(src, "private static VoxelShape createTopShape(Direction direction)", "SluiceBlock.java");
+        require(src, "private static VoxelShape createBottomShape(Direction direction)", "SluiceBlock.java");
+        require(x.source(HELPERS), "case EAST -> Block.box(16 - z2, y1, x1, 16 - z1, y2, x2);", "Helpers.java");
+        int turns = List.of("north", "east", "south", "west").indexOf(facing);
+        Shape north = Shape.EMPTY;
+        for (double[] b : upper ? SLUICE_TOP : SLUICE_BOTTOM) {
+            north = north.union(Shape.box(b[0], b[1], b[2], b[3], b[4], b[5]));
+        }
+        Shape shape = north.rotateY(turns);
+        return new Shape[] {shape, shape};
+    }
+
+    private static String n(double v) {
+        return Long.toString((long) v);
     }
 
     /** {@code BellowsBlock.createShapeFor(direction, 0.875f)}: front plate, the 12x12 middle and the end plate. */

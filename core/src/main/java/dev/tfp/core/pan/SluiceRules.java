@@ -128,6 +128,47 @@ public final class SluiceRules {
         return new Step(new Run(cycleTicks, slots), produced);
     }
 
+    /**
+     * The result of {@link #advance}.
+     *
+     * @param run      the sluice after the gap
+     * @param produced the deposit ids produced during the gap, in order
+     */
+    public record Advanced(Run run, List<String> produced) {
+        public Advanced {
+            produced = List.copyOf(produced);
+        }
+    }
+
+    /**
+     * The lazy form of {@link #step}: {@code elapsed} game ticks in one call, with the same {@code state} (and no soil
+     * gathered) throughout. Equal to calling {@link #step} {@code elapsed} times (tested). Nothing happens unless the state
+     * is {@link State#BOTH}.
+     */
+    public static Advanced advance(Run run, State state, int cycleTicks, long elapsed) {
+        if (state != State.BOTH || elapsed <= 0) {
+            return new Advanced(run, List.of());
+        }
+        long first = Math.max(1, run.ticksRemaining());
+        if (elapsed < first) {
+            return new Advanced(new Run((int) (run.ticksRemaining() - elapsed), run.slots()), List.of());
+        }
+        long cycle = Math.max(1, cycleTicks);
+        long cycles = 1 + (elapsed - first) / cycle;
+        int remaining = (int) (cycle - (elapsed - first) % cycle);
+        List<String> slots = new ArrayList<>(run.slots());
+        List<String> produced = new ArrayList<>();
+        for (long i = 0; i < cycles; i++) {
+            int soil = indexOfFirstSoil(slots);
+            if (soil < 0) {
+                break; // the later cycles produce nothing either: slots only empty out
+            }
+            produced.add(slots.get(soil));
+            slots.set(soil, null);
+        }
+        return new Advanced(new Run(remaining, slots), produced);
+    }
+
     private static int indexOfFirstSoil(List<String> slots) {
         for (int i = 0; i < slots.size(); i++) {
             if (slots.get(i) != null) {

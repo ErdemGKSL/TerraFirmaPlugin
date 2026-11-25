@@ -363,6 +363,16 @@ public final class HitboxDemands {
         }
         d.add(new Demand(BARREL_RACK_ID, BARREL_RACK_APPEARANCE, "tfc:barrel_rack", 0, BARREL_RACK_MODEL, true,
             BARREL_SIDE_WEIGHT));
+        // PAR-PROC-13: the sluice per wood, facing and half, hitbox-only like the barrel (the look of each wood is TFC's
+        // sluice model as an item display, SluiceBlock); every wood shares the carriers of one outline.
+        for (String w : BARREL_WOODS) {
+            for (String f : FACINGS) {
+                for (boolean upper : new boolean[] {true, false}) {
+                    d.add(new Demand(sluiceId(w), sluiceAppearance(f, upper), "tfc:wood/sluice[facing=" + f + ",upper=" + upper + "]",
+                        0, HitboxAllocation.TRANSPARENT, true, SLUICE_WEIGHT));
+                }
+            }
+        }
         // PAR-PROC-34: the composter, one outline per stage (TFC's well from max(2, stage * 2)). Every stage carries TFC's
         // bin model (one look, so stages may share a carrier); the compost of each type is an entity_renderer overlay
         // (ComposterBlock), so the 25 looks of TFC's multipart take 8 carriers at most. Stage 8 is a full cube and is no
@@ -1238,6 +1248,17 @@ public final class HitboxDemands {
     public static String barrelSideKey(String axis, boolean rack) {
         return "tfc:wood/barrel[axis=" + axis + ",rack=" + rack + "]";
     }
+
+    /** PAR-PROC-13: the sluice block of {@code wood}, its appearance names and the weight (served last of all). */
+    public static String sluiceId(String wood) {
+        return "tfp:wood/sluice/" + wood;
+    }
+
+    public static String sluiceAppearance(String facing, boolean upper) {
+        return facing + "_" + (upper ? "upper" : "lower");
+    }
+
+    static final int SLUICE_WEIGHT = -17;
 
     /** PAR-PROC-32: the CE block id of the barrel of {@code wood}. */
     public static String barrelId(String wood) {

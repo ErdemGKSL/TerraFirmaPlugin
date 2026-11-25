@@ -261,7 +261,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-GATHER-08 | Axe stripping: TFC logs and woods to their stripped forms, golden bamboo block to stripped bamboo | GATHER | 22 | done |
 | PAR-INFRA-47 | Block flammability: TFC's flammable(flammability, fireSpreadSpeed) and ignitedByLava as CraftEngine burn settings on every generated block | INFRA | 22 | done |
 | PAR-PHYS-04 | Support beams: blocks, connections, collapse prevention | PHYS | 22 | open |
-| PAR-PROC-13 | Sluice | PROC | 22 | open |
+| PAR-PROC-13 | Sluice | PROC | 22 | done |
 | PAR-INFRA-29 | Loot delegation check: loose rocks and leaves drop by their TFC tables in the self-test | INFRA | 22 | blocked |
 | PAR-WORLD-26 | Amethyst geodes: tfc:geode (hardened basalt shell, quartzite layers, amethyst ore) in the vein step | WORLD | 22 | done |
 | PAR-WORLD-30 | Vein step wiring: biome vein passes, kaolin disc, projected, near-lava and rock-writing veins in TfcTerrain | WORLD | 22 | done |
@@ -462,6 +462,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-25 | CraftEngine blocks and runtime for the growing plant shapes: vines, columns, kelp, kelp trees, branching cacti | FARM | 35 | open |
 | PAR-FARM-20 | Verification: crops grow, die and yield in game (itest crop.grow and screenshots) | FARM | 34 | done |
 | PAR-PROC-46 | Panning in-game verification: deposit pickup, water hint, 6 s pan, small ores | PROC | 33 | open |
+| PAR-PROC-47 | Sluice in-game verification: placement of both halves, water, soil intake, loot, break | PROC | 33 | open |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | open |
 | PAR-DECO-18 | Sandstone stairs, slabs and walls and the calcite spike | DECO | 49 | open |
 | PAR-POT-14 | Pit kiln block: CraftEngine entry, hitboxes and look per stage, config keys, self-test kiln.fire, in-game check | POTTERY | 25 | open |

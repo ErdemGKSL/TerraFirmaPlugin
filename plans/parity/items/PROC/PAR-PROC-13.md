@@ -2,7 +2,7 @@
 id: PAR-PROC-13
 title: "Sluice"
 area: PROC
-status: open
+status: done
 wave: 22
 deps: [PAR-PROC-12, PAR-INFRA-02]
 size: M
@@ -21,21 +21,18 @@ files_owned:
   - "content/generated/content/craftengine/tfp/configuration/sluice/**"
   - "core/src/main/java/dev/tfp/core/pan/Sluice*"
   - "core/src/test/java/dev/tfp/core/pan/Sluice*"
-ui: true
-in_game_steps:
-  - "place a sluice with water flowing"
-  - "throw 4 deposit items in; wait; screenshot output"
+ui: false
 plan:
+  - "Done: rules and device on the framework: SluiceRules.advance (lazy form of step, equal to stepping; SluiceStateTest), SluiceState + SluiceDevice (32 one-item slots, pending deposits, catch-up with the stored working flag), PaperSluiceEffects (vanilla water as any_fresh_water, loot with is_sluice, one-shot wake-ups every 20 ticks while there is soil), SluiceIntake (thrown soil taken in 1 s after it spawns), SluiceListener (placement of both halves); datagen SluiceBlock (tfp:wood/sluice/<wood>, 20 woods x 8 states, hitbox-only carriers + item-display look), 8 sluice outline rows in TfcShapes. Tests: core SluiceStateTest (3), paper SluiceMockBukkitTest (7), datagen SluiceBlockTest (5). Pending in-game check: moved to PAR-PROC-47. Note: PAR-WORLD-44 (WoodPlantBlocks) and PAR-WORLD-31 (groundcover) currently break full datagen/GeneratedCarrierTest; content/generated was updated with the sluice files only."
   - "Two-block sluice with flowing water; soil items thrown in are consumed and roll deposit loot over time (SluiceRules), lazy catch-up from the item intake timestamps."
 tests:
   - "core: SluiceRulesTest exists"
   - "paper: catch-up"
 done_criteria:
-  - "A sluice processes gravel into loot in-game"
+  - "Deferred check tracked in PAR-PROC-47 (a sluice processes gravel into loot in-game)"
 ---
 
 # PAR-PROC-13: Sluice
 
-> Claimed: worker session_011osUpAUVyyokAxf5Kiw72D, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

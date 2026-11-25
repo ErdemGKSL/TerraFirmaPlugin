@@ -116,6 +116,7 @@ dev.tfp.paper.pan.PanModule
 dev.tfp.paper.hunt.HuntModule
 dev.tfp.paper.kiln.PitKilnModule
 dev.tfp.paper.plant.PlantModule
+dev.tfp.paper.sluice.SluiceModule
 dev.tfp.paper.waterwheel.WaterWheelModule
 dev.tfp.paper.windmill.WindmillModule
 dev.tfp.paper.anvil.forge.AnvilForgeModule
