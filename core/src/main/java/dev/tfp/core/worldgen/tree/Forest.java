@@ -7,7 +7,8 @@
  * file: src/main/java/net/dries007/tfc/world/feature/tree/ForestFeature.java @ c3b4d9536 (place up to the tree loop, placeTree,
  * getTrees, getTree), with the data of src/main/resources/data/tfc/worldgen/configured_feature/forest.json,
  * placed_feature/forest.json, the tag data/tfc/tags/worldgen/configured_feature/forest_trees.json (entry order) and the
- * biomes whose data/tfc/tags/worldgen/placed_feature/in_biome/large_features/*.json list tfc:forest
+ * biomes whose data/tfc/tags/worldgen/placed_feature/in_biome/large_features/*.json list tfc:forest; the same for
+ * dead_forest.json (lowlands.json) and mangrove_forest.json (salt_marsh.json) with their entry tags
  */
 package dev.tfp.core.worldgen.tree;
 
@@ -22,13 +23,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.IntPredicate;
 
 /**
  * TFC's forest feature ({@code tfc:forest}), the trees part: once per chunk, the chunk's {@link ForestType} gives the chance
  * and the number of trees; each tree picks a random column, the forest entries whose climate fits the column (sorted by their
  * distance from the climate's middle, trimmed to the forest type's species count, a few skipped for alternating forests), one
  * of them with a 0.6 chance to move to the next, and then the entry's krummholz, old growth, dead or normal tree, which TFC's
- * tree features place. Pure and thread-safe.
+ * tree features place. The lowlands then run the dead forest ({@code tfc:dead_forest}, the dead species, every tree dead) and
+ * the salt marshes the mangrove forest ({@code tfc:mangrove_forest}); each forest feature has its own random, and the later
+ * one sees the trees of the earlier. Pure and thread-safe.
  *
  * <p>The soil discs of the entries draw nothing (they are {@code tfc:soil_forest_area} features), so the tree draws are TFC's.
  * The bushes, groundcover, leaf piles and fallen trees that follow the trees are not decided (see the ledger).
@@ -36,6 +40,10 @@ import java.util.function.Consumer;
 public final class Forest {
     /** The placed feature id, which seeds the forest random. */
     public static final String FEATURE = "tfc:forest";
+    /** The dead forest's placed feature id (the lowlands, after the forest). */
+    public static final String DEAD_FEATURE = "tfc:dead_forest";
+    /** The mangrove forest's placed feature id (the salt marshes). */
+    public static final String MANGROVE_FEATURE = "tfc:mangrove_forest";
     /** {@code TFCChunkGenerator.SEA_LEVEL_Y}. */
     static final int SEA_LEVEL_Y = 63;
 
@@ -48,20 +56,42 @@ public final class Forest {
 
     private static final boolean[] DECORATED = decorated();
 
-    private final FeatureRandom random;
-    private final List<ForestEntry> entries;
+    /** One {@code tfc:forest} feature: its random, its entry tag and the biomes that list it, in the large features order. */
+    private record Kind(FeatureRandom random, List<ForestEntry> entries, IntPredicate biomes) {}
+
+    private final List<Kind> kinds;
 
     /**
+     * The forest alone (no dead or mangrove forest).
+     *
      * @param levelSeed the world seed
      * @param entries   the forest entries of {@code #tfc:forest_trees}, in tag order
      */
     public Forest(long levelSeed, List<ForestEntry> entries) {
-        this.random = new FeatureRandom(levelSeed, FEATURE);
-        this.entries = List.copyOf(entries);
+        this(levelSeed, entries, List.of(), List.of());
     }
 
+    /**
+     * @param levelSeed the world seed
+     * @param entries   the forest entries of {@code #tfc:forest_trees}, in tag order
+     * @param dead      the entries of {@code #tfc:dead_forest_trees}, in tag order (empty: no dead forest)
+     * @param mangrove  the entries of {@code #tfc:mangrove_forest_trees}, in tag order (empty: no mangrove forest)
+     */
+    public Forest(long levelSeed, List<ForestEntry> entries, List<ForestEntry> dead, List<ForestEntry> mangrove) {
+        final List<Kind> out = new ArrayList<>();
+        out.add(new Kind(new FeatureRandom(levelSeed, FEATURE), List.copyOf(entries), Forest::decorates));
+        if (!dead.isEmpty()) {
+            out.add(new Kind(new FeatureRandom(levelSeed, DEAD_FEATURE), List.copyOf(dead), b -> b == TfcBiomes.LOWLANDS));
+        }
+        if (!mangrove.isEmpty()) {
+            out.add(new Kind(new FeatureRandom(levelSeed, MANGROVE_FEATURE), List.copyOf(mangrove), b -> b == TfcBiomes.SALT_MARSH));
+        }
+        this.kinds = List.copyOf(out);
+    }
+
+    /** The entries of the forest ({@code #tfc:forest_trees}). */
     public List<ForestEntry> entries() {
-        return entries;
+        return kinds.getFirst().entries();
     }
 
     /** Whether a biome's feature list holds the forest. */
@@ -107,14 +137,24 @@ public final class Forest {
     }
 
     /**
-     * The trees of the forest of chunk {@code (chunkX, chunkZ)}, in placement order: empty when the biome at the chunk's centre
-     * has no forest (ledger), the forest type's chance fails, or no entry fits.
+     * The trees of the forests of chunk {@code (chunkX, chunkZ)}, in placement order: each forest feature the biome at the
+     * chunk's centre lists (ledger), unless its forest type's chance fails or no entry fits.
      */
     public List<Tree> chunk(int chunkX, int chunkZ, TreeView view) {
-        if (!decorates(view.biome((chunkX << 4) + 8, (chunkZ << 4) + 8))) {
-            return List.of();
+        final int biome = view.biome((chunkX << 4) + 8, (chunkZ << 4) + 8);
+        List<Tree> out = null;
+        TreeWorld world = null;
+        for (Kind kind : kinds) {
+            if (!kind.biomes().test(biome)) {
+                continue;
+            }
+            if (world == null) {
+                world = new TreeWorld(view);
+                out = new ArrayList<>();
+            }
+            trees(kind.entries(), kind.random().chunk(chunkX, chunkZ), chunkX << 4, chunkZ << 4, world, out);
         }
-        return trees(random.chunk(chunkX, chunkZ), chunkX << 4, chunkZ << 4, view);
+        return out == null ? List.of() : out;
     }
 
     /**
@@ -125,27 +165,33 @@ public final class Forest {
      * @param blockZ the chunk's lowest block z
      */
     public List<Tree> trees(XoroshiroRandomSource random, int blockX, int blockZ, TreeView view) {
-        final ForestType forestType = view.forestType(blockX >> 4, blockZ >> 4);
-        if (random.nextFloat() > forestType.perChunkChance()) {
-            return List.of();
-        }
-        final int treeCount = forestType.sampleTrees(random);
-        forestType.sampleBushes(random);
-        final TreeWorld world = new TreeWorld(view);
         final List<Tree> out = new ArrayList<>();
-        for (int i = 0; i < treeCount; i++) {
-            placeTree(world, random, blockX, blockZ, forestType, out);
-        }
+        trees(entries(), random, blockX, blockZ, new TreeWorld(view), out);
         return out;
     }
 
+    /** {@link #trees(XoroshiroRandomSource, int, int, TreeView)} of one forest feature's entries, over a shared world. */
+    private static void trees(List<ForestEntry> entries, XoroshiroRandomSource random, int blockX, int blockZ, TreeWorld world,
+                              List<Tree> out) {
+        final ForestType forestType = world.view().forestType(blockX >> 4, blockZ >> 4);
+        if (random.nextFloat() > forestType.perChunkChance()) {
+            return;
+        }
+        final int treeCount = forestType.sampleTrees(random);
+        forestType.sampleBushes(random);
+        for (int i = 0; i < treeCount; i++) {
+            placeTree(entries, world, random, blockX, blockZ, forestType, out);
+        }
+    }
+
     /** {@code ForestFeature.placeTree}. */
-    private void placeTree(TreeWorld world, XoroshiroRandomSource random, int chunkX, int chunkZ, ForestType typeConfig, List<Tree> out) {
+    private static void placeTree(List<ForestEntry> entries, TreeWorld world, XoroshiroRandomSource random, int chunkX, int chunkZ,
+                                  ForestType typeConfig, List<Tree> out) {
         final TreeView view = world.view();
         final int x = chunkX + random.nextInt(16);
         final int z = chunkZ + random.nextInt(16);
         int y = view.oceanFloor(x, z);
-        final ForestEntry entry = getTree(view, random, x, y, z, typeConfig);
+        final ForestEntry entry = getTree(entries, view, random, x, y, z, typeConfig);
         if (entry == null) {
             return;
         }
@@ -193,7 +239,7 @@ public final class Forest {
      * {@code ForestFeature.getTrees}: the entries valid at the position, sorted by {@code distanceFromMean} (a stable sort, so
      * ties keep tag order). The rain variance is not flipped for the southern hemisphere (ledger).
      */
-    List<ForestEntry> getTrees(TreeView view, int x, int y, int z) {
+    static List<ForestEntry> getTrees(List<ForestEntry> entries, TreeView view, int x, int y, int z) {
         final float rainVariance = view.rainVariance(x, z);
         final float groundwater = view.groundwater(x, z);
         final int elevation = y;
@@ -209,8 +255,8 @@ public final class Forest {
     }
 
     /** {@code ForestFeature.getTree}. */
-    ForestEntry getTree(TreeView view, XoroshiroRandomSource random, int x, int y, int z, ForestType type) {
-        final List<ForestEntry> entries = getTrees(view, x, y, z);
+    static ForestEntry getTree(List<ForestEntry> all, TreeView view, XoroshiroRandomSource random, int x, int y, int z, ForestType type) {
+        final List<ForestEntry> entries = getTrees(all, view, x, y, z);
         if (entries.isEmpty()) {
             return null;
         }

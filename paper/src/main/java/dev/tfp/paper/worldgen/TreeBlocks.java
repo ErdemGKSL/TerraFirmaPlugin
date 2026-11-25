@@ -41,6 +41,7 @@ final class TreeBlocks {
             case LEAVES, KRUMMHOLZ -> Material.valueOf(family + "_LEAVES");
             case ROOTED_DIRT -> Material.ROOTED_DIRT;
             case MUDDY_ROOTS -> Material.MUDDY_MANGROVE_ROOTS;
+            case TREE_ROOTS -> Material.MANGROVE_ROOTS;
         };
     }
 

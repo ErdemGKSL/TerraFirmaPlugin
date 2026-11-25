@@ -27,14 +27,19 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * Reads the tree data datagen exports from TFC: the forest tag {@code data/tfp/tags/worldgen/configured_feature/forest_trees.json},
+ * Reads the tree data datagen exports from TFC: the forest tags {@code data/tfp/tags/worldgen/configured_feature/forest_trees.json}
+ * (and the dead and mangrove forests' tags),
  * the forest entries and tree features under {@code data/tfp/worldgen/configured_feature/tree/} and the structure templates
  * under {@code data/tfp/worldgen/tree_structure/}. Pure; throws {@link IllegalArgumentException} on data that does not follow
- * TFC's codecs or uses a part that is not ported (the mangrove's special root placer). Not thread-safe while loading.
+ * TFC's codecs or uses a part that is not ported. Not thread-safe while loading.
  */
 public final class TreeData {
     /** The forest entry tag of {@code tfc:forest}, below a data root. */
     public static final String FOREST_TAG = "tfp/tags/worldgen/configured_feature/forest_trees.json";
+    /** The entry tag of {@code tfc:dead_forest} (the lowlands), below a data root. */
+    public static final String DEAD_FOREST_TAG = "tfp/tags/worldgen/configured_feature/dead_forest_trees.json";
+    /** The entry tag of {@code tfc:mangrove_forest} (the salt marshes), below a data root. */
+    public static final String MANGROVE_FOREST_TAG = "tfp/tags/worldgen/configured_feature/mangrove_forest_trees.json";
     /** The configured tree features, below a data root. */
     public static final String FEATURE_DIR = "tfp/worldgen/configured_feature/";
     /** The tree structure templates, below a data root. */
@@ -55,12 +60,25 @@ public final class TreeData {
      * @param read the text of a file below the data root, or empty when it is missing
      */
     public static List<ForestEntry> forestEntries(Function<String, Optional<String>> read) {
+        return entries(read, FOREST_TAG);
+    }
+
+    /**
+     * The entries of a forest entry tag ({@link #FOREST_TAG}, {@link #DEAD_FOREST_TAG}, {@link #MANGROVE_FOREST_TAG}), in tag
+     * order, with their features and templates.
+     */
+    public static List<ForestEntry> entries(Function<String, Optional<String>> read, String tag) {
         final TreeData data = new TreeData(read);
         final List<ForestEntry> out = new ArrayList<>();
-        for (JsonElement e : array(data.json(FOREST_TAG), "values")) {
+        for (JsonElement e : array(data.json(tag), "values")) {
             out.add(data.entry(e.getAsString()));
         }
         return List.copyOf(out);
+    }
+
+    /** One forest entry by id ({@code tfp:tree/dead_mangrove_entry}, which no tag lists), for tests and tools. */
+    public static ForestEntry entry(Function<String, Optional<String>> read, String id) {
+        return new TreeData(read).entry(id);
     }
 
     /** One template by id ({@code tfp:oak/1}), for tests and tools. */
@@ -231,9 +249,7 @@ public final class TreeData {
             return Optional.empty();
         }
         final JsonObject r = c.getAsJsonObject("root_system");
-        if (r.has("special_placer")) {
-            throw new IllegalArgumentException("the special root placer is not ported");
-        }
+        final float skewChance = r.has("special_placer") ? object(r, "special_placer").get("skew_chance").getAsFloat() : Float.NaN;
         final Map<TreeGround, String> signature = new EnumMap<>(TreeGround.class);
         final Map<TreeGround, Weighted<TreeBlock.Kind>> blocks = new EnumMap<>(TreeGround.class);
         for (JsonElement e : array(r, "blocks")) {
@@ -256,7 +272,7 @@ public final class TreeData {
             }
         }
         return Optional.of(new TreeFeature.Roots(blocks, optionalInt(r, "width", 4), optionalInt(r, "height", 3),
-            optionalInt(r, "tries", 5), r.has("required") && r.get("required").getAsBoolean()));
+            optionalInt(r, "tries", 5), r.has("required") && r.get("required").getAsBoolean(), skewChance));
     }
 
     private static TreeGround rootGround(String id) {

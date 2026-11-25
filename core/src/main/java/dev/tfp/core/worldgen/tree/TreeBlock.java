@@ -34,6 +34,8 @@ public record TreeBlock(int dx, int dy, int dz, Kind kind, Wood wood, Axis axis,
         ROOTED_DIRT,
         /** {@code tfp:muddy_roots/<soil>}: roots in mud. */
         MUDDY_ROOTS,
+        /** {@code tfp:tree_roots}: the mangrove's roots in air or water ({@code SpecialRootPlacer}); waterlogged in water. */
+        TREE_ROOTS,
         /** {@code tfp:plant/<wood>_krummholz}: a stunted tree near the tree line. */
         KRUMMHOLZ;
 

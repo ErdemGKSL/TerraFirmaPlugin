@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
  * variants, the mangrove and its dead variant). {@code placed} is one row per placed tree feature (56); its {@code feature}
  * is a configured tree file that the datagen output must hold ({@link #CONFIGURED_TREE_FILES} of them). A species entry the
  * Java forest does not load must be listed in {@code open_gaps.txt} (see {@link #OPEN_GAPS_TABLE}); it is not given a rule here.
+ * Since PAR-WORLD-11 every entry loads (the three forest tags and the untagged dead mangrove) and the file is empty.
  *
  * <p>Reads the datagen output in {@code content/generated/content/data} (skipped while absent; the {@code tfp.contentData}
  * system property overrides the path).
@@ -69,7 +70,13 @@ class TreePlacementGoldenTest {
         assumeTrue(Files.isRegularFile(root.resolve(TreeData.FOREST_TAG)),
             "no generated tree data at " + root.toAbsolutePath() + " (run tools/datagen)");
         javaEntries = new HashMap<>();
-        for (ForestEntry e : TreeData.forestEntries(reader(root))) {
+        final List<ForestEntry> all = new ArrayList<>();
+        for (String tag : List.of(TreeData.FOREST_TAG, TreeData.DEAD_FOREST_TAG, TreeData.MANGROVE_FOREST_TAG)) {
+            all.addAll(TreeData.entries(reader(root), tag));
+        }
+        // PAR-WORLD-11: the dead mangrove is in no tag (TFC never places it); its entry still loads
+        all.add(TreeData.entry(reader(root), "tfp:tree/dead_mangrove_entry"));
+        for (ForestEntry e : all) {
             javaEntries.put(NS + e.name().substring("tfp:".length()), e);
         }
         rows = readTable();
@@ -111,7 +118,7 @@ class TreePlacementGoldenTest {
             assertThat(c.maxElevation()).as("%s max_elevation", id).isEqualTo(Integer.parseInt(row.get("max_elevation")));
             checked++;
         }
-        assertThat(checked).isEqualTo(19);
+        assertThat(checked).isEqualTo(TFC_ROW_COUNTS.get("entry"));
     }
 
     @Test
@@ -132,7 +139,7 @@ class TreePlacementGoldenTest {
                 .isEqualTo(Integer.parseInt(row.get("dead_structures")));
             checked++;
         }
-        assertThat(checked).isEqualTo(19);
+        assertThat(checked).isEqualTo(TFC_ROW_COUNTS.get("entry"));
     }
 
     @Test

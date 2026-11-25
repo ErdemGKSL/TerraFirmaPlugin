@@ -16,6 +16,8 @@ import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
 import dev.tfp.core.worldgen.tree.BranchDirection.Mirror;
 import dev.tfp.core.worldgen.tree.BranchDirection.Rotation;
 import dev.tfp.core.worldgen.ore.Weighted;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Places one tree feature into a {@link TreeWorld} with TFC's checks and draws, in TFC's order. Pure: it reads the world and
@@ -51,16 +53,15 @@ final class TreePlacer {
         final Settings settings = Settings.random(random);
         final TreeTemplate structure = config.structures().get(random.nextInt(config.structures().size()));
         if (isValidLocation(world, x, y, z, settings, config.placement())) {
-            final boolean placeTree = config.rootSystem().map(roots -> placeRoots(world, x, y, z, roots, random) || !roots.required()).orElse(true);
-            if (placeTree) {
-                int top = y;
-                if (config.trunk().isPresent()) {
-                    top += placeTrunk(world, x, y, z, random, settings, config.trunk().get());
-                }
-                placeTemplate(world, random, structure, settings, x, top, z, Float.NaN);
-                return true;
+            // TreeHelpers.placeRoots always returns true, so a required root system never refuses the tree; the special
+            // placer raises the trunk base (TFC's mutable position)
+            final int base = config.rootSystem().map(roots -> placeRoots(world, x, y, z, roots, random)).orElse(y);
+            int top = base;
+            if (config.trunk().isPresent()) {
+                top += placeTrunk(world, x, base, z, random, settings, config.trunk().get());
             }
-            return false;
+            placeTemplate(world, random, structure, settings, x, top, z, Float.NaN);
+            return true;
         }
         return false;
     }
@@ -69,17 +70,16 @@ final class TreePlacer {
     static boolean overlayTree(TreeFeature.OverlayTree config, TreeWorld world, XoroshiroRandomSource random, int x, int y, int z) {
         final Settings settings = Settings.random(random);
         if (isValidLocation(world, x, y, z, settings, config.placement())) {
-            final boolean placeTree = config.rootSystem().map(roots -> placeRoots(world, x, y, z, roots, random) || !roots.required()).orElse(true);
-            if (placeTree) {
-                int top = y;
-                if (config.trunk().isPresent()) {
-                    top += placeTrunk(world, x, y, z, random, settings, config.trunk().get());
-                }
-                placeTemplate(world, random, config.base(), settings, x, top, z, Float.NaN);
-                placeTemplate(world, random, config.overlay(), settings, x, top, z, config.overlayIntegrity());
-                return true;
+            // TreeHelpers.placeRoots always returns true, so a required root system never refuses the tree; the special
+            // placer raises the trunk base (TFC's mutable position)
+            final int base = config.rootSystem().map(roots -> placeRoots(world, x, y, z, roots, random)).orElse(y);
+            int top = base;
+            if (config.trunk().isPresent()) {
+                top += placeTrunk(world, x, base, z, random, settings, config.trunk().get());
             }
-            return false;
+            placeTemplate(world, random, config.base(), settings, x, top, z, Float.NaN);
+            placeTemplate(world, random, config.overlay(), settings, x, top, z, config.overlayIntegrity());
+            return true;
         }
         return false;
     }
@@ -91,22 +91,22 @@ final class TreePlacer {
     static boolean stackedTree(TreeFeature.StackedTree config, TreeWorld world, XoroshiroRandomSource random, int x, int y, int z) {
         final Settings settings = Settings.random(random);
         if (isValidGround(world, x, y, z, settings, config.placement())) {
-            final boolean placeTree = config.rootSystem().isPresent()
-                && (placeRoots(world, x, y, z, config.rootSystem().get(), random) || !config.rootSystem().get().required())
-                || config.rootSystem().isEmpty();
-            if (placeTree) {
-                config.rootSystem().ifPresent(roots -> placeRoots(world, x, y, z, roots, random));
-                int top = y + placeTrunk(world, x, y, z, random, settings, config.trunk());
-                for (TreeFeature.Layer layer : config.layers()) {
-                    final int layerCount = layer.count(random);
-                    for (int i = 0; i < layerCount; i++) {
-                        final TreeTemplate structure = layer.templates().get(random.nextInt(layer.templates().size()));
-                        placeTemplate(world, random, structure, settings, x, top, z, Float.NaN);
-                        top += structure.sizeY();
-                    }
-                }
-                return true;
+            // placeRoots always returns true (see randomTree); the special placer would raise the base each time
+            int base = y;
+            if (config.rootSystem().isPresent()) {
+                base = placeRoots(world, x, base, z, config.rootSystem().get(), random);
+                base = placeRoots(world, x, base, z, config.rootSystem().get(), random);
             }
+            int top = base + placeTrunk(world, x, base, z, random, settings, config.trunk());
+            for (TreeFeature.Layer layer : config.layers()) {
+                final int layerCount = layer.count(random);
+                for (int i = 0; i < layerCount; i++) {
+                    final TreeTemplate structure = layer.templates().get(random.nextInt(layer.templates().size()));
+                    placeTemplate(world, random, structure, settings, x, top, z, Float.NaN);
+                    top += structure.sizeY();
+                }
+            }
+            return true;
         }
         return false;
     }
@@ -300,9 +300,13 @@ final class TreePlacer {
 
     /**
      * {@code TreeHelpers.placeRoots} for the trunk base {@code (x, y, z)}: {@code tries} roots around the block below it, each
-     * with a triangle x and z offset and a downward y offset; a root replaces a listed ground kind with a weighted pick.
+     * with a triangle x and z offset and a downward y offset; a root replaces a listed ground kind with a weighted pick. TFC
+     * returns true; this returns the trunk base y afterwards, which only the special placer changes.
      */
-    static boolean placeRoots(TreeWorld world, int x, int y, int z, TreeFeature.Roots config, XoroshiroRandomSource random) {
+    static int placeRoots(TreeWorld world, int x, int y, int z, TreeFeature.Roots config, XoroshiroRandomSource random) {
+        if (config.special()) {
+            return placeSpecialRoots(world, x, y, z, config, random);
+        }
         final int oy = y - 1;
         for (int i = 0; i < config.tries(); i++) {
             final int dx = triangle(random, config.width());
@@ -316,7 +320,85 @@ final class TreePlacer {
                 world.set(cx, cy, cz, weighted.get(random.nextDouble()), TreeBlock.Axis.Y, BranchDirection.NONE, true);
             }
         }
-        return true;
+        return y;
+    }
+
+    /** {@code Direction.Plane.HORIZONTAL} in its order: north, east, south, west. */
+    private static final int[] HORIZONTAL_X = {0, 1, 0, -1};
+    private static final int[] HORIZONTAL_Z = {-1, 0, 1, 0};
+
+    /**
+     * {@code SpecialRootPlacer.placeRoots} (the mangrove): the trunk base rises by 0 to 3; the block below it, its four
+     * neighbours, and for the guaranteed direction plus each other one with a 2 in 3 chance a simulated root line, are each
+     * set to a root (a weighted pick over a listed ground kind, else {@code tfc:tree_roots}) where air, a fluid or a listed
+     * ground kind is. Returns the raised trunk base y.
+     */
+    static int placeSpecialRoots(TreeWorld world, int x, int y0, int z, TreeFeature.Roots config, XoroshiroRandomSource random) {
+        final int y = y0 + random.nextInt(4);
+        final List<int[]> positions = new ArrayList<>();
+        positions.add(new int[] {x, y - 1, z});
+        final int guaranteed = random.nextInt(4); // Util.getRandom over the four horizontal directions
+        for (int d = 0; d < 4; d++) {
+            final int nx = x + HORIZONTAL_X[d];
+            final int nz = z + HORIZONTAL_Z[d];
+            if (d == guaranteed || random.nextInt(3) > 0) {
+                final List<int[]> used = new ArrayList<>();
+                simulateRoots(world, random, nx, y, nz, d, x, y, z, used, 0, config);
+                positions.addAll(used);
+            }
+            positions.add(new int[] {nx, y, nz});
+        }
+        for (int[] p : positions) {
+            if (canPlaceRoot(world, p[0], p[1], p[2], config)) {
+                final Weighted<TreeBlock.Kind> weighted = config.blocks().get(world.get(p[0], p[1], p[2]));
+                final TreeBlock.Kind kind = weighted != null ? weighted.get(random.nextDouble()) : TreeBlock.Kind.TREE_ROOTS;
+                world.set(p[0], p[1], p[2], kind, TreeBlock.Axis.Y, BranchDirection.NONE, true);
+            }
+        }
+        return y;
+    }
+
+    /** {@code SpecialRootPlacer.simulateRoots}: the positions are checked against the world before any root is set. */
+    private static boolean simulateRoots(TreeWorld world, XoroshiroRandomSource random, int px, int py, int pz, int direction, int ox,
+                                         int oy, int oz, List<int[]> roots, int length, TreeFeature.Roots config) {
+        final int maxLength = config.height();
+        if (length != maxLength && roots.size() <= maxLength) {
+            for (int[] p : potentialRootPositions(px, py, pz, direction, random, ox, oy, oz, config)) {
+                if (canPlaceRoot(world, p[0], p[1], p[2], config)) {
+                    roots.add(p);
+                    if (!simulateRoots(world, random, p[0], p[1], p[2], direction, ox, oy, oz, roots, length + 1, config)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /** {@code SpecialRootPlacer.potentialRootPositions}: the Manhattan distance is 3D, from the raised trunk base. */
+    private static List<int[]> potentialRootPositions(int px, int py, int pz, int direction, XoroshiroRandomSource random, int ox,
+                                                      int oy, int oz, TreeFeature.Roots config) {
+        final int[] below = {px, py - 1, pz};
+        final int rx = px + HORIZONTAL_X[direction];
+        final int rz = pz + HORIZONTAL_Z[direction];
+        final int dist = Math.abs(px - ox) + Math.abs(py - oy) + Math.abs(pz - oz);
+        final int width = config.width();
+        final float f = config.skewChance();
+        if (dist > width - 3 && dist <= width) {
+            return random.nextFloat() < f ? List.of(below, new int[] {rx, py - 1, rz}) : List.of(below);
+        } else if (dist > width) {
+            return List.of(below);
+        } else if (random.nextFloat() < f) {
+            return List.of(below);
+        }
+        return random.nextBoolean() ? List.of(new int[] {rx, py, rz}) : List.of(below);
+    }
+
+    /** {@code SpecialRootPlacer.canPlaceRoot}: air, a fluid, a replaceable plant or a listed ground kind. */
+    private static boolean canPlaceRoot(TreeWorld world, int x, int y, int z, TreeFeature.Roots config) {
+        final TreeGround g = world.get(x, y, z);
+        return g.isAirOrEmptyFluid() || g.isWorldgenReplaceable() || config.blocks().containsKey(g);
     }
 
     /** {@code Helpers.triangle}. */

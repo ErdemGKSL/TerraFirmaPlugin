@@ -86,11 +86,17 @@ public sealed interface TreeFeature {
 
     /**
      * {@code RootConfig}: {@code tries} roots in a triangle spread of {@code width} around the trunk, up to {@code height} below
-     * it; a root replaces the ground kinds of {@code blocks}. The special placer (mangrove only) is not ported.
+     * it; a root replaces the ground kinds of {@code blocks}. With a special placer (the mangrove's {@code SpecialRootPlacer})
+     * the roots grow from the trunk base instead ({@code TreePlacer.placeSpecialRoots}).
      *
-     * @param blocks the weighted root kinds for each replaced ground kind (a lookup that matches draws one double)
+     * @param blocks     the weighted root kinds for each replaced ground kind (a lookup that matches draws one double)
+     * @param skewChance the special placer's {@code skew_chance}, or NaN without a special placer
      */
-    record Roots(Map<TreeGround, Weighted<TreeBlock.Kind>> blocks, int width, int height, int tries, boolean required) {
+    record Roots(Map<TreeGround, Weighted<TreeBlock.Kind>> blocks, int width, int height, int tries, boolean required, float skewChance) {
+        boolean special() {
+            return !Float.isNaN(skewChance);
+        }
+
         public Roots {
             blocks = Map.copyOf(blocks);
         }

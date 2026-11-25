@@ -64,6 +64,7 @@ final class TreeWorld {
             case LEAVES -> TreeGround.LEAVES;
             case ROOTED_DIRT -> TreeGround.ROOTED_DIRT;
             case MUDDY_ROOTS -> TreeGround.MUDDY_ROOTS;
+            case TREE_ROOTS -> TreeGround.TREE_ROOTS;
             case KRUMMHOLZ -> TreeGround.KRUMMHOLZ;
         });
         log.add(new TreeBlock(x - rootX, y - rootY, z - rootZ, kind, blockWood, axis, branch, force));

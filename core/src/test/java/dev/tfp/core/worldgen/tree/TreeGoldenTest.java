@@ -114,6 +114,7 @@ class TreeGoldenTest {
             case KRUMMHOLZ -> "krummholz/" + b.wood().serializedName();
             case ROOTED_DIRT -> "rooted_dirt";
             case MUDDY_ROOTS -> "muddy_roots";
+            case TREE_ROOTS -> "tree_roots";
         };
     }
 

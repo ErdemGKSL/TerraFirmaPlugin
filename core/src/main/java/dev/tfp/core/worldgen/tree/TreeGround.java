@@ -38,6 +38,8 @@ public enum TreeGround {
     LEAVES,
     ROOTED_DIRT,
     MUDDY_ROOTS,
+    /** {@code tfc:tree_roots}: not replaceable, not a dirt. */
+    TREE_ROOTS,
     KRUMMHOLZ;
 
     public boolean isAir() {

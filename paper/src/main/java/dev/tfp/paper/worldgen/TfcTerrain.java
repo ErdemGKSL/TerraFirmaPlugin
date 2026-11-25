@@ -157,7 +157,7 @@ final class TfcTerrain {
     private final LooseRocks looseRocks;
     /** The deposit material of each terrain block, for the palette it was built from. */
     private volatile Map.Entry<RockPalette<BlockData>, Map<BlockData, DepositMaterial>> depositMaterials;
-    /** The trees of this world (M2-GEN-12): TFC's forest of {@code #tfp:forest_trees}. */
+    /** The trees of this world (M2-GEN-12, PAR-WORLD-11): TFC's forest, dead forest (lowlands) and mangrove forest (salt marshes). */
     private final Forest forest;
     /** The plants, wild crops and corals of this world (M2-GEN-13). */
     private final Plants plants;
@@ -218,7 +218,7 @@ final class TfcTerrain {
         this.indicators = new VeinIndicators(ores);
         this.shoreCover = new ShoreGroundcover(seed);
         this.looseRocks = new LooseRocks(seed);
-        this.forest = new Forest(seed, TreeResources.fromJar(TfcTerrain.class.getClassLoader()));
+        this.forest = TreeResources.forest(seed, TfcTerrain.class.getClassLoader());
         this.plants = new Plants(seed, PlantResources.fromJar(TfcTerrain.class.getClassLoader()), settings.grassDensity());
         this.volcanoes = new Volcanoes(seed);
         this.volcanicFeatures = new VolcanicFeatures(seed, volcanoes);
@@ -621,7 +621,9 @@ final class TfcTerrain {
 
             @Override
             public void place(int localX, int y, int localZ, TreeBlock block) {
-                data.setBlock(localX, y, localZ, treeData(block));
+                // PAR-WORLD-11: the mangrove's tree roots take the water they replace (FluidHelpers.fillWithFluid)
+                final boolean water = block.kind() == TreeBlock.Kind.TREE_ROOTS && data.getType(localX, y, localZ) == Material.WATER;
+                data.setBlock(localX, y, localZ, water ? placeholderData(Material.MANGROVE_ROOTS, true) : treeData(block));
             }
         });
         // M2-GEN-14, PAR-WORLD-27: every volcanic feature (large features, after the forest: the rivulets, crater lakes,
