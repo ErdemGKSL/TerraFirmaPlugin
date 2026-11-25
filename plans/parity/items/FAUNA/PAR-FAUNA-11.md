@@ -30,4 +30,6 @@ done_criteria:
 
 # PAR-FAUNA-11: Aquatic animals: fish, squid, jellyfish, dolphins, orcas, manatees; mob buckets
 
+> Claimed: FAUNA session, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
