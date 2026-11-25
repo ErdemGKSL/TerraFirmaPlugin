@@ -32,3 +32,5 @@ tasks.test {
 }
 // M1-TEST-02: MockBukkit for listener/command/PDC tests (fakes of our adapter interfaces live in src/test).
 dependencies { testImplementation(libs.mockbukkit) }
+// PAR-WORLD-68: the terrain tests read the generated rock settings and ore veins as the plugin jar's /content/data.
+dependencies { testRuntimeOnly(files(rootProject.layout.projectDirectory.dir("content/generated"))) }

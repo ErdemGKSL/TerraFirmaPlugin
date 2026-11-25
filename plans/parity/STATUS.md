@@ -440,6 +440,7 @@ Totals: 388 items; open 208, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-65 | Tide pools, sea stack patches and bamboo rules, and the placed-feature coverage guard over every TFC biome tag | WORLD | 51 | done |
 | PAR-WORLD-66 | Surface decoration in generation: wire the forest floor, island guano, tide pools, sea stacks and bamboo into TfcTerrain, the worldgen.decoration itest | WORLD | 52 | done |
 | PAR-WORLD-67 | Surface flood-fill lakes (tfc:flood_fill_lake): the rule, its golden and the generation wiring | WORLD | 53 | open |
+| PAR-WORLD-68 | Volcano chunk generation failure: regression test over the real terrain fill around volcanoes and vents | WORLD | 53 | done |
 | PAR-WORLD-54 | Bubble columns above the CE magma blocks: drag-down columns that survive vanilla's support check, and the hot spring tracker | WORLD | 30 | done |
 | PAR-MECH-03 | Water wheel | MECH | 51 | done |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | done |
