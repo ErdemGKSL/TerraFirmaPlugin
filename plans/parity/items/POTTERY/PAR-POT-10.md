@@ -32,4 +32,6 @@ done_criteria:
 
 # PAR-POT-10: Small vessel screen art: the textured four-slot GUI
 
+> Claimed: PAR-POT-10 worker, 2026-11-25
+
 Follow-up of PAR-POT-04, which ships the working four-slot screen without art. Follow `plans/parity/PROTOCOL.md`.
