@@ -2,7 +2,7 @@
 id: PAR-FAUNA-19
 title: "Lobster traps"
 area: FAUNA
-status: open
+status: done
 wave: 45
 deps: [PAR-FAUNA-13, PAR-INFRA-13]
 size: S
@@ -27,6 +27,7 @@ in_game_steps:
   - "place trap in sea; bait; spawn lobster; wait; screenshot"
 plan:
   - "Baited trap underwater; critters path into it and are caught (LobsterTrap)."
+  - "Done: core/lobstertrap/LobsterTrapState (persisted bait) and paper/lobstertrap (LobsterTrapDevice kind tfp:lobster_trap, TrapEffects, TrapFinder, EnterTrapGoal, LobsterTrapModule) over the existing core/fishing/LobsterTrap rules (LobsterTrapTest exists). Tests: LobsterTrapStateTest (3), LobsterTrapMockBukkitTest (10). The CE block and its hitbox demand need HitboxDemands (outside files_owned): follow-up PAR-FAUNA-36. In-game check pending (container cannot run client): ledger line."
 tests:
   - "core: LobsterTrapTest exists"
 done_criteria:
@@ -35,6 +36,5 @@ done_criteria:
 
 # PAR-FAUNA-19: Lobster traps
 
-> Claimed: worker session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
