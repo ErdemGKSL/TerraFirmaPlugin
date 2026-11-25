@@ -466,7 +466,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-18 | Sandstone stairs, slabs and walls and the calcite spike | DECO | 49 | open |
 | PAR-POT-14 | Pit kiln block: CraftEngine entry, hitboxes and look per stage, config keys, self-test kiln.fire, in-game check | POTTERY | 25 | open |
 | PAR-FARM-27 | Worldgen placement of fruit trees, bananas and wild spreading crop fruit | FARM | 34 | done |
-| PAR-FARM-28 | Fruit tree splicing and hoe overlay lines for fruit trees and bananas | FARM | 34 | open |
+| PAR-FARM-28 | Fruit tree splicing and hoe overlay lines for fruit trees and bananas | FARM | 34 | done |
 | PAR-FARM-23 | Fruit and wild spreading crop blocks: tfp:fruit pumpkin/melon (and rotten), hitbox rows, loot, wild crop worldgen fruit | FARM | 31 | done |
 | PAR-FARM-24 | Wire SpreadingFruit into the crop device: fruit placement at full growth, crowding limit, fruit sides | FARM | 31 | done |
 
