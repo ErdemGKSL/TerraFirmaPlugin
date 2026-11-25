@@ -161,3 +161,4 @@ dev.tfp.paper.itembar.egg.EggBarModule
 dev.tfp.paper.guide.FieldGuideModule
 dev.tfp.paper.triphammer.TripHammerModule
 dev.tfp.paper.wildraid.WildRaidModule
+dev.tfp.paper.effect.EffectsModule

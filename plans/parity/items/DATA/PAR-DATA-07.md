@@ -2,7 +2,7 @@
 id: PAR-DATA-07
 title: "Damage types and mob effects"
 area: DATA
-status: open
+status: done
 wave: 37
 deps: []
 size: S
@@ -20,6 +20,7 @@ in_game_steps:
   - "tfp debug thirst Bot 0; wait until death; screenshot chat"
 plan:
   - "Ship TFC damage types in our datapack (death messages); effects: vanilla carriers (slowness/mining fatigue) with our icons impossible -> divergence; ink/glow ink from squid hits."
+  - "Done: damage types already shipped by PAR-SURV-10 (datapack, DamageTypeDatapackTest 1); added effect/InkListener (squid ink on Darkness, octopoteuthis glow ink on Glowing, 1/3 roll within 8 blocks, 100 ticks) and EffectsModule; InkListenerMockBukkitTest 4, BootstrapTest green. Pending in-game check (container cannot run client)"
 tests:
   - "paper: damage type registry present"
 done_criteria:
