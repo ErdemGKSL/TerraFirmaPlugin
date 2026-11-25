@@ -228,20 +228,30 @@ public enum PlantType {
 
     /** Whether the block has a {@code part} (lower and upper halves). */
     public boolean isTall() {
-        return this == TALL_GRASS || this == TALL_SHRUB || this == PASSABLE_CACTUS || this == TALL_WATER || this == TALL_WATER_FRESH;
+        return this == TALL_GRASS || this == TALL_SHRUB || this == PASSABLE_CACTUS || this == TALL_WATER || this == TALL_WATER_FRESH
+            || this == CACTUS;
     }
 
     /** The water a fluid-logged type holds: salt water, fresh water, or null for a type that holds none. */
     public PlantState.Fluid fluidProperty() {
         return switch (this) {
-            case TALL_WATER, WATER, GRASS_WATER -> PlantState.Fluid.SALT_WATER;
+            case TALL_WATER, WATER, GRASS_WATER, OCEAN_ROCK_CREEPING, OCEAN_CREEPING, OCEAN_ROTATABLE, KELP, KELP_TOP, KELP_TREE,
+                 KELP_TREE_FLOWER -> PlantState.Fluid.SALT_WATER;
             case TALL_WATER_FRESH, WATER_FRESH, GRASS_WATER_FRESH -> PlantState.Fluid.WATER;
             default -> null;
         };
     }
 
-    /** Whether {@link #survives} implements the type's {@code canSurvive}. The other types' features are not placed. */
+    /**
+     * Whether the type's {@code canSurvive} is ported ({@link #survives} for the types that only look down, {@code PlantLevel}
+     * for the shapes of PAR-WORLD-13 that look around). The bamboo's features are not placed.
+     */
     public boolean survivable() {
+        return this != BAMBOO && this != BAMBOO_SAPLING;
+    }
+
+    /** Whether {@link #survives} decides the type's {@code canSurvive} (it only needs the block below). */
+    boolean survivesOnBelow() {
         return switch (this) {
             case STANDARD, SHORT_SHRUB, SHRUB, FLOWERBED, CACTUSBED, PASSABLE_CACTUS, DRY, SHORT_GRASS, BEACH_GRASS, TALL_GRASS,
                  TALL_SHRUB, FLOATING, FLOATING_FRESH, TALL_WATER, TALL_WATER_FRESH, WATER, WATER_FRESH, GRASS_WATER,

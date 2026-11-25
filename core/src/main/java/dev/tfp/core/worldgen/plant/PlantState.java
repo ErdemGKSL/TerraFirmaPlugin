@@ -14,10 +14,15 @@ package dev.tfp.core.worldgen.plant;
  * @param kind  what the block is
  * @param type  the plant's block type for {@link Kind#PLANT}, else null
  * @param part  the half of a two-block plant or crop, or {@link Part#SINGLE}
- * @param age   the {@code age} property (0..3) of a plant that has one, else -1
+ * @param age   the {@code age} property of a plant that has one (0..3; 0..25 for the head of a growing column, 0..5 for a
+ *              giant kelp flower), else -1
  * @param fluid the fluid the block holds (a water plant filled with the water where it stands)
  * @param extra the sea pickle count (1..4), the horizontal facing of a wall fan (0 north, 1 east, 2 south, 3 west), the
- *              direction of a wild spreading crop's fruit (same order); -1 for the others
+ *              direction of a wild spreading crop's fruit (same order); for the plant shapes (PAR-WORLD-13) the direction
+ *              index of Minecraft's {@code Direction.get3DDataValue} (0 down, 1 up, 2 north, 3 south, 4 west, 5 east):
+ *              the {@code facing} of an epiphyte or a rotatable water plant, a bit mask {@code 1 << index} of the faces
+ *              of a creeping plant or vine and of the connections of a pipe plant (giant kelp, saguaro; a saguaro top's
+ *              {@code grows_branches} is bit 6); -1 for the others. An ocean plant's {@code open} is its salt water.
  */
 public record PlantState(String block, Kind kind, PlantType type, Part part, int age, Fluid fluid, int extra) {
     /** Our namespace, which datagen gives the TFC ids. */
@@ -53,8 +58,8 @@ public record PlantState(String block, Kind kind, PlantType type, Part part, int
         if (kind == Kind.PLANT && type == null) {
             throw new IllegalArgumentException("a plant needs its block type: " + block);
         }
-        if (age < -1 || age > 3) {
-            throw new IllegalArgumentException("age must be in [-1, 3]: " + age);
+        if (age < -1 || age > 25) {
+            throw new IllegalArgumentException("age must be in [-1, 25]: " + age);
         }
     }
 

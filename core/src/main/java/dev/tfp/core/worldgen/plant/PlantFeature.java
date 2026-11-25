@@ -6,7 +6,9 @@
 package dev.tfp.core.worldgen.plant;
 
 import dev.tfp.core.worldgen.groundcover.ClimateFilter;
+import dev.tfp.core.worldgen.tree.ForestType;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The parsed form of TFC's plant, wild crop and coral features: a placed feature is its placement modifiers and the
@@ -41,8 +43,38 @@ public final class PlantFeature {
     /** {@code minecraft:heightmap}: the y of the column's {@code OCEAN_FLOOR_WG} or {@code WORLD_SURFACE_WG} height. */
     public record Heightmap(boolean oceanFloor) implements Modifier {}
 
-    /** {@code tfc:climate}: {@link ClimateFilter} at the position, with the forest density of its chunk. */
-    public record Climate(ClimateFilter filter) implements Modifier {}
+    /**
+     * {@code tfc:climate}: {@link ClimateFilter} at the position, with the forest density of its chunk; a non-empty
+     * {@code forestTypes} also needs the chunk's forest type in it (checked before the fuzzy draw, as TFC's condition is).
+     */
+    public record Climate(ClimateFilter filter, Set<ForestType> forestTypes) implements Modifier {
+        public Climate {
+            forestTypes = Set.copyOf(forestTypes);
+        }
+
+        public Climate(ClimateFilter filter) {
+            this(filter, Set.of());
+        }
+    }
+
+    /** {@code minecraft:height_range} with a uniform height: the y drawn in {@code [min, max]}. */
+    public record HeightRange(int min, int max) implements Modifier {}
+
+    /** {@code tfc:near_fluid}: a fluid (any of {@code fluids}) within {@code radius} around and below the position. */
+    public record NearFluid(int radius, Set<PlantState.Fluid> fluids) implements Modifier {
+        public NearFluid {
+            fluids = Set.copyOf(fluids);
+        }
+    }
+
+    /**
+     * {@code tfc:carving_mask}: every carved air position of the chunk ({@link CarvingMaskView}), ordered by y, z, x, with
+     * {@code minY <= y <= maxY}.
+     */
+    public record CarvingMask(int minY, int maxY) implements Modifier {}
+
+    /** {@code tfc:atoll}: an atoll's easing at the column strictly between the bounds ({@link Atolls}). */
+    public record Atoll(float minEasing, float maxEasing) implements Modifier {}
 
     /** {@code minecraft:count}: the position repeated a constant or uniform ({@code [min, max]}) number of times. */
     public record Count(int min, int max) implements Modifier {}
@@ -76,6 +108,12 @@ public final class PlantFeature {
 
     /** {@code tfc:would_survive_with_fluid}: the state filled with the position's fluid, then {@code canSurvive}. */
     public record WouldSurviveWithFluid(PlantState state) implements Predicate {}
+
+    /** {@code tfc:dry_replaceable}: replaceable and without fluid. */
+    public record DryReplaceable() implements Predicate {}
+
+    /** {@code minecraft:matching_blocks} of {@code tfc:fluid/salt_water}: TFC's salt water block. */
+    public record SaltWaterBlock() implements Predicate {}
 
     /** A configured feature. */
     public sealed interface Configured {}
@@ -116,4 +154,30 @@ public final class PlantFeature {
 
     /** {@code tfc:coral_tree}, {@code tfc:coral_mushroom}, {@code tfc:coral_claw}. */
     public record Coral(Corals.Shape shape) implements Configured {}
+
+    /**
+     * {@code tfc:creeping_plant} ({@code ocean} false) or {@code tfc:creeping_ocean_plant}: the creeping plant on every
+     * replaceable position of a disc-ish volume above (land) or below (ocean) the tide that it can creep on.
+     */
+    public record Creeping(PlantState state, int radius, int height, int tideHeight, float integrity, boolean ocean)
+        implements Configured {}
+
+    /** {@code tfc:epiphyte_plant} and {@code tfc:rotatable_water_plant}: the plant facing the first direction it survives with. */
+    public record Attached(PlantState state, boolean rotatable) implements Configured {}
+
+    /** The growth of a {@link Column}: {@code tfc:twisting_vines}, {@code tfc:weeping_vines}, {@code tfc:kelp}. */
+    public enum ColumnKind { TWISTING, WEEPING, KELP }
+
+    /** {@code ColumnPlantConfig} features: {@code tries} columns of body blocks ending in a head. */
+    public record Column(ColumnKind kind, PlantState body, PlantState head, int tries, int radius, int minHeight, int maxHeight)
+        implements Configured {}
+
+    /** {@code tfc:vines}: a vine on the first horizontal face it can hang on, and a column below. */
+    public record Vines(PlantState state) implements Configured {}
+
+    /** {@code tfc:kelp_tree}: {@code KelpTreeFlowerBlock.generatePlant}. */
+    public record GiantKelp(PlantState flower, PlantState body) implements Configured {}
+
+    /** {@code tfc:branching_cactus}: {@code GrowingBranchingCactusBlock.growRecursively}, height 8. */
+    public record BranchingCactus(PlantState head, PlantState body, PlantState fruit) implements Configured {}
 }

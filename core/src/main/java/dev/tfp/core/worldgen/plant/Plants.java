@@ -13,6 +13,8 @@ package dev.tfp.core.worldgen.plant;
 
 import dev.tfp.core.worldgen.biome.TfcBiomes;
 import dev.tfp.core.worldgen.groundcover.FeatureRandom;
+import dev.tfp.core.worldgen.random.PositionalRandom;
+import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
 import dev.tfp.core.worldgen.tree.TreeView;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,6 +53,10 @@ public final class Plants {
     private final Map<String, String> skipped;
     /** PAR-WORLD-22: the world's {@code grass_density}. */
     private final float grassDensity;
+    /** PAR-WORLD-13: the atoll cells of the atoll corals. */
+    private final Atolls atolls;
+    /** PAR-WORLD-13: the positional factory of {@code WorldGenRegion.getRandom} ({@code minecraft:worldgen_region_random}). */
+    private final PositionalRandom regionRandoms;
 
     /**
      * @param levelSeed the world seed
@@ -67,6 +73,9 @@ public final class Plants {
      */
     public Plants(long levelSeed, PlantData data, float grassDensity) {
         this.grassDensity = grassDensity;
+        this.atolls = new Atolls(levelSeed);
+        this.regionRandoms = PositionalRandom.fork(
+            PositionalRandom.fork(new XoroshiroRandomSource(levelSeed)).fromHashOf("minecraft:worldgen_region_random"));
         for (Step step : Step.values()) {
             final List<List<PlantFeature.Placed>> byBiome = new ArrayList<>(TfcBiomes.COUNT);
             for (int id = 0; id < TfcBiomes.COUNT; id++) {
@@ -123,7 +132,8 @@ public final class Plants {
         if (list.isEmpty()) {
             return List.of();
         }
-        final PlantLevel level = new PlantLevel(view, singleBlockReplaceable, snowPileable, grassDensity);
+        final PlantLevel level = new PlantLevel(view, singleBlockReplaceable, snowPileable, grassDensity)
+            .with(atolls, regionRandoms.at(chunkX << 4, 0, chunkZ << 4));
         for (PlantFeature.Placed feature : list) {
             PlantPlacer.place(feature, level, randoms.get(feature.id()).chunk(chunkX, chunkZ), chunkX << 4, view.minY(), chunkZ << 4);
         }
@@ -132,9 +142,22 @@ public final class Plants {
 
     /** Runs one feature in a fresh level, for tests: the blocks it placed, each position once, in first-placed order. */
     public static List<PlantBlock> run(PlantFeature.Placed feature, TreeView view, Set<String> singleBlockReplaceable,
-                                       Set<String> snowPileable, dev.tfp.core.worldgen.random.XoroshiroRandomSource random,
-                                       int x, int y, int z) {
+                                       Set<String> snowPileable, XoroshiroRandomSource random, int x, int y, int z) {
+        return run(feature, view, singleBlockReplaceable, snowPileable, random, null, null, x, y, z);
+    }
+
+    /**
+     * {@link #run(PlantFeature.Placed, TreeView, Set, Set, XoroshiroRandomSource, int, int, int)} with the region random and
+     * the atolls of a level seed (PAR-WORLD-13), for tests; null leaves them out.
+     */
+    public static List<PlantBlock> run(PlantFeature.Placed feature, TreeView view, Set<String> singleBlockReplaceable,
+                                       Set<String> snowPileable, XoroshiroRandomSource random, XoroshiroRandomSource regionRandom,
+                                       Long atollSeed, int x, int y, int z) {
         final PlantLevel level = new PlantLevel(view, singleBlockReplaceable, snowPileable);
+        if (regionRandom != null || atollSeed != null) {
+            level.with(atollSeed == null ? null : new Atolls(atollSeed),
+                regionRandom == null ? new XoroshiroRandomSource(0L) : regionRandom);
+        }
         PlantPlacer.place(feature, level, random, x, y, z);
         return List.copyOf(level.blocks());
     }

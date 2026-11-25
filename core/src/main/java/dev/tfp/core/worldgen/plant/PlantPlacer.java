@@ -15,7 +15,10 @@
  * ShallowWaterPlacement}.java, src/main/java/net/dries007/tfc/world/blockpredicate/{AirOrEmptyFluidPredicate,
  * ReplaceablePredicate,WouldSurviveWithFluidPredicate}.java, and the Minecraft 1.21 steps they run with (PlacedFeature.place,
  * RarityFilter, InSquarePlacement, HeightmapPlacement, CountPlacement, NoiseBasedCountPlacement, BlockPredicateFilter,
- * WouldSurvivePredicate, RandomPatchFeature, SimpleBlockFeature)
+ * WouldSurvivePredicate, RandomPatchFeature, SimpleBlockFeature); PAR-WORLD-13: src/main/java/net/dries007/tfc/world/placement/
+ * {NearFluidPlacement,BoundedCarvingMaskPlacement}.java, src/main/java/net/dries007/tfc/world/blockpredicate/
+ * DryReplaceablePredicate.java, and Minecraft 1.21's HeightRangePlacement (UniformHeight), CarvingMask.stream and
+ * MatchingBlocksPredicate
  */
 package dev.tfp.core.worldgen.plant;
 
@@ -23,6 +26,7 @@ import dev.tfp.core.worldgen.Mth;
 import dev.tfp.core.worldgen.groundcover.ClimateFilter;
 import dev.tfp.core.worldgen.noise.BiomeInfoNoise;
 import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
+import dev.tfp.core.worldgen.tree.ForestType;
 import dev.tfp.core.worldgen.tree.TreeGround;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,8 +72,45 @@ final class PlantPlacer {
                 return ny > level.view().minY() && apply(placed, next, level, random, x, ny, z);
             }
             case PlantFeature.Climate c -> {
-                final int density = level.view().forestType(x >> 4, z >> 4).density();
-                return c.filter().isValid(level.view(), x, y, z, random, density) && apply(placed, next, level, random, x, y, z);
+                final ForestType forest = level.view().forestType(x >> 4, z >> 4);
+                if (!c.forestTypes().isEmpty() && !c.forestTypes().contains(forest)) {
+                    return false;
+                }
+                return c.filter().isValid(level.view(), x, y, z, random, forest.density()) && apply(placed, next, level, random, x, y, z);
+            }
+            case PlantFeature.HeightRange h -> {
+                // UniformHeight.sample: Mth.randomBetweenInclusive (the minimum when the range is empty)
+                final int ny = h.min() > h.max() ? h.min() : random.nextInt(h.max() - h.min() + 1) + h.min();
+                return apply(placed, next, level, random, x, ny, z);
+            }
+            case PlantFeature.NearFluid f -> {
+                return nearFluid(f, level, x, y, z) && apply(placed, next, level, random, x, y, z);
+            }
+            case PlantFeature.CarvingMask m -> {
+                if (!(level.view() instanceof CarvingMaskView mask)) {
+                    return false;
+                }
+                // CarvingMask.stream: the set bits in index order (x | z << 4 | (y - minY) << 8), within the bounds
+                final int cx = x & ~15;
+                final int cz = z & ~15;
+                final int minY = Math.max(m.minY(), level.view().minY());
+                final int maxY = Math.min(m.maxY(), level.view().minY() + 384 - 1);
+                boolean any = false;
+                for (int ny = minY; ny <= maxY; ny++) {
+                    for (int dz = 0; dz < 16; dz++) {
+                        for (int dx = 0; dx < 16; dx++) {
+                            if (mask.carved(cx + dx, ny, cz + dz)) {
+                                any |= apply(placed, next, level, random, cx + dx, ny, cz + dz);
+                            }
+                        }
+                    }
+                }
+                return any;
+            }
+            case PlantFeature.Atoll a -> {
+                final Atolls atolls = level.atolls();
+                return atolls != null && atolls.test(level.view().biome(x, z), x, z, a.minEasing(), a.maxEasing())
+                    && apply(placed, next, level, random, x, y, z);
             }
             case PlantFeature.Count c -> {
                 final int count = c.min() == c.max() ? c.min() : random.nextInt(c.max() - c.min() + 1) + c.min();
@@ -124,6 +165,21 @@ final class PlantPlacer {
         return false;
     }
 
+    /** {@code NearFluidPlacement}: any of the fluids within the radius around, at the height of the position or below. */
+    private static boolean nearFluid(PlantFeature.NearFluid f, PlantLevel level, int x, int y, int z) {
+        final int r = f.radius();
+        for (int dx = -r; dx <= r; dx++) {
+            for (int dz = -r; dz <= r; dz++) {
+                for (int dy = 0; dy >= -r; dy--) {
+                    if (f.fluids().contains(level.fluid(x + dx, y + dy, z + dz))) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     static boolean test(PlantFeature.Predicate predicate, PlantLevel level, int x, int y, int z) {
         return switch (predicate) {
             case PlantFeature.AirOrEmptyFluid a -> level.airOrEmptyFluid(x, y, z);
@@ -133,6 +189,8 @@ final class PlantPlacer {
                 final PlantState filled = PlantLevel.fill(s.state(), level.fluid(x, y, z));
                 yield filled != null && level.canSurvive(filled, x, y, z);
             }
+            case PlantFeature.DryReplaceable d -> level.replaceable(x, y, z) && level.fluid(x, y, z) == PlantState.Fluid.EMPTY;
+            case PlantFeature.SaltWaterBlock s -> level.saltWaterBlock(x, y, z);
         };
     }
 
@@ -169,6 +227,12 @@ final class PlantPlacer {
             }
             case PlantFeature.NoisyMultiple n -> noisyMultiple(n, level, random, x, y, z);
             case PlantFeature.Coral c -> Corals.place(level, random, x, y, z, c.shape());
+            case PlantFeature.Creeping c -> ShapedPlants.creeping(c, level, random, x, y, z);
+            case PlantFeature.Attached a -> ShapedPlants.attached(a, level, random, x, y, z);
+            case PlantFeature.Column c -> ShapedPlants.column(c, level, random, x, y, z);
+            case PlantFeature.Vines v -> ShapedPlants.vines(v, level, random, x, y, z);
+            case PlantFeature.GiantKelp k -> ShapedPlants.giantKelp(k, level, random, x, y, z);
+            case PlantFeature.BranchingCactus b -> ShapedPlants.branchingCactus(b, level, x, y, z);
         };
     }
 
