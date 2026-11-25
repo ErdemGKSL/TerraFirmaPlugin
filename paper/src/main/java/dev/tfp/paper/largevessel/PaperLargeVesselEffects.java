@@ -13,11 +13,11 @@ import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.BlockVisuals;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.scheduler.Scheduler;
+import dev.tfp.paper.sound.Sounds;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.bukkit.Location;
-import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -63,12 +63,13 @@ public final class PaperLargeVesselEffects implements LargeVesselEffects {
     }
 
     /**
-     * TFC plays {@code tfc:block.large_vessel.close} when sealing and {@code .open} when opening. Our pack has no such
-     * sound yet (ledger); the barrel's lid sounds stand in.
+     * TFC plays {@code tfc:block.large_vessel.close} when sealing and {@code .open} when opening ({@code Helpers.playSound}:
+     * blocks category, full volume, pitch 1); the pack ships them as {@code tfp:block.large_vessel.*} (PAR-DATA-08).
      */
     @Override
     public void sound(Block block, boolean sealed) {
         Location at = new Location(block.getWorld(), block.getX() + 0.5, block.getY() + 0.5, block.getZ() + 0.5);
-        block.getWorld().playSound(at, sealed ? Sound.BLOCK_BARREL_CLOSE : Sound.BLOCK_BARREL_OPEN, SoundCategory.BLOCKS, 1f, 1f);
+        Sounds.play(block.getWorld(), at, sealed ? Sounds.LARGE_VESSEL_CLOSE : Sounds.LARGE_VESSEL_OPEN,
+            SoundCategory.BLOCKS, 1f, 1f);
     }
 }

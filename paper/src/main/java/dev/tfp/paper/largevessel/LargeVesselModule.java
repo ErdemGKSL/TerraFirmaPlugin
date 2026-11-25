@@ -41,7 +41,9 @@ import org.bukkit.inventory.ItemStack;
  * PAR-POT-06: the large vessel. Registers the {@link LargeVesselDevice} kind {@code tfp:ceramic/large_vessel} with the
  * device framework, its screen ({@link LargeVesselScreens}), the placement facing listener, the hopper sides (TFC
  * {@code largeVesselEnableAutomation}) and the item size (huge; heavy, very heavy when the saved record is sealed). TFC's
- * two server options are fixed at their defaults (both true). The CraftEngine blocks come from datagen
+ * two server options are the config switches {@code automation.large-vessel} and {@code automation.large-vessel-redstone-seal}
+ * (PAR-POT-16, both read at every use, so {@code /tfp reload config} applies them). A dropped vessel gets TFC's contents
+ * tooltip summary ({@link LargeVesselDrops}). The CraftEngine blocks come from datagen
  * ({@code configuration/largevessel/large_vessel.yml}).
  */
 public final class LargeVesselModule implements FeatureModule {
@@ -72,7 +74,8 @@ public final class LargeVesselModule implements FeatureModule {
                 screens.open(player, new LargeVesselLink(devices, kindHolder.get(), servicesHolder.get(), scheduler, block));
             }
         }, () -> { });
-        LargeVesselDevice.Services services = new LargeVesselDevice.Services(() -> true, sizes::fitsLargeVessel,
+        LargeVesselDevice.Services services = new LargeVesselDevice.Services(() -> context.config().current().automation().largeVesselRedstoneSeal(),
+            sizes::fitsLargeVessel,
             Block::isBlockIndirectlyPowered,
             (stack, sealing) -> sealing
                 ? recipes.modifiers().addTrait(stack, PRESERVED)
@@ -90,9 +93,9 @@ public final class LargeVesselModule implements FeatureModule {
             registrations.add(devices.hook(LargeVesselDevice.ID, new ScreenSync(screens, scheduler)));
         });
         context.listen(new LargeVesselListener(blocks, effects, scheduler));
+        context.listen(new LargeVesselDrops(context.integrations().customItems(), kind, devices.stacks()));
         context.services().get(DeviceAutomation.class).ifPresent(a -> registrations.add(a.register(
-            DeviceAutomation.Spec.of(LargeVesselDevice.ID, state -> LargeVesselSides.table())
-                .withLocked(state -> state instanceof LargeVesselState s && s.sealed()))));
+            automation(() -> context.config().current().automation().largeVessel()))));
         registrations.add(sizes.register(id -> LargeVesselDevice.covers(id), new ItemSizes.StackSizer() {
             @Override
             public ItemSizing sizing(ItemStack stack) {
@@ -102,6 +105,13 @@ public final class LargeVesselModule implements FeatureModule {
     }
 
     static final String PRESERVED = "tfp:preserved";
+
+    /** The hopper sides, locked while sealed, behind TFC's {@code largeVesselEnableAutomation} ({@code enabled}). */
+    static DeviceAutomation.Spec automation(java.util.function.BooleanSupplier enabled) {
+        return DeviceAutomation.Spec.of(LargeVesselDevice.ID, state -> LargeVesselSides.table())
+            .withEnabled(enabled)
+            .withLocked(state -> state instanceof LargeVesselState s && s.sealed());
+    }
 
     /** TFC {@code isStackSealed}: the item carries contents, here the saved record of a sealed vessel. */
     static boolean sealed(DeviceKind<LargeVesselState> kind, ItemStack stack) {

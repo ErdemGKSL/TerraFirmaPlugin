@@ -58,6 +58,7 @@ public final class ConfigCodec {
         r.unknown(top, "", List.of("visuals", "ore-overlay", "auto-install", "catchup", "hud",
                 BucketConfig.SECTION, Survival.SECTION, ItemBars.SECTION, Automation.SECTION,
                 "pit-kiln", // PAR-POT-14: read raw by PitKilnModule (pit-kiln.ticks, pit-kiln.temperature)
+                "placed-items", // PAR-POT-13: read raw by PlacedItemsModule (placed-items.enabled, placed-items.gesture)
                 "bloomery", "blast-furnace")); // read raw by BloomeryModule and BlastFurnaceModule
 
         Map<?, ?> v = r.section(top, "visuals");
@@ -162,7 +163,9 @@ public final class ConfigCodec {
                 r.bool(am, ap, Automation.QUERN_KEY, ad.quern()),
                 r.bool(am, ap, Automation.COMPOSTER_KEY, ad.composter()),
                 r.bool(am, ap, Automation.POWDER_KEG_KEY, ad.powderKeg()),
-                r.bool(am, ap, Automation.POWDER_BOWL_KEY, ad.powderBowl()));
+                r.bool(am, ap, Automation.POWDER_BOWL_KEY, ad.powderBowl()),
+                r.bool(am, ap, Automation.LARGE_VESSEL_KEY, ad.largeVessel()),
+                r.bool(am, ap, Automation.LARGE_VESSEL_REDSTONE_SEAL_KEY, ad.largeVesselRedstoneSeal()));
         return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto, catchUp, hud, buckets,
                 survival, itemBars, automation), r.warnings, r.defaulted);
     }
@@ -220,6 +223,8 @@ public final class ConfigCodec {
         automation.put(Automation.COMPOSTER_KEY, au.composter());
         automation.put(Automation.POWDER_KEG_KEY, au.powderKeg());
         automation.put(Automation.POWDER_BOWL_KEY, au.powderBowl());
+        automation.put(Automation.LARGE_VESSEL_KEY, au.largeVessel());
+        automation.put(Automation.LARGE_VESSEL_REDSTONE_SEAL_KEY, au.largeVesselRedstoneSeal());
         root.put(Automation.SECTION, automation);
         return root;
     }

@@ -307,12 +307,21 @@ public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall auto
      * @param composter  TFC {@code composterEnableAutomation}
      * @param powderKeg  TFC {@code powderKegEnableAutomation}
      * @param powderBowl TFC {@code powderBowlEnableAutomation} (PAR-POT-15)
+     * @param largeVessel TFC {@code largeVesselEnableAutomation} (PAR-POT-16)
+     * @param largeVesselRedstoneSeal TFC {@code largeVesselEnableRedstoneSeal} (PAR-POT-16): a redstone signal seals and
+     *                    opens a large vessel (a device switch, kept beside the automation ones)
      */
     public record Automation(boolean barrel, boolean firePit, boolean quern, boolean composter, boolean powderKeg,
-            boolean powderBowl) {
-        /** The five switches of PAR-INFRA-64; the bowl's is TFC's default (on). */
+            boolean powderBowl, boolean largeVessel, boolean largeVesselRedstoneSeal) {
+        /** The five switches of PAR-INFRA-64; the others are TFC's default (on). */
         public Automation(boolean barrel, boolean firePit, boolean quern, boolean composter, boolean powderKeg) {
-            this(barrel, firePit, quern, composter, powderKeg, true);
+            this(barrel, firePit, quern, composter, powderKeg, true, true, true);
+        }
+
+        /** The six switches of PAR-POT-15; the large vessel's are TFC's default (on). */
+        public Automation(boolean barrel, boolean firePit, boolean quern, boolean composter, boolean powderKeg,
+                boolean powderBowl) {
+            this(barrel, firePit, quern, composter, powderKeg, powderBowl, true, true);
         }
 
         public static final String SECTION = "automation";
@@ -322,10 +331,12 @@ public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall auto
         public static final String COMPOSTER_KEY = "composter";
         public static final String POWDER_KEG_KEY = "powder-keg";
         public static final String POWDER_BOWL_KEY = "powder-bowl";
+        public static final String LARGE_VESSEL_KEY = "large-vessel";
+        public static final String LARGE_VESSEL_REDSTONE_SEAL_KEY = "large-vessel-redstone-seal";
         /** The keys of the section, in config.yml order (the order of this record's components). */
         public static final List<String> KEYS = List.of(BARREL_KEY, FIRE_PIT_KEY, QUERN_KEY, COMPOSTER_KEY, POWDER_KEG_KEY,
-            POWDER_BOWL_KEY);
+            POWDER_BOWL_KEY, LARGE_VESSEL_KEY, LARGE_VESSEL_REDSTONE_SEAL_KEY);
         /** TFC's {@code ServerConfig} defaults: every switch on. */
-        public static final Automation DEFAULTS = new Automation(true, true, true, true, true, true);
+        public static final Automation DEFAULTS = new Automation(true, true, true, true, true, true, true, true);
     }
 }

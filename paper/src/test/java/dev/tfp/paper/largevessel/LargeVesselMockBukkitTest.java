@@ -287,6 +287,50 @@ class LargeVesselMockBukkitTest extends MockServerTest {
         assertThat(LargeVesselDevice.covers("tfp:ceramic/unfired_large_vessel")).isFalse();
     }
 
+    /** PAR-POT-16: TFC {@code largeVesselEnableAutomation} is the spec's switch; the lock still follows the seal. */
+    @Test
+    void theAutomationSpecFollowsTheConfigSwitch() {
+        AtomicBoolean on = new AtomicBoolean(true);
+        var spec = LargeVesselModule.automation(on::get);
+        assertThat(spec.enabled().getAsBoolean()).isTrue();
+        on.set(false);
+        assertThat(spec.enabled().getAsBoolean()).isFalse();
+        assertThat(spec.locked().test(new LargeVesselState(true, false))).isTrue();
+        assertThat(spec.locked().test(LargeVesselState.FRESH)).isFalse();
+    }
+
+    /** PAR-POT-16: the dropped vessel carries the tooltip summary of its slots (what the item-list tooltip reads). */
+    @Test
+    void theDroppedItemCarriesTheContentsSummary() {
+        put(0, meat(START));
+        put(4, new ItemStack(Material.IRON_INGOT, 3));
+        FakeCustomItems items = new FakeCustomItems().define(RED, n -> new ItemStack(Material.CLAY, n));
+        LargeVesselDrops drops = new LargeVesselDrops(items, kind, stacks);
+        ItemStack item = items.create(RED, 1).orElseThrow();
+        assertThat(drops.summarise(item)).as("no saved record yet").isFalse();
+        item.editMeta(m -> m.getPersistentDataContainer().set(DeviceService.ITEM_KEY,
+            org.bukkit.persistence.PersistentDataType.BYTE_ARRAY, kind.codec().toBytes(record())));
+        assertThat(drops.summarise(item)).isTrue();
+        var contents = item.getItemMeta().getPersistentDataContainer().get(new org.bukkit.NamespacedKey("tfp", "contents"),
+            org.bukkit.persistence.PersistentDataType.TAG_CONTAINER);
+        assertThat(contents).isNotNull();
+        assertThat(contents.get(new org.bukkit.NamespacedKey("tfp", "v"), org.bukkit.persistence.PersistentDataType.INTEGER))
+            .isEqualTo(1);
+        assertThat(contents.get(new org.bukkit.NamespacedKey("tfp", "view"),
+            org.bukkit.persistence.PersistentDataType.LIST.strings()))
+            .containsExactly("2\tminecraft:beef\tminecraft:beef", "3\tminecraft:iron_ingot\tminecraft:iron_ingot");
+        // an empty vessel drops without the summary, and a stale summary goes
+        put(0, ItemStack.empty());
+        put(4, ItemStack.empty());
+        item.editMeta(m -> m.getPersistentDataContainer().set(DeviceService.ITEM_KEY,
+            org.bukkit.persistence.PersistentDataType.BYTE_ARRAY, kind.codec().toBytes(record())));
+        assertThat(drops.summarise(item)).isTrue();
+        assertThat(item.getItemMeta().getPersistentDataContainer().has(new org.bukkit.NamespacedKey("tfp", "contents")))
+            .isFalse();
+        // another item is left alone
+        assertThat(drops.summarise(new ItemStack(Material.BEEF))).isFalse();
+    }
+
     @Test
     void facingFollowsTheLookDirection() {
         assertThat(LargeVesselListener.facing(0f)).isEqualTo("south");

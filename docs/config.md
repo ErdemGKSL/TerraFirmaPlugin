@@ -75,7 +75,7 @@ Every `define(...)` key of TFC's `ServerConfig`, `CommonConfig`, `ClientConfig` 
 | ServerConfig | `enableMossyRockSpreading` | `true` | — | pending: consumer item |
 | ServerConfig | `mossyRockSpreadRate` | `20` | — | pending: consumer item |
 | ServerConfig | `chestMaximumItemSize` | `Size.LARGE` | — | pending: consumer item |
-| ServerConfig | `largeVesselEnableAutomation` | `true` | — | pending: consumer item |
+| ServerConfig | `largeVesselEnableAutomation` | `true` | `automation.large-vessel` | mapped |
 | ServerConfig | `crateEnableAutomation` | `true` | — | pending: consumer item |
 | ServerConfig | `quernEnableAutomation` | `true` | `automation.quern` | mapped |
 | ServerConfig | `torchTicks` | `86400` | — | pending: consumer item |
@@ -99,7 +99,7 @@ Every `define(...)` key of TFC's `ServerConfig`, `CommonConfig`, `ClientConfig` 
 | ServerConfig | `barrelCapacity` | `10000` | — | pending: consumer item |
 | ServerConfig | `barrelEnableAutomation` | `true` | `automation.barrel` | mapped |
 | ServerConfig | `barrelEnableRedstoneSeal` | `true` | — | pending: consumer item |
-| ServerConfig | `largeVesselEnableRedstoneSeal` | `true` | — | pending: consumer item |
+| ServerConfig | `largeVesselEnableRedstoneSeal` | `true` | `automation.large-vessel-redstone-seal` | mapped |
 | ServerConfig | `composterTicks` | `288000` | — | pending: consumer item |
 | ServerConfig | `composterEnableAutomation` | `true` | `automation.composter` | mapped |
 | ServerConfig | `sluiceTicks` | `100` | — | pending: consumer item |

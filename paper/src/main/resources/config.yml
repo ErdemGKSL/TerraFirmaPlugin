@@ -118,6 +118,8 @@ item-bars:
 # barrel: barrelEnableAutomation. fire-pit: firePitEnableAutomation (the firepit, grill and pot).
 # quern: quernEnableAutomation. composter: composterEnableAutomation. powder-keg: powderKegEnableAutomation.
 # powder-bowl: powderBowlEnableAutomation (hoppers fill a bowl from above and empty it to the sides).
+# large-vessel: largeVesselEnableAutomation (hoppers feed an open large vessel and empty it; a sealed one gives nothing).
+# large-vessel-redstone-seal: largeVesselEnableRedstoneSeal (a redstone signal seals the vessel, its end opens it).
 automation:
   barrel: true
   fire-pit: true
@@ -125,6 +127,8 @@ automation:
   composter: true
   powder-keg: true
   powder-bowl: true
+  large-vessel: true
+  large-vessel-redstone-seal: true
 
 # Bloomery (TFC server config bloomeryCapacity and bloomeryMaxChimneyHeight). Apply changes with /tfp reload config.
 # capacity: items a bloomery holds per level of chimney (TFC default 16, at least 1; at most 128 here, the slots of its record).

@@ -56,7 +56,7 @@ class ConfigCodecTest {
         ConfigCodec.Parsed p = ConfigCodec.parse(Map.of());
         assertThat(p.config()).isEqualTo(TfpConfig.DEFAULTS);
         assertThat(p.warnings()).isEmpty();
-        assertThat(p.defaulted()).hasSize(31).contains("automation.barrel", "automation.fire-pit", "automation.quern",
+        assertThat(p.defaulted()).hasSize(33).contains("automation.barrel", "automation.fire-pit", "automation.quern",
                 "automation.composter", "automation.powder-keg", "item-bars.heat", "survival.keep-nutrition-after-death",
                 "survival.peaceful-passive-regeneration", "survival.natural-regeneration-modifier",
                 "buckets.wooden-bucket-can-place-sources",
@@ -378,10 +378,11 @@ class ConfigCodecTest {
     void automationKeysAreReadWrittenAndDefaulted() {
         assertThat(TfpConfig.DEFAULTS.automation()).isEqualTo(new TfpConfig.Automation(true, true, true, true, true));
         assertThat(ConfigCodec.toMap(TfpConfig.DEFAULTS).get("automation")).isEqualTo(Map.of("barrel", true,
-                "fire-pit", true, "quern", true, "composter", true, "powder-keg", true, "powder-bowl", true));
+                "fire-pit", true, "quern", true, "composter", true, "powder-keg", true, "powder-bowl", true,
+                "large-vessel", true, "large-vessel-redstone-seal", true));
         TfpConfig custom = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS, CatchUp.DEFAULTS,
                 TfpConfig.Hud.DEFAULTS, BucketConfig.DEFAULTS, TfpConfig.Survival.DEFAULTS, TfpConfig.ItemBars.DEFAULTS,
-                new TfpConfig.Automation(false, true, false, true, false, false));
+                new TfpConfig.Automation(false, true, false, true, false, false, false, true));
         ConfigCodec.Parsed p = ConfigCodec.parse(ConfigCodec.toMap(custom));
         assertThat(p.warnings()).isEmpty();
         assertThat(p.defaulted()).isEmpty();
@@ -391,11 +392,36 @@ class ConfigCodecTest {
         assertThat(one.warnings()).isEmpty();
         assertThat(one.config().automation()).isEqualTo(new TfpConfig.Automation(true, true, false, true, true));
         assertThat(one.defaulted()).contains("automation.barrel", "automation.fire-pit", "automation.composter",
-                "automation.powder-keg", "automation.powder-bowl").doesNotContain("automation.quern");
+                "automation.powder-keg", "automation.powder-bowl", "automation.large-vessel",
+                "automation.large-vessel-redstone-seal").doesNotContain("automation.quern");
         // A bad value warns and keeps TFC's default; an unknown key warns.
         ConfigCodec.Parsed bad = ConfigCodec.parse(Map.of("automation", Map.of("barrel", "no", "loom", true)));
         assertThat(bad.config().automation().barrel()).isTrue();
         assertThat(bad.warnings()).anyMatch(w -> w.contains("automation.barrel"))
                 .anyMatch(w -> w.contains("unknown key 'automation.loom'"));
+    }
+
+    /** PAR-POT-16: the shipped config.yml's top-level keys are all known (placed-items was reported as unknown). */
+    @Test
+    void placedItemsIsAKnownTopLevelKey() {
+        ConfigCodec.Parsed p = ConfigCodec.parse(Map.of("placed-items", Map.of("enabled", true, "gesture", "both"),
+                "pit-kiln", Map.of("ticks", 7200)));
+        assertThat(p.warnings()).noneMatch(w -> w.contains("unknown key"));
+        assertThat(p.config()).isEqualTo(TfpConfig.DEFAULTS);
+        assertThat(ConfigCodec.parse(Map.of("placed-itemz", Map.of())).warnings())
+                .anyMatch(w -> w.contains("unknown key 'placed-itemz' (ignored)"));
+    }
+
+    /** PAR-POT-16: TFC largeVesselEnableAutomation and largeVesselEnableRedstoneSeal are typed switches. */
+    @Test
+    void largeVesselSwitchesAreReadAndDefaultOn() {
+        assertThat(TfpConfig.DEFAULTS.automation().largeVessel()).isTrue();
+        assertThat(TfpConfig.DEFAULTS.automation().largeVesselRedstoneSeal()).isTrue();
+        ConfigCodec.Parsed p = ConfigCodec.parse(Map.of("automation",
+                Map.of("large-vessel", false, "large-vessel-redstone-seal", false)));
+        assertThat(p.warnings()).isEmpty();
+        assertThat(p.config().automation().largeVessel()).isFalse();
+        assertThat(p.config().automation().largeVesselRedstoneSeal()).isFalse();
+        assertThat(p.config().automation().barrel()).isTrue();
     }
 }
