@@ -28,4 +28,6 @@ done_criteria:
 
 # PAR-WORLD-54: Bubble columns above the CE magma blocks
 
+> Claimed: worker agent-a0d3502f, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
