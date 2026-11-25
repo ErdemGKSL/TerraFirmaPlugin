@@ -23,22 +23,33 @@ public final class ChestBlocks {
     public static final String TRAPPED_CHEST = "tfp:wood/trapped_chest";
     public static final String FACING = "facing";
     public static final String TYPE = "type";
+    /** PAR-DECO-26: set while a player has the chest open; the display shows the lid turned up. */
+    public static final String OPEN = "open";
 
     private ChestBlocks() {
     }
 
     /** A chest block read from the world: its full id, its facing and its type. */
-    public record Found(String id, ChestRules.Chest chest) {
+    public record Found(String id, ChestRules.Chest chest, boolean open) {
+        public Found(String id, ChestRules.Chest chest) {
+            this(id, chest, false);
+        }
+
         public BlockStateRef state() {
-            return BlockStateRef.of(id).with(FACING, chest.facing().id()).with(TYPE, chest.type().id());
+            return BlockStateRef.of(id).with(FACING, chest.facing().id()).with(TYPE, chest.type().id())
+                .with(OPEN, Boolean.toString(open));
         }
 
         public Found withType(ChestType type) {
-            return new Found(id, new ChestRules.Chest(chest.facing(), type));
+            return new Found(id, new ChestRules.Chest(chest.facing(), type), open);
         }
 
         public Found with(ChestSide facing, ChestType type) {
-            return new Found(id, new ChestRules.Chest(facing, type));
+            return new Found(id, new ChestRules.Chest(facing, type), open);
+        }
+
+        public Found withOpen(boolean open) {
+            return new Found(id, chest, open);
         }
     }
 
@@ -54,7 +65,8 @@ public final class ChestBlocks {
         }
         ChestSide facing = ChestSide.of(state.properties().getOrDefault(FACING, "north"));
         ChestType type = ChestType.of(state.properties().getOrDefault(TYPE, "single"));
-        return Optional.of(new Found(state.id(), new ChestRules.Chest(facing, type)));
+        boolean open = Boolean.parseBoolean(state.properties().getOrDefault(OPEN, "false"));
+        return Optional.of(new Found(state.id(), new ChestRules.Chest(facing, type), open));
     }
 
     /** The chest at {@code block}, if it is one. */

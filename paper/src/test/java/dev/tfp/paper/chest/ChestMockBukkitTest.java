@@ -323,4 +323,56 @@ class ChestMockBukkitTest extends MockServerTest {
         player.closeInventory();
         assertThat(screens.open(other, link(single))).as("free again after closing").isPresent();
     }
+
+    @Test
+    void aSittingCatAboveBlocksOpeningButAStandingOneDoesNot() {
+        Block b = chest(0, "south", "single");
+        player.setSneaking(false);
+        org.bukkit.entity.Cat cat = world.spawn(new Location(world, 0.5, 65, 0.5), org.bukkit.entity.Cat.class);
+        cat.setSitting(false);
+        assertThat(service.use(b, player, EquipmentSlot.HAND, ItemStack.empty())).isTrue();
+        assertThat(opened).as("a standing cat does not block").hasSize(1);
+        cat.setSitting(true);
+        assertThat(service.use(b, player, EquipmentSlot.HAND, ItemStack.empty())).isTrue();
+        assertThat(opened).as("a sitting cat blocks").hasSize(1);
+        cat.remove();
+        assertThat(service.use(b, player, EquipmentSlot.HAND, ItemStack.empty())).isTrue();
+        assertThat(opened).hasSize(2);
+    }
+
+    @Test
+    void theLidOpensWithTheScreenAndClosesWithIt() {
+        GuiService gui = new GuiService(server, scheduler, new AtomicLong(100_000)::get, true);
+        ChestLid lid = new ChestLid(blocks, scheduler, (b, s) -> blocks.place(b, s, false));
+        ChestScreens screens = new ChestScreens(gui, scheduler, Messages.fromJar(), sizes::fitsChest, lid);
+        server.getPluginManager().registerEvents(new GuiListener(gui), plugin);
+        server.getPluginManager().registerEvents(screens, plugin);
+        Block right = chest(0, "south", "right");
+        Block left = chest(1, "south", "left");
+        Block single = chest(4, "north", "single");
+        assertThat(at(single).open()).isFalse();
+        screens.open(player, link(left)).orElseThrow();
+        assertThat(at(left).open()).as("both halves of a double chest").isTrue();
+        assertThat(at(right).open()).isTrue();
+        assertThat(at(left).chest()).as("facing and type are kept").isEqualTo(new ChestRules.Chest(ChestSide.SOUTH, ChestType.LEFT));
+        assertThat(at(single).open()).as("another chest stays closed").isFalse();
+        player.closeInventory();
+        assertThat(at(left).open()).isFalse();
+        assertThat(at(right).open()).isFalse();
+        screens.open(player, link(single)).orElseThrow();
+        assertThat(at(single).open()).isTrue();
+        assertThat(at(single).state().properties()).containsEntry("open", "true");
+        player.closeInventory();
+        assertThat(at(single).open()).isFalse();
+    }
+
+    @Test
+    void theLidIsCentredOnADoubleChest() {
+        Block right = chest(0, "south", "right");
+        Block left = chest(1, "south", "left");
+        Location c = ChestLid.centre(List.of(ChestLink.Key.of(right), ChestLink.Key.of(left)));
+        assertThat(c.getX()).isEqualTo(1.0);
+        assertThat(c.getY()).isEqualTo(64.5);
+        assertThat(c.getZ()).isEqualTo(0.5);
+    }
 }

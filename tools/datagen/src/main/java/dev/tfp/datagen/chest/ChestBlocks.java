@@ -43,8 +43,9 @@ import java.util.regex.Pattern;
  *       (and the carrier selector bans the chest states for that reason). Each block is a full-collision barrier carrier
  *       (the one the renderer cubes of PAR-INFRA-17 use) and shows its chest as one item display of the models of
  *       {@link ChestModels} (single, left, right), turned by the facing.</li>
- *   <li>States: {@code facing} (4) and {@code type} (single, left, right) as TFC's {@code ChestBlock}; not waterlogged
- *       (ledger). The block has the {@code tfp:device} behaviour: 18 slots per chest, the double chest and the placement
+ *   <li>States: {@code facing} (4), {@code type} (single, left, right) as TFC's {@code ChestBlock}, and {@code open}
+ *       (PAR-DECO-26: set while a player has the chest open; its model has the lid turned up as vanilla's openness 1);
+ *       not waterlogged (ledger). The block has the {@code tfp:device} behaviour: 18 slots per chest, the double chest and the placement
  *       are the plugin's {@code chest} module.</li>
  *   <li>TFC's strength (2.5), wood sounds, the axe tag, the plain self drop and names; the item is the block item.</li>
  * </ul>
@@ -132,7 +133,7 @@ public final class ChestBlocks {
         return Json.TO_NS + ":" + path;
     }
 
-    /** {@code tfp:render/wood/chest/left/oak}. */
+    /** {@code tfp:render/wood/chest/left/oak}; the lid-open model of a shape is {@code .../left_open/...} ({@code single_open}). */
     static String renderId(String kind, String type, String wood) {
         return Json.TO_NS + ":render/wood/" + kind + "/" + type + "/" + wood;
     }
@@ -140,6 +141,16 @@ public final class ChestBlocks {
     /** The block model path of a shape: {@code block/wood/chest/oak} (single) or {@code block/wood/chest/left/oak}. */
     static String modelPath(String kind, String type, String wood) {
         return "block/wood/" + kind + "/" + (type.equals("single") ? "" : type + "/") + wood;
+    }
+
+    /** The shape name of the lid-open model of {@code type}: {@code single_open}, {@code left_open}, {@code right_open}. */
+    static String openType(String type) {
+        return type + "_open";
+    }
+
+    /** The block model path of the lid-open shape: {@code block/wood/chest/single_open/oak}, {@code .../left_open/oak}. */
+    static String openModelPath(String kind, String type, String wood) {
+        return "block/wood/" + kind + "/" + openType(type) + "/" + wood;
     }
 
     static String langKey(String path) {
@@ -162,16 +173,20 @@ public final class ChestBlocks {
         String path = path(kind, wood);
         DeviceBlockSpec.Builder b = DeviceBlockSpec.builder(id(path))
             .property(DeviceProperty.names("facing", FACINGS, "north"))
-            .property(DeviceProperty.names("type", TYPES, "single"));
+            .property(DeviceProperty.names("type", TYPES, "single"))
+            .property(DeviceProperty.bool("open", false));
         DeviceAppearance.Carrier carrier = DeviceAppearance.Carrier.state(CARRIER);
         for (String type : TYPES) {
             b.renderItem(renderId(kind, type, wood), id(modelPath(kind, type, wood)));
+            b.renderItem(renderId(kind, openType(type), wood), id(openModelPath(kind, type, wood)));
             for (String facing : FACINGS) {
                 b.appearance(DeviceAppearance.rendered(facing + "_" + type, carrier,
                     List.of(DeviceAppearance.Renderer.item(renderId(kind, type, wood)).rotated(rotation(facing)))));
+                b.appearance(DeviceAppearance.rendered(facing + "_" + type + "_open", carrier,
+                    List.of(DeviceAppearance.Renderer.item(renderId(kind, openType(type), wood)).rotated(rotation(facing)))));
             }
         }
-        return b.everyState(s -> s.get("facing") + "_" + s.get("type"), null)
+        return b.everyState(s -> s.get("facing") + "_" + s.get("type") + (s.get("open").equals("true") ? "_open" : ""), null)
             .settings(DeviceBlockSpec.Settings.of(strength.toPlainString(), strength.toPlainString(), DeviceSound.WOOD, tool(tfc, path)))
             .loot(DeviceLoot.fromTfc(tfc, path))
             .deviceBehaviour()
@@ -229,7 +244,11 @@ public final class ChestBlocks {
             }
             String model = modelPath(kind, type, wood);
             out.put(RP + "textures/" + model + ".png", tfc.read(from));
-            out.put(RP + "models/" + model + ".json", ChestModels.model(model, particle, type));
+            out.put(RP + "models/" + model + ".json", ChestModels.model(model, particle, type, false));
+            // the lid-open shape draws the same texture
+            String open = openModelPath(kind, type, wood);
+            out.put(RP + "textures/" + open + ".png", tfc.read(from));
+            out.put(RP + "models/" + open + ".json", ChestModels.model(open, particle, type, true));
         }
         out.put(RP + "models/item/" + path(kind, wood) + ".json", ChestModels.itemModel(modelPath(kind, "single", wood)));
     }

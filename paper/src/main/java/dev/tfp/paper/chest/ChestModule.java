@@ -59,7 +59,8 @@ public final class ChestModule implements FeatureModule {
             visuals.blockData(next).ifPresent(d -> block.setBlockData(d, false));
         };
         ChestPlacement placement = new ChestPlacement(blocks, scheduler, writer);
-        ChestScreens screens = gui.map(g -> new ChestScreens(g, scheduler, context.messages(), fits)).orElse(null);
+        ChestLid lid = new ChestLid(blocks, scheduler, writer);
+        ChestScreens screens = gui.map(g -> new ChestScreens(g, scheduler, context.messages(), fits, lid)).orElse(null);
         BiConsumer<Player, Block> open = (player, block) -> {
             if (screens == null) {
                 return;

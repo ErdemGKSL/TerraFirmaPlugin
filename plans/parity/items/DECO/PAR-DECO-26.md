@@ -2,7 +2,7 @@
 id: PAR-DECO-26
 title: "Chest extras: lid animation, trapped chest signal, waterlogging, better carrier, automation, custom names (follow-up of PAR-DECO-04)"
 area: DECO
-status: open
+status: done
 wave: 47
 deps: [PAR-DECO-04]
 size: M
@@ -41,6 +41,11 @@ done_criteria:
 
 # PAR-DECO-26: Chest extras (follow-up of PAR-DECO-04)
 
-> Claimed: claude session_011osUp8LgspZkGFjFNWFDqQ (DECO helper), 2026-11-25
 
 All fields live in the front matter above. Follow `plans/parity/PROTOCOL.md`. PAR-DECO-04 shipped the blocks (`dev.tfp.datagen.chest.ChestBlocks`, `configuration/chest/<wood>.yml`), the models of `ChestModels`, the device kinds, the screens and the pairing (`paper/chest`, `core/chest`).
+
+Scope note: this item shipped the lid animation (state `open`, open models, `ChestLid`), the open and close sounds and the sitting-cat check. The trapped chest signal, waterlogging, the better carrier, automation, custom names, pests and the vanilla chest loot need files outside this item's globs (CraftEngine behaviour, `DeviceBlockSpec`, the carrier selector, the automation framework) and moved to PAR-DECO-27.
+
+Pending in-game check (container cannot run client): the open lid models (turned lid and lock, texture rotations) are checked in PAR-DECO-27's steps.
+
+Done: `ChestModels` open shapes (lid and lock boxes turned about the hinge, texture rotation derived per face), `open` property (24 states per block, `render/wood/<kind>/<shape>_open/<wood>` displays), paper `ChestLid` (state write on both halves of a double chest, `block.chest.open`/`close` at the chest centre, pitch 0.9 to 1.0), `ChestDevice` cat check; tests `ChestBlocksTest` (8), `ChestMockBukkitTest` (13); ledger rows updated.

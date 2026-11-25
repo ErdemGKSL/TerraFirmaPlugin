@@ -63,7 +63,7 @@ class ChestBlocksTest {
         }
         assertThat(blocks).isEqualTo(40);
         assertThat(placing).isEqualTo(40);
-        assertThat(render).isEqualTo(40 * 3); // single, left and right per block
+        assertThat(render).isEqualTo(40 * 6); // single, left and right, closed and lid open, per block
     }
 
     @Test
@@ -80,17 +80,58 @@ class ChestBlocksTest {
         assertThat(chest.get("loot").toString()).contains("tfp:loot_table/self");
         Map<String, Object> states = (Map<String, Object>) chest.get("states");
         Map<String, Object> props = (Map<String, Object>) states.get("properties");
-        assertThat(props.keySet()).containsExactly("facing", "type");
+        assertThat(props.keySet()).containsExactly("facing", "type", "open");
         assertThat(((Map<String, Object>) props.get("type")).get("values")).isEqualTo(List.of("single", "left", "right"));
         Map<String, Object> variants = (Map<String, Object>) states.get("variants");
-        assertThat(variants).hasSize(12).containsKeys("facing=north,type=single", "facing=west,type=right");
+        assertThat(variants).hasSize(24).containsKeys("facing=north,type=single,open=false", "facing=west,type=right,open=true");
         Map<String, Object> apps = (Map<String, Object>) states.get("appearances");
-        assertThat(apps).hasSize(12);
+        assertThat(apps).hasSize(24);
         Map<String, Object> west = (Map<String, Object>) apps.get("west_left");
         assertThat(west.get("state")).isEqualTo("minecraft:barrier");
         Map<String, Object> renderer = ((List<Map<String, Object>>) west.get("entity_renderer")).getFirst();
         assertThat(renderer.get("item")).isEqualTo("tfp:render/wood/chest/left/oak");
         assertThat(renderer.get("rotation")).isEqualTo("0,90,0");
+        Map<String, Object> open = (Map<String, Object>) apps.get("west_left_open");
+        Map<String, Object> openRenderer = ((List<Map<String, Object>>) open.get("entity_renderer")).getFirst();
+        assertThat(openRenderer.get("item")).isEqualTo("tfp:render/wood/chest/left_open/oak");
+        assertThat(openRenderer.get("rotation")).isEqualTo("0,90,0");
+    }
+
+    @Test
+    void openModelsTurnTheLidAndTheLockAboutTheHinge() {
+        JsonObject open = Json.parse(new String(out.get(ChestBlocks.RP + "models/block/wood/chest/single_open/oak.json"),
+            StandardCharsets.UTF_8), "m").getAsJsonObject();
+        assertThat(open.getAsJsonObject("textures").get("0").getAsString()).isEqualTo("tfp:block/wood/chest/single_open/oak");
+        JsonArray elements = open.getAsJsonArray("elements");
+        assertThat(elements).hasSize(3);
+        // the body stays; the lid stands at the back (z -4 to 1, y 9 to 23); the lock hangs over its top
+        assertThat(elements.get(0).getAsJsonObject().getAsJsonArray("to").toString()).isEqualTo("[15.0,9.0,15.0]");
+        assertThat(elements.get(1).getAsJsonObject().getAsJsonArray("from").toString()).isEqualTo("[1.0,9.0,-4.0]");
+        assertThat(elements.get(1).getAsJsonObject().getAsJsonArray("to").toString()).isEqualTo("[15.0,23.0,1.0]");
+        assertThat(elements.get(2).getAsJsonObject().getAsJsonArray("from").toString()).isEqualTo("[7.0,23.0,-1.0]");
+        assertThat(elements.get(2).getAsJsonObject().getAsJsonArray("to").toString()).isEqualTo("[9.0,24.0,3.0]");
+        // the lid's old top is now its back face (north), the old inside (down) faces south, the old front is up
+        JsonObject faces = elements.get(1).getAsJsonObject().getAsJsonObject("faces");
+        assertThat(faces.keySet()).containsExactlyInAnyOrder("south", "north", "east", "west", "up", "down");
+        JsonObject single = Json.parse(new String(out.get(ChestBlocks.RP + "models/block/wood/chest/oak.json"), StandardCharsets.UTF_8), "m")
+            .getAsJsonObject();
+        JsonObject closed = single.getAsJsonArray("elements").get(1).getAsJsonObject().getAsJsonObject("faces");
+        assertThat(faces.getAsJsonObject("north").getAsJsonArray("uv")).isEqualTo(closed.getAsJsonObject("up").getAsJsonArray("uv"));
+        assertThat(faces.getAsJsonObject("south").getAsJsonArray("uv")).isEqualTo(closed.getAsJsonObject("down").getAsJsonArray("uv"));
+        assertThat(faces.getAsJsonObject("up").getAsJsonArray("uv")).isEqualTo(closed.getAsJsonObject("south").getAsJsonArray("uv"));
+        assertThat(out.contains(ChestBlocks.RP + "textures/block/wood/chest/left_open/oak.png")).isTrue();
+        assertThat(out.contains(ChestBlocks.RP + "models/block/wood/trapped_chest/right_open/oak.json")).isTrue();
+    }
+
+    @Test
+    void textureRotationsFollowTheTurn() {
+        // a face that keeps its in-plane orientation is rotated by the turn only when the plane's axes swap
+        int[][] southBase = {{1, 0, 0}, {0, -1, 0}};
+        assertThat(ChestModels.rotated(southBase, 0)).isEqualTo(southBase);
+        assertThat(ChestModels.rotated(southBase, 2)).isEqualTo(new int[][] {{-1, 0, 0}, {0, 1, 0}});
+        assertThat(ChestModels.rotated(southBase, 1)).isEqualTo(new int[][] {{0, -1, 0}, {-1, 0, 0}});
+        double[] top = ChestModels.turn(5, 14, 15);
+        assertThat(top).containsExactly(5, 23, -4);
     }
 
     @Test

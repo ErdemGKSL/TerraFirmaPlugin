@@ -66,8 +66,14 @@ final class ChestModels {
         return boxes;
     }
 
-    /** The block model JSON of a chest shape over {@code texture} ({@code tfp:block/...}), particles of {@code particle}. */
-    static String model(String texture, String particle, String type) {
+    /**
+     * The block model JSON of a chest shape over {@code texture} ({@code tfp:block/...}), particles of {@code particle}.
+     *
+     * @param open the lid turned up about its back edge: vanilla's {@code ChestRenderer} at openness 1 rotates the lid and
+     *             the lock by {@code -pi/2} about the x axis at the hinge (y 9, z 1); here that turn is applied to the boxes
+     *             (block model element rotation allows only 45 degree steps) and each face's texture rotation follows
+     */
+    static String model(String texture, String particle, String type, boolean open) {
         JsonObject m = new JsonObject();
         m.addProperty("parent", "minecraft:block/block");
         JsonArray size = new JsonArray();
@@ -79,8 +85,9 @@ final class ChestModels {
         tex.addProperty("particle", Json.TO_NS + ":" + particle);
         m.add("textures", tex);
         JsonArray elements = new JsonArray();
-        for (Box b : boxes(type)) {
-            elements.add(element(b));
+        List<Box> boxes = boxes(type);
+        for (int i = 0; i < boxes.size(); i++) {
+            elements.add(open && i > 0 ? openElement(boxes.get(i)) : element(boxes.get(i)));
         }
         m.add("elements", elements);
         m.add("display", display());
@@ -133,6 +140,102 @@ final class ChestModels {
             faces.add("up", face(u + d, v, w, d));
         }
         faces.add("down", face(u + d + w, v, w, d));
+        e.add("faces", faces);
+        return e;
+    }
+
+    /** The hinge of the lid in block pixels: the back edge of the body's top. */
+    static final double HINGE_Y = 9;
+    static final double HINGE_Z = 1;
+
+    /** The lid turn: a point's offset from the hinge (y, z) becomes (z, -y), so the lid's front goes up. x is unchanged. */
+    static double[] turn(double x, double y, double z) {
+        return new double[] {x, HINGE_Y + (z - HINGE_Z), HINGE_Z - (y - HINGE_Y)};
+    }
+
+    private static int[] turnDir(int[] d) {
+        return new int[] {d[0], d[2], -d[1]};
+    }
+
+    /** The (u, v) texture directions of a face at rotation 0 in a block model, in block axes. */
+    private static int[][] basis(String face) {
+        return switch (face) {
+            case "south" -> new int[][] {{1, 0, 0}, {0, -1, 0}};
+            case "north" -> new int[][] {{-1, 0, 0}, {0, -1, 0}};
+            case "east" -> new int[][] {{0, 0, -1}, {0, -1, 0}};
+            case "west" -> new int[][] {{0, 0, 1}, {0, -1, 0}};
+            case "up" -> new int[][] {{1, 0, 0}, {0, 0, 1}};
+            case "down" -> new int[][] {{1, 0, 0}, {0, 0, -1}};
+            default -> throw new IllegalArgumentException(face);
+        };
+    }
+
+    private static int[] normal(String face) {
+        return switch (face) {
+            case "south" -> new int[] {0, 0, 1};
+            case "north" -> new int[] {0, 0, -1};
+            case "east" -> new int[] {1, 0, 0};
+            case "west" -> new int[] {-1, 0, 0};
+            case "up" -> new int[] {0, 1, 0};
+            case "down" -> new int[] {0, -1, 0};
+            default -> throw new IllegalArgumentException(face);
+        };
+    }
+
+    private static String faceOf(int[] n) {
+        for (String f : List.of("south", "north", "east", "west", "up", "down")) {
+            if (java.util.Arrays.equals(normal(f), n)) {
+                return f;
+            }
+        }
+        throw new IllegalArgumentException(java.util.Arrays.toString(n));
+    }
+
+    /** The texture directions after a clockwise turn of {@code quarter} quarter turns on the face: u -> v-ish (screen rotation). */
+    static int[][] rotated(int[][] base, int quarter) {
+        int[] u = base[0];
+        int[] v = base[1];
+        for (int i = 0; i < quarter; i++) {
+            int[] nu = v; // clockwise: the u axis lands on the old down direction, v on the old left
+            int[] nv = {-u[0], -u[1], -u[2]};
+            u = nu;
+            v = nv;
+        }
+        return new int[][] {u, v};
+    }
+
+    /** One box of the lid (the lid and the lock) after the turn: same texture regions, faces moved and rotated with it. */
+    private static JsonObject openElement(Box b) {
+        double[] p1 = turn(b.x1(), b.y1(), b.z1());
+        double[] p2 = turn(b.x2(), b.y2(), b.z2());
+        JsonObject e = new JsonObject();
+        e.add("from", arr(Math.min(p1[0], p2[0]), Math.min(p1[1], p2[1]), Math.min(p1[2], p2[2])));
+        e.add("to", arr(Math.max(p1[0], p2[0]), Math.max(p1[1], p2[1]), Math.max(p1[2], p2[2])));
+        JsonObject original = element(b).getAsJsonObject("faces");
+        JsonObject faces = new JsonObject();
+        for (String face : List.of("south", "north", "east", "west", "up", "down")) {
+            if (!original.has(face)) {
+                continue;
+            }
+            String next = faceOf(turnDir(normal(face)));
+            int[][] base = basis(face);
+            int[][] want = {turnDir(base[0]), turnDir(base[1])};
+            int rotation = -1;
+            for (int q = 0; q < 4 && rotation < 0; q++) {
+                int[][] have = rotated(basis(next), q);
+                if (java.util.Arrays.equals(have[0], want[0]) && java.util.Arrays.equals(have[1], want[1])) {
+                    rotation = q * 90;
+                }
+            }
+            if (rotation < 0) {
+                throw new IllegalStateException("no texture rotation for " + face + " -> " + next);
+            }
+            JsonObject f = original.getAsJsonObject(face).deepCopy();
+            if (rotation != 0) {
+                f.addProperty("rotation", rotation);
+            }
+            faces.add(next, f);
+        }
         e.add("faces", faces);
         return e;
     }

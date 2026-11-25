@@ -21,17 +21,20 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Cat;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.BoundingBox;
 
 /**
  * PAR-DECO-04: TFC's chest and trapped chest as device kinds {@code tfp:wood/chest} and {@code tfp:wood/trapped_chest}
  * (each covers its 20 woods by prefix): 18 slots of items up to the chest's size ({@code TFCChestBlockEntity.isValid}),
  * the contents dropped when the block is broken ({@code InventoryBlockEntity} / vanilla {@code Containers.dropContents}).
  *
- * <p>A right click without sneaking (or sneaking with an empty main hand) opens the screen, unless a solid block lies above
- * a half ({@code ChestBlock.isChestBlockedAt}; vanilla's cat check is not ported: ledger).
+ * <p>A right click without sneaking (or sneaking with an empty main hand) opens the screen, unless a solid block or a sitting
+ * cat lies above the half ({@code ChestBlock.isChestBlockedAt}).
  */
 public final class ChestDevice {
     public static final int SLOTS = ChestRules.SINGLE_SLOTS;
@@ -50,10 +53,25 @@ public final class ChestDevice {
             .build();
     }
 
-    /** Vanilla {@code ChestBlock.isChestBlockedAt}, without the cat: a block above that is a full occluding block. */
+    /**
+     * Vanilla {@code ChestBlock.isChestBlockedAt}: a full occluding block above (a {@code isRedstoneConductor} check; the
+     * occluding test is its stand-in) or a sitting cat in the block above ({@code isCatSittingOnChest}: an ocelot is not
+     * a cat and does not block). Region thread of the chest.
+     */
     static boolean blocked(Block chest) {
         Material above = chest.getRelative(0, 1, 0).getType();
-        return above.isOccluding();
+        return above.isOccluding() || catSitting(chest);
+    }
+
+    static boolean catSitting(Block chest) {
+        BoundingBox box = new BoundingBox(chest.getX(), chest.getY() + 1, chest.getZ(),
+            chest.getX() + 1, chest.getY() + 2, chest.getZ() + 1);
+        for (Entity e : chest.getWorld().getNearbyEntities(box, entity -> entity instanceof Cat)) {
+            if (((Cat) e).isSitting()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private record Handler(BiConsumer<Player, Block> open, ChestPlacement placement) implements DeviceHandler<ChestState> {

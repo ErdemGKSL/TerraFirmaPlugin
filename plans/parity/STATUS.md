@@ -530,7 +530,8 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-23 | Golden bamboo block, palm mosaic stairs and slabs, tree roots, light block (follow-up of PAR-DECO-12) | DECO | 49 | open |
 | PAR-DECO-24 | Crate storage, buoys and cakes (follow-up of PAR-DECO-12) | DECO | 49 | open |
 | PAR-DECO-25 | Sign runtime: placement rotation, text editing, text display, sign carriers (follow-up of PAR-DECO-03) | DECO | 47 | open |
-| PAR-DECO-26 | Chest extras: lid animation, trapped chest signal, waterlogging, better carrier, automation, custom names (follow-up of PAR-DECO-04) | DECO | 47 | open |
+| PAR-DECO-26 | Chest extras: lid animation, trapped chest signal, waterlogging, better carrier, automation, custom names (follow-up of PAR-DECO-04) | DECO | 47 | done |
+| PAR-DECO-27 | Chest extras, second part: trapped chest signal, waterlogging, better carrier, automation, custom names, pests, vanilla chest loot (follow-up of PAR-DECO-26) | DECO | 48 | open |
 | PAR-METAL-27 | Blast furnace textured screen: temperature bar and tank bars | METAL | 37 | done |
 | PAR-METAL-28 | Anvil remote work: TFC AnvilBlockEntity.workRemotely for the trip hammer (the AnvilRemote service) | METAL | 55 | open |
 | PAR-METAL-29 | Vessels take molten metal from the charcoal forge's extra slots and the crucible's output slot (follow-up of PAR-METAL-22, -23, -25) | METAL | 34 | done |

@@ -68,8 +68,15 @@ public final class ChestScreens implements Listener {
     private final Messages messages;
     private final Predicate<ItemStack> fits;
     private final Map<ChestLink.Key, GuiSession> open = new ConcurrentHashMap<>();
+    /** PAR-DECO-26: shows the lid and plays the sound when the screen opens and closes (none when null). */
+    private final ChestLid lid;
 
     public ChestScreens(GuiService gui, Scheduler scheduler, Messages messages, Predicate<ItemStack> fits) {
+        this(gui, scheduler, messages, fits, null);
+    }
+
+    public ChestScreens(GuiService gui, Scheduler scheduler, Messages messages, Predicate<ItemStack> fits, ChestLid lid) {
+        this.lid = lid;
         this.gui = Objects.requireNonNull(gui, "gui");
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.messages = Objects.requireNonNull(messages, "messages");
@@ -98,6 +105,9 @@ public final class ChestScreens implements Listener {
             open.put(k, session);
         }
         apply(session, screen, chest.get());
+        if (lid != null) {
+            lid.set(screen.keys, true);
+        }
         return Optional.of(session);
     }
 
@@ -255,6 +265,9 @@ public final class ChestScreens implements Listener {
         Set<ChestLink.Key> keys = new HashSet<>(screen.keys);
         for (ChestLink.Key k : keys) {
             open.remove(k, session);
+        }
+        if (lid != null) {
+            lid.set(screen.keys, false);
         }
     }
 
