@@ -15,6 +15,7 @@ import dev.tfp.datagen.DatagenException;
 import dev.tfp.datagen.Json;
 import dev.tfp.datagen.OutputTree;
 import dev.tfp.datagen.TfcCheckout;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -142,7 +143,37 @@ public final class PlantStageGen {
         root.add("plants", p);
         root.add("models", m);
         root.add("budget", budget);
-        out.put(FILE, Json.write(root));
+        byte[] old = out.get(FILE);
+        if (old == null) {
+            out.put(FILE, Json.write(root));
+        } else {
+            // PlantBlockGen ran first: keep its dormant table
+            JsonObject before = Json.parse(new String(old, StandardCharsets.UTF_8), FILE).getAsJsonObject();
+            if (before.has(DORMANT_STATES)) {
+                root.add(DORMANT_STATES, before.get(DORMANT_STATES));
+            }
+            out.replace(FILE, Json.write(root).getBytes(StandardCharsets.UTF_8));
+        }
         return plants.size() + models.size();
+    }
+
+    /** The key of PAR-WORLD-61's table: base CE plant state to {@code {plant, state}} of its dormant look. */
+    public static final String DORMANT_STATES = "dormant_states";
+
+    /**
+     * PAR-WORLD-61: puts {@code PlantBlockGen}'s dormant table into {@value #FILE} under {@value #DORMANT_STATES}, whichever
+     * of the two generators runs first.
+     */
+    public static void mergeDormantStates(OutputTree out, JsonObject table) {
+        byte[] old = out.get(FILE);
+        if (old == null) {
+            JsonObject root = new JsonObject();
+            root.add(DORMANT_STATES, table);
+            out.put(FILE, Json.write(root));
+            return;
+        }
+        JsonObject root = Json.parse(new String(old, StandardCharsets.UTF_8), FILE).getAsJsonObject();
+        root.add(DORMANT_STATES, table);
+        out.replace(FILE, Json.write(root).getBytes(StandardCharsets.UTF_8));
     }
 }

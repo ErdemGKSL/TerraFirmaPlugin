@@ -99,6 +99,20 @@ public final class PlantPools {
             return Optional.empty();
         }
 
+        /**
+         * PAR-WORLD-61: the states {@link #land} could still hand out for a look of this tint: the room left in the
+         * tripwire pool for a tinted look, in every land pool for an untinted one.
+         */
+        public int remaining(boolean tinted) {
+            int n = 0;
+            for (String candidate : LAND.keySet()) {
+                if (!tinted || candidate.equals(TRIPWIRE)) {
+                    n += capacity(candidate) - use.get(candidate);
+                }
+            }
+            return n;
+        }
+
         /** Takes one state of {@code pool}; false when it is full. */
         public boolean take(String pool) {
             if (use.get(pool) >= capacity(pool)) {

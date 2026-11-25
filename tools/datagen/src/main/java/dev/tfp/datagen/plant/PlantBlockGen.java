@@ -103,9 +103,23 @@ public final class PlantBlockGen {
         }
     }
 
-    /** What {@link #run} wrote: the plants, their state count and the pool use per pool. */
-    public record Result(List<Plant> plants, int states, Map<String, Integer> poolUse, int looks) {
+    /**
+     * What {@link #run} wrote: the plants, their state count, the pool use per pool, the pool states taken (blooming and
+     * dormant looks) and the PAR-WORLD-61 dormant table (base CE state, e.g. {@code tfp:plant/allium}, to its dormant look).
+     */
+    public record Result(List<Plant> plants, int states, Map<String, Integer> poolUse, int looks, Map<String, Dormant> dormant) {
     }
+
+    /** PAR-WORLD-61: the dormant look of one base state: the plant (its bloom fields) and the look's CE state. */
+    public record Dormant(String plant, String state) {
+    }
+
+    /** PAR-WORLD-61: the block that only holds the dormant looks; never placed, only sent by the packet rewriter. */
+    public static final String DORMANT_BLOCK = Json.TO_NS + ":plant/dormant_look";
+    /** The TFC tags that name the flowers, which get the spare pool states first. */
+    static final List<String> FLOWER_TAGS = List.of(TfcCheckout.GENERATED + "data/minecraft/tags/block/flowers.json",
+        TfcCheckout.GENERATED + "data/minecraft/tags/block/small_flowers.json",
+        TfcCheckout.GENERATED + "data/minecraft/tags/block/tall_flowers.json");
 
     public static boolean available(TfcCheckout tfc) {
         return tfc.exists(PLANT_JAVA) && tfc.exists(ASSETS + "blockstates/plant/allium.json");
@@ -210,21 +224,20 @@ public final class PlantBlockGen {
         int states = 0;
         // first pass: the looks of every plant, so the pools are assigned in one deterministic order
         Map<Plant, Map<String, List<ModelRef>>> looks = new LinkedHashMap<>();
+        Map<Plant, Map<String, List<ModelRef>>> raw = new LinkedHashMap<>();
         for (Plant p : plants) {
             Map<String, List<ModelRef>> byKey = new LinkedHashMap<>();
+            Map<String, List<ModelRef>> rawByKey = new LinkedHashMap<>();
             Blockstate bs = Blockstate.read(tfc, p);
             for (String key : stateKeys(p)) {
                 String lookKey = key.replace("age=0", "age=1"); // ages 0 and 1 share the age-1 look
                 List<ModelRef> group = bs.models(lookKey, p);
-                List<ModelRef> resolved = new ArrayList<>();
-                for (ModelRef r : group) {
-                    String model = r.path().equals(EMPTY_MODEL) ? EMPTY_MODEL : assets.look(r.path(), p.tint());
-                    resolved.add(new ModelRef(model, r.x(), r.y(), r.uvlock(), r.weight()));
-                }
-                byKey.put(key, resolved);
+                byKey.put(key, resolve(assets, group, p, null));
+                rawByKey.put(key, group);
                 states++;
             }
             looks.put(p, byKey);
+            raw.put(p, rawByKey);
         }
         for (boolean tinted : List.of(false, true)) {
             for (Map.Entry<Plant, Map<String, List<ModelRef>>> e : looks.entrySet()) {
@@ -246,6 +259,8 @@ public final class PlantBlockGen {
                 }
             }
         }
+        Map<String, Dormant> dormant = new LinkedHashMap<>();
+        int taken = dormantLooks(tfc, out, assets, plants, looks, raw, lookIds, lookPool, allocator, dormant);
         assets.emptyModel();
         for (Map.Entry<Plant, Map<String, List<ModelRef>>> e : looks.entrySet()) {
             Plant p = e.getKey();
@@ -263,7 +278,154 @@ public final class PlantBlockGen {
             }
         }
         writeLang(tfc, out, plants);
-        return new Result(List.copyOf(plants), states, landUse(allocator), lookIds.size());
+        JsonObject table = new JsonObject();
+        dormant.forEach((base, d) -> {
+            JsonObject o = new JsonObject();
+            o.addProperty("plant", d.plant());
+            o.addProperty("state", d.state());
+            table.add(base, o);
+        });
+        dev.tfp.datagen.plant.stage.PlantStageGen.mergeDormantStates(out, table);
+        return new Result(List.copyOf(plants), states, landUse(allocator), lookIds.size() + taken,
+            java.util.Collections.unmodifiableMap(dormant));
+    }
+
+    private static List<ModelRef> resolve(Assets assets, List<ModelRef> group, Plant p, String stageKey) {
+        List<ModelRef> resolved = new ArrayList<>();
+        for (ModelRef r : group) {
+            String model = r.path().equals(EMPTY_MODEL) ? EMPTY_MODEL : assets.look(r.path(), p.tint(), stageKey);
+            resolved.add(new ModelRef(model, r.x(), r.y(), r.uvlock(), r.weight()));
+        }
+        return resolved;
+    }
+
+    /** The CE state string of a plant state key: {@code tfp:plant/rose[age=1,half=lower]}, or the bare id. */
+    static String stateString(String id, String key) {
+        return key.isEmpty() ? id : id + "[" + key + "]";
+    }
+
+    /** The plants TFC tags as flowers ({@code minecraft:flowers}, {@code small_flowers}, {@code tall_flowers}). */
+    static Set<String> flowers(TfcCheckout tfc) {
+        Set<String> names = new LinkedHashSet<>();
+        for (String tag : FLOWER_TAGS) {
+            if (!tfc.exists(tag)) {
+                continue;
+            }
+            for (JsonElement v : Json.parse(tfc.readString(tag), tag).getAsJsonObject().getAsJsonArray("values")) {
+                String id = v.isJsonObject() ? v.getAsJsonObject().get("id").getAsString() : v.getAsString();
+                if (id.startsWith(Json.FROM_NS + ":plant/")) {
+                    names.add(id.substring((Json.FROM_NS + ":plant/").length()));
+                }
+            }
+        }
+        return names;
+    }
+
+    /**
+     * PAR-WORLD-61: gives plants a dormant look on the plant pool states the blooming looks left over. A state's dormant
+     * look draws TFC's {@code dormant} stage of each {@code tfc:plant} loader model (the tint baked as for the blooming
+     * look); a state whose dormant look equals its blooming look needs none. Plants are served whole (every state of the
+     * plant or none) in a fixed order: the flowers first, then the rest, each in TFC's enum order; a plant that does not
+     * fit is skipped and the next one tried. A dormant look equal to an existing look reuses its pool state. The looks go
+     * on {@link #DORMANT_BLOCK} ({@code look} 0..n-1), the table into {@code dormant}.
+     *
+     * @return the pool states taken
+     */
+    private static int dormantLooks(TfcCheckout tfc, OutputTree out, Assets assets, List<Plant> plants,
+            Map<Plant, Map<String, List<ModelRef>>> looks, Map<Plant, Map<String, List<ModelRef>>> raw,
+            Map<String, String> lookIds, Map<String, String> lookPool, PlantPools.Allocator allocator,
+            Map<String, Dormant> dormant) {
+        Set<String> flowers = flowers(tfc);
+        List<Plant> order = new ArrayList<>();
+        plants.stream().filter(p -> flowers.contains(p.name())).forEach(order::add);
+        plants.stream().filter(p -> !flowers.contains(p.name())).forEach(order::add);
+        Map<String, List<ModelRef>> targets = new LinkedHashMap<>(); // dormant look key -> look, in look-index order
+        List<String> targetOrder = new ArrayList<>();
+        Map<String, String> ids = new LinkedHashMap<>();
+        Map<String, String> pools = new LinkedHashMap<>();
+        Map<String, Integer> index = new LinkedHashMap<>();
+        int taken = 0;
+        for (Plant p : order) {
+            Map<String, List<ModelRef>> wanted = new LinkedHashMap<>();
+            for (Map.Entry<String, List<ModelRef>> e : raw.get(p).entrySet()) {
+                if (e.getValue().stream().noneMatch(r -> r.path().startsWith(Json.FROM_NS + ":") && assets.staged(r.path()))) {
+                    continue;
+                }
+                List<ModelRef> d = resolve(assets, e.getValue(), p, "dormant");
+                if (!lookKey(d).equals(lookKey(looks.get(p).get(e.getKey())))) {
+                    wanted.put(e.getKey(), d);
+                }
+            }
+            if (wanted.isEmpty()) {
+                continue;
+            }
+            Set<String> fresh = new LinkedHashSet<>();
+            for (List<ModelRef> d : wanted.values()) {
+                String k = lookKey(d);
+                if (!lookIds.containsKey(k) && !ids.containsKey(k)) {
+                    fresh.add(k);
+                }
+            }
+            if (allocator.remaining(p.tint() != null) < fresh.size()) {
+                continue;
+            }
+            for (String k : fresh) {
+                pools.put(k, allocator.land(p.tint() != null).orElseThrow());
+                ids.put(k, "tfp_plant_" + (lookIds.size() + taken));
+                taken++;
+            }
+            for (Map.Entry<String, List<ModelRef>> e : wanted.entrySet()) {
+                String k = lookKey(e.getValue());
+                if (targets.putIfAbsent(k, e.getValue()) == null) {
+                    index.put(k, targetOrder.size());
+                    targetOrder.add(k);
+                }
+                dormant.put(stateString(p.id(), e.getKey()), new Dormant(p.name(), String.valueOf(index.get(k))));
+            }
+        }
+        if (targets.isEmpty()) {
+            return taken;
+        }
+        int n = targets.size();
+        dormant.replaceAll((base, d) -> new Dormant(d.plant(), n == 1 ? DORMANT_BLOCK : DORMANT_BLOCK + "[look=" + d.state() + "]"));
+        Map<String, Object> settings = new LinkedHashMap<>();
+        settings.put("hardness", new java.math.BigDecimal("0.0"));
+        settings.put("resistance", new java.math.BigDecimal("0.0"));
+        settings.put("sounds", sounds("grass"));
+        settings.put("replaceable", true);
+        settings.put("push_reaction", "destroy");
+        Map<String, Object> b = new LinkedHashMap<>();
+        b.put("settings", settings);
+        java.util.function.Function<String, Map<String, Object>> visual = k -> {
+            String id = lookIds.containsKey(k) ? lookIds.get(k) : ids.get(k);
+            String pool = lookIds.containsKey(k) ? lookPool.get(k) : pools.get(k);
+            return CeBlockStates.appearance(PlantPools.appearance(pool, id), targets.get(k));
+        };
+        if (n == 1) {
+            b.put("state", visual.apply(targetOrder.get(0)));
+        } else {
+            Map<String, Object> prop = new LinkedHashMap<>();
+            prop.put("type", "int");
+            prop.put("range", "0~" + (n - 1));
+            prop.put("default", 0);
+            Map<String, Object> appearances = new LinkedHashMap<>();
+            Map<String, Object> variants = new LinkedHashMap<>();
+            for (int i = 0; i < n; i++) {
+                appearances.put("look_" + i, visual.apply(targetOrder.get(i)));
+                variants.put("look=" + i, Map.of("appearance", "look_" + i));
+            }
+            Map<String, Object> st = new LinkedHashMap<>();
+            st.put("properties", Map.of("look", prop));
+            st.put("appearances", appearances);
+            st.put("variants", variants);
+            b.put("states", st);
+        }
+        Map<String, Object> blocks = new LinkedHashMap<>();
+        blocks.put(DORMANT_BLOCK, b);
+        Map<String, Object> root = new LinkedHashMap<>();
+        root.put("blocks", blocks);
+        out.put(OUTPUT_DIR + DORMANT_BLOCK.substring(DORMANT_BLOCK.lastIndexOf('/') + 1) + ".yml", Yaml.write(DeviceYaml.HEADER, root));
+        return taken;
     }
 
     static String lookKey(List<ModelRef> look) {
@@ -495,7 +657,15 @@ public final class PlantBlockGen {
 
         /** Our model of TFC model {@code model} for a block look: the stage model resolved, the tint baked. */
         public String look(String model, String tint) {
-            String stage = stage(model);
+            return look(model, tint, null);
+        }
+
+        /**
+         * PAR-WORLD-61: our model of TFC model {@code model} at lifecycle stage {@code stageKey} of a {@code tfc:plant}
+         * loader model (null: the first stage, the blooming look), the tint baked.
+         */
+        public String look(String model, String tint, String stageKey) {
+            String stage = stage(model, stageKey);
             copyModel(stage);
             String ours = Json.renameId(stage);
             if (tint == null) {
@@ -549,6 +719,11 @@ public final class PlantBlockGen {
 
         /** The model a {@code tfc:plant} loader model draws at its first stage, else the model itself. */
         String stage(String model) {
+            return stage(model, null);
+        }
+
+        /** The model a {@code tfc:plant} loader model draws at stage {@code key} (null: its first stage), else the model itself. */
+        String stage(String model, String key) {
             JsonObject o = read(model);
             if (!o.has("loader")) {
                 return model;
@@ -557,15 +732,20 @@ public final class PlantBlockGen {
                 throw new DatagenException(model + ": unsupported model loader " + o.get("loader"));
             }
             for (Map.Entry<String, JsonElement> e : o.entrySet()) {
-                if (!e.getKey().equals("loader") && !e.getKey().startsWith("__")) {
+                if (!e.getKey().equals("loader") && !e.getKey().startsWith("__") && (key == null || key.equals(e.getKey()))) {
                     JsonObject stage = e.getValue().getAsJsonObject();
                     if (stage.size() != 1 || !stage.has("parent")) {
                         throw new DatagenException(model + ": stage " + e.getKey() + " is not a plain parent");
                     }
-                    return stage(stage.get("parent").getAsString());
+                    return stage(stage.get("parent").getAsString(), key);
                 }
             }
-            throw new DatagenException(model + ": no stages");
+            throw new DatagenException(model + ": no stage " + (key == null ? "" : key));
+        }
+
+        /** Whether TFC model {@code model} is a {@code tfc:plant} loader model. */
+        boolean staged(String model) {
+            return read(model).has("loader");
         }
 
         /** Collects the texture variables along the parent chain (child first) and the variables of tinted faces. */
