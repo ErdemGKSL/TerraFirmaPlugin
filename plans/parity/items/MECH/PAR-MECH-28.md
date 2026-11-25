@@ -34,6 +34,7 @@ done_criteria:
 
 # PAR-MECH-28: Crankshaft outlines as TFC
 
-> Claimed: claude MECH session 011osUpA, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+> 2026-11-25 attempt (not committed): rows for BASE_SHAPES/SHAFT_SHAPES plus demands made the allocation fail with "hitbox overflow on 1.21: no free carrier for tfp:crankshaft#base_east" (20 datagen tests failed): the 8 crankshaft states need carrier states the 1.21 pool cannot spare. Needs a carrier-budget decision (fewer distinct shapes, or a shared carrier per facing pair) before retrying. Claim released.
