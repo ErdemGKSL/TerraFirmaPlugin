@@ -2,7 +2,7 @@
 id: PAR-WORLD-46
 title: "Write the CE plant blocks in generation: TfcTerrain places tfp:plant/* through PlantBlocks.ceRef, placeholders only as fallback"
 area: WORLD
-status: open
+status: blocked
 wave: 27
 deps: [PAR-WORLD-12]
 size: S
@@ -13,11 +13,15 @@ tfc_refs:
 files_owned:
   - "paper/src/main/java/dev/tfp/paper/worldgen/TfcTerrain.java"
   - "paper/src/test/java/dev/tfp/paper/worldgen/PlantWiringTest.java"
+  - "paper/src/main/java/dev/tfp/paper/worldgen/PlantBlocks.java"
+  - "paper/src/main/java/dev/tfp/paper/worldgen/PlantResources.java"
 ui: true
 in_game_steps:
   - "Fresh world; screenshot a meadow (GUI scale 2): TFC grasses and flowers with TFC textures, not vanilla flowers"
   - "tfp debug block (and /ce debug target-block) on a flower and on both halves of a tall plant: tfp:plant/<name> with age and half"
 plan:
+  - "BLOCKED (2026-11-25) only on the in-game check: the code is done and committed (see the Done line) but the worker that wrote it had no subagent tool to run the headless Paper + client session (PROTOCOL 6). Remaining: run in_game_steps, judge the screenshots, write docs/verification/PAR-WORLD-46/verdict.md, set done. PAR-WORLD-48 waits on this."
+  - "Done in code (2026-11-25): `PlantBlocks.ceRef` covers all 44 block types (faces from the extra mask, facing, open in salt water, ages drawn by CE, half, waterlogged for tall water plants); `PlantBlocks.write` writes the CE state first (both halves or none), placeholders only when CE does not know the ref, the PAR-WORLD-13 shapes have no placeholder (skipped without CE); `PlantResources.WRITTEN_TYPES` = every type; `TfcTerrain.PlantGround` gives the plant features the decided trees (3x3 window) and the carver tunnel mask (CarvingMaskView). files_owned widened to PlantBlocks/PlantResources (PAR-WORLD-13 is done; the orchestrator asked for WRITTEN_TYPES, carving mask and tree blocks here). Tests: PlantWiringTest 6. Ledger: feature row, cave-vine and tree-attachment divergences updated."
   - "PAR-WORLD-12 generated the land and floating plants (`tfp:plant/<name>`, 100 blocks) and added `PlantBlocks.ceRef(PlantState)` (`tfp:plant/rose[age=2,half=upper]`, null for the types still on placeholders). `TfcTerrain.decorate`'s plant target still writes `plantData(...)` placeholders: resolve `ceRef` through the CE state table like `customTreeData` (cache per `visuals.generation()`), and fall back to the placeholder when CE has not loaded or does not know the id."
   - "Both halves of a tall CE plant go together (lower and upper ceRef), never a CE lower half under a placeholder upper half. The emergent/one-block placeholder special cases of `PlantBlocks.write` apply only to placeholders. `PlantBlocks.free` must treat a CE plant already in the chunk as occupied (it reads Material; a CE plant reads as its carrier's material: tripwire, sugar cane or a sapling, never air)."
 tests:

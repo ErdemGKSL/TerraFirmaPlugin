@@ -220,8 +220,8 @@ class PlantWiringTest {
         assertThat(written).isEqualTo(5);
         assertThat(world.get("0,60,0")).isEqualTo("tfp:plant/cattail[half=lower,waterlogged=true]");
         assertThat(world.get("0,61,0")).isEqualTo("tfp:plant/cattail[half=upper,waterlogged=false]");
-        assertThat(world.get("1,65,0")).isEqualTo("tfp:plant/rose[age=0,half=lower]");
-        assertThat(world.get("1,66,0")).isEqualTo("tfp:plant/rose[age=0,half=upper]");
+        assertThat(world.get("1,65,0")).isEqualTo("tfp:plant/rose[age=1,half=lower]");
+        assertThat(world.get("1,66,0")).isEqualTo("tfp:plant/rose[age=1,half=upper]");
         assertThat(world.get("2,65,0")).isNotNull().doesNotStartWith("tfp:");
         assertThat(world.get("3,65,0")).isNull();
     }
