@@ -319,7 +319,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-05 | Wild crops and spreading crops (pumpkin, melon), rotten pumpkins | FARM | 30 | done |
 | PAR-FARM-07 | Spreading bushes, canes and cranberries | FARM | 30 | done |
 | PAR-METAL-05 | Anvil forging GUI: step buttons, target and progress markers, hammering, forging bonus | METAL | 30 | done |
-| PAR-PROC-16 | Glassworking: blowpipe operations (blow, roll, stretch, pinch, flatten, saw) | PROC | 30 | open |
+| PAR-PROC-16 | Glassworking: blowpipe operations (blow, roll, stretch, pinch, flatten, saw) | PROC | 30 | done |
 | PAR-FARM-08 | Fruit trees: saplings, growing branches, seasonal leaves, fruit | FARM | 31 | done |
 | PAR-METAL-06 | Welding on the anvil (flux) | METAL | 31 | done |
 | PAR-METAL-09 | Charcoal forge GUI and insulation/chimney multiblock scan | METAL | 31 | done |
@@ -482,6 +482,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-48 | Loom in-game verification and the in-progress cloth visual | PROC | 42 | open |
 | PAR-PROC-49 | Scribing table and sewing table blocks (tfp:wood/scribing_table/<wood>, tfp:wood/sewing_table/<wood>) | PROC | 41 | done |
 | PAR-PROC-50 | Scribing table in-game verification and TFC screen art | PROC | 42 | open |
+| PAR-PROC-52 | Glassworking items in CraftEngine and the in-game blowpipe check | PROC | 31 | open |
 | PAR-PROC-51 | Sewing table in-game verification and TFC screen art (tfp:gui/sewing) | PROC | 42 | open |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | done |
 | PAR-DECO-18 | Sandstone stairs, slabs and walls and the calcite spike | DECO | 49 | open |
