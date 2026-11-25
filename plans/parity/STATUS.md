@@ -380,7 +380,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-25 | Mob bucket items: the 20 TFC fish buckets as CE items (follow-up of PAR-FAUNA-11) | FAUNA | 43 | done |
 | PAR-HUD-20 | Ink splatter: the full-screen ink and glow-ink overlay while the player has tfc:ink / tfc:glow_ink (squid and octopoteuthis hits) | HUD | 43 | open |
 | PAR-FAUNA-14 | Pets: dogs and cats with commands | FAUNA | 44 | done |
-| PAR-FAUNA-15 | Horses, donkeys and mules: riding, breeding, chests | FAUNA | 44 | open |
+| PAR-FAUNA-15 | Horses, donkeys and mules: riding, breeding, chests | FAUNA | 44 | done |
 | PAR-FAUNA-17 | Hunting drops, butchering, hides | FAUNA | 44 | done |
 | PAR-FAUNA-18 | Fishing: rod, hook, bait | FAUNA | 44 | open |
 | PAR-FAUNA-23 | Fertilized egg incubation bar (TFC BarSystem EGG) on the shared item-bar layer | FAUNA | 44 | open |
@@ -502,5 +502,6 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-57 | In-game verification of PAR-WORLD-31, PAR-WORLD-32 and PAR-WORLD-42: groundcover, boulders and cave rocks in a fresh world; the remaining soil blocks | WORLD | 24 | open |
 | PAR-DECO-21 | Metal bars and chains (follow-up of PAR-DECO-09) | DECO | 49 | open |
 | PAR-FAUNA-33 | 200-animal load: spread the path starts of the livestock and prey goals (single-call spikes) (follow-up of PAR-FAUNA-28) | FAUNA | 56 | open |
+| PAR-FAUNA-34 | Livestock check hands horse-family mating and birth to the mount module (follow-up of PAR-FAUNA-15) | FAUNA | 46 | open |
 | PAR-POT-15 | Bowl automation: hoppers fill and empty powder bowls, the powder layer follows (follow-up of PAR-POT-09) | POTTERY | 28 | open |
 | PAR-DATA-19 | Advancement triggers left from PAR-DATA-03: feature events for TFC's 21 own triggers | DATA | 40 | open |

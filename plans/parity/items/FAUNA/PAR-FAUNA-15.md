@@ -2,7 +2,7 @@
 id: PAR-FAUNA-15
 title: "Horses, donkeys and mules: riding, breeding, chests"
 area: FAUNA
-status: open
+status: done
 wave: 44
 deps: [PAR-FAUNA-05]
 size: M
@@ -20,6 +20,7 @@ in_game_steps:
   - "tfp debug animal spawn horse adult; tame; saddle; ride; screenshot"
 plan:
   - "Vanilla horse/donkey/mule carriers with TFC stats (MountStats), familiarity taming, saddles, chests on donkeys/mules (carried weight -> overburden), mule from horse+donkey."
+  - "Done: PAR-FAUNA-15 commit: paper/mount MountModule (stats, taming gate, genes and mule foal, old age, thrown rider, loaded chest, leash), core MountInteract; core mount goldens 34 tests, MountModuleMockBukkitTest 9; in-game check pending (container cannot run client); follow-up PAR-FAUNA-34 (livestock check still pairs horses without the gate)."
 tests:
   - "core: mount goldens exist"
 done_criteria:
@@ -27,6 +28,5 @@ done_criteria:
 ---
 
 # PAR-FAUNA-15: Horses, donkeys and mules: riding, breeding, chests
-> Claimed: claude session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
