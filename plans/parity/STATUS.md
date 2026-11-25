@@ -414,7 +414,7 @@ Totals: 388 items; open 208, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-15 | Visual budget re-check after all block families | DECO | 49 | open |
 | PAR-MECH-01 | Rotation network blocks: axle, encased axle, gearbox, clutch, creative motor | MECH | 49 | done |
 | PAR-DECO-16 | Fire brick extras and smooth mud bricks: reinforced fire bricks, fire brick shelf, fireproof door, fire clay block | DECO | 49 | open |
-| PAR-HEAT-27 | Candle cake bite and pumpkin carving hooked to the cake and pumpkin blocks | HEAT | 49 | open |
+| PAR-HEAT-27 | Candle cake bite and pumpkin carving hooked to the cake and pumpkin blocks | HEAT | 49 | blocked |
 | PAR-HEAT-38 | Pot screen bubbles in game: the boiling bubble frames and the water-blue fluid band (the checks PAR-HEAT-37 could not capture) | HEAT | 50 | open |
 | PAR-MECH-02 | Rotation visuals: spinning axles and gears | MECH | 50 | done |
 | PAR-MECH-11 | Rotation blocks: axle carriers in the hitbox allocation, startup re-add, in-game check of PAR-MECH-01 | MECH | 50 | done |

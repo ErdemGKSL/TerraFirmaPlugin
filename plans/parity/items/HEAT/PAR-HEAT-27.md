@@ -2,9 +2,9 @@
 id: PAR-HEAT-27
 title: "Candle cake bite and pumpkin carving hooked to the cake and pumpkin blocks"
 area: HEAT
-status: open
+status: blocked
 wave: 49
-deps: [PAR-HEAT-11, PAR-DECO-12, PAR-FARM-05]
+deps: [PAR-HEAT-11, PAR-DECO-12, PAR-FARM-05, PAR-DECO-24]
 size: S
 aliases: ["follow-up of PAR-HEAT-11 (the cake is PAR-DECO-12's, TFC's pumpkin and its rot PAR-FARM-05's)"]
 tfc_refs:
@@ -20,6 +20,7 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
+  - "BLOCKED 2026-11-25 on PAR-DECO-24 (open): the cake block tfp:cake[bites] does not exist (PAR-DECO-12 moved the cakes to PAR-DECO-24), so a candle cake cannot be built, eaten or turned into a cake with one bite and nothing of the cake hook can be tested or checked in game. The pumpkin half needs no hook: PAR-FARM-05's FruitDevice (tfp:fruit/pumpkin, tfp:fruit/rotten_pumpkin) already carves a fresh pumpkin with a knife or shears and never carves a rotten one (CandleRules.PUMPKIN = tfp:pumpkin names no block; leave the carving to FruitDevice, or point CandleRules.PUMPKIN at tfp:fruit/pumpkin and drop one of the two carve paths). Once tfp:cake exists: provide CandleDevice.CakeEating from the cake's eating and settings.item tfp:cake on the candle cakes."
   - "Current: PAR-HEAT-11's CandleDevice eats a candle cake through a CandleDevice.CakeEating found in the module services (TFC TFCCakeBlock.eatCake: player.canEat(false), FoodData.CAKE, the block becomes tfp:cake[bites=1] and the candle drops); none is provided, so a click on a candle cake below its top only passes. CandleListener carves tfp:pumpkin with a knife or shears and asks a CandleService.Rotting from the services (TFC DecayingBlockEntity.isRotten); none is provided, so a pumpkin is never rotten. The candle on a cake (CandleService.addCandle) needs tfp:cake[bites] from PAR-DECO-12."
   - "Provide both from a small module in light/candle/hooks (service file line after the cake and crop modules): CakeEating from the cake's eating (the same nutrition and canEat as the cake block), Rotting from the pumpkin's decaying record. Check the property name bites and the ids tfp:cake and tfp:pumpkin against what PAR-DECO-12 and PAR-FARM-05 generated."
   - "Order of interactions on a candle cake (PAR-HEAT-11 review): in TFC the cake block's useItemOn runs before the item's useOn, so a click with a held tfp:torch, or with a candle on the lower half, eats a bite when the player can eat. PAR-HEAT-11's CandleListener (LOWEST) lights or adds first; once CakeEating exists, run the bite check before the torch's weak start when not sneaking."
