@@ -702,6 +702,13 @@ final class TfcTerrain {
 
             @Override
             public void place(int localX, int y, int localZ, PlantBlock block, Material material, boolean upperHalf) {
+                // PAR-WORLD-50: a coral plant, fan, wall fan or sea pickle as its CraftEngine state once CraftEngine knows it
+                final String coral = PlantBlocks.coralRef(block.state());
+                final BlockData custom = coral == null ? null : customBlockData(coral);
+                if (custom != null) {
+                    data.setBlock(localX, y, localZ, custom);
+                    return;
+                }
                 data.setBlock(localX, y, localZ, plantData(block.state(), material, upperHalf));
             }
 

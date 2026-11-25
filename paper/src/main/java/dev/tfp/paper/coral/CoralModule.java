@@ -7,19 +7,19 @@ package dev.tfp.paper.coral;
 
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
-import dev.tfp.paper.neighbour.NeighbourService;
 import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.event.HandlerList;
 
 /**
- * PAR-WORLD-25: the coral and sea pickle rules on the server: {@link CoralSupport} on the neighbour runner (needs the
- * neighbour module before it in the service file) and {@link CoralDeath} for living corals out of water. Both only act on
- * the {@code tfp:coral/*} and {@code tfp:sea_pickle} CraftEngine blocks, so without them nothing happens.
+ * PAR-WORLD-25: the coral and sea pickle rules on the server: {@link CoralSupportQueue} (PAR-WORLD-50: the
+ * {@link CoralSupport} rule with drops, instead of the neighbour runner, which writes air without drops) and
+ * {@link CoralDeath} for living corals out of water. Both only act on the {@code tfp:coral/*} and {@code tfp:sea_pickle}
+ * CraftEngine blocks, so without them nothing happens.
  */
 public final class CoralModule implements FeatureModule {
     public static final String ID = "coral";
 
-    private volatile NeighbourService.Registration registration;
+    private volatile CoralSupportQueue support;
     private volatile CoralDeath death;
 
     @Override
@@ -29,8 +29,9 @@ public final class CoralModule implements FeatureModule {
 
     @Override
     public void enable(ModuleContext context) {
-        context.services().get(NeighbourService.class)
-            .ifPresent(n -> registration = n.register(new CoralSupport(CoralSupport.VANILLA)));
+        final CoralSupportQueue s = new CoralSupportQueue(context.scheduler(), context.integrations().customBlocks());
+        context.listen(s);
+        support = s;
         final CoralDeath d = new CoralDeath(context.scheduler(), context.integrations().customBlocks(),
             ThreadLocalRandom::current);
         context.listen(d);
@@ -39,10 +40,10 @@ public final class CoralModule implements FeatureModule {
 
     @Override
     public void disable() {
-        final NeighbourService.Registration r = registration;
-        registration = null;
-        if (r != null) {
-            r.unregister();
+        final CoralSupportQueue s = support;
+        support = null;
+        if (s != null) {
+            HandlerList.unregisterAll(s);
         }
         final CoralDeath d = death;
         death = null;
