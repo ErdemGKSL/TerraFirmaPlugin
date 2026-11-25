@@ -37,4 +37,6 @@ done_criteria:
 
 # PAR-FAUNA-41: Wet lobster trap on CraftEngine's waterlogged leaves pool
 
+> Claimed: session_011osUp8LArwstSDt7X82o4E, 2026-11-25
+
 Follow `plans/parity/PROTOCOL.md`.
