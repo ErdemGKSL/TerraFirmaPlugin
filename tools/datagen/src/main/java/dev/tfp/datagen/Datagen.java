@@ -265,6 +265,9 @@ public final class Datagen {
         if (dev.tfp.datagen.plant.FlowerCutting.available(tfc)) { // PAR-FARM-21: tfp:flower_cutting (the item shears on a flower drop); fixtures have no TFCItems
             dev.tfp.datagen.plant.FlowerCutting.run(tfc, out);
         }
+        if (dev.tfp.datagen.plant.shape.PlantShapeGen.available(tfc)) { // PAR-WORLD-47: the other plant shapes (water, creeping, epiphytes, columns, cacti, kelp, bamboo) on the kelp/weeping pools and hitbox-only carriers
+            dev.tfp.datagen.plant.shape.PlantShapeGen.run(tfc, out);
+        }
         if (dev.tfp.datagen.rotation.RotationBlocks.available(tfc)) { // PAR-MECH-01: axles, encased axles, clutches, gearboxes, creative motor; fixtures have no rotation blocks
             dev.tfp.datagen.rotation.RotationBlocks.run(tfc, out);
         }

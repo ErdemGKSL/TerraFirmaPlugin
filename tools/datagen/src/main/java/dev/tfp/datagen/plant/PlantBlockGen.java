@@ -113,6 +113,11 @@ public final class PlantBlockGen {
 
     /** The plants of {@link #TYPES} in TFC's enum order, with their age rule and colour map read from Plant.java. */
     public static List<Plant> plants(TfcCheckout tfc) {
+        return plants(tfc, TYPES);
+    }
+
+    /** The plants of {@code types} (PAR-WORLD-47 reads the other block types through this). */
+    public static List<Plant> plants(TfcCheckout tfc, Set<String> types) {
         String src = tfc.readString(PLANT_JAVA);
         Map<String, Set<String>> sets = new LinkedHashMap<>();
         Matcher s = PLANT_SET.matcher(src);
@@ -144,18 +149,17 @@ public final class PlantBlockGen {
         while (m.find()) {
             String constant = m.group(1);
             String type = m.group(2);
-            if (!TYPES.contains(type)) {
+            if (!types.contains(type)) {
                 continue;
             }
             String tint = null;
             if (sets.get("BLOCK_TINTED_PLANTS").contains(constant)) {
-                if (sets.get("WATER_COLOR_PLANTS").contains(constant)) {
-                    throw new DatagenException(constant + " uses the water tint, which no generated plant type has");
-                }
-                // ClientEventHandler: water, else tall grass, else (vines) seasonal, else foliage, else grass
+                // ClientEventHandler: water, else tall grass, else (vines) seasonal, else foliage, else grass; the seasonal
+                // foliage colour of the vines (PAR-WORLD-47) is drawn with the foliage map until PAR-WORLD-48
                 boolean foliageColor = sets.get("FOLIAGE_COLOR_PLANTS").contains(constant);
-                tint = (type.equals("TALL_GRASS") || type.equals("SHORT_GRASS")) && !foliageColor ? "tall_grass"
-                    : foliageTypes.contains(type) || foliageColor ? "foliage" : "grass";
+                tint = sets.get("WATER_COLOR_PLANTS").contains(constant) ? "water"
+                    : (type.equals("TALL_GRASS") || type.equals("SHORT_GRASS")) && !foliageColor ? "tall_grass"
+                    : foliageTypes.contains(type) || foliageColor || type.equals("VINE") ? "foliage" : "grass";
             }
             out.add(new Plant(constant.toLowerCase(java.util.Locale.ROOT), type, aged.contains(type), tint,
                 sets.get("ITEM_TINTED_PLANTS").contains(constant)));
@@ -491,19 +495,19 @@ public final class PlantBlockGen {
      * Copies TFC models and textures (renamed) and makes the looks: the first lifecycle stage of a {@code tfc:plant} model,
      * and for a tinted plant a child model whose tinted textures are baked with the plant's colour map.
      */
-    static final class Assets {
+    public static final class Assets {
         private final TfcCheckout tfc;
         private final OutputTree out;
         private final Set<String> done = new HashSet<>();
         private final Map<String, int[]> colormaps = new LinkedHashMap<>();
 
-        Assets(TfcCheckout tfc, OutputTree out) {
+        public Assets(TfcCheckout tfc, OutputTree out) {
             this.tfc = tfc;
             this.out = out;
         }
 
         /** Our model of TFC model {@code model} for a block look: the stage model resolved, the tint baked. */
-        String look(String model, String tint) {
+        public String look(String model, String tint) {
             String stage = stage(model);
             copyModel(stage);
             String ours = Json.renameId(stage);
@@ -530,7 +534,7 @@ public final class PlantBlockGen {
         }
 
         /** The item model of a plant ({@code tfp:item/plant/<name>}), its layer0 baked when TFC tints the item. */
-        String itemModel(Plant p) {
+        public String itemModel(Plant p) {
             String model = Json.FROM_NS + ":item/plant/" + p.name();
             if (!tfc.exists(ASSETS + "models/item/plant/" + p.name() + ".json")) {
                 throw new DatagenException("TFC has no item model for plant " + p.name());
@@ -549,7 +553,7 @@ public final class PlantBlockGen {
             return Json.TO_NS + ":item/plant/" + p.name();
         }
 
-        void emptyModel() {
+        public void emptyModel() {
             JsonObject empty = new JsonObject();
             empty.add("textures", new JsonObject());
             empty.add("elements", new JsonArray());

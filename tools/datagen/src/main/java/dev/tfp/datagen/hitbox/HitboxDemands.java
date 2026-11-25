@@ -319,6 +319,39 @@ public final class HitboxDemands {
         return shape + "_*";
     }
 
+    /** PAR-WORLD-47: every appearance of a dry plant shape sits on its block's one carrier. */
+    public static final String PLANT_PATTERN = "*";
+    /** PAR-WORLD-47: the low creepers' row (the crop quarter outline, 12 x 4 x 12, no collision). */
+    public static final String PLANT_LOW_ROW = TfcShapes.cropKey("quarter");
+    /** PAR-WORLD-47: the other plants' row (the berry bush outline, 12 x 8 x 12, no collision). */
+    public static final String PLANT_ROW = TfcShapes.BERRY_BUSH_KEY;
+    /** PAR-WORLD-47: the solid plants' row (the upright barrel, 12 x 16 x 12 with collision): cacti, solid trunks, bamboo. */
+    public static final String PLANT_SOLID_ROW = "tfc:wood/barrel[axis=y,sealed=false]";
+    static final int PLANT_SHAPE_WEIGHT = -100;
+    /** PAR-WORLD-47: the plants with dry states per row, in TFC's enum order (PlantShapeGen checks them against Plant.java). */
+    public static final java.util.Map<String, List<String>> PLANT_SHAPE_ROWS = ordered(
+        PLANT_LOW_ROW, List.of("cobblestone_lichen", "elegant_sunburst_lichen", "morning_glory", "moss", "philodendron",
+            "reindeer_lichen", "ivy"),
+        PLANT_SOLID_ROW, List.of("barrel_cactus", "tree_fern_plant", "tree_fern", "cycad_plant", "cycad", "saguaro_plant",
+            "saguaro", "golden_bamboo"),
+        PLANT_ROW, List.of("arrowhead", "badderlocks", "bird_nest_fern", "bur_reed", "cattail", "cordgrass", "guzmania",
+            "licorice_fern", "artists_conk", "marigold", "phragmite", "pickerelweed", "ramirezella", "saguaro_fruit",
+            "sea_lavender", "silver_bromeliad", "tank_bromeliad", "vriesea", "water_taro", "arundo_plant", "arundo",
+            "dry_phragmite_plant", "dry_phragmite", "golden_bamboo_sapling"));
+
+    private static java.util.Map<String, List<String>> ordered(String k1, List<String> v1, String k2, List<String> v2, String k3,
+            List<String> v3) {
+        java.util.Map<String, List<String>> m = new java.util.LinkedHashMap<>();
+        m.put(k1, v1);
+        m.put(k2, v2);
+        m.put(k3, v3);
+        return java.util.Collections.unmodifiableMap(m);
+    }
+
+    public static String plantId(String name) {
+        return "tfp:plant/" + name;
+    }
+
     private HitboxDemands() {
     }
 
@@ -558,6 +591,11 @@ public final class HitboxDemands {
                     HitboxAllocation.TRANSPARENT, true, SPREADING_WEIGHT));
             }
         }
+        // PAR-WORLD-47: the dry plant shapes (creepers, epiphytes, columns, cacti, bamboo, emergent tall water plants),
+        // hitbox-only on the rows of the crops, berry bushes and barrels (no new carrier: the transparent states are shared);
+        // served last so they move no carrier of another block. The look is item displays (PlantShapeGen).
+        PLANT_SHAPE_ROWS.forEach((row, names) -> names.forEach(n -> d.add(new Demand(plantId(n), PLANT_PATTERN, row, 0,
+            HitboxAllocation.TRANSPARENT, true, PLANT_SHAPE_WEIGHT))));
         // PAR-DECO-01: the wood stairs, slabs, fences and log fences. TFC's blocks extend vanilla StairBlock, SlabBlock and
         // FenceBlock, so each takes the states of one vanilla twin of the same properties (woodTwin): the stairs and slabs
         // of each wood their own vanilla block with our models (TFC's model per state); the double slab is no demand (it
