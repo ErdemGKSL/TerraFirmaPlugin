@@ -29,4 +29,6 @@ done_criteria:
 
 # PAR-METAL-23: Crucible molds
 
+> Claimed: metal-23 worker, 2026-11-25
+
 Follow-up of PAR-METAL-12. Follow `plans/parity/PROTOCOL.md`.
