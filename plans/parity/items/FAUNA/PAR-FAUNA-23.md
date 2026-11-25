@@ -2,7 +2,7 @@
 id: PAR-FAUNA-23
 title: "Fertilized egg incubation bar (TFC BarSystem EGG) on the shared item-bar layer"
 area: FAUNA
-status: open
+status: done
 wave: 44
 deps: [PAR-HEAT-14, PAR-FAUNA-07]
 size: S
@@ -25,6 +25,7 @@ plan:
   - "Current (audit 2026-11-08): fertilized eggs carry the TFC egg component (PAR-FAUNA-06/07) but show no bar. TFC draws a gold bar on a fertilized egg: width round(13 * incubationDays / 8), incubationDays = 8 - clamp(hatchDay - today, 0, 8); not shown on unfertilized eggs."
   - "Register the egg bar after the heat bar in PAR-HEAT-14's ItemBar registry (TFC order) with TFC's formula, reading the lazy egg state; the packet-time rendering, creative stripping and 'other bar wins' rule come from PAR-HEAT-14."
   - "Colour: vanilla colours by fraction, not gold: reuse PAR-HEAT-14's Divergences row (add the egg to it)."
+  - "Done: core itembar/EggBar (TFC BarSystem EGG widths, gold, visible only when fertilized), paper itembar/egg (EggBars over the tfp:egg record, EggBarModule `egg_bar` after item_bar in the service file), colour row of PAR-HEAT-14 extended; EggBarGoldenTest 6 and EggBarRenderTest 5 green. In-game screenshots pending (container cannot run client)."
 tests:
   - "core: EggBarGoldenTest (widths for hatch days -1..10 around today, unfertilized invisible)"
   - "paper: a fertilized egg packet copy carries the bar, the server stack does not"
@@ -33,8 +34,6 @@ done_criteria:
 ---
 
 # PAR-FAUNA-23: Fertilized egg incubation bar
-
-> Claimed: sonnet-5.5 session_011osUp8, 2026-11-25
 
 > see_not_parity: NP-CLIENT-02 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
