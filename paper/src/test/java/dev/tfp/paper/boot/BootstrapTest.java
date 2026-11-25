@@ -319,7 +319,7 @@ class BootstrapTest {
                 "anvil",
                 "crucible",
                 "charcoalforge",
-                "pen",
+                "livestock",
                 "mold",
                 "rotation",
                 "pump",
