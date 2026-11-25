@@ -4,7 +4,7 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/client/IngameOverlays.java (renderFamiliarity) @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/client/IngameOverlays.java @ c3b4d9536 (renderFamiliarity)
  */
 package dev.tfp.paper.familiarity;
 
@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -44,6 +45,11 @@ public final class FamiliarityModule implements FeatureModule, Listener {
     static final double RANGE = 5.0;
     static final long PERIOD = 5L;
     static final long RESEND_TICKS = 40L;
+    static final int HEARTS = 10;
+    private java.util.function.Function<Player, Entity> looked;
+    private java.util.function.Function<Entity, Optional<FamiliarityReadout>> readoutOf;
+    private java.util.function.BooleanSupplier percent;
+    private java.util.function.BiFunction<String, String, String> pregnantText;
     private ModuleContext ctx;
     private final Map<UUID, Scheduler.TaskHandle> tasks = new ConcurrentHashMap<>();
     private final Map<UUID, Sent> sent = new ConcurrentHashMap<>();
@@ -97,34 +103,64 @@ public final class FamiliarityModule implements FeatureModule, Listener {
         sent.remove(id);
     }
 
+    /** Test seam: replaces the looked-at entity, the readout lookup, the percent option and the pregnant text. */
+    void initForTest(java.util.function.Function<Player, Entity> looked,
+                     java.util.function.Function<Entity, Optional<FamiliarityReadout>> readoutOf,
+                     java.util.function.BooleanSupplier percent,
+                     java.util.function.BiFunction<String, String, String> pregnantText) {
+        this.looked = looked;
+        this.readoutOf = readoutOf;
+        this.percent = percent;
+        this.pregnantText = pregnantText;
+    }
+
+    private Entity lookedAt(Player p) {
+        if (looked != null) {
+            return looked.apply(p);
+        }
+        RayTraceResult hit = p.rayTraceEntities((int) RANGE);
+        return hit == null ? null : hit.getHitEntity();
+    }
+
+    private Optional<FamiliarityReadout> readout(Entity e) {
+        if (readoutOf != null) {
+            return readoutOf.apply(e);
+        }
+        AnimalService animals = ((TfpPlugin) ctx.plugin()).animals();
+        ClockSnapshot now = ctx.clock().get();
+        if (animals == null || !now.isSet()) {
+            return Optional.empty();
+        }
+        Optional<AnimalRecord> record = animals.record(e);
+        Optional<LivestockSpecies> species = record.flatMap(r -> animals.table().find(r.species())).flatMap(Carrier::livestock);
+        if (species.isEmpty()) {
+            return Optional.empty();
+        }
+        return FamiliarityReadout.of(record.get().state(), species.get(), now.playerTicks());
+    }
+
+    private boolean percentOption() {
+        if (percent != null) {
+            return percent.getAsBoolean();
+        }
+        return ((TfpPlugin) ctx.plugin()).getConfig().getBoolean("animals.familiarity-as-percent", false);
+    }
+
     /** Player thread: reads the looked-at animal and sends the action bar when due. */
     void show(Player p) {
         if (!p.isSneaking() || p.isDead()) {
             stop(p.getUniqueId());
             return;
         }
-        AnimalService animals = ((TfpPlugin) ctx.plugin()).animals();
-        ClockSnapshot now = ctx.clock().get();
-        RayTraceResult hit = p.rayTraceEntities((int) RANGE);
-        if (animals == null || hit == null || hit.getHitEntity() == null || !now.isSet()) {
-            sent.remove(p.getUniqueId());
-            return;
-        }
-        Entity e = hit.getHitEntity();
-        Optional<AnimalRecord> record = animals.record(e);
-        Optional<LivestockSpecies> species = record.flatMap(r -> animals.table().find(r.species())).flatMap(Carrier::livestock);
-        if (species.isEmpty()) {
-            sent.remove(p.getUniqueId());
-            return;
-        }
-        Optional<FamiliarityReadout> readout = FamiliarityReadout.of(record.get().state(), species.get(), now.playerTicks());
+        Entity e = lookedAt(p);
+        Optional<FamiliarityReadout> readout = e == null ? Optional.empty() : readout(e);
         if (readout.isEmpty()) {
+            sent.remove(p.getUniqueId());
             return;
         }
         String locale = p.locale().toString().toLowerCase(Locale.ROOT);
-        Component text = format(readout.get(), e, locale);
-        String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(text)
-                + readout.get().band();
+        Component text = format(readout.get(), e, locale, percentOption());
+        String plain = PlainTextComponentSerializer.plainText().serialize(text) + readout.get().band();
         Sent last = sent.get(p.getUniqueId());
         long tick = e.getTicksLived();
         if (last == null || !last.text().equals(plain) || tick - last.tick() >= RESEND_TICKS) {
@@ -133,16 +169,26 @@ public final class FamiliarityModule implements FeatureModule, Listener {
         }
     }
 
-    Component format(FamiliarityReadout r, Entity e, String locale) {
+    /** TFC shows hearts filled by familiarity, or the percentage (displayFamiliarityAsPercent). */
+    Component format(FamiliarityReadout r, Entity e, String locale, boolean asPercent) {
         TextColor color = switch (r.band()) {
             case RED -> NamedTextColor.RED;
             case WHITE -> NamedTextColor.WHITE;
             case GRAY -> NamedTextColor.GRAY;
         };
-        Component line = Component.text("❤ " + r.percentText() + "%", color);
+        Component line;
+        if (asPercent) {
+            line = Component.text(r.percentText() + "%", color);
+        } else {
+            int filled = Math.round(r.familiarity() * HEARTS);
+            line = Component.text("\u2764".repeat(filled), color)
+                .append(Component.text("\u2661".repeat(HEARTS - filled), NamedTextColor.DARK_GRAY));
+        }
         if (r.pregnant()) {
             String name = e.getType().getKey().getKey();
-            line = line.append(Component.text("  " + ctx.messages().get(locale, "familiarity.pregnant", name), NamedTextColor.WHITE));
+            String pregnant = pregnantText != null ? pregnantText.apply(locale, name)
+                : ctx.messages().get(locale, "familiarity.pregnant", name);
+            line = line.append(Component.text("  " + pregnant, NamedTextColor.WHITE));
         }
         return line;
     }

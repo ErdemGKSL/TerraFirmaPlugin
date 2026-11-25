@@ -2,7 +2,7 @@
 id: PAR-FAUNA-22
 title: "Familiarity readout: sneak-looking at a TFC animal within 5 blocks shows its familiarity and pregnancy on the action bar (NP-UI-01 substitute for IngameOverlays.FAMILIARITY)"
 area: FAUNA
-status: open
+status: done
 wave: 42
 deps: [PAR-FAUNA-05, PAR-FAUNA-21]
 size: S
@@ -37,8 +37,8 @@ done_criteria:
 
 # PAR-FAUNA-22: Familiarity readout: sneak-looking at a TFC animal within 5 blocks shows its familiarity and pregnancy on the action bar (NP-UI-01 substitute for IngameOverlays.FAMILIARITY)
 
-> Claimed: FAUNA session, 2026-11-25
-
 > see_not_parity: NP-UI-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+Done: PAR-FAUNA-22 familiarity readout (hearts or percent, pregnant line), core FamiliarityReadoutTest + paper FamiliarityModuleMockBukkitTest (4). Pending in-game check (container cannot run client).
