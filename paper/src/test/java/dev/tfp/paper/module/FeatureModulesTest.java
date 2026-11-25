@@ -274,7 +274,8 @@ class FeatureModulesTest {
                 .anyMatch(p -> p.contains("'Bad Name'"));
         // the built-in tree is otherwise unchanged
         assertThat(d.getRoot().getChild("tfp").getChildren().stream().map(CommandNode::getName).toList())
-                .containsExactlyInAnyOrder("version", "reload", "debug", "time");
+                .containsExactlyInAnyOrder("version", "reload", "debug", "time",
+                        "player", "count", "clearworld", "trim", "weather"); // PAR-DATA-01
         // admins only, like every debug command
         assertThat(debug.getChild("alpha").canUse(console(new ArrayList<>()))).isTrue();
     }

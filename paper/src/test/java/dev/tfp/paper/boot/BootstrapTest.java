@@ -287,7 +287,8 @@ class BootstrapTest {
     void commandTreeStructure() {
         CommandDispatcher<CommandSourceStack> d = dispatcher(new FakeHandler());
         CommandNode<CommandSourceStack> tfp = d.getRoot().getChild("tfp");
-        assertThat(children(tfp)).containsExactlyInAnyOrder("version", "reload", "debug", "time");
+        assertThat(children(tfp)).containsExactlyInAnyOrder("version", "reload", "debug", "time",
+                "player", "count", "clearworld", "trim", "weather"); // PAR-DATA-01
         assertThat(children(tfp.getChild("time"))).containsExactlyInAnyOrder("set", "add");
         assertThat(children(tfp.getChild("time").getChild("set"))).containsExactlyInAnyOrder("day", "noon", "night", "midnight", "hour",
                 "dayLength", "monthLength", "rain", "clear"); // PAR-CLIM-13
@@ -340,6 +341,10 @@ class BootstrapTest {
         assertThat(tfp.getChild("reload").canUse(user)).isFalse();
         assertThat(tfp.getChild("debug").canUse(user)).isFalse();
         assertThat(tfp.getChild("time").canUse(user)).isFalse();
+        for (String name : List.of("player", "count", "clearworld", "trim", "weather")) { // PAR-DATA-01: TFC's permission level 2
+            assertThat(tfp.getChild(name).canUse(user)).as(name).isFalse();
+            assertThat(tfp.getChild(name).canUse(admin)).as(name).isTrue();
+        }
         assertThat(tfp.getChild("time").canUse(admin)).isTrue();
         assertThat(tfp.getChild("reload").canUse(admin)).isTrue();
         assertThat(tfp.getChild("debug").canUse(admin)).isTrue();

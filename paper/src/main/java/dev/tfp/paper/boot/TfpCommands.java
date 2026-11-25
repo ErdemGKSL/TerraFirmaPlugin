@@ -17,6 +17,8 @@ import dev.tfp.core.animal.CarrierTable;
 import dev.tfp.core.calendar.CalendarFormat;
 import dev.tfp.core.calendar.TimeCommand;
 import dev.tfp.core.showcase.Showcase;
+import dev.tfp.paper.command.DataCommandTree;
+import dev.tfp.paper.command.DataCommandsModule;
 import dev.tfp.paper.i18n.Messages;
 import dev.tfp.paper.module.DebugTree;
 import dev.tfp.paper.module.FeatureModules;
@@ -59,6 +61,7 @@ import org.bukkit.entity.Player;
  * /tfp time add years|months|days|hours &lt;n&gt; | ticks &lt;n&gt;   skip forward (tfp.admin)
  * /tfp time set dayLength vanilla|default|disabled|realtime|&lt;minutes&gt;, monthLength default|realtime|&lt;1-1000&gt;,
  *     rain, clear   TFC's rate, month length and weather search (tfp.admin, PAR-CLIM-13)
+ * /tfp player|count|clearworld|trim|weather   TFC's commands (tfp.admin, PAR-DATA-01, {@link DataCommandTree})
  * /tfp debug &lt;literal&gt;      added by a feature module ({@link dev.tfp.paper.module.DebugTree}, PAR-INFRA-01)
  * </pre>
  *
@@ -333,7 +336,7 @@ public final class TfpCommands {
                 (enabled, action) -> moduleCommand(handler, messages, enabled, action))) {
             debug.then(literal);
         }
-        return Commands.literal("tfp")
+        LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("tfp")
                 .requires(s -> s.getSender().hasPermission(PERMISSION))
                 .executes(version)
                 .then(Commands.literal("version").executes(version))
@@ -389,8 +392,14 @@ public final class TfpCommands {
                                 .then(timeAdd(handler, messages, TimeCommand.Unit.MONTHS, "months"))
                                 .then(timeAdd(handler, messages, TimeCommand.Unit.DAYS, "days"))
                                 .then(timeAdd(handler, messages, TimeCommand.Unit.HOURS, "hours"))
-                                .then(timeAdd(handler, messages, TimeCommand.Unit.TICKS, "ticks"))))
-                .build();
+                                .then(timeAdd(handler, messages, TimeCommand.Unit.TICKS, "ticks"))));
+        // PAR-DATA-01: TFC's commands (player, count, clearworld, trim, weather) under /tfp
+        for (LiteralArgumentBuilder<CommandSourceStack> literal : DataCommandTree.literals(
+                (enabled, action) -> moduleCommand(handler, messages, enabled, action),
+                () -> modules.isEnabled(DataCommandsModule.ID), DataCommandsModule::ops)) {
+            root.then(literal);
+        }
+        return root.build();
     }
 
     private static Command<CommandSourceStack> animalSpawn(Supplier<Handler> handler, Messages messages, boolean age,
