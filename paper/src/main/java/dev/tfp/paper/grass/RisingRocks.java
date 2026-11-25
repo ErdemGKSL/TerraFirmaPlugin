@@ -21,6 +21,7 @@ import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.climate.ChunkClimateSource;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -91,8 +92,7 @@ public final class RisingRocks {
             return Optional.empty();
         }
         boolean northern = world.getEnvironment() != World.Environment.NORMAL
-            || Solar.inNorthernHemisphere((chunkZ << 4) + 8, OverworldClimate.forWorldSeed(world.getSeed(),
-                OverworldClimate.DEFAULT_TEMPERATURE_SCALE).hemisphereScale());
+            || Solar.inNorthernHemisphere((chunkZ << 4) + 8, WorldSettingsLookup.climate(world).hemisphereScale());
         if (!spring(now.calendarTicks(), now.daysInMonth(), northern)) {
             return Optional.empty();
         }
@@ -140,7 +140,7 @@ public final class RisingRocks {
      * {@value #CLEARANCE} blocks of it are left (TFC's clearance scan would refuse them once it is there).
      */
     List<BlockPos> decide(Snapshot s, double lambda, double chanceOverride, RandomGenerator random) {
-        OverworldClimate climate = OverworldClimate.forWorldSeed(s.seed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate climate = WorldSettingsLookup.climate(s.seed());
         return decide(s, lambda, chanceOverride, random, pos -> climate.averageTemperature(pos,
             ChunkClimateSource.climateAt(s.seed(), pos.x(), pos.z())));
     }

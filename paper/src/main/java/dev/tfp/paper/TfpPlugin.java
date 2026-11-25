@@ -85,6 +85,7 @@ import dev.tfp.paper.suppression.SuppressionListener;
 import dev.tfp.paper.worldgen.FillTiming;
 import dev.tfp.paper.worldgen.TfcChunkGenerator;
 import dev.tfp.paper.worldgen.TfcFirstJoinSpawn;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -993,7 +994,7 @@ public final class TfpPlugin extends JavaPlugin implements TfpCommands.Handler {
                 return ClimateReading.unknown(now.sequence(), now.calendarTicks());
             }
             long seed = world.getSeed();
-            OverworldClimate climate = OverworldClimate.forWorldSeed(seed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+            OverworldClimate climate = WorldSettingsLookup.climate(seed);
             ChunkClimate chunk = ChunkClimateSource.climateAt(seed, pos.x(), pos.z());
             return ClimateReading.of(climate, chunk, pos, now);
         }

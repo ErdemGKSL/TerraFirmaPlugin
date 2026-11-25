@@ -15,6 +15,7 @@ import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.farm.FarmlandHydration;
 import dev.tfp.core.farm.FarmlandState;
 import dev.tfp.core.farm.Nutrients;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 
 /**
  * The numbers and the text of the hoe overlay (PAR-FARM-01), pure given a snapshot of the water around the farmland, the clock
@@ -30,7 +31,7 @@ public final class FarmlandReadout {
 
     /** The hydration and the nutrient percentages ({@code (int) (value * 100)}, as TFC's tooltip). Any thread. */
     public static Lines compute(FarmlandState state, HydrationSnapshot water, ChunkClimate climate, ClockSnapshot clock, long worldSeed) {
-        OverworldClimate model = OverworldClimate.forWorldSeed(worldSeed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate model = WorldSettingsLookup.climate(worldSeed);
         float rainfall = model.instantRainfall(climate, clock.calendarTicks(), clock.daysInMonth());
         FarmlandHydration hydration = FarmlandHydration.of(rainfall, climate.averageRainfall(), climate.rainfallVariance(),
             water.waterloggedAbove(), water.minCostWater(), water.soil());

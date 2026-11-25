@@ -20,6 +20,7 @@ import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.BlockVisuals;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.tags.Tags;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.bukkit.World;
@@ -52,7 +53,7 @@ public final class WildWorld {
     /** Whether the world is northern at the block (TFC {@code SolarCalculator.getInNorthernHemisphere}; other dimensions count as northern). */
     public static boolean northern(Block block) {
         World world = block.getWorld();
-        OverworldClimate climate = OverworldClimate.forWorldSeed(world.getSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate climate = WorldSettingsLookup.climate(world);
         return world.getEnvironment() != World.Environment.NORMAL || Solar.inNorthernHemisphere(block.getZ(), climate.hemisphereScale());
     }
 

@@ -20,6 +20,7 @@ import dev.tfp.core.world.BlockPos;
 import dev.tfp.core.worldgen.Mth;
 import dev.tfp.paper.climate.ChunkClimateSource;
 import dev.tfp.paper.instrument.InstrumentReadout;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
@@ -59,7 +60,7 @@ public final class WindmillWind {
         if (!c.overworld() || !c.clock().isSet()) {
             return 0f;
         }
-        OverworldClimate climate = OverworldClimate.forWorldSeed(c.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate climate = WorldSettingsLookup.climate(c.worldSeed());
         ChunkClimate chunk = ChunkClimateSource.climateAt(c.worldSeed(), c.pos().x(), c.pos().z());
         long ticks = c.clock().calendarTicks();
         int dim = c.clock().daysInMonth();

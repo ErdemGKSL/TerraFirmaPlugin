@@ -27,6 +27,7 @@ import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tags.Tags;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
@@ -134,8 +135,7 @@ public final class PlantSweeper {
         }
         double lambda = PlantSweepRules.lambda(elapsed, randomTickSpeed.applyAsInt(world));
         boolean northern = world.getEnvironment() != World.Environment.NORMAL
-            || Solar.inNorthernHemisphere((chunkZ << 4) + 8, OverworldClimate.forWorldSeed(world.getSeed(),
-                OverworldClimate.DEFAULT_TEMPERATURE_SCALE).hemisphereScale());
+            || Solar.inNorthernHemisphere((chunkZ << 4) + 8, WorldSettingsLookup.climate(world).hemisphereScale());
         boolean winter = winter(snapshotClock.calendarTicks(), snapshotClock.daysInMonth(), northern);
         scheduler.cpu(() -> {
             List<Spread> spreads;

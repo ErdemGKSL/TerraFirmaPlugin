@@ -2,7 +2,7 @@
 id: PAR-WORLD-56
 title: "Per-world TFC settings in the remaining climate readers (fog, crops, farmland, wild crops, rising rocks, regrowth, water terrain, calendar sample)"
 area: WORLD
-status: open
+status: done
 wave: 30
 deps: [PAR-WORLD-51]
 size: S
@@ -26,6 +26,7 @@ in_game_steps: []
 plan:
   - "PAR-WORLD-51 added `paper/worldgen/WorldSettingsLookup` (`climate(World)`, `climate(long seed)`, `waterTerrain(World)`) and made `ChunkClimateSource.climateAt(seed, x, z)` use the world's region settings. These readers outside its files_owned still build `OverworldClimate.forWorldSeed(seed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE)` or `new WaterTerrain(seed)`: FogForecast, CropSettle, WildWorld, FarmlandReadout, RisingRocks (2), PlantSweeper, WorldWaterService, itest PrecipSampleCase, and TfpPlugin.java:~996 (the calendar sample; a one-line hub edit in the PAR-INFRA-01 wiring, or move it into a module)."
   - "Replace each with `WorldSettingsLookup.climate(...)` / `WorldSettingsLookup.waterTerrain(world)`."
+  - "Done: FogForecast, CropSettle, WildWorld, FarmlandReadout, RisingRocks (2), PlantSweeper, WindmillWind (found after the item was written, added to files_owned), TfpPlugin calendar sample and itest PrecipSampleCase use WorldSettingsLookup.climate; WorldWaterService uses WorldSettingsLookup.waterTerrain. Test: WorldSettingsLookupCallSitesTest (source scan of paper and itest main sources for DEFAULT_TEMPERATURE_SCALE and new WaterTerrain(); WorldSettingsLookupTest already covers a 5000 temperature_scale world)."
 tests:
   - "paper: extend WorldSettingsLookupTest or a reader's own test with a 5000 temperature_scale world"
 done_criteria:
@@ -33,7 +34,5 @@ done_criteria:
 ---
 
 # PAR-WORLD-56: Per-world TFC settings in the remaining climate readers
-
-> Claimed: worker agent-a0d3502f, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

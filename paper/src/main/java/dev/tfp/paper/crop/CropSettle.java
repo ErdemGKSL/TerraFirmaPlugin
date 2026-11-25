@@ -20,6 +20,7 @@ import dev.tfp.core.farm.Nutrients;
 import dev.tfp.core.farm.SoilTier;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.farm.HydrationSnapshot;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 
 /**
  * The pure decision of one crop catch-up (decide async, apply sync): given what the region thread read ({@link Environment}), the stored
@@ -54,7 +55,7 @@ public final class CropSettle {
 
     /** The climate of the crop's place by calendar tick: the instant hydration of its farmland and the instant temperature. */
     public static CropRules.ClimateSource climate(Environment env, int daysInMonth) {
-        OverworldClimate model = OverworldClimate.forWorldSeed(env.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate model = WorldSettingsLookup.climate(env.worldSeed());
         boolean flooded = env.water() != null && env.water().waterloggedAbove();
         boolean source = env.water() != null && FarmlandRules.sourcePresent(env.water().minCostWater());
         float soilMultiplier = env.water() == null ? 1f : env.water().soil().multiplier();

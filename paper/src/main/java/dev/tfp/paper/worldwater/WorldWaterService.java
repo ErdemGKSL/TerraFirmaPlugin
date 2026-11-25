@@ -11,6 +11,7 @@ import dev.tfp.core.worldwater.WaterKind;
 import dev.tfp.core.worldwater.WaterTerrain;
 import dev.tfp.core.worldwater.WorldWaterRules;
 import dev.tfp.paper.worldgen.TfcChunkGenerator;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -72,7 +73,7 @@ public final class WorldWaterService {
                 || !(world.getGenerator() instanceof TfcChunkGenerator)) {
             return Optional.empty();
         }
-        return Optional.of(new WaterTerrain(world.getSeed()));
+        return Optional.of(WorldSettingsLookup.waterTerrain(world));
     }
 
     /**

@@ -472,4 +472,4 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 
 | PAR-DECO-19 | Alabaster and mud brick stairs, slabs and walls; wattle and daub | DECO | 49 | open |
 | PAR-WORLD-55 | In-game verification of PAR-WORLD-11 and PAR-WORLD-44: dead forests and mangroves; wood plant blocks | WORLD | 24 | open |
-| PAR-WORLD-56 | Per-world TFC settings in the remaining climate readers (fog, crops, farmland, wild crops, rising rocks, regrowth, water terrain, calendar sample) | WORLD | 30 | open |
+| PAR-WORLD-56 | Per-world TFC settings in the remaining climate readers (fog, crops, farmland, wild crops, rising rocks, regrowth, water terrain, calendar sample) | WORLD | 30 | done |

@@ -20,6 +20,7 @@ import dev.tfp.paper.calendar.CalendarService;
 import dev.tfp.paper.climate.ChunkClimateSource;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.weather.PrecipitationService;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +109,7 @@ public final class PrecipSampleCase implements SelfTestCase {
         World world = Bukkit.getWorlds().getFirst();
         check(world.getEnvironment() == World.Environment.NORMAL, "the first world is " + world.getEnvironment());
         long seed = world.getSeed();
-        OverworldClimate climate = OverworldClimate.forWorldSeed(seed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate climate = WorldSettingsLookup.climate(seed);
         int daysInMonth = tfp.clock().get().daysInMonth();
         Location spawn = world.getSpawnLocation();
         List<String> log = new ArrayList<>();

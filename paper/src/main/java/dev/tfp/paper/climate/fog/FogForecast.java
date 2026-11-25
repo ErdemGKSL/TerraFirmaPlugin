@@ -14,6 +14,7 @@ import dev.tfp.core.climate.OverworldClimate;
 import dev.tfp.core.climate.fog.ClimateFog;
 import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.paper.climate.ChunkClimateSource;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 
 /**
  * PAR-CLIM-14: the fog of a place and a calendar instant, as the quantised level the seasonal biome remap would pick a
@@ -50,7 +51,7 @@ public final class FogForecast {
      * @param skyLight the sky light at the player's eye, 0 to 15 (TFC takes it from the level at the camera)
      */
     public static Reading at(long worldSeed, int x, int z, ClockSnapshot clock, int skyLight, boolean force) {
-        final OverworldClimate climate = OverworldClimate.forWorldSeed(worldSeed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        final OverworldClimate climate = WorldSettingsLookup.climate(worldSeed);
         final ChunkClimate chunk = ChunkClimateSource.climateAt(worldSeed, x, z);
         final long ticks = clock.calendarTicks();
         final float rainfall = climate.instantRainfall(chunk, ticks, clock.daysInMonth());
