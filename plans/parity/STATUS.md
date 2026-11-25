@@ -297,7 +297,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-01 | Farmland block: hydration from water (async), nutrients, hoe overlay readout | FARM | 27 | done |
 | PAR-FLUID-05 | Fluid container tooltip in-game verification: debug fill of a jug shows the fluid line | FLUID | 27 | done |
 | PAR-METAL-01 | Alloy display and fluid alloy glue for vessels and crucibles | METAL | 27 | done |
-| PAR-POT-12 | Jug fluid overlay and the four glass bottle items | POTTERY | 27 | open |
+| PAR-POT-12 | Jug fluid overlay and the four glass bottle items | POTTERY | 27 | done |
 | PAR-POT-08 | Drying bricks, mud bricks and thatch blocks | POTTERY | 27 | open |
 | PAR-POT-09 | Bowls and powder bowls (wooden and ceramic bowl blocks) | POTTERY | 27 | done |
 | PAR-CLIM-11 | Climate in worlds without the TFC generator: biome-based climate model for the Nether, the End and vanilla worlds (temperature, rainfall, consumers) | CLIMATE | 27 | done |

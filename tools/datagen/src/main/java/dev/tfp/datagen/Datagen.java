@@ -121,6 +121,9 @@ public final class Datagen {
             dev.tfp.datagen.pottery.PotteryItems.run(tfc, out);
             dev.tfp.datagen.potteryheat.PotteryHeat.run(tfc, out); // PAR-POT-11: item_heat 1.2 for fired vessels and molds
         }
+        if (dev.tfp.datagen.glassbottle.GlassBottleItems.available(tfc)) { // PAR-POT-12: the four glass bottles and the jug fluid overlay; after PotteryItems, before the coverage gate
+            dev.tfp.datagen.glassbottle.GlassBottleItems.run(tfc, out);
+        }
         if (dev.tfp.datagen.tool.RockTools.available(tfc)) { // PAR-TOOL-01: rock tool heads and tools; before the coverage gate
             dev.tfp.datagen.tool.RockTools.run(tfc, out);
         }
