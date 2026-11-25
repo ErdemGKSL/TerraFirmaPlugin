@@ -417,7 +417,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-06 | Quern automation | MECH | 50 | done |
 | PAR-MECH-07 | Trip hammer | MECH | 50 | open |
 | PAR-WORLD-21 | Untracked surface features: forest-floor patches, tide pools, guano islands, bamboo, sea stack patches and five volcanic ids | WORLD | 50 | open |
-| PAR-WORLD-46 | Write the CE plant blocks in generation: TfcTerrain places tfp:plant/* through PlantBlocks.ceRef, placeholders only as fallback | WORLD | 27 | blocked |
+| PAR-WORLD-46 | Write the CE plant blocks in generation: TfcTerrain places tfp:plant/* through PlantBlocks.ceRef, placeholders only as fallback | WORLD | 27 | done |
 | PAR-WORLD-47 | Remaining plant shapes as CE blocks: water plants (waterlogged), creeping, epiphytes, vines, weeping/twisting columns, kelp, cacti, bamboo, intertidal plant-likes | WORLD | 27 | done |
 | PAR-WORLD-48 | Plant lifecycle looks, climate tint and soil rules: TFC's seasonal plant stages (tfc:plant model loader), per-climate grass/foliage colour, TFC canSurvive per plant type | WORLD | 28 | open |
 | PAR-WORLD-49 | Surface builder over every exposed floor: cave floors, arch and overhang floors get TFC's surface states (whole-column scan) | WORLD | 23 | done |

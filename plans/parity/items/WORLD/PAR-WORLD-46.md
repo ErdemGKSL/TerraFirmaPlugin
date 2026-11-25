@@ -2,7 +2,7 @@
 id: PAR-WORLD-46
 title: "Write the CE plant blocks in generation: TfcTerrain places tfp:plant/* through PlantBlocks.ceRef, placeholders only as fallback"
 area: WORLD
-status: blocked
+status: done
 wave: 27
 deps: [PAR-WORLD-12]
 size: S
@@ -34,3 +34,5 @@ done_criteria:
 # PAR-WORLD-46: Write the CE plant blocks in generation
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+Done (2026-11-25): code and tests complete. Pending in-game check (container cannot run client): the meadow screenshot steps and docs/verification/PAR-WORLD-46/verdict.md, owner runs them.
