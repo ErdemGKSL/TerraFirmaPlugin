@@ -13,6 +13,7 @@ import dev.tfp.core.world.Direction;
 import dev.tfp.paper.blockdata.PdcChunkDataStore;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.FakeCustomBlocks;
+import dev.tfp.paper.module.ModuleServices;
 import dev.tfp.paper.testing.MockServerTest;
 import java.util.Optional;
 import java.util.Set;
@@ -100,6 +101,28 @@ class PumpMockBukkitTest extends MockServerTest {
         pump(0, 71, 0, "north");
         none.run(world, new BlockPos(0, 71, 0));
         assertThat(world.getBlockAt(0, 71, -1).getType()).isNotEqualTo(Material.WATER);
+    }
+
+    /**
+     * PAR-MECH-14: the pump finds the crankshaft's {@link ShaftSource} through {@code ModuleServices} (as {@code PumpModule}
+     * does, even when the provider registers after the pump service exists) and asks the face opposite its facing.
+     */
+    @Test
+    void aShaftSourceProvidedByTheCrankshaftModulePowersThePump() {
+        ModuleServices services = new ModuleServices();
+        PumpService wired = new PumpService(scheduler, blocks, writer, () -> services.get(ShaftSource.class));
+        world.getBlockAt(0, 69, 0).setType(Material.WATER);
+        for (int y = 70; y <= 79; y++) {
+            blocks.place(world.getBlockAt(0, y, 0), pipe(y == 70 ? "water" : "empty", Direction.UP, Direction.DOWN), false);
+        }
+        pump(0, 80, 0, "north");
+        wired.run(world, new BlockPos(0, 80, 0));
+        assertThat(world.getBlockAt(0, 80, -1).getType()).isNotEqualTo(Material.WATER); // nobody provides yet
+
+        Rotation turning = Rotation.of(Direction.SOUTH, 0.1f);
+        services.provide(ShaftSource.class, (block, side) -> side == Direction.SOUTH ? turning : null);
+        wired.run(world, new BlockPos(0, 80, 0));
+        assertThat(world.getBlockAt(0, 80, -1).getType()).isEqualTo(Material.WATER);
     }
 
     @Test
