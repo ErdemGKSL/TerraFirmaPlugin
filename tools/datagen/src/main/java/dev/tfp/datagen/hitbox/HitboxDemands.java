@@ -65,6 +65,19 @@ public final class HitboxDemands {
         };
     }
 
+    /** PAR-METAL-19: the metal lamp blocks ({@code tfp:metal/lamp/<metal>}), one appearance per hanging and lit value. */
+    public static String lampId(String metal) {
+        return "tfp:metal/lamp/" + metal;
+    }
+
+    /** PAR-METAL-19: served after every other demand, so adding the lamps moves no carrier of another block. */
+    static final int LAMP_WEIGHT = -45;
+
+    /** PAR-METAL-19: the appearance of a lamp state ({@code off}, {@code on}, {@code hanging_off}, {@code hanging_on}). */
+    public static String lampAppearance(boolean hanging, boolean lit) {
+        return (hanging ? "hanging_" : "") + (lit ? "on" : "off");
+    }
+
     /** PAR-POT-09: the wooden and ceramic bowl blocks and their models (TFC {@code block/wooden_bowl}, {@code block/ceramic/bowl}). */
     public static final String CERAMIC_BOWL_ID = "tfp:ceramic/bowl";
     public static final String WOODEN_BOWL_ID = "tfp:wooden_bowl";
@@ -771,6 +784,15 @@ public final class HitboxDemands {
         }
         d.add(new Demand(MOLD_TABLE_ID, MOLD_TABLE_APPEARANCE, TfcShapes.MOLD_TABLE_KEY, 0, HitboxAllocation.TRANSPARENT, true,
             CHANNEL_WEIGHT));
+        // PAR-METAL-19: the nine metal lamps, one outline per hanging value and light per lit value, hitbox-only (the look is an item display).
+        for (String metal : METAL_ALL) {
+            for (boolean hanging : new boolean[] {false, true}) {
+                for (boolean lit : new boolean[] {false, true}) {
+                    d.add(new Demand(lampId(metal), lampAppearance(hanging, lit), TfcShapes.lampKey(hanging), lit ? 15 : 0,
+                        HitboxAllocation.TRANSPARENT, true, LAMP_WEIGHT));
+                }
+            }
+        }
         // PAR-METAL-18: the bronze and brass bells, one outline per attachment and facing class, hitbox-only; the look is item displays.
         for (String metal : TfcShapes.BELL_METALS) {
             for (String cls : TfcShapes.BELL_CLASSES) {

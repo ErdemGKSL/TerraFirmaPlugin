@@ -301,6 +301,9 @@ public final class Datagen {
         if (dev.tfp.datagen.bowl.BowlBlocks.available(tfc)) { // PAR-POT-09: tfp:wooden_bowl and tfp:ceramic/bowl blocks, models, powder layers, names; fixtures have none
             dev.tfp.datagen.bowl.BowlBlocks.run(tfc, out);
         }
+        if (dev.tfp.datagen.lamp.LampBlocks.available(tfc)) { // PAR-METAL-19: tfp:metal/lamp/<metal> blocks, models, names; fixtures have none
+            dev.tfp.datagen.lamp.LampBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.crucible.CrucibleScreenArt.available(tfc)) { // PAR-METAL-12: crucible screen art, thermometer and fill; fixtures have no crucible screen
             dev.tfp.datagen.crucible.CrucibleScreenArt.run(tfc, out);
         }

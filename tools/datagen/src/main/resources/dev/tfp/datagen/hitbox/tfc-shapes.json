@@ -2175,6 +2175,22 @@
       "from": "TFCBellBlock.java (ported)"
     },
     {
+      "key": "tfc:metal/lamp[hanging=false]",
+      "class": "lamp",
+      "kind": "object",
+      "selection": [[5, 0, 5, 11, 7, 11], [6, 7, 6, 10, 9, 10]],
+      "collision": [[5, 0, 5, 11, 7, 11], [6, 7, 6, 10, 9, 10]],
+      "from": "LampBlock.java (ported)"
+    },
+    {
+      "key": "tfc:metal/lamp[hanging=true]",
+      "class": "lamp",
+      "kind": "object",
+      "selection": [[5, 1, 5, 11, 8, 11], [6, 8, 6, 10, 10, 10]],
+      "collision": [[5, 1, 5, 11, 8, 11], [6, 8, 6, 10, 10, 10]],
+      "from": "LampBlock.java (ported)"
+    },
+    {
       "key": "tfc:pit_kiln[stage=0]",
       "class": "pit_kiln",
       "kind": "object",

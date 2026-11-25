@@ -444,6 +444,16 @@ public final class TfcShapes {
                     x -> bellShape(cls)));
             }
         }
+        // PAR-METAL-19: the metal lamps (LampBlock.SHAPE and HANGING_SHAPE, shared by the nine lamps), ported.
+        String lamp = D + "LampBlock.java";
+        for (boolean hanging : new boolean[] {false, true}) {
+            s.add(new Spec(lampKey(hanging), "lamp", Kind.OBJECT, List.of(lamp), null, null,
+                List.of("public class LampBlock extends ExtendedBlock",
+                    "Shapes.or(Block.box(5.0D, 0.0D, 5.0D, 11.0D, 7.0D, 11.0D), Block.box(6.0D, 7.0D, 6.0D, 10.0D, 9.0D, 10.0D))",
+                    "Shapes.or(Block.box(5.0D, 1.0D, 5.0D, 11.0D, 8.0D, 11.0D), Block.box(6.0D, 8.0D, 6.0D, 10.0D, 10.0D, 10.0D))",
+                    "return state.getValue(HANGING) ? HANGING_SHAPE : SHAPE;"),
+                List.of("getCollisionShape"), x -> lampShape(hanging)));
+        }
         // PAR-POT-14: the pit kiln, SHAPE_BY_LAYER[stage] (built in a Util.make loop, so ported) for the selection and the
         // collision (getShape, getCollisionShape and the support shape all return it).
         String kiln = D + "PitKilnBlock.java";
@@ -1463,6 +1473,18 @@ public final class TfcShapes {
             case "single_west" -> body.union(Shape.box(0, 13, 7, 13, 15, 9));
             default -> throw new IllegalArgumentException("unknown bell outline " + cls);
         };
+        return new Shape[] {shape, shape};
+    }
+
+    /** PAR-METAL-19: the row of a lamp outline (the same for every metal). */
+    public static String lampKey(boolean hanging) {
+        return "tfc:metal/lamp[hanging=" + hanging + "]";
+    }
+
+    /** PAR-METAL-19: {@code LampBlock.SHAPE} (standing) and {@code HANGING_SHAPE}; getShape only, so the collision is the same. */
+    static Shape[] lampShape(boolean hanging) {
+        Shape shape = hanging ? Shape.box(5, 1, 5, 11, 8, 11).union(Shape.box(6, 8, 6, 10, 10, 10))
+            : Shape.box(5, 0, 5, 11, 7, 11).union(Shape.box(6, 7, 6, 10, 9, 10));
         return new Shape[] {shape, shape};
     }
 

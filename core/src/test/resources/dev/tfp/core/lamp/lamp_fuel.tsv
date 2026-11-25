@@ -1,0 +1,5 @@
+id	fluid	burn_rate	lamps
+tfc:canola_oil	tfc:canola_oil	6000	#tfc:lamps
+tfc:lava	minecraft:lava	-1	tfc:metal/lamp/blue_steel,tfc:metal/lamp/red_steel
+tfc:olive_oil	tfc:olive_oil	7200	#tfc:lamps
+tfc:tallow	tfc:tallow	2400	#tfc:lamps
