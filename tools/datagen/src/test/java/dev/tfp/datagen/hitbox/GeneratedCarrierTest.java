@@ -33,6 +33,21 @@ import org.yaml.snakeyaml.Yaml;
  * eight-layer charcoal pile).
  */
 class GeneratedCarrierTest {
+    private static final String GROUNDCOVER_PREFIX = "tfp:groundcover/";
+
+    @org.junit.jupiter.api.Test
+    void groundcoverCarriersAreAllocatedInEveryFamily() {
+        long demands = HitboxDemands.all().stream().filter(d -> d.blockId().startsWith(GROUNDCOVER_PREFIX)).count();
+        assertThat(demands).isPositive();
+        for (java.util.Map.Entry<String, HitboxAllocation.Result> e : HitboxAllocation.standard().entrySet()) {
+            for (Demand d : HitboxDemands.all()) {
+                if (d.blockId().startsWith(GROUNDCOVER_PREFIX)) {
+                    assertThat(e.getValue().get(d.blockId(), d.appearance()).state()).as(e.getKey() + " " + d.id()).isNotBlank();
+                }
+            }
+        }
+    }
+
 
     @Test
     void everyExplicitStateInTheGeneratedYamlComesFromTheSelector() {
@@ -86,7 +101,11 @@ class GeneratedCarrierTest {
                     String from = String.valueOf(x.getKey());
                     String to = String.valueOf(x.getValue());
                     mappings.add(from + " -> " + to);
+                    // The groundcover generator writes one file per version family (PAR-WORLD-31), so its carriers
+                    // legitimately differ between families and agreed() does not apply; they are pinned per family in
+                    // groundcoverCarriersAreAllocatedInEveryFamily.
                     boolean fromSelector = HitboxDemands.all().stream()
+                        .filter(d -> !d.blockId().startsWith(GROUNDCOVER_PREFIX))
                         .map(d -> HitboxAllocation.agreed(d.blockId(), d.appearance()))
                         .anyMatch(a -> a.state().equals(from) && to.equals(a.hideTarget()));
                     if (!fromSelector) {
