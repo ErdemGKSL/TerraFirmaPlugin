@@ -28,7 +28,7 @@ class CaveDecorationTest {
     private static final Set<String> ELSEWHERE = Set.of("tfc:water_spring", "tfc:lava_spring", "tfc:water_surface_spring",
         "tfc:extra_water_surface_spring", "tfc:glacial_spring", "tfc:ice_sheet_spring", "tfc:underground_loose_rocks");
     /**
-     * Listed in the {@code in_biome/large_features} tags of ten biomes. ({@code tfc:hanging_roots_patch} is placed by no TFC
+     * Listed in the {@code in_biome/large_features} tags of 99 biomes. ({@code tfc:hanging_roots_patch} is placed by no TFC
      * biome or tag at c3b4d9536, so it never generates and has no rule.)
      */
     private static final List<String> BIOME_LISTED = List.of("tfc:cave_vegetation");
@@ -49,6 +49,8 @@ class CaveDecorationTest {
         final Set<String> covered = new LinkedHashSet<>(CaveDecoration.FEATURES);
         covered.add(CaveVegetation.FEATURE);
         covered.add(dev.tfp.core.worldgen.erosion.Erosion.FEATURE);
+        covered.add(UndergroundLakes.FEATURE);
+        assertThat(gaps).isEmpty();
         covered.addAll(gaps);
         assertThat(covered).containsExactlyInAnyOrderElementsOf(expected);
         assertThat(gaps).doesNotContainAnyElementsOf(CaveDecoration.FEATURES);

@@ -13,9 +13,12 @@
  */
 package dev.tfp.core.worldgen.cave;
 
+import dev.tfp.core.worldgen.biome.TfcBiomes;
 import dev.tfp.core.worldgen.groundcover.ClimateFilter;
 import dev.tfp.core.worldgen.groundcover.FeatureRandom;
 import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * PAR-WORLD-20: TFC's {@code tfc:cave_vegetation} (a large feature of ten biomes): around the origin, cave floors of raw rock
@@ -27,6 +30,20 @@ import dev.tfp.core.worldgen.random.XoroshiroRandomSource;
  */
 public final class CaveVegetation {
     public static final String FEATURE = "tfc:cave_vegetation";
+    /**
+     * PAR-WORLD-64: the biomes whose {@code in_biome/large_features} tag does not list {@code tfc:cave_vegetation} at
+     * c3b4d9536 (the oceans, shores, flats, dunes and ice sheets; the other 99 list it).
+     */
+    static final Set<String> WITHOUT = Set.of("coastal_dunes", "deep_ocean", "deep_ocean_atolls", "deep_ocean_trench",
+        "dune_sea", "guano_island", "ice_sheet", "ice_sheet_mountains", "ice_sheet_oceanic", "ice_sheet_oceanic_mountains",
+        "ice_sheet_shield_volcano", "ice_sheet_tuyas", "ice_sheet_volcanic_mountains", "ice_sheet_volcanic_oceanic_mountains",
+        "mud_flats", "ocean", "ocean_atolls", "ocean_reef", "ocean_ridge", "old_shield_volcano_shore", "rocky_shores",
+        "salt_flats", "shield_volcano_shore", "shore", "subglacial_lake", "tidal_flats");
+
+    /** Whether a TFC biome id lists the feature in its large features. */
+    public static boolean placesIn(int biome) {
+        return biome >= 0 && biome < TfcBiomes.COUNT && !WITHOUT.contains(TfcBiomes.name(biome).toLowerCase(Locale.ROOT));
+    }
     /** The placement's {@code tfc:climate}: 16 to 32 degrees, groundwater 150 to 470, fuzzy. */
     static final ClimateFilter CLIMATE = new ClimateFilter(16f, 32f, 150f, 470f, -1f, 1f, false, -64, 320, true, false);
     static final int MIN_Y = 15;

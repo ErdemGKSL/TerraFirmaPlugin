@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import com.google.gson.JsonParser;
 import dev.tfp.core.worldgen.cave.CaveDecoration;
 import dev.tfp.core.worldgen.cave.CaveVegetation;
+import dev.tfp.core.worldgen.cave.UndergroundLakes;
 import dev.tfp.core.worldgen.erosion.Erosion;
 import dev.tfp.core.worldgen.geode.GeodeConfig;
 import dev.tfp.core.worldgen.ore.VeinData;
@@ -88,6 +89,7 @@ class PlacedFeatureCoverageTest {
         decorationRules().forEach(id -> out.put(id, "decoration (ForestFloor, TidePools, SeaStacks, Bamboo)"));
         CaveDecoration.FEATURES.forEach(id -> out.put(id, "cave/CaveDecoration"));
         out.put(CaveVegetation.FEATURE, "cave/CaveVegetation");
+        out.put(UndergroundLakes.FEATURE, "cave/UndergroundLakes");
         out.put(Erosion.FEATURE, "erosion/Erosion");
         for (String id : List.of(Forest.FEATURE, Forest.DEAD_FEATURE, Forest.MANGROVE_FEATURE)) {
             out.put(id, "tree/Forest");

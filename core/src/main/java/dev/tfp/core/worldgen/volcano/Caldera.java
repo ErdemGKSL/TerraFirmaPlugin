@@ -15,6 +15,7 @@ package dev.tfp.core.worldgen.volcano;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,11 +24,22 @@ import java.util.Set;
  * above, then overfills layer by layer while each layer stays bounded inside the chunk and 14 blocks around it, so the lava
  * rises to the crater's rim. Fewer than 20 blocks fill nothing. Pure: it reads and writes a {@link VolcanoLevel} only.
  */
-final class Caldera {
+public final class Caldera {
     /** {@code Direction.values()}: down, up, north, south, west, east. */
     private static final int[][] DIRECTIONS = {{0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}, {-1, 0, 0}, {1, 0, 0}};
 
     private Caldera() {}
+
+    /**
+     * PAR-WORLD-64: {@code tfc:flood_fill_lake} ({@code state: minecraft:water}, {@code replace_fluids} empty, overfill) at
+     * origin {@code (x, y, z)} over the terrain of a view, as the underground flood-fill lake places it: the filled water
+     * blocks (and the dirt under a grass floor), or nothing when the lake is unbounded or below 20 blocks. No random draws.
+     */
+    public static List<VolcanicBlock> waterLake(VolcanoView view, int x, int y, int z) {
+        final VolcanoLevel level = new VolcanoLevel(view);
+        place(level, x, y, z, Config.WATER);
+        return level.volcanicBlocks();
+    }
 
     /**
      * {@code FloodFillLakeConfig} (every TFC config overfills).
