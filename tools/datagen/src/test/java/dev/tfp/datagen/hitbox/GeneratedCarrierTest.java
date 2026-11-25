@@ -444,7 +444,8 @@ class GeneratedCarrierTest {
             }
         }
         for (Demand d : HitboxDemands.all()) {
-            if (!d.blockId().equals(HitboxDemands.FIREPIT_ID)) {
+            // PAR-METAL-13: the channel's outlines are served last and may share a hitbox-only carrier (same transparent look)
+            if (!d.blockId().equals(HitboxDemands.FIREPIT_ID) && !d.blockId().equals(HitboxDemands.CHANNEL_ID)) {
                 assertThat(HitboxAllocation.agreed(d.blockId(), d.appearance()).state()).as(d.id()).isNotIn(carriers);
             }
         }
