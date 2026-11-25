@@ -462,9 +462,14 @@ public final class HitboxDemands {
         // PAR-HEAT-35 (owner decision 2026-11-18, was PAR-HEAT-23's four model carriers): every (lit, axis) appearance of
         // the firepit is hitbox-only on one shared carrier, drawn empty; TFC's lit or unlit model is an item display
         // turned per axis (Firepit), as the grill's.
+        // PAR-HEAT-36: the outline asked for is the grill's row, not the firepit's own: the firepit's best carrier by
+        // outline was the daylight detector, whose 6 px slab occludes (it is no noOcclusion block), so the client culled
+        // the top face of the block under every firepit and the floor showed black through the gaps of TFC's model. The
+        // grill's row picks the soul campfire (noOcclusion, 16 x 7 x 16), which culls nothing, and the firepit shares the
+        // grill's hitbox-only carrier (same transparent look; ledger divergence: the firepit's outline is 7 px, TFC's 6 px).
         for (boolean lit : new boolean[] {true, false}) {
             for (String axis : FIREPIT_AXES) {
-                d.add(new Demand(FIREPIT_ID, firepitAppearance(lit, axis), "tfc:firepit", lit ? FIREPIT_LIT_LIGHT : 0,
+                d.add(new Demand(FIREPIT_ID, firepitAppearance(lit, axis), "tfc:grill", lit ? FIREPIT_LIT_LIGHT : 0,
                     HitboxAllocation.TRANSPARENT, true, FIREPIT_WEIGHT));
             }
         }

@@ -240,9 +240,8 @@ class GeneratedCarrierTest {
                 "minecraft:snow[layers=7] -> minecraft:snow[layers=8]",
                 // PAR-PROC-37: the two-layer charcoal pile's carrier.
                 "minecraft:snow[layers=2] -> minecraft:snow[layers=3]",
-                "minecraft:heavy_weighted_pressure_plate[power=0] -> minecraft:heavy_weighted_pressure_plate[power=1]",
-                // PAR-HEAT-35: the firepit's one daylight detector carrier (PAR-HEAT-23 took four).
-                "minecraft:daylight_detector[inverted=false,power=0] -> minecraft:daylight_detector[inverted=false,power=1]");
+                "minecraft:heavy_weighted_pressure_plate[power=0] -> minecraft:heavy_weighted_pressure_plate[power=1]");
+        // PAR-HEAT-36: the firepit left the daylight detector (it occludes the block below), so no detector mapping is left.
         assertThat(problems).as("take carriers from dev.tfp.datagen.hitbox.HitboxAllocation").isEmpty();
     }
 
@@ -492,11 +491,11 @@ class GeneratedCarrierTest {
 
     @Test
     void theFirepitCarriersArePinned() {
-        // PAR-HEAT-35 (owner decision 2026-11-18; PAR-HEAT-23 took four powers, one model each): the four (lit, axis)
-        // appearances share one hitbox-only daylight detector state (the best free state for TFC's firepit outline),
-        // drawn empty; TFC's models are item displays. TFC crafts the detector, so the carrier is hidden as the next power
-        // (its model depends only on inverted). Served after the others (weight -5): it moves no other carrier.
-        String expected = "minecraft:daylight_detector[inverted=false,power=0]";
+        // PAR-HEAT-36 (was PAR-HEAT-35's daylight detector): the four (lit, axis) appearances share one hitbox-only carrier,
+        // drawn empty; TFC's models are item displays. The carrier is the grill's (the firepit asks for the grill's
+        // outline row): an unlit soul campfire, a noOcclusion block, so the client culls no face of the block below (the
+        // detector's 6 px slab did). It is absent from TFC worlds: no hide mapping.
+        String expected = "minecraft:soul_campfire[facing=west,lit=false,signal_fire=false,waterlogged=false]";
         java.util.Set<String> carriers = new java.util.HashSet<>();
         for (boolean lit : new boolean[] {true, false}) {
             for (String axis : HitboxDemands.FIREPIT_AXES) {
@@ -505,24 +504,21 @@ class GeneratedCarrierTest {
                 assertThat(a.mode()).as(app).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
                 assertThat(a.state()).as(app).isEqualTo(expected);
                 assertThat(a.demand().look()).as(app).isEqualTo(HitboxAllocation.TRANSPARENT);
-                assertThat(a.hideTarget()).as(app).isEqualTo("minecraft:daylight_detector[inverted=false,power=1]");
+                assertThat(a.hideTarget()).as(app).isNull();
                 carriers.add(a.state());
             }
         }
         assertThat(carriers).hasSize(1);
-        // The three powers PAR-HEAT-23 took are free again: no demand of any block sits on them.
+        // The detector powers PAR-HEAT-23/35 took are free again: none of the firepit's demands sits on a detector.
         for (Demand d : agreedDemands()) {
-            for (int power : new int[] {10, 12, 14}) {
-                assertThat(agreedOrOld(d).state()).as(d.id())
-                    .isNotEqualTo("minecraft:daylight_detector[inverted=false,power=" + power + "]");
+            if (d.blockId().equals(HitboxDemands.FIREPIT_ID)) {
+                assertThat(agreedOrOld(d).state()).as(d.id()).doesNotStartWith("minecraft:daylight_detector");
             }
         }
-        for (Demand d : agreedDemands()) {
-            // PAR-METAL-13: the channel's outlines are served last and may share a hitbox-only carrier (same transparent look)
-            if (!d.blockId().equals(HitboxDemands.FIREPIT_ID) && !d.blockId().equals(HitboxDemands.CHANNEL_ID)) {
-                assertThat(agreedOrOld(d).state()).as(d.id()).isNotIn(carriers);
-            }
-        }
+        // The grill shares the carrier (same transparent look); theGrillCarrierIsPinned checks that no other block puts a
+        // model or a vanilla look on it.
+        assertThat(HitboxAllocation.agreed(HitboxDemands.GRILL_ID, HitboxDemands.firepitAppearance(true, "x")).state())
+            .isEqualTo(expected);
     }
 
     @Test

@@ -50,13 +50,14 @@ import java.util.regex.Pattern;
  *
  * <p><b>Carrier.</b> PAR-HEAT-35 (owner decision 2026-11-18; PAR-HEAT-23 drew TFC's models on four detector states):
  * one appearance per (lit, axis) pair ({@code lit_x}, {@code lit_z}, {@code unlit_x}, {@code unlit_z}), all on ONE
- * hitbox-only carrier from the hitbox selector ({@link #carrier}: {@code daylight_detector[inverted=false,power=0]},
- * 16x6x16 against TFC's 2 px plate plus a 12x4x12 core, IoU 0.71) drawn empty ({@code transparent: true}). The look is an
+ * hitbox-only carrier from the hitbox selector ({@link #carrier}) drawn empty ({@code transparent: true}). PAR-HEAT-36: the
+ * carrier is the grill's, an unlit soul campfire (16x7x16, a {@code noOcclusion} block; the firepit's demand asks for the
+ * grill's outline row), because the daylight detector PAR-HEAT-35 chose (16x6x16, IoU 0.71) occludes: the client culled
+ * the top face of the block below every firepit and the floor showed black through the gaps of TFC's model. The look is an
  * {@code entity_renderer} item display of the display-only item of the lit value ({@link #renderItem}: TFC's
  * {@code firepit_lit} / {@code firepit_unlit} model) turned per axis ({@link #renderRotation}, as TFC's blockstate turns
- * axis z by y 90), exactly as the grill's; a state change (lighting, burn-out, douse) morphs the display. TFC crafts the
- * daylight detector, so the carrier hides real detectors at its power as the nearest free power
- * ({@code block_state_mappings}; the detector's model depends only on {@code inverted}, so they look the same).
+ * axis z by y 90), exactly as the grill's; a state change (lighting, burn-out, douse) morphs the display. A soul campfire
+ * is absent from TFC worlds, so the carrier needs no hide mapping.
  *
  * <p><b>Spec.</b> The entry is a {@link DeviceBlockSpec} built by {@link DeviceSpecs#firepitRendered} and written through
  * {@link DeviceYaml#literal} (PAR-INFRA-19), with TFC's settings ({@link DeviceBlockSpec.Settings#fromTfc}: strength

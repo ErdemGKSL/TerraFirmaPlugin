@@ -233,11 +233,11 @@ class FirepitTest {
     }
 
     /**
-     * The carriers the hitbox selector picks (PAR-INFRA-13): firepit 16x6x16 against TFC's 2 px plate + 12x4 core (IoU 0.71),
+     * The carriers the hitbox selector picks (PAR-INFRA-13): firepit (PAR-HEAT-36) the grill's hitbox-only soul campfire,
      * grill 5 snow layers (0.62 / 0.56), pot a cactus 14x16x14 (0.65 / 0.69). The same for lit and unlit (one TFC shape).
      */
     static final Map<String, String> SELECTED = Map.of(
-        Firepit.BLOCK_ID, "minecraft:daylight_detector[inverted=false,power=0]",
+        Firepit.BLOCK_ID, "minecraft:soul_campfire[facing=west,lit=false,signal_fire=false,waterlogged=false]",
         Grill.BLOCK_ID, "minecraft:snow[layers=5]",
         Pot.BLOCK_ID, "minecraft:cactus[age=0]");
 
@@ -264,7 +264,8 @@ class FirepitTest {
         Map<?, ?> appearances = (Map<?, ?>) states.get("appearances");
         Map<?, ?> variants = (Map<?, ?>) states.get("variants");
         assertThat(variants).hasSize(2 * (smokeMax + 1) * 2);
-        assertThat(yaml).as("no placeholder campfire: lit campfires make client smoke").doesNotContain("campfire");
+        assertThat(yaml).as("no placeholder campfire: lit campfires make client smoke").doesNotContain("minecraft:campfire")
+            .doesNotContain("minecraft:soul_campfire[facing=west,lit=true");
         if (blockId.equals(Firepit.BLOCK_ID)) {
             assertFirepitLook(root, appearances, variants, smokeMax);
         } else {
@@ -298,12 +299,10 @@ class FirepitTest {
     }
 
     /**
-     * PAR-HEAT-35 (was PAR-HEAT-23's four powers): the firepit's one carrier, shared by its four appearances, hidden as the
-     * next power (the detector is crafted in TFC; its model depends only on inverted).
+     * PAR-HEAT-36 (was PAR-HEAT-35's daylight detector): the firepit's one carrier, shared by its four appearances and by the
+     * grill: an unlit soul campfire, which occludes nothing below it and needs no hide mapping.
      */
-    static final String FIREPIT_CARRIER = "minecraft:daylight_detector[inverted=false,power=0]";
-    static final Map<String, String> FIREPIT_HIDES = Map.of(
-        FIREPIT_CARRIER, "minecraft:daylight_detector[inverted=false,power=1]");
+    static final String FIREPIT_CARRIER = "minecraft:soul_campfire[facing=west,lit=false,signal_fire=false,waterlogged=false]";
 
     /**
      * PAR-HEAT-35: four appearances on the one carrier drawn empty, each with one item display of TFC's model of its lit
@@ -322,7 +321,7 @@ class FirepitTest {
                         "rotation", axis.equals("x") ? "0,180,0" : "0,90,0"))));
             }
         }
-        assertThat(root.get("block_state_mappings")).isEqualTo(FIREPIT_HIDES);
+        assertThat(root.get("block_state_mappings")).as("no hide mapping: a soul campfire is absent from TFC worlds").isNull();
         Map<?, ?> items = (Map<?, ?>) root.get("items");
         assertThat(items.keySet().stream().map(String::valueOf).toList())
             .containsExactly("tfp:render/firepit_lit", "tfp:render/firepit_unlit");
@@ -352,7 +351,7 @@ class FirepitTest {
                 var a = Firepit.carrier(lit, axis);
                 assertThat(a.state()).isEqualTo(FIREPIT_CARRIER);
                 assertThat(a.mode()).isEqualTo(dev.tfp.datagen.hitbox.HitboxAllocation.Mode.HITBOX_ONLY);
-                assertThat(a.hideTarget()).isEqualTo(FIREPIT_HIDES.get(FIREPIT_CARRIER));
+                assertThat(a.hideTarget()).isNull();
                 assertThat(a.demand().look()).isEqualTo(dev.tfp.datagen.hitbox.HitboxAllocation.TRANSPARENT);
             }
         }

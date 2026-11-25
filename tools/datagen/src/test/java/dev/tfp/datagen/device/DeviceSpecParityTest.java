@@ -89,12 +89,14 @@ class DeviceSpecParityTest {
         SortedMap<String, byte[]> files = Datagen.generate(tfc.root(), TfcCheckout.PINNED_COMMIT).tree().files();
 
         // PAR-INFRA-13: the carriers come from the hitbox carrier selector's allocation.
-        // PAR-HEAT-35: the firepit, item displays of TFC's two models over one empty, hidden carrier, axis z turned 90.
+        // PAR-HEAT-35: the firepit, item displays of TFC's two models over one empty carrier, axis z turned 90 (PAR-HEAT-36: the grill's soul campfire, no hide).
         Map<String, String> hides = new java.util.TreeMap<>();
         for (boolean lit : new boolean[] {true, false}) {
             for (String axis : List.of("x", "z")) {
                 var a = HitboxAllocation.agreed("tfp:firepit", DeviceSpecs.firepitAppearance(lit, axis));
-                hides.put(a.state(), a.hideTarget());
+                if (a.hideTarget() != null) {
+                    hides.put(a.state(), a.hideTarget());
+                }
             }
         }
         DeviceBlockSpec firepit = DeviceSpecs.firepitRendered("tfp:firepit", firepitProps(),
@@ -107,12 +109,12 @@ class DeviceSpecParityTest {
         assertThat(firepit.stateCount()).isEqualTo(20);
         assertThat(firepit.appearances()).hasSize(4);
         assertThat(firepit.strategies()).containsExactly(DeviceAppearance.Strategy.ENTITY_RENDERER);
-        assertThat(hides).hasSize(1);
+        assertThat(hides).as("PAR-HEAT-36: the soul campfire carrier needs no hide mapping").isEmpty();
         String firepitText = text(files, PACK + "devices/firepit.yml");
         assertThat(firepitText).isEqualTo(DeviceYaml.writeLiteral(firepit));
         assertThat(firepitText).contains("luminance: 15", "luminance: 0", "minecraft:mineable/pickaxe",
-            "tfp:powder/wood_ash", "block_state_mappings", "transparent: true", "tfp:render/firepit_lit")
-            .doesNotContain("'y': 90");
+            "tfp:powder/wood_ash", "transparent: true", "tfp:render/firepit_lit")
+            .doesNotContain("'y': 90", "block_state_mappings");
 
         // PAR-HEAT-24: the grill, item displays of its two merged models over one empty carrier, axis z turned 90.
         DeviceBlockSpec grill = DeviceSpecs.firepitRendered("tfp:grill", firepitProps(),
