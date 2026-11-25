@@ -265,6 +265,9 @@ public final class Datagen {
         if (dev.tfp.datagen.vesselgui.VesselScreenArt.available(tfc)) { // PAR-POT-10: small vessel screen art; fixtures have no vessel screen
             dev.tfp.datagen.vesselgui.VesselScreenArt.run(tfc, out);
         }
+        if (dev.tfp.datagen.drying.DryingBlocks.available(tfc)) { // PAR-POT-08: tfp:drying_bricks/<soil>, tfp:thatch, mud_brick items, models, names; fixtures have none
+            dev.tfp.datagen.drying.DryingBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.nestbox.NestBoxBlock.available(tfc)) { // PAR-FAUNA-27: tfp:nest_box entry on the selector's carrier, model, texture, names; fixtures have no nest box
             dev.tfp.datagen.nestbox.NestBoxBlock.run(tfc, out);
         }

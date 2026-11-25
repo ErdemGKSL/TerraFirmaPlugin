@@ -190,7 +190,7 @@ class GeneratedCarrierTest {
             // branches), so seven farmlands take the leaves pool (FarmlandBlocks writes it, FarmlandBlocksTest checks it)
             + (int) HitboxDemands.FARMLAND_SOILS.stream()
                 .filter(soil -> agreedOrOld(demand(HitboxDemands.farmlandId(soil), HitboxDemands.FARMLAND_APPEARANCE)).pool())
-                .count());
+                .count() + 1); // PAR-POT-08: the thatch block on the leaves pool
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
             List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern",
                 "tfp:scraping", "tfp:placed_item", HitboxDemands.COMPOSTER_ID, HitboxDemands.LOG_PILE_ID, HitboxDemands.CHARCOAL_PILE_ID,
@@ -221,6 +221,9 @@ class GeneratedCarrierTest {
         expected.addAll(List.of(HitboxDemands.CHANNEL_ID, HitboxDemands.MOLD_TABLE_ID));
         // PAR-METAL-16: the ingot pile and the double ingot pile (hitbox-only, one appearance per collision layer).
         expected.addAll(List.of(HitboxDemands.INGOT_PILE_ID, HitboxDemands.DOUBLE_INGOT_PILE_ID));
+        // PAR-POT-08: the drying bricks of the eight soils (8 states each, hitbox-only on four shared carriers) and the thatch block.
+        HitboxDemands.DRYING_SOILS.forEach(soil -> expected.add(HitboxDemands.dryingId(soil)));
+        expected.add(HitboxDemands.THATCH_ID);
         // PAR-CLIM-27: the thermometer, anemometer, vane and calendar clock (150 states, hitbox-only).
         expected.addAll(List.of(HitboxDemands.THERMOMETER_ID, HitboxDemands.ANEMOMETER_ID, HitboxDemands.VANE_ID, HitboxDemands.CLOCK_ID));
         // PAR-FARM-15: the four spreading bushes, their canes, the cranberry, the dead bush and the dead cane (267 states).

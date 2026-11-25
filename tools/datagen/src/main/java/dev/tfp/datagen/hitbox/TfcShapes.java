@@ -370,8 +370,14 @@ public final class TfcShapes {
         }
         s.add(Spec.of("tfc:lobster_trap", "lobster_trap", Kind.OBJECT, List.of(B + "LobsterTrapBlock.java"), "Shapes.block()",
             "same", List.of("class LobsterTrapBlock extends DeviceBlock"), List.of("getShape(", "getCollisionShape")));
-        s.add(Spec.of("tfc:drying_bricks[count=2]", "drying_bricks", Kind.OBJECT, List.of(D + "DryingBricksBlock.java"),
-            "SHAPE_2", "same", List.of("case 2 -> SHAPE_2;"), List.of("getCollisionShape")));
+        // PAR-POT-08: TFC registers the drying bricks noCollission (SoilBlockType.DRYING_BRICKS), so the collision is empty.
+        for (int n = 1; n <= 4; n++) {
+            s.add(Spec.of("tfc:drying_bricks[count=" + n + "]", "drying_bricks", Kind.OBJECT,
+                List.of(D + "DryingBricksBlock.java", "src/main/java/net/dries007/tfc/common/blocks/soil/SoilBlockType.java"),
+                "SHAPE_" + n, "Shapes.empty()", List.of(n == 1 ? "default -> SHAPE_1;" : "case " + n + " -> SHAPE_" + n + ";",
+                    "DRYING_BRICKS((self, variant) -> new DryingBricksBlock(ExtendedProperties.of(MapColor.DIRT).noCollission()"),
+                List.of("getCollisionShape")));
+        }
         // PAR-PROC-04: the quern. Without a handstone the base (16x10x16) for both; with one, the selection is the base,
         // handstone and handle minus the input slot, the collision the base and handstone.
         String quern = D + "QuernBlock.java";

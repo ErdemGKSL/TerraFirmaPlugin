@@ -272,6 +272,46 @@ public final class HitboxDemands {
     /** PAR-PROC-39: served after every other demand (adding the keg moves no carrier of another block). */
     static final int POWDERKEG_WEIGHT = -4;
 
+    /**
+     * PAR-POT-08: the drying bricks of TFC's eight soils ({@code tfp:drying_bricks/<soil>}, TFC {@code count} 1..4 and
+     * {@code dried}), hitbox-only on TFC's outline per count (the soils share each carrier), and the thatch block (TFC's
+     * full cube without collision). Served after every other demand, so adding them moves no carrier of another block.
+     */
+    public static final List<String> DRYING_SOILS = List.of("alfisol", "andisol", "aridisol", "entisol", "fluvisol", "mollisol",
+        "oxisol", "podzol");
+    static final int DRYING_WEIGHT = -110;
+    public static final String THATCH_ID = "tfp:thatch";
+    public static final String THATCH_APPEARANCE = "default";
+    public static final String THATCH_ROW = "tfc:thatch";
+    public static final String THATCH_MODEL = "tfp:block/thatch";
+
+    public static String dryingId(String soil) {
+        return "tfp:drying_bricks/" + soil;
+    }
+
+    /** The appearance of a drying bricks state: {@code wet1}..{@code wet4}, {@code dry1}..{@code dry4}. */
+    public static String dryingAppearance(int count, boolean dried) {
+        return (dried ? "dry" : "wet") + count;
+    }
+
+    /** TFC's model of a drying bricks state ({@code mud_bricks/<wet|dry>_<count>_<soil>}). */
+    public static String dryingModel(String soil, int count, boolean dried) {
+        return "tfp:block/mud_bricks/" + (dried ? "dry" : "wet") + "_" + count + "_" + soil;
+    }
+
+    /**
+     * The tfc-shapes row a drying bricks demand is served for. TFC's outlines are corner boxes (one brick: 4x3x6 px at 2,0,1), too
+     * far off centre for any vanilla carrier, so the selector finds none for the one-, two- and three-brick outlines; every count
+     * takes the four-brick row (4 bricks: 2,0,1 to 14,3,15), whose best carrier is a pressure plate (ledger divergence: the
+     * hitbox of a small pile is as large as a full one).
+     */
+    public static String dryingRow(int count) {
+        if (count < 1 || count > 4) {
+            throw new IllegalArgumentException("count must be 1..4: " + count);
+        }
+        return "tfc:drying_bricks[count=4]";
+    }
+
     /** PAR-FAUNA-27: the nest box, one appearance on TFC's outline row (box 2,0,2..14,5,14) drawing TFC's model. */
     public static final String NEST_BOX_ID = "tfp:nest_box";
     public static final String NEST_BOX_APPEARANCE = "default";
@@ -585,6 +625,16 @@ public final class HitboxDemands {
             powderkegModel(POWDERKEG_SEALED), true, POWDERKEG_WEIGHT));
         d.add(new Demand(POWDERKEG_ID, POWDERKEG_LIT, POWDERKEG_ROW, 0,
             powderkegModel(POWDERKEG_LIT), true, POWDERKEG_WEIGHT));
+        // PAR-POT-08: the drying bricks (hitbox-only, TFC's model is an item display) and the thatch block.
+        for (String soil : DRYING_SOILS) {
+            for (int count = 1; count <= 4; count++) {
+                for (boolean dried : new boolean[] {false, true}) {
+                    d.add(new Demand(dryingId(soil), dryingAppearance(count, dried), dryingRow(count), 0,
+                        HitboxAllocation.TRANSPARENT, true, DRYING_WEIGHT));
+                }
+            }
+        }
+        d.add(new Demand(THATCH_ID, THATCH_APPEARANCE, THATCH_ROW, 0, THATCH_MODEL, true, DRYING_WEIGHT));
         // PAR-FAUNA-27: the nest box (TFC NestBoxBlock SHAPE, one appearance, TFC's model).
         d.add(new Demand(NEST_BOX_ID, NEST_BOX_APPEARANCE, NEST_BOX_ROW, 0, NEST_BOX_MODEL, true, NEST_BOX_WEIGHT));
         // PAR-POT-13: the placed item block; one pressure-plate carrier (class override placed_item), drawn empty (the items

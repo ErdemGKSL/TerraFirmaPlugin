@@ -1287,12 +1287,36 @@
       "from": "LobsterTrapBlock.java Shapes.block() / same"
     },
     {
+      "key": "tfc:drying_bricks[count=1]",
+      "class": "drying_bricks",
+      "kind": "object",
+      "selection": [[2, 0, 1, 6, 3, 7]],
+      "collision": [],
+      "from": "DryingBricksBlock.java SHAPE_1 / Shapes.empty()"
+    },
+    {
       "key": "tfc:drying_bricks[count=2]",
       "class": "drying_bricks",
       "kind": "object",
       "selection": [[2, 0, 1, 6, 3, 7], [10, 0, 1, 14, 3, 7]],
-      "collision": [[2, 0, 1, 6, 3, 7], [10, 0, 1, 14, 3, 7]],
-      "from": "DryingBricksBlock.java SHAPE_2 / same"
+      "collision": [],
+      "from": "DryingBricksBlock.java SHAPE_2 / Shapes.empty()"
+    },
+    {
+      "key": "tfc:drying_bricks[count=3]",
+      "class": "drying_bricks",
+      "kind": "object",
+      "selection": [[2, 0, 1, 6, 3, 7], [10, 0, 1, 14, 3, 7], [2, 0, 9, 6, 3, 15]],
+      "collision": [],
+      "from": "DryingBricksBlock.java SHAPE_3 / Shapes.empty()"
+    },
+    {
+      "key": "tfc:drying_bricks[count=4]",
+      "class": "drying_bricks",
+      "kind": "object",
+      "selection": [[2, 0, 1, 6, 3, 7], [10, 0, 1, 14, 3, 7], [2, 0, 9, 6, 3, 15], [10, 0, 9, 14, 3, 15]],
+      "collision": [],
+      "from": "DryingBricksBlock.java SHAPE_4 / Shapes.empty()"
     },
     {
       "key": "tfc:quern[has_handstone=false]",
