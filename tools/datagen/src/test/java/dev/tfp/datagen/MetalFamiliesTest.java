@@ -8,6 +8,7 @@ package dev.tfp.datagen;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import dev.tfp.datagen.hitbox.HitboxDemands;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -87,6 +88,88 @@ class MetalFamiliesTest {
             long anvils = folder.equals("anvil") ? 9 : 0;
             assertThat(tfc.list(MetalFamilies.BLOCKSTATES + folder)).as(folder).hasSize((int) (inOutput + anvils));
         }
+    }
+
+    /**
+     * PAR-DECO-09: the metal blocks, grates (renderer cubes), slabs, stairs and trapdoors (hitbox-only on shared vanilla twins)
+     * of the 19 metals are CraftEngine blocks with TFC's strength, sound, tool, drops and names; bars, chains and lamps are
+     * left out.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    void realCheckoutWritesTheMetalBlocksAsCraftEngineBlocks() {
+        Path checkout = Path.of(System.getProperty("tfc.checkout", "/opt/tfc"));
+        Assumptions.assumeTrue(Files.isDirectory(checkout.resolve(".git")), "no TFC checkout at " + checkout);
+        Assumptions.assumeTrue(PIN.equals(TfcCheckout.resolveHead(checkout)), "TFC checkout is not at the pinned commit");
+        TfcCheckout tfc = TfcCheckout.open(checkout, PIN);
+        List<MetalFamilies.Family> families = MetalFamilies.families(tfc);
+        OutputTree out = new OutputTree();
+        // 61 cubes, 40 stairs of 80 states, 40 slabs of 6, 9 trapdoors of 64
+        assertThat(MetalFamilies.writeBlocks(tfc, out, families)).isEqualTo(61 + 40 * 80 + 40 * 6 + 9 * 64);
+        assertThat(HitboxDemands.metalIds("stairs")).hasSize(40);
+        assertThat(HitboxDemands.metalIds("slab")).hasSize(40);
+        assertThat(HitboxDemands.metalIds("trapdoor")).hasSize(9);
+        assertThat(HitboxDemands.METAL_BLOCK_METALS).containsExactlyInAnyOrderElementsOf(
+            families.stream().map(MetalFamilies.Family::metal).toList());
+        int cubes = 0;
+        int shaped = 0;
+        for (MetalFamilies.Family f : families) {
+            String file = MetalFamilies.CONFIG_DIR + f.metal() + ".yml";
+            Map<String, Object> root = (Map<String, Object>) CeYamlCheck.parse(
+                new String(out.get(file), StandardCharsets.UTF_8), file);
+            Map<String, Object> blocks = (Map<String, Object>) root.get("blocks");
+            Map<String, Object> items = (Map<String, Object>) root.get("items");
+            List<MetalFamilies.Block> written = f.blocks().stream()
+                .filter(b -> !MetalFamilies.LEFT_OUT.contains(b.kind().replaceAll("^(exposed_|weathered_|oxidized_)", ""))).toList();
+            assertThat(blocks.keySet()).as(f.metal()).containsExactlyElementsOf(written.stream().map(b -> "tfp:" + b.path()).toList());
+            for (MetalFamilies.Block b : written) {
+                String id = "tfp:" + b.path();
+                Map<String, Object> block = (Map<String, Object>) blocks.get(id);
+                assertThat(items).as(id).containsKey(id);
+                if (block.containsKey("template")) { // a renderer cube
+                    cubes++;
+                    assertThat(block.get("template")).isEqualTo("tfp:block/rendered_cube");
+                    Map<String, Object> args = (Map<String, Object>) block.get("arguments");
+                    assertThat(args.get("rendered_hardness")).as(id).isEqualTo(5.0);
+                    assertThat(args.get("rendered_resistance")).as(id).isEqualTo(6.0);
+                    assertThat(args.get("rendered_sound_break")).as(id).isEqualTo(b.kind().endsWith("grate")
+                        ? "minecraft:block.copper_grate.break" : "minecraft:block.metal.break");
+                    assertThat(args.get("rendered_tool_tag")).isEqualTo("minecraft:mineable/pickaxe");
+                    assertThat(items).containsKey("tfp:render/" + b.path());
+                    continue;
+                }
+                shaped++;
+                Map<String, Object> settings = (Map<String, Object>) block.get("settings");
+                assertThat(settings.get("hardness")).as(id).isEqualTo(b.kind().equals("trapdoor") ? 5.0 : 5.0);
+                assertThat(settings.get("resistance")).as(id).isEqualTo(b.kind().equals("trapdoor") ? 5.0 : 6.0);
+                assertThat((List<String>) settings.get("tags")).as(id).contains("minecraft:mineable/pickaxe");
+                assertThat((List<String>) settings.get("correct_tools")).as(id).contains("#minecraft:pickaxes", "#tfp:tools/pickaxe");
+                Map<String, Object> states = (Map<String, Object>) block.get("states");
+                Map<String, Object> apps = (Map<String, Object>) states.get("appearances");
+                assertThat(apps.keySet()).as(id).isEqualTo(((Map<String, Object>) states.get("variants")).keySet());
+                assertThat(apps).as(id).hasSize(b.kind().equals("trapdoor") ? 64 : b.shape().equals("slab") ? 6 : 80);
+                String twin = HitboxDemands.twin(id);
+                assertThat(twin).as(id).isEqualTo(b.kind().equals("trapdoor") ? "minecraft:oak_trapdoor"
+                    : b.shape().equals("slab") ? "minecraft:stone_brick_slab" : "minecraft:stone_brick_stairs");
+                for (Map.Entry<String, Object> a : apps.entrySet()) {
+                    Map<String, Object> app = (Map<String, Object>) a.getValue();
+                    if (a.getKey().startsWith("type=double")) {
+                        assertThat(app.get("state")).isEqualTo("minecraft:barrier");
+                        continue;
+                    }
+                    assertThat(app.get("state")).as(id + "#" + a.getKey()).isEqualTo(twin + "[" + a.getKey() + "]");
+                    assertThat(app.get("transparent")).isEqualTo(true);
+                    assertThat((List<Object>) app.get("entity_renderer")).hasSize(1);
+                }
+            }
+        }
+        assertThat(cubes).isEqualTo(61);
+        assertThat(shaped).isEqualTo(89);
+        String copper = new String(out.get(MetalFamilies.CONFIG_DIR + "copper.yml"), StandardCharsets.UTF_8);
+        assertThat(copper).contains("can_open_with_hand: false", "tfp:metal/oxidized_grate/copper:");
+        String lang = new String(out.get(MetalFamilies.LANG_RP + "en_us.json"), StandardCharsets.UTF_8);
+        assertThat(lang).contains("\"block.tfp.metal.block.copper_stairs\": \"Copper Plated Stairs\"");
+        assertThat(lang.lines().filter(l -> l.contains("\"block.tfp.")).count()).isEqualTo(150);
     }
 
     @Test

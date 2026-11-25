@@ -400,7 +400,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-32 | Pest infestation of large vessels and nest boxes (follow-up of PAR-FAUNA-13) | FAUNA | 46 | open |
 | PAR-DECO-07 | Mud bricks, alabaster, aggregate, fire bricks, wattle and daub, thatch | DECO | 47 | done |
 | PAR-DECO-08 | Sand, sandstone families, hardened clay, halite, coal, calcite, misc natural blocks | DECO | 47 | done |
-| PAR-DECO-09 | Metal decoration blocks: metal blocks (and weathered), bars, chains, grates, trapdoors | DECO | 47 | open |
+| PAR-DECO-09 | Metal decoration blocks: metal blocks (and weathered), bars, chains, grates, trapdoors | DECO | 47 | done |
 | PAR-TOOL-09 | Chisel: smoothing, slabs and stairs with mode cycling | TOOL | 47 | open |
 | PAR-INFRA-53 | Hitbox carrier in-game verification of the classes added by family items: piles, rocks, ores, groundcover, placed items, containers, seals, heavy_core | INFRA | 47 | open |
 | PAR-DECO-11 | Boats, chest boats and minecarts | DECO | 48 | open |
@@ -499,3 +499,4 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-28 | 200-animal load: staggered check phase and goal spikes within the tick budget (follow-up of PAR-FAUNA-26) | FAUNA | 55 | open |
 | PAR-WORLD-58 | Waterlogged groundcover: TFC's FLUID property on the CE loose rocks, small ores and groundcover, wet hitbox rows, and the worldgen writing them under water | WORLD | 23 | open |
 | PAR-WORLD-57 | In-game verification of PAR-WORLD-31, PAR-WORLD-32 and PAR-WORLD-42: groundcover, boulders and cave rocks in a fresh world; the remaining soil blocks | WORLD | 24 | open |
+| PAR-DECO-21 | Metal bars and chains (follow-up of PAR-DECO-09) | DECO | 49 | open |

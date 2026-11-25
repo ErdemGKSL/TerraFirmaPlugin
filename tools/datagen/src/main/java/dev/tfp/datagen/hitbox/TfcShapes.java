@@ -1214,8 +1214,19 @@ public final class TfcShapes {
             "[$1, $2, $3, $4, $5, $6]").replaceAll("\\[\\s+\\[", "[[").replaceAll("]\\s+]", "]]").replaceAll("],\\s+\\[", "], [");
     }
 
-    /** The committed table, by key. */
+    private static volatile Map<String, Row> loaded;
+
+    /** The committed table, by key (parsed once: the rows are immutable and every demand looks one up). */
     public static Map<String, Row> load() {
+        Map<String, Row> rows = loaded;
+        if (rows == null) {
+            rows = java.util.Collections.unmodifiableMap(read());
+            loaded = rows;
+        }
+        return rows;
+    }
+
+    private static Map<String, Row> read() {
         try (InputStream in = TfcShapes.class.getResourceAsStream(RESOURCE)) {
             if (in == null) {
                 throw new DatagenException("missing datagen resource hitbox/" + RESOURCE);

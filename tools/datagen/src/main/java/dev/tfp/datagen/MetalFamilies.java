@@ -54,7 +54,7 @@ import java.util.regex.Pattern;
  *   <li>Slabs, stairs and trapdoors use CraftEngine's {@code slab_block}, {@code stairs_block} and {@code trapdoor_block}
  *       behaviours, hitbox-only on the shared vanilla twins of {@link HitboxDemands#metalTwin} and draw TFC's model of each
  *       state as one item display; the double slab draws the block's cube on the barrier carrier.</li>
- *   <li>Bars, chains and lamps are left out (follow-up PAR-DECO-20, lamps PAR-METAL-19).</li>
+ *   <li>Bars, chains and lamps are left out (follow-up PAR-DECO-21, lamps PAR-METAL-19).</li>
  * </ul>
  */
 final class MetalFamilies {
@@ -308,7 +308,7 @@ final class MetalFamilies {
     /** The folders that are renderer cubes: the four ages of the block and of the grate. */
     static final Set<String> CUBE_FOLDERS = Set.of("block", "exposed_block", "weathered_block", "oxidized_block", "grate",
         "exposed_grate", "weathered_grate", "oxidized_grate");
-    /** Kinds left out: bars and chains (PAR-DECO-20), lamps (PAR-METAL-19). */
+    /** Kinds left out: bars and chains (PAR-DECO-21), lamps (PAR-METAL-19). */
     static final Set<String> LEFT_OUT = Set.of("bars", "chain", "lamp");
     /** TFC's iron {@code BlockSetType}: the trapdoor sounds; it is not opened by hand. */
     private static final Map<String, String> TRAPDOOR_SOUNDS = Map.of("open", "minecraft:block.iron_trapdoor.open", "close",

@@ -2,7 +2,7 @@
 id: PAR-DECO-09
 title: "Metal decoration blocks: metal blocks (and weathered), bars, chains, grates, trapdoors"
 area: DECO
-status: open
+status: done
 wave: 47
 deps: [PAR-DECO-01, PAR-INFRA-13, PAR-INFRA-17]
 size: M
@@ -22,6 +22,7 @@ in_game_steps:
 plan:
   - "Load the 177 metal family blocks (lamps in PAR-METAL-19); chains as vanilla chain carriers, bars as iron bars carriers where pools allow, otherwise entity_renderer."
   - "Renderer cubes (metal blocks) use PAR-INFRA-17's `tfp:block/rendered_cube` template with destroy_stages, TFC metal sounds and material particles."
+  - "Done: 61 renderer cubes (metal block x4 ages, grate x4 ages), 40 stairs, 40 slabs and 9 trapdoors as CE blocks (configuration/metalfamily/<metal>.yml, MetalFamilies.writeBlocks; slabs, stairs and trapdoors hitbox-only on shared twins stone_brick_slab / stone_brick_stairs / oak_trapdoor); bars and chains moved to PAR-DECO-21, lamps stay PAR-METAL-19. MetalFamiliesTest (+1) passes. Pending in-game check (showcase metal not written; container cannot run the client)."
 tests:
   - "tools/datagen: MetalFamiliesTest"
 done_criteria:
@@ -30,8 +31,6 @@ done_criteria:
 ---
 
 # PAR-DECO-09: Metal decoration blocks: metal blocks (and weathered), bars, chains, grates, trapdoors
-
-> Claimed: dreamy-heisenberg session, 2026-11-25
 
 > see_not_parity: NP-VIS-02 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
