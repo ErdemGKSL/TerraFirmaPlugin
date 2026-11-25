@@ -45,9 +45,11 @@ import java.util.regex.Pattern;
  * the CE {@code state(s)} sections.
  */
 public final class AssetPipeline {
-    public static final List<String> FAMILIES = List.of("rock", "ore", "dirt", "grass", "clay", "sand");
+    public static final List<String> FAMILIES = List.of("rock", "ore", "dirt", "grass", "clay", "sand", "deposit");
 
     static final String PACK = "craftengine/tfp/";
+    /** TFC {@code TFCBlocks.ORE_DEPOSITS}: {@code strength(rock.category().hardness(2.0f))}, "same hardness as gravel". */
+    static final String DEPOSIT_BASE_HARDNESS = "2.0";
     static final String CONFIG = PACK + "configuration/";
     static final String RP = PACK + "resourcepack/assets/tfp/";
     static final List<String> TEMPLATE_FILES = List.of("items", "loot_tables", "settings");
@@ -523,7 +525,8 @@ public final class AssetPipeline {
         boolean oreModel = (Json.FROM_NS + ":block/ore").equals(parent) && textures.has("all") && textures.has("overlay");
         boolean oreColumn = (Json.FROM_NS + ":block/ore_column").equals(parent) && textures.has("side")
             && textures.has("end") && textures.has("overlay") && textures.has("overlay_end");
-        if ((oreModel || oreColumn) && oreLook == OreLook.HOST_ROCK) {
+        // PAR-WORLD-31: a deposit (gravel + specks, tfc:block/ore too) is no ore of the overlay runtime: always flattened
+        if ((oreModel || oreColumn) && oreLook == OreLook.HOST_ROCK && !path.startsWith("block/deposit/")) {
             report.count("ore_models_host_rock"); // the visual is the host rock's; the overlay runtime draws the ore
             return;
         }
@@ -685,6 +688,19 @@ public final class AssetPipeline {
                 }
             }
             file.write("ore/" + ore);
+        }
+        // deposit/<mineral>/<rock> (PAR-WORLD-31): gravel-like full cubes, TFC strength rock.category().hardness(2.0f),
+        // gravel sounds, one file per mineral; the visual allocator draws them like any cube
+        for (String mineral : tfc.childDirs(TfcCheckout.ASSETS + "blockstates/deposit/")) {
+            ConfigFile file = new ConfigFile();
+            for (String rock : new TreeMap<>(TfcTables.ROCKS).keySet()) {
+                String id = "deposit/" + mineral + "/" + rock;
+                if (tfc.exists(blockstate(id))) {
+                    BigDecimal hardness = TfcTables.ROCKS.get(rock).hardness(DEPOSIT_BASE_HARDNESS);
+                    block(file, id, granular("gravel", hardness, hardness, "snare", TfcTables.STONE_MAP_COLOR));
+                }
+            }
+            file.write("deposit/" + mineral);
         }
         // dirt/<soil>, clay/<soil>: one file per soil variant
         Map<String, ConfigFile> soils = new TreeMap<>();
@@ -1023,12 +1039,15 @@ public final class AssetPipeline {
             String dir = TfcCheckout.ASSETS + "blockstates/" + fam + "/";
             for (String f : tfc.list(dir)) {
                 String id = f.substring((TfcCheckout.ASSETS + "blockstates/").length(), f.length() - 5);
-                if (!emitted.contains(id) && !dropItems.containsKey(id)) {
+                if (!emitted.contains(id) && !dropItems.containsKey(id) && !GROUNDCOVER_IDS.matcher(id).matches()) {
                     report.skipped(id, skipReason(id, tfc.readString(f)));
                 }
             }
         }
     }
+
+    /** PAR-WORLD-31: the small ores and loose rocks, emitted by {@code groundcover.GroundcoverCeBlocks}, not here. */
+    static final Pattern GROUNDCOVER_IDS = Pattern.compile("ore/small_[a-z_]+|rock/(loose|mossy_loose)/[a-z_]+");
 
     static String skipReason(String id, String blockstate) {
         String last = id.substring(id.lastIndexOf('/') + 1);
@@ -1037,9 +1056,6 @@ public final class AssetPipeline {
         }
         if (last.endsWith("_slab") || last.endsWith("_stairs") || last.endsWith("_wall")) {
             return "slab/stairs/wall: needs tfp:block_state/slab|stairs|wall on freed vanilla states (visual allocator)";
-        }
-        if (id.startsWith("ore/small_")) {
-            return "small ore: non-cube groundcover shape (button hitbox), separate behaviour";
         }
         return "non-cube shape or block entity (" + id.substring(0, id.lastIndexOf('/')) + "): later task";
     }

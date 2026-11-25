@@ -500,6 +500,23 @@ public final class HitboxDemands {
                     true, WOOD_PLANT_WEIGHT));
             }
         }
+        // PAR-WORLD-31: the loose rocks (per rock, plain and mossy, one outline per count) hitbox-only on one shared carrier
+        // per count, the look an item display (TFC's model); the small ores and the groundcover types with TFC's model on
+        // a carrier of their outline where one is free, else hitbox-only with the model as an item display (GroundcoverCeBlocks).
+        for (String rock : LOOSE_ROCKS) {
+            for (String kind : LOOSE_KINDS) {
+                for (int count = 1; count <= LOOSE_MAX; count++) {
+                    d.add(new Demand(looseRockId(kind, rock), looseAppearance(count), looseKey(count), 0,
+                        HitboxAllocation.TRANSPARENT, true, GROUNDCOVER_WEIGHT));
+                }
+            }
+        }
+        for (String ore : SMALL_ORES) {
+            d.add(new Demand(smallOreId(ore), GROUNDCOVER_APPEARANCE, SMALL_ORE_KEY, 0, groundcoverModel(ore), true,
+                GROUNDCOVER_WEIGHT));
+        }
+        GROUNDCOVER_TYPES.forEach((type, shape) -> d.add(new Demand(groundcoverId(type), GROUNDCOVER_APPEARANCE,
+            groundcoverKey(shape), 0, groundcoverModel(GROUNDCOVER_LOOKS.getOrDefault(type, type)), true, GROUNDCOVER_WEIGHT)));
         return d;
     }
 
@@ -621,6 +638,68 @@ public final class HitboxDemands {
             }
         }
         return null;
+    }
+
+    /** PAR-WORLD-31: TFC {@code Rock} values in enum order (each has a loose and a mossy loose rock). */
+    public static final List<String> LOOSE_ROCKS = List.of("granite", "diorite", "gabbro", "shale", "claystone", "limestone",
+        "conglomerate", "dolomite", "chert", "chalk", "tuff", "rhyolite", "basalt", "andesite", "dacite", "quartzite", "slate",
+        "phyllite", "schist", "gneiss", "marble");
+    /** PAR-WORLD-31: TFC {@code Rock.BlockType.LOOSE} and {@code MOSSY_LOOSE}. */
+    public static final List<String> LOOSE_KINDS = List.of("loose", "mossy_loose");
+    /** PAR-WORLD-31: TFC {@code TFCBlockStateProperties.COUNT_1_3}. */
+    public static final int LOOSE_MAX = 3;
+    /** PAR-WORLD-31: TFC's graded {@code Ore} values in enum order (each has a small ore). */
+    public static final List<String> SMALL_ORES = List.of("native_copper", "native_gold", "hematite", "native_silver",
+        "cassiterite", "bismuthinite", "garnierite", "malachite", "magnetite", "limonite", "sphalerite", "tetrahedrite");
+    /** PAR-WORLD-31: TFC {@code GroundcoverBlockType} in enum order, with its outline (a {@code TfcShapes} groundcover shape). */
+    public static final java.util.Map<String, String> GROUNDCOVER_TYPES = groundcoverTypes();
+    /** PAR-WORLD-31: the model of a groundcover type whose blockstate draws several (the first of TFC's list). */
+    public static final java.util.Map<String, String> GROUNDCOVER_LOOKS = java.util.Map.of("driftwood", "driftwood_0", "stick",
+        "stick1");
+    public static final String GROUNDCOVER_APPEARANCE = "base";
+    public static final String SMALL_ORE_KEY = "tfc:ore/small";
+    /** PAR-WORLD-31: served after every other demand (adding the groundcover moves no carrier of another block). */
+    static final int GROUNDCOVER_WEIGHT = -15;
+
+    private static java.util.Map<String, String> groundcoverTypes() {
+        java.util.Map<String, String> m = new java.util.LinkedHashMap<>();
+        String[] rows = {"bone:medium", "clam:small", "driftwood:flat", "feather:flat", "flint:small", "guano:pixel_high",
+            "humus:pixel_high", "mollusk:small", "mussel:small", "obsidian_shard:small", "pinecone:small", "pumice:small",
+            "rotten_flesh:flat", "salt_lick:pixel_high", "seaweed:flat", "sea_urchin:medium", "stick:flat"};
+        for (String r : rows) {
+            m.put(r.substring(0, r.indexOf(':')), r.substring(r.indexOf(':') + 1));
+        }
+        return java.util.Collections.unmodifiableMap(m);
+    }
+
+    /** {@code tfp:rock/loose/<rock>} or {@code tfp:rock/mossy_loose/<rock>}. */
+    public static String looseRockId(String kind, String rock) {
+        return "tfp:rock/" + kind + "/" + rock;
+    }
+
+    public static String looseAppearance(int count) {
+        return "count_" + count;
+    }
+
+    public static String looseKey(int count) {
+        return "tfc:rock/loose[count=" + count + "]";
+    }
+
+    public static String smallOreId(String ore) {
+        return "tfp:ore/small_" + ore;
+    }
+
+    public static String groundcoverId(String type) {
+        return "tfp:groundcover/" + type;
+    }
+
+    public static String groundcoverKey(String shape) {
+        return "tfc:groundcover[shape=" + shape + "]";
+    }
+
+    /** TFC's groundcover model ({@code tfp:block/groundcover/<name>}); the small ores draw {@code groundcover/<ore>}. */
+    public static String groundcoverModel(String name) {
+        return "tfp:block/groundcover/" + name;
     }
 
     /** PAR-METAL-03: the metals that have an anvil (TFC {@code Metal.BlockType.ANVIL}, tool-tier metals), in tier order. */

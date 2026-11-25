@@ -191,6 +191,9 @@ public final class Datagen {
         if (dev.tfp.datagen.berry.BerryBlocks.available(tfc)) { // PAR-FARM-15: tfp:spreading_bush/* entries (bushes, canes, cranberry, dead), models, loot, names
             dev.tfp.datagen.berry.SpreadingBushBlocks.run(tfc, out);
         }
+        if (dev.tfp.datagen.groundcover.GroundcoverCeBlocks.available(tfc)) { // PAR-WORLD-31: loose rocks, small ores and groundcover on hitbox carriers, models, loot, names; fixtures have none
+            dev.tfp.datagen.groundcover.GroundcoverCeBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.light.TorchBlocks.available(tfc)) { // PAR-HEAT-21: tfp:torch, wall, dead torch entries on the selector's carriers, models, texture, loot, names; fixtures have no torches
             dev.tfp.datagen.light.TorchBlocks.run(tfc, out, dev.tfp.datagen.light.TorchBlocks::selected);
         }
