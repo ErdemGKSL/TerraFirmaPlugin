@@ -1385,6 +1385,121 @@
      ]
     }
    }
+  },
+  {
+   "uuid": "0eea468c-9f95-5748-9ddc-31055acce105",
+   "name": "play_dead",
+   "loop": "loop",
+   "override": true,
+   "length": 1.0,
+   "snapping": 24,
+   "selected": false,
+   "anim_time_update": "",
+   "blend_weight": "",
+   "start_delay": "",
+   "loop_delay": "",
+   "animators": {
+    "5702d46a-c85a-59c0-aff7-16fb6f9dbe3f": {
+     "name": "h_head",
+     "type": "bone",
+     "keyframes": [
+      {
+       "channel": "scale",
+       "data_points": [
+        {
+         "x": "0.001",
+         "y": "0.001",
+         "z": "0.001"
+        }
+       ],
+       "uuid": "b8d97ed9-266d-58ff-9f6e-041e83d0e4af",
+       "time": 0.0,
+       "color": -1,
+       "interpolation": "linear"
+      }
+     ]
+    },
+    "7cf7b631-87be-5a51-b1e1-1c36e8ec11d6": {
+     "name": "right_hind_leg",
+     "type": "bone",
+     "keyframes": [
+      {
+       "channel": "scale",
+       "data_points": [
+        {
+         "x": "0.001",
+         "y": "0.001",
+         "z": "0.001"
+        }
+       ],
+       "uuid": "391b32a1-ea2b-55bf-893a-eaf51f0bd732",
+       "time": 0.0,
+       "color": -1,
+       "interpolation": "linear"
+      }
+     ]
+    },
+    "dfd1c6ef-fe08-5730-bce1-cbd6ca7fbb1c": {
+     "name": "left_hind_leg",
+     "type": "bone",
+     "keyframes": [
+      {
+       "channel": "scale",
+       "data_points": [
+        {
+         "x": "0.001",
+         "y": "0.001",
+         "z": "0.001"
+        }
+       ],
+       "uuid": "b351677d-d86b-5cb1-aa07-69ca6cc1ad7b",
+       "time": 0.0,
+       "color": -1,
+       "interpolation": "linear"
+      }
+     ]
+    },
+    "178758a7-f855-512f-bc4a-e7996c76ac03": {
+     "name": "right_front_leg",
+     "type": "bone",
+     "keyframes": [
+      {
+       "channel": "scale",
+       "data_points": [
+        {
+         "x": "0.001",
+         "y": "0.001",
+         "z": "0.001"
+        }
+       ],
+       "uuid": "99e81e07-7655-516a-88ef-1d2e8ad1d316",
+       "time": 0.0,
+       "color": -1,
+       "interpolation": "linear"
+      }
+     ]
+    },
+    "32c5c27d-aa92-5242-acc1-9ac737d6e3ea": {
+     "name": "left_front_leg",
+     "type": "bone",
+     "keyframes": [
+      {
+       "channel": "scale",
+       "data_points": [
+        {
+         "x": "0.001",
+         "y": "0.001",
+         "z": "0.001"
+        }
+       ],
+       "uuid": "48332390-bf19-5be2-ac22-18442715008b",
+       "time": 0.0,
+       "color": -1,
+       "interpolation": "linear"
+      }
+     ]
+    }
+   }
   }
  ]
 }

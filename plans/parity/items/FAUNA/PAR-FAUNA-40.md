@@ -2,7 +2,7 @@
 id: PAR-FAUNA-40
 title: "Publish the penguin and turtle play_dead models into the BetterModel jar (follow-up of PAR-FAUNA-31)"
 area: FAUNA
-status: open
+status: done
 wave: 47
 deps: [PAR-FAUNA-31]
 size: S
@@ -21,6 +21,7 @@ in_game_steps:
   - "tfp debug animal spawn turtle adult on land; hit it; screenshot (head and legs drawn in)"
 plan:
   - "PAR-FAUNA-31 added the play_dead animation to tools/models/imported/tfp_penguin.bbmodel and tools/models/tfpmodels/species/out/tfp_turtle.bbmodel, but the BetterModel jar holds the published copies (tfp_penguin, tfp_penguin_baby, tfp_turtle). Run python3 -I tools/models/publish_models.py /opt/tfc, check the diff only adds play_dead to those three models, and review the in-game screenshots. Re-run tools/models/tfpmodels/species/play_dead.py after any re-import of the penguin (import_tfc.py rewrites it)."
+  - "Done: publish_models.py /opt/tfc re-run; the diff only adds play_dead to tfp_penguin, tfp_penguin_baby and tfp_turtle (105 models, 346 variant rows, model_variants.tsv unchanged); validate.py --lenient OK; Blockbench renders and the headless Paper 1.21.11 client checked (hit penguin on its back, hit turtle with head and legs drawn in): docs/verification/PAR-FAUNA-40/verdict.md, pass."
 tests:
   - "tools/models validate.py on the published models; the published turtle and penguin models carry play_dead"
 done_criteria:
@@ -28,7 +29,5 @@ done_criteria:
 ---
 
 # PAR-FAUNA-40: Publish the penguin and turtle play_dead models
-
-> Claimed: session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 Follow `plans/parity/PROTOCOL.md`.
