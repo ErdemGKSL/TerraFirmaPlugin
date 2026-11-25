@@ -159,3 +159,4 @@ dev.tfp.paper.weathering.WeatheringModule
 dev.tfp.paper.chest.ChestModule
 dev.tfp.paper.itembar.egg.EggBarModule
 dev.tfp.paper.guide.FieldGuideModule
+dev.tfp.paper.triphammer.TripHammerModule

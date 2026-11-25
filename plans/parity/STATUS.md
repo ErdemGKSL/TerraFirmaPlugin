@@ -419,7 +419,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-11 | Rotation blocks: axle carriers in the hitbox allocation, startup re-add, in-game check of PAR-MECH-01 | MECH | 50 | done |
 | PAR-MECH-05 | Crankshaft and powered bellows | MECH | 50 | done |
 | PAR-MECH-06 | Quern automation | MECH | 50 | done |
-| PAR-MECH-07 | Trip hammer | MECH | 50 | open |
+| PAR-MECH-07 | Trip hammer | MECH | 50 | blocked |
 | PAR-WORLD-21 | Untracked surface features: forest-floor patches, tide pools, guano islands, bamboo, sea stack patches and five volcanic ids | WORLD | 50 | open |
 | PAR-WORLD-46 | Write the CE plant blocks in generation: TfcTerrain places tfp:plant/* through PlantBlocks.ceRef, placeholders only as fallback | WORLD | 27 | done |
 | PAR-WORLD-47 | Remaining plant shapes as CE blocks: water plants (waterlogged), creeping, epiphytes, vines, weeping/twisting columns, kelp, cacti, bamboo, intertidal plant-likes | WORLD | 27 | done |
@@ -454,6 +454,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-21 | Crankshaft in game: the tfp:crankshaft CE block, its sink node in the rotation network (CrankRotation), the powered bellows in-game check | MECH | 54 | done |
 | PAR-MECH-25 | Crankshaft in game: a creative motor or water wheel turns a crankshaft that drives a bellows into a charcoal forge (PAR-MECH-21 in-game check) | MECH | 55 | open |
 | PAR-MECH-26 | Crankshaft as TFC: the turning wheel and the shaft's stroke (TFC CrankshaftBlockEntityRenderer), the axle stub, TFC's base and shaft outlines | MECH | 55 | open |
+| PAR-MECH-27 | Trip hammer in game: the tfp:trip_hammer CE block (TFC model, outline, item, loot), the block coverage owner, the in-game check of PAR-MECH-07 | MECH | 56 | open |
 | PAR-MECH-23 | Bladed axle in game: craft, place, spin with its blade, debug readout, drop (PAR-MECH-20 in-game check) | MECH | 54 | open |
 | PAR-MECH-22 | Power loom block in CraftEngine and the in-game check: tfp:power_loom, its model, item and the axle into the loom | MECH | 52 | open |
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |
@@ -525,5 +526,6 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-25 | Sign runtime: placement rotation, text editing, text display, sign carriers (follow-up of PAR-DECO-03) | DECO | 47 | open |
 | PAR-DECO-26 | Chest extras: lid animation, trapped chest signal, waterlogging, better carrier, automation, custom names (follow-up of PAR-DECO-04) | DECO | 47 | open |
 | PAR-METAL-27 | Blast furnace textured screen: temperature bar and tank bars | METAL | 37 | open |
+| PAR-METAL-28 | Anvil remote work: TFC AnvilBlockEntity.workRemotely for the trip hammer (the AnvilRemote service) | METAL | 55 | open |
 | PAR-DATA-20 | Field guide BOOK tab: the fifth player tab opens the field guide (follow-up of PAR-DATA-04) | DATA | 36 | open |
 | PAR-DATA-21 | Field guide translations: TFC's nine other book locales as per-player books (follow-up of PAR-DATA-04) | DATA | 36 | open |
