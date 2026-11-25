@@ -2,7 +2,7 @@
 id: PAR-CLIM-07
 title: "Weather command and TFC weather state (`/tfp weather`)"
 area: CLIMATE
-status: open
+status: done
 wave: 33
 deps: [PAR-DATA-01]
 size: S
@@ -19,6 +19,7 @@ in_game_steps:
 plan:
   - "Current: core/command/WeatherCommand parses the four literals."
   - "Bind it under `/tfp weather clear|rain|thunder|snow` with the TFC `/time` hints and the world tracker flag."
+  - "Done: already bound by PAR-DATA-01 (DataCommandTree); TFC has only enable/disable/clear/rain, so no thunder/snow literals (ledger Divergences). Added command/weather/WeatherCommandTextsTest (2), ledger rows. Pending in-game check (container cannot run client)."
 tests:
   - "paper: BootstrapTest tree + MockBukkit execution"
 done_criteria:

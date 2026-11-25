@@ -329,7 +329,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-09 | Bananas | FARM | 32 | done |
 | PAR-FARM-10 | Sapling growth into trees | FARM | 32 | done |
 | PAR-METAL-11 | Bellows: push, air boost, crank, animation | METAL | 32 | done |
-| PAR-CLIM-07 | Weather command and TFC weather state (`/tfp weather`) | CLIMATE | 33 | open |
+| PAR-CLIM-07 | Weather command and TFC weather state (`/tfp weather`) | CLIMATE | 33 | done |
 | PAR-FARM-11 | Plant regrowth, plant growth/spread, flower cuttings | FARM | 33 | done |
 | PAR-FARM-13 | Plant info and fertilizer tooltips: climate range, nutrients, growth time and lifecycle on seeds and saplings; N/P/K on fertilizers | FARM | 33 | done |
 | PAR-METAL-12 | Crucible block and GUI | METAL | 33 | done |
