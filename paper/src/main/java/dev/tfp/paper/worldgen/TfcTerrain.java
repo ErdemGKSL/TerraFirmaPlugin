@@ -606,8 +606,10 @@ final class TfcTerrain {
 
             @Override
             public void place(int localX, int y, int localZ, Groundcover cover) {
-                data.setBlock(localX, y, localZ, placeholderData(GroundcoverBlocks.placeholder(cover.kind(), cover.waterlogged()),
-                    cover.waterlogged()));
+                // PAR-GATHER-12: the CraftEngine loose rock or groundcover block once CraftEngine knows it, else the placeholder
+                final BlockData custom = customBlockData(GroundcoverBlocks.ceId(cover));
+                data.setBlock(localX, y, localZ, custom != null ? custom
+                    : placeholderData(GroundcoverBlocks.placeholder(cover.kind(), cover.waterlogged()), cover.waterlogged()));
             }
         };
         indicators.place(chunkX, chunkZ, view, view::rock, covers);
