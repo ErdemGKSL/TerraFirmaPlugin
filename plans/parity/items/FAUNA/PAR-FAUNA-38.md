@@ -24,4 +24,6 @@ done_criteria:
 
 # PAR-FAUNA-38: Pest infestation when a large vessel is opened
 
+> Claimed: session_011osUp8LArwstSDt7X82o4E, 2026-11-25
+
 Follow `plans/parity/PROTOCOL.md`.
