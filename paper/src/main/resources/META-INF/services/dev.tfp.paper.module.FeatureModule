@@ -129,3 +129,4 @@ dev.tfp.paper.aquatic.AquaticModule
 dev.tfp.paper.plant.growth.GrowthModule
 dev.tfp.paper.loom.LoomModule
 dev.tfp.paper.nestbox.NestBoxModule
+dev.tfp.paper.collapse.CollapseModule
