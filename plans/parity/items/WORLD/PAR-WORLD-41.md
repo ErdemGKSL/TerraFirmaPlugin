@@ -2,7 +2,7 @@
 id: PAR-WORLD-41
 title: "Terrain writes the TFC soil blocks: soil variant per surface rule and the RockPalette surface ids in TfcTerrain"
 area: WORLD
-status: open
+status: done
 wave: 27
 deps: [PAR-WORLD-04]
 size: M
@@ -22,6 +22,7 @@ in_game_steps:
   - "tfp debug block on grass, dirt, coarse dirt, mud and gravel: tfp:grass/<soil>, tfp:dirt/<soil>, tfp:coarse_dirt/<soil>, tfp:mud/<soil>, tfp:rock/gravel/<rock>; screenshot at GUI scale 2 (TFC grass top tinted by the biome colour)"
   - "tfp debug worldgen 5x5 chunk scan: no minecraft:grass_block/dirt/coarse_dirt/mud/gravel"
 plan:
+  - "Done: TfcTerrain.surfaceIndex/surfaceData write tfp:grass|dirt|coarse_dirt|mud/<soil> from the SurfaceBlock variant (PAR-WORLD-05 core already carries it) and tfp:rock/gravel/<rock> for gravel; RockPalette.surfaceIds appended to the palette ids; depositMaterials include them; test TfcTerrainSoilTest (4). Pending in-game check (container cannot run client): steps in in_game_steps."
   - "Current: PAR-WORLD-04 generates every soil block (tfp:grass|clay_grass|coarse_dirt|mud|rooted_dirt/<soil>, peat, kaolin) and adds RockPalette.SOILS, surfaceId, surfaceIds(rawRockIds) and surfaceIndex(kind, soil, rock, rocks). core/worldgen/surface/SurfaceRules maps every soil variant to its SurfaceKind and drops the variant (ledger divergence 'TFC's soil and surface blocks are per soil variant'), and TfcTerrain.surfaceBlocks() writes vanilla Material blocks."
   - "Core: carry TFC's soil variant (SoilBlockType.Variant order = RockPalette.SOILS) through SoilSurfaceState/SurfaceStates (soil(type, variant), transitioningSoil, the aridisol/fluvisol/... choices by rainfall) next to the kind, keeping TFC's order of noise reads; the rock of gravel is the column's surface rock. Golden tests against TFC rows."
   - "TfcTerrain: append RockPalette.surfaceIds(ROCK_IDS) to the palette ids (one resolve, the refuse rule covers them), and write palette.block(base + RockPalette.surfaceIndex(kind, soil, rock, rocks)) for grass/dirt/coarse dirt/mud/gravel; keep vanilla for sand/sandstone (PAR-WORLD-23), snow and packed ice. Update depositMaterials and TreeView ground classes to the CE blocks."
