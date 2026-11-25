@@ -531,7 +531,7 @@ Totals: 388 items; open 208, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-35 | Fishing rod items: the 9 TFC metal rods as CE items (follow-up of PAR-FAUNA-18) | FAUNA | 45 | done |
 | PAR-FAUNA-36 | Lobster trap block: the CE block with trap, facing and fluid states (follow-up of PAR-FAUNA-19) | FAUNA | 46 | done |
 | PAR-FAUNA-37 | Lobster trap placement state and waterlogged carrier: facing, fluid and the water of a wet trap (follow-up of PAR-FAUNA-36) | FAUNA | 47 | done |
-| PAR-FAUNA-38 | Pest infestation when a large vessel is opened (follow-up of PAR-FAUNA-32) | FAUNA | 47 | open |
+| PAR-FAUNA-38 | Pest infestation when a large vessel is opened (follow-up of PAR-FAUNA-32) | FAUNA | 47 | done |
 | PAR-FAUNA-39 | Water around a wet lobster trap: a waterlogged carrier needs a selector override (follow-up of PAR-FAUNA-37) | FAUNA | 48 | done |
 | PAR-FAUNA-40 | Publish the penguin and turtle play_dead models into the BetterModel jar (follow-up of PAR-FAUNA-31) | FAUNA | 47 | done |
 | PAR-FAUNA-41 | Wet lobster trap on CraftEngine's waterlogged leaves pool: a fluid pool in the carrier policy and pool carriers for hitbox-only demands (follow-up of PAR-FAUNA-39) | FAUNA | 49 | done |

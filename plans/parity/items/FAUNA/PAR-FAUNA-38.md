@@ -2,7 +2,7 @@
 id: PAR-FAUNA-38
 title: "Pest infestation when a large vessel is opened (follow-up of PAR-FAUNA-32)"
 area: FAUNA
-status: open
+status: done
 wave: 47
 deps: [PAR-FAUNA-32, PAR-POT-06]
 size: S
@@ -11,11 +11,12 @@ tfc_refs:
   - "src/main/java/net/dries007/tfc/ForgeEventHandler.java"
   - "src/main/java/net/dries007/tfc/common/container/LargeVesselContainer.java"
 files_owned:
-  - "paper/src/main/java/dev/tfp/paper/vessel/LargeVesselScreens.java"
+  - "paper/src/main/java/dev/tfp/paper/largevessel/LargeVesselScreens.java"
   - "paper/src/test/java/dev/tfp/paper/critter/LargeVessel*"
 ui: false
 plan:
   - "When PAR-POT-06 adds the large vessel screen, call CritterModule.infest(blockLocation, PestInfestation.openLevel(true, foodStacks), viewer) from its open path, as NestBoxScreens.rollInfestation does (PAR-FAUNA-32): foodStacks counts the c:foods stacks in the nine slots, at most five. LargeVesselContainer.canBeInfested is false while the vessel is sealed: no roll then. Adjust files_owned to the class PAR-POT-06 creates."
+  - "Done (2026-11-25): files_owned adjusted to PAR-POT-06's class (paper/largevessel/LargeVesselScreens.java). LargeVesselScreens.open rolls rollInfestation after the screen opens, as NestBoxScreens: an unsealed vessel calls CritterModule.infest(block, PestInfestation.openLevel(true, foodStacks), viewer) with the c:foods stacks of its nine slots (at most five); a sealed vessel rolls nothing (LargeVesselContainer.canBeInfested). Tests: paper LargeVesselInfestationMockBukkitTest 4 (food count, cap 5, sealed, empty); LargeVesselMockBukkitTest 12 still pass. ui: false, no in-game check."
 tests:
   - "paper: MockBukkit test that opening an unsealed large vessel rolls with the food count and a sealed one does not"
 done_criteria:
@@ -23,7 +24,5 @@ done_criteria:
 ---
 
 # PAR-FAUNA-38: Pest infestation when a large vessel is opened
-
-> Claimed: session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 Follow `plans/parity/PROTOCOL.md`.

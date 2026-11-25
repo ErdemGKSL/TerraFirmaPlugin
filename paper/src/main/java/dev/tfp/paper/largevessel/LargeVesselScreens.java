@@ -7,18 +7,24 @@
  * file: src/main/java/net/dries007/tfc/common/container/LargeVesselContainer.java @ c3b4d9536 (clicked: container slots
  *       refuse clicks while sealed; moveStack: no shift-click while sealed; onButtonPress),
  *       src/main/java/net/dries007/tfc/client/screen/LargeVesselScreen.java @ c3b4d9536 (the seal button),
- *       src/main/java/net/dries007/tfc/client/screen/button/VesselSealButton.java @ c3b4d9536 (the sprites)
+ *       src/main/java/net/dries007/tfc/client/screen/button/VesselSealButton.java @ c3b4d9536 (the sprites),
+ *       src/main/java/net/dries007/tfc/ForgeEventHandler.java @ c3b4d9536 (onContainerOpen: the infestation roll, PAR-FAUNA-38)
  */
 package dev.tfp.paper.largevessel;
 
+import dev.tfp.core.critter.PestInfestation;
 import dev.tfp.core.vessel.LargeVesselRules;
 import dev.tfp.core.gui.SampleScreen;
+import dev.tfp.paper.TfpPlugin;
+import dev.tfp.paper.critter.CritterModule;
 import dev.tfp.paper.gui.GuiButtons;
 import dev.tfp.paper.gui.GuiService;
 import dev.tfp.paper.gui.GuiSession;
 import dev.tfp.paper.gui.TfpGui;
 import dev.tfp.paper.i18n.Messages;
+import dev.tfp.paper.module.ModuleServices;
 import dev.tfp.paper.scheduler.Scheduler;
+import dev.tfp.paper.tags.Tags;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +32,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -34,6 +43,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * PAR-POT-06: the large vessel screen (TFC {@code LargeVesselScreen} + {@code LargeVesselContainer}) on the GUI framework, in
@@ -49,6 +59,13 @@ import org.bukkit.inventory.ItemStack;
 public final class LargeVesselScreens implements Listener {
     public static final long RELOAD_TICKS = 10;
     static final String STATE = "largevessel.screen";
+    /** PAR-FAUNA-38: TFC's {@code TFCTags.Items.FOODS}. */
+    static final String FOOD_TAG = "c:foods";
+
+    /** PAR-FAUNA-38: the infestation roll at a vessel's block (default {@link CritterModule#infest}). */
+    public interface PestRoll {
+        void roll(Player viewer, Location vessel, int foodStacks);
+    }
 
     static final class Screen {
         final LargeVesselLink link;
@@ -73,6 +90,8 @@ public final class LargeVesselScreens implements Listener {
     private final Messages messages;
     private final Predicate<ItemStack> fits;
     private final Map<Object, GuiSession> open = new ConcurrentHashMap<>();
+    private volatile PestRoll pests;
+    private volatile Predicate<ItemStack> foodTest;
 
     public LargeVesselScreens(GuiService gui, Scheduler scheduler, Messages messages, Predicate<ItemStack> fits) {
         this.gui = Objects.requireNonNull(gui, "gui");
@@ -100,8 +119,62 @@ public final class LargeVesselScreens implements Listener {
         session.put(STATE, screen);
         open.put(key, session);
         apply(session, screen, vessel.get());
+        rollInfestation(viewer, key, vessel.get());
         screen.reloader = scheduler.entityRepeating(viewer, RELOAD_TICKS, RELOAD_TICKS, () -> reload(session), () -> { });
         return Optional.of(session);
+    }
+
+    /** Replaces the infestation roll and the food test (tests; the defaults are {@link CritterModule#infest} and the food tag). */
+    public void pests(PestRoll roll, Predicate<ItemStack> food) {
+        this.pests = roll;
+        this.foodTest = food;
+    }
+
+    /**
+     * PAR-FAUNA-38, TFC {@code onContainerOpen}: opening an unsealed large vessel ({@code LargeVesselContainer.canBeInfested})
+     * rolls an infestation at its block with the food stacks of its nine slots (at most five; the {@code enableInfestations}
+     * option is on, as TFC's default). A sealed vessel rolls nothing. Viewer thread.
+     */
+    public void rollInfestation(Player viewer, Object key, LargeVesselLink.Snapshot vessel) {
+        if (vessel.sealed() || !(key instanceof LargeVesselLink.Key k)) {
+            return;
+        }
+        World world = Bukkit.getWorld(k.world());
+        if (world == null) {
+            return;
+        }
+        PestRoll roll = pests != null ? pests : lookupRoll();
+        if (roll != null) {
+            roll.roll(viewer, new Location(world, k.x(), k.y(), k.z()), foodCount(vessel.slots()));
+        }
+    }
+
+    private int foodCount(List<ItemStack> slots) {
+        Predicate<ItemStack> test = foodTest;
+        if (test == null) {
+            Tags tags = services().flatMap(s -> s.get(Tags.class)).orElse(null);
+            test = stack -> tags != null && tags.is(stack, FOOD_TAG);
+        }
+        boolean[] food = new boolean[slots.size()];
+        for (int i = 0; i < food.length; i++) {
+            ItemStack stack = slots.get(i);
+            food[i] = stack != null && !stack.isEmpty() && test.test(stack);
+        }
+        return PestInfestation.countFood(food);
+    }
+
+    private PestRoll lookupRoll() {
+        CritterModule critter = services().flatMap(s -> s.get(CritterModule.class)).orElse(null);
+        return critter == null ? null
+            : (viewer, at, food) -> critter.infest(at, PestInfestation.openLevel(true, food), viewer);
+    }
+
+    private static Optional<ModuleServices> services() {
+        try {
+            return Optional.of(JavaPlugin.getPlugin(TfpPlugin.class).moduleServices());
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return Optional.empty();
+        }
     }
 
     /** The open screen of vessel {@code key}, if any. */
