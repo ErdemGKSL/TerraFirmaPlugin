@@ -253,6 +253,9 @@ public final class Datagen {
         if (dev.tfp.datagen.channel.ChannelBlocks.available(tfc)) { // PAR-METAL-13: tfp:channel and tfp:mold_table blocks, models, names; fixtures have none
             dev.tfp.datagen.channel.ChannelBlocks.run(tfc, out);
         }
+        if (dev.tfp.datagen.pile.PileBlocks.available(tfc)) { // PAR-METAL-16: tfp:ingot_pile and tfp:double_ingot_pile blocks, display models, metal textures; fixtures have none
+            dev.tfp.datagen.pile.PileBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.bell.BellBlocks.available(tfc)) { // PAR-METAL-18: tfp:bronze_bell and tfp:brass_bell blocks, models, names; fixtures have none
             dev.tfp.datagen.bell.BellBlocks.run(tfc, out);
         }

@@ -173,6 +173,13 @@ public final class TfcShapes {
                 "SHAPES[" + n + "]", "same", List.of("return SHAPES[(state.getValue(getCountProperty()) - 1) / 8];"),
                 List.of("getCollisionShape")));
         }
+        // PAR-METAL-16: the double ingot pile, six layers (TFC DoubleIngotPileBlock.SHAPES, getShape for the collision too).
+        String doubleIngots = D + "DoubleIngotPileBlock.java";
+        for (int n = 0; n < DOUBLE_INGOT_PILE_LAYERS; n++) {
+            final int layer = n;
+            s.add(new Spec(doubleIngotPileKey(n), "layer_pile", Kind.OBJECT, List.of(doubleIngots), null, null,
+                DOUBLE_INGOT_PILE_NEEDLES, List.of("getCollisionShape"), x -> doubleIngotPile(layer)));
+        }
         String firepit = D + "FirepitBlock.java";
         String bottom = D + "BottomSupportedDeviceBlock.java";
         s.add(Spec.of("tfc:firepit", "firepit", Kind.OBJECT, List.of(firepit, bottom), "BASE_SHAPE", "same",
@@ -1422,6 +1429,32 @@ public final class TfcShapes {
     public static String channelKey(int mask) {
         return "tfc:channel[east=" + ((mask & 8) != 0) + ",south=" + ((mask & 1) != 0) + ",west=" + ((mask & 2) != 0)
             + ",north=" + ((mask & 4) != 0) + "]";
+    }
+
+    /** PAR-METAL-16: {@code DoubleIngotPileBlock.SHAPES.length}; six ingots a layer ({@code COUNT_1_36}). */
+    public static final int DOUBLE_INGOT_PILE_LAYERS = 6;
+
+    /** PAR-METAL-16: the row of the double ingot pile whose collision is {@code SHAPES[layer]} (counts 6 * layer + 1). */
+    public static String doubleIngotPileKey(int layer) {
+        return "tfc:double_ingot_pile[count=" + (6 * layer + 1) + "]";
+    }
+
+    static final List<String> DOUBLE_INGOT_PILE_NEEDLES = List.of(
+        "box(0.25, 0, 0.25, 15.75, 1f / 6 * 16, 15.75),", "box(0.25, 0, 0.25, 15.75, 2f / 6 * 16, 15.75),",
+        "box(0.25, 0, 0.25, 15.75, 3f / 6 * 16, 15.75),", "box(0.25, 0, 0.25, 15.75, 4f / 6 * 16, 15.75),",
+        "box(0.25, 0, 0.25, 15.75, 5f / 6 * 16, 15.75),", "box(0.25, 0, 0.25, 15.75, 16, 15.75),",
+        "return SHAPES[(state.getValue(getCountProperty()) - 1) / 6];");
+
+    /** {@code DoubleIngotPileBlock.SHAPES[layer]}: the float heights {@code k / 6 * 16}, the sixth is the full 16. */
+    static Shape[] doubleIngotPile(int layer) {
+        float top = layer == DOUBLE_INGOT_PILE_LAYERS - 1 ? 16f : (layer + 1) / 6f * 16;
+        Shape shape = Shape.box(0.25, 0, 0.25, 15.75, top, 15.75);
+        return new Shape[] {shape, shape};
+    }
+
+    /** PAR-METAL-16: the row of the ingot pile whose collision is {@code SHAPES[layer]} (counts 8 * layer + 1). */
+    public static String ingotPileKey(int layer) {
+        return "tfc:ingot_pile[count=" + (8 * layer + 1) + "]";
     }
 
     /** {@code ChannelBlock.SHAPES[mask]}: the base post or'd with the arm of each set connection. */

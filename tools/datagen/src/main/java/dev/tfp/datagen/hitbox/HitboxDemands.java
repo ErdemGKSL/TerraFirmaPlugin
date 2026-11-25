@@ -82,6 +82,22 @@ public final class HitboxDemands {
         return "layers_" + layers;
     }
 
+    /** PAR-METAL-16: the ingot pile and the double ingot pile, one appearance per collision layer ({@code h0}..). */
+    public static final String INGOT_PILE_ID = "tfp:ingot_pile";
+    public static final String DOUBLE_INGOT_PILE_ID = "tfp:double_ingot_pile";
+    /** PAR-METAL-16: served after every other demand, so adding the piles moves no carrier of another block. */
+    static final int INGOT_PILE_WEIGHT = -30;
+
+    /** PAR-METAL-16: the appearance of the pile layer {@code layer} (counts 8 * layer + 1 .. 8 * layer + 8; 6 for the double). */
+    public static String ingotPileAppearance(int layer) {
+        return "h" + layer;
+    }
+
+    /** PAR-METAL-16: the tfc-shapes row a pile demand is served for (see {@link #BORROWED_ROWS}). */
+    static String ingotPileDemandKey(String key) {
+        return BORROWED_ROWS.getOrDefault(key, key);
+    }
+
     /** PAR-METAL-13: the demand of the channels with the connections of {@code mask} (see {@link TfcShapes#channelKey}). */
     public static String channelPattern(int mask) {
         return "m" + mask;
@@ -214,7 +230,10 @@ public final class HitboxDemands {
         TfcShapes.logPileKey("z", 5), TfcShapes.logPileKey("z", 6),
         "tfc:charcoal_pile[layers=3]", "tfc:charcoal_pile[layers=4]",
         // PAR-CLIM-04: the six-pixel snow pile's best carrier is the daylight detector, which TFC crafts.
-        TfcShapes.snowPileKey(3), TfcShapes.snowPileKey(4));
+        TfcShapes.snowPileKey(3), TfcShapes.snowPileKey(4),
+        // PAR-METAL-16: the single pile's 6 px layer and the double pile's 5.33 px layer (best carrier: the daylight detector,
+        // which TFC crafts) take the next layer's row (8 px, 8 px) instead.
+        TfcShapes.ingotPileKey(2), TfcShapes.ingotPileKey(3), TfcShapes.doubleIngotPileKey(1), TfcShapes.doubleIngotPileKey(2));
 
     /**
      * PAR-HEAT-21: TFC's torch blocks ({@code light/TorchBlocks}). The lit ones draw vanilla's torch on vanilla's torch
@@ -657,6 +676,15 @@ public final class HitboxDemands {
         for (int layers = 1; layers <= 4; layers++) {
             d.add(new Demand(MOLTEN_ID, bloomLayers(layers), TfcShapes.bloomKey(2 * layers), 0, HitboxAllocation.TRANSPARENT,
                 true, BLOOMERY_WEIGHT));
+        }
+        // PAR-METAL-16: the ingot piles, one outline per collision layer, hitbox-only; the ingots are item displays (PileBlocks).
+        for (int layer = 0; layer < 8; layer++) {
+            d.add(new Demand(INGOT_PILE_ID, ingotPileAppearance(layer), ingotPileDemandKey(TfcShapes.ingotPileKey(layer)), 0,
+                HitboxAllocation.TRANSPARENT, true, INGOT_PILE_WEIGHT));
+        }
+        for (int layer = 0; layer < TfcShapes.DOUBLE_INGOT_PILE_LAYERS; layer++) {
+            d.add(new Demand(DOUBLE_INGOT_PILE_ID, ingotPileAppearance(layer), ingotPileDemandKey(TfcShapes.doubleIngotPileKey(layer)), 0,
+                HitboxAllocation.TRANSPARENT, true, INGOT_PILE_WEIGHT));
         }
         // PAR-CLIM-27: the four climate instruments, hitbox-only per TFC outline; the look is an item display (InstrumentBlocks).
         for (String f : FACINGS) {

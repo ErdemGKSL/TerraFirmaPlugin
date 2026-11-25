@@ -345,7 +345,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-14 | Bloomery multiblock and bloom | METAL | 35 | done |
 | PAR-DATA-05 | Localisation: Paper lang loading, all TFC locales, plugin strings | DATA | 36 | done |
 | PAR-METAL-15 | Blast furnace, tuyere and steel path | METAL | 36 | open |
-| PAR-METAL-16 | Ingot and double-ingot piles | METAL | 36 | open |
+| PAR-METAL-16 | Ingot and double-ingot piles | METAL | 36 | done |
 | PAR-TOOL-10 | Bows and glow arrows | TOOL | 36 | done |
 | PAR-DATA-06 | Configuration parity: every TFC ServerConfig/CommonConfig key in config.yml | DATA | 37 | done |
 | PAR-DATA-07 | Damage types and mob effects | DATA | 37 | open |

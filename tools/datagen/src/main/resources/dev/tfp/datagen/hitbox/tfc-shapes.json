@@ -267,6 +267,54 @@
       "from": "IngotPileBlock.java SHAPES[7] / same"
     },
     {
+      "key": "tfc:double_ingot_pile[count=1]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 2.6666667461395264, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 2.6666667461395264, 15.75]],
+      "from": "DoubleIngotPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:double_ingot_pile[count=7]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 5.333333492279053, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 5.333333492279053, 15.75]],
+      "from": "DoubleIngotPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:double_ingot_pile[count=13]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 8, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 8, 15.75]],
+      "from": "DoubleIngotPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:double_ingot_pile[count=19]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 10.666666984558105, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 10.666666984558105, 15.75]],
+      "from": "DoubleIngotPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:double_ingot_pile[count=25]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 13.333333015441895, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 13.333333015441895, 15.75]],
+      "from": "DoubleIngotPileBlock.java (ported)"
+    },
+    {
+      "key": "tfc:double_ingot_pile[count=31]",
+      "class": "layer_pile",
+      "kind": "object",
+      "selection": [[0.25, 0, 0.25, 15.75, 16, 15.75]],
+      "collision": [[0.25, 0, 0.25, 15.75, 16, 15.75]],
+      "from": "DoubleIngotPileBlock.java (ported)"
+    },
+    {
       "key": "tfc:firepit",
       "class": "firepit",
       "kind": "object",

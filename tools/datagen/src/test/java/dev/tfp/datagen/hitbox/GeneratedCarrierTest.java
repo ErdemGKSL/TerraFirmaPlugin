@@ -168,7 +168,8 @@ class GeneratedCarrierTest {
         assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3 + 17 * 16 + 17 * 2 + 4 + 10 + 87 + 75 + 150 + 267
             + 20 * (80 + 4 + 32 + 32) // PAR-DECO-01: per wood stairs, slab (double draws the planks' visual), fence, log fence
             + 20 * (32 + 64 + 64 + 24 + 2) // PAR-DECO-02: per wood fence gate, door, trapdoor, button, pressure plate
-            + 144); // PAR-METAL-13: the channel (128 states) and the mold table (16)
+            + 144 // PAR-METAL-13: the channel (128 states) and the mold table (16)
+            + 14); // PAR-METAL-16: the ingot pile's 8 and the double ingot pile's 6 layer appearances (100 server states)
         // PAR-CLIM-04: the ice pile and sea ice (one leaves pool appearance each).
         // PAR-WORLD-44: the 20 twigs on their one shared tripwire state.
         // PAR-WORLD-59: the plant pools hold every distinct look (and the twigs' one shared tripwire state) within their size
@@ -208,6 +209,8 @@ class GeneratedCarrierTest {
         expected.add(HitboxDemands.CRUCIBLE_ID);
         // PAR-METAL-13: the channel (128 states, 64 appearances on 16 outlines) and the mold table (16 states), hitbox-only.
         expected.addAll(List.of(HitboxDemands.CHANNEL_ID, HitboxDemands.MOLD_TABLE_ID));
+        // PAR-METAL-16: the ingot pile and the double ingot pile (hitbox-only, one appearance per collision layer).
+        expected.addAll(List.of(HitboxDemands.INGOT_PILE_ID, HitboxDemands.DOUBLE_INGOT_PILE_ID));
         // PAR-CLIM-27: the thermometer, anemometer, vane and calendar clock (150 states, hitbox-only).
         expected.addAll(List.of(HitboxDemands.THERMOMETER_ID, HitboxDemands.ANEMOMETER_ID, HitboxDemands.VANE_ID, HitboxDemands.CLOCK_ID));
         // PAR-FARM-15: the four spreading bushes, their canes, the cranberry, the dead bush and the dead cane (267 states).
@@ -236,7 +239,7 @@ class GeneratedCarrierTest {
         expected.addAll(List.of(HitboxDemands.BANANA_SAPLING_ID, HitboxDemands.BANANA_PLANT_ID, HitboxDemands.BANANA_DEAD_ID));
         // PAR-WORLD-47: the plant shapes with dry states (hitbox-only on the berry bush and barrel rows).
         HitboxDemands.PLANT_SHAPE_ROWS.values().forEach(names -> names.forEach(n -> expected.add(HitboxDemands.plantId(n))));
-        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3 + 8 + 41 + 14); // + 8: PAR-FARM-26 farmland, + 41: PAR-FARM-25 growing plants and the PAR-FARM-30 saguaro fruit, + 14: PAR-WORLD-47 plant shapes
+        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3 + 8 + 41 + 14 + 2); // + 8: PAR-FARM-26 farmland, + 41: PAR-FARM-25 growing plants and the PAR-FARM-30 saguaro fruit, + 14: PAR-WORLD-47 plant shapes, + 2: PAR-METAL-16 ingot piles
         // PAR-WORLD-31: the loose and mossy loose rocks, small ores and groundcover types; PAR-WORLD-42: the grass paths
         for (String rock : HitboxDemands.LOOSE_ROCKS) {
             HitboxDemands.LOOSE_KINDS.forEach(k -> expected.add(HitboxDemands.looseRockId(k, rock)));
