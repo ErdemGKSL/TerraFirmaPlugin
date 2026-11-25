@@ -1,4 +1,2 @@
 # PAR-WORLD-65: TFC placed features the coverage guard (PlacedFeatureCoverageTest) found with no rule and no other open-gaps
 # line. Each names its follow-up item; remove an id when its rule lands.
-# PAR-WORLD-67: the surface flood-fill lakes (#tfc:feature/surface_flood_fill_lakes, in_biome/all_lakes)
-tfc:flood_fill_lake

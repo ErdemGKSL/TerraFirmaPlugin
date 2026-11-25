@@ -14,6 +14,7 @@ import dev.tfp.core.worldgen.cave.CaveVegetation;
 import dev.tfp.core.worldgen.cave.UndergroundLakes;
 import dev.tfp.core.worldgen.erosion.Erosion;
 import dev.tfp.core.worldgen.geode.GeodeConfig;
+import dev.tfp.core.worldgen.lake.SurfaceLakes;
 import dev.tfp.core.worldgen.ore.VeinData;
 import dev.tfp.core.worldgen.plant.PlantData;
 import dev.tfp.core.worldgen.tree.Forest;
@@ -90,6 +91,7 @@ class PlacedFeatureCoverageTest {
         CaveDecoration.FEATURES.forEach(id -> out.put(id, "cave/CaveDecoration"));
         out.put(CaveVegetation.FEATURE, "cave/CaveVegetation");
         out.put(UndergroundLakes.FEATURE, "cave/UndergroundLakes");
+        out.put(SurfaceLakes.FEATURE, "lake/SurfaceLakes");
         out.put(Erosion.FEATURE, "erosion/Erosion");
         for (String id : List.of(Forest.FEATURE, Forest.DEAD_FEATURE, Forest.MANGROVE_FEATURE)) {
             out.put(id, "tree/Forest");
@@ -138,6 +140,7 @@ class PlacedFeatureCoverageTest {
         final Set<String> flora = new LinkedHashSet<>(lines("flora/open_gaps.txt"));
         assertThat(gaps.stream().filter(g -> !flora.contains(g) && ruled.containsKey(g)).toList()).isEmpty();
         assertThat(lines("worldgen/decoration/open_gaps.txt")).isEmpty();
+        assertThat(lines("worldgen/decoration/coverage_gaps.txt")).isEmpty();
     }
 
     private static Path dataRoot() {
