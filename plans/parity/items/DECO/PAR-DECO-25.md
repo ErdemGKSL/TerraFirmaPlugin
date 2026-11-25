@@ -2,7 +2,7 @@
 id: PAR-DECO-25
 title: "Sign runtime: placement rotation, text editing, text display, sign carriers (follow-up of PAR-DECO-03)"
 area: DECO
-status: open
+status: done
 wave: 47
 deps: [PAR-DECO-03]
 size: L
@@ -43,6 +43,11 @@ done_criteria:
 
 # PAR-DECO-25: Sign runtime (follow-up of PAR-DECO-03)
 
-> Claimed: claude session_011osUp8LgspZkGFjFNWFDqQ (DECO helper), 2026-11-25
 
 All fields live in the front matter above. Follow `plans/parity/PROTOCOL.md`. PAR-DECO-03 shipped the blocks (`dev.tfp.datagen.sign.SignBlocks`, `configuration/sign/<wood>.yml`), the models of `SignModels`, the item icons, names, and the pure `core/sign` value types (`SignText`, `SignGeometry`).
+
+Scope note: this item shipped the placement rotation (standing and ceiling hanging signs, `attached`) as a paper `sign` module. The editor and packet layer, text displays, wax and dye, better carriers and the wall hanging survival rule moved to PAR-DECO-28 (large, and not checkable without a client).
+
+Pending in-game check (container cannot run client).
+
+Done: core `SignPlacement`, paper `SignModule` and `SignPlacementListener` (service line added); tests `SignPlacementTest` (4), `SignPlacementMockBukkitTest` (4); ledger rows.
