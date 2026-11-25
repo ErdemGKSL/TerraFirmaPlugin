@@ -180,6 +180,7 @@ class GeneratedCarrierTest {
         // PAR-WORLD-59: the fruit tree leaves (tfp:plant/<tree>_leaves, leaves pool) are checked since the plant exemption went
         assertThat(fruitLeaves).isEqualTo(HitboxDemands.FRUIT_TREES.size() * 4); // 4 lifecycles each
         assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 4 + fruitLeaves // PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
+            + 2 // PAR-METAL-15: the blast furnace, unlit and lit, on the solid pool
             + (int) HitboxDemands.all().stream().filter(d -> d.blockId().startsWith("tfp:grass_path/") && agreedOrOld(d).pool())
                 .count() // PAR-WORLD-42: the grass paths on the leaves pool
             // PAR-WORLD-42 (repair): the farmland of every soil whose outline the selector serves from a pool; the eight

@@ -130,3 +130,16 @@ automation:
 bloomery:
   capacity: 16
   max-chimney-height: 3
+
+# Blast furnace (TFC server config blastFurnaceCapacity, blastFurnaceMaxChimneyHeight, blastFurnaceFluidCapacity and
+# blastFurnaceFuelConsumptionMultiplier). Apply changes with /tfp reload config.
+# capacity: items of each kind (inputs, fluxes, fuel) a blast furnace holds per level of chimney (TFC default 4, at least 1).
+# max-chimney-height: the most chimney levels that add capacity (TFC default 5, at least 1). capacity x max-chimney-height is
+#   at most 32 here (the slots of its record); otherwise both fall back to the defaults.
+# fluid-capacity: mB the output tank holds (TFC default 10000, at least 1); what no container takes is lost when it is full.
+# fuel-consumption-multiplier: how fast the fuel burns (TFC default 4, at least 1; air from bellows doubles it).
+blast-furnace:
+  capacity: 4
+  max-chimney-height: 5
+  fluid-capacity: 10000
+  fuel-consumption-multiplier: 4

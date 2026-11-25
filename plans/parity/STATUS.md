@@ -344,7 +344,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-HEAT-13 | Fire behaviour: fire arrows, dousing, fire spread limits | HEAT | 35 | done |
 | PAR-METAL-14 | Bloomery multiblock and bloom | METAL | 35 | done |
 | PAR-DATA-05 | Localisation: Paper lang loading, all TFC locales, plugin strings | DATA | 36 | done |
-| PAR-METAL-15 | Blast furnace, tuyere and steel path | METAL | 36 | open |
+| PAR-METAL-15 | Blast furnace, tuyere and steel path | METAL | 36 | done |
 | PAR-METAL-16 | Ingot and double-ingot piles | METAL | 36 | done |
 | PAR-TOOL-10 | Bows and glow arrows | TOOL | 36 | done |
 | PAR-DATA-06 | Configuration parity: every TFC ServerConfig/CommonConfig key in config.yml | DATA | 37 | done |
@@ -506,3 +506,4 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-POT-15 | Bowl automation: hoppers fill and empty powder bowls, the powder layer follows (follow-up of PAR-POT-09) | POTTERY | 28 | open |
 | PAR-DATA-19 | Advancement triggers left from PAR-DATA-03: feature events for TFC's 21 own triggers | DATA | 40 | open |
 | PAR-DECO-22 | Rock walls, aqueducts and rope anchors (follow-up of PAR-DECO-06) | DECO | 49 | open |
+| PAR-METAL-27 | Blast furnace textured screen: temperature bar and tank bars | METAL | 37 | open |

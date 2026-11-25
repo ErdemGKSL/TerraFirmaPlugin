@@ -253,6 +253,9 @@ public final class Datagen {
         if (dev.tfp.datagen.bloomery.BloomeryBlocks.available(tfc)) { // PAR-METAL-14: tfp:bloomery, tfp:bloom and tfp:molten blocks, models, names; fixtures have none
             dev.tfp.datagen.bloomery.BloomeryBlocks.run(tfc, out);
         }
+        if (dev.tfp.datagen.blastfurnace.BlastFurnaceBlock.available(tfc)) { // PAR-METAL-15: tfp:blast_furnace block, models, names; fixtures have none
+            dev.tfp.datagen.blastfurnace.BlastFurnaceBlock.run(tfc, out);
+        }
         if (dev.tfp.datagen.channel.ChannelBlocks.available(tfc)) { // PAR-METAL-13: tfp:channel and tfp:mold_table blocks, models, names; fixtures have none
             dev.tfp.datagen.channel.ChannelBlocks.run(tfc, out);
         }

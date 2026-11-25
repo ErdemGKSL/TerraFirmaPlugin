@@ -1567,11 +1567,19 @@ public final class HitboxDemands {
     public static final String COMPOSTER_POOL = "solid";
 
     /**
+     * PAR-METAL-15: the blast furnace is TFC's full cube column (both looks), drawn from CraftEngine's {@code solid}
+     * auto_state pool with its own model, like every full cube; not a demand of the explicit-carrier budget.
+     */
+    public static final String BLAST_FURNACE_ID = "tfp:blast_furnace";
+    public static final String BLAST_FURNACE_POOL = "solid";
+
+    /**
      * Full-cube appearances drawn from a CE pool by their generator instead of an explicit carrier: block id to the
      * appearance pattern and the pool. GeneratedCarrierTest accepts {@code auto_state} only for these.
      */
     public static final java.util.Map<String, java.util.Map.Entry<String, String>> FULL_CUBE_POOLS = java.util.Map.of(
-        COMPOSTER_ID, java.util.Map.entry("*_" + COMPOSTER_POOL_STAGE, COMPOSTER_POOL));
+        COMPOSTER_ID, java.util.Map.entry("*_" + COMPOSTER_POOL_STAGE, COMPOSTER_POOL),
+        BLAST_FURNACE_ID, java.util.Map.entry("*", BLAST_FURNACE_POOL));
 
     /**
      * PAR-PROC-37: the pool appearances of the charcoal pit blocks (block id to appearance pattern to pool), in the order

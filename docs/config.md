@@ -108,10 +108,10 @@ Every `define(...)` key of TFC's `ServerConfig`, `CommonConfig`, `ClientConfig` 
 | ServerConfig | `jackOLanternTicks` | `108000` | — | pending: consumer item |
 | ServerConfig | `bloomeryCapacity` | `16` | `bloomery.capacity` | mapped |
 | ServerConfig | `bloomeryMaxChimneyHeight` | `3` | `bloomery.max-chimney-height` | mapped |
-| ServerConfig | `blastFurnaceCapacity` | `4` | — | pending: consumer item |
-| ServerConfig | `blastFurnaceFluidCapacity` | `10_000` | — | pending: consumer item |
-| ServerConfig | `blastFurnaceFuelConsumptionMultiplier` | `4` | — | pending: consumer item |
-| ServerConfig | `blastFurnaceMaxChimneyHeight` | `5` | — | pending: consumer item |
+| ServerConfig | `blastFurnaceCapacity` | `4` | `blast-furnace.capacity` | mapped |
+| ServerConfig | `blastFurnaceFluidCapacity` | `10_000` | `blast-furnace.fluid-capacity` | mapped |
+| ServerConfig | `blastFurnaceFuelConsumptionMultiplier` | `4` | `blast-furnace.fuel-consumption-multiplier` | mapped |
+| ServerConfig | `blastFurnaceMaxChimneyHeight` | `5` | `blast-furnace.max-chimney-height` | mapped |
 | ServerConfig | `blastFurnaceEnableAutomation` | `true` | — | pending: consumer item |
 | ServerConfig | `loomEnableAutomation` | `true` | — | pending: consumer item |
 | ServerConfig | `thatchMovementMultiplier` | `0.6` | — | pending: consumer item |
