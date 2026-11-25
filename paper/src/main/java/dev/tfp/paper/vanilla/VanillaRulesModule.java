@@ -42,7 +42,7 @@ import org.bukkit.potion.PotionEffect;
  * spawning with vanilla equipment or enchantments are a follow-up (see the ledger).
  */
 public final class VanillaRulesModule implements FeatureModule, Listener {
-    public static final String ID = "vanilla-rules";
+    public static final String ID = "vanilla_rules";
 
     private volatile Supplier<VanillaRules> rules = () -> VanillaRules.fromProperties(System::getProperty);
     private volatile Predicate<Block> spawnsOn = b -> true;
