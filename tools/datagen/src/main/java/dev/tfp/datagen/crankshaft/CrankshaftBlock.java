@@ -7,7 +7,8 @@
  * file: src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java @ c3b4d9536 (CRANKSHAFT: strength 3, SoundType.METAL),
  *       src/main/java/net/dries007/tfc/common/blocks/rotation/CrankshaftBlock.java @ c3b4d9536 (FACING, PART),
  *       src/main/java/net/dries007/tfc/client/render/blockentity/CrankshaftBlockEntityRenderer.java @ c3b4d9536 (the wheel
- *       model on the base, the shaft's cuboids: connecting box, piston and arm, the rod texture),
+ *       model on the base, the shaft's cuboids: connecting box, piston and arm, the rod texture; PAR-MECH-26: the pump attachment
+ *       and PUMP_TEXTURE),
  *       src/main/resources/assets/tfc/blockstates/crankshaft.json @ c3b4d9536,
  *       src/main/resources/assets/tfc/models/block/{crankshaft,crankshaft_wheel,crankshaft_with_wheel}.json @ c3b4d9536,
  *       src/main/resources/assets/tfc/models/item/crankshaft.json @ c3b4d9536,
@@ -49,12 +50,14 @@ import java.util.regex.Pattern;
  *   <li>Properties: TFC's {@code facing} (north, east, south, west) and {@code part} (base, shaft): 8 server states, the
  *       {@code tfp:device} behaviour (the crankshaft module's device kind), TFC's settings (strength 3, metal sounds, the
  *       pickaxe of TFC's mineable tag) and TFC's loot (the base drops the crankshaft, the shaft a steel rod).</li>
- *   <li>Look: a barrier carrier per state. The base is drawn by TFC's {@code crankshaft} model and the wheel the renderer adds
- *       ({@code crankshaft_wheel}), both turned as TFC's blockstate turns the base; the shaft (TFC's blockstate draws
- *       {@code block/empty}; the renderer draws its rod) by a model of the renderer's three cuboids at rest
- *       ({@link #shaftModel}), turned the same way. Nothing moves: the turning wheel and the stroke of the shaft are a ledger
- *       divergence, and so are the full-cube outlines (TFC's {@code BASE_SHAPES} / {@code SHAFT_SHAPES} need carriers from the
- *       hitbox allocation).</li>
+ *   <li>Look: a barrier carrier per state. The base's static element is TFC's {@code crankshaft} model turned as TFC's
+ *       blockstate turns it; the shaft draws nothing of its own (TFC's blockstate draws {@code block/empty}). PAR-MECH-26: the
+ *       moving parts are packet displays of the spinning visuals ({@code dev.tfp.paper.rotation.spin.SpinCranks}): the wheel
+ *       ({@code crankshaft_wheel}), the axle stub (the axle's own render item) and the shaft's rod as two render items of the
+ *       renderer's cuboids, both centred on the connecting point the renderer turns about ({@link #sliderModel}: the
+ *       connecting box and the piston; {@link #armModel}: the arm), and the brass attachment toward a steel pump
+ *       ({@link #pumpModel}, TFC's {@code PUMP_TEXTURE}). The full-cube outlines stay a ledger divergence (TFC's
+ *       {@code BASE_SHAPES} / {@code SHAFT_SHAPES} need rows in the TFC shape table first, PAR-MECH-28).</li>
  *   <li>The item: TFC's {@code item/crankshaft} model (parent {@code crankshaft_with_wheel}); the names from every TFC locale.</li>
  * </ul>
  */
@@ -72,16 +75,24 @@ public final class CrankshaftBlock {
     static final String HEADER = DeviceYaml.HEADER + "\nPAR-MECH-21: the crankshaft (dev.tfp.datagen.crankshaft.CrankshaftBlock).";
     public static final String ID = Json.TO_NS + ":crankshaft";
     static final String MODEL_PREFIX = "block/crankshaft/";
-    /** The shaft's rest model, written here from the renderer's cuboids. */
-    public static final String SHAFT_MODEL = MODEL_PREFIX + "shaft";
+    /** PAR-MECH-26: the shaft's connecting box and piston, centred on the connecting point (written from the renderer). */
+    public static final String SLIDER_MODEL = MODEL_PREFIX + "slider";
+    /** PAR-MECH-26: the shaft's arm, its near end on the connecting point (written from the renderer). */
+    public static final String ARM_MODEL = MODEL_PREFIX + "arm";
+    /** PAR-MECH-26: the renderer's brass attachment on the piston of a shaft that drives a steel pump. */
+    public static final String PUMP_MODEL = MODEL_PREFIX + "pump";
     public static final List<String> FACINGS = List.of("north", "east", "south", "west");
     public static final List<String> PARTS = List.of("base", "shaft");
     static final String RENDER_BASE = Json.TO_NS + ":render/crankshaft/base";
     static final String RENDER_WHEEL = Json.TO_NS + ":render/crankshaft/wheel";
-    static final String RENDER_SHAFT = Json.TO_NS + ":render/crankshaft/shaft";
+    /** PAR-MECH-26: the display items of the moving parts (the paper side's {@code CrankParts} names the same ids). */
+    public static final String RENDER_SLIDER = Json.TO_NS + ":render/crankshaft/slider";
+    public static final String RENDER_ARM = Json.TO_NS + ":render/crankshaft/arm";
+    public static final String RENDER_PUMP = Json.TO_NS + ":render/crankshaft/pump";
     private static final Pattern STRENGTH = Pattern.compile("\\.strength\\(([0-9.]+)[fF]\\)");
     private static final Pattern TFC_TEXTURE = Pattern.compile("\"(" + Json.FROM_NS + ":block/[a-z0-9_/]+)\"");
     private static final Pattern ROD_TEXTURE = Pattern.compile("ROD_TEXTURE = Helpers\\.identifier\\(\"([a-z0-9_/]+)\"\\)");
+    private static final Pattern PUMP_TEXTURE = Pattern.compile("PUMP_TEXTURE = Helpers\\.identifier\\(\"([a-z0-9_/]+)\"\\)");
 
     private CrankshaftBlock() {
     }
@@ -101,7 +112,11 @@ public final class CrankshaftBlock {
         String wheel = models.copy("block/crankshaft_wheel");
         String rod = rodTexture(tfc);
         models.texture(rod);
-        out.put(RP + "models/" + SHAFT_MODEL + ".json", Json.write(shaftModel(Json.TO_NS + ":" + rod)));
+        out.put(RP + "models/" + SLIDER_MODEL + ".json", Json.write(sliderModel(Json.TO_NS + ":" + rod)));
+        out.put(RP + "models/" + ARM_MODEL + ".json", Json.write(armModel(Json.TO_NS + ":" + rod)));
+        String brass = texture(tfc, PUMP_TEXTURE, "PUMP_TEXTURE");
+        models.texture(brass);
+        out.put(RP + "models/" + PUMP_MODEL + ".json", Json.write(pumpModel(Json.TO_NS + ":" + brass)));
         models.itemModel();
 
         DeviceBlockSpec.Settings settings = DeviceBlockSpec.Settings.of(hardness, hardness, dev.tfp.datagen.device.DeviceSound.METAL,
@@ -109,14 +124,14 @@ public final class CrankshaftBlock {
         DeviceBlockSpec.Builder b = DeviceBlockSpec.builder(ID).settings(settings).deviceBehaviour().blockItem(langKey())
             .property(DeviceProperty.names("facing", FACINGS, "north"))
             .property(DeviceProperty.names("part", PARTS, "base"))
-            .renderItem(RENDER_BASE, tfp(base)).renderItem(RENDER_WHEEL, tfp(wheel)).renderItem(RENDER_SHAFT, tfp(SHAFT_MODEL));
+            .renderItem(RENDER_BASE, tfp(base)).renderItem(RENDER_WHEEL, tfp(wheel)).renderItem(RENDER_SLIDER, tfp(SLIDER_MODEL))
+            .renderItem(RENDER_ARM, tfp(ARM_MODEL)).renderItem(RENDER_PUMP, tfp(PUMP_MODEL));
         for (String facing : FACINGS) {
             String rot = RotationBlocks.rotation(0, yRotation.get(facing));
+            // PAR-MECH-26: the base without its wheel; the wheel, the stub and the shaft are the spinning visuals' displays
             b.appearance(DeviceAppearance.rendered("base_" + facing, DeviceAppearance.Carrier.state(RenderedTemplates.CARRIER),
-                List.of(DeviceAppearance.Renderer.item(RENDER_BASE).rotated(rot),
-                    DeviceAppearance.Renderer.item(RENDER_WHEEL).rotated(rot))));
-            b.appearance(DeviceAppearance.rendered("shaft_" + facing, DeviceAppearance.Carrier.state(RenderedTemplates.CARRIER),
-                List.of(DeviceAppearance.Renderer.item(RENDER_SHAFT).rotated(rot))));
+                List.of(DeviceAppearance.Renderer.item(RENDER_BASE).rotated(rot))));
+            b.appearance(DeviceAppearance.vanilla("shaft_" + facing, DeviceAppearance.Carrier.state(RenderedTemplates.CARRIER)));
         }
         b.everyState(s -> s.get("part") + "_" + s.get("facing"), null);
         DeviceBlockSpec spec = b.build();
@@ -151,9 +166,13 @@ public final class CrankshaftBlock {
 
     /** The renderer's rod texture ({@code ROD_TEXTURE}, TFC's steel block). */
     static String rodTexture(TfcCheckout tfc) {
-        Matcher m = ROD_TEXTURE.matcher(tfc.readString(RENDERER));
+        return texture(tfc, ROD_TEXTURE, "ROD_TEXTURE");
+    }
+
+    private static String texture(TfcCheckout tfc, Pattern constant, String name) {
+        Matcher m = constant.matcher(tfc.readString(RENDERER));
         if (!m.find()) {
-            throw new DatagenException(RENDERER + ": no ROD_TEXTURE");
+            throw new DatagenException(RENDERER + ": no " + name);
         }
         return m.group(1);
     }
@@ -186,26 +205,48 @@ public final class CrankshaftBlock {
         return out;
     }
 
+    /** The renderer's {@code armRadius} (half the arm's thickness) and {@code boxRadius} (the connecting box). */
+    static final float ARM_RADIUS = 1 / 16f;
+    static final float BOX_RADIUS = 2 / 16f;
+    /** The renderer's piston length: {@code PISTON_LENGTH + 1 / 32f} (off the block border against z-fighting). */
+    static final float PISTON = CrankshaftRules.PISTON_LENGTH + 1 / 32f;
+    /** The model centre: the display turns and moves its item about it, so the connecting point sits there. */
+    private static final float[] CENTRE = {8 / 16f, 8 / 16f, 8 / 16f};
+
     /**
-     * The shaft at rest as a block model: TFC's renderer at the rest angle ({@code calculateRealRotationAngle} of node angle 0
-     * is pi for every facing, where {@code calculateShaftMovement} gives {@code lengthEH = 1} and {@code raiseAngle = 0}),
-     * before its turn by the facing: the connecting box ({@code boxRadius} 2/16), the piston ({@code PISTON_LENGTH + 1/32})
-     * and the arm ({@code ARM_LENGTH}, {@code armRadius} 1/16), centred on {@code (8/16 + armRadius, 8/16, lengthEH)}.
+     * PAR-MECH-26: the connecting box ({@code boxRadius}) and the piston ({@code -pistonLength} to {@code armRadius} along z,
+     * {@code armRadius} thick) of TFC's renderer, centred on the connecting point. The display puts it at
+     * {@code (8/16 + armRadius, 8/16, lengthEH)} of the shaft block, turned by the facing.
      */
-    static JsonObject shaftModel(String texture) {
-        CrankshaftRules.ShaftMovement rest = CrankshaftRules.shaftMovement(CrankshaftRules.realRotationAngle(0f,
-            dev.tfp.core.world.Direction.SOUTH));
-        if (rest.raiseAngle() != 0f) {
-            throw new DatagenException("the shaft's rest pose is raised: " + rest);
-        }
-        float arm = 1 / 16f;
-        float box = 2 / 16f;
-        float piston = CrankshaftRules.PISTON_LENGTH + 1 / 32f;
-        float[] o = {8 / 16f + arm, 8 / 16f, rest.lengthEH()};
+    static JsonObject sliderModel(String texture) {
         JsonArray elements = new JsonArray();
-        elements.add(cuboid(o, -box, -box, -box, box, box, box));
-        elements.add(cuboid(o, -arm, -arm, -piston, arm, arm, arm));
-        elements.add(cuboid(o, -arm, -arm, -arm, arm, arm, CrankshaftRules.ARM_LENGTH + arm));
+        elements.add(cuboid(CENTRE, -BOX_RADIUS, -BOX_RADIUS, -BOX_RADIUS, BOX_RADIUS, BOX_RADIUS, BOX_RADIUS));
+        elements.add(cuboid(CENTRE, -ARM_RADIUS, -ARM_RADIUS, -PISTON, ARM_RADIUS, ARM_RADIUS, ARM_RADIUS));
+        return rodModel(texture, elements);
+    }
+
+    /**
+     * PAR-MECH-26: the arm of TFC's renderer ({@code -armRadius} to {@code ARM_LENGTH + armRadius} along z), its pivot on the
+     * model centre; the display raises it by {@code raiseAngle} about x there.
+     */
+    static JsonObject armModel(String texture) {
+        JsonArray elements = new JsonArray();
+        elements.add(cuboid(CENTRE, -ARM_RADIUS, -ARM_RADIUS, -ARM_RADIUS, ARM_RADIUS, ARM_RADIUS,
+            CrankshaftRules.ARM_LENGTH + ARM_RADIUS));
+        return rodModel(texture, elements);
+    }
+
+    /**
+     * PAR-MECH-26: the renderer's pump attachment ({@code 2/16} about the piston's axis, {@code -pistonLength - 3/32} to
+     * {@code -pistonLength + 5/32} along z), about the connecting point like the slider it moves with.
+     */
+    static JsonObject pumpModel(String texture) {
+        JsonArray elements = new JsonArray();
+        elements.add(cuboid(CENTRE, -2 / 16f, -2 / 16f, -PISTON - 3 / 32f, 2 / 16f, 2 / 16f, -PISTON + 5 / 32f));
+        return rodModel(texture, elements);
+    }
+
+    private static JsonObject rodModel(String texture, JsonArray elements) {
         JsonObject textures = new JsonObject();
         textures.addProperty("rod", texture);
         textures.addProperty("particle", texture);
@@ -337,7 +378,7 @@ public final class CrankshaftBlock {
         for (Object a : appearances.values()) {
             Map<String, Object> appearance = (Map<String, Object>) a;
             appearance.remove("transparent");
-            for (Object r : (List<Object>) appearance.get("entity_renderer")) {
+            for (Object r : (List<Object>) appearance.getOrDefault("entity_renderer", List.of())) {
                 ((Map<String, Object>) r).put("view_range", new BigDecimal(RenderedTemplates.CUBE_VIEW_RANGE));
             }
         }

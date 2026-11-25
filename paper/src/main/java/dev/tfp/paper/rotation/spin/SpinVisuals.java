@@ -5,6 +5,9 @@
  */
 package dev.tfp.paper.rotation.spin;
 
+import dev.tfp.paper.crankshaft.CrankRotation;
+import dev.tfp.paper.crankshaft.CrankshaftChunkIndex;
+import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.packet.PacketHandler;
 import dev.tfp.paper.packet.PacketLayers;
@@ -28,6 +31,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
  * {@link RotationService.ShaftHook}, the PacketEvents side ({@link PacketSpinWire}, {@link SpinPacketHandler}, looked up by
  * name so this class links without PacketEvents, the rule of {@code PacketLayers}), the one global task per tick that
  * advances the spin clock, and the quit listener. Off (the axles draw nothing) when PacketEvents is missing.
+ *
+ * <p>PAR-MECH-26: the crankshafts' moving parts ({@link SpinCranks}) on the same wire, clock and viewers, fed by the
+ * {@link CrankFeed} (chunk loads of the crankshaft module's index, placements and breaks, a sweep per second) with the
+ * network's rotation of each base ({@link CrankRotation}) and the phase of the axle on its sink face.
  */
 public final class SpinVisuals {
     static final String WIRE_CLASS = "dev.tfp.paper.rotation.spin.PacketSpinWire";
@@ -68,14 +75,47 @@ public final class SpinVisuals {
         }
         Class<?> wireClass = Class.forName(WIRE_CLASS, true, SpinVisuals.class.getClassLoader());
         SpinWire wire = (SpinWire) wireClass.getConstructor().newInstance();
-        SpinShafts shafts = new SpinShafts(wire, entityIds(), items);
+        IntSupplier ids = entityIds();
+        SpinShafts shafts = new SpinShafts(wire, ids, items);
+        SpinCranks cranks = new SpinCranks((CrankWire) wire, ids, shafts::sourceTrack);
         context.packets().register((PacketHandler) Class.forName(HANDLER_CLASS, true, SpinVisuals.class.getClassLoader())
-            .getConstructor(SpinShafts.class, wireClass, Function.class).newInstance(shafts, wire, worlds()));
-        context.listen(new Quit(shafts));
+            .getConstructor(SpinShafts.class, wireClass, Function.class, SpinCranks.class)
+            .newInstance(shafts, wire, worlds(), cranks));
+        context.listen(new Quit(shafts, cranks));
         Scheduler scheduler = context.scheduler();
-        scheduler.globalRepeating(1L, 1L, shafts::tick);
+        scheduler.globalRepeating(1L, 1L, () -> {
+            shafts.tick();
+            cranks.tick(); // the same clock as the shafts' (their phases are read in it)
+        });
         networks.shaftHook(shafts::shafts);
+        startCranks(context, networks, shafts, cranks);
         return Optional.of(shafts);
+    }
+
+    /** PAR-MECH-26: the crank feed's hooks, listener, sweep and first reading of the chunks already loaded. */
+    static void startCranks(ModuleContext context, RotationService networks, SpinShafts shafts, SpinCranks cranks) {
+        Scheduler scheduler = context.scheduler();
+        CustomBlocks blocks = context.integrations().customBlocks();
+        CrankRotation rotations = context.services().get(CrankRotation.class).orElse(networks::rotation);
+        CrankFeed feed = new CrankFeed(scheduler, blocks, rotations, cranks, shafts::item,
+            uid -> context.plugin().getServer().getWorld(uid));
+        CrankshaftChunkIndex index = new CrankshaftChunkIndex(context.chunkData());
+        blocks.onChunkLoad(chunk -> feed.chunkLoaded(chunk, index.positions(chunk)));
+        blocks.onChunkUnload(feed::chunkUnloaded);
+        context.listen(feed.new Changes());
+        scheduler.globalRepeating(CrankFeed.SWEEP_TICKS, CrankFeed.SWEEP_TICKS, feed::sweep);
+        scheduler.global(() -> context.plugin().getServer().getWorlds().forEach(w -> {
+            for (org.bukkit.Chunk chunk : w.getLoadedChunks()) {
+                int cx = chunk.getX();
+                int cz = chunk.getZ();
+                scheduler.region(w, cx, cz, () -> {
+                    if (w.isChunkLoaded(cx, cz)) {
+                        org.bukkit.Chunk c = w.getChunkAt(cx, cz);
+                        feed.chunkLoaded(c, index.positions(c));
+                    }
+                });
+            }
+        }));
     }
 
     /** The world of a dimension key, or null. */
@@ -122,13 +162,16 @@ public final class SpinVisuals {
     /** Forgets a player who left. */
     static final class Quit implements Listener {
         private final SpinShafts shafts;
+        private final SpinCranks cranks;
 
-        Quit(SpinShafts shafts) {
+        Quit(SpinShafts shafts, SpinCranks cranks) {
             this.shafts = shafts;
+            this.cranks = cranks;
         }
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onQuit(PlayerQuitEvent event) {
+            cranks.quit(event.getPlayer().getUniqueId());
             shafts.quit(event.getPlayer().getUniqueId());
         }
     }

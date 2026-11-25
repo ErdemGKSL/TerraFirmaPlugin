@@ -23,6 +23,7 @@ import java.util.function.Function;
  * The viewers of the spinning shafts (PAR-MECH-12), from the packets a player receives, as the ore overlays learn theirs
  * (PAR-INFRA-16): the world from {@code JOIN_GAME} and {@code RESPAWN}, the chunks from {@code CHUNK_DATA} (the shafts spawn
  * right after the chunk, in the same flush) and {@code UNLOAD_CHUNK}. Netty thread; never modifies or cancels a packet.
+ * PAR-MECH-26: the crankshafts' parts ({@link SpinCranks}) learn their viewers from the same packets.
  */
 public final class SpinPacketHandler implements PacketHandler {
     public static final String NAME = "rotation-spin";
@@ -30,14 +31,21 @@ public final class SpinPacketHandler implements PacketHandler {
     private final SpinShafts shafts;
     private final PacketSpinWire wire;
     private final Function<String, UUID> worlds;
+    private final SpinCranks cranks;
 
     /**
      * @param worlds the world of a dimension key ({@code minecraft:overworld}), null when unknown
      */
     public SpinPacketHandler(SpinShafts shafts, PacketSpinWire wire, Function<String, UUID> worlds) {
+        this(shafts, wire, worlds, null);
+    }
+
+    /** PAR-MECH-26: also feeds the crankshafts' viewers ({@code cranks} may be null). */
+    public SpinPacketHandler(SpinShafts shafts, PacketSpinWire wire, Function<String, UUID> worlds, SpinCranks cranks) {
         this.shafts = shafts;
         this.wire = wire;
         this.worlds = worlds;
+        this.cranks = cranks;
     }
 
     @Override
@@ -60,20 +68,36 @@ public final class SpinPacketHandler implements PacketHandler {
         switch (packet.packetType()) {
             case "JOIN_GAME" -> {
                 wire.user(player, event.getUser());
-                shafts.viewerWorld(player, worlds.apply(new WrapperPlayServerJoinGame(event).getWorldName()));
+                UUID world = worlds.apply(new WrapperPlayServerJoinGame(event).getWorldName());
+                shafts.viewerWorld(player, world);
+                if (cranks != null) {
+                    cranks.viewerWorld(player, world);
+                }
             }
             case "RESPAWN" -> {
                 wire.user(player, event.getUser());
-                shafts.viewerWorld(player, new WrapperPlayServerRespawn(event).getWorldName().map(worlds).orElse(null));
+                UUID world = new WrapperPlayServerRespawn(event).getWorldName().map(worlds).orElse(null);
+                shafts.viewerWorld(player, world);
+                if (cranks != null) {
+                    cranks.viewerWorld(player, world);
+                }
             }
             case "CHUNK_DATA" -> {
                 wire.user(player, event.getUser());
                 long xz = chunkCoords(event);
-                event.getTasksAfterSend().add(() -> shafts.chunkSent(player, (int) (xz >> 32), (int) xz));
+                event.getTasksAfterSend().add(() -> {
+                    shafts.chunkSent(player, (int) (xz >> 32), (int) xz);
+                    if (cranks != null) {
+                        cranks.chunkSent(player, (int) (xz >> 32), (int) xz);
+                    }
+                });
             }
             case "UNLOAD_CHUNK" -> {
                 WrapperPlayServerUnloadChunk w = new WrapperPlayServerUnloadChunk(event);
                 shafts.chunkUnloaded(player, w.getChunkX(), w.getChunkZ());
+                if (cranks != null) {
+                    cranks.chunkUnloaded(player, w.getChunkX(), w.getChunkZ());
+                }
             }
             default -> {
             }

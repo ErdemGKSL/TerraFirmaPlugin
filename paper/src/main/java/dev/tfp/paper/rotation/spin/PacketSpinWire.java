@@ -37,8 +37,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Display metadata indices of 1.21.4 to 1.21.11 (as the ore overlays', S1 spike): 8 interpolation delay, 9 transformation
  * interpolation duration, 11 translation, 12 scale, 13 left rotation, 14 right rotation, 17 view range, 23 item, 24 item
  * display context. 26.x is assumed to keep them (the in-game check covers it).
+ *
+ * <p>PAR-MECH-26: the crankshaft's parts ({@link CrankWire}) go out the same way, with a full transformation (translation,
+ * left rotation, scale, right rotation) per packet.
  */
-public final class PacketSpinWire implements SpinWire {
+public final class PacketSpinWire implements SpinWire, CrankWire {
     public static final int INTERPOLATION_DELAY = 8;
     public static final int INTERPOLATION_DURATION = 9;
     public static final int TRANSLATION = OverlayDisplayPackets.TRANSLATION;
@@ -91,6 +94,48 @@ public final class PacketSpinWire implements SpinWire {
         if (u != null && entityIds.length > 0) {
             u.sendPacketSilently(OverlayDisplayPackets.remove(entityIds));
         }
+    }
+
+    @Override
+    public void spawnPart(UUID viewer, int entityId, BlockPos pos, String item, CrankParts.Pose pose) {
+        User u = users.get(viewer);
+        if (u == null) {
+            return;
+        }
+        u.sendPacketSilently(OverlayDisplayPackets.spawn(entityId, new Vector3d(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5)));
+        List<EntityData<?>> data = new ArrayList<>(pose(pose, 0));
+        data.add(new EntityData<>(VIEW_RANGE, EntityDataTypes.FLOAT, VIEW_RANGE_VALUE));
+        data.add(new EntityData<>(DISPLAY_CONTEXT, EntityDataTypes.BYTE, (byte) 0));
+        data.add(new EntityData<>(ITEM, EntityDataTypes.ITEMSTACK, item(item)));
+        u.sendPacketSilently(new WrapperPlayServerEntityMetadata(entityId, data));
+    }
+
+    @Override
+    public void movePart(UUID viewer, int entityId, CrankParts.Pose pose, int duration) {
+        User u = users.get(viewer);
+        if (u != null) {
+            u.sendPacketSilently(new WrapperPlayServerEntityMetadata(entityId, pose(pose, duration)));
+        }
+    }
+
+    @Override
+    public void removeParts(UUID viewer, int... entityIds) {
+        remove(viewer, entityIds);
+    }
+
+    /** PAR-MECH-26: a part's transformation reached after {@code duration} ticks (interpolation delay 0). */
+    public static List<EntityData<?>> pose(CrankParts.Pose pose, int duration) {
+        return List.of(
+            new EntityData<>(INTERPOLATION_DELAY, EntityDataTypes.INT, 0),
+            new EntityData<>(INTERPOLATION_DURATION, EntityDataTypes.INT, duration),
+            new EntityData<>(TRANSLATION, EntityDataTypes.VECTOR3F, vector(pose.translation())),
+            new EntityData<>(SCALE, EntityDataTypes.VECTOR3F, vector(pose.scale())),
+            new EntityData<>(LEFT_ROTATION, EntityDataTypes.QUATERNION, quaternion(pose.left())),
+            new EntityData<>(RIGHT_ROTATION, EntityDataTypes.QUATERNION, quaternion(pose.right())));
+    }
+
+    private static Vector3f vector(float[] v) {
+        return new Vector3f(v[0], v[1], v[2]);
     }
 
     /** A segment: interpolation delay 0, {@code duration} ticks, both rotations at {@code halfAngle}. */

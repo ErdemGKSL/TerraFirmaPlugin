@@ -104,6 +104,25 @@ public final class SpinShafts {
         return s == null ? Optional.empty() : Optional.of(s.track.phiAt(now));
     }
 
+    /**
+     * PAR-MECH-26: the source-angle line ({@code Rotation.angle}, unbounded) of the network the shaft at {@code pos} turns in,
+     * empty when the shaft is unknown or in no network. A crank next to it reads its phase here.
+     */
+    public synchronized Optional<Track> sourceTrack(UUID world, BlockPos pos) {
+        Shaft s = shafts.get(new Key(world, pos));
+        if (s == null || s.network < 0) {
+            return Optional.empty();
+        }
+        Phase p = phases.get(new NetKey(world, s.network));
+        return p == null ? Optional.empty() : Optional.of(p.track);
+    }
+
+    /** PAR-MECH-26: the display item of the shaft at {@code pos}, empty when unknown or not resolved yet. */
+    public synchronized Optional<String> item(UUID world, BlockPos pos) {
+        Shaft s = shafts.get(new Key(world, pos));
+        return s == null ? Optional.empty() : Optional.ofNullable(s.item);
+    }
+
     /** One game tick: the clock advances, the delayed first segments and the due segments go out. Global scheduler. */
     public synchronized void tick() {
         now++;
