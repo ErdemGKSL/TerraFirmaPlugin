@@ -381,6 +381,16 @@ public final class HitboxDemands {
                     LOOM_WEIGHT));
             }
         }
+        // PAR-PROC-49: the scribing table (one outline per facing: the side boards turn) and the sewing table (one outline),
+        // per wood, hitbox-only like the loom; every wood shares the carriers of one outline.
+        for (String w : BARREL_WOODS) {
+            for (String f : FACINGS) {
+                d.add(new Demand("tfp:wood/scribing_table/" + w, f, "tfc:wood/scribing_table[facing=" + f + "]", 0,
+                    HitboxAllocation.TRANSPARENT, true, TABLE_WEIGHT));
+            }
+            d.add(new Demand("tfp:wood/sewing_table/" + w, SEWING_APPEARANCE, "tfc:wood/sewing_table", 0,
+                HitboxAllocation.TRANSPARENT, true, TABLE_WEIGHT));
+        }
         // PAR-PROC-34: the composter, one outline per stage (TFC's well from max(2, stage * 2)). Every stage carries TFC's
         // bin model (one look, so stages may share a carrier); the compost of each type is an entity_renderer overlay
         // (ComposterBlock), so the 25 looks of TFC's multipart take 8 carriers at most. Stage 8 is a full cube and is no
@@ -1256,6 +1266,10 @@ public final class HitboxDemands {
     public static String barrelSideKey(String axis, boolean rack) {
         return "tfc:wood/barrel[axis=" + axis + ",rack=" + rack + "]";
     }
+
+    /** PAR-PROC-49: the sewing table's one appearance and the weight of the tables' demands (served after the loom's). */
+    public static final String SEWING_APPEARANCE = "base";
+    static final int TABLE_WEIGHT = -23;
 
     /** PAR-PROC-06: the loom block of {@code wood} and the weight of its demands (served after the sluice's). */
     public static String loomId(String wood) {

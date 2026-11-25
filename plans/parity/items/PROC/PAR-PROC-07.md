@@ -23,6 +23,7 @@ ui: true
 in_game_steps:
   - "place a sewing table; right-click; screenshot GUI"
 plan:
+  - "Not started (worker session 2026-11-25): needs a GUI design for 8x4 squares + 9x5 stitch points + 5 item slots + 5 buttons on 6 chest rows (two views, a title-glyph art per view: image-generation/art), the sewing recipe schema (tfc:sewing squares/stitches) and the table block from PAR-PROC-49. Do after PAR-PROC-49 content is generated."
   - "Textured GUI with the 12-pixel square/stitch grid as clickable button slots (approximation of TFC's free grid: divergence row), yarn/tool/inputs/result slots; SewingRules."
 tests:
   - "paper: grid click mapping"

@@ -170,6 +170,9 @@ public final class Datagen {
         if (dev.tfp.datagen.loom.LoomBlock.available(tfc)) { // PAR-PROC-06: tfp:wood/loom/<wood> entries, models, textures, names; fixtures have no looms
             dev.tfp.datagen.loom.LoomBlock.run(tfc, out);
         }
+        if (dev.tfp.datagen.tables.TableBlocks.available(tfc)) { // PAR-PROC-49: tfp:wood/scribing_table/<wood> and tfp:wood/sewing_table/<wood>; fixtures have none
+            dev.tfp.datagen.tables.TableBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.sluice.SluiceBlock.available(tfc)) { // PAR-PROC-13: tfp:wood/sluice/<wood> entries, models, textures, names; fixtures have no sluices
             dev.tfp.datagen.sluice.SluiceBlock.run(tfc, out);
         }

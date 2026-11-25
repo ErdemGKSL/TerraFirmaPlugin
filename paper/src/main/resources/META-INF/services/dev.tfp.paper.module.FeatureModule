@@ -131,3 +131,4 @@ dev.tfp.paper.loom.LoomModule
 dev.tfp.paper.nestbox.NestBoxModule
 dev.tfp.paper.collapse.CollapseModule
 dev.tfp.paper.collapse.explosion.ExplosionCollapseModule
+dev.tfp.paper.scribing.ScribingModule

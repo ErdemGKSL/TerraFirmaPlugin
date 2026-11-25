@@ -366,7 +366,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-05 | Livestock: feeding, familiarity and breeding interactions | FAUNA | 41 | done |
 | PAR-PROC-06 | Loom: weaving cloth, burlap, wool, silk | PROC | 41 | done |
 | PAR-PROC-07 | Sewing table GUI | PROC | 41 | open |
-| PAR-PROC-15 | Scribing table | PROC | 41 | open |
+| PAR-PROC-15 | Scribing table | PROC | 41 | done |
 | PAR-FAUNA-06 | Animal products: milk, wool, eggs; sheared look | FAUNA | 42 | done |
 | PAR-FAUNA-08 | Livestock AI and roster: graze, follow food, herd; all 18 domestic species | FAUNA | 42 | done |
 | PAR-FAUNA-09 | Prey AI and wild animals | FAUNA | 42 | done |
@@ -470,6 +470,8 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-46 | Panning in-game verification: deposit pickup, water hint, 6 s pan, small ores | PROC | 33 | open |
 | PAR-PROC-47 | Sluice in-game verification: placement of both halves, water, soil intake, loot, break | PROC | 33 | open |
 | PAR-PROC-48 | Loom in-game verification and the in-progress cloth visual | PROC | 42 | open |
+| PAR-PROC-49 | Scribing table and sewing table blocks (tfp:wood/scribing_table/<wood>, tfp:wood/sewing_table/<wood>) | PROC | 41 | done |
+| PAR-PROC-50 | Scribing table in-game verification and TFC screen art | PROC | 42 | open |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | open |
 | PAR-DECO-18 | Sandstone stairs, slabs and walls and the calcite spike | DECO | 49 | open |
 | PAR-POT-14 | Pit kiln block: CraftEngine entry, hitboxes and look per stage, config keys, self-test kiln.fire, in-game check | POTTERY | 25 | open |

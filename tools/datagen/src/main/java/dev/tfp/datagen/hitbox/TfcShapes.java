@@ -204,6 +204,34 @@ public final class TfcShapes {
                     return new Shape[] {shape, shape};
                 }));
         }
+        // PAR-PROC-49: the scribing table (side boards turn with the facing) and the sewing table, every wood alike.
+        String scribing = B + "wood/ScribingTableBlock.java";
+        for (String f : List.of("north", "east", "south", "west")) {
+            boolean ns = f.equals("north") || f.equals("south");
+            s.add(new Spec("tfc:wood/scribing_table[facing=" + f + "]", "scribing_table", Kind.OBJECT, List.of(scribing), null,
+                null, List.of("box(0, 12, 0, 16, 16, 16),", "box(1, 0, 1, 4, 12, 4),", "box(12, 0, 1, 15, 12, 4),",
+                    "box(1, 0, 12, 4, 12, 15),", "box(12, 0, 12, 15, 12, 15)",
+                    "box(12, 5, 4, 14, 12, 12),", "box(2, 5, 4, 4, 12, 12)",
+                    "box(4, 5, 12, 12, 12, 14),", "box(4, 5, 2, 12, 12, 4)",
+                    "case NORTH, SOUTH -> SHAPE_NS;", "case EAST, WEST -> SHAPE_EW;"),
+                List.of("getCollisionShape"), x -> {
+                    x.source(scribing);
+                    Shape base = Shape.box(0, 12, 0, 16, 16, 16).union(Shape.box(1, 0, 1, 4, 12, 4))
+                        .union(Shape.box(12, 0, 1, 15, 12, 4)).union(Shape.box(1, 0, 12, 4, 12, 15))
+                        .union(Shape.box(12, 0, 12, 15, 12, 15));
+                    Shape shape = ns ? base.union(Shape.box(12, 5, 4, 14, 12, 12)).union(Shape.box(2, 5, 4, 4, 12, 12))
+                        : base.union(Shape.box(4, 5, 12, 12, 12, 14)).union(Shape.box(4, 5, 2, 12, 12, 4));
+                    return new Shape[] {shape, shape};
+                }));
+        }
+        String sewing = B + "wood/SewingTableBlock.java";
+        s.add(new Spec("tfc:wood/sewing_table", "sewing_table", Kind.OBJECT, List.of(sewing), null, null,
+            List.of("box(2, 0, 2, 14, 14, 14),", "box(0, 14, 0, 16, 16, 16)", "return SHAPE;"), List.of("getCollisionShape"),
+            x -> {
+                x.source(sewing);
+                Shape shape = Shape.box(2, 0, 2, 14, 14, 14).union(Shape.box(0, 14, 0, 16, 16, 16));
+                return new Shape[] {shape, shape};
+            }));
         s.add(Spec.of("tfc:farmland", "farmland", Kind.OBJECT, List.of(B + "soil/FarmlandBlock.java"), "SHAPE", "same",
             List.of("return SHAPE;"), List.of("getCollisionShape")));
         // PAR-FARM-25: the growing plant shapes (columns, kelp, kelp trees, vines, creepers, epiphytes, branching cacti) are
