@@ -316,6 +316,7 @@ class BootstrapTest {
                 "census",
                 "vessel",
                 "alloy",
+                "anvil",
                 "crucible",
                 "pen",
                 "mold",
