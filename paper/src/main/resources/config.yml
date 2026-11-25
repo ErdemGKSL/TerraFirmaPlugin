@@ -122,3 +122,10 @@ automation:
   quern: true
   composter: true
   powder-keg: true
+
+# Bloomery (TFC server config bloomeryCapacity and bloomeryMaxChimneyHeight). Apply changes with /tfp reload config.
+# capacity: items a bloomery holds per level of chimney (TFC default 16, at least 1; at most 128 here, the slots of its record).
+# max-chimney-height: the most chimney levels that add capacity (TFC default 3, at least 1; at most 16 here).
+bloomery:
+  capacity: 16
+  max-chimney-height: 3

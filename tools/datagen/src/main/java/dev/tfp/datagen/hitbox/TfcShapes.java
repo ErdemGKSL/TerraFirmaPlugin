@@ -158,6 +158,15 @@ public final class TfcShapes {
             s.add(Spec.of("tfc:bloom[layers=" + n + "]", "layer_pile", Kind.OBJECT, List.of(bloom), "SHAPE_BY_LAYER[" + n + "]",
                 "same", List.of("return SHAPE_BY_LAYER[state.getValue(LAYERS)];"), List.of("getCollisionShape")));
         }
+        // PAR-METAL-14: the bloomery, TFC's getShape by facing and open (no collision override: the outline is both).
+        String bloomery = D + "BloomeryBlock.java";
+        for (String f : List.of("north", "east", "south", "west")) {
+            for (boolean open : new boolean[] {false, true}) {
+                String field = (open ? "OPEN_" : "CLOSED_") + f.toUpperCase(java.util.Locale.ROOT) + "_SHAPE";
+                s.add(Spec.of(bloomeryKey(f, open), "bloomery", Kind.OBJECT, List.of(bloomery), field, "same",
+                    List.of("case " + f.toUpperCase(java.util.Locale.ROOT) + " -> " + field + ";"), List.of("getCollisionShape")));
+            }
+        }
         String ingots = D + "IngotPileBlock.java";
         for (int n = 0; n < 8; n++) {
             s.add(Spec.of("tfc:ingot_pile[count=" + (8 * n + 1) + "]", "layer_pile", Kind.OBJECT, List.of(ingots),
@@ -1084,6 +1093,16 @@ public final class TfcShapes {
             }
         }
         return new Shape[] {shape, Shape.EMPTY};
+    }
+
+    /** PAR-METAL-14: the row of the bloomery with {@code facing}, open or closed. */
+    public static String bloomeryKey(String facing, boolean open) {
+        return "tfc:bloomery[facing=" + facing + ",open=" + open + "]";
+    }
+
+    /** PAR-METAL-14: the row of the bloom with {@code layers} (1 to 8). */
+    public static String bloomKey(int layers) {
+        return "tfc:bloom[layers=" + layers + "]";
     }
 
     /** PAR-METAL-13: the mold table's row. */

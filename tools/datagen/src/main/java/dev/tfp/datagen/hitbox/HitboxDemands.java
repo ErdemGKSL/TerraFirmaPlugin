@@ -46,6 +46,23 @@ public final class HitboxDemands {
     /** PAR-METAL-13: served after every other demand, so adding them moves no carrier of another block. */
     static final int CHANNEL_WEIGHT = -13;
 
+    /** PAR-METAL-14: the bloomery, the bloom and the molten stack block. */
+    public static final String BLOOMERY_ID = "tfp:bloomery";
+    public static final String BLOOM_ID = "tfp:bloom";
+    public static final String MOLTEN_ID = "tfp:molten";
+    /** PAR-METAL-14: served after every other demand, so adding them moves no carrier of another block. */
+    static final int BLOOMERY_WEIGHT = -28;
+
+    /** PAR-METAL-14: the appearance (and demand) of the bloomery with {@code facing}, open or closed. */
+    public static String bloomeryOutline(String facing, boolean open) {
+        return facing + (open ? "_open" : "_closed");
+    }
+
+    /** PAR-METAL-14: the appearance (and demand) of a bloom (1 to 8) or molten (1 to 4) block with {@code layers}. */
+    public static String bloomLayers(int layers) {
+        return "layers_" + layers;
+    }
+
     /** PAR-METAL-13: the demand of the channels with the connections of {@code mask} (see {@link TfcShapes#channelKey}). */
     public static String channelPattern(int mask) {
         return "m" + mask;
@@ -559,6 +576,22 @@ public final class HitboxDemands {
         }
         d.add(new Demand(MOLD_TABLE_ID, MOLD_TABLE_APPEARANCE, TfcShapes.MOLD_TABLE_KEY, 0, HitboxAllocation.TRANSPARENT, true,
             CHANNEL_WEIGHT));
+        // PAR-METAL-14: the bloomery (a facing and open outline each), the bloom (a layer each) and the molten stack block
+        // (TFC's 4 px layers: the bloom rows of 2, 4, 6 and 8 layers), hitbox-only; the look is item displays (BloomeryBlocks).
+        for (String f : FACINGS) {
+            for (boolean open : new boolean[] {false, true}) {
+                d.add(new Demand(BLOOMERY_ID, bloomeryOutline(f, open), TfcShapes.bloomeryKey(f, open), 0,
+                    HitboxAllocation.TRANSPARENT, true, BLOOMERY_WEIGHT));
+            }
+        }
+        for (int layers = 1; layers <= 8; layers++) {
+            d.add(new Demand(BLOOM_ID, bloomLayers(layers), TfcShapes.bloomKey(layers), 0, HitboxAllocation.TRANSPARENT, true,
+                BLOOMERY_WEIGHT));
+        }
+        for (int layers = 1; layers <= 4; layers++) {
+            d.add(new Demand(MOLTEN_ID, bloomLayers(layers), TfcShapes.bloomKey(2 * layers), 0, HitboxAllocation.TRANSPARENT,
+                true, BLOOMERY_WEIGHT));
+        }
         // PAR-CLIM-27: the four climate instruments, hitbox-only per TFC outline; the look is an item display (InstrumentBlocks).
         for (String f : FACINGS) {
             d.add(new Demand(THERMOMETER_ID, f + "_*", TfcShapes.instrumentKey("thermometer", "facing=" + f), 0,

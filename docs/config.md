@@ -106,8 +106,8 @@ Every `define(...)` key of TFC's `ServerConfig`, `CommonConfig`, `ClientConfig` 
 | ServerConfig | `lampCapacity` | `250` | — | pending: consumer item |
 | ServerConfig | `enablePumpkinCarving` | `true` | — | pending: consumer item |
 | ServerConfig | `jackOLanternTicks` | `108000` | — | pending: consumer item |
-| ServerConfig | `bloomeryCapacity` | `16` | — | pending: consumer item |
-| ServerConfig | `bloomeryMaxChimneyHeight` | `3` | — | pending: consumer item |
+| ServerConfig | `bloomeryCapacity` | `16` | `bloomery.capacity` | mapped |
+| ServerConfig | `bloomeryMaxChimneyHeight` | `3` | `bloomery.max-chimney-height` | mapped |
 | ServerConfig | `blastFurnaceCapacity` | `4` | — | pending: consumer item |
 | ServerConfig | `blastFurnaceFluidCapacity` | `10_000` | — | pending: consumer item |
 | ServerConfig | `blastFurnaceFuelConsumptionMultiplier` | `4` | — | pending: consumer item |

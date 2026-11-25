@@ -15,6 +15,7 @@
  */
 package dev.tfp.core.bloomery;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -179,8 +180,21 @@ public final class BloomeryRules {
      */
     public static int[] intake(BloomeryRecipe recipe, List<BloomeryItem> world, int current, int capacity) {
         int[] taken = new int[world.size()];
+        for (int index : intakeSequence(recipe, world, current, capacity)) {
+            taken[index]++;
+        }
+        return taken;
+    }
+
+    /**
+     * {@link #intake} as the order the units are put into the bloomery: the index of the world entry each unit comes from, one
+     * element per unit. The order is TFC's alternation (a catalyst, then an input, then the next catalyst...), which sets the
+     * order of the contents and so which units are popped off first when the structure shrinks.
+     */
+    public static List<Integer> intakeSequence(BloomeryRecipe recipe, List<BloomeryItem> world, int current, int capacity) {
+        List<Integer> sequence = new ArrayList<>();
         if (recipe == null || current >= capacity) {
-            return taken;
+            return sequence;
         }
         boolean[] input = new boolean[world.size()];
         boolean[] catalyst = new boolean[world.size()];
@@ -198,7 +212,7 @@ public final class BloomeryRules {
         }
         boolean accept = (anyCatalyst && anyInput) || (current > 0 && (anyCatalyst || !anyInput));
         if (!accept) {
-            return taken;
+            return sequence;
         }
 
         int[] remaining = new int[world.size()];
@@ -211,7 +225,7 @@ public final class BloomeryRules {
         while (consumed < maximum && (c < catalystQueue.length || n < inputQueue.length)) {
             if (c < catalystQueue.length) {
                 int idx = catalystQueue[c];
-                taken[idx]++;
+                sequence.add(idx);
                 remaining[idx]--;
                 consumed++;
                 if (remaining[idx] == 0) {
@@ -223,7 +237,7 @@ public final class BloomeryRules {
             }
             if (n < inputQueue.length) {
                 int idx = inputQueue[n];
-                taken[idx]++;
+                sequence.add(idx);
                 remaining[idx]--;
                 consumed++;
                 if (remaining[idx] == 0) {
@@ -231,7 +245,32 @@ public final class BloomeryRules {
                 }
             }
         }
-        return taken;
+        return sequence;
+    }
+
+    /**
+     * TFC {@code MoltenBlock.manageMoltenBlockTower}: the layers of each block of the molten tower for a bloomery holding
+     * {@code itemCount} units. The tower fills from the inside block upward, four layers a block, and holds at least one
+     * layer while there is any item.
+     *
+     * @param itemCount     the units inside
+     * @param itemsPerLayer the config capacity per level (TFC divides the layers over {@code itemsPerLayer} items)
+     * @param maxHeight     the config maximum chimney height (the number of blocks that may hold molten metal)
+     * @return the layers of each block from the bottom, {@code 0} for none (a block that holds molten metal is removed)
+     */
+    public static int[] moltenTower(int itemCount, int itemsPerLayer, int maxHeight) {
+        int[] tower = new int[Math.max(0, maxHeight)];
+        int layers = itemCount > 0 ? Math.max(1, (4 * itemCount) / itemsPerLayer) : 0;
+        for (int y = 0; y < tower.length; y++) {
+            if (layers >= 4) {
+                tower[y] = 4;
+                layers -= 4;
+            } else if (layers > 0) {
+                tower[y] = layers;
+                layers = 0;
+            }
+        }
+        return tower;
     }
 
     /**

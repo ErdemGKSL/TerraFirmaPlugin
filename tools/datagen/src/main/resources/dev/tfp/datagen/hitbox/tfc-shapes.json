@@ -139,6 +139,70 @@
       "from": "BloomBlock.java SHAPE_BY_LAYER[8] / same"
     },
     {
+      "key": "tfc:bloomery[facing=north,open=false]",
+      "class": "bloomery",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 2]],
+      "collision": [[0, 0, 0, 16, 16, 2]],
+      "from": "BloomeryBlock.java CLOSED_NORTH_SHAPE / same"
+    },
+    {
+      "key": "tfc:bloomery[facing=north,open=true]",
+      "class": "bloomery",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 1, 2], [0, 1, 0, 1, 15, 8], [15, 1, 0, 16, 15, 8], [1, 1, 1, 2, 15, 8], [14, 1, 1, 15, 15, 8], [0, 15, 0, 16, 16, 2]],
+      "collision": [[0, 0, 0, 16, 1, 2], [0, 1, 0, 1, 15, 8], [15, 1, 0, 16, 15, 8], [1, 1, 1, 2, 15, 8], [14, 1, 1, 15, 15, 8], [0, 15, 0, 16, 16, 2]],
+      "from": "BloomeryBlock.java OPEN_NORTH_SHAPE / same"
+    },
+    {
+      "key": "tfc:bloomery[facing=east,open=false]",
+      "class": "bloomery",
+      "kind": "object",
+      "selection": [[14, 0, 0, 16, 16, 16]],
+      "collision": [[14, 0, 0, 16, 16, 16]],
+      "from": "BloomeryBlock.java CLOSED_EAST_SHAPE / same"
+    },
+    {
+      "key": "tfc:bloomery[facing=east,open=true]",
+      "class": "bloomery",
+      "kind": "object",
+      "selection": [[14, 0, 0, 16, 1, 16], [8, 1, 0, 16, 15, 1], [8, 1, 1, 15, 15, 2], [8, 1, 14, 15, 15, 16], [15, 1, 15, 16, 16, 16], [14, 15, 0, 16, 16, 15], [14, 15, 15, 15, 16, 16]],
+      "collision": [[14, 0, 0, 16, 1, 16], [8, 1, 0, 16, 15, 1], [8, 1, 1, 15, 15, 2], [8, 1, 14, 15, 15, 16], [15, 1, 15, 16, 16, 16], [14, 15, 0, 16, 16, 15], [14, 15, 15, 15, 16, 16]],
+      "from": "BloomeryBlock.java OPEN_EAST_SHAPE / same"
+    },
+    {
+      "key": "tfc:bloomery[facing=south,open=false]",
+      "class": "bloomery",
+      "kind": "object",
+      "selection": [[0, 0, 14, 16, 16, 16]],
+      "collision": [[0, 0, 14, 16, 16, 16]],
+      "from": "BloomeryBlock.java CLOSED_SOUTH_SHAPE / same"
+    },
+    {
+      "key": "tfc:bloomery[facing=south,open=true]",
+      "class": "bloomery",
+      "kind": "object",
+      "selection": [[0, 0, 14, 16, 1, 16], [0, 1, 8, 2, 15, 15], [14, 1, 8, 16, 15, 15], [0, 1, 15, 1, 16, 16], [15, 1, 15, 16, 16, 16], [0, 15, 14, 16, 16, 15], [1, 15, 15, 15, 16, 16]],
+      "collision": [[0, 0, 14, 16, 1, 16], [0, 1, 8, 2, 15, 15], [14, 1, 8, 16, 15, 15], [0, 1, 15, 1, 16, 16], [15, 1, 15, 16, 16, 16], [0, 15, 14, 16, 16, 15], [1, 15, 15, 15, 16, 16]],
+      "from": "BloomeryBlock.java OPEN_SOUTH_SHAPE / same"
+    },
+    {
+      "key": "tfc:bloomery[facing=west,open=false]",
+      "class": "bloomery",
+      "kind": "object",
+      "selection": [[0, 0, 0, 2, 16, 16]],
+      "collision": [[0, 0, 0, 2, 16, 16]],
+      "from": "BloomeryBlock.java CLOSED_WEST_SHAPE / same"
+    },
+    {
+      "key": "tfc:bloomery[facing=west,open=true]",
+      "class": "bloomery",
+      "kind": "object",
+      "selection": [[0, 0, 0, 2, 1, 16], [0, 1, 0, 8, 15, 1], [1, 1, 1, 8, 15, 2], [1, 1, 14, 8, 15, 16], [0, 1, 15, 1, 16, 16], [0, 15, 0, 2, 16, 15], [1, 15, 15, 2, 16, 16]],
+      "collision": [[0, 0, 0, 2, 1, 16], [0, 1, 0, 8, 15, 1], [1, 1, 1, 8, 15, 2], [1, 1, 14, 8, 15, 16], [0, 1, 15, 1, 16, 16], [0, 15, 0, 2, 16, 15], [1, 15, 15, 2, 16, 16]],
+      "from": "BloomeryBlock.java OPEN_WEST_SHAPE / same"
+    },
+    {
       "key": "tfc:ingot_pile[count=1]",
       "class": "layer_pile",
       "kind": "object",

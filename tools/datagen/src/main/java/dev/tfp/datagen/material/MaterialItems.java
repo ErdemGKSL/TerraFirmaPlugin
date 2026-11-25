@@ -88,7 +88,7 @@ public final class MaterialItems {
             "KAOLIN_CLAY", "HANDSTONE", "MORTAR", "OLIVE_PASTE", "CANOLA_PASTE", "PAPYRUS", "PAPYRUS_STRIP", "PURE_NITROGEN",
             "PURE_PHOSPHORUS", "PURE_POTASSIUM", "SILK_CLOTH", "SANDPAPER", "SOAKED_PAPYRUS_STRIP", "SOOT", "SPINDLE",
             "STICK_BUNCH", "STICK_BUNDLE", "STRAW", "TREATED_HIDE", "UNREFINED_PAPER", "WOOL", "WOOL_CLOTH", "WOOL_YARN",
-            "WROUGHT_IRON_GRILL")) {
+            "WROUGHT_IRON_GRILL", "RAW_IRON_BLOOM", "REFINED_IRON_BLOOM")) {
             g.put(f, "misc");
         }
         return java.util.Collections.unmodifiableMap(g);
