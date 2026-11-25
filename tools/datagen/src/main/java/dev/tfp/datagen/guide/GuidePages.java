@@ -61,7 +61,12 @@ public final class GuidePages {
     }
 
     public static GuidePages of(TfcCheckout tfc) {
-        GuideNames names = GuideNames.read(tfc);
+        return of(tfc, "en_us");
+    }
+
+    /** The converter of {@code locale}: item, tag and fluid names from that locale's lang (English where it has none). */
+    public static GuidePages of(TfcCheckout tfc, String locale) {
+        GuideNames names = GuideNames.read(tfc, locale);
         return new GuidePages(names, new GuideConfig(tfc, names), new GuideRecipes(tfc, names));
     }
 

@@ -545,5 +545,5 @@ Totals: 387 items; open 207, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-27 | Blast furnace textured screen: temperature bar and tank bars | METAL | 37 | open |
 | PAR-METAL-28 | Anvil remote work: TFC AnvilBlockEntity.workRemotely for the trip hammer (the AnvilRemote service) | METAL | 55 | open |
 | PAR-DATA-20 | Field guide BOOK tab: the fifth player tab opens the field guide (follow-up of PAR-DATA-04) | DATA | 36 | done |
-| PAR-DATA-21 | Field guide translations: TFC's nine other book locales as per-player books (follow-up of PAR-DATA-04) | DATA | 36 | open |
+| PAR-DATA-21 | Field guide translations: TFC's nine other book locales as per-player books (follow-up of PAR-DATA-04) | DATA | 36 | done |
 | PAR-DATA-23 | Advancement triggers left from PAR-DATA-19: events published by the 17 owning features | DATA | 56 | open |

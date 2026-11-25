@@ -28,46 +28,84 @@ public final class FieldGuideService {
     /** Its click callbacks live an hour. */
     public static final long CALLBACK_LIFETIME_NANOS = 2 * REBUILD_NANOS;
 
+    /** The default (English) book locale. */
+    public static final String ENGLISH = "en_us";
+
     private record Cached(Book book, long builtAt) {
     }
 
-    private final GuideBooks books;
-    private final GuideBookRenderer renderer;
+    /** One locale's laid-out books and the renderer of their pages. */
+    public record Variant(GuideBooks books, GuideBookRenderer renderer) {
+    }
+
+    private final Map<String, Variant> variants;
     private final BiConsumer<Player, Runnable> onPlayerThread;
     private final LongSupplier clock;
     private final Map<String, Cached> cache = new ConcurrentHashMap<>();
 
     public FieldGuideService(GuideBooks books, GuideBookRenderer renderer, BiConsumer<Player, Runnable> onPlayerThread,
                              LongSupplier clock) {
-        this.books = books;
-        this.renderer = renderer;
+        this(new Variant(books, renderer), Map.of(), onPlayerThread, clock);
+    }
+
+    /** {@code english} is the default; {@code translations} are the books by locale key ({@code zh_cn}). */
+    public FieldGuideService(Variant english, Map<String, Variant> translations, BiConsumer<Player, Runnable> onPlayerThread,
+                             LongSupplier clock) {
+        Map<String, Variant> all = new java.util.HashMap<>(translations);
+        all.put(ENGLISH, english);
+        this.variants = Map.copyOf(all);
         this.onPlayerThread = onPlayerThread;
         this.clock = clock;
     }
 
     public GuideBooks books() {
-        return books;
+        return variants.get(ENGLISH).books();
     }
 
-    /** The book of a target ({@link GuideLink#INDEX} or {@code entry:<id>[@volume]}), or null for an unknown one. */
+    /**
+     * The book locale for a client locale: its {@code language_country} in lower case when there is such a book
+     * ({@code zh_CN} is {@code zh_cn}), else the first book of the same language ({@code pt_PT} gets {@code pt_br}), else
+     * English.
+     */
+    public String localeKey(java.util.Locale locale) {
+        if (locale == null) {
+            return ENGLISH;
+        }
+        String exact = locale.toString().toLowerCase(java.util.Locale.ROOT);
+        if (variants.containsKey(exact)) {
+            return exact;
+        }
+        String language = locale.getLanguage().toLowerCase(java.util.Locale.ROOT);
+        return variants.keySet().stream().filter(k -> k.startsWith(language + "_")).sorted().findFirst().orElse(ENGLISH);
+    }
+
+    /** The English book of a target ({@link GuideLink#INDEX} or {@code entry:<id>[@volume]}), or null for an unknown one. */
     public Book book(String target) {
+        return book(ENGLISH, target);
+    }
+
+    /** The book of a target in a locale ({@link #localeKey}); English for a locale without books. */
+    public Book book(String locale, String target) {
+        Variant variant = variants.getOrDefault(locale, variants.get(ENGLISH));
+        String key = variants.containsKey(locale) ? locale : ENGLISH;
+        String cacheKey = key + "|" + target;
         long now = clock.getAsLong();
-        Cached c = cache.get(target);
+        Cached c = cache.get(cacheKey);
         if (c != null && now - c.builtAt() < REBUILD_NANOS) {
             return c.book();
         }
-        List<BookPaginator.Page> pages = books.book(target);
+        List<BookPaginator.Page> pages = variant.books().book(target);
         if (pages == null) {
             return null;
         }
-        Book book = renderer.book(pages);
-        cache.put(target, new Cached(book, now));
+        Book book = variant.renderer().book(pages);
+        cache.put(cacheKey, new Cached(book, now));
         return book;
     }
 
-    /** Opens the target's book on the player's thread. Returns false for an unknown target. */
+    /** Opens the target's book in the player's client language on the player's thread. Returns false for an unknown target. */
     public boolean open(Player player, String target) {
-        Book book = book(target);
+        Book book = book(localeKey(player.locale()), target);
         if (book == null) {
             return false;
         }

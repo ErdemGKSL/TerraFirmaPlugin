@@ -33,12 +33,19 @@ public final class GuideNames {
 
     /** TFC's English lang, or no names when the checkout has none. */
     public static GuideNames read(TfcCheckout tfc) {
+        return read(tfc, "en_us");
+    }
+
+    /** TFC's lang of {@code locale} over its English lang (a key a locale lacks keeps its English text; PAR-DATA-21). */
+    public static GuideNames read(TfcCheckout tfc, String locale) {
         Map<String, String> map = new HashMap<>();
-        if (tfc.exists(LANG)) {
-            JsonObject o = Json.parse(tfc.readString(LANG), LANG).getAsJsonObject();
-            for (Map.Entry<String, JsonElement> e : o.entrySet()) {
-                if (e.getValue().isJsonPrimitive()) {
-                    map.put(e.getKey(), e.getValue().getAsString());
+        for (String file : new String[] {LANG, TfcCheckout.ASSETS + "lang/" + locale + ".json"}) {
+            if (tfc.exists(file)) {
+                JsonObject o = Json.parse(tfc.readString(file), file).getAsJsonObject();
+                for (Map.Entry<String, JsonElement> e : o.entrySet()) {
+                    if (e.getValue().isJsonPrimitive()) {
+                        map.put(e.getKey(), e.getValue().getAsString());
+                    }
                 }
             }
         }

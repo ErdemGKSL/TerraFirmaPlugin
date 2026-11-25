@@ -25,15 +25,29 @@ import java.util.Map;
  */
 public final class GuideData {
     public static final String FILE = "content/guide/field_guide.json";
+    /** TFC's other book locales (PAR-DATA-21), in {@code content/guide/field_guide_<locale>.json}. */
+    public static final List<String> LOCALES = List.of("ja_jp", "ko_kr", "pt_br", "ru_ru", "tr_tr", "uk_ua", "zh_cn",
+        "zh_hk", "zh_tw");
+
+    /** The jar path of the guide of {@code locale} ({@code en_us} is {@link #FILE}). */
+    public static String file(String locale) {
+        return locale.equals("en_us") ? FILE : "content/guide/field_guide_" + locale + ".json";
+    }
 
     private GuideData() {
     }
 
     /** Reads the guide from {@code loader} (the plugin's class loader, which holds the content jar). */
     public static FieldGuide load(ClassLoader loader) throws IOException {
-        try (InputStream in = loader.getResourceAsStream(FILE)) {
+        return load(loader, "en_us");
+    }
+
+    /** Reads the guide of one book locale. */
+    public static FieldGuide load(ClassLoader loader, String locale) throws IOException {
+        String file = file(locale);
+        try (InputStream in = loader.getResourceAsStream(file)) {
             if (in == null) {
-                throw new IOException("missing " + FILE + " in the plugin jar");
+                throw new IOException("missing " + file + " in the plugin jar");
             }
             return read(new InputStreamReader(in, StandardCharsets.UTF_8));
         }

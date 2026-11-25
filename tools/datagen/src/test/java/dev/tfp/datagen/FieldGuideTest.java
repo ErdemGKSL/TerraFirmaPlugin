@@ -31,6 +31,40 @@ class FieldGuideTest {
     @TempDir
     Path tmp;
 
+    /** PAR-DATA-21: every other TFC book locale is converted with the English structure and its own text and names. */
+    @Test
+    void realCheckoutConvertsEveryOtherBookLocale() throws IOException {
+        TfcCheckout tfc = realCheckout();
+        OutputTree out = new OutputTree();
+        FieldGuide.run(tfc, out);
+        assertThat(FieldGuide.locales(tfc)).containsExactly("ja_jp", "ko_kr", "pt_br", "ru_ru", "tr_tr", "uk_ua", "zh_cn",
+            "zh_hk", "zh_tw");
+        JsonObject en = JsonParser.parseString(text(out, FieldGuide.OUTPUT)).getAsJsonObject();
+        java.util.List<String> enIds = new java.util.ArrayList<>();
+        en.getAsJsonArray("entries").forEach(e -> enIds.add(e.getAsJsonObject().get("id").getAsString()));
+        for (String locale : FieldGuide.locales(tfc)) {
+            JsonObject g = JsonParser.parseString(text(out, "guide/field_guide_" + locale + ".json")).getAsJsonObject();
+            java.util.List<String> ids = new java.util.ArrayList<>();
+            int translated = 0;
+            JsonArray entries = g.getAsJsonArray("entries");
+            for (int i = 0; i < entries.size(); i++) {
+                JsonObject e = entries.get(i).getAsJsonObject();
+                ids.add(e.get("id").getAsString());
+                assertThat(e.getAsJsonArray("content")).as(locale + " " + ids.getLast()).isNotEmpty();
+                JsonObject enEntry = en.getAsJsonArray("entries").get(i).getAsJsonObject();
+                assertThat(e.getAsJsonArray("content").toString()).as(locale + " config values").doesNotContain("$(cfg:");
+                if (!e.get("title").getAsString().equals(enEntry.get("title").getAsString())) {
+                    translated++;
+                }
+            }
+            assertThat(ids).as(locale + " entries").isEqualTo(enIds);
+            assertThat(translated).as(locale + " translated titles").isGreaterThan(10);
+            assertThat(g.getAsJsonArray("categories")).as(locale).hasSameSizeAs(en.getAsJsonArray("categories"));
+            assertThat(g.getAsJsonObject("book").get("landing_text").getAsString()).as(locale + " landing text").isNotBlank();
+        }
+        assertThat(text(out, "guide/field_guide_zh_cn.json")).doesNotContain("Welcome traveller!");
+    }
+
     /** Real checkout at the pinned commit (-Dtfc.checkout); skipped when absent. The counts are taken from the checkout. */
     @Test
     void realCheckoutHasEveryCategoryAndEntryInReadingOrder() throws IOException {

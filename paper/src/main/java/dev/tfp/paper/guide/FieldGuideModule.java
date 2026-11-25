@@ -9,7 +9,11 @@ import dev.tfp.core.guide.FieldGuide;
 import dev.tfp.core.guide.GuideBooks;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
+import java.io.IOException;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 import net.kyori.adventure.text.event.ClickCallback;
 import net.kyori.adventure.text.event.ClickEvent;
 import org.bukkit.entity.Player;
@@ -36,17 +40,27 @@ public final class FieldGuideModule implements FeatureModule {
             .uses(ClickCallback.UNLIMITED_USES)
             .lifetime(Duration.ofNanos(FieldGuideService.CALLBACK_LIFETIME_NANOS))
             .build();
-        GuideBookRenderer renderer = new GuideBookRenderer(guide, target -> ClickEvent.callback(audience -> {
+        Function<String, ClickEvent> links = target -> ClickEvent.callback(audience -> {
             if (audience instanceof Player p && self[0] != null) {
                 self[0].open(p, target);
             }
-        }, options));
-        FieldGuideService service = new FieldGuideService(books, renderer,
+        }, options);
+        FieldGuideService.Variant english = new FieldGuideService.Variant(books, new GuideBookRenderer(guide, links));
+        Map<String, FieldGuideService.Variant> translations = new HashMap<>();
+        for (String locale : GuideData.LOCALES) {
+            try {
+                FieldGuide t = GuideData.load(context.plugin().getClass().getClassLoader(), locale).withFallback(guide);
+                translations.put(locale, new FieldGuideService.Variant(new GuideBooks(t, "tfp"), new GuideBookRenderer(t, links)));
+            } catch (IOException e) {
+                context.logger().warning("field guide: no " + locale + " book (" + e.getMessage() + "), English is used");
+            }
+        }
+        FieldGuideService service = new FieldGuideService(english, translations,
             (player, task) -> context.scheduler().entity(player, task, () -> { }), System::nanoTime);
         self[0] = service;
         context.services().provide(FieldGuideService.class, service);
         context.listen(new FieldGuideListener(context.integrations().customItems()::idOf, service::openIndex));
         context.logger().info("field guide: " + guide.categories().size() + " categories, " + guide.entries().size()
-            + " entries, " + books.index().size() + " contents pages");
+            + " entries, " + books.index().size() + " contents pages, " + translations.size() + " translations");
     }
 }

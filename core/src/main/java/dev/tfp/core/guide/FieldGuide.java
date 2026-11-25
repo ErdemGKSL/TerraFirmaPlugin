@@ -46,6 +46,28 @@ public record FieldGuide(String name, String landingText, List<Category> categor
         }
     }
 
+    /**
+     * This (translated) guide with {@code base}'s structure: the categories and entries of {@code base} in its reading
+     * order, each taken from this guide when it has it and from {@code base} otherwise, so a locale missing an entry still
+     * shows it, in the base language (PAR-DATA-21).
+     */
+    public FieldGuide withFallback(FieldGuide base) {
+        Map<String, Category> mine = new HashMap<>();
+        categories.forEach(c -> mine.put(c.id(), c));
+        Map<String, Entry> myEntries = byId();
+        List<Category> out = new java.util.ArrayList<>();
+        for (Category b : base.categories()) {
+            Category c = mine.get(b.id());
+            List<Entry> entries = new java.util.ArrayList<>();
+            for (Entry e : b.entries()) {
+                entries.add(myEntries.getOrDefault(e.id(), e));
+            }
+            out.add(new Category(b.id(), c != null ? c.name() : b.name(), c != null ? c.description() : b.description(),
+                entries));
+        }
+        return new FieldGuide(name, landingText, out);
+    }
+
     /** Every entry in reading order. */
     public List<Entry> entries() {
         return categories.stream().flatMap(c -> c.entries().stream()).toList();
