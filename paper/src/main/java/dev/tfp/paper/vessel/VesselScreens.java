@@ -10,8 +10,7 @@
  */
 package dev.tfp.paper.vessel;
 
-import dev.tfp.core.gui.ChestGeometry;
-import dev.tfp.core.gui.GuiLayers;
+import dev.tfp.core.gui.VesselScreenLayout;
 import dev.tfp.core.vessel.VesselRules;
 import dev.tfp.paper.gui.GuiService;
 import dev.tfp.paper.gui.GuiSession;
@@ -30,8 +29,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 /**
- * PAR-POT-04: the small vessel's four-slot screen on the GUI framework. A plain three-row chest (no background art yet:
- * the textured screen is PAR-POT-10) with the four slots in a 2 x 2 block. The screen holds a copy of the vessel's
+ * PAR-POT-04: the small vessel's four-slot screen on the GUI framework. A three-row chest with TFC's small vessel art
+ * (PAR-POT-10, {@link VesselScreenLayout}) and the four slots in a 2 x 2 block on the art's slot frames. The screen holds a copy of the vessel's
  * slots; every click commits it to the vessel item one tick later and closing commits it again, so the item is always the
  * authority. The vessel stays where it was when the screen opened ({@link Handle}); {@link VesselListener} refuses clicks
  * that would move it (TFC's container keeps the open stack in its slot too).
@@ -39,8 +38,8 @@ import org.bukkit.inventory.PlayerInventory;
  * <p>Threads: the viewer's thread (the entity scheduler); nothing is shared between viewers.
  */
 public final class VesselScreens {
-    /** The four screen slots, a 2 x 2 block in the middle of the three-row chest. */
-    public static final int[] SLOTS = {12, 13, 21, 22};
+    /** The four screen slots (TFC order), the 2 x 2 block of TFC's art on chest columns 3 and 4 of rows 0 and 1. */
+    public static final int[] SLOTS = VesselScreenLayout.CHEST_SLOTS.stream().mapToInt(Integer::intValue).toArray();
     static final String STATE = "vessel.screen";
     static final String PENDING = "vessel.pending";
 
@@ -68,7 +67,7 @@ public final class VesselScreens {
     }
 
     private TfpGui build() {
-        TfpGui.Builder b = TfpGui.builder(new ChestGeometry(3), new GuiLayers(null, List.of()))
+        TfpGui.Builder b = TfpGui.builder(VesselScreenLayout.CHEST, VesselScreenLayout.LAYERS)
             .label(p -> messages.get(p, "gui.vessel.title"));
         SlotPredicate accepts = (session, slot, stack) -> items.canContain(stack);
         for (int slot : SLOTS) {

@@ -283,7 +283,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-GATHER-14 | Rising loose rocks on grass: the rock raised by TFC's grass random tick in spring frost | GATHER | 26 | done |
 | PAR-GATHER-15 | Leaves placed by a player are persistent: TFC's getStateForPlacement sets persistent for a placed leaf block | GATHER | 27 | done |
 | PAR-POT-05 | Molds: filling from a vessel/crucible, solidifying, breaking out the casting | POTTERY | 25 | done |
-| PAR-POT-10 | Small vessel screen art: the textured four-slot GUI | POTTERY | 25 | open |
+| PAR-POT-10 | Small vessel screen art: the textured four-slot GUI | POTTERY | 25 | done |
 | PAR-POT-11 | item_heat data for fired pottery: vessels, molds, jugs | POTTERY | 25 | done |
 | PAR-WORLD-13 | Remaining plant features: vines, kelp, epiphytes, creeping plants, cacti, algae, atoll corals | WORLD | 25 | done |
 | PAR-WORLD-14 | Volcanic features: springs, rivulets, flood-fill lakes, calderas of other cones | WORLD | 25 | done |
