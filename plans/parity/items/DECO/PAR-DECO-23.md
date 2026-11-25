@@ -2,7 +2,7 @@
 id: PAR-DECO-23
 title: "Golden bamboo block, palm mosaic stairs and slabs, tree roots, light block (follow-up of PAR-DECO-12)"
 area: DECO
-status: open
+status: done
 wave: 49
 deps: [PAR-DECO-12]
 size: M
@@ -30,6 +30,11 @@ done_criteria:
 
 # PAR-DECO-23: Golden bamboo block, palm mosaic stairs and slabs, tree roots, light block (follow-up of PAR-DECO-12)
 
-> Claimed: claude session_011osUp8LgspZkGFjFNWFDqQ (DECO helper), 2026-11-25
 
 All fields live in the front matter above. Follow `plans/parity/PROTOCOL.md`. PAR-DECO-12 shipped the crates and the palm mosaic as renderer cubes (`dev.tfp.datagen.misc.MiscCubes`, `configuration/misc/cubes.yml`); `BlockCoverage` names this item as owner of what is left.
+
+Scope note: only `tfp:golden_bamboo_block` shipped (`MiscShapedBlocks`, `configuration/misc/shaped.yml`: three axis states on the barrier carrier, one item display per axis, vanilla BAMBOO_BLOCK strength 2.0 and bamboo-wood sounds, axe, self drop; the placement axis is CraftEngine's hardcoded `axis` behaviour). The palm mosaic stairs and slabs, tree roots and the light block need `HitboxDemands` rows and carriers (outside this item's globs) and moved to PAR-DECO-30; stripping with an axe is also there.
+
+Pending in-game check (container cannot run client).
+
+Done: `MiscShapedBlocks`, one `Datagen.generate` line, `MiscShapedTest` (1); ledger row and divergences.

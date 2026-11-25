@@ -539,7 +539,8 @@ Totals: 388 items; open 208, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-POT-16 | Config codec knows placed-items; large vessel config switches, contents tooltip and TFC sounds (follow-up of PAR-POT-06, PAR-POT-13) | POTTERY | 28 | done |
 | PAR-DATA-19 | Advancement triggers left from PAR-DATA-03: feature events for TFC's 21 own triggers | DATA | 40 | done |
 | PAR-DECO-22 | Rock walls, aqueducts and rope anchors (follow-up of PAR-DECO-06) | DECO | 49 | open |
-| PAR-DECO-23 | Golden bamboo block, palm mosaic stairs and slabs, tree roots, light block (follow-up of PAR-DECO-12) | DECO | 49 | open |
+| PAR-DECO-23 | Golden bamboo block, palm mosaic stairs and slabs, tree roots, light block (follow-up of PAR-DECO-12) | DECO | 49 | done |
+| PAR-DECO-30 | Palm mosaic stairs and slabs, tree roots, light block, golden bamboo stripping (follow-up of PAR-DECO-23) | DECO | 50 | open |
 | PAR-DECO-24 | Crate storage, buoys and cakes (follow-up of PAR-DECO-12) | DECO | 49 | done |
 | PAR-DECO-29 | Crate device, buoys and cake blocks wired in Paper (follow-up of PAR-DECO-24) | DECO | 50 | open |
 | PAR-DECO-25 | Sign runtime: placement rotation, text editing, text display, sign carriers (follow-up of PAR-DECO-03) | DECO | 47 | done |

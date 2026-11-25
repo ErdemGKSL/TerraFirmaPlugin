@@ -229,6 +229,9 @@ public final class Datagen {
         if (dev.tfp.datagen.misc.MiscCubes.available(tfc)) { // PAR-DECO-12: tfp:wood/crate/<wood> and tfp:wood/planks/palm_mosaic renderer cubes; fixtures have none
             dev.tfp.datagen.misc.MiscCubes.run(tfc, out);
         }
+        if (dev.tfp.datagen.misc.MiscShapedBlocks.available(tfc)) { // PAR-DECO-23: tfp:golden_bamboo_block; fixtures have none
+            dev.tfp.datagen.misc.MiscShapedBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.sign.SignBlocks.available(tfc)) { // PAR-DECO-03: tfp:wood/(wall_)sign and (wall_)hanging_sign blocks and items as item displays; fixtures have none
             dev.tfp.datagen.sign.SignBlocks.run(tfc, out);
         }
