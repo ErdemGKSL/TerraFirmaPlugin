@@ -14,6 +14,7 @@ import dev.tfp.datagen.hitbox.HitboxDemands;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
@@ -64,12 +65,44 @@ class CrucibleBlockTest {
         for (String p : CrucibleBlock.PROPERTIES) {
             assertThat((Map<String, Object>) props.get(p)).containsEntry("type", "boolean").containsEntry("default", false);
         }
-        Map<String, Object> app = (Map<String, Object>) ((Map<String, Object>) st.get("appearances")).get("crucible");
-        assertThat(app.get("state")).isEqualTo(HitboxAllocation.agreed(CrucibleBlock.ID, "crucible").state());
-        assertThat(app.get("model")).isEqualTo(HitboxDemands.CRUCIBLE_MODEL);
+        Map<String, Object> apps = (Map<String, Object>) st.get("appearances");
+        assertThat(apps).hasSize(16);
+        apps.values().forEach(a -> {
+            Map<String, Object> app = (Map<String, Object>) a;
+            assertThat(app.get("state")).isEqualTo(HitboxAllocation.agreed(CrucibleBlock.ID, "crucible").state());
+            assertThat(app.get("model")).isEqualTo(HitboxDemands.CRUCIBLE_MODEL);
+        });
         Map<String, Object> variants = (Map<String, Object>) st.get("variants");
         assertThat(variants).hasSize(16);
-        variants.values().forEach(v -> assertThat(((Map<String, Object>) v).get("appearance")).isEqualTo("crucible"));
+        variants.values().forEach(v -> assertThat(apps).containsKey((String) ((Map<String, Object>) v).get("appearance")));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void everyConnectedSideDrawsTfcsNubTurnedByItsBlockstateY() {
+        Map<String, Object> st = (Map<String, Object>) block().get("states");
+        Map<String, Object> apps = (Map<String, Object>) st.get("appearances");
+        assertThat(((Map<String, Object>) apps.get("crucible")).get("entity_renderer")).isNull();
+        Map<String, Object> variants = (Map<String, Object>) st.get("variants");
+        Map<String, String> turn = Map.of("east", "0,180,0", "south", "0,90,0", "west", "0,0,0", "north", "0,270,0");
+        for (int mask = 1; mask < 16; mask++) {
+            List<Map<String, Object>> r = (List<Map<String, Object>>) ((Map<String, Object>) apps
+                .get(CrucibleBlock.appearanceName(mask))).get("entity_renderer");
+            assertThat(r).as("mask " + mask).hasSize(Integer.bitCount(mask));
+            int n = 0;
+            for (int i = 0; i < 4; i++) {
+                if ((mask & (1 << i)) != 0) {
+                    String side = CrucibleBlock.PROPERTIES.get(i);
+                    assertThat(r.get(n).get("item")).isEqualTo("tfp:render/crucible_connection");
+                    assertThat(String.valueOf(r.get(n).get("rotation")).replace(" ", "")).as(side).isEqualTo(turn.get(side));
+                    n++;
+                }
+            }
+        }
+        assertThat(variants).hasSize(16);
+        assertThat(out.get(CrucibleBlock.RP + "models/block/crucible_connection.json")).isNotNull();
+        assertThat(out.get(CrucibleBlock.RP + "textures/block/crucible_like.png")).isNotNull();
+        assertThat(out.get(CrucibleBlock.RP + "textures/block/black.png")).isNotNull();
     }
 
     @Test

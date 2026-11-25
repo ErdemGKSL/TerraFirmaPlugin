@@ -2,7 +2,7 @@
 id: PAR-METAL-24
 title: "Crucible channel nubs: the crucible draws TFC's crucible_connection toward adjacent channels"
 area: METAL
-status: open
+status: done
 wave: 35
 deps: [PAR-METAL-13]
 size: S
@@ -16,6 +16,7 @@ files_owned:
   - "tools/datagen/src/test/java/dev/tfp/datagen/crucible/CrucibleBlockTest.java"
   - "paper/src/main/java/dev/tfp/paper/crucible/CrucibleConnections.java"
   - "paper/src/test/java/dev/tfp/paper/crucible/CrucibleConnectionsTest.java"
+  - "paper/src/main/java/dev/tfp/paper/crucible/CrucibleModule.java"
 ui: true
 in_game_steps:
   - "crucible with a channel on one side and then two sides: the nub model shows toward each channel; screenshot"
@@ -30,3 +31,5 @@ done_criteria:
 # PAR-METAL-24: Crucible channel nubs
 
 Follow-up of PAR-METAL-12 and PAR-METAL-13. Follow `plans/parity/PROTOCOL.md`.
+
+Done: `CrucibleBlock` gives each of the 16 states its own appearance (shell model on the shared carrier plus one `tfp:render/crucible_connection` item display per connected side, turned by TFC's `y`); `CrucibleConnections` ShapeRule (registered by `CrucibleModule`, widened in files_owned) sets the sides beside a `tfp:channel`. Tests: `CrucibleBlockTest` 3, `CrucibleConnectionsTest` 4. Pending in-game check (container cannot run client): steps kept in `in_game_steps`. Ledger divergence row added.

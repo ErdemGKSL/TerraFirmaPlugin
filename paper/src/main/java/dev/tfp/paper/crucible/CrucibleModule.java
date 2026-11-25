@@ -34,6 +34,7 @@ import dev.tfp.paper.module.DebugTree;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.mold.MoldItems;
+import dev.tfp.paper.neighbour.NeighbourService;
 import dev.tfp.paper.recipe.Recipes;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tags.Tags;
@@ -70,6 +71,7 @@ public final class CrucibleModule implements FeatureModule {
 
     private volatile AutoCloseable consumer;
     private volatile AutoCloseable hook;
+    private volatile NeighbourService.Registration connections;
     private volatile CrucibleDevice device;
     private volatile CrucibleScreens screens;
     private volatile DeviceService devices;
@@ -126,6 +128,7 @@ public final class CrucibleModule implements FeatureModule {
         ctx.listen(new CrucibleGuiListener(s));
         ctx.listen(new CrucibleDrops(ctx.integrations().customItems()));
         hook = devs.hook(CrucibleDevice.ID, new ScreenSync(s, sch));
+        ctx.services().get(NeighbourService.class).ifPresent(n -> connections = n.register(new CrucibleConnections()));
         ctx.services().provide(CrucibleScreens.class, s);
         this.device = d;
         this.screens = s;
@@ -139,6 +142,11 @@ public final class CrucibleModule implements FeatureModule {
     public void disable() {
         close(consumer);
         close(hook);
+        NeighbourService.Registration c = connections;
+        connections = null;
+        if (c != null) {
+            c.unregister();
+        }
         consumer = null;
         hook = null;
         screens = null;

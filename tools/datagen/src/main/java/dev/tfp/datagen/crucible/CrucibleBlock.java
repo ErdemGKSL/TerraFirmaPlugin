@@ -21,6 +21,7 @@ import dev.tfp.datagen.Json;
 import dev.tfp.datagen.OutputTree;
 import dev.tfp.datagen.TfcCheckout;
 import dev.tfp.datagen.Yaml;
+import dev.tfp.datagen.crop.CropBlocks;
 import dev.tfp.datagen.device.DeviceAppearance;
 import dev.tfp.datagen.device.DeviceBlockSpec;
 import dev.tfp.datagen.device.DeviceLoot;
@@ -28,8 +29,11 @@ import dev.tfp.datagen.device.DeviceProperty;
 import dev.tfp.datagen.device.DeviceYaml;
 import dev.tfp.datagen.hitbox.HitboxAllocation;
 import dev.tfp.datagen.hitbox.HitboxDemands;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -42,8 +46,11 @@ import java.util.regex.Pattern;
  * <ul>
  *   <li>TFC's four state properties {@code east, south, west, north} (the channel connections, default false), 16 server
  *       states. Every state draws TFC's {@code crucible} model on the carrier the hitbox selector picks for TFC's shell
- *       outline ({@code tfc:crucible}, the shape without channel nubs). The nubs of a connected state (TFC's
- *       {@code crucible_connection} multipart) are not drawn: channels come with PAR-METAL-13, which sets the properties.</li>
+ *       outline ({@code tfc:crucible}, the shape without channel nubs). PAR-METAL-24: a connected side adds TFC's
+ *       {@code crucible_connection} model (the blockstate's multipart, turned by {@code y} per side) as an item display
+ *       overlay ({@code entity_renderer}) on that state's appearance; a vanilla state holds one model, so the 16 nub
+ *       combinations cannot be 16 merged models on the one carrier state. The properties are set by the plugin's
+ *       {@code CrucibleConnections} rule.</li>
  *   <li>The {@code tfp:device} behaviour (the plugin's {@code CrucibleDevice}), TFC's settings (strength 3, metal sound,
  *       pickaxe), loot (itself; the record goes onto the dropped item, device {@code SAVE}) and the block item
  *       {@code tfp:crucible}.</li>
@@ -66,6 +73,10 @@ public final class CrucibleBlock {
     public static final String APPEARANCE = "crucible";
     /** TFC's {@code builder.add(EAST, SOUTH, WEST, NORTH)} order. */
     public static final List<String> PROPERTIES = List.of("east", "south", "west", "north");
+    /** TFC's blockstate {@code y} per side (north 270, east 0, south 90, west 180). */
+    static final Map<String, Integer> SIDE_Y = Map.of("north", 270, "east", 0, "south", 90, "west", 180);
+    public static final String CONNECTION_MODEL = Json.TO_NS + ":block/crucible_connection";
+    static final String CONNECTION_SOURCE = TfcCheckout.ASSETS + "models/block/crucible_connection.json";
     public static final String LANG_KEY = "block." + Json.TO_NS + "." + BLOCK;
     private static final Pattern TEXTURE = Pattern.compile("\"(" + Json.FROM_NS + ":block/devices/crucible/[a-z_]+)\"");
 
@@ -116,9 +127,12 @@ public final class CrucibleBlock {
         for (String p : PROPERTIES) {
             b.property(DeviceProperty.bool(p, false));
         }
-        b.appearance(DeviceAppearance.modelled(APPEARANCE, DeviceAppearance.Carrier.state(a.state()),
-                HitboxDemands.CRUCIBLE_MODEL))
-            .everyState(s -> APPEARANCE, null)
+        Set<String> items = new LinkedHashSet<>();
+        for (int mask = 0; mask < 16; mask++) {
+            b.appearance(DeviceAppearance.modelled(appearanceName(mask), DeviceAppearance.Carrier.state(a.state()),
+                HitboxDemands.CRUCIBLE_MODEL).withOverlay(nubs(b, items, mask)));
+        }
+        b.everyState(s -> appearanceName(mask(s)), null)
             .settings(DeviceBlockSpec.Settings.fromTfc(tfc, BLOCK))
             .loot(DeviceLoot.self())
             .deviceBehaviour()
@@ -127,6 +141,44 @@ public final class CrucibleBlock {
             b.stateMapping(a.state(), a.hideTarget());
         }
         return b.build();
+    }
+
+    /** Bit {@code i} is {@link #PROPERTIES}{@code [i]}. */
+    static int mask(Map<String, String> s) {
+        int mask = 0;
+        for (int i = 0; i < PROPERTIES.size(); i++) {
+            if (s.get(PROPERTIES.get(i)).equals("true")) {
+                mask |= 1 << i;
+            }
+        }
+        return mask;
+    }
+
+    /** {@code crucible} without connections, else {@code crucible_<sides>} in property order. */
+    static String appearanceName(int mask) {
+        StringBuilder n = new StringBuilder(APPEARANCE);
+        for (int i = 0; i < PROPERTIES.size(); i++) {
+            if ((mask & (1 << i)) != 0) {
+                n.append('_').append(PROPERTIES.get(i));
+            }
+        }
+        return n.toString();
+    }
+
+    /** One nub item display per connected side, turned like TFC's blockstate {@code y}. */
+    static List<DeviceAppearance.Renderer> nubs(DeviceBlockSpec.Builder b, Set<String> items, int mask) {
+        List<DeviceAppearance.Renderer> r = new ArrayList<>();
+        String item = Json.TO_NS + ":render/crucible_connection";
+        for (int i = 0; i < PROPERTIES.size(); i++) {
+            if ((mask & (1 << i)) == 0) {
+                continue;
+            }
+            if (items.add(item)) {
+                b.renderItem(item, CONNECTION_MODEL);
+            }
+            r.add(DeviceAppearance.Renderer.item(item).rotated(CropBlocks.rotation(SIDE_Y.get(PROPERTIES.get(i)))));
+        }
+        return r;
     }
 
     /** TFC's block and item models (namespace renamed) and the textures the block model names. */
@@ -150,7 +202,20 @@ public final class CrucibleBlock {
             String path = t.substring(t.indexOf(':') + 1);
             out.put(RP + "textures/" + path + ".png", tfc.read(TfcCheckout.ASSETS + "textures/" + path + ".png"));
         }
-        // the connection model (the channel nubs) comes with the channels (PAR-METAL-13); its textures are the same two
+        String conn = tfc.readString(CONNECTION_SOURCE);
+        JsonObject cm = Json.parse(conn, CONNECTION_SOURCE).getAsJsonObject();
+        for (Map.Entry<String, com.google.gson.JsonElement> t : cm.getAsJsonObject("textures").entrySet()) {
+            String ref = t.getValue().getAsString();
+            if (!ref.startsWith(Json.FROM_NS + ":")) {
+                continue;
+            }
+            String path = TfcCheckout.ASSETS + "textures/" + ref.substring(Json.FROM_NS.length() + 1) + ".png";
+            if (!tfc.exists(path)) {
+                throw new DatagenException(CONNECTION_SOURCE + " uses missing texture " + ref);
+            }
+            out.put(RP + "textures/" + ref.substring(Json.FROM_NS.length() + 1) + ".png", tfc.read(path));
+        }
+        out.put(RP + "models/block/crucible_connection.json", Json.write(Json.rename(cm)));
     }
 
     /** {@code block.tfp.crucible} in every TFC locale that names the crucible (English must). */
