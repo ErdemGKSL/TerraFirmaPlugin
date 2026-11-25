@@ -363,7 +363,10 @@ public final class Datagen {
         }
         dev.tfp.datagen.heat.HeatGlowModels.run(out); // PAR-HEAT-01: heat glow item model definitions; after every CE item and CommonTags
         Advancements.writeDatapack(tfc, out); // PAR-DATA-02: datapack advancements (bootstrap datapack) + CE lang; after every CE item (icons)
-        out.put("third-party.json", "[]\n"); // no non-EUPL file is copied yet (checked by :checkNotice)
+        if (dev.tfp.datagen.sound.TfcSounds.available(tfc)) { // PAR-DATA-08: TFC sound events and oggs under tfp; fixtures have no sounds.json
+            dev.tfp.datagen.sound.TfcSounds.run(tfc, out);
+        }
+        out.put("third-party.json", dev.tfp.datagen.sound.TfcSounds.thirdParty(out)); // the CC-BY-4.0 slide ogg (checked by :checkNotice)
         report.ceStates(Report.countCeStates(out.files())); // PAR-PROC-37: the installer sizes serverside-blocks from the states
         out.put("reports/datagen-summary.json", Json.write(report.toJson()));
         out.put(Manifest.FILE, Manifest.build(tfc.head(), tfc.inputs(), out.files()));

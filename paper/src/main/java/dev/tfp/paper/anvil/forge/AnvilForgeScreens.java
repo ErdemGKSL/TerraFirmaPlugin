@@ -374,7 +374,7 @@ public final class AnvilForgeScreens {
 
     /** TFC {@code createForgingEffects}: the hit sound and sparks above the anvil (an explicit action: particles are fine). */
     private void forgingEffects(Block block) {
-        block.getWorld().playSound(center(block), Sound.BLOCK_ANVIL_HIT, SoundCategory.PLAYERS, 0.4f, 1.0f);
+        block.getWorld().playSound(center(block), dev.tfp.paper.sound.Sounds.ANVIL_HIT, SoundCategory.PLAYERS, 0.4f, 1.0f);
         ThreadLocalRandom r = ThreadLocalRandom.current();
         TfcParticle.SPARK.play(new Location(block.getWorld(), block.getX() + r.nextDouble(0.2, 0.8), block.getY() + r.nextDouble(0.8, 1.0),
             block.getZ() + r.nextDouble(0.2, 0.8)));

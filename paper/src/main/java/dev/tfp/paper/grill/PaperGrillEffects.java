@@ -237,9 +237,9 @@ public final class PaperGrillEffects implements GrillEffects {
 
     @Override
     public void cool(Block block) {
-        // TFCSounds.ITEM_COOL is TFC's own sound event; the vanilla lava extinguish hiss stands in (as the powder keg)
+        // TFCSounds.ITEM_COOL (PAR-DATA-08)
         ThreadLocalRandom r = ThreadLocalRandom.current();
-        block.getWorld().playSound(centre(block), org.bukkit.Sound.BLOCK_LAVA_EXTINGUISH, SoundCategory.BLOCKS, 1f + r.nextFloat(),
+        block.getWorld().playSound(centre(block), dev.tfp.paper.sound.Sounds.COOL, SoundCategory.BLOCKS, 1f + r.nextFloat(),
             r.nextFloat() + 1f);
     }
 

@@ -30,7 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -179,8 +178,8 @@ public final class BukkitLandslideWorld implements LandslideWorld {
 
     @Override
     public void slideSound(Block block) {
-        // TFC's tfc:block.dirt_slide_short is not in our pack: the vanilla gravel break sound stands in (ledger)
-        block.getWorld().playSound(block.getLocation().add(0.5, 0.5, 0.5), Sound.BLOCK_GRAVEL_BREAK,
+        // TFC's tfc:random.dirt_slide_short, shipped as tfp:random.dirt_slide_short (PAR-DATA-08)
+        block.getWorld().playSound(block.getLocation().add(0.5, 0.5, 0.5), dev.tfp.paper.sound.Sounds.DIRT_SLIDE_SHORT,
                 SoundCategory.BLOCKS, 0.4f, 1.0f);
     }
 }

@@ -61,8 +61,6 @@ import org.joml.Vector3f;
 public final class PaperQuernEffects implements QuernEffects {
     /** PDC key on a display: {@code "x,y,z:part"}. */
     public static final NamespacedKey MARKER = new NamespacedKey("tfp", "quern_part");
-    /** TFC {@code TFCSounds.QUERN_DRAG} is not in the pack yet: the grindstone's sound stands in (ledger). */
-    static final Sound DRAG = Sound.BLOCK_GRINDSTONE_USE;
 
     enum Part {
         HANDSTONE, INPUT, OUTPUT
@@ -204,7 +202,7 @@ public final class PaperQuernEffects implements QuernEffects {
     public void started(Block block, ItemStack input) {
         ThreadLocalRandom r = ThreadLocalRandom.current();
         // TFC: playSound(QUERN_DRAG, BLOCKS, 1, 1 + (nextFloat - nextFloat) / 16)
-        block.getWorld().playSound(centre(block), DRAG, SoundCategory.BLOCKS, 1f, 1f + (r.nextFloat() - r.nextFloat()) / 16f);
+        block.getWorld().playSound(centre(block), dev.tfp.paper.sound.Sounds.QUERN_DRAG, SoundCategory.BLOCKS, 1f, 1f + (r.nextFloat() - r.nextFloat()) / 16f);
     }
 
     @Override

@@ -29,7 +29,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.bukkit.Effect;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
 import org.bukkit.util.BoundingBox;
@@ -161,11 +160,13 @@ public final class BukkitCollapseWorld implements CollapseWorld {
 
     @Override
     public void sound(Block block, CollapseSound sound) {
-        // TFC's tfc:random.rock_slide_* sounds are not in our pack: vanilla stone and gravel sounds stand in (ledger)
-        Sound vanilla = sound == CollapseSound.SHORT ? Sound.BLOCK_GRAVEL_BREAK : Sound.BLOCK_STONE_BREAK;
-        float pitch = sound == CollapseSound.SHORT ? 1.0f : 0.5f;
-        block.getWorld().playSound(block.getLocation().add(0.5, 0.5, 0.5), vanilla, SoundCategory.BLOCKS, sound.volume,
-                pitch);
+        // TFC's tfc:random.rock_slide_*, shipped as tfp:random.rock_slide_* (PAR-DATA-08); volume per kind, pitch 1
+        String key = switch (sound) {
+            case SHORT -> dev.tfp.paper.sound.Sounds.ROCK_SLIDE_SHORT;
+            case LONG -> dev.tfp.paper.sound.Sounds.ROCK_SLIDE_LONG;
+            case LONG_FAKE -> dev.tfp.paper.sound.Sounds.ROCK_SLIDE_LONG_FAKE;
+        };
+        block.getWorld().playSound(block.getLocation().add(0.5, 0.5, 0.5), key, SoundCategory.BLOCKS, sound.volume, 1.0f);
     }
 
     @Override

@@ -90,8 +90,8 @@ public final class PaperPowderkegEffects implements PowderkegEffects {
         switch (sound) {
             case PRIMED -> block.getWorld().playSound(at, org.bukkit.Sound.ENTITY_TNT_PRIMED, SoundCategory.BLOCKS,
                 1f + r.nextFloat(), r.nextFloat() + 0.7f + 0.3f);
-            // TFCSounds.ITEM_COOL is TFC's own sound event; the vanilla lava extinguish hiss stands in (ledger)
-            case COOL -> block.getWorld().playSound(at, org.bukkit.Sound.BLOCK_LAVA_EXTINGUISH, SoundCategory.BLOCKS,
+            // TFCSounds.ITEM_COOL (PAR-DATA-08)
+            case COOL -> block.getWorld().playSound(at, dev.tfp.paper.sound.Sounds.COOL, SoundCategory.BLOCKS,
                 1f + r.nextFloat(), r.nextFloat() + 0.7f + 0.3f);
             case EXTINGUISH -> block.getWorld().playSound(at, org.bukkit.Sound.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS,
                 1f + r.nextFloat(), r.nextFloat() + 0.7f + 0.3f);
