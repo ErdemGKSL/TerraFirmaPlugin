@@ -40,6 +40,7 @@ public final class LeavesModule implements FeatureModule {
         slow.register(SlowBlocks.leaves(LeafRules.LEAVES_MOVEMENT_MODIFIER));
         context.services().provide(SlowBlocks.class, slow);
         context.listen(new SlowdownListener(context.integrations().customBlocks(), slow, LeavesModule::setSlowdown));
+        context.listen(new PlacedLeaves(context.integrations().customBlocks()));
         Tags tags = context.services().require(Tags.class);
         Scheduler scheduler = context.scheduler();
         context.listen(new LeafDecay(context.integrations().customBlocks(), new LeafDecay.Env() {
