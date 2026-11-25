@@ -31,16 +31,15 @@ import dev.tfp.paper.fluid.FluidContainerItems;
 import dev.tfp.paper.itemdata.ItemFluids;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
+import dev.tfp.paper.nestbox.NestEggs;
+import dev.tfp.paper.nestbox.NestHandOff;
 import dev.tfp.paper.tags.Tags;
-import dev.tfp.paper.tooltip.feature.EggPdc;
-import dev.tfp.paper.tooltip.feature.FeatureData;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import org.bukkit.GameMode;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -163,6 +162,12 @@ public final class ProductsModule implements FeatureModule, Listener {
         player.sendActionBar(net.kyori.adventure.text.Component.text(ctx.messages().get(locale, key)));
     }
 
+    /** PAR-FAUNA-27: false when the nest box module lays for the hen (she sits in a nest or a nest with room is in reach). */
+    static boolean groundLayingAllowed(NestHandOff nests, java.util.UUID hen, java.util.UUID world, double x, double y,
+            double z) {
+        return nests == null || !nests.laysInNest(hen, world, x, y, z);
+    }
+
     /** Egg laying and the wool growing back, on each staggered check. */
     private final class LayingBehaviour implements SpeciesBehaviour {
         private final AnimalService animals;
@@ -220,10 +225,15 @@ public final class ProductsModule implements FeatureModule, Listener {
             if (!ProductRules.isReady(spec, species, record.state(), product, now.playerTicks())) {
                 return;
             }
+            var at = c.entity().getLocation();
+            if (!groundLayingAllowed(ctx.services().get(NestHandOff.class).orElse(null), c.entity().getUniqueId(),
+                    at.getWorld().getUID(), at.getX(), at.getY(), at.getZ())) {
+                return; // she sits in a nest or has one with a free slot in reach: the nest box lays for her (PAR-FAUNA-27)
+            }
             EggRules.Laying laying = EggRules.makeEgg(species, record.state(), now.playerTicks(), now.calendarTicks(),
                     ThreadLocalRandom.current().nextBoolean());
-            ItemStack egg = new ItemStack(Material.EGG);
-            laying.egg().ifPresent(f -> EggPdc.write(egg, new FeatureData.Egg(true, f.hatchDay())));
+            // a fertile egg names the species so the chick is the hen's kind (the nest box lays the same egg)
+            ItemStack egg = laying.egg().map(f -> NestEggs.fertile(record.species(), f)).orElseGet(NestEggs::plain);
             c.entity().getWorld().dropItemNaturally(c.entity().getLocation(), egg);
             SpeciesBehaviours.update(c, record.withState(laying.hen().withFertilized(false)));
             ProductPdc.write(c.entity(), new ProductState(now.playerTicks()));

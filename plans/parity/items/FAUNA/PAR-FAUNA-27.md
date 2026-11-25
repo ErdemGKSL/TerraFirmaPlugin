@@ -2,7 +2,7 @@
 id: PAR-FAUNA-27
 title: "Nest box block and ground-laying hand-off (follow-up of PAR-FAUNA-07)"
 area: FAUNA
-status: open
+status: done
 wave: 44
 deps: [PAR-FAUNA-07]
 size: M
@@ -32,6 +32,7 @@ plan:
   - "PAR-FAUNA-07 ships the runtime (device kind tfp:nest_box, screen, seeker, hatching, screen art tfp:gui/nest_box) but the CraftEngine block does not exist: its hitbox carrier must come from the selector (HardcodedCarrierTest) and HitboxDemands.java is outside PAR-FAUNA-07's files_owned. tfc-shapes.json already has tfc:nest_box (box 2,0,2..14,5,14)."
   - "Hitbox: add the demand for tfp:nest_box (one appearance, TFC's model block/nest_box) and pin it in GeneratedCarrierTest. Block entry: datagen nestbox/NestBoxBlock writes configuration/nestbox/nest_box.yml through DeviceBlockSpec + DeviceYaml.templated (tfp:device behaviour, TFC's strength/sounds/tool from TFCBlocks NEST_BOX, loot self, block item, TFC's model and its thatch texture, block.tfp.nest_box in every TFC locale; bottom-supported survival) and its Datagen run line (copy powderkeg/PowderkegBlock)."
   - "Hand-off: PAR-FAUNA-06's LayingBehaviour (ProductsModule) still lays a ready hen's egg on the ground on its own check, so a hen can lay before the nest box sees her. Make it skip a hen that PaperNestHens.holds (seated) or that has a known nest box with a free slot within NestSeeker.RADIUS (TFC: a hen with a NEST_BOX_MEMORY walks to the nest instead), and write the species into ground-laid fertile eggs (NestEggs.fertile) so they hatch as the right species."
+  - "Done: datagen nestbox/NestBoxBlock writes configuration/nestbox/nest_box.yml (single state, hitbox-only on the shared daylight_detector carrier with TFC's model as an item display, strength 3, thatch sounds, axe, loot self, block item, names), HitboxDemands NEST_BOX_* (weight -101: no other carrier moved); ground laying skips a seated hen or one with a not-full nest in reach (NestHandOff service, NestFinder.markOpen/hasOpen set by NestSeeker.seat) and writes the species into ground-laid fertile eggs. Tests: NestBoxBlockTest (3), GeneratedCarrierTest pin, paper GroundLayingTest (4), NestFinderTest (+1). In-game check pending (container cannot run client): ledger line. Divergences: no bottom support, hitbox-only look, ground laying kept as a fallback."
 tests:
   - "datagen: NestBoxBlockTest (the entry, TFC's model and texture, carrier from the allocation, loot), GeneratedCarrierTest pin"
   - "paper: the ground laying skips a seated hen and a hen with a free nest in reach"
@@ -41,6 +42,5 @@ done_criteria:
 
 # PAR-FAUNA-27: Nest box block and ground-laying hand-off
 
-> Claimed: worker session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 Follow `plans/parity/PROTOCOL.md`.

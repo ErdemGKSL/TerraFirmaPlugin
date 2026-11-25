@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class NestFinder {
     private final Map<UUID, Set<BlockPos>> byWorld = new ConcurrentHashMap<>();
+    /** The known nest boxes the last seating attempt found without a free slot (PAR-FAUNA-27). */
+    private final Map<UUID, Set<BlockPos>> full = new ConcurrentHashMap<>();
 
     public void add(UUID world, BlockPos pos) {
         byWorld.computeIfAbsent(world, w -> ConcurrentHashMap.newKeySet()).add(pos);
@@ -34,6 +36,36 @@ public final class NestFinder {
         if (set != null) {
             set.remove(pos);
         }
+        Set<BlockPos> f = full.get(world);
+        if (f != null) {
+            f.remove(pos);
+        }
+    }
+
+    /** Records whether the nest box at {@code pos} has a free slot, as of the last seating attempt (PAR-FAUNA-27). */
+    public void markOpen(UUID world, BlockPos pos, boolean open) {
+        if (open) {
+            Set<BlockPos> f = full.get(world);
+            if (f != null) {
+                f.remove(pos);
+            }
+        } else {
+            full.computeIfAbsent(world, w -> ConcurrentHashMap.newKeySet()).add(pos);
+        }
+    }
+
+    /**
+     * Whether a known nest box that is not marked full lies within reach, the box a ready hen walks to instead of laying on
+     * the ground (TFC: a hen with a {@code NEST_BOX_MEMORY} goes to the nest). Any thread.
+     */
+    public boolean hasOpen(UUID world, double x, double y, double z, double radius, double vertical) {
+        Set<BlockPos> set = byWorld.get(world);
+        if (set == null) {
+            return false;
+        }
+        Set<BlockPos> f = full.getOrDefault(world, Set.of());
+        double limit = radius * radius;
+        return set.stream().anyMatch(p -> !f.contains(p) && Math.abs(p.y() + 0.5 - y) <= vertical && dist2(p, x, z) <= limit);
     }
 
     public int size() {

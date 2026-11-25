@@ -235,6 +235,9 @@ public final class Datagen {
         if (dev.tfp.datagen.nestbox.NestBoxScreenArt.available(tfc)) { // PAR-FAUNA-07: nest box screen art; fixtures have no nest box screen
             dev.tfp.datagen.nestbox.NestBoxScreenArt.run(tfc, out);
         }
+        if (dev.tfp.datagen.nestbox.NestBoxBlock.available(tfc)) { // PAR-FAUNA-27: tfp:nest_box entry on the selector's carrier, model, texture, names; fixtures have no nest box
+            dev.tfp.datagen.nestbox.NestBoxBlock.run(tfc, out);
+        }
         if (dev.tfp.datagen.firebox.FireboxScreenArt.available(tfc)) { // PAR-HEAT-12: firebox screen art; fixtures have no firebox screen
             dev.tfp.datagen.firebox.FireboxScreenArt.run(tfc, out);
         }

@@ -186,6 +186,7 @@ class GeneratedCarrierTest {
                 "tfp:scraping", HitboxDemands.COMPOSTER_ID, HitboxDemands.LOG_PILE_ID, HitboxDemands.CHARCOAL_PILE_ID,
                 HitboxDemands.BARREL_RACK_ID, HitboxDemands.TORCH_ID, HitboxDemands.WALL_TORCH_ID,
                 HitboxDemands.DEAD_TORCH_ID, HitboxDemands.DEAD_WALL_TORCH_ID, HitboxDemands.POWDERKEG_ID,
+                HitboxDemands.NEST_BOX_ID,
                 HitboxDemands.JACK_O_LANTERN_ID, HitboxDemands.SNOW_PILE_ID, HitboxDemands.ICICLE_ID));
         HitboxDemands.BARREL_WOODS.forEach(w -> expected.add(HitboxDemands.barrelId(w)));
         // PAR-FARM-26: the farmland of each soil (one appearance, TFC's farmland outline).
@@ -598,6 +599,20 @@ class GeneratedCarrierTest {
                     .isNotIn(unsealed.state(), sealed.state(), lit.state());
             }
         }
+    }
+
+    @Test
+    void theNestBoxCarrierIsPinned() {
+        // PAR-FAUNA-27: TFC's NestBoxBlock SHAPE (tfc:nest_box, 12x5x12 box). No free carrier of that outline can draw TFC's
+        // model, so the box is hitbox-only (drawn empty) and TFC's model is an item display (NestBoxBlock.RENDER_ITEM). Served
+        // last of all (weight -101), so adding the box moved no other block's carrier.
+        assertThat(TfcShapes.load()).containsKey(HitboxDemands.NEST_BOX_ROW);
+        Assignment a = HitboxAllocation.agreed(HitboxDemands.NEST_BOX_ID, HitboxDemands.NEST_BOX_APPEARANCE);
+        assertThat(a.demand().tfcKey()).isEqualTo(HitboxDemands.NEST_BOX_ROW);
+        assertThat(a.mode()).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
+        assertThat(HitboxDemands.NEST_BOX_MODEL).isEqualTo("tfp:block/nest_box");
+        // a hitbox-only carrier is drawn empty and may be shared: the box adds no state of its own to the pack
+        assertThat(a.pool()).isFalse();
     }
 
     @Test

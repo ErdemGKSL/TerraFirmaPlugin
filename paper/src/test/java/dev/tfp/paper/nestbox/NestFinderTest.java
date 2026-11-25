@@ -39,4 +39,19 @@ class NestFinderTest {
         f.remove(W, new BlockPos(2, 64, 0));
         assertThat(f.nearest(W, 0.5, 64, 0.5, 16, 4)).isEmpty();
     }
+
+    @Test
+    void openNestsAreThoseNotMarkedFullAndRemovingForgetsTheMark() {
+        NestFinder f = new NestFinder();
+        BlockPos p = new BlockPos(2, 64, 0);
+        assertThat(f.hasOpen(W, 0.5, 64, 0.5, 16, 4)).isFalse();
+        f.add(W, p);
+        assertThat(f.hasOpen(W, 0.5, 64, 0.5, 16, 4)).isTrue();
+        f.markOpen(W, p, false);
+        assertThat(f.hasOpen(W, 0.5, 64, 0.5, 16, 4)).isFalse();
+        assertThat(f.nearest(W, 0.5, 64, 0.5, 16, 4)).as("the seeker still tries a full nest").contains(p);
+        f.remove(W, p);
+        f.add(W, p);
+        assertThat(f.hasOpen(W, 0.5, 64, 0.5, 16, 4)).isTrue();
+    }
 }

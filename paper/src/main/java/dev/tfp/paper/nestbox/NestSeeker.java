@@ -104,17 +104,21 @@ public final class NestSeeker implements SpeciesBehaviour {
     void seat(Entity hen, Block nest) {
         DeviceService service = devices.get();
         boolean[] seated = {false};
+        boolean[] open = {true};
         Optional<?> stored = service.edit(nest, kind.get(), (record, now) -> {
             var next = NestBoxDevice.process(record, now, nest, service.stacks(), services);
-            if (next.state().occupied()
-                || !NestBoxRules.hasOpenSlot(NestBoxDevice.slots(next, service.stacks(), services))) {
+            open[0] = NestBoxRules.hasOpenSlot(NestBoxDevice.slots(next, service.stacks(), services));
+            if (next.state().occupied() || !open[0]) {
                 return next;
             }
             seated[0] = true;
             return next.withState(next.state().seat(hen.getUniqueId().toString(), now));
         });
+        BlockPos at = new BlockPos(nest.getX(), nest.getY(), nest.getZ());
         if (stored.isEmpty()) {
-            finder.remove(nest.getWorld().getUID(), new BlockPos(nest.getX(), nest.getY(), nest.getZ())); // not a nest box any more
+            finder.remove(nest.getWorld().getUID(), at); // not a nest box any more
+        } else {
+            finder.markOpen(nest.getWorld().getUID(), at, open[0]); // PAR-FAUNA-27: a full nest no longer holds the hen back
         }
         if (seated[0]) {
             hens.sit(hen, nest);
