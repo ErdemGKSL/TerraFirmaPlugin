@@ -151,3 +151,12 @@ blast-furnace:
 pit-kiln:
   ticks: 7200
   temperature: 1400
+
+# Placed items (TFC server config enablePlacingItems; PAR-POT-01). Vanilla clients have no placing key binding, so the
+# gesture replaces TFC's V key. Apply changes with /tfp reload config.
+# enabled: false turns placing items on the ground off (existing placed items stay and can be taken back).
+# gesture: hold = hold right-click for 1 s on the top face of a block; sneak-double-tap = sneak twice quickly, then
+#   right-click a top face (for touch and Bedrock clients, which cannot hold); both = either works (default).
+placed-items:
+  enabled: true
+  gesture: both

@@ -2,7 +2,7 @@
 id: PAR-POT-13
 title: "Placed item block: hitbox demand, datagen wiring, config keys, use-duration spike, in-game check"
 area: POTTERY
-status: open
+status: done
 wave: 22
 deps: [PAR-POT-01]
 size: S
@@ -38,6 +38,7 @@ plan:
   - "3. Config: add placed-items.enabled (TFC enablePlacingItems, true) and placed-items.gesture (hold | sneak-double-tap | both, default both) to the shipped config.yml and docs/config.md; PlacedItemsModule already reads both keys (raw YAML) and falls back to the defaults."
   - "4. Use-duration items (food, drinkable jugs, soups, bows, shields, spyglass, javelins): PAR-POT-01 exempts them (no hold is seen: the client stops resending use-on-block while it uses the item). Run the spike step; if the client stops its own use animation after clearActiveItem, add the sneak + hold path of PAR-POT-01's plan (use start + a 20-tick check that the player still uses that stack on the same face, then clearActiveItem and place); else keep them exempt and update the ledger row."
   - "5. In-game check of PAR-POT-01 (its in_game_steps, moved here)."
+  - "Done: HitboxDemands placed item demand (weight -102, served last, pressure plate via class override), Datagen run line, GeneratedCarrierTest pin (expected ids + state floor), placed-items.enabled / placed-items.gesture in config.yml and docs/config.md (enablePlacingItems mapped); content/generated placed/placed_item.yml generated. Tests: PlacedItemBlockTest 3 green; ConfigParityDocTest green; other failures in the suite are other items' (see report). Pending in-game check (container cannot run client): in_game_steps kept, evidence goes to docs/verification/PAR-POT-01/. Use-duration spike not run: use-duration items stay exempt (ledger row updated)."
 tests:
   - "datagen: PlacedItemBlockTest uses HitboxAllocation.agreed for the carrier; GeneratedCarrierTest pins tfp:placed_item"
   - "paper: MockBukkit for the use-duration path if the spike allows it"

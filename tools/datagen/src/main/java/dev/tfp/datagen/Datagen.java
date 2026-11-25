@@ -164,6 +164,9 @@ public final class Datagen {
         if (dev.tfp.datagen.scraping.ScrapingBlock.available(tfc)) { // PAR-PROC-29: tfp:scraping block entry; fixtures have no ScrapingBlock
             dev.tfp.datagen.scraping.ScrapingBlock.run(tfc, out);
         }
+        if (dev.tfp.datagen.placed.PlacedItemBlock.available(tfc)) { // PAR-POT-13: tfp:placed_item block entry; fixtures have no PlacedItemBlock
+            dev.tfp.datagen.placed.PlacedItemBlock.run(tfc, out);
+        }
         if (dev.tfp.datagen.quern.QuernBlock.available(tfc)) { // PAR-PROC-04: tfp:quern block entry, models, textures, names; fixtures have no quern
             dev.tfp.datagen.quern.QuernBlock.run(tfc, out);
         }

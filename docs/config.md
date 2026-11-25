@@ -121,7 +121,7 @@ Every `define(...)` key of TFC's `ServerConfig`, `CommonConfig`, `ClientConfig` 
 | ServerConfig | `enableLeavesDecaySlowly` | `false` | — | pending: consumer item |
 | ServerConfig | `maxPlacedItemSize` | `Size.LARGE` | — | pending: consumer item |
 | ServerConfig | `maxPlacedLargeItemSize` | `Size.HUGE` | — | pending: consumer item |
-| ServerConfig | `enablePlacingItems` | `true` | — | pending: consumer item |
+| ServerConfig | `enablePlacingItems` | `true` | `placed-items.enabled` | mapped |
 | ServerConfig | `charcoalForgeEnableAutomation` | `true` | — | pending: consumer item |
 | ServerConfig | `firePitEnableAutomation` | `true` | `automation.fire-pit` | mapped |
 | ServerConfig | `nestBoxEnableAutomation` | `true` | — | pending: consumer item |

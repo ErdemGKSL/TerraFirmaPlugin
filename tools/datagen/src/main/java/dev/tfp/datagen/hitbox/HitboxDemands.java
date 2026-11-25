@@ -280,6 +280,9 @@ public final class HitboxDemands {
     /** PAR-FAUNA-27: served after every other demand (adding the nest box moves no carrier of another block). */
     static final int NEST_BOX_WEIGHT = -101;
 
+    /** PAR-POT-13: served after every other demand (the placed item block moves no carrier of another block). */
+    static final int PLACED_ITEM_WEIGHT = -102;
+
     /**
      * PAR-CLIM-04: TFC's weather blocks. The snow pile ({@code tfc:snow_pile[layers=1..8]}) draws vanilla's snow models;
      * vanilla snow's own states are mostly taken (other blocks' carriers and their hide targets), so every pile appearance
@@ -571,6 +574,10 @@ public final class HitboxDemands {
             powderkegModel(POWDERKEG_LIT), true, POWDERKEG_WEIGHT));
         // PAR-FAUNA-27: the nest box (TFC NestBoxBlock SHAPE, one appearance, TFC's model).
         d.add(new Demand(NEST_BOX_ID, NEST_BOX_APPEARANCE, NEST_BOX_ROW, 0, NEST_BOX_MODEL, true, NEST_BOX_WEIGHT));
+        // PAR-POT-13: the placed item block; one pressure-plate carrier (class override placed_item), drawn empty (the items
+        // are item displays).
+        d.add(new Demand(dev.tfp.datagen.placed.PlacedItemBlock.ID, dev.tfp.datagen.placed.PlacedItemBlock.APPEARANCE,
+            dev.tfp.datagen.placed.PlacedItemBlock.DEMAND_KEY, 0, HitboxAllocation.TRANSPARENT, true, PLACED_ITEM_WEIGHT));
         // PAR-HEAT-35 (owner decision 2026-11-18, was PAR-HEAT-23's four model carriers): every (lit, axis) appearance of
         // the firepit is hitbox-only on one shared carrier, drawn empty; TFC's lit or unlit model is an item display
         // turned per axis (Firepit), as the grill's.
