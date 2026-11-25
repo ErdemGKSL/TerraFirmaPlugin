@@ -17,6 +17,7 @@ import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.weather.PrecipitationType;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.climate.ChunkClimateSource;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 
 /**
  * The climate's precipitation at one position of a TFC overworld, with the world's weather flag applied (TFC
@@ -41,7 +42,7 @@ public final class LocalRain {
         if (!clock.isSet() || !rainReaches) {
             return PrecipitationType.NONE;
         }
-        OverworldClimate climate = OverworldClimate.forWorldSeed(worldSeed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate climate = WorldSettingsLookup.climate(worldSeed);
         float rainIntensity = weatherEnabled ? climate.rainIntensity(clock.calendarTicks()) : -1f;
         if (rainIntensity < 0) {
             return PrecipitationType.NONE; // no rain anywhere: skip the chunk climate noise

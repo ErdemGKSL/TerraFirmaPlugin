@@ -27,6 +27,7 @@ import dev.tfp.paper.player.PlayerData;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tabs.TabLayout.Page;
 import dev.tfp.paper.tabs.TabLayout.Tab;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -108,7 +109,7 @@ public final class TabService {
     }
 
     private static OverworldClimate climate(Capture c) {
-        return OverworldClimate.forWorldSeed(c.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        return WorldSettingsLookup.climate(c.worldSeed());
     }
 
     static TabPage.ClimateInput climateInput(Capture c) {

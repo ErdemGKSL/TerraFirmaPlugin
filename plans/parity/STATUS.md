@@ -417,7 +417,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-48 | Plant lifecycle looks, climate tint and soil rules: TFC's seasonal plant stages (tfc:plant model loader), per-climate grass/foliage colour, TFC canSurvive per plant type | WORLD | 28 | open |
 | PAR-WORLD-49 | Surface builder over every exposed floor: cave floors, arch and overhang floors get TFC's surface states (whole-column scan) | WORLD | 23 | done |
 | PAR-WORLD-50 | CE coral and sea pickle blocks: datagen for the 30 corals and tfp:sea_pickle on their vanilla twin carriers, items, loot, names; write them in generation; drops on support loss; wall fan placement | WORLD | 27 | open |
-| PAR-WORLD-51 | Per-world TFC settings in every climate consumer (HUD, snow, precipitation, weather, seasonal remap, plant effects, chunk climate) | WORLD | 29 | open |
+| PAR-WORLD-51 | Per-world TFC settings in every climate consumer (HUD, snow, precipitation, weather, seasonal remap, plant effects, chunk climate) | WORLD | 29 | done |
 | PAR-WORLD-52 | A world's own rock_layer_settings in every rock consumer (terrain fill, volcanoes, groundcover, karst), not only TFC's preset | WORLD | 30 | open |
 | PAR-WORLD-53 | Visual budget for wood plants: the tripwire pool has 3 free states, saplings, fallen leaves and twigs need 101 | WORLD | 22 | done |
 | PAR-POT-13 | Placed item block: hitbox demand, datagen wiring, config keys, use-duration spike, in-game check | POTTERY | 22 | open |
@@ -472,3 +472,4 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 
 | PAR-DECO-19 | Alabaster and mud brick stairs, slabs and walls; wattle and daub | DECO | 49 | open |
 | PAR-WORLD-55 | In-game verification of PAR-WORLD-11 and PAR-WORLD-44: dead forests and mangroves; wood plant blocks | WORLD | 24 | open |
+| PAR-WORLD-56 | Per-world TFC settings in the remaining climate readers (fog, crops, farmland, wild crops, rising rocks, regrowth, water terrain, calendar sample) | WORLD | 30 | open |

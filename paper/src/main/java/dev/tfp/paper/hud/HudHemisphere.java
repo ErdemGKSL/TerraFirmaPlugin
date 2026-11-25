@@ -11,6 +11,7 @@ package dev.tfp.paper.hud;
 
 import dev.tfp.core.climate.OverworldClimate;
 import dev.tfp.core.climate.Solar;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -31,7 +32,7 @@ public final class HudHemisphere {
         if (!overworld) {
             return true;
         }
-        float scale = OverworldClimate.forWorldSeed(worldSeed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE).hemisphereScale();
+        float scale = WorldSettingsLookup.climate(worldSeed).hemisphereScale();
         return Solar.inNorthernHemisphere(z, scale);
     }
 

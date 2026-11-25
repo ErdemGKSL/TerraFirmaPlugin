@@ -19,6 +19,7 @@ import dev.tfp.core.weather.PrecipitationType;
 import dev.tfp.core.weather.cycle.WeatherCycle;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.scheduler.Scheduler;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -151,7 +152,7 @@ public final class ClimateWeatherCycle implements Listener {
 
     /** The climate's target for {@code world} now (worker side of the sync; pure). */
     public static WeatherCycle.Target target(long worldSeed, ClockSnapshot clock, boolean weatherEnabled) {
-        OverworldClimate climate = OverworldClimate.forWorldSeed(worldSeed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate climate = WorldSettingsLookup.climate(worldSeed);
         return WeatherCycle.target(climate, clock.calendarTicks(), weatherEnabled);
     }
 

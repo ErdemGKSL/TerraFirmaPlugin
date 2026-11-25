@@ -20,6 +20,7 @@ import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ThreadAsserts;
 import dev.tfp.paper.weather.cycle.ClimateWeatherCycle;
 import dev.tfp.paper.weather.cycle.LocalRain;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
@@ -201,7 +202,7 @@ public final class PrecipitationService implements Listener {
      * the climate's target ({@link WeatherCycle#levelsAt}, thunder left out) is above 0.2. Pure.
      */
     static boolean climateRaining(long worldSeed, long calendarTicks, boolean weatherEnabled) {
-        OverworldClimate climate = OverworldClimate.forWorldSeed(worldSeed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate climate = WorldSettingsLookup.climate(worldSeed);
         return WeatherCycle.levelsAt(calendarTicks,
                 t -> new WeatherCycle.Target(weatherEnabled ? climate.rainIntensity(t) : -1f, false)).isRaining();
     }

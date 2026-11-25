@@ -17,6 +17,7 @@ import dev.tfp.core.climate.OverworldClimate;
 import dev.tfp.paper.boot.TfpCommands.Reply;
 import dev.tfp.paper.climate.ChunkClimateSource;
 import dev.tfp.paper.scheduler.Scheduler;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -99,13 +100,13 @@ public final class TimeRateCommands {
         }
         if (onGlobalThread.getAsBoolean()) {
             // One chunk climate sample for an admin command; inline so the console's reply is captured.
-            return onCalendar(c -> search(c, label, rain, OverworldClimate.forWorldSeed(seed,
-                    OverworldClimate.DEFAULT_TEMPERATURE_SCALE), ChunkClimateSource.climateAt(seed, x, z)));
+            return onCalendar(c -> search(c, label, rain, WorldSettingsLookup.climate(seed),
+                    ChunkClimateSource.climateAt(seed, x, z)));
         }
         CompletableFuture<Reply> out = new CompletableFuture<>();
         scheduler.cpu(() -> {
             try {
-                OverworldClimate climate = OverworldClimate.forWorldSeed(seed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+                OverworldClimate climate = WorldSettingsLookup.climate(seed);
                 ChunkClimate chunk = ChunkClimateSource.climateAt(seed, x, z);
                 onCalendar(c -> search(c, label, rain, climate, chunk)).whenComplete((r, e) -> {
                     if (e != null) {

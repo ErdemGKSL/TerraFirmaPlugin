@@ -26,6 +26,7 @@ import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.integration.CustomItems;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tags.Tags;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
@@ -76,7 +77,7 @@ public final class PaperBananaEffects implements BananaEffects {
     public BerryEffects.Environment environment(Block stem, Block root) {
         World world = stem.getWorld();
         long seed = world.getSeed();
-        OverworldClimate climate = OverworldClimate.forWorldSeed(seed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate climate = WorldSettingsLookup.climate(seed);
         ChunkClimate chunk = ChunkClimateSource.climateAt(seed, stem.getX(), stem.getZ());
         float temperature = climate.averageTemperature(new BlockPos(stem.getX(), stem.getY(), stem.getZ()), chunk);
         boolean northern = world.getEnvironment() != World.Environment.NORMAL

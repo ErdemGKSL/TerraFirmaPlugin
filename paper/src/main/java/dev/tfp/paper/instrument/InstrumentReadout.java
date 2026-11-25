@@ -23,6 +23,7 @@ import dev.tfp.core.instrument.WindField;
 import dev.tfp.core.worldgen.Mth;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.climate.ChunkClimateSource;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.List;
 import java.util.Set;
 
@@ -94,7 +95,7 @@ public final class InstrumentReadout {
         if (!c.overworld() || !c.clock().isSet()) {
             return new Result(Readout.of("instrument.unknown"), kind == Kind.THERMOMETER ? 0 : -1);
         }
-        final OverworldClimate climate = OverworldClimate.forWorldSeed(c.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        final OverworldClimate climate = WorldSettingsLookup.climate(c.worldSeed());
         final ChunkClimate chunk = ChunkClimateSource.climateAt(c.worldSeed(), c.pos().x(), c.pos().z());
         final long ticks = c.clock().calendarTicks();
         final int dim = c.clock().daysInMonth();

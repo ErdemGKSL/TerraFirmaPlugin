@@ -27,6 +27,7 @@ import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.integration.CustomItems;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tags.Tags;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
@@ -79,7 +80,7 @@ public final class PaperSpreadEffects implements SpreadEffects {
     public BerryEffects.Environment environment(Block block) {
         World world = block.getWorld();
         long seed = world.getSeed();
-        OverworldClimate climate = OverworldClimate.forWorldSeed(seed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate climate = WorldSettingsLookup.climate(seed);
         ChunkClimate chunk = ChunkClimateSource.climateAt(seed, block.getX(), block.getZ());
         float temperature = climate.averageTemperature(new BlockPos(block.getX(), block.getY(), block.getZ()), chunk);
         boolean northern = world.getEnvironment() != World.Environment.NORMAL

@@ -14,7 +14,9 @@ import dev.tfp.core.worldgen.chunk.ChunkDataGenerator;
 import dev.tfp.core.worldgen.height.SurfaceHeights;
 import dev.tfp.core.worldgen.region.RegionGenerator;
 import dev.tfp.core.worldgen.region.RegionSettings;
+import dev.tfp.core.worldgen.rock.RockLayerSampler;
 import dev.tfp.core.worldgen.volcano.CinderCones;
+import java.util.function.Predicate;
 
 /**
  * The surface heights, biomes and rivers of a TFC overworld, rebuilt from its seed the way the chunk generator builds them, so
@@ -27,9 +29,20 @@ public final class WaterTerrain {
 
     /** @param seed the world seed the generator used */
     public WaterTerrain(long seed) {
+        this(seed, RegionSettings.OVERWORLD, RockLayerSampler.PRESET, null);
+    }
+
+    /**
+     * PAR-WORLD-51: the terrain of a world with its own TFC settings, built as the chunk generator builds it.
+     *
+     * @param settings   the world's region settings ({@code WorldSettings.regionSettings()})
+     * @param rockLayers the world's rock layer walk
+     * @param karstRock  whether a rock id is karst; null to skip the karst surface rock task
+     */
+    public WaterTerrain(long seed, RegionSettings settings, RockLayerSampler rockLayers, Predicate<String> karstRock) {
         this.seed = seed;
         final Seed stream = Seed.of(seed);
-        final RegionGenerator regions = new RegionGenerator(RegionSettings.OVERWORLD, stream);
+        final RegionGenerator regions = new RegionGenerator(settings, stream, rockLayers, karstRock);
         // The chunk data generator takes its seeds from the stream before the biome layer, as in TFC
         new ChunkDataGenerator(regions, stream);
         this.heights = SurfaceHeights.create(seed, regions, stream, new CinderCones(seed));

@@ -27,6 +27,7 @@ import dev.tfp.paper.pipeline.PipelineMetrics;
 import dev.tfp.paper.pipeline.RegionExecutor;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.weather.cycle.ClimateWeatherCycle;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -458,8 +459,7 @@ public final class SnowService implements Listener {
             CompletableFuture
                     .supplyAsync(() -> {
                         long planStarted = System.nanoTime();
-                        OverworldClimate climate = OverworldClimate.forWorldSeed(world.getSeed(),
-                                OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+                        OverworldClimate climate = WorldSettingsLookup.climate(world);
                         // Both sampled columns are in this chunk, so one chunk climate serves both
                         ChunkClimate chunk = ChunkClimateSource.climateAt(world.getSeed(), cx * 16 + 8, cz * 16 + 8);
                         float rainfall = SnowCatchUp.averageRainfall(SnowCatchUp.averagingFrom(last, calendar), calendar,
@@ -700,7 +700,7 @@ public final class SnowService implements Listener {
         // the worldgen here does not, so a sampled ocean column gets it once (ledger).
         SnowBlock topBlock = s.blocks().get(top);
         if (s.salty() && top.y() == SeaIce.SEA_LEVEL_Y - 1 && topBlock != null && isWaterSource(topBlock.data())) {
-            OverworldClimate climate = OverworldClimate.forWorldSeed(s.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+            OverworldClimate climate = WorldSettingsLookup.climate(s.worldSeed());
             ChunkClimate chunk = ChunkClimateSource.climateAt(s.worldSeed(), top.x(), top.z());
             float warmest = SeaIce.warmestMonth(climate, chunk, top.z());
             if (seaIcePattern.placesIce(top.x(), top.z(), warmest)) {
@@ -724,7 +724,7 @@ public final class SnowService implements Listener {
         if (!weather) {
             return SnowRule.Event.NONE;
         }
-        OverworldClimate climate = OverworldClimate.forWorldSeed(worldSeed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate climate = WorldSettingsLookup.climate(worldSeed);
         ClimateReading reading = ClimateReading.of(climate, ChunkClimateSource.climateAt(worldSeed, surface.x(), surface.z()),
                 surface, now);
         PrecipitationType precipitation = PrecipitationType.decide(reading.temperature(), reading.rainfall(),

@@ -2,7 +2,7 @@
 id: PAR-WORLD-51
 title: "Per-world TFC settings in every climate consumer (HUD, snow, precipitation, weather, seasonal remap, plant effects, chunk climate)"
 area: WORLD
-status: open
+status: done
 wave: 29
 deps: [PAR-WORLD-22]
 size: M
@@ -35,6 +35,7 @@ in_game_steps: []
 plan:
   - "PAR-WORLD-22 made TFC's Settings per world (worldgen-settings.yml, stored in <world>/tfp/world-settings.yml) and the generator (TfcTerrain: region map, chunk data, bedrock, grass density; spawn) uses them. Every other climate reader still builds `OverworldClimate.forWorldSeed(seed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE)` or `ChunkDataGenerator.forSeed` / `WaterTerrain` over `RegionSettings.OVERWORLD`, so a world with a non-default temperature_scale, rainfall or continentalness shows the preset's climate in the HUD, snow, rain, seasonal colours and plant effects (files listed in files_owned)."
   - "Add `WorldSettingsLookup` (paper/worldgen): the settings of a World from its `TfcChunkGenerator.settings()` (TFC's preset for other generators); (PAR-WORLD-23) also build WaterTerrain's and forSeed's RegionGenerator with the rock settings so their karst biomes match the terrain; replace every DEFAULT_TEMPERATURE_SCALE / RegionSettings.OVERWORLD use with the world's values; give ChunkDataGenerator.forSeed and WaterTerrain a RegionSettings parameter (keep the old overloads for tests)."
+  - "Done: paper/worldgen/WorldSettingsLookup (of(World), forSeed(seed) for worker-side readers, climate(World|seed), waterTerrain(World) with the world's region settings, rock layers and karst task); ChunkClimateSource memoised per (seed, RegionSettings) and resolves the world's settings; ChunkDataGenerator.forLevel(seed, RegionSettings) and WaterTerrain(seed, RegionSettings, RockLayerSampler, karst) overloads (old ones kept as preset defaults); the 14 owned readers use WorldSettingsLookup. Test: WorldSettingsLookupTest (2: a temperature_scale 5000 world drives climate, HUD hemisphere and chunk climate; other worlds and unknown seeds keep the preset). Readers outside files_owned (FogForecast, CropSettle, WildWorld, FarmlandReadout, RisingRocks, PlantSweeper, WorldWaterService, TfpPlugin calendar sample, itest PrecipSampleCase) moved to follow-up PAR-WORLD-56, so the done criterion's 'no production use' holds for this item's files only."
 tests:
   - "paper: a world whose generator has temperature_scale 5000 gives the HUD/snow climate with that scale (MockBukkit)"
 done_criteria:
@@ -42,7 +43,5 @@ done_criteria:
 ---
 
 # PAR-WORLD-51: Per-world TFC settings in every climate consumer
-
-> Claimed: worker agent-a0d3502f, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

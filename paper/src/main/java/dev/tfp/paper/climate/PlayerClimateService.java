@@ -17,6 +17,7 @@ import dev.tfp.paper.integration.HudSnapshot;
 import dev.tfp.paper.integration.HudSnapshotCache;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ThreadAsserts;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
@@ -87,7 +88,7 @@ public final class PlayerClimateService implements Listener {
         if (c.kind() == ClimateModelKind.BIOME_BASED) {
             return BiomeBasedClimate.reading(c.vanillaTemperature(), c.hasPrecipitation(), clock);
         }
-        OverworldClimate climate = OverworldClimate.forWorldSeed(c.worldSeed(), OverworldClimate.DEFAULT_TEMPERATURE_SCALE);
+        OverworldClimate climate = WorldSettingsLookup.climate(c.worldSeed());
         ChunkClimate chunk = ChunkClimateSource.climateAt(c.worldSeed(), c.pos().x(), c.pos().z());
         return ClimateReading.of(climate, chunk, c.pos(), clock);
     }

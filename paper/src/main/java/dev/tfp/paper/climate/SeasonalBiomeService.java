@@ -13,6 +13,7 @@ import dev.tfp.paper.packet.SeasonalBiomeSource;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.scheduler.ThreadAsserts;
 import dev.tfp.paper.worldgen.TfcChunkGenerator;
+import dev.tfp.paper.worldgen.WorldSettingsLookup;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
@@ -169,7 +170,7 @@ public final class SeasonalBiomeService implements Listener, SeasonalBiomeSource
         if (generator instanceof TfcChunkGenerator tfc) {
             long seed = world.getSeed();
             worlds.put(world.getUID(), new WorldView(tfc.seasonalTerrain(() -> seed),
-                    OverworldClimate.forWorldSeed(seed, OverworldClimate.DEFAULT_TEMPERATURE_SCALE),
+                    WorldSettingsLookup.climate(seed),
                     world.getMinHeight(), world.getMaxHeight() - world.getMinHeight()));
         }
     }

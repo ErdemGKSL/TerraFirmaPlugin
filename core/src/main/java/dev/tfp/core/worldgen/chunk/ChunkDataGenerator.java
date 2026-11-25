@@ -89,7 +89,16 @@ public final class ChunkDataGenerator {
      */
     public static ChunkDataGenerator forLevel(long levelSeed) {
         final Seed seed = Seed.of(levelSeed);
-        return new ChunkDataGenerator(new RegionGenerator(RegionSettings.OVERWORLD, seed), seed);
+        return forLevel(levelSeed, RegionSettings.OVERWORLD);
+    }
+
+    /**
+     * PAR-WORLD-51: the chunk data generator of a level with its own TFC region settings (a world's {@code temperature_scale},
+     * rainfall and continentalness), without the karst surface rock task (the climate values do not read it).
+     */
+    public static ChunkDataGenerator forLevel(long levelSeed, RegionSettings settings) {
+        final Seed seed = Seed.of(levelSeed);
+        return new ChunkDataGenerator(new RegionGenerator(settings, seed), seed);
     }
 
     /** @return The climate input of the block position {@code (x, z)}: the values of the chunk that contains it. */
