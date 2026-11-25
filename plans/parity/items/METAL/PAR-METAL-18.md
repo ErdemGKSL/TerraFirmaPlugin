@@ -29,4 +29,6 @@ done_criteria:
 
 # PAR-METAL-18: Bells (bronze, brass)
 
+> Claimed: claude session_011osUp6aEeM6XBUKHoB7Lf2, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
