@@ -29,4 +29,6 @@ done_criteria:
 
 # PAR-FAUNA-31: Amphibian play-dead pose: penguin and turtle models
 
+> Claimed: worker session_011osUp8LArwstSDt7X82o4E, 2026-11-25
+
 Follow `plans/parity/PROTOCOL.md`.
