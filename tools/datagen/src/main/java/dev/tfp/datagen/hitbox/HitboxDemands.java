@@ -602,6 +602,28 @@ public final class HitboxDemands {
             d.add(new Demand(JACK_O_LANTERN_ID, f, "tfc:jack_o_lantern[facing=" + f + "]", JACK_O_LANTERN_LIGHT,
                 HitboxAllocation.VANILLA_LOOK, true, CANDLE_WEIGHT));
         }
+        // PAR-WORLD-50: TFC's 30 corals and its sea pickle draw vanilla's models (blockstates name minecraft:block/*), so
+        // each state takes its vanilla twin's state of the same properties with the vanilla look, as the candles do.
+        for (String id : coralIds()) {
+            String type = coralType(id);
+            for (boolean wet : new boolean[] {false, true}) {
+                if (type.endsWith("wall_fan")) {
+                    for (String f : FACINGS) {
+                        d.add(new Demand(id, coralAppearance(f, wet), TfcShapes.coralKey(type, f, wet), 0,
+                            HitboxAllocation.VANILLA_LOOK, true, CANDLE_WEIGHT));
+                    }
+                } else {
+                    d.add(new Demand(id, coralAppearance(null, wet), TfcShapes.coralKey(type, null, wet), 0,
+                        HitboxAllocation.VANILLA_LOOK, true, CANDLE_WEIGHT));
+                }
+            }
+        }
+        for (int n = 1; n <= 4; n++) {
+            for (boolean wet : new boolean[] {false, true}) {
+                d.add(new Demand(SEA_PICKLE_ID, seaPickleAppearance(n, wet), TfcShapes.seaPickleKey(n, wet),
+                    seaPickleLight(n, wet), HitboxAllocation.VANILLA_LOOK, true, CANDLE_WEIGHT));
+            }
+        }
         // PAR-CLIM-04: the snow pile (hitbox-only, the look is a display) and the icicle with TFC's models; the ice pile
         // and sea ice are pool appearances (POOLS) and no demands.
         for (int layers = 1; layers <= TfcShapes.SNOW_PILE_MAX; layers++) {
@@ -1338,6 +1360,54 @@ public final class HitboxDemands {
     /** PAR-HEAT-26: served after every other demand (only the twins' states serve these, so nothing else moves). */
     static final int CANDLE_WEIGHT = -6;
 
+    /** PAR-WORLD-50: TFC's coral colours ({@code Coral}) and block types ({@code Coral.BlockType}), in enum order. */
+    public static final List<String> CORAL_COLORS = List.of("tube", "brain", "bubble", "fire", "horn");
+    public static final List<String> CORAL_TYPES = List.of("dead_coral", "coral", "dead_coral_fan", "coral_fan",
+        "dead_coral_wall_fan", "coral_wall_fan");
+    public static final String CORAL_PREFIX = "tfp:coral/";
+    public static final String SEA_PICKLE_ID = "tfp:sea_pickle";
+
+    /** PAR-WORLD-50: every coral id ({@code tfp:coral/<colour>_<type>}, TFCBlocks.CORAL), colour-major. */
+    public static List<String> coralIds() {
+        List<String> ids = new ArrayList<>();
+        for (String c : CORAL_COLORS) {
+            for (String t : CORAL_TYPES) {
+                ids.add(CORAL_PREFIX + c + "_" + t);
+            }
+        }
+        return List.copyOf(ids);
+    }
+
+    /** PAR-WORLD-50: the block type of a coral id ({@code tfp:coral/tube_dead_coral_fan} to {@code dead_coral_fan}). */
+    public static String coralType(String id) {
+        String rest = id.substring(CORAL_PREFIX.length());
+        return rest.substring(rest.indexOf('_') + 1);
+    }
+
+    /** PAR-WORLD-50: the twin of a coral id ({@code tfp:coral/tube_dead_coral_fan} to {@code minecraft:dead_tube_coral_fan}). */
+    public static String coralTwin(String id) {
+        String rest = id.substring(CORAL_PREFIX.length());
+        String color = rest.substring(0, rest.indexOf('_'));
+        String type = coralType(id);
+        boolean dead = type.startsWith("dead_");
+        return "minecraft:" + (dead ? "dead_" : "") + color + "_" + (dead ? type.substring("dead_".length()) : type);
+    }
+
+    /** PAR-WORLD-50: a coral appearance ({@code waterlogged=true}; {@code facing=north,waterlogged=false} for a wall fan). */
+    public static String coralAppearance(String facing, boolean waterlogged) {
+        return (facing == null ? "" : "facing=" + facing + ",") + "waterlogged=" + waterlogged;
+    }
+
+    /** PAR-WORLD-50: a sea pickle appearance ({@code pickles=2,waterlogged=true}). */
+    public static String seaPickleAppearance(int pickles, boolean waterlogged) {
+        return "pickles=" + pickles + ",waterlogged=" + waterlogged;
+    }
+
+    /** PAR-WORLD-50: TFC {@code SEA_PICKLE} light {@code isDead(state) ? 0 : 3 + 3 * pickles} (dead: no fluid). */
+    public static int seaPickleLight(int pickles, boolean waterlogged) {
+        return waterlogged ? 3 + 3 * pickles : 0;
+    }
+
     /** PAR-HEAT-26: {@code base} and its dyed ids ({@code base/<colour>}), plain first. */
     public static List<String> candleIds(String base) {
         List<String> ids = new ArrayList<>();
@@ -1376,6 +1446,12 @@ public final class HitboxDemands {
         }
         if (blockId.equals(JACK_O_LANTERN_ID)) {
             return "minecraft:jack_o_lantern";
+        }
+        if (blockId.equals(SEA_PICKLE_ID)) {
+            return "minecraft:sea_pickle"; // PAR-WORLD-50
+        }
+        if (coralIds().contains(blockId)) {
+            return coralTwin(blockId); // PAR-WORLD-50
         }
         for (String base : List.of(CANDLE_ID, CANDLE_CAKE_ID)) {
             String name = base.substring(base.indexOf(':') + 1);

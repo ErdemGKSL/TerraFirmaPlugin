@@ -538,6 +538,39 @@ public final class TfcShapes {
                 List.of(D + "JackOLanternBlock.java"), "Shapes.block()", "same",
                 List.of("public class JackOLanternBlock extends CarvedPumpkinBlock"), List.of("getShape(", "getCollisionShape")));
         }
+        // PAR-WORLD-50: the corals (TFCCoralPlantBlock: BIG_SHAPE for coral, SMALL_SHAPE for the fans, noCollission) and
+        // the wall fans (CoralWallFanBlock.SHAPES per facing), dead and living alike; one row per fluid state so the selector
+        // keeps the twin's waterlogged state. The sea pickle's AABB per count, collision the same (no override).
+        String coralDir = B + "plant/coral/";
+        List<String> coralFiles = List.of(coralDir + "TFCCoralPlantBlock.java", coralDir + "Coral.java");
+        for (String wet : List.of("false", "true")) {
+            boolean w = Boolean.parseBoolean(wet);
+            for (String type : List.of("coral", "dead_coral")) {
+                s.add(Spec.of(coralKey(type, null, w), "coral", Kind.OBJECT, coralFiles, "BIG_SHAPE", "Shapes.empty()",
+                    List.of("return shape;", "TFCCoralPlantBlock.BIG_SHAPE, BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY)"
+                        + ".requiresCorrectToolForDrops().noCollission()"), List.of("getCollisionShape")));
+            }
+            for (String type : List.of("coral_fan", "dead_coral_fan")) {
+                s.add(Spec.of(coralKey(type, null, w), "coral_fan", Kind.OBJECT, coralFiles, "SMALL_SHAPE", "Shapes.empty()",
+                    List.of("return shape;", "TFCCoralPlantBlock.SMALL_SHAPE, BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY)"
+                        + ".requiresCorrectToolForDrops().noCollission()"), List.of("getCollisionShape")));
+            }
+            for (String type : List.of("coral_wall_fan", "dead_coral_wall_fan")) {
+                for (String f : CORAL_WALL_FAN_SHAPES.keySet()) {
+                    final Shape shape = CORAL_WALL_FAN_SHAPES.get(f);
+                    s.add(new Spec(coralKey(type, f, w), "coral_wall_fan", Kind.OBJECT,
+                        List.of(coralDir + "CoralWallFanBlock.java", coralDir + "Coral.java"), null, null,
+                        List.of("return SHAPES.get(state.getValue(FACING));", CORAL_WALL_FAN_SOURCE.get(f), "DEAD_CORAL_WALL_FAN((color, type) -> "
+                            + "new CoralWallFanBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY).requiresCorrectToolForDrops().noCollission()"),
+                        List.of("getCollisionShape"), x -> new Shape[] {shape, Shape.EMPTY}));
+                }
+            }
+            for (int n = 1; n <= 4; n++) {
+                s.add(Spec.of(seaPickleKey(n, w), "sea_pickle", Kind.OBJECT, List.of(coralDir + "TFCSeaPickleBlock.java"),
+                    SEA_PICKLE_AABBS.get(n - 1), "same", List.of((n == 1 ? "default" : "case " + n) + " -> " + SEA_PICKLE_AABBS.get(n - 1) + ";"),
+                    List.of("VoxelShape getCollisionShape")));
+            }
+        }
         // PAR-METAL-03: the anvils. AnvilBlock.getShape picks SHAPE_X for facing east and west, SHAPE_Z for north and south;
         // RockAnvilBlock is one box. Neither overrides getCollisionShape.
         String anvil = D + "AnvilBlock.java";
@@ -830,6 +863,40 @@ public final class TfcShapes {
             }
         }
         return out;
+    }
+
+    /** PAR-WORLD-50: vanilla's {@code SeaPickleBlock} AABB constant names per count, as TFCSeaPickleBlock.getShape names them. */
+    static final List<String> SEA_PICKLE_AABBS = List.of("ONE_AABB", "TWO_AABB", "THREE_AABB", "FOUR_AABB");
+    /** PAR-WORLD-50: TFC {@code CoralWallFanBlock.SHAPES} (checked against its source by the spec needles). */
+    static final Map<String, Shape> CORAL_WALL_FAN_SHAPES = coralWallFanShapes();
+
+    /** PAR-WORLD-50: the source text of each {@code CoralWallFanBlock.SHAPES} entry. */
+    static final Map<String, String> CORAL_WALL_FAN_SOURCE = Map.of(
+        "north", "Direction.NORTH, Block.box(0.0D, 4.0D, 5.0D, 16.0D, 12.0D, 16.0D)",
+        "east", "Direction.EAST, Block.box(0.0D, 4.0D, 0.0D, 11.0D, 12.0D, 16.0D)",
+        "south", "Direction.SOUTH, Block.box(0.0D, 4.0D, 0.0D, 16.0D, 12.0D, 11.0D)",
+        "west", "Direction.WEST, Block.box(5.0D, 4.0D, 0.0D, 16.0D, 12.0D, 16.0D)");
+
+    private static Map<String, Shape> coralWallFanShapes() {
+        Map<String, Shape> m = new LinkedHashMap<>();
+        m.put("north", Shape.box(0, 4, 5, 16, 12, 16));
+        m.put("east", Shape.box(0, 4, 0, 11, 12, 16));
+        m.put("south", Shape.box(0, 4, 0, 16, 12, 11));
+        m.put("west", Shape.box(5, 4, 0, 16, 12, 16));
+        return java.util.Collections.unmodifiableMap(m);
+    }
+
+    /**
+     * PAR-WORLD-50: the tfc-shapes row of a coral type ({@code coral}, {@code dead_coral_fan}, ...; every colour shares it),
+     * with the facing of a wall fan ({@code null} otherwise).
+     */
+    public static String coralKey(String type, String facing, boolean waterlogged) {
+        return "tfc:coral/" + type + "[" + (facing == null ? "" : "facing=" + facing + ",") + "waterlogged=" + waterlogged + "]";
+    }
+
+    /** PAR-WORLD-50: the tfc-shapes row of a sea pickle state. */
+    public static String seaPickleKey(int pickles, boolean waterlogged) {
+        return "tfc:sea_pickle[pickles=" + pickles + ",waterlogged=" + waterlogged + "]";
     }
 
     /** PAR-HEAT-26: the tfc-shapes row of a TFC candle state (every colour shares it). */

@@ -252,6 +252,9 @@ class GeneratedCarrierTest {
         }
         HitboxDemands.SMALL_ORES.forEach(o -> expected.add(HitboxDemands.smallOreId(o)));
         HitboxDemands.GROUNDCOVER_TYPES.keySet().forEach(t -> expected.add(HitboxDemands.groundcoverId(t)));
+        // PAR-WORLD-50: the 30 corals and the sea pickle on their vanilla twins (128 states)
+        expected.addAll(HitboxDemands.coralIds());
+        expected.add(HitboxDemands.SEA_PICKLE_ID);
         for (Demand d : HitboxDemands.all()) { // the grass paths on an explicit state (the others take the leaves pool)
             if (d.blockId().startsWith("tfp:grass_path/") && !agreedOrOld(d).pool()) {
                 expected.add(d.blockId());

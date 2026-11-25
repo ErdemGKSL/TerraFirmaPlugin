@@ -3107,6 +3107,262 @@
       "from": "JackOLanternBlock.java Shapes.block() / same"
     },
     {
+      "key": "tfc:coral/coral[waterlogged=false]",
+      "class": "coral",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 15, 14]],
+      "collision": [],
+      "from": "TFCCoralPlantBlock.java BIG_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:coral/dead_coral[waterlogged=false]",
+      "class": "coral",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 15, 14]],
+      "collision": [],
+      "from": "TFCCoralPlantBlock.java BIG_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:coral/coral_fan[waterlogged=false]",
+      "class": "coral_fan",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 4, 14]],
+      "collision": [],
+      "from": "TFCCoralPlantBlock.java SMALL_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:coral/dead_coral_fan[waterlogged=false]",
+      "class": "coral_fan",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 4, 14]],
+      "collision": [],
+      "from": "TFCCoralPlantBlock.java SMALL_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:coral/coral_wall_fan[facing=north,waterlogged=false]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[0, 4, 5, 16, 12, 16]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/coral_wall_fan[facing=east,waterlogged=false]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[0, 4, 0, 11, 12, 16]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/coral_wall_fan[facing=south,waterlogged=false]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[0, 4, 0, 16, 12, 11]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/coral_wall_fan[facing=west,waterlogged=false]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[5, 4, 0, 16, 12, 16]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/dead_coral_wall_fan[facing=north,waterlogged=false]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[0, 4, 5, 16, 12, 16]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/dead_coral_wall_fan[facing=east,waterlogged=false]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[0, 4, 0, 11, 12, 16]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/dead_coral_wall_fan[facing=south,waterlogged=false]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[0, 4, 0, 16, 12, 11]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/dead_coral_wall_fan[facing=west,waterlogged=false]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[5, 4, 0, 16, 12, 16]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:sea_pickle[pickles=1,waterlogged=false]",
+      "class": "sea_pickle",
+      "kind": "object",
+      "selection": [[6, 0, 6, 10, 6, 10]],
+      "collision": [[6, 0, 6, 10, 6, 10]],
+      "from": "TFCSeaPickleBlock.java ONE_AABB / same"
+    },
+    {
+      "key": "tfc:sea_pickle[pickles=2,waterlogged=false]",
+      "class": "sea_pickle",
+      "kind": "object",
+      "selection": [[3, 0, 3, 13, 6, 13]],
+      "collision": [[3, 0, 3, 13, 6, 13]],
+      "from": "TFCSeaPickleBlock.java TWO_AABB / same"
+    },
+    {
+      "key": "tfc:sea_pickle[pickles=3,waterlogged=false]",
+      "class": "sea_pickle",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 6, 14]],
+      "collision": [[2, 0, 2, 14, 6, 14]],
+      "from": "TFCSeaPickleBlock.java THREE_AABB / same"
+    },
+    {
+      "key": "tfc:sea_pickle[pickles=4,waterlogged=false]",
+      "class": "sea_pickle",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 7, 14]],
+      "collision": [[2, 0, 2, 14, 7, 14]],
+      "from": "TFCSeaPickleBlock.java FOUR_AABB / same"
+    },
+    {
+      "key": "tfc:coral/coral[waterlogged=true]",
+      "class": "coral",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 15, 14]],
+      "collision": [],
+      "from": "TFCCoralPlantBlock.java BIG_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:coral/dead_coral[waterlogged=true]",
+      "class": "coral",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 15, 14]],
+      "collision": [],
+      "from": "TFCCoralPlantBlock.java BIG_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:coral/coral_fan[waterlogged=true]",
+      "class": "coral_fan",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 4, 14]],
+      "collision": [],
+      "from": "TFCCoralPlantBlock.java SMALL_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:coral/dead_coral_fan[waterlogged=true]",
+      "class": "coral_fan",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 4, 14]],
+      "collision": [],
+      "from": "TFCCoralPlantBlock.java SMALL_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:coral/coral_wall_fan[facing=north,waterlogged=true]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[0, 4, 5, 16, 12, 16]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/coral_wall_fan[facing=east,waterlogged=true]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[0, 4, 0, 11, 12, 16]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/coral_wall_fan[facing=south,waterlogged=true]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[0, 4, 0, 16, 12, 11]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/coral_wall_fan[facing=west,waterlogged=true]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[5, 4, 0, 16, 12, 16]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/dead_coral_wall_fan[facing=north,waterlogged=true]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[0, 4, 5, 16, 12, 16]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/dead_coral_wall_fan[facing=east,waterlogged=true]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[0, 4, 0, 11, 12, 16]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/dead_coral_wall_fan[facing=south,waterlogged=true]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[0, 4, 0, 16, 12, 11]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:coral/dead_coral_wall_fan[facing=west,waterlogged=true]",
+      "class": "coral_wall_fan",
+      "kind": "object",
+      "selection": [[5, 4, 0, 16, 12, 16]],
+      "collision": [],
+      "from": "CoralWallFanBlock.java (ported)"
+    },
+    {
+      "key": "tfc:sea_pickle[pickles=1,waterlogged=true]",
+      "class": "sea_pickle",
+      "kind": "object",
+      "selection": [[6, 0, 6, 10, 6, 10]],
+      "collision": [[6, 0, 6, 10, 6, 10]],
+      "from": "TFCSeaPickleBlock.java ONE_AABB / same"
+    },
+    {
+      "key": "tfc:sea_pickle[pickles=2,waterlogged=true]",
+      "class": "sea_pickle",
+      "kind": "object",
+      "selection": [[3, 0, 3, 13, 6, 13]],
+      "collision": [[3, 0, 3, 13, 6, 13]],
+      "from": "TFCSeaPickleBlock.java TWO_AABB / same"
+    },
+    {
+      "key": "tfc:sea_pickle[pickles=3,waterlogged=true]",
+      "class": "sea_pickle",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 6, 14]],
+      "collision": [[2, 0, 2, 14, 6, 14]],
+      "from": "TFCSeaPickleBlock.java THREE_AABB / same"
+    },
+    {
+      "key": "tfc:sea_pickle[pickles=4,waterlogged=true]",
+      "class": "sea_pickle",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 7, 14]],
+      "collision": [[2, 0, 2, 14, 7, 14]],
+      "from": "TFCSeaPickleBlock.java FOUR_AABB / same"
+    },
+    {
       "key": "tfc:metal/anvil[axis=x]",
       "class": "metal_anvil",
       "kind": "object",

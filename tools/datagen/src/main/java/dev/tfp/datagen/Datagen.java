@@ -226,6 +226,9 @@ public final class Datagen {
         if (dev.tfp.datagen.light.candle.CandleBlocks.available(tfc)) { // PAR-HEAT-26: tfp:candle*, candle_cake*, jack_o_lantern on their vanilla twins, item models, loot, names; fixtures have no candles
             dev.tfp.datagen.light.candle.CandleBlocks.run(tfc, out, dev.tfp.datagen.light.candle.CandleBlocks::selected);
         }
+        if (dev.tfp.datagen.coral.CoralBlockGen.available(tfc)) { // PAR-WORLD-50: tfp:coral/*, tfp:sea_pickle on their vanilla twins
+            dev.tfp.datagen.coral.CoralBlockGen.run(tfc, out);
+        }
         if (dev.tfp.datagen.powderkeg.PowderkegScreenArt.available(tfc)) { // PAR-PROC-18: powderkeg screen art; fixtures have no powderkeg screen
             dev.tfp.datagen.powderkeg.PowderkegScreenArt.run(tfc, out);
         }
