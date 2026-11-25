@@ -4,9 +4,10 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * files: src/main/java/net/dries007/tfc/util/rotation/Rotation.java @ c3b4d9536 (angle(rotation, partialTick): the axis step of the
- *        direction times the source angle), src/main/java/net/dries007/tfc/client/render/blockentity/AxleBlockEntityRenderer.java
- *        @ c3b4d9536 (applyRotation: the shaft turns by minus that angle about its positive axis)
+ * file: src/main/java/net/dries007/tfc/util/rotation/Rotation.java @ c3b4d9536 (angle(rotation, partialTick): the axis step of the
+ *       direction times the source angle),
+ * file: src/main/java/net/dries007/tfc/client/render/blockentity/AxleBlockEntityRenderer.java @ c3b4d9536 (applyRotation: the
+ *       shaft turns by minus that angle about its positive axis)
  */
 package dev.tfp.core.machine;
 
