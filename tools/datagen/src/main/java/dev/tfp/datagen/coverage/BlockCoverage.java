@@ -116,7 +116,7 @@ public final class BlockCoverage {
         Owner.of("wood/water_wheel/.+", "PAR-MECH-18", "water wheels"),
         Owner.of("wood/windmill/.+", "PAR-MECH-18", "windmills"),
         Owner.of("crankshaft", "PAR-MECH-21", "crankshaft"),
-        Owner.of("trip_hammer", "PAR-MECH-07", "trip hammer"),
+        Owner.of("trip_hammer", "PAR-MECH-27", "trip hammer"),
         Owner.of("power_loom", "PAR-MECH-22", "power loom"),
         Owner.of("steel_pipe|steel_pump", "PAR-MECH-09", "pump and pipes"),
         // devices

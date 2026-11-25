@@ -349,6 +349,9 @@ public final class Datagen {
         if (dev.tfp.datagen.powerloom.PowerLoomBlock.available(tfc)) { // PAR-MECH-22: tfp:power_loom; fixtures have no power loom
             dev.tfp.datagen.powerloom.PowerLoomBlock.run(tfc, out);
         }
+        if (dev.tfp.datagen.triphammer.TripHammerBlock.available(tfc)) { // PAR-MECH-27: tfp:trip_hammer; fixtures have no trip hammer
+            dev.tfp.datagen.triphammer.TripHammerBlock.run(tfc, out);
+        }
         if (dev.tfp.datagen.coverage.BlockCoverage.available(tfc)) { // PAR-INFRA-49: TFC blockstate coverage gate; after every block generator and ItemCoverage; fixtures have no TFCItems
             dev.tfp.datagen.coverage.BlockCoverage.run(tfc, out);
         }
