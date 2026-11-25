@@ -33,4 +33,6 @@ done_criteria:
 
 # PAR-INFRA-66: Device automation, screens and barrel
 
+> Claimed: worker session_011osUpAUVyyokAxf5Kiw72D, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.
