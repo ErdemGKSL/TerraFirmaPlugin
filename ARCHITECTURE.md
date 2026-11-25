@@ -460,6 +460,22 @@ survival.
 
 **Groundcover (PAR-WORLD-31, decided 2026-11-25).** Loose rocks (42 blocks x 3 counts) are hitbox-only on one shared carrier per count and drawn as item displays of TFC's model (a few per chunk). Small ores and the groundcover types take TFC's model list on a carrier of their outline where the selector has one free, else hitbox-only. When the two version families pick different carriers, the generator writes a `$$>=26.1` / `$$fallback` value selector for the appearance and splits the hide mappings under `$$>=26.1` / `$$<26.1` instead of failing `HitboxAllocation.agreed`. Deposits are cubes from the visual allocator. No fluid state yet (PAR-WORLD-58).
 
+**Plant seasonal stages and tint (PAR-WORLD-48, decided 2026-11-25).** TFC picks a plant's look (dormant, sprouting,
+budding, blooming, seeding, dying) per block on the client (`tfc:plant` model loader) from the calendar's fraction of the
+year, the block's climate (rainfall variance for wet-season bloomers, else average temperature), the viewer's hemisphere,
+the day time (plants with a blooming window) and a per-column random offset. The rule is ported exactly in
+`core/plant/lifecycle/PlantLifecycle` (golden grid against TFC's method bodies); its data is `data/tfp/data_maps/plant_lifecycle.json`
+(`plant/stage/PlantStageGen`: the bloom fields of all 170 plants and the six stage models of the 154 loader models). Budget:
+the 154 loader models draw 430 distinct looks, 276 more than the one per model PAR-WORLD-12 draws, and in every one the
+dormant look differs from the blooming look (+154 for two looks). The no-collision plant pools (tripwire 126, sugar cane 15,
+sapling 8, kelp 25) are already spent by PAR-WORLD-12/47. Decision: the stage is never a server block property (no world
+writes per season, no ticking). It is chosen at packet time per viewer, like the seasonal biome remap: outgoing chunk and
+block-change packets map a plant's client state to its stage look, using `PlantLifecycle` with the column's chunk climate.
+Looks are collapsed to two groups per model (blooming look for blooming/budding/seeding/sprouting, dormant look for
+dormant/dying) and each model gets its dormant state only from what the PAR-WORLD-59 selector reports left over, flowers
+first; a plant without a spare state keeps the blooming look all year (divergence). Tint stays baked with TFC's default
+climate colour: the plant carriers have no colour handler and a look per colour band does not fit. Work: PAR-WORLD-61.
+
 ## 10. Packet layer
 
 - Library: **PacketEvents 2.14.x** (M0-NET-01), as an optional plugin dependency (`packetevents` in `paper-plugin.yml` and `compat.yml`). Without it the server runs without seasonal colours and item tooltips.

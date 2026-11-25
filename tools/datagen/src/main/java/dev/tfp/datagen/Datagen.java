@@ -280,6 +280,7 @@ public final class Datagen {
         dev.tfp.datagen.animal.AnimalSounds.run(tfc, out); // PAR-FAUNA-20: TFC's entity sound events and oggs as tfp_animals
         dev.tfp.datagen.spawn.SpawnTable.run(tfc, out); // PAR-FAUNA-04: biome spawners and fauna gates for the spawn pass
         dev.tfp.datagen.plantslow.PlantSlowFactors.run(tfc, out); // PAR-GATHER-10: Plant.speedFactor per plant for the slow-block provider
+        dev.tfp.datagen.plant.stage.PlantStageGen.run(tfc, out); // PAR-WORLD-48: plant bloom fields and tfc:plant stage models
         if (dev.tfp.datagen.flammability.FlammabilityPass.available(tfc)) { // PAR-INFRA-47: CE burn settings on every block whose TFC counterpart is flammable; after every block generator
             dev.tfp.datagen.flammability.FlammabilityPass.run(tfc, out);
         }
