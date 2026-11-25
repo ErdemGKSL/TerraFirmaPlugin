@@ -37,4 +37,6 @@ done_criteria:
 
 # PAR-HEAT-37: Pot in game
 
+> Claimed: worker session_011osUpAUVyyokAxf5Kiw72D, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.
