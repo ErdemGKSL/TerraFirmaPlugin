@@ -2,7 +2,7 @@
 id: PAR-FAUNA-20
 title: "Pluckable feathers, animal sounds"
 area: FAUNA
-status: open
+status: done
 wave: 45
 deps: [PAR-FAUNA-05]
 size: S
@@ -19,6 +19,7 @@ in_game_steps:
   - "tfp debug animal spawn chicken adult; right-click empty hand"
 plan:
   - "Plucking feathers from poultry (pluck damage type); carriers silent + TFC sounds played on our events (ambient on a throttled timer, hurt, death)."
+  - "Done: PluckModule and AnimalSoundsModule already existed (M5 plan); this item made the pluck decision TFC-exact in paper/pluck/PluckRules (low health ignored silently, refusals no longer take the click) and recorded both in the ledger. Tests: PluckRulesTest (4), AnimalSoundsTest (+1). In-game check pending (container cannot run client): ledger line."
 tests:
   - "paper: pluck cooldown"
 done_criteria:
@@ -27,6 +28,5 @@ done_criteria:
 
 # PAR-FAUNA-20: Pluckable feathers, animal sounds
 
-> Claimed: worker session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

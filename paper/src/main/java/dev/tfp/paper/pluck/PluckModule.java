@@ -43,14 +43,11 @@ import org.bukkit.persistence.PersistentDataType;
 import net.kyori.adventure.text.Component;
 
 /**
- * Plucking (PAR-FAUNA-20, TFC {@code Pluckable}): sneak and right-click a game bird or poultry with an empty hand for 1 to 3
+ * Plucking (PAR-FAUNA-20, TFC {@code Pluckable}; the decision is {@link PluckRules}): sneak and right-click a game bird or poultry with an empty hand for 1 to 3
  * feathers, once per calendar hour, at 15% of its health as pluck damage. Livestock must be adults that are not elderly
  * ({@code uses < usesToElderly}) and each plucking is one use. The animal must have more than 15% health left.
  */
 public final class PluckModule implements FeatureModule, Listener {
-    /** TFC {@code PLUCKING_COOLDOWN = CALENDAR_TICKS_IN_HOUR}. */
-    static final long COOLDOWN_CALENDAR_TICKS = CalendarTicks.CALENDAR_TICKS_IN_HOUR;
-    static final float DAMAGE_FRACTION = 0.15f;
     /** TFC's {@code Pluckable}s: {@code OviparousAnimal} (chicken, duck, quail) and {@code WingedPrey}. */
     static final Set<String> PLUCKABLE = Set.of("tfc:chicken", "tfc:duck", "tfc:quail", "tfc:grouse", "tfc:pheasant",
             "tfc:turkey", "tfc:peafowl");
@@ -71,7 +68,7 @@ public final class PluckModule implements FeatureModule, Listener {
 
     /** The calendar ticks left on the cooldown of a bird last plucked at {@code lastPlucked} (0 when never plucked). */
     static long remaining(long lastPlucked, long calendarTicks) {
-        return lastPlucked > 0 ? Math.max(0L, lastPlucked + COOLDOWN_CALENDAR_TICKS - calendarTicks) : 0L;
+        return PluckRules.remaining(lastPlucked, calendarTicks);
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -88,35 +85,40 @@ public final class PluckModule implements FeatureModule, Listener {
         if (record.isEmpty() || !PLUCKABLE.contains(record.get().species()) || !now.isSet()) {
             return;
         }
-        event.setCancelled(true);
         double max = bird.getAttribute(Attribute.MAX_HEALTH).getValue();
-        if (bird.getHealth() / max <= DAMAGE_FRACTION + 0.00001) {
-            hint(player, "pluck.sick");
-            return;
-        }
         Long last = bird.getPersistentDataContainer().get(PLUCKED, PersistentDataType.LONG);
-        long left = remaining(last == null ? 0L : last, now.calendarTicks());
-        if (left > 0) {
-            hint(player, "pluck.cooldown", Math.max(1, left * 60 / CalendarTicks.CALENDAR_TICKS_IN_HOUR));
-            return;
-        }
         Optional<LivestockSpecies> livestock = animals.table().find(record.get().species()).flatMap(Carrier::livestock);
-        AnimalRecord updated = record.get();
-        if (livestock.isPresent()) {
-            LivestockAge age = AnimalCheck.ageAt(record.get(), now.playerTicks());
-            if (age != LivestockAge.ADULT || record.get().state().uses() >= livestock.get().usesToElderly()) {
+        boolean fresh = livestock.isPresent()
+                && AnimalCheck.ageAt(record.get(), now.playerTicks()) == LivestockAge.ADULT
+                && record.get().state().uses() < livestock.get().usesToElderly();
+        PluckRules.Outcome outcome = PluckRules.decide((float) (bird.getHealth() / max), last == null ? 0L : last,
+                now.calendarTicks(), livestock.isPresent(), fresh);
+        switch (outcome) {
+            case IGNORE -> {
+                return;
+            }
+            case COOLDOWN -> {
+                long left = remaining(last, now.calendarTicks());
+                hint(player, "pluck.cooldown", Math.max(1, left * 60 / CalendarTicks.CALENDAR_TICKS_IN_HOUR));
+                return;
+            }
+            case WORN_OUT -> {
                 hint(player, "pluck.sick");
                 return;
             }
-            updated = record.get().withState(record.get().state().withUses(record.get().state().uses() + 1));
+            case PLUCK -> {
+            }
         }
+        event.setCancelled(true);
+        AnimalRecord updated = livestock.isPresent()
+                ? record.get().withState(record.get().state().withUses(record.get().state().uses() + 1)) : record.get();
         AnimalPdc.write(bird.getPersistentDataContainer(), updated);
         bird.getPersistentDataContainer().set(PLUCKED, PersistentDataType.LONG, now.calendarTicks());
         int count = 1 + ThreadLocalRandom.current().nextInt(3);
         player.getInventory().addItem(new ItemStack(Material.FEATHER, count)).values()
                 .forEach(rest -> player.getWorld().dropItemNaturally(player.getLocation(), rest));
         DamageType type = Registry.DAMAGE_TYPE.get(NamespacedKey.fromString("tfp:pluck"));
-        bird.damage(max * DAMAGE_FRACTION, DamageSource.builder(type != null ? type : org.bukkit.damage.DamageType.GENERIC).build());
+        bird.damage(max * PluckRules.DAMAGE_FRACTION, DamageSource.builder(type != null ? type : org.bukkit.damage.DamageType.GENERIC).build());
     }
 
     private void hint(Player player, String key, Object... args) {

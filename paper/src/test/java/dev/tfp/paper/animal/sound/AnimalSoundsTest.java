@@ -35,4 +35,16 @@ class AnimalSoundsTest {
         assertThat(AnimalSoundsModule.event(events, "tfc:grizzly_bear", "hurt")).contains("entity.bear.hurt");
         assertThat(AnimalSoundsModule.event(events, "tfc:cow", "ambient")).isEmpty(); // TFC uses the vanilla cow voice
     }
+
+    @Test
+    void theGameBirdsAndPoultryPlayTheirTfcVoicesAndTheChickenItsCarriers() throws Exception {
+        Set<String> events = events();
+        for (String bird : new String[] {"duck", "quail", "pheasant", "grouse", "turkey", "peafowl"}) {
+            for (String kind : new String[] {"ambient", "hurt", "death"}) {
+                assertThat(AnimalSoundsModule.event(events, "tfc:" + bird, kind)).as(bird + " " + kind)
+                    .contains("entity." + bird + "." + kind);
+            }
+        }
+        assertThat(AnimalSoundsModule.event(events, "tfc:chicken", "hurt")).isEmpty(); // the vanilla chicken voice
+    }
 }
