@@ -57,3 +57,22 @@ Rerun by the main session with the reworded steps, HEAD 5a51e93 (same plugin jar
 | 5 | PASS (after refuelling through the screen and relighting the grill with the firestarter: the first bundle burned out during step 4): sneak-click took the cooked beef, sneak-click on the front gave the wrought iron grill back, block `tfp:firepit[lit=true]`, health 537 -> 501 | ui webp `repair2-s5-back-to-firepit` |
 
 Done criterion: **PASS**. GUI scale 3 was not re-captured in this rerun; the scale 3 crops of the first repair stand.
+
+## Rerun 3 (2026-11-25): with the firepit on the grill's carrier (PAR-HEAT-36), axis z, GUI scale 2 and 3
+
+Plugin jar of the branch tip `ea8f190` plus PAR-HEAT-36 (the firepit and the grill share one soul campfire carrier). Paper
+1.21.11 build 132, headless 1.21.11 client, Bot in survival (`tfp debug thirst Bot 100`), site: stone floor at y 99, firepit
+on it (`/tfp debug place`), run by the worker session itself.
+
+| step | result | evidence |
+|---|---|---|
+| 1 four stick bundles into the fuel slots (right-click), sneaking firestarter hold | PASS: the first hold of 4.8 s did not light it (the starter is used for 3.6 s then the strike chance rolls), the second 5.5 s hold lit it: flame and coals, the starter's durability bar shows | (no crop; seen in the run) |
+| 2 wrought iron grill on the lit firepit (not sneaking) | PASS: the block becomes the grill, TFC's merged model with the fire under the bars | `rerun3-s2-grill-converted.png` |
+| 3 raw beef on two slots from above | PASS: two flat raw beefs on the bars | `rerun3-s3-beef-on-top-gui2.png` |
+| 4 grill screen (empty hand) at scale 2 and 3 | PASS: fuel column, five grill slots, thermometer; the beefs cook in seconds; the tooltip of the cooked beef shows **Wood Grilled** and a heat line | `rerun3-s4-screen-gui2.png`, `rerun3-s4-tooltip-gui2.png`, `rerun3-s4-screen-gui3.png` |
+| axis z grills (`tfp:firepit[lit=false,axis=z]` and `[lit=true,axis=z]` converted) next to an axis x grill | PASS: the bars of the axis z grill run across the axis x grills' (the display is turned 90 degrees as TFC's blockstate turns z) | `rerun3-axis-z-grills-gui2.png` |
+
+Step 5 (sneak-click back to the firepit) was not repeated: it passed in the earlier rounds and nothing in it changed. The
+Folia run of `grill.cook` was not made (no Folia server in this run).
+
+Done criterion "Grill cooks with the grilled trait (tooltip) and items show on top": **PASS**.
