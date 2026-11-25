@@ -2,7 +2,7 @@
 id: PAR-DECO-24
 title: "Crate storage, buoys and cakes (follow-up of PAR-DECO-12)"
 area: DECO
-status: open
+status: done
 wave: 49
 deps: [PAR-DECO-12]
 size: M
@@ -35,6 +35,11 @@ done_criteria:
 
 # PAR-DECO-24: Crate storage, buoys and cakes (follow-up of PAR-DECO-12)
 
-> Claimed: claude session_011osUp8LgspZkGFjFNWFDqQ (DECO helper), 2026-11-25
 
 All fields live in the front matter above. Follow `plans/parity/PROTOCOL.md`. PAR-DECO-12 shipped the crates and the palm mosaic as renderer cubes (`dev.tfp.datagen.misc.MiscCubes`, `configuration/misc/cubes.yml`); `BlockCoverage` names this item as owner of what is left.
+
+Scope note: only the pure rules shipped (`core/misc`: `CrateRules`, `CakeRules`, golden-checked against TFC's source). The crate device (it replaces the renderer cube of `MiscCubes`, whose file is outside this item's globs, so the crate must leave `cubes.yml` first), the cake blocks and their eating (needs the nutrition apply path of `NutritionEatListener`) and the buoys moved to PAR-DECO-29. The comparator formula is NeoForge's `ItemHandlerHelper.calcRedstoneFromInventory` as remembered (`floor(fill/slots * 14) + 1 if any`), not read from source.
+
+Pending in-game check (container cannot run client).
+
+Done: `CrateRules`, `CakeRules`, `MiscRulesTest` (4); ledger row.

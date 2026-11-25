@@ -535,7 +535,8 @@ Totals: 387 items; open 207, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DATA-19 | Advancement triggers left from PAR-DATA-03: feature events for TFC's 21 own triggers | DATA | 40 | done |
 | PAR-DECO-22 | Rock walls, aqueducts and rope anchors (follow-up of PAR-DECO-06) | DECO | 49 | open |
 | PAR-DECO-23 | Golden bamboo block, palm mosaic stairs and slabs, tree roots, light block (follow-up of PAR-DECO-12) | DECO | 49 | open |
-| PAR-DECO-24 | Crate storage, buoys and cakes (follow-up of PAR-DECO-12) | DECO | 49 | open |
+| PAR-DECO-24 | Crate storage, buoys and cakes (follow-up of PAR-DECO-12) | DECO | 49 | done |
+| PAR-DECO-29 | Crate device, buoys and cake blocks wired in Paper (follow-up of PAR-DECO-24) | DECO | 50 | open |
 | PAR-DECO-25 | Sign runtime: placement rotation, text editing, text display, sign carriers (follow-up of PAR-DECO-03) | DECO | 47 | done |
 | PAR-DECO-28 | Sign runtime, second part: editor, text display, wax and dye, carriers, wall hanging survival (follow-up of PAR-DECO-25) | DECO | 48 | open |
 | PAR-DECO-26 | Chest extras: lid animation, trapped chest signal, waterlogging, better carrier, automation, custom names (follow-up of PAR-DECO-04) | DECO | 47 | done |
