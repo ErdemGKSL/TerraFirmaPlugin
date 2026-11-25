@@ -33,6 +33,8 @@ done_criteria:
   - "Poured glass placed in-game"
 ---
 
-# PAR-PROC-17: Glass basin and hot poured glass; poured glass blocks and glass items
+# PAR-PROC-17
+
+> Claimed: PROC worker session_011osUpAUVyyokAxf5Kiw72D, 2026-11-25: Glass basin and hot poured glass; poured glass blocks and glass items
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

@@ -34,6 +34,8 @@ done_criteria:
   - "Making a lamp glass in game: load a batch, heat, blow, pinch, flatten, blow, saw; the action bar shows the steps"
 ---
 
-# PAR-PROC-52: Glassworking items in CraftEngine and the in-game blowpipe check
+# PAR-PROC-52
+
+> Claimed: PROC worker session_011osUpAUVyyokAxf5Kiw72D, 2026-11-25: Glassworking items in CraftEngine and the in-game blowpipe check
 
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.
