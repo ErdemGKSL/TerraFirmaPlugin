@@ -15,6 +15,7 @@ files_owned:
   - "paper/src/test/java/dev/tfp/paper/worldgen/PlantWiringTest.java"
   - "paper/src/main/java/dev/tfp/paper/worldgen/PlantBlocks.java"
   - "paper/src/main/java/dev/tfp/paper/worldgen/PlantResources.java"
+  - "paper/src/test/java/dev/tfp/paper/worldgen/PlantGrowingWiringTest.java"
 ui: true
 in_game_steps:
   - "Fresh world; screenshot a meadow (GUI scale 2): TFC grasses and flowers with TFC textures, not vanilla flowers"

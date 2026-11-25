@@ -21,7 +21,9 @@ class PlantGrowingWiringTest {
     @Test
     void everyWrittenGrowingTypeHasABlockPlaceholder() {
         for (PlantType type : PlantResources.WRITTEN_TYPES) {
-            if (!PlantBlocks.GROWING_TYPES.contains(type)) {
+            // PAR-WORLD-46: every type is written now; the face shapes go only as CraftEngine blocks (no placeholder)
+            if (!PlantBlocks.GROWING_TYPES.contains(type) || java.util.Set.of(PlantType.VINE, PlantType.CREEPING,
+                    PlantType.CREEPING_STONE, PlantType.EPIPHYTE).contains(type)) {
                 continue;
             }
             Material m = PlantBlocks.placeholder(plant("x", type, 0, type.fluidProperty() == null ? PlantState.Fluid.EMPTY
@@ -34,7 +36,7 @@ class PlantGrowingWiringTest {
     @Test
     void theShapesThatNeedFacesAreNotWrittenAsPlaceholders() {
         for (PlantType type : new PlantType[] {PlantType.VINE, PlantType.CREEPING, PlantType.CREEPING_STONE, PlantType.EPIPHYTE}) {
-            assertThat(PlantResources.WRITTEN_TYPES).doesNotContain(type);
+            // PAR-WORLD-46: written, but only as CraftEngine blocks (PlantBlocks.write skips a null placeholder)
             assertThat(PlantBlocks.placeholder(plant("x", type, -1, PlantState.Fluid.EMPTY, -1))).isNull();
         }
     }

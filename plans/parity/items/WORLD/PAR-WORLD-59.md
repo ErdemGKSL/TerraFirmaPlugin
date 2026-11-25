@@ -1,6 +1,6 @@
 ---
 id: PAR-WORLD-59
-title: "Plant pools into the hitbox selector: PlantBlockGen and PlantShapeGen stop choosing tripwire/sugar_cane/sapling/kelp/weeping_vines themselves"
+title: "Plant pools into the hitbox selector: PlantBlockGen and PlantShapeGen stop choosing tripwire/sugar_cane/sapling/kelp themselves"
 area: WORLD
 status: open
 wave: 28
@@ -15,7 +15,7 @@ files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/plant/shape/**"
 ui: false
 plan:
-  - "Split from PAR-WORLD-47 (2026-11-25): model CraftEngine's plant pools (tripwire 126, sugar_cane 15, sapling 8, kelp 25, weeping_vines 25) as carrier-policy pools in hitbox/, let the selector hand PlantBlockGen and PlantShapeGen their pool states, and remove the exemptions in HardcodedCarrierTest (AUTO_STATE_SERIALISERS: plant/PlantBlockGen.java, plant/shape/PlantShapeGen.java) and GeneratedCarrierTest (tfp:plant/ auto_state skip)."
+  - "Split from PAR-WORLD-47 (2026-11-25): model CraftEngine's plant pools (tripwire 126, sugar_cane 15, sapling 8, kelp 25) as carrier-policy pools in hitbox/, let the selector hand PlantBlockGen and PlantShapeGen their pool states, and remove the exemptions in HardcodedCarrierTest (AUTO_STATE_SERIALISERS: plant/PlantBlockGen.java, plant/shape/PlantShapeGen.java) and GeneratedCarrierTest (tfp:plant/ auto_state skip)."
 tests:
   - "datagen: HardcodedCarrierTest and GeneratedCarrierTest without plant exemptions; total plant-pool demand within each pool"
 done_criteria:

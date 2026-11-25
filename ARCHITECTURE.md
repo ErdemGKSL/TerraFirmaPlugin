@@ -291,10 +291,10 @@ exposure rule PAR-INFRA-16 reuses.
 - hardened rock shares raw rock's visual;
 - groundcover/small ores use vanilla button states (hitbox selector, PAR-INFRA-13), never the tripwire pool;
 - we take from the leaves pool only what TFC leaves need;
-- plants (PAR-WORLD-12/47, owner decision 2026-11-25): land and floating plants on the sugar_cane, sapling and tripwire
-  pools; water plants on the kelp pool and TFC's climbable hanging vines on the weeping_vines pool, one look per state up
-  to 24 per pool, the rest (and every multiface/rotated shape: creepers, epiphytes, columns, cacti, kelp trees) drawn by
-  one `entity_renderer` item display per model part on a shared empty pool state or a shared hitbox-only carrier.
+- plants (PAR-WORLD-12/47, PAR-FARM-25, owner decision 2026-11-25): land and floating plants on the sugar_cane, sapling and
+  tripwire pools; water plants on the kelp pool, one look per state up to 24, the rest drawn by one `entity_renderer` item
+  display per model part on a shared empty kelp state; every other shape (growing columns, vines, creepers, epiphytes,
+  kelp trees, cacti, bamboo) as item displays on shared hitbox-only carriers.
 
 Demand is all of TFC (datagen today emits 261 visuals in every profile: rock, soil, sand families). "Solid left" = CE
 `solid` pool slots left for other packs after our non-pool sources (identity duplicates, absent-in-TFC, and Nether/End

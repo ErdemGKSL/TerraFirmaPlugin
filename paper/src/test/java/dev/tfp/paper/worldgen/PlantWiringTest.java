@@ -30,8 +30,6 @@ class PlantWiringTest {
     void everySupportedTypeAndKindHasAPlaceholder() {
         for (PlantType type : PlantType.values()) {
             if (!type.survivable()) {
-                // PAR-WORLD-46: the PAR-WORLD-13 shapes are CraftEngine blocks only
-                assertThat(PlantBlocks.placeholder(plant("x", type, PlantState.Part.SINGLE, PlantState.Fluid.EMPTY))).isNull();
                 continue;
             }
             final PlantState.Fluid fluid = type.fluidProperty() == null ? PlantState.Fluid.EMPTY : type.fluidProperty();
@@ -39,6 +37,10 @@ class PlantWiringTest {
             final Material m = PlantBlocks.placeholder(plant("x", type, part, fluid));
             assertThat(m).as("%s", type).isNotNull();
             assertThat(m.isBlock()).isTrue();
+        }
+        // PAR-WORLD-46: the PAR-WORLD-47 shapes are CraftEngine blocks only
+        for (PlantType type : List.of(PlantType.OCEAN_CREEPING, PlantType.OCEAN_ROTATABLE, PlantType.CACTUS, PlantType.BAMBOO)) {
+            assertThat(PlantBlocks.placeholder(plant("x", type, PlantState.Part.SINGLE, PlantState.Fluid.EMPTY))).isNull();
         }
         assertThat(PlantBlocks.placeholder(plant("allium", PlantType.STANDARD, PlantState.Part.SINGLE, PlantState.Fluid.EMPTY)))
             .isEqualTo(Material.ALLIUM);
@@ -154,23 +156,13 @@ class PlantWiringTest {
             PlantState.Part.UPPER, 2, empty, -1))).isEqualTo("tfp:plant/rose[age=2,half=upper]");
         assertThat(PlantBlocks.ceRef(plant("allium", PlantType.STANDARD, PlantState.Part.SINGLE, empty)))
             .isEqualTo("tfp:plant/allium");
-        // creepers: the face mask in Direction order (down, up, north, south, west, east)
-        assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/moss", PlantState.Kind.PLANT, PlantType.CREEPING,
-            PlantState.Part.SINGLE, -1, empty, 0b100001))).isEqualTo(
-            "tfp:plant/moss[down=true,up=false,north=false,south=false,west=false,east=true]");
-        assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/jungle_vines", PlantState.Kind.PLANT, PlantType.VINE,
-            PlantState.Part.SINGLE, -1, empty, 1 << 3))).isEqualTo(
-            "tfp:plant/jungle_vines[up=false,north=false,south=true,west=false,east=false]");
-        assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/guzmania", PlantState.Kind.PLANT, PlantType.EPIPHYTE,
-            PlantState.Part.SINGLE, -1, empty, 5))).isEqualTo("tfp:plant/guzmania[facing=east]");
         assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/starfish", PlantState.Kind.PLANT, PlantType.OCEAN_ROTATABLE,
             PlantState.Part.SINGLE, -1, PlantState.Fluid.SALT_WATER, 0))).isEqualTo("tfp:plant/starfish[facing=down,open=true]");
         assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/star_grass", PlantState.Kind.PLANT, PlantType.GRASS_WATER,
             PlantState.Part.SINGLE, 2, PlantState.Fluid.SALT_WATER, -1))).isEqualTo("tfp:plant/star_grass[age=2]");
-        // the saguaro head's bit 6 (grows branches) is no block property
-        assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/saguaro", PlantState.Kind.PLANT, PlantType.BRANCHING_CACTUS_TOP,
-            PlantState.Part.SINGLE, -1, empty, 64 | 2))).isEqualTo(
-            "tfp:plant/saguaro[down=false,up=true,north=false,south=false,west=false,east=false]");
+        assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/anemone_green", PlantState.Kind.PLANT, PlantType.OCEAN_CREEPING,
+            PlantState.Part.SINGLE, -1, PlantState.Fluid.SALT_WATER, 0b1))).isEqualTo(
+            "tfp:plant/anemone_green[down=true,up=false,north=false,south=false,west=false,east=false,open=true]");
         assertThat(PlantBlocks.ceRef(plant("cattail", PlantType.TALL_WATER_FRESH, PlantState.Part.UPPER, empty)))
             .isEqualTo("tfp:plant/cattail[half=upper,waterlogged=false]");
         assertThat(PlantBlocks.ceRef(other("tfp:wild_crop/wheat", PlantState.Kind.WILD_CROP, empty, -1))).isNull();

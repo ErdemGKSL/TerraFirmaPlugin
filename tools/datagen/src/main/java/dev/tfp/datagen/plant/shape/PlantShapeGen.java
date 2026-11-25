@@ -6,12 +6,10 @@
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/blocks/plant/Plant.java @ c3b4d9536 (the block types and their properties),
  *       src/main/java/net/dries007/tfc/common/blocks/plant/{WaterPlantBlock,TallWaterPlantBlock,TFCSeagrassBlock,
- *       CreepingPlantBlock,CreepingWaterPlantBlock,RotatableWaterPlantBlock,EpiphytePlantBlock,BodyPlantBlock,TopPlantBlock,
- *       TFCKelpBlock,TFCKelpTopBlock,KelpTreeBlock,KelpTreeFlowerBlock,TFCCactusBlock,BranchingCactusBlock,TFCVineBlock}.java
+ *       CreepingWaterPlantBlock,RotatableWaterPlantBlock,TFCCactusBlock,TFCBambooSaplingBlock,TFCBambooStalkBlock}.java
  *       @ c3b4d9536 (sounds, strength, solidity),
  *       src/main/resources/assets/tfc/{blockstates,models,textures}/.../plant/** @ c3b4d9536 (copied, the looks per state),
  *       src/main/resources/data/tfc/loot_table/blocks/plant/*.json @ c3b4d9536 (delegated to the loot runtime),
- *       src/generated/resources/data/minecraft/tags/block/climbable.json @ c3b4d9536 (the climbable vines),
  *       src/main/resources/assets/tfc/lang/*.json @ c3b4d9536 (block.tfc.plant.*)
  */
 package dev.tfp.datagen.plant.shape;
@@ -43,26 +41,21 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
- * PAR-WORLD-47: the 31 plant block types of TFC's {@code Plant} enum that {@link PlantBlockGen} leaves (70 plants) as
- * CraftEngine blocks {@code tfp:plant/<name>}, with the properties their TFC blockstates draw by ({@code part} as
- * {@code half}, the six face booleans, {@code facing}, {@code age}, {@code open}, {@code leaves}) and, for the tall water
+ * PAR-WORLD-47: the 13 plant block types of TFC's {@code Plant} enum that neither {@link PlantBlockGen} (land and floating
+ * plants) nor {@code GrowingPlantBlocks} (PAR-FARM-25: vines, columns, kelp, giant kelp, saguaro, creepers, epiphytes)
+ * generate (30 plants: water, grass-water and tall-water plants, ocean creepers and rotatables, barrel cactus, saguaro fruit,
+ * bamboo) as CraftEngine blocks {@code tfp:plant/<name>}, with the properties their TFC blockstates draw by ({@code part}
+ * as {@code half}, the six face booleans, {@code facing}, {@code age}, {@code open}, {@code leaves}) and, for the tall water
  * plants, {@code waterlogged} (TFC's {@code fluid}, empty or a water).
  *
  * <p><b>Look budget</b> (owner decision 2026-11-25, PAR-WORLD-47's first plan line). The plant pools of PAR-WORLD-12 are
- * full, so:
- * <ul>
- *   <li>plants that live under water draw on CraftEngine's {@code kelp} pool (25 states, waterlogged by nature): the first
- *       {@link #POOL_MODELS} single-part looks in TFC's enum order are pool states with TFC's model; every other look
- *       (multipart creepers, rotated ocean plants, kelp trees, the overflow) shares one empty kelp state and is drawn by
- *       {@code entity_renderer} item displays, one per model part;</li>
- *   <li>the climbable hanging vines (TFC's {@code minecraft:climbable} tag) draw on the {@code weeping_vines} pool (climbable
- *       for the client too) the same way; the jungle vines' face combinations share its empty state;</li>
- *   <li>every other plant is a hitbox-only carrier picked by the selector ({@link HitboxDemands#plantShapeDemands}) with
- *       {@code entity_renderer} item displays: one shared no-collision carrier per outline row, a collision one for the
- *       cacti, the solid tree fern and cycad trunks and bamboo.</li>
- * </ul>
- * Tinted faces are baked with TFC's default climate colour as in PAR-WORLD-12 (water plants with the water map, the jungle
- * vines with the foliage map); lifecycle stages are PAR-WORLD-48's.
+ * full, so plants that live under water draw on CraftEngine's {@code kelp} pool (25 states, waterlogged by nature): the
+ * first {@link #POOL_MODELS} single-part looks in TFC's enum order are pool states with TFC's model; every other look
+ * (multipart ocean creepers, rotated ocean plants, the overflow) shares one empty kelp state and is drawn by
+ * {@code entity_renderer} item displays, one per model part. Every dry plant is a hitbox-only carrier picked by the selector
+ * ({@link HitboxDemands#PLANT_SHAPE_ROWS}) with item displays: the berry bush row, the barrel row (collision) for the barrel
+ * cactus and bamboo. Tinted faces are baked with TFC's default climate colour as in PAR-WORLD-12; lifecycle stages are
+ * PAR-WORLD-48's.
  */
 public final class PlantShapeGen {
     public static final String OUTPUT_DIR = "craftengine/tfp/configuration/plant_shape/";
@@ -70,26 +63,18 @@ public final class PlantShapeGen {
     static final String LANG_RP = "craftengine/tfp/resourcepack/assets/tfp_plant_shape/lang/";
     static final String BLOCKSTATES = TfcCheckout.ASSETS + "blockstates/plant/";
     static final String LOOT_SOURCE = TfcCheckout.MAIN + "data/" + Json.FROM_NS + "/loot_table/blocks/plant/";
-    /** The types generated here: every block type of Plant.java that {@link PlantBlockGen#TYPES} does not hold. */
-    public static final Set<String> TYPES = Set.of("CACTUS_FLOWER", "CACTUS", "CREEPING", "CREEPING_STONE", "EPIPHYTE",
-        "PERCHED_EPIPHYTE", "VINE", "WEEPING", "WEEPING_TOP", "TWISTING", "TWISTING_TOP", "TWISTING_TOP_SHORT", "TWISTING_SOLID",
-        "TWISTING_SOLID_TOP", "BRANCHING_CACTUS", "BRANCHING_CACTUS_TOP", "OCEAN_ROCK_CREEPING", "OCEAN_CREEPING",
-        "OCEAN_ROTATABLE", "KELP", "KELP_TOP", "KELP_TREE", "KELP_TREE_FLOWER", "TALL_WATER", "TALL_WATER_FRESH", "WATER",
-        "WATER_FRESH", "GRASS_WATER", "GRASS_WATER_FRESH", "BAMBOO_SAPLING", "BAMBOO");
+    /** The types generated here: the block types of Plant.java that PlantBlockGen and GrowingPlantBlocks leave. */
+    public static final Set<String> TYPES = Set.of("CACTUS_FLOWER", "CACTUS", "OCEAN_ROCK_CREEPING", "OCEAN_CREEPING",
+        "OCEAN_ROTATABLE", "TALL_WATER", "TALL_WATER_FRESH", "WATER", "WATER_FRESH", "GRASS_WATER", "GRASS_WATER_FRESH",
+        "BAMBOO_SAPLING", "BAMBOO");
     /** Always under water (TFC's {@code fluid} is never empty in the world): the kelp pool. */
-    public static final Set<String> SUBMERGED = Set.of("WATER", "WATER_FRESH", "GRASS_WATER", "GRASS_WATER_FRESH", "KELP",
-        "KELP_TOP", "KELP_TREE", "KELP_TREE_FLOWER", "OCEAN_CREEPING", "OCEAN_ROCK_CREEPING", "OCEAN_ROTATABLE");
+    public static final Set<String> SUBMERGED = Set.of("WATER", "WATER_FRESH", "GRASS_WATER", "GRASS_WATER_FRESH",
+        "OCEAN_CREEPING", "OCEAN_ROCK_CREEPING", "OCEAN_ROTATABLE");
     /** In water or emergent per half: a {@code waterlogged} property picks the kelp pool or the dry carrier. */
     public static final Set<String> TALL_WATER = Set.of("TALL_WATER", "TALL_WATER_FRESH");
-    /** TFC's climbable plants (the hanging vines and the jungle vines): the weeping_vines pool. */
-    public static final Set<String> CLIMBABLE = Set.of("WEEPING", "WEEPING_TOP", "VINE");
-    /** Low creepers: the crop quarter outline row (no collision). */
-    public static final Set<String> LOW = Set.of("CREEPING", "CREEPING_STONE");
-    /** Solid in TFC ({@code solid()}, {@code solidTallPlant()}, bamboo): the barrel's collision outline row. */
-    public static final Set<String> SOLID = Set.of("CACTUS", "BRANCHING_CACTUS", "BRANCHING_CACTUS_TOP", "TWISTING_SOLID",
-        "TWISTING_SOLID_TOP", "BAMBOO");
+    /** Solid in TFC (the barrel cactus's {@code solid()}, bamboo): the barrel's collision outline row. */
+    public static final Set<String> SOLID = Set.of("CACTUS", "BAMBOO");
     public static final String KELP_POOL = "kelp";
-    public static final String WEEPING_POOL = "weeping_vines";
     public static final int POOL_SIZE = 25;
     /** Model looks per pool; the last state is the shared empty one under the item displays. */
     public static final int POOL_MODELS = POOL_SIZE - 1;
@@ -315,23 +300,20 @@ public final class PlantShapeGen {
         return String.join(",", kv);
     }
 
-    /** Where a state of {@code p} sits: the kelp pool, the weeping_vines pool or a dry hitbox-only carrier (null). */
+    /** Where a state of {@code p} sits: the kelp pool or a dry hitbox-only carrier (null). */
     static String pool(Plant p, Map<String, String> state) {
-        if (SUBMERGED.contains(p.type()) || TALL_WATER.contains(p.type()) && "true".equals(state.get(WATERLOGGED))) {
-            return KELP_POOL;
-        }
-        return CLIMBABLE.contains(p.type()) ? WEEPING_POOL : null;
+        return SUBMERGED.contains(p.type()) || TALL_WATER.contains(p.type()) && "true".equals(state.get(WATERLOGGED))
+            ? KELP_POOL : null;
     }
 
     /** The selector row of a plant's dry states. */
     public static String row(String type) {
-        return LOW.contains(type) ? HitboxDemands.PLANT_LOW_ROW : SOLID.contains(type) ? HitboxDemands.PLANT_SOLID_ROW
-            : HitboxDemands.PLANT_ROW;
+        return SOLID.contains(type) ? HitboxDemands.PLANT_SOLID_ROW : HitboxDemands.PLANT_ROW;
     }
 
     /** Whether some state of a plant of {@code type} needs a dry carrier from the selector. */
     public static boolean needsCarrier(String type) {
-        return !SUBMERGED.contains(type) && !CLIMBABLE.contains(type);
+        return !SUBMERGED.contains(type);
     }
 
     /** The item display of a block model ({@code tfp:render/plant_shape/plant/moss}). */
@@ -366,7 +348,6 @@ public final class PlantShapeGen {
         Map<Plant, Map<String, List<List<ModelRef>>>> looks = new LinkedHashMap<>();
         Map<String, Map<String, String>> poolLooks = new LinkedHashMap<>(); // pool -> look key -> auto_state id
         poolLooks.put(KELP_POOL, new LinkedHashMap<>());
-        poolLooks.put(WEEPING_POOL, new LinkedHashMap<>());
         int states = 0;
         for (Plant p : plants) {
             Blockstate bs = Blockstate.read(tfc, p);
@@ -550,7 +531,7 @@ public final class PlantShapeGen {
         s.put("hardness", new BigDecimal(strength));
         s.put("resistance", new BigDecimal(strength));
         s.put("sounds", sounds(sound));
-        s.put("replaceable", !SOLID.contains(t) && !t.startsWith("KELP_TREE"));
+        s.put("replaceable", !SOLID.contains(t));
         s.put("push_reaction", "destroy");
         s.put("can_occlude", false);
         s.put("is_suffocating", false);

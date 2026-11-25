@@ -24,6 +24,10 @@ import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 
 class PlantShapeGenTest {
+    /** PAR-FARM-25's GrowingPlantBlocks types (generated there). */
+    private static final Set<String> GROWING = Set.of("VINE", "WEEPING", "WEEPING_TOP", "TWISTING", "TWISTING_TOP",
+        "TWISTING_TOP_SHORT", "TWISTING_SOLID", "TWISTING_SOLID_TOP", "KELP", "KELP_TOP", "KELP_TREE", "KELP_TREE_FLOWER",
+        "BRANCHING_CACTUS", "BRANCHING_CACTUS_TOP", "CREEPING", "CREEPING_STONE", "EPIPHYTE", "PERCHED_EPIPHYTE");
     private static TfcCheckout tfc;
     private static OutputTree out;
     private static PlantShapeGen.Result result;
@@ -50,7 +54,7 @@ class PlantShapeGenTest {
         int expected = 0;
         Set<String> types = new HashSet<>();
         while (m.find()) {
-            if (PlantBlockGen.TYPES.contains(m.group(2))) {
+            if (PlantBlockGen.TYPES.contains(m.group(2)) || GROWING.contains(m.group(2))) {
                 continue;
             }
             expected++;
@@ -59,33 +63,32 @@ class PlantShapeGenTest {
             assertThat(out.contains((water ? PlantShapeGen.WATER_OUTPUT_DIR : PlantShapeGen.OUTPUT_DIR)
                 + m.group(1).toLowerCase() + ".yml")).as(m.group(1)).isTrue();
         }
-        assertThat(expected).isEqualTo(70);
+        assertThat(expected).isEqualTo(30);
         assertThat(types).isEqualTo(PlantShapeGen.TYPES);
-        assertThat(result.plants()).hasSize(70);
+        assertThat(result.plants()).hasSize(30);
     }
 
     @Test
     void poolsStayWithinTheirBudget() {
-        assertThat(result.poolUse()).containsOnlyKeys(PlantShapeGen.KELP_POOL, PlantShapeGen.WEEPING_POOL);
+        assertThat(result.poolUse()).containsOnlyKeys(PlantShapeGen.KELP_POOL);
         result.poolUse().values().forEach(n -> assertThat(n).isLessThanOrEqualTo(PlantShapeGen.POOL_SIZE));
-        // the kelp pool fills (26 water plants with ages and halves need more than 24 looks); weeping_vines: 4 hanging
-        // vines x body/top, the jungle vines' 5 single faces and the shared empty state
-        assertThat(result.poolUse()).containsEntry(PlantShapeGen.KELP_POOL, 25).containsEntry(PlantShapeGen.WEEPING_POOL, 14);
+        // the kelp pool fills: the water plants with their ages and halves need more than 24 looks
+        assertThat(result.poolUse()).containsEntry(PlantShapeGen.KELP_POOL, 25);
         assertThat(result.renderedAppearances()).isPositive();
     }
 
     @Test
-    void creepersDrawOneDisplayPerFace() {
-        String moss = yml("moss", false);
-        // six face booleans: 64 states, the TFC hanging model for up, the wall model turned x 270 for the sides
-        assertThat(moss).contains("down:").contains("east:").contains("type: boolean");
-        assertThat(moss).contains("item: tfp:render/plant_shape/").contains("rotation: '90,90,0'");
-        Map<String, Object> root = new Yaml().load(moss);
+    void oceanCreepersDrawOneDisplayPerFace() {
+        String anemone = yml("anemone_green", true);
+        // six face booleans and open: 128 states on the shared empty kelp state, the wall model turned x 270 for the sides
+        assertThat(anemone).contains("down:").contains("open:").contains("type: boolean").contains("type: kelp");
+        assertThat(anemone).contains("item: tfp:render/plant_shape/").contains("rotation: '90,90,0'");
+        Map<String, Object> root = new Yaml().load(anemone);
         @SuppressWarnings("unchecked")
-        Map<String, Object> block = (Map<String, Object>) ((Map<String, Object>) root.get("blocks")).get("tfp:plant/moss");
+        Map<String, Object> block = (Map<String, Object>) ((Map<String, Object>) root.get("blocks")).get("tfp:plant/anemone_green");
         @SuppressWarnings("unchecked")
         Map<String, Object> variants = (Map<String, Object>) ((Map<String, Object>) block.get("states")).get("variants");
-        assertThat(variants).hasSize(64);
+        assertThat(variants).hasSize(128);
     }
 
     @Test
@@ -94,8 +97,7 @@ class PlantShapeGenTest {
         String cattail = yml("cattail", true);
         assertThat(cattail).contains("waterlogged:").contains("half:").contains("type: kelp").contains("transparent: true")
             .contains("double_high_block");
-        assertThat(yml("hanging_vines", false)).contains("type: weeping_vines");
-        assertThat(yml("jungle_vines", false)).contains("type: weeping_vines").contains("entity_renderer");
+        assertThat(yml("barrel_cactus", false)).contains("transparent: true").contains("entity_renderer");
     }
 
     @Test

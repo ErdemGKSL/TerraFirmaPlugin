@@ -29,7 +29,7 @@ class HardcodedCarrierTest {
     private static final Pattern AUTO_STATE = Pattern.compile("\"auto_state\"");
     // PAR-WORLD-12: the plant looks take CraftEngine's plant pools (tripwire, sugar_cane, sapling), which the selector
     // does not model yet; PAR-WORLD-47 moves that choice into hitbox/.
-    // PAR-WORLD-47: the other plant shapes take the kelp and weeping_vines pools the same way (PAR-WORLD-55 moves both).
+    // PAR-WORLD-47: the water plants take the kelp pool the same way (PAR-WORLD-59 moves both into the selector).
     private static final Set<String> AUTO_STATE_SERIALISERS = Set.of("device/DeviceAppearance.java", "plant/PlantBlockGen.java",
         "plant/shape/PlantShapeGen.java");
 
