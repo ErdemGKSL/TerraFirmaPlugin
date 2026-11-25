@@ -38,7 +38,8 @@ import org.junit.jupiter.api.Test;
 /**
  * PAR-FAUNA-33: the per-tick path budget. A herd whose goals all want a path in the same tick computes at most
  * {@link PathBudget#PER_TICK} paths per tick, every deferred goal starts on a later tick, and the targets and speeds are
- * the ones the goals would have used without the budget.
+ * the ones the goals would have used without the budget. The time side: once the tick's path searches took
+ * {@link PathBudget#TIME_PER_TICK_NANOS}, deferrable starts wait for the next tick.
  */
 class PathBudgetMockBukkitTest extends MockServerTest {
     private static final long START = 100_000_000L;
@@ -56,9 +57,12 @@ class PathBudgetMockBukkitTest extends MockServerTest {
         final Map<Mob, Entity> followed = new LinkedHashMap<>();
         final List<Double> speeds = new ArrayList<>();
         final Set<Mob> pathing = new java.util.HashSet<>();
+        /** Search time each path charges, as the Paper bodies charge the measured Pathfinder.moveTo time. */
+        long searchNanos;
 
         private void path(Mob mob, double speed) {
             pathsPerTick.merge(now, 1, Integer::sum);
+            PathBudget.charge(now, searchNanos);
             speeds.add(speed);
             pathing.add(mob);
         }
@@ -128,6 +132,7 @@ class PathBudgetMockBukkitTest extends MockServerTest {
         body = new Body();
         now = START;
         PathBudget.limitForTest(PathBudget.PER_TICK);
+        PathBudget.timeLimitForTest(PathBudget.TIME_PER_TICK_NANOS);
         module.initForTest(body, () -> new ClockSnapshot(1L, now, now, 8, true), (species, tag) -> false,
                 species -> stack -> stack.getType() == Material.WHEAT, new Random(5L), (mob, key) -> { });
     }
@@ -135,6 +140,7 @@ class PathBudgetMockBukkitTest extends MockServerTest {
     @AfterEach
     void tearDown() {
         PathBudget.limitForTest(PathBudget.PER_TICK);
+        PathBudget.timeLimitForTest(PathBudget.TIME_PER_TICK_NANOS);
         dev.tfp.paper.prey.Ticks.forTest(null);
     }
 
@@ -229,6 +235,44 @@ class PathBudgetMockBukkitTest extends MockServerTest {
         assertThat(started).as("every idle goal eventually starts").hasSize(HERD);
         assertThat(body.pathsPerTick.values()).as("paths per tick").allMatch(n -> n <= PathBudget.PER_TICK);
         assertThat(PathBudget.deferred()).isPositive();
+    }
+
+    @Test
+    void slowSearchesCloseTheTickBeforeTheTokensRunOut() {
+        body.searchNanos = 2 * PathBudget.TIME_PER_TICK_NANOS / 3; // two searches spend the tick's path time
+        List<Mob> herd = new ArrayList<>();
+        List<Goal<Mob>> idles = new ArrayList<>();
+        for (int i = 0; i < HERD; i++) {
+            Mob cow = cow(i * 2.0, false);
+            herd.add(cow);
+            idles.add(goal(cow, "livestock_idle"));
+        }
+        java.util.Set<Integer> started = new java.util.HashSet<>();
+        for (int round = 0; round < 100 && started.size() < HERD; round++) {
+            for (int i = 0; i < HERD; i++) {
+                if (started.contains(i)) {
+                    continue;
+                }
+                align(herd.get(i), 20);
+                if (idles.get(i).shouldActivate()) {
+                    started.add(i);
+                }
+            }
+            now++;
+        }
+        assertThat(started).as("every idle goal eventually starts").hasSize(HERD);
+        assertThat(body.pathsPerTick.values()).as("paths per tick under the time side").allMatch(n -> n <= 2);
+        assertThat(body.pathsPerTick.values()).contains(2);
+    }
+
+    @Test
+    void oneLongSearchRefusesTheRestOfTheTickButNotUrgentStarts() {
+        PathBudget.charge(START, PathBudget.TIME_PER_TICK_NANOS);
+        assertThat(PathBudget.mayStart(START)).isFalse();
+        assertThat(PathBudget.tryStart(START)).isFalse();
+        assertThat(PathBudget.tryPath(START, true)).as("a refresh waits too").isFalse();
+        PathBudget.urgent(START); // never refused
+        assertThat(PathBudget.tryStart(START + 1)).as("the next tick starts with no path time spent").isTrue();
     }
 
     @Test

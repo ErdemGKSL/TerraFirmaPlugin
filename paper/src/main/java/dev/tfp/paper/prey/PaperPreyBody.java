@@ -76,13 +76,26 @@ final class PaperPreyBody implements PreyBody {
 
     @Override
     public boolean moveTo(Mob mob, Location to, double speed) {
-        return mob.getPathfinder().moveTo(to, speed);
+        long t0 = System.nanoTime();
+        try {
+            return mob.getPathfinder().moveTo(to, speed);
+        } finally {
+            PathBudget.charge(System.nanoTime() - t0); // PAR-FAUNA-33: the search time closes the tick's deferrable starts
+        }
     }
 
     @Override
     public boolean moveTo(Mob mob, Entity to, double speed) {
         // Pathfinder.moveTo(Entity, double) is newer than Folia 1.21.11-14's API: the LivingEntity form exists everywhere
-        return to instanceof LivingEntity living && mob.getPathfinder().moveTo(living, speed);
+        if (!(to instanceof LivingEntity living)) {
+            return false;
+        }
+        long t0 = System.nanoTime();
+        try {
+            return mob.getPathfinder().moveTo(living, speed);
+        } finally {
+            PathBudget.charge(System.nanoTime() - t0);
+        }
     }
 
     @Override

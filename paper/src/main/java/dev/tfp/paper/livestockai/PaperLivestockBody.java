@@ -7,6 +7,7 @@ package dev.tfp.paper.livestockai;
 
 import java.util.ArrayList;
 import dev.tfp.paper.prey.NearbyScan;
+import dev.tfp.paper.prey.PathBudget;
 import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -83,12 +84,25 @@ final class PaperLivestockBody implements LivestockBody {
 
     @Override
     public boolean moveTo(Mob mob, Location to, double speed) {
-        return mob.getPathfinder().moveTo(to, speed);
+        long t0 = System.nanoTime();
+        try {
+            return mob.getPathfinder().moveTo(to, speed);
+        } finally {
+            PathBudget.charge(System.nanoTime() - t0); // PAR-FAUNA-33: the search time closes the tick's deferrable starts
+        }
     }
 
     @Override
     public boolean moveTo(Mob mob, Entity to, double speed) {
-        return to instanceof LivingEntity living && mob.getPathfinder().moveTo(living, speed);
+        if (!(to instanceof LivingEntity living)) {
+            return false;
+        }
+        long t0 = System.nanoTime();
+        try {
+            return mob.getPathfinder().moveTo(living, speed);
+        } finally {
+            PathBudget.charge(System.nanoTime() - t0);
+        }
     }
 
     @Override

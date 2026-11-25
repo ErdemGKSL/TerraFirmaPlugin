@@ -16,22 +16,31 @@ import java.util.concurrent.atomic.LongAdder;
  * selector retries any goal that did not start. Urgent starts (panic, flight from a threat, the ram charge) are never
  * refused, but they use up the tick's tokens, so idle and follow paths yield to them.
  *
+ * <p>The bucket also has a time side: the bodies charge the time each {@code Pathfinder.moveTo} took ({@link #charge}), and
+ * once {@link #TIME_PER_TICK_NANOS} of path work has been spent in a tick, deferrable starts and refreshes wait for the next
+ * tick even if tokens are left. One long search (a stroll target behind an obstacle) thus closes the tick for the
+ * deferrable paths instead of adding up to {@link #PER_TICK} of them.
+ *
  * <p>Targets, speeds and ranges are unchanged: only the tick in which a path is computed moves. Owning thread only; the
  * counters are thread-safe and only read by the load tests.
  */
 public final class PathBudget {
     /** Deferrable path starts per region thread and tick. */
     public static final int PER_TICK = 3;
+    /** Path search time per region thread and tick after which deferrable starts wait for the next tick. */
+    public static final long TIME_PER_TICK_NANOS = 300_000L;
 
     private static final class State {
         long stamp = Long.MIN_VALUE;
         int used;
+        long nanos;
     }
 
     private static final ThreadLocal<State> STATE = ThreadLocal.withInitial(State::new);
     private static final LongAdder STARTED = new LongAdder();
     private static final LongAdder DEFERRED = new LongAdder();
     private static volatile int limit = PER_TICK;
+    private static volatile long timeLimit = TIME_PER_TICK_NANOS;
 
     private PathBudget() {
     }
@@ -41,6 +50,7 @@ public final class PathBudget {
         if (s.stamp != stamp) {
             s.stamp = stamp;
             s.used = 0;
+            s.nanos = 0;
         }
         return s;
     }
@@ -52,7 +62,7 @@ public final class PathBudget {
      */
     public static boolean tryStart(long stamp) {
         State s = at(stamp);
-        if (s.used >= limit) {
+        if (s.used >= limit || s.nanos >= timeLimit) {
             DEFERRED.increment();
             return false;
         }
@@ -71,7 +81,7 @@ public final class PathBudget {
      */
     public static boolean tryRefresh(long stamp) {
         State s = at(stamp);
-        if (s.used >= limit - 1) {
+        if (s.used >= limit - 1 || s.nanos >= timeLimit) {
             DEFERRED.increment();
             return false;
         }
@@ -99,11 +109,22 @@ public final class PathBudget {
      * draws its target, then takes the token with {@link #tryStart} once it has one). A false answer counts as deferred.
      */
     public static boolean mayStart(long stamp) {
-        if (at(stamp).used < limit) {
+        State s = at(stamp);
+        if (s.used < limit && s.nanos < timeLimit) {
             return true;
         }
         DEFERRED.increment();
         return false;
+    }
+
+    /** Charges {@code nanos} of path search to tick {@code stamp} (the bodies time every {@code Pathfinder.moveTo}). */
+    public static void charge(long stamp, long nanos) {
+        at(stamp).nanos += Math.max(0, nanos);
+    }
+
+    /** {@link #charge(long, long)} in the current server tick. */
+    public static void charge(long nanos) {
+        charge(Ticks.now(), nanos);
     }
 
     /** {@link #tryStart(long)} in the current server tick ({@link Ticks#now}). */
@@ -144,6 +165,12 @@ public final class PathBudget {
     /** Test seam: the per-tick limit ({@link #PER_TICK} by default); also forgets this thread's current tick. */
     public static void limitForTest(int perTick) {
         limit = perTick;
+        STATE.remove();
+    }
+
+    /** Test seam: the per-tick path time ({@link #TIME_PER_TICK_NANOS} by default); also forgets this thread's tick. */
+    public static void timeLimitForTest(long nanos) {
+        timeLimit = nanos;
         STATE.remove();
     }
 }
