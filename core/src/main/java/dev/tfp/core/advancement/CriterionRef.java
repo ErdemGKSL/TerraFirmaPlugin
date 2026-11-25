@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  */
 public record CriterionRef(String advancement, String criterion) {
     private static final Pattern ID = Pattern.compile("[a-z0-9_.\\-]+:[a-z0-9_.\\-/]+");
-    private static final Pattern NAME = Pattern.compile("[A-Za-z0-9_.\\-]+");
+    private static final Pattern NAME = Pattern.compile("[A-Za-z0-9_.\\-/]+");
     /** Separates the advancement id from the criterion name in {@link #parse} and {@link #toString}. */
     public static final char SEPARATOR = '#';
 

@@ -339,7 +339,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DATA-02 | Advancements: triggers, awards and presentation | DATA | 34 | done |
 | PAR-METAL-13 | Channels and mold tables: pouring flow | METAL | 34 | done |
 | PAR-HEAT-32 | Firebox kiln and heat consumers: placed items heat in an insulated chamber, the crucible above heats (self-test), hot floor, comparator | HEAT | 34 | open |
-| PAR-DATA-03 | Advancement criteria wiring across features | DATA | 35 | open |
+| PAR-DATA-03 | Advancement criteria wiring across features | DATA | 35 | done |
 | PAR-DATA-04 | Field guide: decide the form and convert the book | DATA | 35 | open |
 | PAR-HEAT-13 | Fire behaviour: fire arrows, dousing, fire spread limits | HEAT | 35 | done |
 | PAR-METAL-14 | Bloomery multiblock and bloom | METAL | 35 | done |
@@ -503,3 +503,4 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-21 | Metal bars and chains (follow-up of PAR-DECO-09) | DECO | 49 | open |
 | PAR-FAUNA-33 | 200-animal load: spread the path starts of the livestock and prey goals (single-call spikes) (follow-up of PAR-FAUNA-28) | FAUNA | 56 | open |
 | PAR-POT-15 | Bowl automation: hoppers fill and empty powder bowls, the powder layer follows (follow-up of PAR-POT-09) | POTTERY | 28 | open |
+| PAR-DATA-19 | Advancement triggers left from PAR-DATA-03: feature events for TFC's 21 own triggers | DATA | 40 | open |
