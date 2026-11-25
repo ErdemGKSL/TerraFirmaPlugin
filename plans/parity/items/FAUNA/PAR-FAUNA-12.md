@@ -2,7 +2,7 @@
 id: PAR-FAUNA-12
 title: "Amphibians: turtles, penguins, seals, crocodiles, frogs (play dead, land/water)"
 area: FAUNA
-status: open
+status: done
 wave: 43
 deps: [PAR-FAUNA-11]
 size: S
@@ -24,6 +24,7 @@ in_game_steps:
   - "tfp debug animal spawn turtle adult; hit it; screenshot"
 plan:
   - "PlayDeadTimer, land/water switching, penguin/seal/turtle behaviours."
+  - "Done: PAR-FAUNA-12 Amphibians. core/amphibian (AmphibianSpecies, AmphibianActivity, AmphibianMemory, AmphibianIdle, AmphibiousEscape, AmphibiousMove, FrogRules; goldens AmphibianMemoryGoldenTest 7, AmphibianIdleGoldenTest 7, AmphibiousMoveGoldenTest 6, hand-traced from TFC at c3b4d9536; PlayDeadTimerGoldenTest kept); paper/amphibian AmphibianModule (turtle/penguin/seal brain goal, crocodile mover task, frog feeding and variant, no drowning, food heals) with AmphibianModuleMockBukkitTest 7. Follow-ups PAR-FAUNA-30 (crocodile AggressiveSwim in PredatorModule), PAR-FAUNA-31 (play-dead pose models). Pending in-game check (container cannot run client)."
 tests:
   - "core: PlayDeadTimerGoldenTest exists"
 done_criteria:
@@ -31,7 +32,5 @@ done_criteria:
 ---
 
 # PAR-FAUNA-12: Amphibians: turtles, penguins, seals, crocodiles, frogs (play dead, land/water)
-
-> Claimed: FAUNA session, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

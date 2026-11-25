@@ -13,8 +13,10 @@ package dev.tfp.core.aquatic;
 import java.util.List;
 
 /**
- * The play-dead state of a TFC amphibious mob (turtle, penguin, leopard seal): the countdown memory ({@code PLAY_DEAD_TICKS}) and
- * the synced playing-dead flag. An amphibian plays dead for {@link #PLAY_DEAD_TIME} ticks after a hit, but only out of water.
+ * The play-dead state of a TFC amphibious mob with the {@code AmphibianAi} brain (turtle, penguin): the countdown memory
+ * ({@code PLAY_DEAD_TICKS}) and the synced playing-dead flag. An amphibian plays dead for {@link #PLAY_DEAD_TIME} ticks after a
+ * hit, but only out of water. The leopard seal's {@code PinnipedAI} does not register the memory, so it never plays dead
+ * ({@code dev.tfp.core.amphibian.AmphibianSpecies#playsDead}); the brain's activity is {@code dev.tfp.core.amphibian.AmphibianMemory}.
  *
  * <p>Each server tick, in TFC's order, the countdown runs first, then the flag is set from the countdown, and only when the mob is
  * out of water. In water the flag keeps its last value. A hit arms the countdown only when the mob is alive, the hit is more than
