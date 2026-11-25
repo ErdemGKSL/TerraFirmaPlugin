@@ -13,6 +13,7 @@ tfc_refs:
 files_owned:
   - "paper/src/main/java/dev/tfp/paper/mold/special/**"
   - "paper/src/test/java/dev/tfp/paper/mold/special/**"
+  - "paper/src/main/java/dev/tfp/paper/recipe/ItemModifierHooks.java"
 ui: true
 in_game_steps:
   - "vessel with molten brass; pour into bell mold; screenshot result"

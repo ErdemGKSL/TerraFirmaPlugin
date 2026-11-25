@@ -181,7 +181,11 @@ public final class ItemModifierHooks implements ModifierHooks<ItemStack> {
             }
         }
         Material m = Material.matchMaterial(template.id());
-        return m == null || !m.isItem() || m.isAir() ? empty() : new ItemStack(m, template.count());
+        if (m == null || !m.isItem() || m.isAir()) {
+            // PAR-METAL-02: a bell cast before its custom item exists (PAR-METAL-18) is a named vanilla bell
+            return dev.tfp.paper.mold.special.SpecialMolds.placeholderBell(template.id(), template.count()).orElseGet(this::empty);
+        }
+        return new ItemStack(m, template.count());
     }
 
     @Override
