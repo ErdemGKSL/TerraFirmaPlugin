@@ -497,7 +497,160 @@ public final class TfcShapes {
                     x -> new Shape[] {fenceShape(m, FENCE_HEIGHT), fenceShape(m, FENCE_COLLISION_HEIGHT)}));
             }
         }
+        // PAR-DECO-02: the wood doors, trapdoors, fence gates, buttons and pressure plates extend vanilla DoorBlock,
+        // TrapDoorBlock, FenceGateBlock, ButtonBlock and PressurePlateBlock with no shape override, so their outlines are
+        // vanilla's (ported below). One row per state, shared by every wood.
+        for (String facing : DOOR_FACINGS) {
+            for (String half : DOOR_HALVES) {
+                for (String hinge : DOOR_HINGES) {
+                    for (boolean open : BOOLS) {
+                        for (boolean powered : BOOLS) {
+                            final Shape outline = doorShape(facing, hinge, open);
+                            s.add(new Spec(doorKey(facing, half, hinge, open, powered), "door", Kind.OBJECT,
+                                List.of(B + "wood/TFCDoorBlock.java", wood), null, null,
+                                List.of("public class TFCDoorBlock extends DoorBlock", "DOOR(wood -> new TFCDoorBlock("),
+                                shapeAbsent, x -> new Shape[] {outline, outline}));
+                        }
+                    }
+                }
+            }
+        }
+        for (String facing : DOOR_FACINGS) {
+            for (String half : STAIRS_HALVES) {
+                for (boolean open : BOOLS) {
+                    for (boolean powered : BOOLS) {
+                        for (boolean wet : BOOLS) {
+                            final Shape outline = trapdoorShape(facing, half, open);
+                            s.add(new Spec(trapdoorKey(facing, half, open, powered, wet), "trapdoor", Kind.OBJECT,
+                                List.of(B + "wood/TFCTrapDoorBlock.java", wood), null, null,
+                                List.of("public class TFCTrapDoorBlock extends TrapDoorBlock",
+                                    "TRAPDOOR(wood -> new TFCTrapDoorBlock("),
+                                shapeAbsent, x -> new Shape[] {outline, outline}));
+                        }
+                    }
+                }
+            }
+        }
+        for (String facing : DOOR_FACINGS) {
+            for (boolean inWall : BOOLS) {
+                for (boolean open : BOOLS) {
+                    for (boolean powered : BOOLS) {
+                        final Shape[] outline = gateShapes(facing, inWall, open);
+                        s.add(new Spec(gateKey(facing, inWall, open, powered), "fence_gate", Kind.OBJECT,
+                            List.of(B + "wood/TFCFenceGateBlock.java", wood), null, null,
+                            List.of("public class TFCFenceGateBlock extends FenceGateBlock",
+                                "FENCE_GATE(wood -> new TFCFenceGateBlock("),
+                            shapeAbsent, x -> outline));
+                    }
+                }
+            }
+        }
+        for (String face : BUTTON_FACES) {
+            for (String facing : DOOR_FACINGS) {
+                for (boolean powered : BOOLS) {
+                    final Shape outline = buttonShape(face, facing, powered);
+                    s.add(new Spec(buttonKey(face, facing, powered), "button", Kind.OBJECT,
+                        List.of(B + "wood/TFCWoodButtonBlock.java", wood), null, null,
+                        List.of("public class TFCWoodButtonBlock extends ButtonBlock", "BUTTON(wood -> new TFCWoodButtonBlock("),
+                        shapeAbsent, x -> new Shape[] {outline, Shape.EMPTY}));
+                }
+            }
+        }
+        for (boolean powered : BOOLS) {
+            final Shape outline = Shape.box(1, 0, 1, 15, powered ? 0.5 : 1, 15);
+            s.add(new Spec(plateKey(powered), "pressure_plate", Kind.OBJECT,
+                List.of(B + "wood/TFCPressurePlateBlock.java", wood), null, null,
+                List.of("public class TFCPressurePlateBlock extends PressurePlateBlock",
+                    "PRESSURE_PLATE(wood -> new TFCPressurePlateBlock("),
+                shapeAbsent, x -> new Shape[] {outline, Shape.EMPTY}));
+        }
         return s;
+    }
+
+    static final List<Boolean> BOOLS = List.of(false, true);
+    /** PAR-DECO-02: the horizontal facings in alphabetical order (the order of the vanilla twin's state keys). */
+    public static final List<String> DOOR_FACINGS = List.of("north", "south", "west", "east");
+    public static final List<String> DOOR_HALVES = List.of("upper", "lower");
+    public static final List<String> DOOR_HINGES = List.of("left", "right");
+    public static final List<String> BUTTON_FACES = List.of("floor", "wall", "ceiling");
+
+    /** PAR-DECO-02: the shared tfc-shapes row of a wood door state (properties in vanilla's alphabetical order). */
+    public static String doorKey(String facing, String half, String hinge, boolean open, boolean powered) {
+        return "tfc:wood/door[facing=" + facing + ",half=" + half + ",hinge=" + hinge + ",open=" + open + ",powered="
+            + powered + "]";
+    }
+
+    public static String trapdoorKey(String facing, String half, boolean open, boolean powered, boolean waterlogged) {
+        return "tfc:wood/trapdoor[facing=" + facing + ",half=" + half + ",open=" + open + ",powered=" + powered
+            + ",waterlogged=" + waterlogged + "]";
+    }
+
+    public static String gateKey(String facing, boolean inWall, boolean open, boolean powered) {
+        return "tfc:wood/fence_gate[facing=" + facing + ",in_wall=" + inWall + ",open=" + open + ",powered=" + powered + "]";
+    }
+
+    public static String buttonKey(String face, String facing, boolean powered) {
+        return "tfc:wood/button[face=" + face + ",facing=" + facing + ",powered=" + powered + "]";
+    }
+
+    public static String plateKey(boolean powered) {
+        return "tfc:wood/pressure_plate[powered=" + powered + "]";
+    }
+
+    /** Vanilla {@code DoorBlock}: a 3 px leaf on the facing's side, turned to the hinge side when open. */
+    static Shape doorShape(String facing, String hinge, boolean open) {
+        boolean right = hinge.equals("right");
+        String side = open ? switch (facing) {
+            case "east" -> right ? "north" : "south";
+            case "south" -> right ? "east" : "west";
+            case "west" -> right ? "south" : "north";
+            default -> right ? "west" : "east"; // north
+        } : facing;
+        return leaf(side);
+    }
+
+    private static Shape leaf(String side) {
+        return switch (side) {
+            case "south" -> Shape.box(0, 0, 0, 16, 16, 3);
+            case "north" -> Shape.box(0, 0, 13, 16, 16, 16);
+            case "east" -> Shape.box(0, 0, 0, 3, 16, 16);
+            case "west" -> Shape.box(13, 0, 0, 16, 16, 16);
+            default -> throw new IllegalArgumentException(side);
+        };
+    }
+
+    /** Vanilla {@code TrapDoorBlock}: a 3 px panel on the bottom, the top, or (open) the facing's side. */
+    static Shape trapdoorShape(String facing, String half, boolean open) {
+        if (!open) {
+            return half.equals("top") ? Shape.box(0, 13, 0, 16, 16, 16) : Shape.box(0, 0, 0, 16, 3, 16);
+        }
+        return leaf(facing.equals("north") ? "north" : facing.equals("south") ? "south" : facing.equals("east") ? "east"
+            : "west");
+    }
+
+    /** Vanilla {@code FenceGateBlock}: selection 16 px (13 in a wall), collision 24 px and none when open. */
+    static Shape[] gateShapes(String facing, boolean inWall, boolean open) {
+        boolean z = facing.equals("north") || facing.equals("south");
+        double h = inWall ? 13 : 16;
+        Shape sel = z ? Shape.box(0, 0, 6, 16, h, 10) : Shape.box(6, 0, 0, 10, h, 16);
+        Shape col = open ? Shape.EMPTY : z ? Shape.box(0, 0, 6, 16, 24, 10) : Shape.box(6, 0, 0, 10, 24, 16);
+        return new Shape[] {sel, col};
+    }
+
+    /** Vanilla {@code ButtonBlock}: 2 px deep (1 px pressed) on the floor, ceiling or the facing's wall. */
+    static Shape buttonShape(String face, String facing, boolean pressed) {
+        double d = pressed ? 1 : 2;
+        boolean x = facing.equals("east") || facing.equals("west");
+        return switch (face) {
+            case "floor" -> x ? Shape.box(6, 0, 5, 10, d, 11) : Shape.box(5, 0, 6, 11, d, 10);
+            case "ceiling" -> x ? Shape.box(6, 16 - d, 5, 10, 16, 11) : Shape.box(5, 16 - d, 6, 11, 16, 10);
+            default -> switch (facing) {
+                case "north" -> Shape.box(5, 6, 16 - d, 11, 10, 16);
+                case "south" -> Shape.box(5, 6, 0, 11, 10, d);
+                case "west" -> Shape.box(16 - d, 6, 5, 16, 10, 11);
+                default -> Shape.box(0, 6, 5, d, 10, 11); // east
+            };
+        };
     }
 
     /** PAR-DECO-01: blockstate-file order of the facings, halves and shapes. */

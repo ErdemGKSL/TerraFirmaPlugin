@@ -64,7 +64,7 @@ class WoodFamiliesTest {
         TfcCheckout tfc = TfcCheckout.open(checkout, PIN);
         List<String> woods = WoodFamilies.families(tfc).stream().map(WoodFamilies.Family::wood).toList();
         OutputTree out = new OutputTree();
-        assertThat(WoodFamilies.writeBlocks(tfc, out, woods)).isEqualTo(20 * (80 + 6 + 32 + 32));
+        assertThat(WoodFamilies.writeBlocks(tfc, out, woods)).isEqualTo(20 * (80 + 6 + 32 + 32 + 32 + 64 + 64 + 24 + 2));
         Set<String> modelCarriers = new java.util.HashSet<>();
         for (String wood : woods) {
             String file = WoodFamilies.CONFIG_DIR + wood + ".yml";
@@ -73,8 +73,13 @@ class WoodFamiliesTest {
             Map<String, Object> blocks = (Map<String, Object>) root.get("blocks");
             String stairs = "tfp:wood/planks/" + wood + "_stairs";
             String slab = "tfp:wood/planks/" + wood + "_slab";
-            assertThat(blocks.keySet()).containsExactly(stairs, slab, "tfp:wood/fence/" + wood, "tfp:wood/log_fence/" + wood);
+            assertThat(blocks.keySet()).containsExactly(stairs, slab, "tfp:wood/fence/" + wood, "tfp:wood/log_fence/" + wood,
+                "tfp:wood/fence_gate/" + wood, "tfp:wood/door/" + wood, "tfp:wood/trapdoor/" + wood, "tfp:wood/button/" + wood,
+                "tfp:wood/pressure_plate/" + wood);
             for (Map.Entry<String, Object> b : blocks.entrySet()) {
+                if (WoodFamilies.LOGIC_KINDS.stream().anyMatch(k -> b.getKey().startsWith("tfp:wood/" + k + "/"))) {
+                    continue; // PAR-DECO-02: checked by woodLogicBlocksUseTheBuiltInBehavioursOnSharedHitboxCarriers
+                }
                 Map<String, Object> block = (Map<String, Object>) b.getValue();
                 Map<String, Object> settings = (Map<String, Object>) block.get("settings");
                 boolean fence = b.getKey().contains("fence");
@@ -109,7 +114,8 @@ class WoodFamiliesTest {
                 }
             }
             Map<String, Object> items = (Map<String, Object>) root.get("items");
-            assertThat(items).hasSize(4 + 4);
+            // 4 block items + 4 fence parts (DECO-01), 5 block items + 4 gate, 8 door, 3 trapdoor, 2 button, 2 plate models
+            assertThat(items).hasSize(4 + 4 + 5 + 4 + 8 + 3 + 2 + 2);
             for (String id : items.keySet()) {
                 if (!id.startsWith("tfp:render/")) {
                     assertThat(out.contains(AssetPipeline.RP + "models/item/" + id.substring(4) + ".json")).as(id).isTrue();
@@ -130,7 +136,85 @@ class WoodFamiliesTest {
         String lang = new String(out.get(WoodFamilies.LANG_RP + "en_us.json"), StandardCharsets.UTF_8);
         assertThat(lang).contains("\"block.tfp.wood.planks.acacia_stairs\": \"Acacia Stairs\"",
             "\"block.tfp.wood.log_fence.willow\": \"Willow Log Fence\"");
-        assertThat(lang.lines().filter(l -> l.contains("\"block.tfp.")).count()).isEqualTo(20 * 4);
+        assertThat(lang.lines().filter(l -> l.contains("\"block.tfp.")).count()).isEqualTo(20 * 9);
+    }
+
+    /**
+     * PAR-DECO-02: the fence gates, doors, trapdoors, buttons and pressure plates of every wood are CraftEngine blocks on
+     * CraftEngine's built-in behaviours, hitbox-only on one shared vanilla twin per kind, each state drawing TFC's model as
+     * one item display.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    void woodLogicBlocksUseTheBuiltInBehavioursOnSharedHitboxCarriers() {
+        Path checkout = Path.of(System.getProperty("tfc.checkout", "/opt/tfc"));
+        Assumptions.assumeTrue(Files.isDirectory(checkout.resolve(".git")), "no TFC checkout at " + checkout);
+        Assumptions.assumeTrue(PIN.equals(TfcCheckout.resolveHead(checkout)), "TFC checkout is not at the pinned commit");
+        TfcCheckout tfc = TfcCheckout.open(checkout, PIN);
+        List<String> woods = WoodFamilies.families(tfc).stream().map(WoodFamilies.Family::wood).toList();
+        OutputTree out = new OutputTree();
+        WoodFamilies.writeBlocks(tfc, out, woods);
+        Map<String, String> behaviour = Map.of("fence_gate", "fence_gate_block", "door", "door_block", "trapdoor",
+            "trapdoor_block", "button", "button_block", "pressure_plate", "pressure_plate_block");
+        Map<String, Integer> states = Map.of("fence_gate", 32, "door", 64, "trapdoor", 64, "button", 24, "pressure_plate", 2);
+        Map<String, String> twins = Map.of("fence_gate", "minecraft:oak_fence_gate", "door", "minecraft:oak_door",
+            "trapdoor", "minecraft:oak_trapdoor", "button", "minecraft:spruce_button", "pressure_plate",
+            "minecraft:oak_pressure_plate");
+        Map<String, double[]> strength = Map.of("fence_gate", new double[] {2, 3}, "door", new double[] {3, 3}, "trapdoor",
+            new double[] {3, 3}, "button", new double[] {0.5, 0.5}, "pressure_plate", new double[] {0.5, 0.5});
+        Map<String, String> tag = Map.of("fence_gate", "minecraft:fence_gates", "door", "minecraft:wooden_doors", "trapdoor",
+            "minecraft:wooden_trapdoors", "button", "minecraft:wooden_buttons", "pressure_plate",
+            "minecraft:wooden_pressure_plates");
+        int total = 0;
+        for (String wood : woods) {
+            String file = WoodFamilies.CONFIG_DIR + wood + ".yml";
+            Map<String, Object> root = (Map<String, Object>) CeYamlCheck.parse(
+                new String(out.get(file), StandardCharsets.UTF_8), file);
+            Map<String, Object> blocks = (Map<String, Object>) root.get("blocks");
+            for (String kind : WoodFamilies.LOGIC_KINDS) {
+                String id = "tfp:wood/" + kind + "/" + wood;
+                Map<String, Object> block = (Map<String, Object>) blocks.get(id);
+                List<Map<String, Object>> behaviors = (List<Map<String, Object>>) block.get("behavior");
+                assertThat(behaviors.stream().map(b -> b.get("type"))).as(id).contains(behaviour.get(kind));
+                if (kind.equals("button")) {
+                    assertThat(behaviors.get(0).get("type")).isEqualTo("face_attached_horizontal_directional_block");
+                    assertThat(behaviors.get(1).get("ticks_to_stay_pressed")).isEqualTo(30);
+                }
+                Map<String, Object> settings = (Map<String, Object>) block.get("settings");
+                assertThat(((Number) settings.get("hardness")).doubleValue()).as(id).isEqualTo(strength.get(kind)[0]);
+                assertThat(((Number) settings.get("resistance")).doubleValue()).as(id).isEqualTo(strength.get(kind)[1]);
+                assertThat((List<String>) settings.get("tags")).as(id).contains("minecraft:mineable/axe", tag.get(kind));
+                Map<String, Object> st = (Map<String, Object>) block.get("states");
+                Map<String, Object> apps = (Map<String, Object>) st.get("appearances");
+                Map<String, Object> variants = (Map<String, Object>) st.get("variants");
+                assertThat(apps).as(id).hasSize(states.get(kind));
+                assertThat(apps.keySet()).isEqualTo(variants.keySet());
+                assertThat(((Map<String, Object>) st.get("properties")).keySet()).as(id)
+                    .containsExactlyElementsOf(WoodLogicBlocks.propertyNames(kind));
+                for (Map.Entry<String, Object> a : apps.entrySet()) {
+                    Map<String, Object> app = (Map<String, Object>) a.getValue();
+                    assertThat(app.get("state")).as(id + "#" + a.getKey()).isEqualTo(twins.get(kind) + "[" + a.getKey() + "]");
+                    assertThat(app.get("transparent")).isEqualTo(true);
+                    assertThat((List<Object>) app.get("entity_renderer")).hasSize(1);
+                    boolean wet = a.getKey().contains("waterlogged=true");
+                    assertThat(((Map<String, Object>) variants.get(a.getKey())).containsKey("settings")).isEqualTo(wet);
+                }
+                total += apps.size();
+            }
+        }
+        assertThat(total).isEqualTo(20 * (32 + 64 + 64 + 24 + 2));
+        String acacia = new String(out.get(WoodFamilies.CONFIG_DIR + "acacia.yml"), StandardCharsets.UTF_8);
+        // TFC: facing=north, bottom, hinge left, closed = oak_bottom_left turned 270: the display turns 180 - 270 = 270.
+        assertThat(acacia).contains("        'facing=north,half=lower,hinge=left,open=false,powered=false':\n"
+            + "          state: 'minecraft:oak_door[facing=north,half=lower,hinge=left,open=false,powered=false]'\n"
+            + "          transparent: true\n          entity_renderer:\n"
+            + "            - item: tfp:render/wood/door/acacia_bottom_left\n              rotation: '0,270,0'\n");
+        // A door drops once (the lower half), through double_high_block_item.
+        assertThat(acacia).contains("type: double_high_block_item");
+        assertThat(acacia).contains("half: lower\n");
+        // The wall button (x 90) and the ceiling button (x 180) turn about x first: quaternions, not Euler strings.
+        assertThat(WoodLogicBlocks.rotation(0, 90)).isEqualTo("0,90,0");
+        assertThat(WoodLogicBlocks.rotation(180, 180)).isEqualTo("-1,0,0,0"); // Ry(0) * Rx(-180): half turn about x
     }
 
     /** PAR-DECO-01: the ported vanilla outlines in tfc-shapes.json equal the vanilla dump rows of every twin state. */
@@ -152,7 +236,7 @@ class WoodFamiliesTest {
             }
             checked++;
         }
-        assertThat(checked).isEqualTo(20 * (80 + 4 + 2 * 32));
+        assertThat(checked).isEqualTo(20 * (80 + 4 + 2 * 32 + 32 + 64 + 64 + 24 + 2));
     }
 
     @Test

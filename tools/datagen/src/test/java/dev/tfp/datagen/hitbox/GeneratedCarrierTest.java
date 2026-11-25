@@ -114,6 +114,7 @@ class GeneratedCarrierTest {
         // PAR-FARM-03: the crops, dead crops and wild crops of the 29 crops (87 block ids; every appearance is explicit).
         assertThat(states).isGreaterThanOrEqualTo(83 + 24 + 7 + 20 * 16 + 1 + 10 + 3 + 17 * 16 + 17 * 2 + 4 + 10 + 87 + 75 + 150 + 267
             + 20 * (80 + 4 + 32 + 32) // PAR-DECO-01: per wood stairs, slab (double draws the planks' visual), fence, log fence
+            + 20 * (32 + 64 + 64 + 24 + 2) // PAR-DECO-02: per wood fence gate, door, trapdoor, button, pressure plate
             + 144); // PAR-METAL-13: the channel (128 states) and the mold table (16)
         // PAR-CLIM-04: the ice pile and sea ice (one leaves pool appearance each).
         // PAR-WORLD-44: the 20 twigs on their one shared tripwire state.
@@ -152,6 +153,7 @@ class GeneratedCarrierTest {
         for (String w : HitboxDemands.BARREL_WOODS) { // PAR-DECO-01
             expected.addAll(List.of(HitboxDemands.woodStairsId(w), HitboxDemands.woodSlabId(w), HitboxDemands.woodFenceId(w),
                 HitboxDemands.woodLogFenceId(w)));
+            HitboxDemands.WOOD_LOGIC_KINDS.forEach(k -> expected.add(HitboxDemands.woodLogicId(k, w))); // PAR-DECO-02
         }
         for (String w : HitboxDemands.BARREL_WOODS) { // PAR-WORLD-44: sapling, potted sapling, fallen leaves (hitbox-only)
             for (String kind : List.of(HitboxDemands.SAPLING, HitboxDemands.POTTED_SAPLING, HitboxDemands.FALLEN_LEAVES)) {
@@ -165,7 +167,7 @@ class GeneratedCarrierTest {
                 HitboxDemands.fruitId(tree, "growing_branch")));
         }
         expected.addAll(List.of(HitboxDemands.BANANA_SAPLING_ID, HitboxDemands.BANANA_PLANT_ID, HitboxDemands.BANANA_DEAD_ID));
-        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 2 + 20 * 3 + 24 + 3);
+        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3);
         java.util.SortedSet<String> grass = new java.util.TreeSet<>();
         for (String soil : List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol", "podzol", "alfisol", "mollisol")) {
             dev.tfp.datagen.soil.SoilBlocks.GRASS_TYPES.forEach(t -> grass.add("tfp:" + t + "/" + soil));

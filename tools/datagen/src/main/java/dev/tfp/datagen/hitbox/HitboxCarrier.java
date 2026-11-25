@@ -203,8 +203,9 @@ public final class HitboxCarrier {
         List<Scored> ranked = new ArrayList<>();
         List<Rejected> rejected = new ArrayList<>();
         Set<String> all = v.allStates();
-        // PAR-DECO-01: a shape twin (stairs, slab, fence) is served only by the twin's state of the same properties (the
-        // row key lists them in vanilla's order), and no other class lists the twin blocks' states as rejections.
+        // PAR-DECO-01/02: a shape twin (stairs, slab, fence, door, trapdoor, fence gate, button, pressure plate) is served
+        // only by the twin's state of the same properties (the row key lists them in vanilla's order), and no other class
+        // lists the twin blocks' states as rejections.
         String exactTwin = tfc.twin() != null && TWIN_ONLY_CLASSES.contains(row.shapeClass()) && row.key().contains("[")
             ? tfc.twin() + row.key().substring(row.key().indexOf('[')) : null;
         for (String state : all) {
@@ -255,7 +256,8 @@ public final class HitboxCarrier {
     }
 
     /** PAR-DECO-01: the classes whose blocks serve only their own twin demands (carrier-policy.json only_class). */
-    static final Set<String> TWIN_ONLY_CLASSES = Set.of("stairs", "slab", "fence");
+    static final Set<String> TWIN_ONLY_CLASSES = Set.of("stairs", "slab", "fence", "door", "trapdoor", "fence_gate", "button",
+        "pressure_plate");
 
     /** Whether {@code state} belongs to a block reserved for a twin-only class other than {@code shapeClass}. */
     static boolean twinOnly(VanillaCandidates v, String state, String shapeClass) {

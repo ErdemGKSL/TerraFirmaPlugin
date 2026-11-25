@@ -72,9 +72,11 @@ class BlockCoverageTest {
         assertThat(blocks.get("tfc:quern").getAsString()).startsWith("ce:configuration/");
         assertThat(blocks.get("tfc:firepit").getAsString()).isEqualTo("ce:configuration/devices/firepit.yml");
         assertThat(blocks.get("tfc:grill").getAsString()).isEqualTo("ce:configuration/devices/grill.yml"); // PAR-HEAT-24
-        // PAR-DECO-01: the wood stairs, slabs, fences and log fences are CE blocks; the fence gates stay family data.
+        // PAR-DECO-01/02: the wood stairs, slabs, fences, log fences, fence gates, doors, trapdoors, buttons and pressure plates
+        // are CE blocks; the other wood kinds stay family data.
         assertThat(blocks.get("tfc:wood/planks/oak_stairs").getAsString()).isEqualTo("ce:configuration/woodfamily/oak.yml");
-        assertThat(blocks.get("tfc:wood/fence_gate/oak").getAsString()).isEqualTo("family:families/wood.yml");
+        assertThat(blocks.get("tfc:wood/fence_gate/oak").getAsString()).isEqualTo("ce:configuration/woodfamily/oak.yml");
+        assertThat(blocks.get("tfc:wood/sign/oak").getAsString()).isEqualTo("family:families/wood.yml");
         assertThat(blocks.get("tfc:wood/workbench/oak").getAsString()).isEqualTo("PAR-DECO-17");
         assertThat(blocks.get("tfc:fluid/river_water").getAsString()).isEqualTo("np:NP-FLUID-01");
         assertThat(blocks.get("tfc:fluid/spring_water").getAsString()).isEqualTo("np:NP-FLUID-01");

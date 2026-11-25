@@ -58,7 +58,8 @@ import java.util.regex.Pattern;
  *       name the block (mineable/axe, stairs, wooden_stairs, slabs, wooden_slabs, wooden_fences), the self drop (two for a
  *       double slab), the block items with TFC's item models and the names of every TFC locale.</li>
  * </ul>
- * The fence gates and the other kinds stay data in {@code families/wood.yml}.
+ * PAR-DECO-02 adds the fence gates, doors, trapdoors, buttons and pressure plates ({@link WoodLogicBlocks}); the other kinds
+ * stay data in {@code families/wood.yml}.
  */
 final class WoodFamilies {
     static final String SOURCE = "src/main/java/net/dries007/tfc/common/blocks/wood/Wood.java";
@@ -235,6 +236,8 @@ final class WoodFamilies {
     static final String LANG = TfcCheckout.ASSETS + "lang/";
     /** The block kinds that are CraftEngine blocks (the rest of {@link #KINDS} stays family data). */
     public static final List<String> BLOCK_KINDS = List.of("stairs", "slab", "fence", "log_fence");
+    /** PAR-DECO-02: the kinds of {@link WoodLogicBlocks} (fence gates, doors, trapdoors, buttons, pressure plates). */
+    public static final List<String> LOGIC_KINDS = WoodLogicBlocks.KINDS;
     /** MapColor.WOOD for every wood, as the planks (AssetPipeline; TFC's per-wood colours are not carried). */
     static final int MAP_COLOR = 13;
     static final String INSTRUMENT = "bass";
@@ -283,6 +286,7 @@ final class WoodFamilies {
             throw new DatagenException("TFC's woods " + woods + " differ from HitboxDemands.BARREL_WOODS");
         }
         Map<String, Strength> strengths = strengths(tfc);
+        Map<String, Strength> logicStrengths = WoodLogicBlocks.strengths(tfc);
         Map<String, List<String>> tags = blockTags(tfc);
         int states = 0;
         for (String wood : woods) {
@@ -312,6 +316,9 @@ final class WoodFamilies {
                 blocks.put(id, entry);
                 copyModel(tfc, out, "item/" + path);
                 items.put(id, CeBlockStates.call("tfp:item/block_item", Map.of("item_lang_key", langKey(path))));
+            }
+            for (String kind : LOGIC_KINDS) {
+                states += WoodLogicBlocks.write(tfc, out, wood, kind, logicStrengths.get(kind), tags, blocks, items);
             }
             for (String kind : List.of("stairs", "slab")) {
                 copySourceModels(tfc, out, kind, wood);
@@ -349,6 +356,13 @@ final class WoodFamilies {
             }
         }
         throw new IllegalArgumentException("no wood kind " + kind);
+    }
+
+    /** Every kind that is a CraftEngine block: {@link #BLOCK_KINDS} then {@link #LOGIC_KINDS}. */
+    static List<String> allKinds() {
+        List<String> all = new ArrayList<>(BLOCK_KINDS);
+        all.addAll(LOGIC_KINDS);
+        return all;
     }
 
     static String langKey(String path) {
@@ -724,7 +738,7 @@ final class WoodFamilies {
             JsonObject src = Json.parse(tfc.readString(f), f).getAsJsonObject();
             Map<String, String> keys = new TreeMap<>();
             for (String wood : woods) {
-                for (String kind : BLOCK_KINDS) {
+                for (String kind : allKinds()) {
                     String path = blockPath(kind, wood);
                     String tfcKey = "block." + Json.FROM_NS + "." + path.replace('/', '.');
                     if (src.has(tfcKey)) {

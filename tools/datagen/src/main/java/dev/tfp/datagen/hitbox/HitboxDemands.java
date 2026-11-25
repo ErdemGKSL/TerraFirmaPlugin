@@ -522,6 +522,16 @@ public final class HitboxDemands {
                 }
             }
         }
+        // PAR-DECO-02: the wood doors, trapdoors, fence gates, buttons and pressure plates, one demand per state, each
+        // hitbox-only on the shared vanilla twin of the kind (every wood shares it, the look is item displays; WoodLogicBlocks).
+        for (String w : BARREL_WOODS) {
+            for (String kind : WOOD_LOGIC_KINDS) {
+                for (String[] state : woodLogicStates(kind)) {
+                    d.add(new Demand(woodLogicId(kind, w), state[0], state[1], 0, HitboxAllocation.TRANSPARENT, false,
+                        WOOD_FAMILY_WEIGHT));
+                }
+            }
+        }
         // PAR-WORLD-44 (PAR-WORLD-53 option a): the sapling, the potted sapling and the fallen leaves of every wood,
         // hitbox-only on the no-collision plant outlines (the look is TFC's model as an item display, WoodPlantBlocks);
         // the twigs share one tripwire pool state (POOLS), no demand.
@@ -678,6 +688,81 @@ public final class HitboxDemands {
         };
     }
 
+    /** PAR-DECO-02: the wood kinds drawn by item displays on one shared vanilla twin (Wood.BlockType DOOR ... PRESSURE_PLATE). */
+    public static final List<String> WOOD_LOGIC_KINDS = List.of("fence_gate", "door", "trapdoor", "button", "pressure_plate");
+    /** PAR-DECO-02: the vanilla block that carries each of {@link #WOOD_LOGIC_KINDS} (same order), hitbox-only. */
+    public static final List<String> WOOD_LOGIC_TWINS = List.of("minecraft:oak_fence_gate", "minecraft:oak_door",
+        "minecraft:oak_trapdoor", "minecraft:spruce_button", "minecraft:oak_pressure_plate");
+
+    /** PAR-DECO-02: TFC's block id of a wood logic kind ({@code tfp:wood/door/oak}). */
+    public static String woodLogicId(String kind, String wood) {
+        return "tfp:wood/" + kind + "/" + wood;
+    }
+
+    /** PAR-DECO-02: every state of a wood logic kind as {appearance (the state's properties), tfc-shapes key}. */
+    public static List<String[]> woodLogicStates(String kind) {
+        List<String> keys = new ArrayList<>();
+        switch (kind) {
+            case "door" -> {
+                for (String f : TfcShapes.DOOR_FACINGS) {
+                    for (String h : TfcShapes.DOOR_HALVES) {
+                        for (String hinge : TfcShapes.DOOR_HINGES) {
+                            for (boolean o : TfcShapes.BOOLS) {
+                                for (boolean p : TfcShapes.BOOLS) {
+                                    keys.add(TfcShapes.doorKey(f, h, hinge, o, p));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            case "trapdoor" -> {
+                for (String f : TfcShapes.DOOR_FACINGS) {
+                    for (String h : TfcShapes.STAIRS_HALVES) {
+                        for (boolean o : TfcShapes.BOOLS) {
+                            for (boolean p : TfcShapes.BOOLS) {
+                                for (boolean w : TfcShapes.BOOLS) {
+                                    keys.add(TfcShapes.trapdoorKey(f, h, o, p, w));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            case "fence_gate" -> {
+                for (String f : TfcShapes.DOOR_FACINGS) {
+                    for (boolean wall : TfcShapes.BOOLS) {
+                        for (boolean o : TfcShapes.BOOLS) {
+                            for (boolean p : TfcShapes.BOOLS) {
+                                keys.add(TfcShapes.gateKey(f, wall, o, p));
+                            }
+                        }
+                    }
+                }
+            }
+            case "button" -> {
+                for (String face : TfcShapes.BUTTON_FACES) {
+                    for (String f : TfcShapes.DOOR_FACINGS) {
+                        for (boolean p : TfcShapes.BOOLS) {
+                            keys.add(TfcShapes.buttonKey(face, f, p));
+                        }
+                    }
+                }
+            }
+            case "pressure_plate" -> {
+                for (boolean p : TfcShapes.BOOLS) {
+                    keys.add(TfcShapes.plateKey(p));
+                }
+            }
+            default -> throw new IllegalArgumentException("not a wood logic kind: " + kind);
+        }
+        List<String[]> out = new ArrayList<>();
+        for (String key : keys) {
+            out.add(new String[] {key.substring(key.indexOf('[') + 1, key.length() - 1), key});
+        }
+        return out;
+    }
+
     /** PAR-DECO-01: the vanilla twin of a wood stairs, slab, fence or log fence block id, or null for every other id. */
     static String woodTwin(String blockId) {
         for (int i = 0; i < BARREL_WOODS.size(); i++) {
@@ -690,6 +775,11 @@ public final class HitboxDemands {
             }
             if (blockId.equals(woodFenceId(w)) || blockId.equals(woodLogFenceId(w))) {
                 return WOOD_FENCE_TWIN;
+            }
+            for (int k = 0; k < WOOD_LOGIC_KINDS.size(); k++) {
+                if (blockId.equals(woodLogicId(WOOD_LOGIC_KINDS.get(k), w))) {
+                    return WOOD_LOGIC_TWINS.get(k); // PAR-DECO-02
+                }
             }
         }
         return null;

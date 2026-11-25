@@ -3473,6 +3473,1494 @@
       "selection": [[6, 0, 0, 10, 16, 16], [0, 0, 6, 6, 16, 10], [10, 0, 6, 16, 16, 10]],
       "collision": [[6, 0, 0, 10, 24, 16], [0, 0, 6, 6, 24, 10], [10, 0, 6, 16, 24, 10]],
       "from": "TFCFenceBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=upper,hinge=left,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=upper,hinge=left,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=upper,hinge=left,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=upper,hinge=left,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=upper,hinge=right,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=upper,hinge=right,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=upper,hinge=right,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=upper,hinge=right,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=lower,hinge=left,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=lower,hinge=left,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=lower,hinge=left,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=lower,hinge=left,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=lower,hinge=right,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=lower,hinge=right,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=lower,hinge=right,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=north,half=lower,hinge=right,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=upper,hinge=left,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=upper,hinge=left,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=upper,hinge=left,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=upper,hinge=left,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=upper,hinge=right,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=upper,hinge=right,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=upper,hinge=right,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=upper,hinge=right,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=lower,hinge=left,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=lower,hinge=left,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=lower,hinge=left,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=lower,hinge=left,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=lower,hinge=right,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=lower,hinge=right,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=lower,hinge=right,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=south,half=lower,hinge=right,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=upper,hinge=left,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=upper,hinge=left,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=upper,hinge=left,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=upper,hinge=left,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=upper,hinge=right,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=upper,hinge=right,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=upper,hinge=right,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=upper,hinge=right,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=lower,hinge=left,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=lower,hinge=left,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=lower,hinge=left,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=lower,hinge=left,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=lower,hinge=right,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=lower,hinge=right,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=lower,hinge=right,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=west,half=lower,hinge=right,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=upper,hinge=left,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=upper,hinge=left,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=upper,hinge=left,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=upper,hinge=left,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=upper,hinge=right,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=upper,hinge=right,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=upper,hinge=right,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=upper,hinge=right,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=lower,hinge=left,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=lower,hinge=left,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=lower,hinge=left,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=lower,hinge=left,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=lower,hinge=right,open=false,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=lower,hinge=right,open=false,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=lower,hinge=right,open=true,powered=false]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/door[facing=east,half=lower,hinge=right,open=true,powered=true]",
+      "class": "door",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=bottom,open=false,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=bottom,open=false,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=bottom,open=false,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=bottom,open=false,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=bottom,open=true,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=bottom,open=true,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=bottom,open=true,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=bottom,open=true,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=top,open=false,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=top,open=false,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=top,open=false,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=top,open=false,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=top,open=true,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=top,open=true,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=top,open=true,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=north,half=top,open=true,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 13, 16, 16, 16]],
+      "collision": [[0, 0, 13, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=bottom,open=false,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=bottom,open=false,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=bottom,open=false,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=bottom,open=false,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=bottom,open=true,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=bottom,open=true,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=bottom,open=true,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=bottom,open=true,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=top,open=false,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=top,open=false,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=top,open=false,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=top,open=false,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=top,open=true,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=top,open=true,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=top,open=true,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=south,half=top,open=true,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 3]],
+      "collision": [[0, 0, 0, 16, 16, 3]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=bottom,open=false,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=bottom,open=false,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=bottom,open=false,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=bottom,open=false,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=bottom,open=true,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=bottom,open=true,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=bottom,open=true,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=bottom,open=true,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=top,open=false,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=top,open=false,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=top,open=false,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=top,open=false,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=top,open=true,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=top,open=true,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=top,open=true,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=west,half=top,open=true,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[13, 0, 0, 16, 16, 16]],
+      "collision": [[13, 0, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=bottom,open=false,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=bottom,open=false,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=bottom,open=false,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=bottom,open=false,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=bottom,open=true,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=bottom,open=true,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=bottom,open=true,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=bottom,open=true,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=top,open=false,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=top,open=false,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=top,open=false,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=top,open=false,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 13, 0, 16, 16, 16]],
+      "collision": [[0, 13, 0, 16, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=top,open=true,powered=false,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=top,open=true,powered=false,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=top,open=true,powered=true,waterlogged=false]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/trapdoor[facing=east,half=top,open=true,powered=true,waterlogged=true]",
+      "class": "trapdoor",
+      "kind": "object",
+      "selection": [[0, 0, 0, 3, 16, 16]],
+      "collision": [[0, 0, 0, 3, 16, 16]],
+      "from": "TFCTrapDoorBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=north,in_wall=false,open=false,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 16, 10]],
+      "collision": [[0, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=north,in_wall=false,open=false,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 16, 10]],
+      "collision": [[0, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=north,in_wall=false,open=true,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 16, 10]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=north,in_wall=false,open=true,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 16, 10]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=north,in_wall=true,open=false,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 13, 10]],
+      "collision": [[0, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=north,in_wall=true,open=false,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 13, 10]],
+      "collision": [[0, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=north,in_wall=true,open=true,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 13, 10]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=north,in_wall=true,open=true,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 13, 10]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=south,in_wall=false,open=false,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 16, 10]],
+      "collision": [[0, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=south,in_wall=false,open=false,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 16, 10]],
+      "collision": [[0, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=south,in_wall=false,open=true,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 16, 10]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=south,in_wall=false,open=true,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 16, 10]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=south,in_wall=true,open=false,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 13, 10]],
+      "collision": [[0, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=south,in_wall=true,open=false,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 13, 10]],
+      "collision": [[0, 0, 6, 16, 24, 10]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=south,in_wall=true,open=true,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 13, 10]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=south,in_wall=true,open=true,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[0, 0, 6, 16, 13, 10]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=west,in_wall=false,open=false,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16]],
+      "collision": [[6, 0, 0, 10, 24, 16]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=west,in_wall=false,open=false,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16]],
+      "collision": [[6, 0, 0, 10, 24, 16]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=west,in_wall=false,open=true,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=west,in_wall=false,open=true,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=west,in_wall=true,open=false,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 13, 16]],
+      "collision": [[6, 0, 0, 10, 24, 16]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=west,in_wall=true,open=false,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 13, 16]],
+      "collision": [[6, 0, 0, 10, 24, 16]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=west,in_wall=true,open=true,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 13, 16]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=west,in_wall=true,open=true,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 13, 16]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=east,in_wall=false,open=false,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16]],
+      "collision": [[6, 0, 0, 10, 24, 16]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=east,in_wall=false,open=false,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16]],
+      "collision": [[6, 0, 0, 10, 24, 16]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=east,in_wall=false,open=true,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=east,in_wall=false,open=true,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 16, 16]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=east,in_wall=true,open=false,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 13, 16]],
+      "collision": [[6, 0, 0, 10, 24, 16]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=east,in_wall=true,open=false,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 13, 16]],
+      "collision": [[6, 0, 0, 10, 24, 16]],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=east,in_wall=true,open=true,powered=false]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 13, 16]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/fence_gate[facing=east,in_wall=true,open=true,powered=true]",
+      "class": "fence_gate",
+      "kind": "object",
+      "selection": [[6, 0, 0, 10, 13, 16]],
+      "collision": [],
+      "from": "TFCFenceGateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=floor,facing=north,powered=false]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[5, 0, 6, 11, 2, 10]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=floor,facing=north,powered=true]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[5, 0, 6, 11, 1, 10]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=floor,facing=south,powered=false]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[5, 0, 6, 11, 2, 10]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=floor,facing=south,powered=true]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[5, 0, 6, 11, 1, 10]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=floor,facing=west,powered=false]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[6, 0, 5, 10, 2, 11]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=floor,facing=west,powered=true]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[6, 0, 5, 10, 1, 11]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=floor,facing=east,powered=false]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[6, 0, 5, 10, 2, 11]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=floor,facing=east,powered=true]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[6, 0, 5, 10, 1, 11]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=wall,facing=north,powered=false]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[5, 6, 14, 11, 10, 16]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=wall,facing=north,powered=true]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[5, 6, 15, 11, 10, 16]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=wall,facing=south,powered=false]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[5, 6, 0, 11, 10, 2]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=wall,facing=south,powered=true]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[5, 6, 0, 11, 10, 1]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=wall,facing=west,powered=false]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[14, 6, 5, 16, 10, 11]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=wall,facing=west,powered=true]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[15, 6, 5, 16, 10, 11]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=wall,facing=east,powered=false]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[0, 6, 5, 2, 10, 11]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=wall,facing=east,powered=true]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[0, 6, 5, 1, 10, 11]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=ceiling,facing=north,powered=false]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[5, 14, 6, 11, 16, 10]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=ceiling,facing=north,powered=true]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[5, 15, 6, 11, 16, 10]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=ceiling,facing=south,powered=false]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[5, 14, 6, 11, 16, 10]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=ceiling,facing=south,powered=true]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[5, 15, 6, 11, 16, 10]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=ceiling,facing=west,powered=false]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[6, 14, 5, 10, 16, 11]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=ceiling,facing=west,powered=true]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[6, 15, 5, 10, 16, 11]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=ceiling,facing=east,powered=false]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[6, 14, 5, 10, 16, 11]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/button[face=ceiling,facing=east,powered=true]",
+      "class": "button",
+      "kind": "object",
+      "selection": [[6, 15, 5, 10, 16, 11]],
+      "collision": [],
+      "from": "TFCWoodButtonBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/pressure_plate[powered=false]",
+      "class": "pressure_plate",
+      "kind": "object",
+      "selection": [[1, 0, 1, 15, 1, 15]],
+      "collision": [],
+      "from": "TFCPressurePlateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/pressure_plate[powered=true]",
+      "class": "pressure_plate",
+      "kind": "object",
+      "selection": [[1, 0, 1, 15, 0.5, 15]],
+      "collision": [],
+      "from": "TFCPressurePlateBlock.java (ported)"
     }
   ]
 }
