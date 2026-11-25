@@ -320,6 +320,7 @@ public final class Datagen {
             dev.tfp.datagen.crafting.CraftingRecipes.run(tfc, out);
         }
         dev.tfp.datagen.heat.HeatGlowModels.run(out); // PAR-HEAT-01: heat glow item model definitions; after every CE item and CommonTags
+        Advancements.writeDatapack(tfc, out); // PAR-DATA-02: datapack advancements (bootstrap datapack) + CE lang; after every CE item (icons)
         out.put("third-party.json", "[]\n"); // no non-EUPL file is copied yet (checked by :checkNotice)
         report.ceStates(Report.countCeStates(out.files())); // PAR-PROC-37: the installer sizes serverside-blocks from the states
         out.put("reports/datagen-summary.json", Json.write(report.toJson()));

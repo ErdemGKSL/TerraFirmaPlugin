@@ -336,7 +336,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-TOOL-08 | Prospector's pick: scan, result message, `/tfp propick` | TOOL | 33 | done |
 | PAR-CLIM-08 | Lightning rules: enableLightning, log stripping, fire start | CLIMATE | 34 | done |
 | PAR-CLIM-09 | Climate instruments: thermometer, anemometer, vane, calendar clock | CLIMATE | 34 | done |
-| PAR-DATA-02 | Advancements: triggers, awards and presentation | DATA | 34 | open |
+| PAR-DATA-02 | Advancements: triggers, awards and presentation | DATA | 34 | done |
 | PAR-METAL-13 | Channels and mold tables: pouring flow | METAL | 34 | done |
 | PAR-HEAT-32 | Firebox kiln and heat consumers: placed items heat in an insulated chamber, the crucible above heats (self-test), hot floor, comparator | HEAT | 34 | open |
 | PAR-DATA-03 | Advancement criteria wiring across features | DATA | 35 | open |
