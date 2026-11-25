@@ -2,7 +2,7 @@
 id: PAR-FAUNA-39
 title: "Water around a wet lobster trap: a waterlogged carrier needs a selector override (follow-up of PAR-FAUNA-37)"
 area: FAUNA
-status: blocked
+status: open
 wave: 48
 deps: [PAR-FAUNA-37]
 size: S
@@ -32,5 +32,7 @@ done_criteria:
 ---
 
 # PAR-FAUNA-39: Water around a wet lobster trap
+
+> Claimed: session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 Follow `plans/parity/PROTOCOL.md`.
