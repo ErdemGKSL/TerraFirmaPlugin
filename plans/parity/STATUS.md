@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already done).
+Totals: 387 items; open 207, done 170, blocked 9; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -528,7 +528,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-41 | Wet lobster trap on CraftEngine's waterlogged leaves pool: a fluid pool in the carrier policy and pool carriers for hitbox-only demands (follow-up of PAR-FAUNA-39) | FAUNA | 49 | open |
 | PAR-POT-15 | Bowl automation: hoppers fill and empty powder bowls, the powder layer follows (follow-up of PAR-POT-09) | POTTERY | 28 | done |
 | PAR-POT-16 | Config codec knows placed-items; large vessel config switches, contents tooltip and TFC sounds (follow-up of PAR-POT-06, PAR-POT-13) | POTTERY | 28 | done |
-| PAR-DATA-19 | Advancement triggers left from PAR-DATA-03: feature events for TFC's 21 own triggers | DATA | 40 | open |
+| PAR-DATA-19 | Advancement triggers left from PAR-DATA-03: feature events for TFC's 21 own triggers | DATA | 40 | done |
 | PAR-DECO-22 | Rock walls, aqueducts and rope anchors (follow-up of PAR-DECO-06) | DECO | 49 | open |
 | PAR-DECO-23 | Golden bamboo block, palm mosaic stairs and slabs, tree roots, light block (follow-up of PAR-DECO-12) | DECO | 49 | open |
 | PAR-DECO-24 | Crate storage, buoys and cakes (follow-up of PAR-DECO-12) | DECO | 49 | open |
@@ -541,3 +541,4 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-29 | Vessels take molten metal from the charcoal forge's extra slots and the crucible's output slot (follow-up of PAR-METAL-22, -23, -25) | METAL | 34 | done |
 | PAR-DATA-20 | Field guide BOOK tab: the fifth player tab opens the field guide (follow-up of PAR-DATA-04) | DATA | 36 | open |
 | PAR-DATA-21 | Field guide translations: TFC's nine other book locales as per-player books (follow-up of PAR-DATA-04) | DATA | 36 | open |
+| PAR-DATA-23 | Advancement triggers left from PAR-DATA-19: events published by the 17 owning features | DATA | 56 | open |

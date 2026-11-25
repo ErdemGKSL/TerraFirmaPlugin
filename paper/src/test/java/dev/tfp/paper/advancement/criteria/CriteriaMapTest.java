@@ -74,6 +74,8 @@ class CriteriaMapTest {
                 case "minecraft:player_killed_entity" -> assertThat(kind).as(e.getKey().toString()).isEqualTo(Kind.KILL);
                 case "minecraft:location" -> assertThat(kind).as(e.getKey().toString()).isIn(Kind.BIOME, Kind.POSITION);
                 case "tfc:eat_rotten_food", "tfc:full_nutrition" -> assertThat(kind).isEqualTo(Kind.NUTRITION);
+                case "tfc:hooked_entity", "tfc:stab_entity", "tfc:present_day" ->
+                    assertThat(kind).as(e.getKey().toString()).isEqualTo(Kind.EVENT);
                 default -> {
                     assertThat(kind).as(e.getKey().toString()).isEqualTo(Kind.PENDING);
                     assertThat(MAP.pendingTrigger(e.getKey())).contains(trigger);
@@ -176,6 +178,17 @@ class CriteriaMapTest {
                 case BIOME -> earned.addAll(MAP.biome("tfp:" + c.criterion()));
                 case POSITION -> MAP.position(c.equals(CriteriaMap.GLOBE_HIGH) ? 10000 : -10000).ifPresent(earned::add);
                 case NUTRITION -> earned.addAll(MAP.meal(c.equals(CriteriaMap.EAT_ROTTEN_FOOD), 1f));
+                case EVENT -> {
+                    String trigger = TFC.get(c).get("trigger").getAsString();
+                    if (trigger.equals("tfc:hooked_entity")) {
+                        String tag = cond.getAsJsonObject("entity").get("type").getAsString().replace("#tfc:", "tfp:");
+                        earned.addAll(MAP.hooked("tfp:probe", (i, t) -> t.equals(tag)));
+                    } else if (trigger.equals("tfc:stab_entity")) {
+                        MAP.stab("tfp:rabbit", 50).ifPresent(earned::add);
+                    } else {
+                        MAP.presentDay(java.time.LocalDate.of(999, 12, 31), 0, 8).ifPresent(earned::add);
+                    }
+                }
                 default -> { }
             }
         }
@@ -184,6 +197,6 @@ class CriteriaMapTest {
                 assertThat(earned).as("scripted event for " + e.getKey()).contains(e.getKey());
             }
         }
-        assertThat(MAP.kinds().values().stream().filter(k -> k == Kind.PENDING).count()).isEqualTo(21);
+        assertThat(MAP.kinds().values().stream().filter(k -> k == Kind.PENDING).count()).isEqualTo(17);
     }
 }

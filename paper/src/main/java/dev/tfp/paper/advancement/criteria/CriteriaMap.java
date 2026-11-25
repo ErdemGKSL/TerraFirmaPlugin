@@ -9,6 +9,7 @@
 package dev.tfp.paper.advancement.criteria;
 
 import dev.tfp.core.advancement.CriterionRef;
+import dev.tfp.core.calendar.CalendarTicks;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -42,7 +43,9 @@ public final class CriteriaMap {
         NUTRITION,
         /** A tab root: the datapack keeps {@code minecraft:tick}, nothing to award. */
         TICK,
-        /** TFC's own trigger whose feature has no event yet (follow-up PAR-DATA-19). */
+        /** TFC's own trigger earned from a Bukkit event (PAR-DATA-19): {@link #hooked}, {@link #stab}, {@link #presentDay}. */
+        EVENT,
+        /** TFC's own trigger whose feature has no event yet (follow-up PAR-DATA-23). */
         PENDING
     }
 
@@ -54,6 +57,19 @@ public final class CriteriaMap {
     public static final CriterionRef FULL_NUTRITION = CriterionRef.parse("tfp:world/full_nutrition#special_condition");
     /** TFC's {@code PlayerInfo} threshold for {@code FULL_NUTRITION}: the average nutrition reaches this. */
     public static final float FULL_NUTRITION_AVERAGE = 0.999f;
+
+    public static final CriterionRef FISHING = CriterionRef.parse("tfp:world/fishing#special_condition");
+    public static final CriterionRef ADVANCED_FISHING = CriterionRef.parse("tfp:world/advanced_fishing#special_condition");
+    public static final CriterionRef GREATEST_HUNTER = CriterionRef.parse("tfp:world/greatest_hunter#special_condition");
+    public static final CriterionRef THE_FUTURE = CriterionRef.parse("tfp:story/the_future#special_condition");
+    /** {@code world/fishing} tag of the hooked entity. */
+    public static final String SMALL_FISH_TAG = "tfp:small_fish";
+    /** {@code world/advanced_fishing} tag of the hooked entity. */
+    public static final String LARGE_FISH_TAG = "tfp:needs_large_fishing_bait";
+    /** {@code world/greatest_hunter}: the stabbed entity type. */
+    public static final String STAB_TARGET = "tfp:rabbit";
+    /** {@code world/greatest_hunter}: the minimum horizontal distance of the stab, in blocks. */
+    public static final double STAB_DISTANCE = 50;
 
     private static final Set<CriterionRef> ROOTS = Set.of(
         CriterionRef.parse("tfp:story/root#in_game_condition"), CriterionRef.parse("tfp:world/root#in_game_condition"));
@@ -102,6 +118,9 @@ public final class CriteriaMap {
             CriterionRef c = ref(r[0], r[1]);
             put(c, Kind.PENDING);
             pending.put(c, r[2]);
+        }
+        for (CriterionRef c : List.of(FISHING, ADVANCED_FISHING, GREATEST_HUNTER, THE_FUTURE)) {
+            put(c, Kind.EVENT);
         }
         put(GLOBE_HIGH, Kind.POSITION);
         put(GLOBE_LOW, Kind.POSITION);
@@ -212,5 +231,36 @@ public final class CriteriaMap {
             return List.of(EAT_ROTTEN_FOOD);
         }
         return averageNutrition >= FULL_NUTRITION_AVERAGE ? List.of(FULL_NUTRITION) : List.of();
+    }
+
+    /** TFC {@code hooked_entity}: the criteria pulling in an entity of our type id earns (by the two entity type tags). */
+    public List<CriterionRef> hooked(String entityId, BiPredicate<String, String> idInTag) {
+        List<CriterionRef> out = new ArrayList<>(2);
+        if (idInTag.test(entityId, SMALL_FISH_TAG)) {
+            out.add(FISHING);
+        }
+        if (idInTag.test(entityId, LARGE_FISH_TAG)) {
+            out.add(ADVANCED_FISHING);
+        }
+        return out;
+    }
+
+    /** TFC {@code stab_entity}: a javelin hit on {@code entityId} {@code horizontalDistance} blocks from the thrower. */
+    public Optional<CriterionRef> stab(String entityId, double horizontalDistance) {
+        return STAB_TARGET.equals(entityId) && horizontalDistance >= STAB_DISTANCE
+            ? Optional.of(GREATEST_HUNTER) : Optional.empty();
+    }
+
+    /**
+     * TFC {@code ServerCalendar.checkIfInTheFuture}: the calendar date (day clamped to 28, as TFC) is after the real date
+     * {@code today}.
+     */
+    public Optional<CriterionRef> presentDay(java.time.LocalDate today, long calendarTicks, int daysInMonth) {
+        long year = CalendarTicks.year(calendarTicks, daysInMonth);
+        int month = CalendarTicks.month(calendarTicks, daysInMonth).ordinal() + 1;
+        int day = Math.max(1, Math.min(28, CalendarTicks.dayOfMonth(calendarTicks, daysInMonth)));
+        java.time.LocalDate calendar = java.time.LocalDate.of(
+            (int) Math.max(java.time.Year.MIN_VALUE, Math.min(java.time.Year.MAX_VALUE, year)), month, day);
+        return today.isBefore(calendar) ? Optional.of(THE_FUTURE) : Optional.empty();
     }
 }

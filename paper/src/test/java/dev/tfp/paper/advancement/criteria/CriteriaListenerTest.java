@@ -106,4 +106,31 @@ class CriteriaListenerTest extends MockServerTest {
         listener.onPosition(player, new Location(player.getWorld(), 10, 70, 20));
         assertThat(tasks).isEmpty();
     }
+
+    @Test
+    void presentDayAwardsOnlyWhenTheCalendarPassedTheRealDate() {
+        java.time.LocalDate today = java.time.LocalDate.of(2026, 11, 25);
+        long ticksInYear = dev.tfp.core.calendar.CalendarTicks.ticksInYear(8);
+        listener.onClock(today, 500 * ticksInYear, 8, java.util.List.of(player));
+        drain();
+        assertThat(awarded).isEmpty();
+        listener.onClock(today, 1100 * ticksInYear, 8, java.util.List.of(player));
+        drain();
+        assertThat(awarded).containsExactly(CriteriaMap.THE_FUTURE);
+        // Earned: nothing more is queued.
+        listener.onClock(today, 1100 * ticksInYear, 8, java.util.List.of(player));
+        assertThat(tasks).isEmpty();
+    }
+
+    @Test
+    void stabAndHookRulesFollowTfc() {
+        assertThat(CriteriaMap.DEFAULT.stab("tfp:rabbit", 49.9)).isEmpty();
+        assertThat(CriteriaMap.DEFAULT.stab("tfp:rabbit", 50)).contains(CriteriaMap.GREATEST_HUNTER);
+        assertThat(CriteriaMap.DEFAULT.stab("tfp:hare", 80)).isEmpty();
+        assertThat(CriteriaMap.DEFAULT.hooked("tfp:cod", (id, tag) -> tag.equals(CriteriaMap.SMALL_FISH_TAG)))
+            .containsExactly(CriteriaMap.FISHING);
+        assertThat(CriteriaMap.DEFAULT.hooked("tfp:orca", (id, tag) -> tag.equals(CriteriaMap.LARGE_FISH_TAG)))
+            .containsExactly(CriteriaMap.ADVANCED_FISHING);
+        assertThat(CriteriaMap.DEFAULT.hooked("tfp:rabbit", (id, tag) -> false)).isEmpty();
+    }
 }

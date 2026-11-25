@@ -11,6 +11,7 @@ package dev.tfp.paper.advancement.criteria;
 import dev.tfp.core.advancement.CriterionRef;
 import dev.tfp.paper.advancement.Advancements;
 import dev.tfp.paper.animal.AnimalPdc;
+import dev.tfp.paper.javelin.JavelinListener;
 import dev.tfp.paper.player.NutritionFoodEatenEvent;
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import java.util.List;
@@ -24,11 +25,14 @@ import java.util.function.Function;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Trident;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -37,7 +41,8 @@ import org.bukkit.inventory.ItemStack;
  * PAR-DATA-03: awards TFC's advancement criteria from the events of the features that exist, through the
  * {@link Advancements} trigger API and the {@link CriteriaMap} routes: items entering the inventory, eating, a rotten or
  * fully nourishing meal, killing animals, and standing in a biome or beyond 9999 blocks of the equator. Criteria whose
- * feature publishes no event yet stay {@link CriteriaMap.Kind#PENDING}.
+ * feature publishes no event yet stay {@link CriteriaMap.Kind#PENDING}. PAR-DATA-19 adds the Bukkit-event ones:
+ * fishing hooks ({@code hooked_entity}), javelin hits ({@code stab_entity}) and the calendar passing the real date.
  *
  * <p>Game modes: as vanilla, advancements are earned in every game mode (spectators cannot pick up or eat, but walk).
  *
@@ -136,6 +141,48 @@ public final class CriteriaListener implements Listener {
                 advancements.fire(player, c);
             }
         }
+    }
+
+    /** TFC {@code TFCFishingHook.retrieve}: pulling in a hooked entity ({@code hooked_entity}). Player's thread. */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onFish(PlayerFishEvent event) {
+        if (event.getState() != PlayerFishEvent.State.REEL_IN && event.getState() != PlayerFishEvent.State.CAUGHT_ENTITY) {
+            return;
+        }
+        Entity hooked = event.getHook().getHookedEntity();
+        if (hooked == null) {
+            return;
+        }
+        for (CriterionRef c : map.hooked(entityId(hooked), entityInTag)) {
+            advancements.fire(event.getPlayer(), c);
+        }
+    }
+
+    /** TFC {@code ThrownJavelin.onHitEntity}: a javelin thrown by a player hits an entity ({@code stab_entity}). */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onStab(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Trident trident) || !(trident.getShooter() instanceof Player thrower)) {
+            return;
+        }
+        if (itemId.apply(trident.getItemStack()).filter(JavelinListener::isJavelinId).isEmpty()) {
+            return;
+        }
+        Location from = thrower.getLocation();
+        Location to = event.getEntity().getLocation();
+        double horizontal = Math.hypot(to.getX() - from.getX(), to.getZ() - from.getZ());
+        map.stab(entityId(event.getEntity()), horizontal).ifPresent(c -> advancements.fire(thrower, c));
+    }
+
+    /** TFC {@code checkIfInTheFuture}: the calendar passed the real date, every online player earns {@code the_future}. */
+    void onClock(java.time.LocalDate today, long calendarTicks, int daysInMonth,
+            java.util.Collection<? extends Player> online) {
+        map.presentDay(today, calendarTicks, daysInMonth).ifPresent(c -> {
+            for (Player p : online) {
+                if (!advancements.isAwarded(p, c)) {
+                    advancements.fire(p, c);
+                }
+            }
+        });
     }
 
     @EventHandler
