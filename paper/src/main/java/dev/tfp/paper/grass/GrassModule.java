@@ -39,7 +39,8 @@ public final class GrassModule implements FeatureModule {
     public void enable(ModuleContext context) {
         Scheduler scheduler = context.scheduler();
         CustomBlocks blocks = context.integrations().customBlocks();
-        GrassSweeper sweeper = new GrassSweeper(blocks, scheduler, GrassModule::randomTickSpeed);
+        GrassSweeper sweeper = new GrassSweeper(blocks, scheduler, GrassModule::randomTickSpeed)
+            .withRisingRocks(new RisingRocks(blocks, () -> context.clock().get()));
         blocks.onChunkLoad(chunk -> {
             World world = chunk.getWorld();
             long delay = 40 + ThreadLocalRandom.current().nextInt(200);

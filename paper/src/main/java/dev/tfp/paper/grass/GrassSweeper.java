@@ -59,6 +59,7 @@ public final class GrassSweeper {
     private final ToIntFunction<World> randomTickSpeed;
     private final ToLongFunction<World> clock;
     private final Set<Long> inFlight = ConcurrentHashMap.newKeySet();
+    private volatile RisingRocks rocks;
 
     public GrassSweeper(CustomBlocks blocks, Scheduler scheduler, ToIntFunction<World> randomTickSpeed) {
         this(blocks, scheduler, randomTickSpeed, World::getGameTime);
@@ -71,6 +72,12 @@ public final class GrassSweeper {
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.randomTickSpeed = Objects.requireNonNull(randomTickSpeed, "randomTickSpeed");
+    }
+
+    /** PAR-GATHER-14: the rock that rises on grass, decided with each sweep; null (the default) draws none. */
+    public GrassSweeper withRisingRocks(RisingRocks rising) {
+        this.rocks = rising;
+        return this;
     }
 
     /** Region thread of the chunk. Starts a sweep when the chunk is loaded and due; returns whether one started. */
@@ -102,19 +109,33 @@ public final class GrassSweeper {
             inFlight.remove(key);
             return false;
         }
+        RisingRocks rising = this.rocks;
+        Optional<RisingRocks.Snapshot> rise = rising == null ? Optional.empty() : rising.snapshot(world, chunkX, chunkZ,
+            cells.entrySet().stream().filter(e -> SoilTable.isGrassBlock(e.getValue().id())).map(Map.Entry::getKey).toList());
         scheduler.cpu(() -> {
             List<Change> changes;
+            List<BlockPos> risen;
             try {
                 changes = GrassSweepRules.sweep(cells, lambda, ThreadLocalRandom.current());
+                risen = rise.isPresent() ? rising.decide(rise.get(), lambda, ThreadLocalRandom.current()) : List.of();
             } catch (RuntimeException e) {
                 inFlight.remove(key);
                 throw e;
             }
-            if (changes.isEmpty()) {
+            if (changes.isEmpty() && risen.isEmpty()) {
                 inFlight.remove(key);
                 return;
             }
-            scheduler.region(world, chunkX, chunkZ, () -> apply(world, chunkX, chunkZ, new ArrayDeque<>(changes), key));
+            scheduler.region(world, chunkX, chunkZ, () -> {
+                if (!risen.isEmpty()) {
+                    rising.apply(world, risen);
+                }
+                if (changes.isEmpty()) {
+                    inFlight.remove(key);
+                } else {
+                    apply(world, chunkX, chunkZ, new ArrayDeque<>(changes), key);
+                }
+            });
         });
         return true;
     }
