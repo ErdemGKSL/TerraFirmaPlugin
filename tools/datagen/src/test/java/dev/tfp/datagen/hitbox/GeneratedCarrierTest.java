@@ -249,6 +249,10 @@ class GeneratedCarrierTest {
         // PAR-WORLD-47: the plant shapes with dry states (hitbox-only on the berry bush and barrel rows).
         HitboxDemands.PLANT_SHAPE_ROWS.values().forEach(names -> names.forEach(n -> expected.add(HitboxDemands.plantId(n))));
         assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3 + 8 + 41 + 14 + 2 + 1); // + 1: PAR-POT-14 pit kiln; + 8: PAR-FARM-26 farmland, + 41: PAR-FARM-25 growing plants and the PAR-FARM-30 saguaro fruit, + 14: PAR-WORLD-47 plant shapes, + 2: PAR-METAL-16 ingot piles
+        // PAR-WORLD-42 (repair): a farmland on the leaves pool has no explicit state (counted with the pools above)
+        HitboxDemands.FARMLAND_SOILS.stream()
+            .filter(soil -> agreedOrOld(demand(HitboxDemands.farmlandId(soil), HitboxDemands.FARMLAND_APPEARANCE)).pool())
+            .forEach(soil -> expected.remove(HitboxDemands.farmlandId(soil)));
         // PAR-WORLD-31: the loose and mossy loose rocks, small ores and groundcover types; PAR-WORLD-42: the grass paths
         for (String rock : HitboxDemands.LOOSE_ROCKS) {
             HitboxDemands.LOOSE_KINDS.forEach(k -> expected.add(HitboxDemands.looseRockId(k, rock)));
