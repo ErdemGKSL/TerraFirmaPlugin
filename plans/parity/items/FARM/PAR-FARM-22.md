@@ -31,4 +31,6 @@ done_criteria:
 
 # PAR-FARM-22: Creeping and floating plant spread, rising rocks, plant regrowth verification
 
+> Claimed: farm22 worker, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.
