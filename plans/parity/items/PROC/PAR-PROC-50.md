@@ -21,7 +21,7 @@ in_game_steps:
   - "Blank text on a renamed item gives the unnamed item; closing the screen returns the items"
 plan:
   - "Verify the PrepareAnvilEvent result path and the manual result take (cost 0, no vanilla level check) on 1.21.11. If the client greys the result at cost 0, switch the screen to a textured chest-title GUI. Then add TFC's scribing screen art (textures/gui/scribing_table.png via the CE title glyph technique)."
-  - "In-game run 2026-11-25: right-click on the placed table opens no screen (docs/verification/PAR-PROC-50/verdict.md). Pending in-game check; follow-up PAR-PROC-54."
+  - "In-game run 2026-11-25: right-click on the placed table opens no screen (docs/verification/PAR-PROC-50/verdict.md). Pending in-game check; follow-up PAR-PROC-54 (fixed 2026-11-25: screen opens, ink rename and take pass; remaining here: no-ink, creative, blank, close-returns-items)."
 tests:
   - "Screenshots + verdict.md in docs/verification/PAR-PROC-50/"
 done_criteria:

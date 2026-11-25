@@ -79,14 +79,31 @@ public final class ScribingListener implements Listener {
             return; // vanilla: sneaking with an item places it
         }
         event.setCancelled(true);
-        AnvilView view = MenuType.ANVIL.builder().title(Component.translatable("tfc.screen.scribing_table"))
-            .location(block.getLocation().add(0.5, 0.5, 0.5)).checkReachable(true).build(player);
+        // checkReachable(false): vanilla's AnvilMenu.stillValid closes the screen on the first tick when the block is not
+        // a vanilla anvil, and the table is a custom block (PAR-PROC-54). The reach is checked in reachable() instead.
+        AnvilView view = MenuType.ANVIL.builder().title(Component.translatable("tfc.screen.scribing_table", "Rename Items"))
+            .location(block.getLocation().add(0.5, 0.5, 0.5)).checkReachable(false).build(player);
         open.put(player.getUniqueId(), block);
         player.openInventory(view);
     }
 
     boolean isOpen(Player player) {
         return open.containsKey(player.getUniqueId());
+    }
+
+    /** The table is still there and the player within 8 blocks of it (vanilla's stillValid distance), else the screen closes. */
+    private boolean reachable(Player player) {
+        Block block = open.get(player.getUniqueId());
+        if (block == null) {
+            return false;
+        }
+        boolean there = blocks.stateAt(block).filter(s -> s.id().startsWith(BLOCK_PREFIX)).isPresent()
+            && player.getWorld().equals(block.getWorld())
+            && player.getLocation().distanceSquared(block.getLocation().add(0.5, 0.5, 0.5)) <= 64.0;
+        if (!there) {
+            player.closeInventory();
+        }
+        return there;
     }
 
     @EventHandler
@@ -98,6 +115,10 @@ public final class ScribingListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPrepare(PrepareAnvilEvent event) {
         if (!(event.getView().getPlayer() instanceof Player player) || !isOpen(player)) {
+            return;
+        }
+        if (!reachable(player)) {
+            event.setResult(null);
             return;
         }
         AnvilView view = event.getView();
@@ -116,6 +137,9 @@ public final class ScribingListener implements Listener {
             return;
         }
         event.setCancelled(true);
+        if (!reachable(player)) {
+            return;
+        }
         ItemStack result = inv.getResult();
         if (result == null || result.getType().isAir()) {
             return;

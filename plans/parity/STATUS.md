@@ -488,7 +488,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-49 | Scribing table and sewing table blocks (tfp:wood/scribing_table/<wood>, tfp:wood/sewing_table/<wood>) | PROC | 41 | done |
 | PAR-PROC-50 | Scribing table in-game verification and TFC screen art | PROC | 42 | open |
 | PAR-PROC-53 | Sluice in game: water arrival is not noticed, thrown deposits give no loot in 20 s, outline and model check | PROC | 34 | open |
-| PAR-PROC-54 | Scribing table: right-click does not open the screen in game | PROC | 43 | open |
+| PAR-PROC-54 | Scribing table: right-click does not open the screen in game | PROC | 43 | done |
 | PAR-PROC-52 | Glassworking items in CraftEngine and the in-game blowpipe check | PROC | 31 | open |
 | PAR-PROC-51 | Sewing table in-game verification and TFC screen art (tfp:gui/sewing) | PROC | 42 | open |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | done |
