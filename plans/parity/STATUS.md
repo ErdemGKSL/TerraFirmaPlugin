@@ -422,7 +422,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-53 | Visual budget for wood plants: the tripwire pool has 3 free states, saplings, fallen leaves and twigs need 101 | WORLD | 22 | done |
 | PAR-POT-13 | Placed item block: hitbox demand, datagen wiring, config keys, use-duration spike, in-game check | POTTERY | 22 | open |
 | PAR-WORLD-54 | Bubble columns above the CE magma blocks: drag-down columns that survive vanilla's support check, and the hot spring tracker | WORLD | 30 | open |
-| PAR-MECH-03 | Water wheel | MECH | 51 | open |
+| PAR-MECH-03 | Water wheel | MECH | 51 | done |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | open |
 | PAR-MECH-08 | Power loom | MECH | 51 | open |
 | PAR-MECH-09 | Pump and pipes | MECH | 51 | done |
@@ -433,6 +433,8 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-14 | Pump in game: a crankshaft powers a pump that moves water 10 pipes up (PAR-MECH-09 in-game check and crankshaft wiring) | MECH | 52 | open |
 | PAR-MECH-15 | Axle carriers from the hitbox allocation: TFC axle outline rows, demands, RotationBlocks reads the agreed carriers | MECH | 52 | open |
 | PAR-MECH-16 | Rotation in game: PAR-MECH-01 in-game steps and the rotation.stress itest on Paper and Folia | MECH | 53 | open |
+| PAR-MECH-17 | Water wheel and windmill as rotation network sources: source states in core/rotation, the WaterWheelNetwork and WindmillNetwork services | MECH | 53 | open |
+| PAR-MECH-18 | Water wheel and windmill in game: CE blocks, wheel and blade items, spinning models, in-game checks of PAR-MECH-03 and PAR-MECH-04 | MECH | 54 | open |
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |
 | PAR-REL-03 | Dependency and version updates (MC, Paper, Folia, CE, BetterModel, BetterHud) | REL | 52 | done |
 | PAR-REL-04 | Stone-age run self-test | REL | 52 | done |
