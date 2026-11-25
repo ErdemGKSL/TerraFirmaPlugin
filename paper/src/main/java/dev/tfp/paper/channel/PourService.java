@@ -132,6 +132,9 @@ final class PourService {
         if (!running || !world.is(channel, ChannelWorld.CHANNEL)) {
             return Outcome.NO_CRUCIBLE;
         }
+        if (active.isEmpty()) {
+            heal(channel); // a flow left over from before a restart: nothing pours, so it is dead
+        }
         Block crucible = null;
         for (BlockFace face : List.of(BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST)) {
             Block b = channel.getRelative(face);
@@ -181,6 +184,37 @@ final class PourService {
         });
         return Outcome.PLANNING;
     }
+
+    /**
+     * No table is pouring, so a channel that still has a flow keeps it from before a restart or an unload (a table's own
+     * stale source is cleared by its catch-up): the connected net of channels is cleared. Owner threads only; a foreign
+     * cell ends the walk.
+     */
+    private void heal(Block start) {
+        World w = start.getWorld();
+        Set<BlockPos> seen = new HashSet<>();
+        java.util.ArrayDeque<BlockPos> queue = new java.util.ArrayDeque<>();
+        queue.add(ChannelWorld.pos(start));
+        while (!queue.isEmpty() && seen.size() < HEAL_LIMIT) {
+            BlockPos p = queue.poll();
+            if (!seen.add(p) || !world.owns(w, p)) {
+                continue;
+            }
+            Block b = world.at(w, p);
+            Optional<ChannelData> data = world.channel(b);
+            if (data.isEmpty()) {
+                continue;
+            }
+            if (data.get().hasFlow()) {
+                world.writeChannel(b, new ChannelData(null, data.get().fromChannel(), 0, data.get().fluid()));
+            }
+            for (Direction d : List.of(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.DOWN)) {
+                queue.add(p.offset(d));
+            }
+        }
+    }
+
+    static final int HEAL_LIMIT = 256;
 
     /** The crucible's molten alloy: its fluid, the temperature, and whether a flow with {@code expected} may draw from it. */
     record Pourable(String fluid, float temperature) {

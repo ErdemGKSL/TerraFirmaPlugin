@@ -49,6 +49,7 @@ public final class ChannelModule implements FeatureModule {
     private volatile PourService pour;
     private volatile ChannelWorld world;
     private volatile Scheduler scheduler;
+    private volatile dev.tfp.paper.integration.CustomItems items;
     private final List<NeighbourService.Registration> registrations = new ArrayList<>();
     private final List<AutoCloseable> hooks = new ArrayList<>();
 
@@ -90,6 +91,7 @@ public final class ChannelModule implements FeatureModule {
         this.pour = p;
         this.world = w;
         this.scheduler = sch;
+        this.items = ctx.integrations().customItems();
         ctx.services().provide(PourService.class, p);
     }
 
@@ -135,7 +137,9 @@ public final class ChannelModule implements FeatureModule {
     public void debugCommands(DebugTree tree) {
         var activate = Commands.literal("activate").executes(tree.run(ctx -> onPlayer(ctx, this::activate)));
         var info = Commands.literal("info").executes(tree.run(ctx -> onPlayer(ctx, this::info)));
-        tree.add("channel", c -> c.then(Commands.argument("name", StringArgumentType.word()).then(activate).then(info)));
+        var put = Commands.literal("put").then(Commands.argument("item", StringArgumentType.greedyString())
+            .executes(tree.run(ctx -> onPlayer(ctx, p -> put(p, StringArgumentType.getString(ctx, "item"))))));
+        tree.add("channel", c -> c.then(Commands.argument("name", StringArgumentType.word()).then(activate).then(info).then(put)));
     }
 
     private CompletableFuture<Reply> onPlayer(com.mojang.brigadier.context.CommandContext<io.papermc.paper.command.brigadier.CommandSourceStack> ctx,
@@ -158,6 +162,27 @@ public final class ChannelModule implements FeatureModule {
             return Reply.error("debug.channel.no_channel");
         }
         return Reply.ok("debug.channel.activated", p.activate(b).name());
+    }
+
+    /** {@code put <item id>}: the item goes into the mold slot of the mold table the player looks at (an in-game check aid). */
+    private Reply put(Player player, String id) {
+        ChannelWorld w = world;
+        Block b = player.getTargetBlockExact((int) REACH);
+        if (w == null || b == null || !w.is(b, ChannelWorld.TABLE)) {
+            return Reply.error("debug.channel.no_table");
+        }
+        Optional<org.bukkit.inventory.ItemStack> made = items.create(id, 1);
+        if (made.isEmpty()) {
+            return Reply.error("debug.channel.unknown_item", id);
+        }
+        org.bukkit.inventory.ItemStack one = made.get();
+        Optional<DeviceRecord<MoldTableData>> r = w.devices().edit(b, w.tableKind(),
+            (record, now) -> record.withSlot(MoldTableRules.MOLD_SLOT, w.devices().stacks().encode(one)));
+        if (r.isEmpty()) {
+            return Reply.error("debug.channel.no_table");
+        }
+        tableChanged(b);
+        return Reply.ok("debug.channel.put", id);
     }
 
     private Reply info(Player player) {

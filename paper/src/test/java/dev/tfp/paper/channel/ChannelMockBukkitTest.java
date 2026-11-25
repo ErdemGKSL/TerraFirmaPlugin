@@ -182,6 +182,15 @@ class ChannelMockBukkitTest extends MockServerTest {
         assertThat(device.solidify(empty, 0, 10)).isEqualTo(empty);
     }
 
+    @Test
+    void aSourceLeftBehindByARestartIsClearedButALivePourKeepsItsSource() {
+        MoldTableData fed = MoldTableData.IDLE.fed(new dev.tfp.core.world.BlockPos(0, 64, 0), COPPER,
+            new dev.tfp.core.crucible.ChannelFlow.Link(Direction.WEST, 1));
+        DeviceRecord<MoldTableData> pouring = DeviceRecord.fresh(fed, 2);
+        assertThat(device.solidify(pouring, 1000, 1002).state().hasSource()).isTrue();
+        assertThat(device.solidify(pouring, 1000, 1000 + MoldTableDevice.STALE_FLOW_TICKS + 1).state().hasSource()).isFalse();
+    }
+
     private DeviceContext<MoldTableData> click(PlayerMock player, DeviceRecord<MoldTableData> record) {
         return new DeviceContext<>(device.kind(), null, null, player, EquipmentSlot.HAND,
             player.getInventory().getItemInMainHand().clone(), record, now.get(), codec);

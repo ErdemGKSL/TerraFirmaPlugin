@@ -34,6 +34,8 @@ import org.bukkit.inventory.ItemStack;
  */
 final class MoldTableDevice {
     static final String ID = ChannelWorld.TABLE;
+    /** A table that was not touched for this many ticks while it had a source is no longer pouring. */
+    static final long STALE_FLOW_TICKS = 40;
 
     private final MoldItems molds;
     private final PourService pour;
@@ -70,6 +72,10 @@ final class MoldTableDevice {
      * recipe gives its casting to the output slot (an empty one) and is drained. Replayed whenever the table is accessed.
      */
     DeviceRecord<MoldTableData> solidify(DeviceRecord<MoldTableData> record, long from, long to) {
+        if (record.state().hasSource() && to - from > STALE_FLOW_TICKS) {
+            // a pouring table is edited every second tick; a source left over from before a restart or an unload is dead
+            record = record.withState(MoldTableData.IDLE);
+        }
         if (!record.slot(MoldTableRules.OUTPUT_SLOT).isEmpty() || record.slot(MoldTableRules.MOLD_SLOT).isEmpty()) {
             return record;
         }
