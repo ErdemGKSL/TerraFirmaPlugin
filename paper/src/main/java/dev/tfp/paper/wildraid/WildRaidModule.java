@@ -4,7 +4,9 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/entities/prey/TFCFox.java, TFCRabbit.java and TFCArmadillo.java @ c3b4d9536
+ * file: src/main/java/net/dries007/tfc/common/entities/prey/TFCFox.java @ c3b4d9536,
+ *       src/main/java/net/dries007/tfc/common/entities/prey/TFCRabbit.java @ c3b4d9536,
+ *       src/main/java/net/dries007/tfc/common/entities/prey/TFCArmadillo.java @ c3b4d9536
  */
 package dev.tfp.paper.wildraid;
 
@@ -52,6 +54,8 @@ public final class WildRaidModule implements FeatureModule, Listener {
     static final String FOX_TAG = "tfc:fox_raidable";
     static final String RABBIT_TAG = "tfc:rabbit_raidable";
     static final String FARMLAND_TAG = "tfc:farmlands";
+    /** PAR-FAUNA-42: the time slice of one raid search ask (the done criterion is a single call under 0.5 ms). */
+    static final long SEARCH_SLICE_NANOS = 300_000L;
 
     @Override
     public String id() {
@@ -84,8 +88,11 @@ public final class WildRaidModule implements FeatureModule, Listener {
                 return mob.getPathfinder().hasPath();
             }
         };
-        animals.behaviours().register(goalBehaviour(FOX, 10, mob -> new FoxBerryGoal(mob, sites, walker, ThreadLocalRandom.current())));
-        animals.behaviours().register(goalBehaviour(RABBIT, 5, mob -> new RabbitRaidGoal(mob, sites, walker, ThreadLocalRandom.current())));
+        // PAR-FAUNA-42: the block searches run in slices of SEARCH_SLICE_NANOS per ask (200-animal load, under 0.5 ms a call)
+        animals.behaviours().register(goalBehaviour(FOX, 10, mob -> new FoxBerryGoal(mob, sites, walker, ThreadLocalRandom.current(),
+                System::nanoTime, SEARCH_SLICE_NANOS)));
+        animals.behaviours().register(goalBehaviour(RABBIT, 5, mob -> new RabbitRaidGoal(mob, sites, walker,
+                ThreadLocalRandom.current(), System::nanoTime, SEARCH_SLICE_NANOS)));
         animals.behaviours().register(new ArmadilloScuteBehaviour(() -> context.clock().get(), ThreadLocalRandom.current()));
         context.listen(this);
         context.logger().info("Wild raids: fox berries, rabbit garden raids, armadillo scutes on the calendar");

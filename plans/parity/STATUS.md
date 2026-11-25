@@ -526,7 +526,7 @@ Totals: 388 items; open 208, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-57 | In-game verification of PAR-WORLD-31, PAR-WORLD-32 and PAR-WORLD-42: groundcover, boulders and cave rocks in a fresh world; the remaining soil blocks | WORLD | 24 | open |
 | PAR-DECO-21 | Metal bars and chains (follow-up of PAR-DECO-09) | DECO | 49 | open |
 | PAR-FAUNA-33 | 200-animal load: spread the path starts of the livestock and prey goals (single-call spikes) (follow-up of PAR-FAUNA-28) | FAUNA | 56 | blocked |
-| PAR-FAUNA-42 | 200-animal load: the rabbit garden raid and fox berry searches within the tick budget (follow-up of PAR-FAUNA-33) | FAUNA | 57 | open |
+| PAR-FAUNA-42 | 200-animal load: the rabbit garden raid and fox berry searches within the tick budget (follow-up of PAR-FAUNA-33) | FAUNA | 57 | done |
 | PAR-FAUNA-34 | Livestock check hands horse-family mating and birth to the mount module (follow-up of PAR-FAUNA-15) | FAUNA | 46 | done |
 | PAR-FAUNA-35 | Fishing rod items: the 9 TFC metal rods as CE items (follow-up of PAR-FAUNA-18) | FAUNA | 45 | done |
 | PAR-FAUNA-36 | Lobster trap block: the CE block with trap, facing and fluid states (follow-up of PAR-FAUNA-19) | FAUNA | 46 | done |

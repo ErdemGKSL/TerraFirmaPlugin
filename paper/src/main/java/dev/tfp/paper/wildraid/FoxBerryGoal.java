@@ -14,6 +14,7 @@ import dev.tfp.paper.animal.AnimalGoal;
 import dev.tfp.paper.prey.PathBudget;
 import dev.tfp.paper.prey.Ticks;
 import java.util.Optional;
+import java.util.function.LongSupplier;
 import java.util.random.RandomGenerator;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -28,6 +29,9 @@ import org.bukkit.inventory.ItemStack;
  * {@code tfc:fox_raidable} (vanilla's search order, one search 200 to 399 ticks after the last), walks to it, waits 40 ticks
  * within 2 blocks and takes one product, setting the bush to its picked state through the berry module. The product goes
  * into the mouth (main hand).
+ *
+ * <p>PAR-FAUNA-42: the search ({@link RaidScan}, vanilla's order from where the fox stood) runs in time slices of
+ * {@code sliceNanos}, one per ask; the goal answers false until it is done. The mouth and sleep check is TFC's, at the start.
  */
 final class FoxBerryGoal extends AnimalGoal {
     private final RaidSites sites;
@@ -37,12 +41,27 @@ final class FoxBerryGoal extends AnimalGoal {
     private long nextSearch = Long.MIN_VALUE;
     private int waited;
     private int tryTicks;
+    private final LongSupplier clock;
+    private final long sliceNanos;
+    private RaidScan scan;
 
+    /** One search per ask, whole (tests). */
     FoxBerryGoal(Mob fox, RaidSites sites, RaidSites.Walker walker, RandomGenerator random) {
+        this(fox, sites, walker, random, System::nanoTime, RaidScan.UNLIMITED);
+    }
+
+    FoxBerryGoal(Mob fox, RaidSites sites, RaidSites.Walker walker, RandomGenerator random, LongSupplier clock, long sliceNanos) {
         super(fox, "fox_eat_berries", 10, GoalType.MOVE, GoalType.LOOK);
         this.sites = sites;
         this.walker = walker;
         this.random = random;
+        this.clock = clock;
+        this.sliceNanos = sliceNanos;
+    }
+
+    /** Whether a search is under way (between slices). */
+    boolean searching() {
+        return scan != null;
     }
 
     private boolean mouthEmpty() {
@@ -56,6 +75,10 @@ final class FoxBerryGoal extends AnimalGoal {
 
     @Override
     protected boolean wants() {
+        if (scan != null && scan.world() == mob.getWorld()) {
+            return continueSearch();
+        }
+        scan = null;
         long ticks = mob.getTicksLived();
         if (ticks < nextSearch) {
             return false;
@@ -64,7 +87,16 @@ final class FoxBerryGoal extends AnimalGoal {
         if (!FoxBerry.canStart(mouthEmpty(), sleeping())) {
             return false;
         }
-        target = RaidFinder.nearest(mob, FoxBerry.RANGE, FoxBerry.VERTICAL, sites::foxFruiting);
+        scan = RaidScan.around(mob.getLocation(), FoxBerry.RANGE, FoxBerry.VERTICAL, sites::foxFruiting);
+        return continueSearch();
+    }
+
+    private boolean continueSearch() {
+        if (!scan.advance(clock, sliceNanos)) {
+            return false;
+        }
+        target = scan.found();
+        scan = null;
         return target != null;
     }
 
