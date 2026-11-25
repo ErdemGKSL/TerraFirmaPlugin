@@ -410,6 +410,57 @@ class AnvilForgeMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void remoteWorkMovesTheCursorByTheMovementAndNeedsNoHammer() {
+        ingotWithPlan();
+        assertThat(screens.workRemotely(anvil, ForgeStep.HIT_LIGHT, 12, true)).isTrue();
+        ForgingPdc.Forging f = ForgingPdc.read(slot(AnvilSlots.INPUT_MAIN));
+        assertThat(f.work()).isEqualTo(12);
+        assertThat(f.steps().steps()).containsExactly(ForgeStep.HIT_LIGHT);
+        assertThat(damaged.get()).as("the trip hammer damages its own").isZero();
+    }
+
+    @Test
+    void remoteWorkWithForceCompletionStopsAtTheTargetAndCompletes() {
+        ingotWithPlan();
+        assertThat(screens.workRemotely(anvil, ForgeStep.HIT_LIGHT, 12, true)).isTrue();
+        assertThat(screens.workRemotely(anvil, ForgeStep.HIT_LIGHT, 12, true)).isTrue(); // 12 + 1 = 13
+        ItemStack out = slot(AnvilSlots.INPUT_MAIN);
+        assertThat(out.getType()).isEqualTo(Material.IRON_PICKAXE);
+        assertThat(ForgingBonusPdc.read(out)).as("no forging bonus").isEqualTo(ForgingQuality.NONE);
+        assertThat(kept.get()).isEqualTo(1);
+    }
+
+    @Test
+    void remoteWorkTurnsAndClampsTheMovementWhenTheCursorIsPastTheTarget() {
+        ItemStack ingot = new ItemStack(Material.IRON_INGOT);
+        ForgingPdc.write(ingot, new ForgingPdc.Forging(PLAN, 13, 20, ForgeSteps.EMPTY.withStep(ForgeStep.UPSET)));
+        set(AnvilSlots.INPUT_MAIN, ingot);
+        assertThat(screens.workRemotely(anvil, ForgeStep.HIT_LIGHT, 12, true)).isTrue();
+        assertThat(slot(AnvilSlots.INPUT_MAIN).getType()).as("turned to -12, clamped to -7: on the target, completed").isEqualTo(Material.IRON_PICKAXE);
+    }
+
+    @Test
+    void remoteWorkRefusesColdNoPlanAndTheFirstOverwork() {
+        ingotWithPlan();
+        hot = false;
+        assertThat(screens.workRemotely(anvil, ForgeStep.HIT_LIGHT, 12, true)).isFalse();
+        hot = true;
+        assertThat(screens.workRemotely(anvil, ForgeStep.DRAW, -15, false)).as("first hit cannot overwork").isFalse();
+        assertThat(ForgingPdc.read(slot(AnvilSlots.INPUT_MAIN)).work()).isZero();
+        set(AnvilSlots.INPUT_MAIN, new ItemStack(Material.IRON_INGOT));
+        assertThat(screens.workRemotely(anvil, ForgeStep.HIT_LIGHT, 12, true)).as("no forging on the input").isFalse();
+        set(AnvilSlots.INPUT_MAIN, ItemStack.empty());
+        assertThat(screens.workRemotely(anvil, ForgeStep.HIT_LIGHT, 12, true)).isFalse();
+    }
+
+    @Test
+    void remoteWorkPastTheLimitDestroysTheInput() {
+        ingotWithPlan();
+        assertThat(screens.workRemotely(anvil, ForgeStep.UPSET, 200, false)).isTrue();
+        assertThat(StackCodec.isEmpty(slot(AnvilSlots.INPUT_MAIN))).isTrue();
+    }
+
+    @Test
     void theFluxSlotTakesOnlyFluxAndTheHammerSlotOnlyAHammer() {
         GuiSession s = open();
         var catalyst = s.gui().slot(AnvilScreenLayout.CATALYST);

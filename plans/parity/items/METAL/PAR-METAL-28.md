@@ -2,7 +2,7 @@
 id: PAR-METAL-28
 title: "Anvil remote work: TFC AnvilBlockEntity.workRemotely for the trip hammer (the AnvilRemote service)"
 area: METAL
-status: open
+status: done
 wave: 55
 deps: [PAR-METAL-05]
 size: S
@@ -18,6 +18,7 @@ plan:
   - "PAR-MECH-07's trip hammer asks `dev.tfp.paper.triphammer.AnvilRemote` (from `ModuleContext.services()`, AnvilRemote.NONE until provided) for `workRemotely(anvil, ForgeStep.HIT_LIGHT, 12, true)` on the metal anvil in front of it, on the anvil's region thread, and damages its hammer when it returns true."
   - "Port TFC `AnvilBlockEntity.workRemotely(step, movement, forceCompletion)` beside `AnvilForger.work`: no player, no hammer of the anvil (the trip hammer carries its own); false when the input has no forging, when the first hit would overwork (`!isWorked && work == 0 && movement < 0`), when the recipe no longer matches the anvil's tier or the input is too cold; forceCompletion turns and clamps the movement so the cursor never passes the target (`computeTarget`); `addStep(step, movement)`; work outside 0..LIMIT destroys the input (anvil destroy sound); else the forging effects (hit sound, particles), and on `checkComplete` the result with the input's heat kept (no forging bonus: TFC's remote work names no player). Edit the anvil record through `DeviceService.edit` and keep an open anvil screen in step (the AnvilForgeModule access hook)."
   - "Provide it from AnvilForgeModule: `context.services().provide(AnvilRemote.class, ...)`."
+  - "Done: AnvilForger.workRemotely + AnvilForgeScreens.workRemotely, AnvilForgeModule provides AnvilRemote; 5 tests in AnvilForgeMockBukkitTest; ledger row and divergence recorded"
 tests:
   - "paper: workRemotely on a hot bronze ingot with a recipe moves the cursor by 12 toward the target and stops at it, refuses cold or unworkable inputs, completes the recipe, destroys past the limit"
 done_criteria:

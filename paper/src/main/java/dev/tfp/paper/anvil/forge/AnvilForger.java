@@ -176,6 +176,61 @@ public final class AnvilForger {
         return new Outcome(out.withSlot(AnvilSlots.INPUT_MAIN, stacks.encode(worked)), Result.WORKED, null, ForgingQuality.NONE);
     }
 
+    /**
+     * TFC {@code AnvilBlockEntity.workRemotely(step, movement, forceCompletion)}: the step without a player and without the anvil's
+     * hammer (the caller, the trip hammer, damages its own). The movement replaces the step's own; with {@code forceCompletion}
+     * it is turned and clamped so the cursor never passes the work target. No forging bonus (TFC names no player).
+     *
+     * <p>A refused outcome carries the record unchanged; WORKED, DESTROYED and COMPLETED all count as "the anvil was worked".
+     */
+    public Outcome workRemotely(DeviceRecord<AnvilState> record, int tier, ForgeStep step, int movement, boolean forceCompletion) {
+        StackCodec stacks = env.stacks();
+        ItemStack main = stacks.decode(record.slot(AnvilSlots.INPUT_MAIN));
+        ForgingPdc.Forging forging = StackCodec.isEmpty(main) ? null : ForgingPdc.read(main);
+        if (forging == null) {
+            return refused(record, null);
+        }
+        if (!forging.worked() && forging.work() == 0 && movement < 0) {
+            return refused(record, null); // the first hit cannot overwork
+        }
+        Optional<AnvilRecipe> found = env.recipes().get().byId(forging.recipe());
+        if (found.isEmpty()) {
+            return refused(record, null);
+        }
+        AnvilRecipe recipe = found.get();
+        if (!recipe.matches(main, tier, env.ingredients().get()) || !env.heat().canWork(main)) {
+            return refused(record, null);
+        }
+        int move = movement;
+        if (forceCompletion) {
+            int target = forging.target();
+            int cursor = forging.work();
+            if ((move > 0 && cursor > target) || (move < 0 && cursor < target)) {
+                move = -move;
+            }
+            if ((move > 0 && cursor + move > target) || (move < 0 && cursor + move < target)) {
+                move = target - cursor;
+            }
+        }
+        ForgingPdc.Forging next = forging.withStep(step, move);
+        ForgingProgress progress = new ForgingProgress(next.steps(), next.work());
+        if (progress.isDestroyed()) {
+            return new Outcome(record.withSlot(AnvilSlots.INPUT_MAIN, stacks.encode(ItemStack.empty())), Result.DESTROYED, null,
+                ForgingQuality.NONE);
+        }
+        if (recipe.checkComplete(progress, next.target(), env.range().getAsInt())) {
+            ItemStack result = result(recipe);
+            if (result == null) {
+                return refused(record, null); // the result item does not exist (yet): nothing is spent on it
+            }
+            env.heat().keep(main, result);
+            return new Outcome(record.withSlot(AnvilSlots.INPUT_MAIN, stacks.encode(result)), Result.COMPLETED, null, ForgingQuality.NONE);
+        }
+        ItemStack worked = main.clone();
+        ForgingPdc.write(worked, next);
+        return new Outcome(record.withSlot(AnvilSlots.INPUT_MAIN, stacks.encode(worked)), Result.WORKED, null, ForgingQuality.NONE);
+    }
+
     private boolean finishes(AnvilRecipe recipe, ForgingPdc.Forging forging, ForgeStep step) {
         ForgingPdc.Forging next = forging.withStep(step, step.step());
         ForgingProgress progress = new ForgingProgress(next.steps(), next.work());

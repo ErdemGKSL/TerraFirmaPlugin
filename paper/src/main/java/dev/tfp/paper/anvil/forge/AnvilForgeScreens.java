@@ -372,6 +372,47 @@ public final class AnvilForgeScreens {
         }
     }
 
+    /**
+     * TFC {@code AnvilBlockEntity.workRemotely}: works the anvil at {@code block} without a player (the trip hammer). The record is
+     * edited through {@link DeviceService#edit}; the caller keeps an open screen in step (the module's access hook). Region thread
+     * of {@code block}.
+     *
+     * @return true when the anvil was worked (TFC's return value)
+     */
+    public boolean workRemotely(Block block, ForgeStep step, int movement, boolean forceCompletion) {
+        if (!owned(block)) {
+            return false;
+        }
+        Optional<DeviceKind<AnvilState>> kind = kind(block);
+        int tier = blocks.stateAt(block).map(BlockStateRef::id).flatMap(id -> {
+            var t = AnvilTiers.tier(id);
+            return t.isPresent() ? Optional.of(t.getAsInt()) : Optional.<Integer>empty();
+        }).orElse(-1);
+        if (kind.isEmpty() || tier < 0) {
+            return false;
+        }
+        AnvilForger.Outcome[] outcome = new AnvilForger.Outcome[1];
+        Optional<DeviceRecord<AnvilState>> after = devices.edit(block, kind.get(), (record, now) -> {
+            outcome[0] = forger.workRemotely(record, tier, step, movement, forceCompletion);
+            return outcome[0].record();
+        });
+        AnvilForger.Outcome o = outcome[0];
+        if (after.isEmpty() || o == null || o.result() == AnvilForger.Result.REFUSED) {
+            return false;
+        }
+        if (o.result() == AnvilForger.Result.DESTROYED) {
+            block.getWorld().playSound(center(block), Sound.BLOCK_ANVIL_DESTROY, SoundCategory.PLAYERS, 0.4f, 1.0f);
+        } else {
+            forgingEffects(block);
+        }
+        String facing = blocks.stateAt(block).map(s -> s.properties().getOrDefault(AnvilDevice.FACING, "")).orElse("");
+        DeviceRecord<AnvilState> r = after.get();
+        effects.show(block, new AnvilEffects.View(tier, AnvilVisuals.rotation(facing), devices.stacks().decode(r.slot(AnvilSlots.HAMMER)),
+            devices.stacks().decode(r.slot(AnvilSlots.INPUT_MAIN)), devices.stacks().decode(r.slot(AnvilSlots.INPUT_SECOND)),
+            devices.stacks().decode(r.slot(AnvilSlots.CATALYST))));
+        return true;
+    }
+
     /** TFC {@code createForgingEffects}: the hit sound and sparks above the anvil (an explicit action: particles are fine). */
     private void forgingEffects(Block block) {
         block.getWorld().playSound(center(block), dev.tfp.paper.sound.Sounds.ANVIL_HIT, SoundCategory.PLAYERS, 0.4f, 1.0f);

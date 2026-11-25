@@ -29,6 +29,7 @@ import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.recipe.Recipes;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tags.Tags;
+import dev.tfp.paper.triphammer.AnvilRemote;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import java.util.Locale;
@@ -85,6 +86,14 @@ public final class AnvilForgeModule implements FeatureModule {
         metalHook = devices.hook(AnvilDevice.METAL_ID, sync);
         rockHook = devices.hook(AnvilDevice.ROCK_ID, sync);
         context.services().provide(AnvilForgeScreens.class, s);
+        context.services().provide(AnvilRemote.class, (anvil, step, movement, force) -> {
+            sync.before(anvil);
+            try {
+                return s.workRemotely(anvil, step, movement, force);
+            } finally {
+                sync.after(anvil);
+            }
+        });
         this.screens = s;
         this.blocks = context.integrations().customBlocks();
         this.scheduler = context.scheduler();
