@@ -456,6 +456,5 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-24 | Wire SpreadingFruit into the crop device: fruit placement at full growth, crowding limit, fruit sides | FARM | 31 | open |
 | PAR-PROC-46 | Panning in-game verification: deposit pickup, water hint, 6 s pan, small ores | PROC | 33 | open |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | open |
-
 | PAR-DECO-18 | Sandstone stairs, slabs and walls and the calcite spike | DECO | 49 | open |
 | PAR-POT-14 | Pit kiln block: CraftEngine entry, hitboxes and look per stage, config keys, self-test kiln.fire, in-game check | POTTERY | 25 | open |
