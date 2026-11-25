@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already done).
+Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -370,12 +370,13 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-06 | Animal products: milk, wool, eggs; sheared look | FAUNA | 42 | done |
 | PAR-FAUNA-08 | Livestock AI and roster: graze, follow food, herd; all 18 domestic species | FAUNA | 42 | done |
 | PAR-FAUNA-09 | Prey AI and wild animals | FAUNA | 42 | done |
-| PAR-FAUNA-11 | Aquatic animals: fish, squid, jellyfish, dolphins, orcas, manatees; mob buckets | FAUNA | 42 | open |
+| PAR-FAUNA-11 | Aquatic animals: fish, squid, jellyfish, dolphins, orcas, manatees; mob buckets | FAUNA | 42 | done |
 | PAR-FAUNA-22 | Familiarity readout: sneak-looking at a TFC animal within 5 blocks shows its familiarity and pregnancy on the action bar (NP-UI-01 substitute for IngameOverlays.FAMILIARITY) | FAUNA | 42 | done |
 | PAR-FAUNA-07 | Nest box: laying, hatching, GUI | FAUNA | 43 | open |
 | PAR-FAUNA-10 | Predator AI: hunting, home range, sleep schedule, packs | FAUNA | 43 | open |
 | PAR-FAUNA-12 | Amphibians: turtles, penguins, seals, crocodiles, frogs (play dead, land/water) | FAUNA | 43 | open |
 | PAR-FAUNA-13 | Pests and critters: rats raiding containers, lobsters, crayfish, isopods | FAUNA | 43 | open |
+| PAR-FAUNA-25 | Mob bucket items: the 20 TFC fish buckets as CE items (follow-up of PAR-FAUNA-11) | FAUNA | 43 | open |
 | PAR-HUD-20 | Ink splatter: the full-screen ink and glow-ink overlay while the player has tfc:ink / tfc:glow_ink (squid and octopoteuthis hits) | HUD | 43 | open |
 | PAR-FAUNA-14 | Pets: dogs and cats with commands | FAUNA | 44 | open |
 | PAR-FAUNA-15 | Horses, donkeys and mules: riding, breeding, chests | FAUNA | 44 | open |

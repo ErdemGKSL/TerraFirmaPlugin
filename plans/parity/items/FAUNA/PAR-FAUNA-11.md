@@ -2,7 +2,7 @@
 id: PAR-FAUNA-11
 title: "Aquatic animals: fish, squid, jellyfish, dolphins, orcas, manatees; mob buckets"
 area: FAUNA
-status: open
+status: done
 wave: 42
 deps: [PAR-FAUNA-04, PAR-FAUNA-03]
 size: M
@@ -30,6 +30,6 @@ done_criteria:
 
 # PAR-FAUNA-11: Aquatic animals: fish, squid, jellyfish, dolphins, orcas, manatees; mob buckets
 
-> Claimed: FAUNA session, 2026-11-25
-
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+Done: PAR-FAUNA-11 aquatic spawning, squid sizes, bucket pickup/release (core AquaticSpawnsTest, paper AquaticModuleMockBukkitTest 9). Mob bucket items split to PAR-FAUNA-25. Pending in-game check (container cannot run client).

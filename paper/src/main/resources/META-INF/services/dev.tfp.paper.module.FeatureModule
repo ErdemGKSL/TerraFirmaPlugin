@@ -122,3 +122,4 @@ dev.tfp.paper.windmill.WindmillModule
 dev.tfp.paper.anvil.forge.AnvilForgeModule
 dev.tfp.paper.fruittree.GenModule
 dev.tfp.paper.fruittree.SplicModule
+dev.tfp.paper.aquatic.AquaticModule
