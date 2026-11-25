@@ -24,4 +24,6 @@ done_criteria:
 
 # PAR-GATHER-15: Leaves placed by a player are persistent
 
+> Claimed: sub-agent g15, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.
