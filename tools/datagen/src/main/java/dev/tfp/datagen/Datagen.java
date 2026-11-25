@@ -202,6 +202,9 @@ public final class Datagen {
         if (dev.tfp.datagen.berry.BerryBlocks.available(tfc)) { // PAR-FARM-15: tfp:spreading_bush/* entries (bushes, canes, cranberry, dead), models, loot, names
             dev.tfp.datagen.berry.SpreadingBushBlocks.run(tfc, out);
         }
+        if (dev.tfp.datagen.plant.GrowingPlantBlocks.available(tfc)) { // PAR-FARM-25: tfp:plant/* growing shapes (columns, kelp, vines, creepers, epiphytes) as item displays on the hitbox carriers
+            dev.tfp.datagen.plant.GrowingPlantBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.farm.FarmlandBlocks.available(tfc)) { // PAR-FARM-26: tfp:farmland/<soil> entries on the farmland carriers, TFC's models, loot, names; fixtures have none
             dev.tfp.datagen.farm.FarmlandBlocks.run(tfc, out);
         }

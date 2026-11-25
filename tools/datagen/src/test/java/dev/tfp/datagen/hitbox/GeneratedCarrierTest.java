@@ -128,6 +128,8 @@ class GeneratedCarrierTest {
         HitboxDemands.BARREL_WOODS.forEach(w -> expected.add(HitboxDemands.barrelId(w)));
         // PAR-FARM-26: the farmland of each soil (one appearance, TFC's farmland outline).
         HitboxDemands.FARMLAND_SOILS.forEach(soil -> expected.add(HitboxDemands.farmlandId(soil)));
+        // PAR-FARM-25: the 40 growing plants (hitbox-only, every appearance on the body plant outline).
+        HitboxDemands.GROWING_PLANTS.forEach(n -> expected.add(HitboxDemands.growingPlantId(n)));
         expected.addAll(HitboxDemands.candleIds(HitboxDemands.CANDLE_ID));
         expected.addAll(HitboxDemands.candleIds(HitboxDemands.CANDLE_CAKE_ID));
         // PAR-METAL-03: the nine metal anvils (4 facings, hitbox-only) and the seven rock anvils (one appearance each).
@@ -169,7 +171,7 @@ class GeneratedCarrierTest {
                 HitboxDemands.fruitId(tree, "growing_branch")));
         }
         expected.addAll(List.of(HitboxDemands.BANANA_SAPLING_ID, HitboxDemands.BANANA_PLANT_ID, HitboxDemands.BANANA_DEAD_ID));
-        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3 + 8); // + 8: PAR-FARM-26 farmland
+        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3 + 8 + 40); // + 8: PAR-FARM-26 farmland, + 40: PAR-FARM-25 growing plants
         java.util.SortedSet<String> grass = new java.util.TreeSet<>();
         for (String soil : List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol", "podzol", "alfisol", "mollisol")) {
             dev.tfp.datagen.soil.SoilBlocks.GRASS_TYPES.forEach(t -> grass.add("tfp:" + t + "/" + soil));
