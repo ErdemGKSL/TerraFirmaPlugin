@@ -19,6 +19,7 @@
 package dev.tfp.paper.barrel;
 
 import dev.tfp.core.barrel.BarrelData;
+import dev.tfp.paper.device.automation.DeviceAutomation;
 import dev.tfp.core.barrel.BarrelRedstone;
 import dev.tfp.core.barrel.BarrelFluidTransfer;
 import dev.tfp.core.barrel.BarrelRain;
@@ -249,6 +250,24 @@ public final class BarrelDevice {
             return next;
         }
         return write(next, data, instant(block, io, services), stacks);
+    }
+
+    /**
+     * PAR-INFRA-66: the settle a hopper (or minecart) move triggers at once ({@code DeviceAutomation.Spec#settle}); TFC
+     * runs {@code updateFluidIOSlots} within 5 ticks of the insert in {@code serverTick}.
+     */
+    public interface HopperSettle extends DeviceAutomation.Settle {
+    }
+
+    /** The after-move settle of the barrels: {@link #settle} and the fluid surface, as a click would. */
+    @SuppressWarnings("unchecked")
+    static HopperSettle hopperSettle(Services services, StackCodec stacks) {
+        return (record, now, block) -> {
+            DeviceRecord<BarrelData> before = (DeviceRecord<BarrelData>) record;
+            DeviceRecord<BarrelData> after = settle(before, now, services.rain().rainingAbove(block), block, services, stacks);
+            surface(block, before.state(), after.state(), services);
+            return after;
+        };
     }
 
     /** TFC {@code updateFluidIOSlots} once (it repeats every 5 ticks, but after one move the fluid-out slot is full). */

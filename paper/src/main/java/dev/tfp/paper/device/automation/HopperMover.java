@@ -57,6 +57,7 @@ public final class HopperMover {
     private <S> boolean push(Block device, DeviceKind<S> kind, DeviceAutomation.Spec spec, List<Integer> slots,
             Inventory hopper) {
         int[] taken = {-1};
+        spec.screens().edit(device);
         Optional<DeviceRecord<S>> stored = devices.edit(device, kind, (record, now) -> {
             if (spec.locked().test(record.state())) {
                 return record;
@@ -76,12 +77,15 @@ public final class HopperMover {
                     DeviceInventory.Insert<S> r = inv.insert(slot, one);
                     if (StackCodec.isEmpty(r.remainder())) {
                         taken[0] = h;
-                        return fixed(r.inventory().record(), spec);
+                        return fixed(r.inventory().record(), spec, now, device);
                     }
                 }
             }
             return record;
         });
+        if (stored.isPresent() && taken[0] >= 0) {
+            spec.screens().reload(device);
+        }
         if (stored.isEmpty() || taken[0] < 0) {
             return false;
         }
@@ -114,6 +118,7 @@ public final class HopperMover {
             Inventory hopper) {
         int[] target = {-1};
         ItemStack[] moved = {null};
+        spec.screens().edit(device);
         Optional<DeviceRecord<S>> stored = devices.edit(device, kind, (record, now) -> {
             if (spec.locked().test(record.state())) {
                 return record;
@@ -131,11 +136,14 @@ public final class HopperMover {
                 if (j >= 0) {
                     target[0] = j;
                     moved[0] = r.extracted();
-                    return fixed(r.inventory().record(), spec);
+                    return fixed(r.inventory().record(), spec, now, device);
                 }
             }
             return record;
         });
+        if (stored.isPresent() && target[0] >= 0) {
+            spec.screens().reload(device);
+        }
         if (stored.isEmpty() || target[0] < 0) {
             return false;
         }
@@ -164,7 +172,13 @@ public final class HopperMover {
         return -1;
     }
 
-    private static <S> DeviceRecord<S> fixed(DeviceRecord<S> record, DeviceAutomation.Spec spec) {
-        return record.withSlots(spec.afterMove().apply(record.slots()));
+    /**
+     * The slot fix, then the device's world-dependent settle (PAR-INFRA-66: the barrel's fluid IO slots at once, TFC does
+     * it within 5 ticks of the insert).
+     */
+    @SuppressWarnings("unchecked")
+    private static <S> DeviceRecord<S> fixed(DeviceRecord<S> record, DeviceAutomation.Spec spec, long now, Block device) {
+        DeviceRecord<S> slots = record.withSlots(spec.afterMove().apply(record.slots()));
+        return (DeviceRecord<S>) spec.settle().apply(slots, now, device);
     }
 }

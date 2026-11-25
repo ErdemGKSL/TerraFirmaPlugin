@@ -2,7 +2,7 @@
 id: PAR-INFRA-66
 title: "Device automation, screens and barrel: the device screens' own edit/reload instead of the 8-block pause, barrel fluid settle after a hopper insert"
 area: INFRA
-status: open
+status: done
 wave: 21
 deps: [PAR-INFRA-64]
 size: M
@@ -33,6 +33,6 @@ done_criteria:
 
 # PAR-INFRA-66: Device automation, screens and barrel
 
-> Claimed: worker session_011osUpAUVyyokAxf5Kiw72D, 2026-11-25
-
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.
+
+Done: screens keep their own edit/reload around hopper, dropper and minecart moves (`DeviceAutomation.ScreenSync`, `ViewerSync`; the 8-block pause is gone, only a viewer on another Folia region waits); the barrel's fluid IO settles in the same edit (`Spec#settle`, `BarrelDevice.hopperSettle`). Tests: `BarrelHopperAutomationMockBukkitTest` 4 plus the updated automation tests. No in-game check (ui false).

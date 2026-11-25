@@ -19,7 +19,6 @@ import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Location;
@@ -56,16 +55,14 @@ public final class HopperMinecartAutomation implements Listener {
     private final HopperMover mover;
     private final CustomBlocks blocks;
     private final Scheduler scheduler;
-    private final Predicate<Block> viewed;
     private final Logger logger;
 
     public HopperMinecartAutomation(DeviceAutomation automation, HopperMover mover, CustomBlocks blocks, Scheduler scheduler,
-            Predicate<Block> viewed, Logger logger) {
+            Logger logger) {
         this.automation = Objects.requireNonNull(automation, "automation");
         this.mover = Objects.requireNonNull(mover, "mover");
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
-        this.viewed = Objects.requireNonNull(viewed, "viewed");
         this.logger = Objects.requireNonNull(logger, "logger");
     }
 
@@ -119,7 +116,7 @@ public final class HopperMinecartAutomation implements Listener {
             if (!scheduler.isOwner(device.getWorld(), device.getX() >> 4, device.getZ() >> 4)) {
                 return false;
             }
-            if (spec.get().busy().test(device) || viewed.test(device)) {
+            if (spec.get().waiting(device)) {
                 return false;
             }
             SideTable table = spec.get().sides().at(state.get());

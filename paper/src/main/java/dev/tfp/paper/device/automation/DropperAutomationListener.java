@@ -17,7 +17,6 @@ import dev.tfp.paper.scheduler.Scheduler;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Material;
@@ -46,19 +45,17 @@ public final class DropperAutomationListener implements Listener {
     private final HopperMover mover;
     private final CustomBlocks blocks;
     private final Scheduler scheduler;
-    private final Predicate<Block> viewed;
     private final Function<Block, Optional<Inventory>> dropperInventory;
     private final Function<ItemStack, Inventory> scratch;
     private final Logger logger;
 
     public DropperAutomationListener(DeviceAutomation automation, HopperMover mover, CustomBlocks blocks,
-            Scheduler scheduler, Predicate<Block> viewed, Function<Block, Optional<Inventory>> dropperInventory,
+            Scheduler scheduler, Function<Block, Optional<Inventory>> dropperInventory,
             Function<ItemStack, Inventory> scratch, Logger logger) {
         this.automation = Objects.requireNonNull(automation, "automation");
         this.mover = Objects.requireNonNull(mover, "mover");
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
-        this.viewed = Objects.requireNonNull(viewed, "viewed");
         this.dropperInventory = Objects.requireNonNull(dropperInventory, "dropperInventory");
         this.scratch = Objects.requireNonNull(scratch, "scratch");
         this.logger = Objects.requireNonNull(logger, "logger");
@@ -108,7 +105,7 @@ public final class DropperAutomationListener implements Listener {
         if (face.isEmpty() || !scheduler.isOwner(device.getWorld(), device.getX() >> 4, device.getZ() >> 4)) {
             return false;
         }
-        if (spec.get().busy().test(device) || viewed.test(device)) {
+        if (spec.get().waiting(device)) {
             return false;
         }
         ItemStack item = event.getItem().clone();

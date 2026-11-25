@@ -128,6 +128,7 @@ public final class BarrelModule implements FeatureModule {
             stack -> tags.is(stack, BarrelDevice.RODS_WOODEN), effects, rain(services, forcedRain),
             (player, block, blockId) -> open(holder[0], services, player, block, blockId), rackWorld);
         DeviceKind<BarrelData> kind = devices.register(BarrelDevice.kind(barrel, devices.stacks()));
+        context.services().provide(BarrelDevice.HopperSettle.class, BarrelDevice.hopperSettle(barrel, devices.stacks()));
         tap[0] = new BarrelRackTap(devices, kind, barrel, devices.stacks(), scheduler);
         racks = rackWorld;
         context.listen(rackWorld);

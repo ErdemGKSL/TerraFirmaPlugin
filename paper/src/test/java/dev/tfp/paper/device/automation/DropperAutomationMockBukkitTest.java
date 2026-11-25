@@ -42,6 +42,26 @@ class DropperAutomationMockBukkitTest extends MockServerTest {
     private final HopperAutomationMockBukkitTest.MemoryStore store = new HopperAutomationMockBukkitTest.MemoryStore();
     private final HopperAutomationMockBukkitTest.TableCodec stacks = new HopperAutomationMockBukkitTest.TableCodec();
     private final AtomicBoolean screen = new AtomicBoolean(false);
+    /** A screen of every device kind: {@code screen} says its viewer is in another region; edits and reloads are counted. */
+    private final java.util.concurrent.atomic.AtomicInteger edits = new java.util.concurrent.atomic.AtomicInteger();
+    private final java.util.concurrent.atomic.AtomicInteger reloads = new java.util.concurrent.atomic.AtomicInteger();
+    private final DeviceAutomation.ScreenSync sync = new DeviceAutomation.ScreenSync() {
+        @Override
+        public boolean unsyncable(org.bukkit.block.Block device) {
+            return screen.get();
+        }
+
+        @Override
+        public void edit(org.bukkit.block.Block device) {
+            edits.incrementAndGet();
+        }
+
+        @Override
+        public void reload(org.bukkit.block.Block device) {
+            reloads.incrementAndGet();
+        }
+    };
+
     private final AtomicBoolean enabled = new AtomicBoolean(true);
     private DeviceKind<HopperAutomationMockBukkitTest.Plain> quern;
     private DropperAutomationListener listener;
@@ -70,10 +90,10 @@ class DropperAutomationMockBukkitTest extends MockServerTest {
             .filter((slot, stack) -> slot != 0 || stack.getType() == Material.STONE).build());
         DeviceAutomation automation = new DeviceAutomation();
         automation.register(DeviceAutomation.Spec.of(DeviceAutomationModule.QUERN, state -> TfcSideTables.quern())
-            .withEnabled(enabled::get));
+            .withEnabled(enabled::get).withScreens(sync));
         dropperInv = server.createInventory(null, InventoryType.DROPPER);
         listener = new DropperAutomationListener(automation, new HopperMover(devices), blocks, scheduler(),
-            b -> screen.get(), b -> Optional.of(dropperInv), item -> {
+            b -> Optional.of(dropperInv), item -> {
                 Inventory hand = server.createInventory(null, InventoryType.HOPPER);
                 hand.setItem(0, item);
                 return hand;

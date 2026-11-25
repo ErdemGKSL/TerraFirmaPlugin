@@ -43,6 +43,26 @@ class HopperMinecartAutomationMockBukkitTest extends MockServerTest {
     private final HopperAutomationMockBukkitTest.TableCodec stacks = new HopperAutomationMockBukkitTest.TableCodec();
     private final AtomicBoolean owner = new AtomicBoolean(true);
     private final AtomicBoolean screen = new AtomicBoolean(false);
+    /** A screen of every device kind: {@code screen} says its viewer is in another region; edits and reloads are counted. */
+    private final java.util.concurrent.atomic.AtomicInteger edits = new java.util.concurrent.atomic.AtomicInteger();
+    private final java.util.concurrent.atomic.AtomicInteger reloads = new java.util.concurrent.atomic.AtomicInteger();
+    private final DeviceAutomation.ScreenSync sync = new DeviceAutomation.ScreenSync() {
+        @Override
+        public boolean unsyncable(org.bukkit.block.Block device) {
+            return screen.get();
+        }
+
+        @Override
+        public void edit(org.bukkit.block.Block device) {
+            edits.incrementAndGet();
+        }
+
+        @Override
+        public void reload(org.bukkit.block.Block device) {
+            reloads.incrementAndGet();
+        }
+    };
+
     private final AtomicReference<AutomationRules.Switches> switches =
         new AtomicReference<>(AutomationRules.Switches.TFC_DEFAULTS);
     private DeviceService devices;
@@ -95,9 +115,10 @@ class HopperMinecartAutomationMockBukkitTest extends MockServerTest {
         quern = devices.register(DeviceKind.builder(DeviceAutomationModule.QUERN, HopperAutomationMockBukkitTest.PLAIN,
             new HopperAutomationMockBukkitTest.Plain(0)).slots(3).slotLimit(slot -> slot == 0 ? 1 : 64).build());
         DeviceAutomation registry = new DeviceAutomation();
-        DeviceAutomationModule.registerDefaults(registry, switches::get, new ArrayList<>());
+        DeviceAutomationModule.registerDefaults(registry, switches::get, new ArrayList<>(), kind -> sync,
+            DeviceAutomation.Settle.NONE);
         automation = new HopperMinecartAutomation(registry, new HopperMover(devices), blocks, scheduler(),
-            b -> screen.get(), Logger.getLogger("test"));
+            Logger.getLogger("test"));
     }
 
     private Block quernAt(int x, int y, int z) {

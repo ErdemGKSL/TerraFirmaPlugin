@@ -122,6 +122,26 @@ class HopperAutomationMockBukkitTest extends MockServerTest {
     private final TableCodec stacks = new TableCodec();
     private final AtomicBoolean owner = new AtomicBoolean(true);
     private final AtomicBoolean screen = new AtomicBoolean(false);
+    /** A screen of every device kind: {@code screen} says its viewer is in another region; edits and reloads are counted. */
+    private final java.util.concurrent.atomic.AtomicInteger edits = new java.util.concurrent.atomic.AtomicInteger();
+    private final java.util.concurrent.atomic.AtomicInteger reloads = new java.util.concurrent.atomic.AtomicInteger();
+    private final DeviceAutomation.ScreenSync sync = new DeviceAutomation.ScreenSync() {
+        @Override
+        public boolean unsyncable(org.bukkit.block.Block device) {
+            return screen.get();
+        }
+
+        @Override
+        public void edit(org.bukkit.block.Block device) {
+            edits.incrementAndGet();
+        }
+
+        @Override
+        public void reload(org.bukkit.block.Block device) {
+            reloads.incrementAndGet();
+        }
+    };
+
     private DeviceService devices;
     private DeviceKind<BarrelData> barrel;
     private DeviceKind<Plain> quern;
@@ -147,10 +167,11 @@ class HopperAutomationMockBukkitTest extends MockServerTest {
     private void wire(AutomationRules.Switches initial) {
         switches.set(initial);
         DeviceAutomation automation = new DeviceAutomation();
-        DeviceAutomationModule.registerDefaults(automation, switches::get, new ArrayList<>());
+        DeviceAutomationModule.registerDefaults(automation, switches::get, new ArrayList<>(), kind -> sync,
+            DeviceAutomation.Settle.NONE);
         port = new Port(server.createInventory(null, InventoryType.HOPPER));
         listener = new HopperAutomationListener(automation, new HopperMover(devices), blocks, scheduler(),
-            b -> Optional.of(port), b -> screen.get(), Logger.getLogger("test"));
+            b -> Optional.of(port), Logger.getLogger("test"));
     }
 
     @BeforeEach
@@ -328,12 +349,5 @@ class HopperAutomationMockBukkitTest extends MockServerTest {
         assertThat(a.find("tfp:woodpile")).isEmpty();
         r.close();
         assertThat(a.find("tfp:wood/barrel/oak")).contains(wide);
-    }
-
-    @Test
-    void aPlayerWithoutATfpScreenDoesNotPauseAutomation() {
-        Block q = device(4, 64, 0, BlockStateRef.of("tfp:quern"));
-        server.addPlayer().teleport(q.getLocation().add(1, 0, 0));
-        assertThat(HopperAutomationListener.screenNearby(q)).isFalse();
     }
 }

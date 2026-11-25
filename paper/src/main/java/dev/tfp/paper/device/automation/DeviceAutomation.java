@@ -8,6 +8,7 @@
  */
 package dev.tfp.paper.device.automation;
 
+import dev.tfp.core.device.DeviceRecord;
 import dev.tfp.core.device.ItemBlob;
 import dev.tfp.core.device.automation.SideTable;
 import dev.tfp.paper.integration.BlockStateRef;
@@ -45,6 +46,46 @@ public final class DeviceAutomation {
     }
 
     /**
+     * A change of the record after a move that needs the world (TFC's {@code serverTick}: the barrel's fluid IO slots
+     * settle within 5 ticks of a hopper insert; here at once). Region thread of the device.
+     */
+    @FunctionalInterface
+    public interface Settle {
+        Settle NONE = (record, now, block) -> record;
+
+        DeviceRecord<?> apply(DeviceRecord<?> record, long now, Block block);
+    }
+
+    /**
+     * PAR-INFRA-66: a device's open screen, kept in step with a hopper move instead of pausing automation near any screen.
+     * The screen keeps a copy of the slots; {@link #edit} commits it before the move, {@link #reload} re-reads the device
+     * into it after, so nothing dupes or is lost. {@link #unsyncable} is true when the viewer is on another region (Folia),
+     * where neither can run inline: the move then waits. Region thread of the device.
+     */
+    public interface ScreenSync {
+        ScreenSync NONE = new ScreenSync() {
+            @Override
+            public boolean unsyncable(Block device) {
+                return false;
+            }
+
+            @Override
+            public void edit(Block device) {
+            }
+
+            @Override
+            public void reload(Block device) {
+            }
+        };
+
+        boolean unsyncable(Block device);
+
+        void edit(Block device);
+
+        void reload(Block device);
+    }
+
+    /**
      * One device kind's automation.
      *
      * @param kindId   the device kind id ({@code DeviceKind#id}; covers {@code id} and {@code id/...})
@@ -53,9 +94,11 @@ public final class DeviceAutomation {
      * @param locked   TFC's {@code canModify} gate on the record's state (a sealed barrel or keg refuses both ways)
      * @param afterMove the slot fix after a move (the firepit's fuel cascade)
      * @param busy     a device-specific reason to wait (the block on the region thread); the hopper retries
+     * @param settle   the world-dependent change of the record after a move (the barrel's fluid IO)
+     * @param screens  the open screen of the device (edit before, reload after the move)
      */
     public record Spec(String kindId, Sides sides, BooleanSupplier enabled, Predicate<Object> locked, SlotFix afterMove,
-            Predicate<Block> busy) {
+            Predicate<Block> busy, Settle settle, ScreenSync screens) {
         public Spec {
             Objects.requireNonNull(kindId, "kindId");
             Objects.requireNonNull(sides, "sides");
@@ -63,27 +106,43 @@ public final class DeviceAutomation {
             Objects.requireNonNull(locked, "locked");
             Objects.requireNonNull(afterMove, "afterMove");
             Objects.requireNonNull(busy, "busy");
+            Objects.requireNonNull(settle, "settle");
+            Objects.requireNonNull(screens, "screens");
         }
 
         /** Enabled, never locked, no slot fix, never busy. */
         public static Spec of(String kindId, Sides sides) {
-            return new Spec(kindId, sides, () -> true, state -> false, SlotFix.NONE, block -> false);
+            return new Spec(kindId, sides, () -> true, state -> false, SlotFix.NONE, block -> false, Settle.NONE,
+                ScreenSync.NONE);
         }
 
         public Spec withEnabled(BooleanSupplier value) {
-            return new Spec(kindId, sides, value, locked, afterMove, busy);
+            return new Spec(kindId, sides, value, locked, afterMove, busy, settle, screens);
         }
 
         public Spec withLocked(Predicate<Object> value) {
-            return new Spec(kindId, sides, enabled, value, afterMove, busy);
+            return new Spec(kindId, sides, enabled, value, afterMove, busy, settle, screens);
         }
 
         public Spec withAfterMove(SlotFix value) {
-            return new Spec(kindId, sides, enabled, locked, value, busy);
+            return new Spec(kindId, sides, enabled, locked, value, busy, settle, screens);
         }
 
         public Spec withBusy(Predicate<Block> value) {
-            return new Spec(kindId, sides, enabled, locked, afterMove, value);
+            return new Spec(kindId, sides, enabled, locked, afterMove, value, settle, screens);
+        }
+
+        public Spec withSettle(Settle value) {
+            return new Spec(kindId, sides, enabled, locked, afterMove, busy, value, screens);
+        }
+
+        public Spec withScreens(ScreenSync value) {
+            return new Spec(kindId, sides, enabled, locked, afterMove, busy, settle, value);
+        }
+
+        /** Whether a move has to wait: the device's own reason, or an open screen that cannot be kept in step. */
+        public boolean waiting(Block device) {
+            return busy.test(device) || screens.unsyncable(device);
         }
 
         /** {@code DeviceKind#covers}: the id itself or one of its sub-ids. */

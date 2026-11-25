@@ -12,21 +12,17 @@ package dev.tfp.paper.device.automation;
 import dev.tfp.core.device.automation.AutomationRules;
 import dev.tfp.core.device.automation.Face;
 import dev.tfp.core.device.automation.SideTable;
-import dev.tfp.paper.gui.GuiService;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Hopper;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.HopperInventorySearchEvent;
@@ -40,15 +36,13 @@ import org.bukkit.inventory.Inventory;
  * inventory stays empty, so the hopper itself moves nothing (no virtual inventory that could lose items).
  *
  * <p>Refused (the hopper simply retries on its next attempt): automation off for the kind, the device owned by another
- * region (Folia), a sealed device, a device-specific busy reason, or a TFP screen open within {@value #SCREEN_RANGE}
- * blocks (the screens keep a copy of the slots and commit it later; a move while one is open could dupe or lose items).
+ * region (Folia), a sealed device, a device-specific busy reason, or the device's open screen viewed from another region
+ * (PAR-INFRA-66: a screen on this region is kept in step by {@link DeviceAutomation.ScreenSync}: its copy is committed
+ * before the move and reloaded after, so no pause is needed near an open screen).
  *
  * <p>Threads: the event runs on the hopper's region thread.
  */
 public final class HopperAutomationListener implements Listener {
-    /** Range in blocks in which an open TFP screen pauses automation. */
-    public static final double SCREEN_RANGE = 8.0;
-
     /** The hopper's inventory and cooldown (tests replace it). */
     public interface HopperPort {
         Inventory inventory();
@@ -89,29 +83,16 @@ public final class HopperAutomationListener implements Listener {
     private final CustomBlocks blocks;
     private final Scheduler scheduler;
     private final Ports ports;
-    private final Predicate<Block> viewed;
     private final Logger logger;
 
     public HopperAutomationListener(DeviceAutomation automation, HopperMover mover, CustomBlocks blocks,
-            Scheduler scheduler, Ports ports, Predicate<Block> viewed, Logger logger) {
+            Scheduler scheduler, Ports ports, Logger logger) {
         this.automation = Objects.requireNonNull(automation, "automation");
         this.mover = Objects.requireNonNull(mover, "mover");
         this.blocks = Objects.requireNonNull(blocks, "blocks");
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.ports = Objects.requireNonNull(ports, "ports");
-        this.viewed = Objects.requireNonNull(viewed, "viewed");
         this.logger = Objects.requireNonNull(logger, "logger");
-    }
-
-    /** A TFP screen ({@link GuiService#session}) is open for a player within {@link #SCREEN_RANGE} of {@code device}. */
-    public static boolean screenNearby(Block device) {
-        Location centre = device.getLocation().add(0.5, 0.5, 0.5);
-        for (Player p : device.getWorld().getNearbyPlayers(centre, SCREEN_RANGE)) {
-            if (GuiService.session(p.getOpenInventory().getTopInventory()) != null) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @EventHandler
@@ -151,7 +132,7 @@ public final class HopperAutomationListener implements Listener {
         if (!scheduler.isOwner(device.getWorld(), device.getX() >> 4, device.getZ() >> 4)) {
             return false;
         }
-        if (spec.get().busy().test(device) || viewed.test(device)) {
+        if (spec.get().waiting(device)) {
             return false;
         }
         Optional<HopperPort> port = ports.at(hopper);

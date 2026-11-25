@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -127,6 +128,41 @@ public final class GrillScreens {
     public Optional<GuiSession> viewer(Object key) {
         GuiSession s = open.get(key);
         return s == null || s.closed() ? Optional.empty() : Optional.of(s);
+    }
+
+    /**
+     * PAR-INFRA-66: the key of the open screen at {@code block} (the module's screen key is a record of the world id and
+     * the block position; it is package-private there, so it is matched by its components).
+     */
+    public Optional<Object> keyAt(Block block) {
+        for (Map.Entry<Object, GuiSession> e : open.entrySet()) {
+            if (!e.getValue().closed() && atBlock(e.getKey(), block)) {
+                return Optional.of(e.getKey());
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static boolean atBlock(Object key, Block block) {
+        if (!(key instanceof Record record)) {
+            return false;
+        }
+        try {
+            Object[] v = new Object[4];
+            int i = 0;
+            for (java.lang.reflect.RecordComponent c : record.getClass().getRecordComponents()) {
+                if (i >= 4) {
+                    return false;
+                }
+                java.lang.reflect.Method m = c.getAccessor();
+                m.setAccessible(true);
+                v[i++] = m.invoke(record);
+            }
+            return i == 4 && block.getWorld().getUID().equals(v[0]) && Integer.valueOf(block.getX()).equals(v[1])
+                && Integer.valueOf(block.getY()).equals(v[2]) && Integer.valueOf(block.getZ()).equals(v[3]);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return false;
+        }
     }
 
     public int openCount() {
