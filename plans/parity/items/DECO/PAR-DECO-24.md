@@ -35,4 +35,6 @@ done_criteria:
 
 # PAR-DECO-24: Crate storage, buoys and cakes (follow-up of PAR-DECO-12)
 
+> Claimed: claude session_011osUp8LgspZkGFjFNWFDqQ (DECO helper), 2026-11-25
+
 All fields live in the front matter above. Follow `plans/parity/PROTOCOL.md`. PAR-DECO-12 shipped the crates and the palm mosaic as renderer cubes (`dev.tfp.datagen.misc.MiscCubes`, `configuration/misc/cubes.yml`); `BlockCoverage` names this item as owner of what is left.
