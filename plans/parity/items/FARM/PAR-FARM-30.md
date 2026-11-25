@@ -2,7 +2,7 @@
 id: PAR-FARM-30
 title: "Growing plant shapes, part 3: per-shape outlines and the saguaro fruit block"
 area: FARM
-status: open
+status: done
 wave: 37
 deps: [PAR-FARM-29]
 size: M
@@ -28,6 +28,7 @@ in_game_steps:
 plan:
   - "PAR-FARM-25 serves every growing plant on one 14 x 16 x 14 outline row. TFC's own: BodyPlantBlock WEEPING_SHAPE (4,9,4)-(12,16,12), TWISTING_SHAPE (4,0,4)-(12,15,12), THIN_BODY_SHAPE (5,0,5)-(11,16,11), TWISTING_THIN_SHAPE (5,0,5)-(11,12,11), BODY_SHAPE; CreepingPlantBlock six face boxes (2 px slabs, combined per state); EpiphytePlantBlock four side boxes (12 px deep); the kelp tree flower (1..15 cube); the pipe plants' PipeBlock(0.3125) outline per connection pattern. Add one tfc-shapes row per shape and have GrowingPlantBlocks pick the row per block type (HitboxDemands carries one demand per pattern, as the fruit branches do)."
   - "CACTUS_FLOWER (saguaro_fruit) and CACTUS (barrel_cactus) are written by neither generator; PlantBlockGen.TYPES leaves them out. Write tfp:plant/saguaro_fruit so GrowingBranchingCactusBlock.tryFruit (CactusGrowth.FRUIT) places it."
+  - "Done: tfc-shapes rows per shape (BodyPlantBlock WEEPING/TWISTING/THIN/TWISTING_THIN, KelpTreeFlowerBlock, PlantBlock.PLANT_SHAPE, EpiphytePlantBlock walls, CreepingPlantBlock slabs, vine faces, 0.3125 pipes; the solid columns and cacti collide), HitboxDemands one demand per shape tag (GROWING_TYPES), GrowingPlantBlocks names appearances <tag>_<n> and writes tfp:plant/saguaro_fruit (CACTUS_FLOWER, one state). The carrier budget fits only a handful of free outline states, so vines, creepers, kelp trees and cacti are served per face / trunk, not per face combination (ledger divergence). Tests: GrowingPlantBlocksTest (5), GeneratedCarrierTest count 41, TfcShapesTest. Pending in-game check (container cannot run client)"
 tests:
   - "datagen: GeneratedCarrierTest pins the new rows; GrowingPlantBlocksTest checks the per-shape row of each block type"
 done_criteria:
@@ -35,7 +36,5 @@ done_criteria:
 ---
 
 # PAR-FARM-30: Growing plant shapes, part 3
-
-> Claimed: outline worker, 2026-11-25
 
 Follow-up of PAR-FARM-29. Follow `plans/parity/PROTOCOL.md`.

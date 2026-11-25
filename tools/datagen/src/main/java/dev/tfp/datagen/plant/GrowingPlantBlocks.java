@@ -30,6 +30,7 @@ import dev.tfp.datagen.device.DeviceProperty;
 import dev.tfp.datagen.device.DeviceYaml;
 import dev.tfp.datagen.hitbox.HitboxAllocation;
 import dev.tfp.datagen.hitbox.HitboxDemands;
+import dev.tfp.datagen.hitbox.TfcShapes;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -54,18 +55,21 @@ import java.util.regex.Pattern;
  * six faces and the fluid, the kelp flower {@code age} 0..5, the six-way {@code facing} and the fluid, the saguaro head
  * {@code grows_branches}, an epiphyte the four horizontal facings.
  *
- * <p><b>Look and hitbox.</b> Every block is hitbox-only on the one shared outline row ({@link HitboxDemands#GROWING_PLANT_KEY},
- * no collision) with TFC's blockstate models as item displays (one per applying multipart model; tinted ones baked with the
- * default climate colour as {@code PlantBlockGen}). The outline is one full-height box where TFC has a different one per
- * shape (ledger divergence). Settings are the plants' (instant break, grass sounds; cacti 0.25 and wool), loot is TFC's
- * table, the items TFC's item models.
+ * <p><b>Look and hitbox.</b> Every block is hitbox-only (no TFC-shaped vanilla carrier is drawn) with TFC's blockstate
+ * models as item displays (one per applying multipart model; tinted ones baked with the default climate colour as
+ * {@code PlantBlockGen}). PAR-FARM-30: the outline is TFC's per shape ({@link TfcShapes#growingTag}): the column body and
+ * head boxes, the thin kelp boxes, the kelp flower cube, the 2 px creeper slabs per face, the epiphyte walls, vanilla's vine
+ * faces and the 0.3125 pipe of the kelp tree and the branching cacti; the solid columns and the cacti collide. An
+ * appearance is one look on one shape ({@code <tag>_<n>}). {@code saguaro_fruit} (TFC {@code CACTUS_FLOWER}, the fruit
+ * {@code GrowingBranchingCactusBlock.tryFruit} places) has one state on {@code PlantBlock.PLANT_SHAPE}. Settings are the
+ * plants' (instant break, grass sounds; cacti 0.25 and wool), loot is TFC's table, the items TFC's item models.
  */
 public final class GrowingPlantBlocks {
     public static final String OUTPUT_DIR = "craftengine/tfp/configuration/plant/growing/";
     static final String LANG_RP = "craftengine/tfp/resourcepack/assets/tfp_plant_growing/lang/";
     static final Set<String> TYPES = Set.of("VINE", "WEEPING", "WEEPING_TOP", "TWISTING", "TWISTING_TOP", "TWISTING_TOP_SHORT",
         "TWISTING_SOLID", "TWISTING_SOLID_TOP", "KELP", "KELP_TOP", "KELP_TREE", "KELP_TREE_FLOWER", "BRANCHING_CACTUS",
-        "BRANCHING_CACTUS_TOP", "CREEPING", "CREEPING_STONE", "EPIPHYTE", "PERCHED_EPIPHYTE");
+        "BRANCHING_CACTUS_TOP", "CREEPING", "CREEPING_STONE", "EPIPHYTE", "PERCHED_EPIPHYTE", "CACTUS_FLOWER");
     /** TFC's {@code NO_ITEM_TYPES} among {@link #TYPES}: the bodies have no block item. */
     static final Set<String> NO_ITEM = Set.of("WEEPING", "TWISTING_SOLID", "KELP", "KELP_TREE", "TWISTING", "BRANCHING_CACTUS");
     static final Set<String> FOLIAGE = Set.of("WEEPING", "WEEPING_TOP", "TWISTING", "TWISTING_TOP", "TWISTING_SOLID",
@@ -112,7 +116,7 @@ public final class GrowingPlantBlocks {
     static List<DeviceProperty> properties(String type) {
         List<DeviceProperty> p = new ArrayList<>();
         switch (type) {
-            case "WEEPING", "TWISTING", "TWISTING_SOLID", "PERCHED_EPIPHYTE" -> { }
+            case "WEEPING", "TWISTING", "TWISTING_SOLID", "PERCHED_EPIPHYTE", "CACTUS_FLOWER" -> { }
             case "WEEPING_TOP", "TWISTING_TOP", "TWISTING_TOP_SHORT", "TWISTING_SOLID_TOP" -> p.add(DeviceProperty.range("age", 0, 25, 0));
             case "KELP" -> p.add(DeviceProperty.names("fluid", FLUIDS, "empty"));
             case "KELP_TOP" -> {
@@ -254,6 +258,12 @@ public final class GrowingPlantBlocks {
             throw new DatagenException("TFC's growing plants " + names + " differ from HitboxDemands.GROWING_PLANTS "
                 + HitboxDemands.GROWING_PLANTS);
         }
+        for (Growing g : plants) {
+            if (!g.type().equals(HitboxDemands.GROWING_TYPES.get(g.name()))) {
+                throw new DatagenException(g.name() + " is " + g.type() + " in TFC but " + HitboxDemands.GROWING_TYPES.get(g.name())
+                    + " in HitboxDemands.GROWING_TYPES");
+            }
+        }
         String src = tfc.readString(PlantBlockGen.PLANT_JAVA);
         PlantBlockGen.Assets assets = new PlantBlockGen.Assets(tfc, out);
         Map<String, Object> renderItems = new LinkedHashMap<>();
@@ -278,26 +288,28 @@ public final class GrowingPlantBlocks {
         String tint = tint(javaSrc, p.name().toUpperCase(Locale.ROOT), p.type());
         List<DeviceProperty> props = properties(p.type());
         DeviceBlockSpec.Builder b = DeviceBlockSpec.builder(p.id()).properties(props);
-        HitboxAllocation.Assignment a = HitboxAllocation.agreed(p.id(), HitboxDemands.GROWING_PLANT_PATTERN);
-        if (a.mode() != HitboxAllocation.Mode.HITBOX_ONLY) {
-            throw new DatagenException(p.id() + " got a " + a.mode() + " carrier; GrowingPlantBlocks draws item displays");
-        }
-        DeviceAppearance.Carrier carrier = DeviceAppearance.Carrier.state(a.state());
-        if (a.hideTarget() != null && !a.pool()) {
-            b.stateMapping(a.state(), a.hideTarget());
-        }
         Map<String, String> byLook = new LinkedHashMap<>();
         Map<String, String> byState = new LinkedHashMap<>();
         Set<String> declared = new LinkedHashSet<>();
         for (Map<String, String> state : DeviceBlockSpec.combinations(props)) {
             List<Part> parts = look(bs, bsPath, state);
-            StringBuilder lookKey = new StringBuilder();
+            String tag = TfcShapes.growingTag(p.type(), state);
+            StringBuilder lookKey = new StringBuilder(tag).append('|');
             for (Part part : parts) {
                 lookKey.append(part.model()).append('/').append(part.x()).append('/').append(part.y()).append(';');
             }
             String name = byLook.get(lookKey.toString());
             if (name == null) {
-                name = "plant_" + byLook.size();
+                name = tag + "_" + byLook.size();
+                HitboxAllocation.Assignment a = HitboxAllocation.agreed(p.id(), TfcShapes.growingPattern(tag));
+                if (a.mode() != HitboxAllocation.Mode.HITBOX_ONLY) {
+                    throw new DatagenException(p.id() + "#" + tag + " got a " + a.mode()
+                        + " carrier; GrowingPlantBlocks draws item displays");
+                }
+                DeviceAppearance.Carrier carrier = DeviceAppearance.Carrier.state(a.state());
+                if (a.hideTarget() != null && !a.pool()) {
+                    b.stateMapping(a.state(), a.hideTarget());
+                }
                 byLook.put(lookKey.toString(), name);
                 List<DeviceAppearance.Renderer> renderers = new ArrayList<>();
                 for (Part part : parts) {
@@ -368,7 +380,7 @@ public final class GrowingPlantBlocks {
         Map<String, Object> s = new LinkedHashMap<>();
         s.put("hardness", new BigDecimal(cactus ? "0.25" : "0.0"));
         s.put("resistance", new BigDecimal(cactus ? "0.25" : "0.0"));
-        s.put("sounds", PlantBlockGen.sounds(cactus ? "wool" : "grass"));
+        s.put("sounds", PlantBlockGen.sounds(cactus ? "wool" : p.type().equals("CACTUS_FLOWER") ? "crop" : "grass"));
         s.put("replaceable", false);
         s.put("push_reaction", "destroy");
         s.put("can_occlude", false);

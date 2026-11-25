@@ -190,7 +190,7 @@ class GeneratedCarrierTest {
         HitboxDemands.BARREL_WOODS.forEach(w -> expected.add(HitboxDemands.barrelId(w)));
         // PAR-FARM-26: the farmland of each soil (one appearance, TFC's farmland outline).
         HitboxDemands.FARMLAND_SOILS.forEach(soil -> expected.add(HitboxDemands.farmlandId(soil)));
-        // PAR-FARM-25: the 40 growing plants (hitbox-only, every appearance on the body plant outline).
+        // PAR-FARM-25: the 40 growing plants and (PAR-FARM-30) the saguaro fruit (hitbox-only, one outline row per shape).
         HitboxDemands.GROWING_PLANTS.forEach(n -> expected.add(HitboxDemands.growingPlantId(n)));
         expected.addAll(HitboxDemands.candleIds(HitboxDemands.CANDLE_ID));
         expected.addAll(HitboxDemands.candleIds(HitboxDemands.CANDLE_CAKE_ID));
@@ -235,7 +235,7 @@ class GeneratedCarrierTest {
         expected.addAll(List.of(HitboxDemands.BANANA_SAPLING_ID, HitboxDemands.BANANA_PLANT_ID, HitboxDemands.BANANA_DEAD_ID));
         // PAR-WORLD-47: the plant shapes with dry states (hitbox-only on the berry bush and barrel rows).
         HitboxDemands.PLANT_SHAPE_ROWS.values().forEach(names -> names.forEach(n -> expected.add(HitboxDemands.plantId(n))));
-        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3 + 8 + 40 + 14); // + 8: PAR-FARM-26 farmland, + 40: PAR-FARM-25 growing plants, + 14: PAR-WORLD-47 plant shapes
+        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3 + 8 + 41 + 14); // + 8: PAR-FARM-26 farmland, + 41: PAR-FARM-25 growing plants and the PAR-FARM-30 saguaro fruit, + 14: PAR-WORLD-47 plant shapes
         // PAR-WORLD-31: the loose and mossy loose rocks, small ores and groundcover types; PAR-WORLD-42: the grass paths
         for (String rock : HitboxDemands.LOOSE_ROCKS) {
             HitboxDemands.LOOSE_KINDS.forEach(k -> expected.add(HitboxDemands.looseRockId(k, rock)));

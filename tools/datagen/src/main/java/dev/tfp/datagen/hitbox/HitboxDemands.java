@@ -118,13 +118,43 @@ public final class HitboxDemands {
     public static final List<String> GROWING_PLANTS = List.of(
         "bird_nest_fern", "cobblestone_lichen", "elegant_sunburst_lichen", "guzmania", "licorice_fern",
         "artists_conk", "morning_glory", "moss", "philodendron", "ramirezella", "reindeer_lichen",
-        "silver_bromeliad", "tank_bromeliad", "vriesea", "hanging_vines_plant", "hanging_vines",
+        "saguaro_fruit", "silver_bromeliad", "tank_bromeliad", "vriesea", "hanging_vines_plant", "hanging_vines",
         "spanish_moss_plant", "spanish_moss", "liana_plant", "liana", "flame_vine_plant", "flame_vine",
         "tree_fern_plant", "tree_fern", "cycad_plant", "cycad", "arundo_plant", "arundo",
         "dry_phragmite_plant", "dry_phragmite", "winged_kelp_plant", "winged_kelp", "leafy_kelp_plant",
         "leafy_kelp", "giant_kelp_plant", "giant_kelp_flower", "ivy", "jungle_vines", "saguaro_plant",
         "saguaro");
-    public static final String GROWING_PLANT_PATTERN = "plant_*";
+    /**
+     * PAR-FARM-30: TFC's {@code Plant.BlockType} of each growing plant (GrowingPlantBlocks checks them against the checkout).
+     * Each type has its own outline shapes ({@link TfcShapes#growingTags}); the appearances of a block are named
+     * {@code <tag>_<n>} and every tag is one demand.
+     */
+    public static final java.util.Map<String, String> GROWING_TYPES = growingTypes();
+
+    private static java.util.Map<String, String> growingTypes() {
+        String[][] rows = {{"PERCHED_EPIPHYTE", "bird_nest_fern", "silver_bromeliad", "tank_bromeliad"},
+            {"CREEPING_STONE", "cobblestone_lichen", "elegant_sunburst_lichen"},
+            {"EPIPHYTE", "guzmania", "licorice_fern", "artists_conk", "ramirezella", "vriesea"},
+            {"CREEPING", "morning_glory", "moss", "philodendron", "reindeer_lichen", "ivy"},
+            {"CACTUS_FLOWER", "saguaro_fruit"},
+            {"WEEPING", "hanging_vines_plant", "spanish_moss_plant", "liana_plant", "flame_vine_plant"},
+            {"WEEPING_TOP", "hanging_vines", "spanish_moss", "liana", "flame_vine"},
+            {"TWISTING_SOLID", "tree_fern_plant", "cycad_plant"}, {"TWISTING_SOLID_TOP", "tree_fern", "cycad"},
+            {"TWISTING", "arundo_plant", "dry_phragmite_plant"}, {"TWISTING_TOP", "arundo"},
+            {"TWISTING_TOP_SHORT", "dry_phragmite"}, {"KELP", "winged_kelp_plant", "leafy_kelp_plant"},
+            {"KELP_TOP", "winged_kelp", "leafy_kelp"}, {"KELP_TREE", "giant_kelp_plant"},
+            {"KELP_TREE_FLOWER", "giant_kelp_flower"}, {"VINE", "jungle_vines"}, {"BRANCHING_CACTUS", "saguaro_plant"},
+            {"BRANCHING_CACTUS_TOP", "saguaro"}};
+        java.util.Map<String, String> m = new java.util.LinkedHashMap<>();
+        for (String name : GROWING_PLANTS) {
+            for (String[] r : rows) {
+                if (java.util.Arrays.asList(r).subList(1, r.length).contains(name)) {
+                    m.put(name, r[0]);
+                }
+            }
+        }
+        return java.util.Collections.unmodifiableMap(m);
+    }
     /** PAR-FARM-25: served after every other demand (adding the growing plants moves no carrier of another block). */
     static final int GROWING_PLANT_WEIGHT = -16;
 
@@ -820,9 +850,13 @@ public final class HitboxDemands {
                 FARMLAND_WEIGHT));
         }
         // PAR-FARM-25: the growing plants, hitbox-only on the body plant outline, one demand per block (any appearance).
+        // PAR-FARM-30: one demand per outline shape of the block's type (vines, creepers, kelp trees and cacti one per face
+        // pattern); the demands of the same row share one carrier.
         for (String name : GROWING_PLANTS) {
-            d.add(new Demand(growingPlantId(name), GROWING_PLANT_PATTERN, TfcShapes.GROWING_PLANT_KEY, 0,
-                HitboxAllocation.TRANSPARENT, true, GROWING_PLANT_WEIGHT));
+            for (String tag : TfcShapes.growingTags(GROWING_TYPES.get(name))) {
+                d.add(new Demand(growingPlantId(name), TfcShapes.growingPattern(tag), TfcShapes.growingKey(tag), 0,
+                    HitboxAllocation.TRANSPARENT, true, GROWING_PLANT_WEIGHT));
+            }
         }
         // PAR-MECH-15: the axle shaft per axis (every wood shares one carrier per axis), hitbox-only; the look is the spinning
         // shaft display (RotationBlocks).

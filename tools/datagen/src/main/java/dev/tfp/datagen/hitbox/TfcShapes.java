@@ -249,6 +249,7 @@ public final class TfcShapes {
         s.add(Spec.of(GROWING_PLANT_KEY, "growing_plant", Kind.OBJECT, List.of(B + "plant/BodyPlantBlock.java"), "BODY_SHAPE",
             "Shapes.empty()", List.of("public static final VoxelShape BODY_SHAPE = box(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);"),
             List.of()));
+        addGrowingPlantShapes(s);
         String spike = B + "rock/RockSpikeBlock.java";
         for (String part : List.of("base", "middle", "tip")) {
             s.add(Spec.of("tfc:rock/spike[part=" + part + "]", "spike", Kind.OBJECT, List.of(spike),
@@ -972,13 +973,273 @@ public final class TfcShapes {
 
     /** Vanilla PipeBlock.makeShapes(0.25): the 8 x 8 x 8 core and, per flag, the arm from the core to that face. */
     static Shape pipe(int bits) {
-        Shape shape = Shape.box(4, 4, 4, 12, 12, 12);
-        double[][] arms = {{4, 4, 0, 12, 12, 12}, {4, 4, 4, 16, 12, 12}, {4, 4, 4, 12, 12, 16}, {0, 4, 4, 12, 12, 12},
-            {4, 4, 4, 12, 16, 12}, {4, 0, 4, 12, 12, 12}};
+        return pipe(bits, 4);
+    }
+
+    /**
+     * Vanilla PipeBlock.makeShapes for a core of radius {@code r} pixels around the centre (0.25 is 4, 0.3125 is 5): the
+     * 2r cube and, per flag, the arm from the core to that face.
+     */
+    static Shape pipe(int bits, double r) {
+        double a = 8 - r;
+        double b = 8 + r;
+        Shape shape = Shape.box(a, a, a, b, b, b);
+        double[][] arms = {{a, a, 0, b, b, b}, {a, a, a, 16, b, b}, {a, a, a, b, b, 16}, {0, a, a, b, b, b},
+            {a, a, a, b, 16, b}, {a, 0, a, b, b, b}};
         for (int i = 0; i < 6; i++) {
             if (((bits >> i) & 1) == 1) {
-                double[] a = arms[i];
-                shape = shape.union(Shape.box(a[0], a[1], a[2], a[3], a[4], a[5]));
+                double[] arm = arms[i];
+                shape = shape.union(Shape.box(arm[0], arm[1], arm[2], arm[3], arm[4], arm[5]));
+            }
+        }
+        return shape;
+    }
+
+    // ---- PAR-FARM-30: the growing plants' per-shape outlines ------------------------------------------------------------
+
+    /** The solid column body and head (TFC {@code solidTallPlant}: with collision) share these rows with the plain ones' boxes. */
+    public static final String GROWING_BODY_SOLID_KEY = "tfc:plant/body_plant_solid";
+    public static final String GROWING_WEEPING_KEY = "tfc:plant/weeping_shape";
+    public static final String GROWING_TWISTING_KEY = "tfc:plant/twisting_shape";
+    public static final String GROWING_TWISTING_SOLID_KEY = "tfc:plant/twisting_shape_solid";
+    public static final String GROWING_THIN_KEY = "tfc:plant/thin_body_shape";
+    public static final String GROWING_THIN_TOP_KEY = "tfc:plant/twisting_thin_shape";
+    public static final String GROWING_FLOWER_KEY = "tfc:plant/kelp_tree_flower";
+    /** {@code PlantBlock.PLANT_SHAPE}: the perched epiphytes and the saguaro fruit. */
+    public static final String GROWING_PLANT_SHAPE_KEY = "tfc:plant/plant_shape";
+    /** The face flags of the vines (vanilla: no down), the creeping plants and the pipes, bit i of a tag. */
+    static final List<String> VINE_FLAGS = List.of("north", "east", "south", "west", "up");
+
+    /**
+     * The shape tags a growing plant block type needs (one outline row each, an appearance name prefix {@code <tag>_}). The
+     * carrier budget of the selector holds only a handful of free outline-shaped states, so the face-pattern blocks are served
+     * per face, not per combination: vines ({@code v<face>}) and creepers ({@code c<face>}) on the slab of the first set face
+     * (north, east, south, west, up, down), the kelp tree and the branching cacti on their trunk (the 10 x 16 x 10 column,
+     * the cactus colliding); epiphytes per facing ({@code e<facing>}); {@code none} is a pattern without any face (TFC's block
+     * is removed then; it keeps the body row). Ledger divergence.
+     */
+    public static List<String> growingTags(String type) {
+        switch (type) {
+            case "WEEPING", "TWISTING" -> {
+                return List.of("body");
+            }
+            case "TWISTING_SOLID" -> {
+                return List.of("solidbody");
+            }
+            case "WEEPING_TOP" -> {
+                return List.of("weep");
+            }
+            case "TWISTING_TOP", "TWISTING_TOP_SHORT" -> {
+                return List.of("twist");
+            }
+            case "TWISTING_SOLID_TOP" -> {
+                return List.of("solidtwist");
+            }
+            case "KELP" -> {
+                return List.of("thin");
+            }
+            case "KELP_TOP" -> {
+                return List.of("thintop");
+            }
+            case "KELP_TREE_FLOWER" -> {
+                return List.of("flower");
+            }
+            case "PERCHED_EPIPHYTE", "CACTUS_FLOWER" -> {
+                return List.of("plant");
+            }
+            case "EPIPHYTE" -> {
+                return List.of("enorth", "eeast", "esouth", "ewest");
+            }
+            case "VINE" -> {
+                return faceTags("v", VINE_FLAGS);
+            }
+            case "CREEPING", "CREEPING_STONE" -> {
+                return faceTags("c", FRUIT_FLAGS);
+            }
+            case "KELP_TREE" -> {
+                return List.of("ktrunk");
+            }
+            case "BRANCHING_CACTUS", "BRANCHING_CACTUS_TOP" -> {
+                return List.of("xtrunk");
+            }
+            default -> throw new IllegalArgumentException("no growing plant shape for " + type);
+        }
+    }
+
+    private static List<String> faceTags(String prefix, List<String> flags) {
+        List<String> tags = new ArrayList<>();
+        tags.add("none");
+        flags.forEach(f -> tags.add(prefix + f));
+        return List.copyOf(tags);
+    }
+
+    /** The tag of a state of a growing plant block type ({@code state}: the face flags and {@code facing} as strings). */
+    public static String growingTag(String type, Map<String, String> state) {
+        List<String> fixed = growingTags(type);
+        if (fixed.size() == 1) {
+            return fixed.getFirst();
+        }
+        if (type.equals("EPIPHYTE")) {
+            return "e" + state.get("facing");
+        }
+        String prefix = type.equals("VINE") ? "v" : "c";
+        for (String f : type.equals("VINE") ? VINE_FLAGS : FRUIT_FLAGS) {
+            if (state.get(f).equals("true")) {
+                return prefix + f;
+            }
+        }
+        return "none";
+    }
+
+    /** The outline row of a tag. */
+    public static String growingKey(String tag) {
+        switch (tag) {
+            case "body", "none" -> {
+                return GROWING_PLANT_KEY;
+            }
+            case "solidbody" -> {
+                return GROWING_BODY_SOLID_KEY;
+            }
+            case "weep" -> {
+                return GROWING_WEEPING_KEY;
+            }
+            case "twist" -> {
+                return GROWING_TWISTING_KEY;
+            }
+            case "solidtwist" -> {
+                return GROWING_TWISTING_SOLID_KEY;
+            }
+            case "thin" -> {
+                return GROWING_THIN_KEY;
+            }
+            case "thintop" -> {
+                return GROWING_THIN_TOP_KEY;
+            }
+            case "flower" -> {
+                return GROWING_FLOWER_KEY;
+            }
+            case "plant" -> {
+                return GROWING_PLANT_SHAPE_KEY;
+            }
+            case "ktrunk" -> {
+                return "tfc:plant/kelp_tree[up=true,down=true]";
+            }
+            case "xtrunk" -> {
+                return "tfc:plant/branching_cactus[up=true,down=true]";
+            }
+            default -> { }
+        }
+        if (tag.startsWith("e")) {
+            return "tfc:plant/epiphyte[facing=" + tag.substring(1) + "]";
+        }
+        return (tag.startsWith("v") ? "tfc:plant/vine[" : "tfc:plant/creeping[") + tag.substring(1) + "=true]";
+    }
+
+    /** The tag of every plant's states as appearance prefix: the demand pattern of a tag. */
+    public static String growingPattern(String tag) {
+        return tag + "_*";
+    }
+
+    private static void addGrowingPlantShapes(List<Spec> s) {
+        String body = B + "plant/BodyPlantBlock.java";
+        String plantJava = B + "plant/Plant.java";
+        List<String> bodyFiles = List.of(body, plantJava);
+        // the solid bodies (tree fern, cycad) and heads collide (TFC solidTallPlant has no noCollission)
+        s.add(Spec.of(GROWING_BODY_SOLID_KEY, "growing_plant", Kind.OBJECT, bodyFiles, "BODY_SHAPE", "same",
+            List.of("TWISTING_SOLID((plant, type) -> new BodyPlantBlock(fire(solidTallPlant()), plant.transform(), BodyPlantBlock.BODY_SHAPE"),
+            List.of()));
+        s.add(Spec.of(GROWING_WEEPING_KEY, "growing_plant", Kind.OBJECT, bodyFiles, "WEEPING_SHAPE", "Shapes.empty()",
+            List.of("public static final VoxelShape WEEPING_SHAPE = box(4.0D, 9.0D, 4.0D, 12.0D, 16.0D, 12.0D);",
+                "Direction.DOWN, BodyPlantBlock.WEEPING_SHAPE, 20, 26, plant"), List.of()));
+        s.add(Spec.of(GROWING_TWISTING_KEY, "growing_plant", Kind.OBJECT, bodyFiles, "TWISTING_SHAPE", "Shapes.empty()",
+            List.of("public static final VoxelShape TWISTING_SHAPE = box(4.0D, 0.0D, 4.0D, 12.0D, 15.0D, 12.0D);",
+                "Direction.UP, BodyPlantBlock.TWISTING_SHAPE, 4, 8, plant"), List.of()));
+        s.add(Spec.of(GROWING_TWISTING_SOLID_KEY, "growing_plant", Kind.OBJECT, bodyFiles, "TWISTING_SHAPE", "same",
+            List.of("Direction.UP, BodyPlantBlock.TWISTING_SHAPE, 2, 5, plant"), List.of()));
+        s.add(Spec.of(GROWING_THIN_KEY, "growing_plant", Kind.OBJECT, bodyFiles, "THIN_BODY_SHAPE", "Shapes.empty()",
+            List.of("public static final VoxelShape THIN_BODY_SHAPE = box(5.0D, 0.0D, 5.0D, 11.0D, 16.0D, 11.0D);",
+                "Direction.UP, BodyPlantBlock.THIN_BODY_SHAPE, TFCBlockStateProperties.SALT_WATER"), List.of()));
+        s.add(Spec.of(GROWING_THIN_TOP_KEY, "growing_plant", Kind.OBJECT, bodyFiles, "TWISTING_THIN_SHAPE", "Shapes.empty()",
+            List.of("public static final VoxelShape TWISTING_THIN_SHAPE = box(5.0D, 0.0D, 5.0D, 11.0D, 12.0D, 11.0D);",
+                "Direction.UP, BodyPlantBlock.TWISTING_THIN_SHAPE, TFCBlockStateProperties.SALT_WATER"), List.of()));
+        s.add(Spec.of(GROWING_FLOWER_KEY, "growing_plant", Kind.OBJECT, List.of(B + "plant/KelpTreeFlowerBlock.java", plantJava), "SHAPE",
+            "Shapes.empty()", List.of("private static final VoxelShape SHAPE = Block.box(1.0D, 1.0D, 1.0D, 15.0D, 15.0D, 15.0D);",
+                "KELP_TREE_FLOWER((plant, type) -> KelpTreeFlowerBlock.create(kelp(plant)", "noCollission().randomTicks().strength(1.0f)"),
+            List.of()));
+        s.add(Spec.of(GROWING_PLANT_SHAPE_KEY, "growing_plant", Kind.OBJECT, List.of(B + "plant/PlantBlock.java", plantJava), "PLANT_SHAPE",
+            "Shapes.empty()", List.of("protected static final VoxelShape PLANT_SHAPE = box(2.0, 0.0, 2.0, 14.0, 16.0, 14.0);",
+                "CACTUS_FLOWER((plant, type) -> PlantBlock.createCactusFlower(plant, fire(nonSolid(plant))",
+                "PERCHED_EPIPHYTE((plant, type) -> PlantBlock.createPerchedEpiphyte(plant, fire(nonSolid(plant))"), List.of()));
+        // the vines are vanilla VineBlocks (no shape override in TFCVineBlock), noCollission
+        String vine = B + "plant/TFCVineBlock.java";
+        double[][] vineBoxes = {{0, 0, 0, 16, 16, 1}, {15, 0, 0, 16, 16, 16}, {0, 0, 15, 16, 16, 16}, {0, 0, 0, 1, 16, 16},
+            {0, 15, 0, 16, 16, 16}};
+        for (int i = 0; i < 5; i++) {
+            final Shape shape = union(vineBoxes, 1 << i);
+            s.add(new Spec("tfc:plant/vine[" + VINE_FLAGS.get(i) + "=true]", "growing_vine", Kind.OBJECT, List.of(vine, plantJava),
+                null, null, List.of("public class TFCVineBlock extends VineBlock implements IForgeBlockExtension",
+                    "VINE((plant, type) -> new TFCVineBlock(fire(nonSolid(plant))))"), List.of("getShape(", "getCollisionShape"),
+                x -> new Shape[] {shape, Shape.EMPTY}));
+        }
+        // the creeping plants: one 2 px slab per face, combined (CreepingPlantBlock.SHAPES), noCollission
+        String creeping = B + "plant/CreepingPlantBlock.java";
+        double[][] slabs = {{0, 0, 0, 16, 16, 2}, {14, 0, 0, 16, 16, 16}, {0, 0, 14, 16, 16, 16}, {0, 0, 0, 2, 16, 16},
+            {0, 14, 0, 16, 16, 16}, {0, 0, 0, 16, 2, 16}};
+        for (int i = 0; i < 6; i++) {
+            final Shape shape = union(slabs, 1 << i);
+            s.add(new Spec("tfc:plant/creeping[" + FRUIT_FLAGS.get(i) + "=true]", "growing_creeping", Kind.OBJECT, List.of(creeping, plantJava),
+                null, null, List.of("protected static final VoxelShape UP_SHAPE = box(0.0, 14.0, 0.0, 16.0, 16.0, 16.0);",
+                    "protected static final VoxelShape DOWN_SHAPE = box(0.0, 0.0, 0.0, 16.0, 2.0, 16.0);",
+                    "protected static final VoxelShape NORTH_SHAPE = box(0.0, 0.0, 0.0, 16.0, 16.0, 2.0);",
+                    "protected static final VoxelShape EAST_SHAPE = box(14.0, 0.0, 0.0, 16.0, 16.0, 16.0);",
+                    "protected static final VoxelShape SOUTH_SHAPE = box(0.0, 0.0, 14.0, 16.0, 16.0, 16.0);",
+                    "protected static final VoxelShape WEST_SHAPE = box(0.0, 0.0, 0.0, 2.0, 16.0, 16.0);",
+                    "CREEPING((plant, type) -> CreepingPlantBlock.create(plant, fire(nonSolid(plant)"), List.of(),
+                x -> new Shape[] {shape, Shape.EMPTY}));
+        }
+        // the epiphytes: the 12 px deep half block against the wall they cling to, noCollission
+        String epiphyte = B + "plant/EpiphytePlantBlock.java";
+        double[][] walls = {{0, 0, 4, 16, 16, 16}, {0, 0, 0, 12, 16, 16}, {0, 0, 0, 16, 16, 12}, {4, 0, 0, 16, 16, 16}};
+        for (int i = 0; i < 4; i++) {
+            final String f = HORIZONTAL_FACINGS.get(i);
+            final double[] w = walls[i];
+            s.add(new Spec("tfc:plant/epiphyte[facing=" + f + "]", "growing_epiphyte", Kind.OBJECT, List.of(epiphyte, plantJava),
+                null, null, List.of("protected static final VoxelShape NORTH_SHAPE = box(0.0, 0.0, 4.0, 16.0, 16.0, 16.0);",
+                    "protected static final VoxelShape EAST_SHAPE = box(0.0, 0.0, 0.0, 12.0, 16.0, 16.0);",
+                    "protected static final VoxelShape SOUTH_SHAPE = box(0.0, 0.0, 0.0, 16.0, 16.0, 12.0);",
+                    "protected static final VoxelShape WEST_SHAPE = box(4.0, 0.0, 0.0, 16.0, 16.0, 16.0);",
+                    "EPIPHYTE((plant, type) -> EpiphytePlantBlock.create(plant, fire(nonSolid(plant)"), List.of(),
+                x -> new Shape[] {Shape.box(w[0], w[1], w[2], w[3], w[4], w[5]), Shape.EMPTY}));
+        }
+        // the kelp tree (PipeBlock 0.3125, noCollission) and the branching cacti (the same pipe, solid: collision = outline)
+        String kelpTree = B + "plant/KelpTreeBlock.java";
+        String cactus = B + "plant/BranchingCactusBlock.java";
+        {
+            final Shape pipe = pipe(16 | 32, 5);
+            s.add(new Spec("tfc:plant/kelp_tree[up=true,down=true]", "growing_kelp_tree", Kind.OBJECT,
+                List.of(kelpTree, B + "plant/PipePlantBlock.java", plantJava), null, null,
+                List.of("super(0.3125F, properties);", "KELP_TREE((plant, type) -> KelpTreeBlock.create(plant, ExtendedProperties.of(kelp(plant))",
+                    "noCollission().randomTicks().strength(1.0f)"), List.of("getShape(", "getCollisionShape"),
+                x -> new Shape[] {pipe, Shape.EMPTY}));
+            s.add(new Spec("tfc:plant/branching_cactus[up=true,down=true]", "growing_cactus", Kind.OBJECT,
+                List.of(cactus, B + "plant/PipePlantBlock.java", B + "plant/GrowingBranchingCactusBlock.java", plantJava), null, null,
+                List.of("return new BranchingCactusBlock(0.3125f, properties);",
+                    "return new GrowingBranchingCactusBlock(0.3125f, properties, body, flower);",
+                    "BRANCHING_CACTUS((plant, type) -> BranchingCactusBlock.createBody(fire(solid())",
+                    "BRANCHING_CACTUS_TOP((plant, type) -> GrowingBranchingCactusBlock.createGrowing(fire(solid())"),
+                List.of("getShape(", "getCollisionShape"), x -> new Shape[] {pipe, pipe}));
+        }
+    }
+
+    private static final List<String> HORIZONTAL_FACINGS = List.of("north", "east", "south", "west");
+
+    /** The union of the boxes whose bit is set. */
+    private static Shape union(double[][] boxes, int bits) {
+        Shape shape = Shape.EMPTY;
+        for (int i = 0; i < boxes.length; i++) {
+            if (((bits >> i) & 1) == 1) {
+                double[] b = boxes[i];
+                shape = shape.union(Shape.box(b[0], b[1], b[2], b[3], b[4], b[5]));
             }
         }
         return shape;

@@ -475,6 +475,206 @@
       "from": "BodyPlantBlock.java BODY_SHAPE / Shapes.empty()"
     },
     {
+      "key": "tfc:plant/body_plant_solid",
+      "class": "growing_plant",
+      "kind": "object",
+      "selection": [[1, 0, 1, 15, 16, 15]],
+      "collision": [[1, 0, 1, 15, 16, 15]],
+      "from": "BodyPlantBlock.java BODY_SHAPE / same"
+    },
+    {
+      "key": "tfc:plant/weeping_shape",
+      "class": "growing_plant",
+      "kind": "object",
+      "selection": [[4, 9, 4, 12, 16, 12]],
+      "collision": [],
+      "from": "BodyPlantBlock.java WEEPING_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:plant/twisting_shape",
+      "class": "growing_plant",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 15, 12]],
+      "collision": [],
+      "from": "BodyPlantBlock.java TWISTING_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:plant/twisting_shape_solid",
+      "class": "growing_plant",
+      "kind": "object",
+      "selection": [[4, 0, 4, 12, 15, 12]],
+      "collision": [[4, 0, 4, 12, 15, 12]],
+      "from": "BodyPlantBlock.java TWISTING_SHAPE / same"
+    },
+    {
+      "key": "tfc:plant/thin_body_shape",
+      "class": "growing_plant",
+      "kind": "object",
+      "selection": [[5, 0, 5, 11, 16, 11]],
+      "collision": [],
+      "from": "BodyPlantBlock.java THIN_BODY_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:plant/twisting_thin_shape",
+      "class": "growing_plant",
+      "kind": "object",
+      "selection": [[5, 0, 5, 11, 12, 11]],
+      "collision": [],
+      "from": "BodyPlantBlock.java TWISTING_THIN_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:plant/kelp_tree_flower",
+      "class": "growing_plant",
+      "kind": "object",
+      "selection": [[1, 1, 1, 15, 15, 15]],
+      "collision": [],
+      "from": "KelpTreeFlowerBlock.java SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:plant/plant_shape",
+      "class": "growing_plant",
+      "kind": "object",
+      "selection": [[2, 0, 2, 14, 16, 14]],
+      "collision": [],
+      "from": "PlantBlock.java PLANT_SHAPE / Shapes.empty()"
+    },
+    {
+      "key": "tfc:plant/vine[north=true]",
+      "class": "growing_vine",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 1]],
+      "collision": [],
+      "from": "TFCVineBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/vine[east=true]",
+      "class": "growing_vine",
+      "kind": "object",
+      "selection": [[15, 0, 0, 16, 16, 16]],
+      "collision": [],
+      "from": "TFCVineBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/vine[south=true]",
+      "class": "growing_vine",
+      "kind": "object",
+      "selection": [[0, 0, 15, 16, 16, 16]],
+      "collision": [],
+      "from": "TFCVineBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/vine[west=true]",
+      "class": "growing_vine",
+      "kind": "object",
+      "selection": [[0, 0, 0, 1, 16, 16]],
+      "collision": [],
+      "from": "TFCVineBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/vine[up=true]",
+      "class": "growing_vine",
+      "kind": "object",
+      "selection": [[0, 15, 0, 16, 16, 16]],
+      "collision": [],
+      "from": "TFCVineBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/creeping[north=true]",
+      "class": "growing_creeping",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 2]],
+      "collision": [],
+      "from": "CreepingPlantBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/creeping[east=true]",
+      "class": "growing_creeping",
+      "kind": "object",
+      "selection": [[14, 0, 0, 16, 16, 16]],
+      "collision": [],
+      "from": "CreepingPlantBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/creeping[south=true]",
+      "class": "growing_creeping",
+      "kind": "object",
+      "selection": [[0, 0, 14, 16, 16, 16]],
+      "collision": [],
+      "from": "CreepingPlantBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/creeping[west=true]",
+      "class": "growing_creeping",
+      "kind": "object",
+      "selection": [[0, 0, 0, 2, 16, 16]],
+      "collision": [],
+      "from": "CreepingPlantBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/creeping[up=true]",
+      "class": "growing_creeping",
+      "kind": "object",
+      "selection": [[0, 14, 0, 16, 16, 16]],
+      "collision": [],
+      "from": "CreepingPlantBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/creeping[down=true]",
+      "class": "growing_creeping",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 2, 16]],
+      "collision": [],
+      "from": "CreepingPlantBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/epiphyte[facing=north]",
+      "class": "growing_epiphyte",
+      "kind": "object",
+      "selection": [[0, 0, 4, 16, 16, 16]],
+      "collision": [],
+      "from": "EpiphytePlantBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/epiphyte[facing=east]",
+      "class": "growing_epiphyte",
+      "kind": "object",
+      "selection": [[0, 0, 0, 12, 16, 16]],
+      "collision": [],
+      "from": "EpiphytePlantBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/epiphyte[facing=south]",
+      "class": "growing_epiphyte",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 12]],
+      "collision": [],
+      "from": "EpiphytePlantBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/epiphyte[facing=west]",
+      "class": "growing_epiphyte",
+      "kind": "object",
+      "selection": [[4, 0, 0, 16, 16, 16]],
+      "collision": [],
+      "from": "EpiphytePlantBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/kelp_tree[up=true,down=true]",
+      "class": "growing_kelp_tree",
+      "kind": "object",
+      "selection": [[3, 0, 3, 13, 16, 13]],
+      "collision": [],
+      "from": "KelpTreeBlock.java (ported)"
+    },
+    {
+      "key": "tfc:plant/branching_cactus[up=true,down=true]",
+      "class": "growing_cactus",
+      "kind": "object",
+      "selection": [[3, 0, 3, 13, 16, 13]],
+      "collision": [[3, 0, 3, 13, 16, 13]],
+      "from": "BranchingCactusBlock.java (ported)"
+    },
+    {
       "key": "tfc:rock/spike[part=base]",
       "class": "spike",
       "kind": "object",

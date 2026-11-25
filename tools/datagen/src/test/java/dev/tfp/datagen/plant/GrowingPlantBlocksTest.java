@@ -56,12 +56,14 @@ class GrowingPlantBlocksTest {
     @Test
     void theFortyPlantsAreTfcsAndOnTheSharedRow() {
         assertThat(GrowingPlantBlocks.plants(tfc).stream().map(GrowingPlantBlocks.Growing::name).toList())
-            .isEqualTo(HitboxDemands.GROWING_PLANTS).hasSize(40);
+            .isEqualTo(HitboxDemands.GROWING_PLANTS).hasSize(41);
         assertThat(TfcShapes.load()).containsKey(TfcShapes.GROWING_PLANT_KEY);
         for (String name : HitboxDemands.GROWING_PLANTS) {
             assertThat(block(name)).as(name).containsKeys("settings", "states");
-            assertThat(HitboxAllocation.agreed(HitboxDemands.growingPlantId(name), HitboxDemands.GROWING_PLANT_PATTERN).mode())
-                .isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
+            for (String tag : TfcShapes.growingTags(HitboxDemands.GROWING_TYPES.get(name))) {
+                assertThat(HitboxAllocation.agreed(HitboxDemands.growingPlantId(name), TfcShapes.growingPattern(tag)).mode())
+                    .as(name + "#" + tag).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
+            }
         }
         // heads 6 x 26, 2 kelp heads 26 x 2, 4 columns: sums are checked per block below; the total is stable
         assertThat(states).isGreaterThan(1000);
@@ -107,5 +109,30 @@ class GrowingPlantBlocksTest {
         String head = new String(out.get(GrowingPlantBlocks.OUTPUT_DIR + "hanging_vines.yml"), StandardCharsets.UTF_8);
         assertThat(body).doesNotContain("items:");
         assertThat(head).contains("items:").contains("block_item");
+    }
+
+    @Test
+    void everyAppearanceIsOnItsShapesRowAndTheSaguaroFruitExists() {
+        var rows = TfcShapes.load();
+        // TFC's boxes per type (BodyPlantBlock, CreepingPlantBlock, EpiphytePlantBlock, KelpTreeFlowerBlock, PlantBlock)
+        assertThat(rows.get(TfcShapes.growingKey("weep")).selection()).isEqualTo(dev.tfp.datagen.hitbox.Shape.box(4, 9, 4, 12, 16, 12));
+        assertThat(rows.get(TfcShapes.growingKey("twist")).selection()).isEqualTo(dev.tfp.datagen.hitbox.Shape.box(4, 0, 4, 12, 15, 12));
+        assertThat(rows.get(TfcShapes.growingKey("thin")).selection()).isEqualTo(dev.tfp.datagen.hitbox.Shape.box(5, 0, 5, 11, 16, 11));
+        assertThat(rows.get(TfcShapes.growingKey("thintop")).selection()).isEqualTo(dev.tfp.datagen.hitbox.Shape.box(5, 0, 5, 11, 12, 11));
+        assertThat(rows.get(TfcShapes.growingKey("flower")).selection()).isEqualTo(dev.tfp.datagen.hitbox.Shape.box(1, 1, 1, 15, 15, 15));
+        assertThat(rows.get(TfcShapes.growingKey("plant")).selection()).isEqualTo(dev.tfp.datagen.hitbox.Shape.box(2, 0, 2, 14, 16, 14));
+        assertThat(rows.get(TfcShapes.growingKey("enorth")).selection()).isEqualTo(dev.tfp.datagen.hitbox.Shape.box(0, 0, 4, 16, 16, 16));
+        assertThat(rows.get(TfcShapes.growingKey("cup")).selection()).isEqualTo(dev.tfp.datagen.hitbox.Shape.box(0, 14, 0, 16, 16, 16));
+        assertThat(rows.get(TfcShapes.growingKey("xtrunk")).collision()).isEqualTo(rows.get(TfcShapes.growingKey("xtrunk")).selection());
+        assertThat(rows.get(TfcShapes.growingKey("ktrunk")).collision().isEmpty()).isTrue();
+        assertThat(rows.get(TfcShapes.growingKey("solidbody")).collision().isEmpty()).isFalse();
+        // an appearance name is <tag>_<n>, so each carries one shape
+        @SuppressWarnings("unchecked")
+        Map<String, Object> apps = sub(sub(block("moss"), "states"), "appearances");
+        assertThat(apps.keySet()).allMatch(n -> n.matches("c(north|east|south|west|up|down)_\\d+|none_\\d+"));
+        assertThat(apps.keySet()).anyMatch(n -> n.startsWith("cnorth_"));
+        // the saguaro fruit CactusGrowth.FRUIT places
+        assertThat(sub(sub(block("saguaro_fruit"), "states"), "appearances")).containsOnlyKeys("plant_0");
+        assertThat(block("saguaro_fruit")).containsKey("settings");
     }
 }
