@@ -74,8 +74,12 @@ public final class ClimateFog {
      * @param skyLight        the sky light at the position, 0 to 15
      */
     public static float fog(long climateSeed, long calendarTicks, float instantRainfall, int skyLight) {
-        final long days = calendarTicks / CALENDAR_TICKS_IN_DAY;
-        final float strength = dayStrength(climateSeed, days);
+        return fogWithStrength(dayStrength(climateSeed, calendarTicks / CALENDAR_TICKS_IN_DAY), calendarTicks, instantRainfall,
+            skyLight);
+    }
+
+    /** {@link #fog} for a given day roll (a debug override passes a foggy day of any strength; 0 is a clear day). */
+    public static float fogWithStrength(float strength, long calendarTicks, float instantRainfall, int skyLight) {
         if (strength == 0f) {
             return 0f;
         }

@@ -87,4 +87,19 @@ class ClimateFogTest {
         assertThat(ClimateFog.level(0.5f, 4)).isEqualTo(2);
         assertThat(ClimateFog.level(0.99f, 4)).isEqualTo(4);
     }
+
+    /** The debug override: {@code fog} is {@code fogWithStrength} of the day's own roll. */
+    @Test
+    void fogWithStrengthIsFogOfTheDaysRoll() {
+        for (long day = 0; day < 200; day++) {
+            for (long hour = 0; hour < 24; hour += 3) {
+                final long ticks = day * 24_000L + hour * 1_000L;
+                assertThat(ClimateFog.fog(77L, ticks, 250f, 15))
+                    .isEqualTo(ClimateFog.fogWithStrength(ClimateFog.dayStrength(77L, day), ticks, 250f, 15));
+            }
+        }
+        assertThat(ClimateFog.fogWithStrength(0f, 8_000L, 300f, 15)).isZero();
+        assertThat(ClimateFog.fogWithStrength(0.5f, 8_000L, 300f, 15)).isEqualTo(0.5f); // 8 am: ramp 1, wet, bright
+        assertThat(ClimateFog.fogWithStrength(0.5f, 14_000L, 300f, 15)).isZero(); // afternoon
+    }
 }
