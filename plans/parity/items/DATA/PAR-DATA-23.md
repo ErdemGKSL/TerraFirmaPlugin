@@ -43,4 +43,6 @@ done_criteria:
 
 # PAR-DATA-23: Advancement triggers left from PAR-DATA-19
 
+> Claimed: Claude session_011osUp9Lr5PbNofhx4XEc3S, 2026-11-25
+
 Follow-up created by PAR-DATA-19. Follow `plans/parity/PROTOCOL.md`.
