@@ -12,6 +12,8 @@
  */
 package dev.tfp.core.vessel;
 
+import dev.tfp.core.alloy.FluidAlloy;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -123,5 +125,37 @@ public final class VesselRules {
     /** {@code updateInventoryOnMelt}: an item melts once the vessel is at or above its recipe temperature. */
     public static boolean melts(float temperature, Melt melt) {
         return melt != null && temperature >= melt.temperature();
+    }
+
+    /**
+     * The outcome of {@link #meltInto}.
+     *
+     * @param mix     the metals after the melt
+     * @param slots   the slots after the melt (a melted slot is empty)
+     * @param changed whether any slot melted
+     */
+    public record MeltOutcome(FluidAlloy mix, List<VesselSlot> slots, boolean changed) {
+    }
+
+    /**
+     * {@code updateInventoryOnMelt} with TFC's {@code FluidAlloy}: every slot whose recipe temperature {@code temperature}
+     * reaches adds its fluid (per item times the count) to the mix under the vessel capacity, in slot order, and is emptied; what
+     * does not fit is voided. The total equals the single-fluid {@link VesselState#heatTo}.
+     */
+    public static MeltOutcome meltInto(FluidAlloy mix, List<VesselSlot> slots, float temperature) {
+        FluidAlloy next = mix;
+        List<VesselSlot> updated = new ArrayList<>(slots);
+        boolean changed = false;
+        for (int i = 0; i < slots.size(); i++) {
+            VesselSlot slot = slots.get(i);
+            if (slot.isEmpty() || !melts(temperature, slot.melt())) {
+                continue;
+            }
+            Melt melt = slot.melt();
+            next = next.fill(melt.perItem().fluid(), melt.perItem().amount() * slot.count(), SMALL_VESSEL_CAPACITY).alloy();
+            updated.set(i, VesselSlot.EMPTY);
+            changed = true;
+        }
+        return new MeltOutcome(next, updated, changed);
     }
 }

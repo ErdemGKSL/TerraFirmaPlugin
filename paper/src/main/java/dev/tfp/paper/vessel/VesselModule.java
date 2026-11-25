@@ -63,7 +63,9 @@ public final class VesselModule implements FeatureModule {
         ItemHeatDefinitionsCache definitions = context.services().require(ItemHeatDefinitionsCache.class);
         CustomItems custom = context.integrations().customItems();
         VesselItems v = new VesselItems(new VesselItems.Services(() -> context.clock().get().playerTicks(),
-            custom::idOf, id -> definitions.get().heatCapacity(id), stack -> melt(heating, stack), sizes::fitsSmallVessel),
+            custom::idOf, id -> definitions.get().heatCapacity(id), stack -> melt(heating, stack), sizes::fitsSmallVessel,
+            () -> context.services().get(dev.tfp.paper.alloy.AlloyRecipes.class).map(dev.tfp.paper.alloy.AlloyRecipes::get)
+                .orElse(java.util.List.of())),
             HeatConfig.DEFAULT);
         VesselScreens s = new VesselScreens(gui, context.scheduler(), context.messages(), v);
         VesselListener l = new VesselListener(v, s, context.scheduler());

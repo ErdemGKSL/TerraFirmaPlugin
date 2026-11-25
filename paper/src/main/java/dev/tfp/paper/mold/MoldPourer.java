@@ -47,7 +47,7 @@ public final class MoldPourer {
 
     /** The fluid a source holds, empty when none. */
     public FluidAmount fluid(ItemStack source) {
-        return FluidPdc.content(source);
+        return vessels.isVessel(source) ? vessels.fluid(source) : FluidPdc.content(source);
     }
 
     /**
@@ -77,8 +77,12 @@ public final class MoldPourer {
                 // the vessel's heat capacity follows its contents: settle the temperature before the amount changes
                 HeatPdc.write(source, new HeatState(temperature, now));
             }
-            int left = fluid.amount() - moved;
-            FluidPdc.write(source, left > 0 ? new FluidAmount(fluid.fluid(), left) : null);
+            if (vessel) {
+                vessels.drain(source, moved); // each metal of the mix in proportion
+            } else {
+                int left = fluid.amount() - moved;
+                FluidPdc.write(source, left > 0 ? new FluidAmount(fluid.fluid(), left) : null);
+            }
             poured += moved;
         }
         return poured;

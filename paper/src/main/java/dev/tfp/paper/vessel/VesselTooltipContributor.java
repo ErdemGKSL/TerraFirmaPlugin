@@ -11,6 +11,7 @@ package dev.tfp.paper.vessel;
 
 import dev.tfp.core.fluid.TfcFluid;
 import dev.tfp.core.fluid.TfcFluids;
+import dev.tfp.paper.alloy.AlloyPdc;
 import dev.tfp.paper.fluid.FluidLang;
 import dev.tfp.paper.itemdata.FluidPdc;
 import dev.tfp.paper.tooltip.TooltipContext;
@@ -24,7 +25,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 /**
- * The vessel's alloy on its tooltip: TFC's dark green "Contents:" label, then the fluid as "Copper 100 mB". Runs on Netty
+ * The tooltip line of a vessel that still holds a single {@code tfp:fluid} (an item from before PAR-METAL-22; a vessel with
+ * {@code tfp:alloy} is shown by AlloyTooltipContributor). The vessel's alloy on its tooltip: TFC's dark green "Contents:" label, then the fluid as "Copper 100 mB". Runs on Netty
  * threads over the packet copy of the stack ({@code tfp:fluid}); the label and fluid names come from TFC's lang files.
  */
 public final class VesselTooltipContributor implements TooltipContributor {
@@ -51,6 +53,9 @@ public final class VesselTooltipContributor implements TooltipContributor {
     public void contribute(TooltipItem item, TooltipContext context, Consumer<Component> lines) {
         if (!VesselItems.isVesselId(item.customId())) {
             return;
+        }
+        if (item.values().compound(AlloyPdc.KEY) != null) {
+            return; // the mixed alloy: AlloyTooltipContributor shows it, once
         }
         TooltipData fluid = item.values().compound(FluidPdc.KEY);
         if (fluid == null) {

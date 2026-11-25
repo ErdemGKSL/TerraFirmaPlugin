@@ -10,6 +10,10 @@
  */
 package dev.tfp.paper.vessel;
 
+import dev.tfp.core.alloy.AlloyDisplay;
+import dev.tfp.core.alloy.AlloyRecipe;
+import dev.tfp.core.alloy.FluidAlloy;
+import dev.tfp.core.crucible.CrucibleRules;
 import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.heat.HeatState;
 import dev.tfp.core.vessel.Alloy;
@@ -20,24 +24,33 @@ import dev.tfp.core.vessel.VesselSlot;
 import dev.tfp.core.vessel.VesselState;
 import dev.tfp.core.fluid.TfcFluids;
 import dev.tfp.core.metal.Metal;
+import dev.tfp.paper.alloy.AlloyPdc;
 import dev.tfp.paper.heat.HeatPdc;
 import dev.tfp.paper.itemdata.ContentsPdc;
 import dev.tfp.paper.itemdata.FluidPdc;
 import dev.tfp.paper.itemdata.ItemContents;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 import java.util.regex.Pattern;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 /**
  * PAR-POT-04: the small vessel as data on an item. Contents are the item's {@code tfp:contents} (four slots, each a whole
- * stack), the alloy is its {@code tfp:fluid}, the heat is its {@code tfp:heat}; {@link VesselState} (core) holds the rules.
+ * stack), the metals are its {@code tfp:alloy} mix (PAR-METAL-22; an old vessel with one {@code tfp:fluid} still reads and is
+ * rewritten as {@code tfp:alloy} on its next change), the heat is its {@code tfp:heat}; {@link VesselState} (core) holds the rules.
  * Nothing ticks: the temperature is read from the heat record at the calendar tick, and the melt of the contents is
  * {@link #settle evaluated lazily} when somebody looks (open, click, the player's sweep).
  *
@@ -58,16 +71,24 @@ public final class VesselItems {
      * @param heatCapacity the heat capacity per item of an item id (the {@code item_heat} definition), 0 when none
      * @param melt         the melt recipe of one item of a stack (temperature, fluid and the fluid's heat), empty when none
      * @param fits         TFC {@code canContainItem}: the size limit
+     * @param alloyRecipes the alloy recipes in lookup order, read when the mix's result is needed
      */
     public record Services(LongSupplier now, Function<ItemStack, Optional<String>> idOf,
                            ToDoubleFunction<String> heatCapacity, Function<ItemStack, Optional<Melt>> melt,
-                           Predicate<ItemStack> fits) {
+                           Predicate<ItemStack> fits, Supplier<List<AlloyRecipe>> alloyRecipes) {
+        /** Without alloy recipes: every mix of several metals is {@code metal/unknown}. */
+        public Services(LongSupplier now, Function<ItemStack, Optional<String>> idOf, ToDoubleFunction<String> heatCapacity,
+                        Function<ItemStack, Optional<Melt>> melt, Predicate<ItemStack> fits) {
+            this(now, idOf, heatCapacity, melt, fits, List::of);
+        }
+
         public Services {
             Objects.requireNonNull(now, "now");
             Objects.requireNonNull(idOf, "idOf");
             Objects.requireNonNull(heatCapacity, "heatCapacity");
             Objects.requireNonNull(melt, "melt");
             Objects.requireNonNull(fits, "fits");
+            Objects.requireNonNull(alloyRecipes, "alloyRecipes");
         }
     }
 
@@ -117,13 +138,40 @@ public final class VesselItems {
         return new VesselState(slots, alloy, capacity, heat);
     }
 
-    /** The alloy of the vessel: its fluid with the heat values of the fluid's metal. */
-    public static Alloy alloy(ItemStack vessel) {
-        dev.tfp.core.vessel.FluidAmount fluid = FluidPdc.content(vessel);
-        if (fluid.isEmpty()) {
-            return Alloy.EMPTY;
+    private static final NamespacedKey ALLOY_ROOT = Objects.requireNonNull(NamespacedKey.fromString(AlloyPdc.KEY));
+    private static final NamespacedKey ALLOY_V = new NamespacedKey("tfp", "v");
+
+    /** Whether the stack holds a {@code tfp:alloy} of a newer version than this build reads (never overwritten). */
+    static boolean alloyIsNewer(ItemStack stack) {
+        if (stack == null || !stack.hasItemMeta()) {
+            return false;
         }
-        return alloyOf(fluid);
+        PersistentDataContainer root = stack.getItemMeta().getPersistentDataContainer().get(ALLOY_ROOT,
+            PersistentDataType.TAG_CONTAINER);
+        Integer v = root == null ? null : root.get(ALLOY_V, PersistentDataType.INTEGER);
+        return v != null && v > AlloyPdc.VERSION;
+    }
+
+    /**
+     * The metals in the vessel: its {@code tfp:alloy}, else (an old vessel) its single {@code tfp:fluid} as one metal.
+     */
+    public static FluidAlloy mix(ItemStack vessel) {
+        FluidAlloy mix = AlloyPdc.read(vessel);
+        if (!mix.isEmpty()) {
+            return mix;
+        }
+        FluidAmount legacy = FluidPdc.content(vessel);
+        if (legacy.isEmpty()) {
+            return FluidAlloy.empty();
+        }
+        Map<String, Double> one = new LinkedHashMap<>();
+        one.put(legacy.fluid(), (double) legacy.amount());
+        return FluidAlloy.of(legacy.amount(), one);
+    }
+
+    /** The alloy of the vessel: the heat values of the fluid its metals make (TFC {@code FluidAlloy.getResult}). */
+    public Alloy alloy(ItemStack vessel) {
+        return Alloy.ofMix(mix(vessel), services.alloyRecipes().get());
     }
 
     static Alloy alloyOf(FluidAmount fluid) {
@@ -160,7 +208,7 @@ public final class VesselItems {
      * @return whether the stack changed
      */
     public boolean settle(ItemStack vessel) {
-        if (!isVessel(vessel) || ContentsPdc.isNewer(vessel) || FluidPdc.isNewer(vessel)) {
+        if (!isVessel(vessel) || ContentsPdc.isNewer(vessel) || FluidPdc.isNewer(vessel) || alloyIsNewer(vessel)) {
             return false;
         }
         if (!HeatPdc.has(vessel) || ContentsPdc.contents(vessel).isEmpty()) {
@@ -169,18 +217,12 @@ public final class VesselItems {
         long now = services.now().getAsLong();
         VesselState state = state(vessel);
         float temperature = state.temperatureAt(now, config);
-        String fluidId = null;
-        for (VesselSlot slot : state.slots()) {
-            if (!slot.isEmpty() && VesselRules.melts(temperature, slot.melt())) {
-                fluidId = slot.melt().perItem().fluid();
-                break;
-            }
-        }
-        if (fluidId == null) {
+        VesselRules.MeltOutcome outcome = VesselRules.meltInto(mix(vessel), state.slots(), temperature);
+        if (!outcome.changed()) {
             return false;
         }
-        String alloyFluid = FluidPdc.content(vessel).isEmpty() ? fluidId : FluidPdc.content(vessel).fluid();
-        VesselState melted = state.heatTo(now, temperature, config);
+        VesselState melted = state.heatTo(now, temperature, config)
+            .withAlloy(now, Alloy.ofMix(outcome.mix(), services.alloyRecipes().get()), config);
         List<ItemStack> stored = ItemContents.slots(vessel, VesselRules.SLOTS);
         for (int i = 0; i < VesselRules.SLOTS; i++) {
             if (melted.slots().get(i).isEmpty()) {
@@ -190,9 +232,69 @@ public final class VesselItems {
         if (!ContentsPdc.write(vessel, stored)) {
             return false;
         }
-        FluidPdc.write(vessel, melted.alloy().isEmpty() ? null : new FluidAmount(alloyFluid, melted.alloy().amount()));
+        writeMix(vessel, outcome.mix());
         HeatPdc.write(vessel, melted.heat());
         return true;
+    }
+
+    /**
+     * Writes the mix as {@code tfp:alloy}, drops an old single {@code tfp:fluid}, and keeps TFC's rule that a vessel holding
+     * fluid never stacks.
+     */
+    private static void writeMix(ItemStack vessel, FluidAlloy mix) {
+        if (!FluidPdc.content(vessel).isEmpty()) {
+            FluidPdc.write(vessel, null);
+        }
+        AlloyPdc.write(vessel, mix);
+        ItemMeta meta = vessel.getItemMeta();
+        if (meta != null) {
+            meta.setMaxStackSize(mix.isEmpty() ? null : 1);
+            vessel.setItemMeta(meta);
+        }
+    }
+
+    /**
+     * TFC {@code Vessel.fill}: adds a molten metal to the vessel's mix, up to the capacity ({@link
+     * VesselRules#SMALL_VESSEL_CAPACITY}), in any mode. Only a fluid with a melt temperature is accepted (TFC's
+     * {@code canContainFluid}). The temperature is settled to now first, so it does not jump with the new heat capacity.
+     *
+     * @return the amount taken, 0 for a stack that is no vessel, a refused fluid or a full vessel
+     */
+    public int fill(ItemStack vessel, String fluid, int amount) {
+        if (!isVessel(vessel) || amount <= 0 || FluidPdc.isNewer(vessel) || alloyIsNewer(vessel)
+            || CrucibleRules.meltTemperature(fluid).isEmpty()) {
+            return 0;
+        }
+        FluidAlloy.Fill fill = mix(vessel).fill(fluid, amount, VesselRules.SMALL_VESSEL_CAPACITY);
+        if (fill.accepted() == 0) {
+            return 0;
+        }
+        if (HeatPdc.has(vessel)) {
+            HeatPdc.write(vessel, new HeatState(temperature(vessel), services.now().getAsLong()));
+        }
+        writeMix(vessel, fill.alloy());
+        return fill.accepted();
+    }
+
+    /**
+     * Takes {@code amount} mB out of the mix, each metal in proportion (TFC {@code FluidAlloy.drain}); the temperature is
+     * settled to now first. A vessel that cannot be written (newer data) gives nothing.
+     *
+     * @return the amount taken
+     */
+    public int drain(ItemStack vessel, int amount) {
+        if (!isVessel(vessel) || amount <= 0 || FluidPdc.isNewer(vessel) || alloyIsNewer(vessel)) {
+            return 0;
+        }
+        FluidAlloy.Drain drain = mix(vessel).drain(amount);
+        if (drain.drained() == 0) {
+            return 0;
+        }
+        if (HeatPdc.has(vessel)) {
+            HeatPdc.write(vessel, new HeatState(temperature(vessel), services.now().getAsLong()));
+        }
+        writeMix(vessel, drain.alloy());
+        return drain.drained();
     }
 
     /**
@@ -212,9 +314,17 @@ public final class VesselItems {
         return ItemContents.slots(vessel, VesselRules.SLOTS);
     }
 
-    /** The alloy fluid of the vessel, {@link FluidAmount#EMPTY}-like empty when none. */
+    /**
+     * The fluid the vessel's metals make and the total amount ({@code tfp:metal/bronze 1000}, {@code tfp:metal/unknown} for a mix
+     * no recipe makes), empty when none.
+     */
     public FluidAmount fluid(ItemStack vessel) {
-        return FluidPdc.content(vessel);
+        FluidAlloy mix = mix(vessel);
+        if (mix.isEmpty()) {
+            return FluidAmount.EMPTY;
+        }
+        AlloyDisplay.View view = AlloyDisplay.of(mix, services.alloyRecipes().get());
+        return new FluidAmount(view.result(), view.amount());
     }
 
     /** The melt temperature the alloy needs to be liquid, empty when the vessel has no alloy. */

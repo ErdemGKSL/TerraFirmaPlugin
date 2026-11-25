@@ -7,11 +7,16 @@ package dev.tfp.paper.vessel;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.tfp.core.alloy.AlloyRange;
+import dev.tfp.core.alloy.AlloyRecipe;
+import dev.tfp.core.alloy.FluidAlloy;
 import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.heat.HeatState;
 import dev.tfp.core.vessel.FluidAmount;
 import dev.tfp.core.vessel.Melt;
+import dev.tfp.paper.alloy.AlloyPdc;
+import dev.tfp.paper.alloy.AlloyTooltipContributor;
 import dev.tfp.paper.fluid.FluidLang;
 import dev.tfp.paper.gui.GuiListener;
 import dev.tfp.paper.gui.GuiService;
@@ -54,7 +59,10 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
  */
 class VesselMockBukkitTest extends MockServerTest {
     static final String COPPER = "tfp:metal/copper";
+    static final String TIN = "tfp:metal/tin";
     static final long START = 100_000;
+    static final List<AlloyRecipe> BRONZE = List.of(new AlloyRecipe("tfp:metal/bronze",
+            List.of(new AlloyRange(COPPER, 0.88, 0.92), new AlloyRange(TIN, 0.08, 0.12))));
 
     private final AtomicLong now = new AtomicLong(START);
     private VesselItems items;
@@ -81,12 +89,15 @@ class VesselMockBukkitTest extends MockServerTest {
                 stack -> Optional.ofNullable(switch (stack.getType()) {
                     case DECORATED_POT -> "tfp:ceramic/vessel";
                     case COPPER_INGOT -> "test:copper_ingot";
+                    case IRON_INGOT -> "test:tin_ingot";
                     default -> null;
                 }),
                 id -> id.equals("test:copper_ingot") ? 1.0 : 0.0,
                 stack -> stack.getType() == Material.COPPER_INGOT
-                        ? Optional.of(new Melt(1080f, new FluidAmount(COPPER, 100), 0.008571429f, 1080f)) : Optional.empty(),
-                stack -> stack.getType() != Material.ANVIL), HeatConfig.DEFAULT);
+                        ? Optional.of(new Melt(1080f, new FluidAmount(COPPER, 100), 0.008571429f, 1080f))
+                        : stack.getType() == Material.IRON_INGOT
+                        ? Optional.of(new Melt(230f, new FluidAmount(TIN, 100), 0.021428572f, 230f)) : Optional.empty(),
+                stack -> stack.getType() != Material.ANVIL, () -> BRONZE), HeatConfig.DEFAULT);
     }
 
     @AfterEach
@@ -259,6 +270,91 @@ class VesselMockBukkitTest extends MockServerTest {
         c.contribute(new TooltipItem("tfp:ceramic/vessel", "minecraft:paper", 1, TooltipData.of(Map.of())),
                 new TooltipContext("en_us", ClockSnapshot.UNSET), out::add);
         assertThat(out).isEmpty();
+    }
+
+    @Test
+    void copperAndTinMeltIntoABronzeMixAtTheBronzeHeat() {
+        ItemStack v = vessel();
+        items.insert(v, 0, new ItemStack(Material.COPPER_INGOT, 9));
+        items.insert(v, 1, new ItemStack(Material.IRON_INGOT, 1));
+        heat(v, 1100f);
+        assertThat(items.settle(v)).isTrue();
+        FluidAlloy mix = AlloyPdc.read(v);
+        assertThat(mix.contents()).containsEntry(COPPER, 900d).containsEntry(TIN, 100d);
+        assertThat(FluidPdc.content(v).isEmpty()).as("the single tfp:fluid is gone").isTrue();
+        assertThat(items.fluid(v)).isEqualTo(new FluidAmount("tfp:metal/bronze", 1000));
+        assertThat(items.alloyMeltTemperature(v)).contains(950f);
+        assertThat(items.isMolten(v)).as("1100 is above the bronze melt point").isTrue();
+        assertThat(items.state(v).alloy().specificHeat()).isEqualTo(0.008571429f);
+        assertThat(v.getMaxStackSize()).isEqualTo(1);
+
+        ItemStack copy = v.clone();
+        assertThat(AlloyPdc.read(copy).contents()).containsEntry(TIN, 100d);
+        heat(v, 900f);
+        assertThat(items.isMolten(v)).as("below 950 the bronze is solid; copper alone would still be").isFalse();
+    }
+
+    @Test
+    void aFillOfAnotherMetalAddsAMixAndStopsAtTheCapacity() {
+        ItemStack v = vessel();
+        assertThat(items.fill(v, COPPER, 900)).isEqualTo(900);
+        assertThat(items.fill(v, TIN, 100)).isEqualTo(100);
+        assertThat(items.fluid(v)).isEqualTo(new FluidAmount("tfp:metal/bronze", 1000));
+        assertThat(items.fill(v, TIN, 5000)).as("room for 2000").isEqualTo(2000);
+        assertThat(items.fill(v, TIN, 1)).as("full").isZero();
+        assertThat(items.fill(v, "minecraft:water", 10)).as("no melt temperature").isZero();
+        assertThat(items.fill(new ItemStack(Material.STONE), COPPER, 10)).isZero();
+        assertThat(items.fluid(v).fluid()).as("copper 900, tin 2100: no recipe").isEqualTo("tfp:metal/unknown");
+        assertThat(items.alloyMeltTemperature(v)).contains(400f);
+    }
+
+    @Test
+    void aDrainTakesEachMetalInProportion() {
+        ItemStack v = vessel();
+        items.fill(v, COPPER, 900);
+        items.fill(v, TIN, 100);
+        assertThat(items.drain(v, 500)).isEqualTo(500);
+        FluidAlloy mix = AlloyPdc.read(v);
+        assertThat(mix.amount()).isEqualTo(500);
+        assertThat(mix.contents().get(COPPER)).isEqualTo(450d);
+        assertThat(mix.contents().get(TIN)).isEqualTo(50d);
+        assertThat(items.drain(v, 9999)).isEqualTo(500);
+        assertThat(items.fluid(v).isEmpty()).isTrue();
+        assertThat(AlloyPdc.read(v).isEmpty()).isTrue();
+    }
+
+    @Test
+    void anOldVesselWithOneFluidStillReadsAndIsRewrittenAsAnAlloy() {
+        ItemStack v = vessel();
+        FluidPdc.write(v, new FluidAmount(COPPER, 300));
+        assertThat(items.fluid(v)).isEqualTo(new FluidAmount(COPPER, 300));
+        assertThat(items.alloyMeltTemperature(v)).contains(1080f);
+        assertThat(items.fill(v, TIN, 100)).isEqualTo(100);
+        assertThat(FluidPdc.content(v).isEmpty()).isTrue();
+        assertThat(AlloyPdc.read(v).contents()).containsEntry(COPPER, 300d).containsEntry(TIN, 100d);
+    }
+
+    @Test
+    void theTooltipShowsTheMixOnceWithBothMetals() {
+        FluidLang lang = new FluidLang(file -> file.equals("en_us.json") ? new ByteArrayInputStream(
+                ("{\"fluid.tfc.metal.copper\": \"Copper\", \"fluid.tfc.metal.tin\": \"Tin\","
+                        + " \"fluid.tfc.metal.bronze\": \"Bronze\"}").getBytes(StandardCharsets.UTF_8)) : null);
+        lang.load("en_us");
+        ItemStack v = vessel();
+        items.fill(v, COPPER, 900);
+        items.fill(v, TIN, 100);
+        FluidAlloy mix = AlloyPdc.read(v);
+        Map<String, Object> alloy = Map.of("tfp:v", 1, "tfp:amount", mix.amount(),
+                "tfp:s", dev.tfp.core.alloy.AlloyCodec.encode(mix));
+        TooltipItem item = new TooltipItem("tfp:ceramic/vessel", "minecraft:paper", 1, TooltipData.of(Map.of(AlloyPdc.KEY, alloy)));
+        List<Component> out = new ArrayList<>();
+        TooltipContext ctx = new TooltipContext("en_us", ClockSnapshot.UNSET);
+        new VesselTooltipContributor(lang).contribute(item, ctx, out::add);
+        assertThat(out).as("the vessel contributor defers").isEmpty();
+        new AlloyTooltipContributor(lang, () -> BRONZE).contribute(item, ctx, out::add);
+        PlainTextComponentSerializer plain = PlainTextComponentSerializer.plainText();
+        assertThat(out.stream().map(plain::serialize).toList()).containsExactly("Contents:", "Bronze 1000 mB",
+                "  Copper 900 mB (90.0%)", "  Tin 100 mB (10.0%)");
     }
 
     @Test

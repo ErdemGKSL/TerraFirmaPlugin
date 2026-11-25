@@ -177,6 +177,14 @@ public record VesselState(List<VesselSlot> slots, Alloy alloy, float heatCapacit
         return heated.settled(now, updated, melted, config);
     }
 
+    /**
+     * The vessel with another alloy heat view (the mix's result changed), its temperature settled to {@code now} under the old
+     * capacity and the capacity recomputed from the alloy's specific heat.
+     */
+    public VesselState withAlloy(long now, Alloy newAlloy, HeatConfig config) {
+        return settled(now, slots, newAlloy, config);
+    }
+
     /** The vessel with the given contents, its temperature settled to {@code now} under the old capacity. */
     VesselState settled(long now, List<VesselSlot> newSlots, Alloy newAlloy, HeatConfig config) {
         float settledTemperature = temperatureAt(now, config);
