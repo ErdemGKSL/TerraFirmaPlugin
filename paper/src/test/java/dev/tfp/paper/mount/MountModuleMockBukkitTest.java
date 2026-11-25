@@ -52,6 +52,7 @@ class MountModuleMockBukkitTest extends MockServerTest {
     private World world;
     private MountModule module;
     private long now;
+    private long calendar = 5 * DAY;
     private final List<String> messages = new ArrayList<>();
 
     @BeforeEach
@@ -65,7 +66,7 @@ class MountModuleMockBukkitTest extends MockServerTest {
         sizes.register(id -> id.equals("test:heavy"), s -> new ItemSizing(ItemSize.HUGE, ItemWeight.VERY_HEAVY));
         module = new MountModule();
         module.initForTest(e -> AnimalPdc.read(e.getPersistentDataContainer()), sizes,
-                () -> new ClockSnapshot(1, now, 5 * DAY, 8, true), (p, key) -> {
+                () -> new ClockSnapshot(1, now, calendar, 8, true), (p, key) -> {
                     messages.add(key);
                     return key;
                 });
@@ -202,6 +203,57 @@ class MountModuleMockBukkitTest extends MockServerTest {
         assertThat(MountPdc.genes(mare.getPersistentDataContainer())).isEmpty();
         MountStats s = MountPdc.stats(foal.getPersistentDataContainer()).orElseThrow();
         assertThat(s.maxHealth()).isBetween(MountStats.MIN_HEALTH, MountStats.MAX_HEALTH);
+    }
+
+    @Test
+    void aHorseAndDonkeyBirthSpawnsAMuleFoalFromTheGenesWithNoReplacement() {
+        // PAR-FAUNA-34: the mount module delivers the foal as the genes' species at once (no horse foal to replace afterwards)
+        Horse mare = mount(Horse.class, "tfc:horse", 0, state(false, 0.5f, 0));
+        Donkey jack = mount(Donkey.class, "tfc:donkey", 2, state(true, 0.5f, 0));
+        mare.setTamed(true);
+        jack.setTamed(true);
+        module.initialise(mare, AnimalPdc.read(mare.getPersistentDataContainer()).orElseThrow());
+        module.initialise(jack, AnimalPdc.read(jack.getPersistentDataContainer()).orElseThrow());
+        check(mare);
+        AnimalState pregnant = AnimalPdc.read(mare.getPersistentDataContainer()).orElseThrow().state();
+        assertThat(pregnant.fertilized()).isTrue();
+        List<String> born = new ArrayList<>();
+        module.spawner((at, carrier, familiarity) -> {
+            born.add(carrier.id());
+            return java.util.concurrent.CompletableFuture.completedFuture(null);
+        });
+        check(mare); // not due yet: the calendar is at day 5, the mare was fertilized on day 5
+        assertThat(born).isEmpty();
+        calendar = 1000 * DAY;
+        check(mare);
+        assertThat(born).containsExactly("tfc:mule");
+        AnimalState after = AnimalPdc.read(mare.getPersistentDataContainer()).orElseThrow().state();
+        assertThat(after.fertilized()).isFalse();
+        check(mare);
+        assertThat(born).as("one birth per pregnancy").hasSize(1);
+    }
+
+    @Test
+    void aHorsePairBirthSpawnsAHorseAndAMuleNeverMatesOrBirths() {
+        Horse mare = mount(Horse.class, "tfc:horse", 0, state(false, 0.5f, 0));
+        Horse stallion = mount(Horse.class, "tfc:horse", 2, state(true, 0.5f, 0));
+        module.initialise(mare, AnimalPdc.read(mare.getPersistentDataContainer()).orElseThrow());
+        module.initialise(stallion, AnimalPdc.read(stallion.getPersistentDataContainer()).orElseThrow());
+        check(mare);
+        List<String> born = new ArrayList<>();
+        module.spawner((at, carrier, familiarity) -> {
+            born.add(carrier.id());
+            return java.util.concurrent.CompletableFuture.completedFuture(null);
+        });
+        calendar = 1000 * DAY;
+        check(mare);
+        assertThat(born).containsExactly("tfc:horse");
+        org.bukkit.entity.Mule molly = mount(org.bukkit.entity.Mule.class, "tfc:mule", 4, state(false, 0.5f, 0));
+        Donkey jack = mount(Donkey.class, "tfc:donkey", 5, state(true, 0.5f, 0));
+        jack.setTamed(true);
+        molly.setTamed(true);
+        check(molly);
+        assertThat(AnimalPdc.read(molly.getPersistentDataContainer()).orElseThrow().state().fertilized()).isFalse();
     }
 
     @Test

@@ -2,7 +2,7 @@
 id: PAR-FAUNA-34
 title: "Livestock check hands horse-family mating and birth to the mount module (follow-up of PAR-FAUNA-15)"
 area: FAUNA
-status: open
+status: done
 wave: 46
 deps: [PAR-FAUNA-15]
 size: S
@@ -19,6 +19,7 @@ ui: false
 in_game_steps: []
 plan:
   - "LivestockBehaviour.mate pairs two ready animals of one species for every livestock species, including horse, donkey and mule, with no tamed or unridden check (MountBreeding.canMate). Skip the horse family there (mount module owns it) and add the camels' unridden check (MountBreeding.canMate, PAR-FAUNA-16) and let MountModule fertilize and deliver, so a foal is born as a mule from the genes directly and the replace-after-birth step of MountModule.resolveFoal goes."
+  - "Done: LivestockBehaviour skips horse, donkey and mule (MountModule.owns) and gates camels with MountBreeding.canMate; MountModule.giveBirth delivers horse and donkey births and spawns the genes' species (mule foal) directly, resolveFoal's replace step removed. LivestockBehaviourMockBukkitTest 5 and MountModuleMockBukkitTest 11 green."
 tests:
   - "paper: a ridden or untamed horse pair is not fertilized by the livestock check; a horse and donkey birth spawns a mule foal"
 done_criteria:
@@ -26,7 +27,5 @@ done_criteria:
 ---
 
 # PAR-FAUNA-34: Livestock check hands horse-family mating and birth to the mount module (follow-up of PAR-FAUNA-15)
-
-> Claimed: sonnet-5.5 session_011osUp8, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

@@ -100,6 +100,7 @@ public final class MountModule implements FeatureModule, Listener {
     private Supplier<ClockSnapshot> clock;
     private BiFunction<Player, String, String> messages;
     private java.util.function.BiConsumer<Entity, Runnable> onEntity;
+    private Spawner spawner;
     private final MountRandom random = new MountRandom() {
         @Override
         public double nextDouble() {
@@ -111,6 +112,21 @@ public final class MountModule implements FeatureModule, Listener {
             return ThreadLocalRandom.current().nextInt(bound);
         }
     };
+
+    /** Spawns a newborn of a carrier's species (the animal service's {@code spawnOffspring}; a recorder in tests). */
+    @FunctionalInterface
+    interface Spawner {
+        java.util.concurrent.CompletableFuture<Entity> spawn(org.bukkit.Location at, Carrier carrier, float familiarity);
+    }
+
+    /**
+     * True for the species this module owns end to end: pairing, genes and birth (PAR-FAUNA-34). The livestock check
+     * leaves them alone, so no horse-family pair is made and no foal is born without the tamed and unridden gate and the
+     * genes. Camels are the livestock check's, with the unridden gate of {@link MountBreeding#canMate}.
+     */
+    public static boolean owns(LivestockSpecies species) {
+        return species == LivestockSpecies.HORSE || species == LivestockSpecies.DONKEY || species == LivestockSpecies.MULE;
+    }
 
     @Override
     public String id() {
@@ -128,8 +144,14 @@ public final class MountModule implements FeatureModule, Listener {
         });
         this.records = animals::record;
         this.carriers = id -> animals.table().find(id);
+        this.spawner = animals::spawnOffspring;
         animals.behaviours().register(behaviour());
         context.listen(this);
+    }
+
+    /** Test seam: where a newborn is spawned. */
+    void spawner(Spawner spawner) {
+        this.spawner = spawner;
     }
 
     /** Test seam: the animal service pieces, the clock and the thread hand-off. */
@@ -228,22 +250,9 @@ public final class MountModule implements FeatureModule, Listener {
         MountGenes genes = MountPdc.genes(mother.getPersistentDataContainer()).orElseThrow();
         MountPdc.clearGenes(mother.getPersistentDataContainer());
         MountGenes.Foal drawn = genes.inherit(random);
-        if (drawn.species() == own) {
-            apply(foal, drawn.stats(), drawn.colour());
-            return;
-        }
-        Optional<Carrier> carrier = carriers.apply("tfc:" + drawn.species().name().toLowerCase(Locale.ROOT));
-        if (carrier.isEmpty()) {
-            apply(foal, drawn.stats(), Optional.empty());
-            return;
-        }
-        // a mule is born as a horse's or donkey's foal: replace it by the right carrier
-        animals.spawnOffspring(foal.getLocation(), carrier.get(), record.state().familiarity()).thenAccept(born -> {
-            // after the newborn's own add hook (which rolled random stats) has run
-            ctx.scheduler().entityDelayed(born, 3, () -> apply(born, drawn.stats(), drawn.colour()), () -> {
-            });
-        });
-        foal.remove();
+        // the foal was born as the genes' species (giveBirth); a foal of another species (another pair's genes in reach) keeps
+        // the stats but draws its own colour
+        apply(foal, drawn.stats(), drawn.species() == own ? drawn.colour() : horseColour(own));
     }
 
     /** Sets the base attributes and, for a horse, the colour; keeps the values in the PDC. Entity thread. */
@@ -302,9 +311,41 @@ public final class MountModule implements FeatureModule, Listener {
         if (!record.state().male()) {
             if (record.state().fertilized()) {
                 ensureGenes(check, record);
+                giveBirth(check, record, now);
             } else {
                 mate(check, record, now);
             }
+        }
+    }
+
+    /**
+     * TFC {@code MammalProperties.tickAnimalData}: a pregnant horse or donkey whose gestation is due gives birth. The foal's
+     * species is the genes' (a mule from a horse and a donkey), spawned as that carrier at once; its stats and colour are
+     * drawn from the genes when it is added ({@link #resolveFoal}).
+     */
+    void giveBirth(SpeciesBehaviour.Check check, AnimalRecord record, ClockSnapshot now) {
+        Optional<LivestockSpecies> sp = species(record.species());
+        Entity mother = check.entity();
+        if (sp.isEmpty() || !MountBreeding.isHorseFamily(sp.get())) {
+            return;
+        }
+        Optional<MountGenes> genes = MountPdc.genes(mother.getPersistentDataContainer());
+        if (genes.isEmpty()) {
+            return;
+        }
+        Optional<BreedingRules.Birth> birth = BreedingRules.birth(record.state(), sp.get(), now.playerTicks(),
+                now.calendarTicks(), now.playerTicks(), random.nextInt(sp.get().childCount()));
+        if (birth.isEmpty()) {
+            return;
+        }
+        Optional<Carrier> own = carriers.apply(record.species());
+        Carrier carrier = carriers.apply("tfc:" + genes.get().foal().name().toLowerCase(Locale.ROOT)).or(() -> own).orElse(null);
+        if (carrier == null) {
+            return;
+        }
+        SpeciesBehaviours.update(check, record.withState(birth.get().mother()));
+        for (int i = 0; i < birth.get().kids(); i++) {
+            spawner.spawn(mother.getLocation(), carrier, birth.get().offspringFamiliarity());
         }
     }
 

@@ -16,10 +16,13 @@ import dev.tfp.core.clock.ClockSnapshot;
 import dev.tfp.core.livestock.AnimalState;
 import dev.tfp.core.livestock.BreedingRules;
 import dev.tfp.core.livestock.LivestockSpecies;
+import dev.tfp.core.mount.MountBreeding;
 import dev.tfp.paper.animal.AnimalPdc;
 import dev.tfp.paper.animal.AnimalService;
 import dev.tfp.paper.animal.SpeciesBehaviour;
 import dev.tfp.paper.animal.SpeciesBehaviours;
+import dev.tfp.paper.mount.MountModule;
+import dev.tfp.paper.mount.MountSupport;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.util.Optional;
 import java.util.Set;
@@ -74,6 +77,9 @@ final class LivestockBehaviour implements SpeciesBehaviour {
         }
         AnimalState state = SpeciesBehaviours.current(check).state();
         LivestockSpecies sp = species.get();
+        if (MountModule.owns(sp)) {
+            return; // horses, donkeys and mules pair, carry genes and give birth in the mount module (PAR-FAUNA-34)
+        }
         if (!state.male() && state.fertilized() && sp.kind() == LivestockSpecies.Kind.MAMMAL) {
             giveBirth(check, sp, now);
         } else if (!state.male() && BreedingRules.isReadyToMate(state, sp, now.playerTicks())) {
@@ -112,7 +118,13 @@ final class LivestockBehaviour implements SpeciesBehaviour {
                 continue;
             }
             AnimalState male = maybe.get().state();
-            if (!male.male() || !BreedingRules.canMate(record.state(), male, sp, now.playerTicks())) {
+            if (MountBreeding.isCamel(sp)) { // TFC's camels also need both animals unridden (vanillaParentingCheck)
+                MountBreeding.Mate a = new MountBreeding.Mate(record.state(), sp, MountSupport.ridden(female));
+                MountBreeding.Mate b = new MountBreeding.Mate(male, sp, MountSupport.ridden(other));
+                if (!male.male() || !MountBreeding.canMate(a, b, now.playerTicks())) {
+                    continue;
+                }
+            } else if (!male.male() || !BreedingRules.canMate(record.state(), male, sp, now.playerTicks())) {
                 continue;
             }
             BreedingRules.Pairing pairing = BreedingRules.fertilize(record.state(), male, sp, now.playerTicks(),
