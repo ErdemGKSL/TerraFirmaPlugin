@@ -2,7 +2,7 @@
 id: PAR-FAUNA-37
 title: "Lobster trap placement state and waterlogged carrier: facing, fluid and the water of a wet trap (follow-up of PAR-FAUNA-36)"
 area: FAUNA
-status: open
+status: done
 wave: 47
 deps: [PAR-FAUNA-36]
 size: S
@@ -25,6 +25,7 @@ in_game_steps:
 plan:
   - "TFC getStateForPlacement: facing = the placer's horizontal direction opposite, fluid = the fluid of the replaced block (FluidHelpers.fillWithFluid). Nothing in paper/lobstertrap sets them yet (PAR-FAUNA-36 only declares the properties): set both on placement through the device (see paper/pump PumpBlockStates for the fluid property)."
   - "PAR-FAUNA-36 draws every fluid value of tfp:lobster_trap on one dry hitbox-only carrier, so the cell of a wet trap shows no water. Add tfc:lobster_trap[waterlogged=true] rows to TfcShapes and the shape json, a second demand set for the fluid=water appearances (the selector's waterlogged filter needs TFC's state to be waterlogged), and appearances per (facing, trap, fluid) in the generator."
+  - "Done: LobsterTrapPlacement (BlockPlaceEvent, one region write): facing = the placer's horizontal direction opposite, fluid = water for a replaced water source; wired in LobsterTrapModule; LobsterTrapPlacementMockBukkitTest (4 tests). The waterlogged carrier half was tried and cannot be met inside files_owned (the selector never picks a waterlogged state for a full-block row; details in PAR-FAUNA-39), so no datagen change was kept and the water criterion moved to PAR-FAUNA-39. In-game check pending (container cannot run client)."
 tests:
   - "datagen: the fluid=water states take a waterlogged carrier, the empty ones the dry one; carrier pin"
 done_criteria:
@@ -33,6 +34,5 @@ done_criteria:
 
 # PAR-FAUNA-37: Lobster trap placement state and waterlogged carrier
 
-> Claimed: worker session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 Follow `plans/parity/PROTOCOL.md`.

@@ -27,6 +27,7 @@ import dev.tfp.paper.loot.LootDrop;
 import dev.tfp.paper.loot.LootService;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
+import dev.tfp.paper.pump.BlockWriter;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tags.TagSnapshot;
 import dev.tfp.paper.tags.Tags;
@@ -82,6 +83,7 @@ public final class LobsterTrapModule implements FeatureModule {
         PaperTrapEffects effects = new PaperTrapEffects(scheduler, blocks, () -> context.integrations().blockVisuals(), finder);
         services = new LobsterTrapDevice.Services(stack -> tags.is(stack, BAIT_TAG), effects);
         kind.set(devices.register(LobsterTrapDevice.kind(services)));
+        context.listen(new LobsterTrapPlacement(scheduler, blocks, BlockWriter.visuals(() -> context.integrations().blockVisuals())));
         animals.behaviours().register(new Seeker(animals));
         Optional<CatchUpService> catchUp = context.services().get(CatchUpService.class);
         blocks.onChunkLoad(chunk -> catchUp.ifPresent(c -> chunkLoaded(chunk, c, blocks)));
