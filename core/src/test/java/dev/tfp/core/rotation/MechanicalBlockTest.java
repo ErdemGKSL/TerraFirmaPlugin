@@ -157,4 +157,27 @@ class MechanicalBlockTest {
         }
         assertThat(world.put(p(6, 0, 0), MechanicalBlock.State.axle(MechanicalBlock.AXLE, RotationAxis.X))).containsExactly(p(6, 0, 0));
     }
+
+    /** PAR-MECH-21: CrankshaftBlockEntity's SinkNode(pos, FACING.getCounterClockWise()); no axis, one horizontal face. */
+    @Test
+    void crankshaftIsASinkOnTheCounterClockwiseFace() {
+        assertThat(MechanicalBlock.CRANKSHAFT.kind()).isEqualTo(NodeKind.SINK);
+        assertThat(MechanicalBlock.CRANKSHAFT.reportedSource()).isFalse();
+        assertThat(MechanicalBlock.State.crankshaft(NORTH).node(p(0, 0, 0)).connections()).containsExactly(WEST);
+        assertThat(MechanicalBlock.State.crankshaft(EAST).node(p(0, 0, 0)).connections()).containsExactly(NORTH);
+        assertThat(MechanicalBlock.State.crankshaft(SOUTH).node(p(0, 0, 0)).connections()).containsExactly(EAST);
+        RotationNode west = MechanicalBlock.State.crankshaft(WEST).node(p(1, 2, 3));
+        assertThat(west.kind()).isEqualTo(NodeKind.SINK);
+        assertThat(west.connections()).containsExactly(SOUTH);
+        assertThat(west.sourceRotation()).isNull();
+        assertThat(MechanicalBlock.State.crankshaft(NORTH).sourceSpeed()).isZero();
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> MechanicalBlock.State.crankshaft(UP))
+            .isInstanceOf(IllegalArgumentException.class);
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+            () -> new MechanicalBlock.State(MechanicalBlock.CRANKSHAFT, RotationAxis.X, false, Set.of(NORTH), 0))
+            .isInstanceOf(IllegalArgumentException.class);
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+            () -> new MechanicalBlock.State(MechanicalBlock.CRANKSHAFT, null, false, Set.of(NORTH, SOUTH), 0))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
 }

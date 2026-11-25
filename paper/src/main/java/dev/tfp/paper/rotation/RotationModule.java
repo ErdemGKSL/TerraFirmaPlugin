@@ -8,6 +8,7 @@ package dev.tfp.paper.rotation;
 import dev.tfp.core.rotation.RotationWorld;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.boot.TfpCommands.Reply;
+import dev.tfp.paper.crankshaft.CrankRotation;
 import dev.tfp.paper.device.DeviceService;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
@@ -33,7 +34,8 @@ import org.bukkit.entity.Player;
  * and windmill sources (PAR-MECH-17: the {@link WaterWheelNetwork} and {@link WindmillNetwork} services). Registers their
  * device kinds, runs the per-world networks ({@link RotationService}), re-adds a chunk's blocks when it loads and removes them
  * when it unloads, and adds {@code /tfp debug rotation}: the speeds of the network of the block the player looks at. The axles
- * are drawn by the spinning shafts ({@link SpinVisuals}, PAR-MECH-12).
+ * are drawn by the spinning shafts ({@link SpinVisuals}, PAR-MECH-12). PAR-MECH-21: the crankshaft base is a network sink
+ * ({@link CrankSinks}, provided as the crankshaft module's {@link CrankRotation}).
  * Needs the device and tags modules before it in the service file.
  */
 public final class RotationModule implements FeatureModule {
@@ -46,6 +48,7 @@ public final class RotationModule implements FeatureModule {
     private RotationService networks;
     private RotationDevices devices;
     private PaperRotationWorld world;
+    private CrankSinks cranks;
     private volatile SpinShafts spin;
 
     @Override
@@ -71,8 +74,18 @@ public final class RotationModule implements FeatureModule {
         context.services().provide(WaterWheelNetwork.class, RotationSources.waterWheel(networks));
         context.services().provide(WindmillNetwork.class, RotationSources.windmill(networks,
             (w, p) -> world.reAddAfterSource(w, p, index, devices)));
+        // PAR-MECH-21: the crankshaft base as a sink (its device kind is the crankshaft module's).
+        cranks = new CrankSinks(networks, blocks, CrankSinks.visualsWriter(() -> context.integrations().blockVisuals()),
+            scheduler, uid -> context.plugin().getServer().getWorld(uid));
+        context.services().provide(CrankRotation.class, cranks);
+        context.services().provide(CrankSinks.class, cranks);
+        deviceService.hook(RotationBlockStates.CRANKSHAFT, cranks.hook());
+        context.listen(cranks.new Placement());
         blocks.onChunkLoad(chunk -> world.chunkLoaded(chunk, index, devices));
-        blocks.onChunkUnload(chunk -> world.chunkUnloaded(chunk, index));
+        blocks.onChunkUnload(chunk -> {
+            world.chunkUnloaded(chunk, index);
+            cranks.chunkUnloaded(chunk);
+        });
         // PAR-MECH-12: the spinning shafts (packet-only displays fed by the network actors), before the re-add so it reports them.
         try {
             spin = SpinVisuals.start(context, networks, world::axleItem).orElse(null);
@@ -116,7 +129,11 @@ public final class RotationModule implements FeatureModule {
             return CompletableFuture.completedFuture(Reply.error("debug.rotation.none", REACH));
         }
         // a water wheel or windmill (PAR-MECH-17) is reported by its own service, not refreshed from its state
-        devices.submit(target, state.get(), world.step(target));
+        if (state.get().id().equals(RotationBlockStates.CRANKSHAFT)) {
+            cranks.refresh(target); // PAR-MECH-21: the base is handed over here (the shaft piece is no node)
+        } else {
+            devices.submit(target, state.get(), world.step(target));
+        }
         BlockPos pos = RotationDevices.pos(target);
         return networks.report(target.getWorld().getUID(), pos).thenApply(r -> r.map(RotationModule::reply)
             .orElse(Reply.error("debug.rotation.none", REACH)));

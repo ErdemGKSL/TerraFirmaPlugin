@@ -11,10 +11,13 @@
  *       src/main/java/net/dries007/tfc/common/blockentities/rotation/CreativeRotationBlockEntity.java @ c3b4d9536 (source node),
  *       src/main/java/net/dries007/tfc/common/blockentities/rotation/WaterWheelBlockEntity.java @ c3b4d9536 (source node),
  *       src/main/java/net/dries007/tfc/common/blockentities/rotation/WindmillBlockEntity.java @ c3b4d9536 (source node),
- *       src/main/java/net/dries007/tfc/common/blockentities/rotation/BladedAxleBlockEntity.java @ c3b4d9536 (an AxleBlockEntity)
+ *       src/main/java/net/dries007/tfc/common/blockentities/rotation/BladedAxleBlockEntity.java @ c3b4d9536 (an AxleBlockEntity),
+ *       src/main/java/net/dries007/tfc/common/blockentities/rotation/CrankshaftBlockEntity.java @ c3b4d9536
+ *       (new SinkNode(pos, state.getValue(FACING).getCounterClockWise()), only for the base)
  */
 package dev.tfp.core.rotation;
 
+import dev.tfp.core.crankshaft.CrankshaftRules;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.core.world.Direction;
 import java.util.EnumSet;
@@ -23,7 +26,7 @@ import java.util.Set;
 
 /**
  * The rotation network blocks (the five of PAR-MECH-01, the water wheel and windmill sources of PAR-MECH-17, the bladed axle of
- * PAR-MECH-20) and the network
+ * PAR-MECH-20, the crankshaft sink of PAR-MECH-21) and the network
  * node each state makes. TFC builds the node in the
  * block entity's constructor from the block state; here {@link State#node} does the same from the state's properties.
  */
@@ -46,7 +49,12 @@ public enum MechanicalBlock {
     /** PAR-MECH-17, TFC {@code WindmillBlockEntity}: a {@code SourceNode} on the axis, positive hand, at the windmill's speed. */
     WINDMILL,
     /** PAR-MECH-20, TFC {@code BladedAxleBlock} / {@code BladedAxleBlockEntity}: an {@code AxleBlockEntity}, the axle's node. */
-    BLADED_AXLE;
+    BLADED_AXLE,
+    /**
+     * PAR-MECH-21, TFC {@code CrankshaftBlockEntity}: the crankshaft base, a {@code SinkNode} on its facing's counter-clockwise
+     * face. The shaft piece is no node.
+     */
+    CRANKSHAFT;
 
     /** The network kind of this block's node. */
     public NodeKind kind() {
@@ -54,6 +62,7 @@ public enum MechanicalBlock {
             case AXLE, ENCASED_AXLE, CLUTCH, BLADED_AXLE -> NodeKind.AXLE;
             case GEAR_BOX -> NodeKind.GEAR_BOX;
             case CREATIVE_MOTOR, WATER_WHEEL, WINDMILL -> NodeKind.SOURCE;
+            case CRANKSHAFT -> NodeKind.SINK;
         };
     }
 
@@ -66,17 +75,21 @@ public enum MechanicalBlock {
      * One block's state as the network sees it.
      *
      * @param block   which block
-     * @param axis    the {@code axis} property (null for the gearbox)
+     * @param axis    the {@code axis} property (null for the gearbox and the crankshaft)
      * @param powered the clutch's {@code powered} property (false for the others)
-     * @param faces   the gearbox's enabled faces (empty for the others)
+     * @param faces   the gearbox's enabled faces; the crankshaft's one sink face; empty for the others
      * @param step    the creative motor's speed step, {@code -MAX_STEPS..MAX_STEPS} (0 for the others)
      * @param speed   the water wheel's or windmill's reported speed, radians per tick (0 for the others)
      */
     public record State(MechanicalBlock block, RotationAxis axis, boolean powered, Set<Direction> faces, int step, float speed) {
         public State {
             Objects.requireNonNull(block, "block");
-            if (block != GEAR_BOX && axis == null) {
+            if (block != GEAR_BOX && block != CRANKSHAFT && axis == null) {
                 throw new IllegalArgumentException(block + " needs an axis");
+            }
+            if (block == CRANKSHAFT && (axis != null || faces.size() != 1 || faces.contains(Direction.UP)
+                || faces.contains(Direction.DOWN))) {
+                throw new IllegalArgumentException("a crankshaft has no axis and one horizontal sink face: " + faces);
             }
             EnumSet<Direction> copy = EnumSet.noneOf(Direction.class);
             copy.addAll(faces);
@@ -111,6 +124,15 @@ public enum MechanicalBlock {
         }
 
         /**
+         * PAR-MECH-21: a crankshaft base facing {@code facing} (horizontal): its sink face is {@link CrankshaftRules#sinkFace}.
+         *
+         * @throws IllegalArgumentException for a vertical facing
+         */
+        public static State crankshaft(Direction facing) {
+            return new State(CRANKSHAFT, null, false, Set.of(CrankshaftRules.sinkFace(facing)), 0);
+        }
+
+        /**
          * PAR-MECH-17: a water wheel or windmill turning at {@code speed} radians per tick on {@code axis} (x or z).
          *
          * @throws IllegalArgumentException for another block or the y axis
@@ -142,6 +164,8 @@ public enum MechanicalBlock {
                 case CREATIVE_MOTOR -> RotationNode.source(pos, axis.faces(), axis.positive(), CreativeMotor.speed(step));
                 // TFC: new SourceNode(pos, ofAxis(axis), fromAxisAndDirection(axis, POSITIVE), 0f), then setSpeed each tick.
                 case WATER_WHEEL, WINDMILL -> RotationNode.source(pos, axis.faces(), axis.positive(), speed);
+                // TFC CrankshaftBlockEntity: new SinkNode(pos, FACING.getCounterClockWise()).
+                case CRANKSHAFT -> RotationNode.of(pos, NodeKind.SINK, faces);
             };
         }
     }

@@ -26,6 +26,13 @@ public final class RotationBlockStates {
     public static final String MOTOR = "tfp:creative_motor";
     /** PAR-MECH-20. */
     public static final String BLADED_AXLE = "tfp:wood/bladed_axle";
+    /**
+     * PAR-MECH-21: the crankshaft ({@code facing}, {@code part=base|shaft}); its device kind is the crankshaft module's, so it is
+     * not in {@link #KINDS}: {@link CrankSinks} hands its base to the network.
+     */
+    public static final String CRANKSHAFT = "tfp:crankshaft";
+    public static final String FACING = "facing";
+    public static final String PART = "part";
     /** The device kind ids, in the order they are registered. */
     public static final List<String> KINDS = List.of(AXLE, ENCASED_AXLE, CLUTCH, GEAR_BOX, MOTOR, BLADED_AXLE);
     public static final String AXIS = "axis";
@@ -38,6 +45,9 @@ public final class RotationBlockStates {
     public static Optional<MechanicalBlock> block(String id) {
         if (id.equals(MOTOR)) {
             return Optional.of(MechanicalBlock.CREATIVE_MOTOR);
+        }
+        if (id.equals(CRANKSHAFT)) {
+            return Optional.of(MechanicalBlock.CRANKSHAFT);
         }
         if (id.startsWith(AXLE + "/")) {
             return Optional.of(MechanicalBlock.AXLE);
@@ -57,7 +67,10 @@ public final class RotationBlockStates {
         return Optional.empty();
     }
 
-    /** The network state of a block state; {@code step} is the motor's stored step. Empty for other blocks or bad values. */
+    /**
+     * The network state of a block state; {@code step} is the motor's stored step. Empty for other blocks or bad values, and for
+     * the crankshaft's shaft piece (TFC: only the base is a node).
+     */
     public static Optional<MechanicalBlock.State> parse(BlockStateRef state, int step) {
         Optional<MechanicalBlock> block = block(state.id());
         if (block.isEmpty()) {
@@ -69,12 +82,29 @@ public final class RotationBlockStates {
                 case CLUTCH -> MechanicalBlock.State.clutch(axis(state), Boolean.parseBoolean(state.properties().get(POWERED)));
                 case GEAR_BOX -> MechanicalBlock.State.gearBox(faces(state));
                 case CREATIVE_MOTOR -> MechanicalBlock.State.motor(axis(state), step);
+                case CRANKSHAFT -> {
+                    if (!"base".equals(state.properties().getOrDefault(PART, "base"))) {
+                        throw new IllegalArgumentException("the shaft is no node");
+                    }
+                    yield MechanicalBlock.State.crankshaft(horizontal(state.properties().get(FACING)));
+                }
                 // PAR-MECH-17: the water wheel and windmill report through their own services (RotationSources).
                 case WATER_WHEEL, WINDMILL -> throw new IllegalArgumentException("not a state-parsed block");
             });
         } catch (IllegalArgumentException | NullPointerException e) {
             return Optional.empty();
         }
+    }
+
+    /** A horizontal {@code facing} value. */
+    static Direction horizontal(String value) {
+        return switch (value) {
+            case "north" -> Direction.NORTH;
+            case "east" -> Direction.EAST;
+            case "south" -> Direction.SOUTH;
+            case "west" -> Direction.WEST;
+            default -> throw new IllegalArgumentException("not a horizontal facing: " + value);
+        };
     }
 
     private static RotationAxis axis(BlockStateRef state) {

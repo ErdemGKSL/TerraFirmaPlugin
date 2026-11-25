@@ -451,7 +451,9 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-19 | Spinning shafts in game: axles turn at the right speed and hand on 1.21.11 and 26.x (PAR-MECH-12 in-game check) | MECH | 53 | open |
 | PAR-MECH-24 | Axle, encased axle, clutch and creative motor cannot be placed by item: CraftEngine's hardcoded axis behaviour casts the string property | MECH | 54 | done |
 | PAR-MECH-20 | Bladed axle as TFC: the axle with a steel blade, its network node and spinning blade, the trip hammer's drive | MECH | 53 | done |
-| PAR-MECH-21 | Crankshaft in game: the tfp:crankshaft CE block, its sink node in the rotation network (CrankRotation), the powered bellows in-game check | MECH | 54 | open |
+| PAR-MECH-21 | Crankshaft in game: the tfp:crankshaft CE block, its sink node in the rotation network (CrankRotation), the powered bellows in-game check | MECH | 54 | done |
+| PAR-MECH-25 | Crankshaft in game: a creative motor or water wheel turns a crankshaft that drives a bellows into a charcoal forge (PAR-MECH-21 in-game check) | MECH | 55 | open |
+| PAR-MECH-26 | Crankshaft as TFC: the turning wheel and the shaft's stroke (TFC CrankshaftBlockEntityRenderer), the axle stub, TFC's base and shaft outlines | MECH | 55 | open |
 | PAR-MECH-23 | Bladed axle in game: craft, place, spin with its blade, debug readout, drop (PAR-MECH-20 in-game check) | MECH | 54 | open |
 | PAR-MECH-22 | Power loom block in CraftEngine and the in-game check: tfp:power_loom, its model, item and the axle into the loom | MECH | 52 | open |
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |
