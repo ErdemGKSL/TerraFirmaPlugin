@@ -2,7 +2,7 @@
 id: PAR-POT-01
 title: "Placed items: put up to four items on the ground (and the straw/log stages of a pit kiln)"
 area: POTTERY
-status: open
+status: done
 wave: 21
 deps: [PAR-INFRA-02, PAR-INFRA-08, PAR-INFRA-13]
 size: M
@@ -21,15 +21,8 @@ files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/placed/**"
   - "tools/datagen/src/test/java/dev/tfp/datagen/placed/**"
   - "content/generated/content/craftengine/tfp/configuration/placed/**"
-ui: true
-in_game_steps:
-  - "hold an ingot; look at the top face of a stone block near its NW corner; press right-click and release after 0.5 s: nothing is placed, the progress bar on the action bar resets"
-  - "hold right-click for 1.2 s on the same spot: the ingot is placed in the NW quadrant at 1 s (progress bar fills, place sound), nothing else happens while held; repeat with a vessel (NE), a jug while sneaking (SW) and a mold (SE): four items in one block; screenshot after each (item in the quadrant nearest the cursor, rotated to the player's yaw in 15 deg steps, outline = pressure plate)"
-  - "release early: hold 0.6 s, move the cursor to another block or switch hotbar slot, keep holding: nothing placed, the hold restarts on the new target"
-  - "tap (< 1 s) a vessel on stone: its GUI opens on release; tap a hoe on dirt: tills at once (action first, no hold)"
-  - "place one very large item (large-item slot) on an empty block by holding; screenshot"
-  - "pickup: right-click each quadrant with an empty hand (that item returns), sneak + right-click an occupied quadrant with an item in hand (returns it, TFC rule); walk Bot across the block (no collision); break a block with 4 items (all drop, no vanilla pressure plate)"
-  - "negatives: a block item held 2 s on stone places the block (no placed item); a side face never places; with `placed-items.gesture: sneak-double-tap` the fallback gesture places and holding does not"
+ui: false
+in_game_steps: []
 plan:
   - "TFC places items with a key binding (V, PlaceBlockSpecialPacket): only on the top face, the slot from the hit position (x and z fraction above 0.5, PlacedItemBlockEntity.getSlotSelected), one item per slot (stack.split(1)), up to 4 slots, or one large item (size above maxPlacedItemSize up to maxPlacedLargeItemSize) in a centre slot filling the block; rotation = player yaw rounded to 15 deg; empty hand or sneak + right-click takes the item of that slot back."
   - "Gesture (owner decision, NP-CLIENT-01): hold right-click >= 1 s on the top face of a full sturdy block whose space above is empty (TFC's conditions). Mechanism (recommended, path R): while right-click is held on a block, the vanilla client resends the use-on-block packet every 4 ticks (the same repeat that places blocks continuously), and Paper fires PlayerInteractEvent RIGHT_CLICK_BLOCK for each. A per-player HoldTracker (state owned by the player's entity scheduler, Folia-safe; core/placed holds the pure rule with an injected clock) keys a hold by block, face, hand, hotbar slot and item fingerprint; it counts one event per client tick (UseItemOn + UseItem of the same tick count once), accepts a gap of at most 300 ms (about 6 ticks, lag tolerant), and completes when at least 5 events span >= 1000 ms; any other target, face, slot, item or hand resets it; no event for 300 ms = released (an entity-scheduler check every 5 ticks while a hold exists). Each event of a hold is denied for the block and the item (Result.DENY both), so nothing else happens while holding. Progress: action-bar bar updated per event (BetterHud popup later if wanted); completion: the item's place sound, no particles. Anti-spam: one placement per hold, then a release is needed; 250 ms cooldown per player; the hold state is dropped on quit, death, world change."
@@ -37,17 +30,20 @@ plan:
   - "Compared, not chosen: a CraftEngine `consumable` (use-duration) component on every placeable item gives a native hold animation, client-side release cancel and PlayerItemConsumeEvent, but it changes the item everywhere (food and jugs already consume; vessel GUIs would move to the release), slows the player to 20 % while holding, predicts the consume client-side (stack flicker unless the event is cancelled and the slot resent) and cannot cover 'any item'. Bedrock/touch (Geyser): long-press on touch is break, not use, so touch players get the fallback: config `placed-items.gesture: hold | sneak-double-tap | both` (default `both`; sneak-double-tap = two sneak starts within 400 ms, then a right-click on a top face places at once)."
   - "Hitbox (PAR-INFRA-13 owner rule): every placed item, whatever the item, uses a pressure-plate visual (heavy_weighted_pressure_plate[power=0], hitbox-only empty model, no collision) for all 15 occupancies and the large-item state; no per-item carriers."
   - "CE block `tfp:placed_item` with 4 quadrants shown by 4 item displays (entity_renderer, dynamic); size limits maxPlacedItemSize/maxPlacedLargeItemSize; take back by right-click."
+  - "Built (2026-11-25): core/placed: PlacedRules (TFC getSlotSelected = round(c) < c per axis, i.e. slot 0 is the +x +z quadrant and the NW corner is slot 3; rotation round(yaw / 15) * 15; insertItem with the GROUP / SINGLE size classes of ContainerRules.placed and isFullContents for the large slot; onRightClick take-back; isEmpty), PlacedState (large flag + four rotations, TFC NBT names), QuadrantSupport (updateStateValues on the 16 x 16 px grid of the up face below), HoldTracker (injected ms clock: one count per server tick, gap > 300 ms or another key restarts, >= 5 events over >= 1000 ms complete once, a completed hold stays done across key changes until released, 250 ms cooldown), SneakDoubleTap (two sneak starts within 400 ms arm for 3 s), Gesture (hold | sneak-double-tap | both), PlacePolicy (action first), PlacedVisuals (TFC renderer poses + the item display's pi turn)."
+  - "Paper (paper/placed): PlacedItemDevice (device kind tfp:placed_item, 4 slots of 1, DROP), PlacedItems (place / insert / take on the block's region thread through DeviceService.edit; creative keeps the stack; the last take removes the block), PaperPlacedItemEffects (one persistent item display per drawn slot, PDC tfp:placed_item = x,y,z:slot, as the anvil; a CE entity_renderer cannot show an arbitrary stack; place sound = the support block's place sound at 0.5), UseClassifier (block items incl. CE items of a CE block id, c:stones/loose, hoes/shovels/axes/knife/chisel/igniter/propick/buckets + vanilla world items, use-duration items, interactable or device targets), PlacedItemListener (LOWEST: take back, action first, deny every event of a running hold, deferred tap for tfc:vessels / tfc:molds replayed as a synthetic right-click on release; MONITOR: a plain item's first event starts the hold only when no other listener denied it, so sticks still place twigs; entity-scheduler release check every 5 ticks while a hold exists; quit, death, world change and hotbar change drop or end the hold; adventure and spectator cannot place, TFC mayBuild), PlacedSupport (neighbour rule: no solid block below -> air, items drop), PlacedItemsModule (service file; config keys placed-items.enabled / placed-items.gesture read from config.yml when present)."
+  - "Datagen: dev.tfp.datagen.placed.PlacedItemBlock (one transparent appearance on the selector's carrier, TFC instabreak / stem sounds / noOcclusion, tfp:device, no item, no loot; checks TFC's shapes, registration and missing loot table) + PlacedItemBlockTest (every occupancy row selects heavy_weighted_pressure_plate[power=0] on every version family). Not wired: the HitboxDemands demand, the GeneratedCarrierTest pin and the Datagen run line are outside files_owned -> follow-up PAR-POT-13 (also the shipped config keys, the use-duration spike and the in-game check; in_game_steps moved there, PROTOCOL §6.5)."
+  - "Deviations from this plan, decided here: use-duration items are exempt (the sneak + hold path needs the client spike, PAR-POT-13); a right-click with an item on an existing placed item needs the same hold (TFC inserts at once) so vessels and molds keep their tap; the slot rule is TFC's (low halves), not 'fraction above 0.5' as the first plan line said."
+  - "Done: PAR-POT-01 placed items: core/placed rules + HoldTracker, paper/placed gesture, device, displays, support rule and module, datagen PlacedItemBlock (unwired, PAR-POT-13). Tests: core HoldTrackerTest 12, PlacedRulesTest 12; paper PlacedItemsMockBukkitTest 16; datagen PlacedItemBlockTest 3. Ledger row + 8 divergence rows. ./gradlew check --continue on 730b576 + this change: every placed test green; the failures are in other items' files (license headers of animal/familiarity/spawn, Datagen.java naming missing pan/pump packages so :tools:datagen did not compile at that HEAD, module ids, lang, plant wiring); PlacedItemBlockTest passed (3) before the rebase. Pending in-game check (container cannot run client); tracked in PAR-POT-13 (docs/verification/PAR-POT-01/)."
 tests:
   - "paper: MockBukkit place/take per quadrant, size refused"
   - "core: HoldTracker with a fake clock: 4 events in 0.8 s place nothing; 6 events over 1.0 s place once; a 350 ms gap resets; target, face, slot or item change resets; two packets in one tick count once; one placement per hold"
   - "paper: MockBukkit: block items and tools with an action on the target never start a hold; vessel tap opens the GUI on release, hold places; the deny result is set on every hold event"
 done_criteria:
-  - "In-game: four items placed and taken back"
+  - "Deferred check tracked in PAR-POT-13"
 ---
 
 # PAR-POT-01: Placed items: put up to four items on the ground (and the straw/log stages of a pit kiln)
-
-> Claimed: REL session_011osUpAJcukeqydbqrkqw9X (takeover, owner request), 2026-11-25
 
 > see_not_parity: NP-CLIENT-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

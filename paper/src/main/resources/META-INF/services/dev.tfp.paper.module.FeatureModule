@@ -111,3 +111,4 @@ dev.tfp.paper.climate.fog.FogModule
 dev.tfp.paper.pump.PumpModule
 dev.tfp.paper.channel.ChannelModule
 dev.tfp.paper.charcoalforge.CharcoalForgeModule
+dev.tfp.paper.placed.PlacedItemsModule

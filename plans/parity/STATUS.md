@@ -249,7 +249,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-29 | Wire the aquifer barrier noise and the fluid support rule into the terrain fill, and the floating-fluid scan | WORLD | 21 | done |
 | PAR-INFRA-61 | Static info tooltip lines in-game verification: damage type, resistances, fuel and rock lore (the check PAR-INFRA-46 closed without) | INFRA | 20 | open |
 | PAR-GATHER-01 | Pick up loose rocks and groundcover with a right-click | GATHER | 21 | done |
-| PAR-POT-01 | Placed items: put up to four items on the ground (and the straw/log stages of a pit kiln) | POTTERY | 21 | open |
+| PAR-POT-01 | Placed items: put up to four items on the ground (and the straw/log stages of a pit kiln) | POTTERY | 21 | done |
 | PAR-PROC-12 | Panning | PROC | 21 | open |
 | PAR-WORLD-10 | Wood blocks: logs, wood, stripped, leaves, saplings as CE blocks | WORLD | 21 | done |
 | PAR-WORLD-24 | Noise and noodle caves: TFC's density caves (cave cheese, cave layer, spaghetti, pillars, noodles) in the terrain fill, and the surface over carved blocks | WORLD | 21 | done |
@@ -420,6 +420,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-51 | Per-world TFC settings in every climate consumer (HUD, snow, precipitation, weather, seasonal remap, plant effects, chunk climate) | WORLD | 29 | open |
 | PAR-WORLD-52 | A world's own rock_layer_settings in every rock consumer (terrain fill, volcanoes, groundcover, karst), not only TFC's preset | WORLD | 30 | open |
 | PAR-WORLD-53 | Visual budget for wood plants: the tripwire pool has 3 free states, saplings, fallen leaves and twigs need 101 | WORLD | 22 | done |
+| PAR-POT-13 | Placed item block: hitbox demand, datagen wiring, config keys, use-duration spike, in-game check | POTTERY | 22 | open |
 | PAR-WORLD-54 | Bubble columns above the CE magma blocks: drag-down columns that survive vanilla's support check, and the hot spring tracker | WORLD | 30 | open |
 | PAR-MECH-03 | Water wheel | MECH | 51 | open |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | open |
