@@ -117,6 +117,11 @@ public final class BukkitLandslideWorld implements LandslideWorld {
     }
 
     @Override
+    public String kind(Block block) {
+        return airOrFluid(block.getType()) ? SlideState.Cell.AIR.kind() : id(block);
+    }
+
+    @Override
     public SlideState.Cell cell(Block block) {
         if (airOrFluid(block.getType())) {
             return SlideState.Cell.AIR;

@@ -8,6 +8,7 @@
  */
 package dev.tfp.paper.landslide;
 
+import dev.tfp.core.collapse.SupportTable;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.pipeline.BlockAccess;
 import dev.tfp.paper.pipeline.RegionExecutor;
@@ -46,6 +47,24 @@ final class LandslideBlocks implements BlockAccess<SlideState> {
         }
         ThreadAsserts.owned(world, pos.chunkX(), pos.chunkZ());
         return blocks.cell(world.getBlockAt(pos.x(), pos.y(), pos.z()));
+    }
+
+    /**
+     * PAR-PHYS-04: a cell read only for the support check, its kind when {@code supports} has a support of that kind, else
+     * air ({@code null} when unloaded). Owner thread.
+     */
+    SlideState supportCell(BlockPos pos, SupportTable supports) {
+        if (!world.isChunkLoaded(pos.chunkX(), pos.chunkZ())) {
+            return null;
+        }
+        if (pos.y() < world.getMinHeight() || pos.y() >= world.getMaxHeight()) {
+            return SlideState.Cell.AIR;
+        }
+        ThreadAsserts.owned(world, pos.chunkX(), pos.chunkZ());
+        String kind = blocks.kind(world.getBlockAt(pos.x(), pos.y(), pos.z()));
+        return supports.get(kind).isPresent()
+                ? new SlideState.Cell(kind, java.util.Set.of(), 0, false, false, null)
+                : SlideState.Cell.AIR;
     }
 
     @Override

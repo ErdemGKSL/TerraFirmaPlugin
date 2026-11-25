@@ -18,6 +18,14 @@ public interface LandslideWorld {
     /** The block as the landslide rules see it. */
     SlideState.Cell cell(Block block);
 
+    /**
+     * Only the kind of the block ({@link SlideState.Cell#kind()}), for the support beam cells of the snapshot (PAR-PHYS-04):
+     * the wider support reach is read without tags, recipes or shapes. Owner thread.
+     */
+    default String kind(Block block) {
+        return cell(block).kind();
+    }
+
     /** Whether {@code state} can become a falling block (it has server block data). */
     boolean canFall(String state);
 

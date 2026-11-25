@@ -135,3 +135,4 @@ dev.tfp.paper.scribing.ScribingModule
 dev.tfp.paper.sapling.SaplingModule
 dev.tfp.paper.predator.PredatorModule
 dev.tfp.paper.plantable.PlantableModule
+dev.tfp.paper.beam.BeamModule

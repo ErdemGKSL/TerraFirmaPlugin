@@ -261,7 +261,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-GATHER-07 | Item placement interactions: vanilla stick, bone, feather, flint, rotten flesh and salt place as TFC groundcover; a snow item over plants places a snow pile | GATHER | 22 | done |
 | PAR-GATHER-08 | Axe stripping: TFC logs and woods to their stripped forms, golden bamboo block to stripped bamboo | GATHER | 22 | done |
 | PAR-INFRA-47 | Block flammability: TFC's flammable(flammability, fireSpreadSpeed) and ignitedByLava as CraftEngine burn settings on every generated block | INFRA | 22 | done |
-| PAR-PHYS-04 | Support beams: blocks, connections, collapse prevention | PHYS | 22 | open |
+| PAR-PHYS-04 | Support beams: blocks, connections, collapse prevention | PHYS | 22 | blocked |
 | PAR-PROC-13 | Sluice | PROC | 22 | done |
 | PAR-INFRA-29 | Loot delegation check: loose rocks and leaves drop by their TFC tables in the self-test | INFRA | 22 | blocked |
 | PAR-WORLD-26 | Amethyst geodes: tfc:geode (hardened basalt shell, quartzite layers, amethyst ore) in the vein step | WORLD | 22 | done |

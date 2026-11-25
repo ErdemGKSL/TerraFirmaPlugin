@@ -5,6 +5,7 @@
  */
 package dev.tfp.paper.landslide;
 
+import dev.tfp.paper.collapse.CollapseSupports;
 import dev.tfp.paper.falling.BukkitFallWorld;
 import dev.tfp.paper.falling.FallingBlocks;
 import dev.tfp.paper.loot.LootService;
@@ -37,8 +38,12 @@ public final class LandslideModule implements FeatureModule {
                 context.integrations().blockVisuals(), loot);
         LandslideWorld world = new BukkitLandslideWorld(tags, recipes::index, context.integrations().customBlocks(),
                 fall, falling);
+        // PAR-PHYS-04: support beams hold landslide blocks up (TFC Support.isSupported); the collapse module comes later in
+        // the service file, so the same loaded definitions are read through a table of our own
+        CollapseSupports supports = new CollapseSupports(() -> context.registryService().registries());
         LandslideService service = new LandslideService(context::regions, world, context.scheduler(),
-                context.scheduler().cpuExecutor(), new CommitBudget(LandslideService.BUDGET_NANOS, System::nanoTime));
+                context.scheduler().cpuExecutor(), new CommitBudget(LandslideService.BUDGET_NANOS, System::nanoTime),
+                supports);
         context.services().provide(LandslideService.class, service);
         context.listen(new LandslideListener(service));
     }

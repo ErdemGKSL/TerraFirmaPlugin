@@ -164,6 +164,29 @@ public final class BeamRules {
         return new BeamUpdate(drop, connections);
     }
 
+    /**
+     * All of TFC's {@code updateShape} cases for the beam at {@code pos} at once, as the neighbour runner decides one position
+     * once per change instead of once per notified side: a vertical beam drops when it cannot survive on the block below; a
+     * horizontal beam drops when neither the north/south nor the east/west pair of neighbours are both beams (the
+     * condition {@link #update} tests for any horizontal facing). The connections are the full set.
+     */
+    public static BeamUpdate settle(BeamView view, BlockPos pos) {
+        BeamShape shape = view.cellAt(pos).shape();
+        if (shape == BeamShape.NONE) {
+            throw new IllegalArgumentException("Not a beam at " + pos);
+        }
+        Set<Direction> c = connections(view, pos);
+        boolean drop;
+        if (shape == BeamShape.VERTICAL) {
+            drop = !canSurvive(BeamShape.VERTICAL, view, pos);
+        } else {
+            boolean northSouth = c.contains(Direction.NORTH) && c.contains(Direction.SOUTH);
+            boolean eastWest = c.contains(Direction.EAST) && c.contains(Direction.WEST);
+            drop = !northSouth && !eastWest;
+        }
+        return new BeamUpdate(drop, c);
+    }
+
     private static BlockPos step(BlockPos origin, Direction d, int k) {
         return origin.offset(d.dx() * k, 0, d.dz() * k);
     }
