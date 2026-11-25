@@ -90,11 +90,11 @@ class WoodPlantBlocksTest {
     @SuppressWarnings("unchecked")
     void settingsAndItemsAreTfcs() {
         Map<String, Object> sapling = (Map<String, Object>) block("ash", HitboxDemands.SAPLING).get("settings");
-        assertThat(sapling.get("hardness").toString()).isEqualTo("0");
+        assertThat(Double.parseDouble(sapling.get("hardness").toString())).isZero();
         assertThat((List<String>) sapling.get("tags")).containsExactly("minecraft:mineable/hoe");
         assertThat(((Map<String, Object>) sapling.get("sounds")).get("break")).isEqualTo("minecraft:block.grass.break");
         Map<String, Object> leaves = (Map<String, Object>) block("ash", HitboxDemands.FALLEN_LEAVES).get("settings");
-        assertThat(leaves.get("hardness").toString()).isEqualTo("0.05");
+        assertThat(Double.parseDouble(leaves.get("hardness").toString())).isEqualTo(0.05);
         assertThat(((Map<String, Object>) leaves.get("sounds")).get("place")).isEqualTo("minecraft:item.crop.plant");
         Map<String, Object> twig = (Map<String, Object>) block("ash", HitboxDemands.TWIG).get("settings");
         assertThat((List<String>) twig.get("tags")).containsExactly("minecraft:mineable/axe");

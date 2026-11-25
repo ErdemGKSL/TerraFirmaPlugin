@@ -77,6 +77,7 @@ public final class WoodPlantBlocks {
     /** The one twig look every wood shares (TFC draws each wood's own log textures). */
     static final String TWIG_LOOK_WOOD = "oak";
 
+    /** Vanilla {@code SoundType.GRASS} (written as plain ids by {@link #yaml}). */
     static final DeviceSound GRASS = new DeviceSound("minecraft:block.grass.break", "minecraft:block.grass.step",
         "minecraft:block.grass.place", "minecraft:block.grass.hit", "minecraft:block.grass.fall");
     /** Vanilla {@code SoundType.CROP}. */
@@ -175,7 +176,7 @@ public final class WoodPlantBlocks {
         DeviceBlockSpec.Builder b = DeviceBlockSpec.builder(id);
         b.appearance(displayed(b, id, HitboxDemands.WOOD_PLANT_APPEARANCE, HitboxDemands.WOOD_PLANT_APPEARANCE, model("sapling", wood)));
         return b.everyState(s -> HitboxDemands.WOOD_PLANT_APPEARANCE, null)
-            .settings(DeviceBlockSpec.Settings.of("0", "0", GRASS, "hoe"))
+            .settings(DeviceBlockSpec.Settings.of("0", "0", DeviceSound.WOOD, "hoe"))
             .blockItem(langKey(id)).build();
     }
 
@@ -198,7 +199,7 @@ public final class WoodPlantBlocks {
             b.appearance(displayed(b, id, name, pattern, fallenLeavesModel(wood, layers)));
         }
         return b.everyState(s -> HitboxDemands.fallenLeavesAppearance(Integer.parseInt(s.get(LAYERS))), null)
-            .settings(DeviceBlockSpec.Settings.of("0.05", "0", CROP, "hoe"))
+            .settings(DeviceBlockSpec.Settings.of("0.05", "0", DeviceSound.WOOD, "hoe"))
             .blockItem(langKey(id)).build();
     }
 
@@ -260,6 +261,18 @@ public final class WoodPlantBlocks {
         Map<String, Object> block = (Map<String, Object>) ((Map<String, Object>) root.get("blocks")).get(spec.id());
         Map<String, Object> settings = (Map<String, Object>) block.get("settings");
         settings.put("push_reaction", "destroy");
+        // DeviceSound writes only the device sound sets; the grass and crop sets are plain vanilla ids
+        String kind = spec.id().split("/")[1];
+        DeviceSound sound = kind.equals(HitboxDemands.SAPLING) ? GRASS : kind.equals(HitboxDemands.FALLEN_LEAVES) ? CROP : null;
+        if (sound != null) {
+            Map<String, Object> sounds = new LinkedHashMap<>();
+            sounds.put("break", sound.breakSound());
+            sounds.put("step", sound.step());
+            sounds.put("place", sound.place());
+            sounds.put("hit", sound.hit());
+            sounds.put("fall", sound.fall());
+            settings.put("sounds", sounds);
+        }
         if (spec.id().contains("/" + HitboxDemands.POTTED_SAPLING + "/")) {
             settings.remove("tags");
         }

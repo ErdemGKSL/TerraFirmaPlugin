@@ -166,8 +166,11 @@ class CraftingRecipesTest {
         Map<String, Object> rail = recipes.get("tfp:crafting/activator_rail");
         assertThat(rail).containsEntry("type", "shaped").containsEntry("category", "misc")
             .containsEntry("pattern", List.of("ISI", "ITI", "ISI"));
+        // PAR-WORLD-44: TFC's twigs are in c:rods/wooden; with their CE items they join the stick (21 alternatives).
+        java.util.List<String> rods = new java.util.ArrayList<>(List.of("minecraft:stick"));
+        dev.tfp.datagen.hitbox.HitboxDemands.BARREL_WOODS.stream().sorted().forEach(w -> rods.add("tfp:wood/twig/" + w));
         assertThat((Map<String, Object>) rail.get("ingredients")).containsExactlyInAnyOrderEntriesOf(Map.of(
-            "I", "tfp:metal/rod/steel", "S", "minecraft:stick", "T", "minecraft:redstone_torch"));
+            "I", "tfp:metal/rod/steel", "S", rods, "T", "minecraft:redstone_torch"));
         assertThat(rail.get("result")).isEqualTo(Map.of("id", "minecraft:activator_rail", "count", 12));
         // tfc:crafting/black_dye: a shapeless list ingredient becomes one slot with both alternatives.
         Map<String, Object> dye = recipes.get("tfp:crafting/black_dye");
