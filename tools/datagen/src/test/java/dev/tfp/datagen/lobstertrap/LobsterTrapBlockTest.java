@@ -78,7 +78,7 @@ class LobsterTrapBlockTest {
     void everyFacingTrapAppearanceIsHitboxOnlyOnTheSelectorsCarrierWithATurnedModel() {
         Map<String, Object> st = (Map<String, Object>) block().get("states");
         Map<String, Object> apps = (Map<String, Object>) st.get("appearances");
-        assertThat(apps).hasSize(12);
+        assertThat(apps).hasSize(24); // PAR-FAUNA-41: 12 dry + 12 wet
         Map<String, Object> items = (Map<String, Object>) root().get("items");
         String shared = null;
         for (String f : HitboxDemands.FACINGS) {
@@ -101,12 +101,40 @@ class LobsterTrapBlockTest {
             Map<String, Object> render = (Map<String, Object>) items.get(LobsterTrapBlock.renderItem(t));
             assertThat(((Map<String, Object>) render.get("arguments")).get("render_model")).isEqualTo(LobsterTrapBlock.model(t));
         }
-        // the fluid has no appearance: variants map every state of a (facing, trap) to that appearance
+        // PAR-FAUNA-41: fluid=water states take the wet appearance, fluid=empty the dry one
         Map<String, Object> variants = (Map<String, Object>) st.get("variants");
         assertThat(variants).hasSize(24);
         assertThat(((Map<String, Object>) variants.get("facing=east,trap=baited,fluid=water")).get("appearance"))
+            .isEqualTo("east_baited_wet");
+        assertThat(((Map<String, Object>) variants.get("facing=east,trap=baited,fluid=empty")).get("appearance"))
             .isEqualTo("east_baited");
         assertThat(((Map<String, Object>) items.get(LobsterTrapBlock.ID)).get("template")).isEqualTo("tfp:item/block_item");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void everyWetAppearanceSharesTheWaterloggedLeavesPoolStateWithAnEmptyModelAndTheTurnedDisplay() {
+        Map<String, Object> apps = (Map<String, Object>) ((Map<String, Object>) block().get("states")).get("appearances");
+        for (String f : HitboxDemands.FACINGS) {
+            for (String t : HitboxDemands.LOBSTER_TRAP_STATES) {
+                String name = HitboxDemands.lobsterTrapWetAppearance(f, t);
+                Map<String, Object> app = (Map<String, Object>) apps.get(name);
+                assertThat(app).as(name).doesNotContainKey("state").doesNotContainKey("transparent");
+                assertThat((Map<String, Object>) app.get("auto_state")).as(name)
+                    .containsEntry("type", "waterlogged_tintable_leaves").containsEntry("id", "lobster_trap");
+                assertThat(app.get("model")).as(name).isEqualTo(HitboxDemands.LOBSTER_TRAP_WET_MODEL);
+                List<Map<String, Object>> r = (List<Map<String, Object>>) app.get("entity_renderer");
+                assertThat(r).hasSize(1);
+                assertThat(r.getFirst().get("item")).isEqualTo(LobsterTrapBlock.renderItem(t));
+                Map<String, Object> dry = (Map<String, Object>) apps.get(HitboxDemands.lobsterTrapAppearance(f, t));
+                assertThat(r.getFirst().get("rotation")).as(name + " turned as the dry one")
+                    .isEqualTo(((List<Map<String, Object>>) dry.get("entity_renderer")).getFirst().get("rotation"));
+            }
+        }
+        JsonObject empty = Json.parse(new String(out.get(RP + "models/block/lobster_trap_water.json"), StandardCharsets.UTF_8),
+            "m").getAsJsonObject();
+        assertThat(empty.has("elements")).isFalse();
+        assertThat(empty.getAsJsonObject("textures").get("particle").getAsString()).isEqualTo("tfp:block/lobster_trap");
     }
 
     @Test

@@ -1359,6 +1359,15 @@
       "from": "LobsterTrapBlock.java Shapes.block() / same"
     },
     {
+      "key": "tfc:lobster_trap[fluid=water]",
+      "class": "lobster_trap",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "LobsterTrapBlock.java Shapes.block() / same"
+    },
+    {
       "key": "tfc:drying_bricks[count=1]",
       "class": "drying_bricks",
       "kind": "object",

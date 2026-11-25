@@ -268,6 +268,7 @@
   },
   "pools": {
     "solid": {"occludes": true, "note": "CE auto_state solid pool (VisualAllocator's full-cube pass)"},
-    "leaves": {"occludes": false, "note": "CE auto_state leaves pool (see-through full cubes)"}
+    "leaves": {"occludes": false, "note": "CE auto_state leaves pool (see-through full cubes)"},
+    "waterlogged_tintable_leaves": {"occludes": false, "fluid": true, "note": "PAR-FAUNA-41: CE auto_state group waterlogged_tintable_leaves (65 states: oak, jungle, acacia, dark_oak and mangrove leaves with waterlogged=true): see-through full cubes whose water the client draws; only a waterlogged TFC row may take it (HitboxCarrier.filter). No cherry or pale-oak leaves (client particles); CE's remove-tinted-leaves-particle drops the tinted-leaf particles on 1.21.5+"}
   }
 }

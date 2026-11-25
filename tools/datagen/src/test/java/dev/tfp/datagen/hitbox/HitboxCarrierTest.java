@@ -155,6 +155,7 @@ class HitboxCarrierTest {
                 "minecraft:iron_trapdoor[facing=" + f + ",half=bottom,open=true,powered=false,waterlogged=false]", 2.0 / 3, 2.0 / 3);
         }
         pin("tfc:lobster_trap", "auto_state:leaves", 1, 1);
+        pin("tfc:lobster_trap[fluid=water]", "auto_state:waterlogged_tintable_leaves", 1, 1); // PAR-FAUNA-41
         Set<String> clientRenderers = Set.of("minecraft:chest", "minecraft:barrel", "minecraft:decorated_pot", "minecraft:ender_chest");
         for (TfcShapes.Row row : TfcShapes.load().values()) {
             for (VersionFamily f : VersionFamily.values()) {

@@ -350,6 +350,24 @@ public final class HitboxDemands {
     }
 
     /**
+     * PAR-FAUNA-41: the trap in water: TFC's row with {@code fluid=water} ({@code tfc:lobster_trap[fluid=water]}). Its
+     * appearances ({@code north_open_wet}) take a waterlogged carrier, the CE pool {@code waterlogged_tintable_leaves}, so
+     * the client draws the water around TFC's model; the carrier is drawn with {@link #LOBSTER_TRAP_WET_MODEL}.
+     */
+    public static final String LOBSTER_TRAP_WET_ROW = TfcShapes.wetKey(LOBSTER_TRAP_ROW);
+    /**
+     * PAR-FAUNA-41: the wet carrier's model: no elements, the trap's particle texture (a pool state needs a model, the
+     * look stays the item display).
+     */
+    public static final String LOBSTER_TRAP_WET_MODEL = "tfp:block/lobster_trap_water";
+    /** PAR-FAUNA-41: the CE auto_state group of the wet trap (carrier-policy.json pools, fluid). */
+    public static final String LOBSTER_TRAP_WET_POOL = "waterlogged_tintable_leaves";
+
+    public static String lobsterTrapWetAppearance(String facing, String trap) {
+        return wet(lobsterTrapAppearance(facing, trap));
+    }
+
+    /**
      * PAR-CLIM-04: TFC's weather blocks. The snow pile ({@code tfc:snow_pile[layers=1..8]}) draws vanilla's snow models;
      * vanilla snow's own states are mostly taken (other blocks' carriers and their hide targets), so every pile appearance
      * is hitbox-only (a snow pile only exists on vegetation and loose rocks, so the item displays are few). The ice pile
@@ -660,6 +678,9 @@ public final class HitboxDemands {
             for (String t : LOBSTER_TRAP_STATES) {
                 d.add(new Demand(LOBSTER_TRAP_ID, lobsterTrapAppearance(f, t), LOBSTER_TRAP_ROW, 0,
                     HitboxAllocation.TRANSPARENT, true, LOBSTER_TRAP_WEIGHT));
+                // PAR-FAUNA-41: the same state in water, on a waterlogged carrier
+                d.add(new Demand(LOBSTER_TRAP_ID, lobsterTrapWetAppearance(f, t), LOBSTER_TRAP_WET_ROW, 0,
+                    LOBSTER_TRAP_WET_MODEL, true, LOBSTER_TRAP_WEIGHT));
             }
         }
         // PAR-HEAT-35 (owner decision 2026-11-18, was PAR-HEAT-23's four model carriers): every (lit, axis) appearance of
@@ -1758,6 +1779,8 @@ public final class HitboxDemands {
         for (String f : FRUIT_BLOCKS) {
             all.put(FRUIT_BLOCK_PREFIX + f, java.util.Map.of("base", CHARCOAL_POOL));
         }
+        // PAR-FAUNA-41: the wet lobster trap's appearances on the waterlogged leaves pool (one shared state).
+        all.put(LOBSTER_TRAP_ID, java.util.Map.of(wet("*"), LOBSTER_TRAP_WET_POOL));
         return java.util.Collections.unmodifiableMap(all);
     }
 

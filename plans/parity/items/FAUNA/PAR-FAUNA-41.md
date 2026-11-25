@@ -2,7 +2,7 @@
 id: PAR-FAUNA-41
 title: "Wet lobster trap on CraftEngine's waterlogged leaves pool: a fluid pool in the carrier policy and pool carriers for hitbox-only demands (follow-up of PAR-FAUNA-39)"
 area: FAUNA
-status: open
+status: done
 wave: 49
 deps: [PAR-FAUNA-37]
 size: S
@@ -29,6 +29,7 @@ plan:
   - "Carrier policy (carrier-policy.json pools + VanillaCandidates): add the pool `waterlogged_tintable_leaves` with a `fluid` flag (pool VStates carry flags beyond occludes). HitboxCarrier.filter: pools go through the fluid rules too (a dry TFC row never takes a fluid pool; a waterlogged row takes only fluid states, a minimum outline score kept)."
   - "HitboxAllocation.free answers false for a pool when the demand is hitbox-only (TRANSPARENT): allow a pool for a hitbox-only demand (the appearance is an empty model on the pool; Mode.POOL with an empty model) or give the wet demands an empty-model look. Keep every other allocation unchanged (GeneratedCarrierTest pins)."
   - "HitboxDemands: a second demand set for the fluid=water appearances (row tfc:lobster_trap[waterlogged=true] in TfcShapes / tfc-shapes.json, full block, noOcclusion); LobsterTrapBlock: fluid=water states take the wet appearances (pool carrier, empty model, the same item display), fluid=empty the dry shared carrier."
+  - "Done: the pool `waterlogged_tintable_leaves` with a `fluid` flag in carrier-policy.json (VanillaCandidates reads pool flags), HitboxCarrier.filter applies the fluid rules to pools (dry rows never take a fluid pool, waterlogged rows never a dry one), row tfc:lobster_trap[fluid=water] (TfcShapes, see-through), twelve wet demands with an element-less model look (tfp:block/lobster_trap_water, the trap's particle texture) so HitboxAllocation.free needed no change (a pool already serves model looks); LobsterTrapBlock maps fluid=water to the wet appearances on one shared pool state (auto_state id lobster_trap) with the same turned item displays. Tests: GeneratedCarrierTest theWetLobsterTrapTakesTheWaterloggedLeavesPool, onlyWaterloggedRowsTakeTheFluidPool, pool count +12; HitboxCarrierTest wet pin; LobsterTrapBlockTest wet appearances (lobstertrap, TfcShapesTest, VanillaCandidatesTest pass). Pre-existing failures on the branch, not from this item: GeneratedCarrierTest expected id set (545 vs 554), HitboxCarrierTest body_plant collision, HitboxAllocationTest bellows mode, HardcodedCarrierTest SignBlocks literal, CarrierPolicyWorldgenTest. In-game: docs/verification/PAR-FAUNA-41/verdict.md (pass)."
 tests:
   - "datagen: the fluid=water states take the waterlogged pool, the empty ones the dry carrier; no other demand changes carrier (GeneratedCarrierTest)"
 done_criteria:
@@ -36,7 +37,5 @@ done_criteria:
 ---
 
 # PAR-FAUNA-41: Wet lobster trap on CraftEngine's waterlogged leaves pool
-
-> Claimed: session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 Follow `plans/parity/PROTOCOL.md`.

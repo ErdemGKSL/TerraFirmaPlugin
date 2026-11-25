@@ -145,9 +145,16 @@ public final class VanillaCandidates {
         ob.getAsJsonArray("blocks").forEach(e -> objectBan.add(e.getAsString()));
         Map<String, VState> pools = new LinkedHashMap<>();
         for (Map.Entry<String, JsonElement> e : p.getAsJsonObject("pools").entrySet()) {
-            boolean occludes = e.getValue().getAsJsonObject().get("occludes").getAsBoolean();
-            pools.put(POOL_PREFIX + e.getKey(), new VState(POOL_PREFIX + e.getKey(), Shape.FULL, Shape.FULL, 0,
-                occludes ? Set.of("occludes") : Set.of()));
+            JsonObject o = e.getValue().getAsJsonObject();
+            // PAR-FAUNA-41: a pool's flags beyond occludes: fluid (waterlogged pool states; the client draws the water)
+            Set<String> flags = new LinkedHashSet<>();
+            if (o.get("occludes").getAsBoolean()) {
+                flags.add("occludes");
+            }
+            if (o.has("fluid") && o.get("fluid").getAsBoolean()) {
+                flags.add("fluid");
+            }
+            pools.put(POOL_PREFIX + e.getKey(), new VState(POOL_PREFIX + e.getKey(), Shape.FULL, Shape.FULL, 0, Set.copyOf(flags)));
         }
         for (Map.Entry<String, Map<String, VState>> v : versions.entrySet()) {
             for (VState s : v.getValue().values()) {

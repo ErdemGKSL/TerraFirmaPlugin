@@ -123,6 +123,8 @@ public final class TfcShapes {
         m.put("tfc:thatch", "new ThatchBlock(ExtendedProperties.of(MapColor.SAND).strength(0.6F, 0.4F).noOcclusion()");
         m.put("tfc:wattle[woven=false]", "new WattleBlock(ExtendedProperties.of(MapColor.WOOD).strength(0.3F).noOcclusion()");
         m.put("tfc:lobster_trap", "new LobsterTrapBlock(ExtendedProperties.of(MapColor.METAL).strength(3f).sound(SoundType.METAL).noOcclusion()");
+        // PAR-FAUNA-41: the trap in water (TFC's FLUID = water) is the same noOcclusion block.
+        m.put(wetKey("tfc:lobster_trap"), "new LobsterTrapBlock(ExtendedProperties.of(MapColor.METAL).strength(3f).sound(SoundType.METAL).noOcclusion()");
         // PAR-CLIM-04: TFC's ice blocks copy vanilla ICE (noOcclusion, translucent); the icicle is noOcclusion itself.
         m.put("tfc:ice_pile", "new IcePileBlock(ExtendedProperties.of(Blocks.ICE).randomTicks()");
         m.put("tfc:sea_ice", "new SeaIceBlock(Properties.ofFullCopy(Blocks.ICE)");
@@ -385,6 +387,11 @@ public final class TfcShapes {
         }
         s.add(Spec.of("tfc:lobster_trap", "lobster_trap", Kind.OBJECT, List.of(B + "LobsterTrapBlock.java"), "Shapes.block()",
             "same", List.of("class LobsterTrapBlock extends DeviceBlock"), List.of("getShape(", "getCollisionShape")));
+        // PAR-FAUNA-41: the trap in water (TFC's FluidProperty WATER holding water): the same Shapes.block() outline, its own
+        // row so the selector serves it from a waterlogged carrier (the client draws the water around the trap).
+        s.add(Spec.of(wetKey("tfc:lobster_trap"), "lobster_trap", Kind.OBJECT, List.of(B + "LobsterTrapBlock.java"), "Shapes.block()",
+            "same", List.of("class LobsterTrapBlock extends DeviceBlock", "public static final FluidProperty FLUID = TFCBlockStateProperties.WATER;"),
+            List.of("getShape(", "getCollisionShape")));
         // PAR-POT-08: TFC registers the drying bricks noCollission (SoilBlockType.DRYING_BRICKS), so the collision is empty.
         for (int n = 1; n <= 4; n++) {
             s.add(Spec.of("tfc:drying_bricks[count=" + n + "]", "drying_bricks", Kind.OBJECT,

@@ -282,6 +282,14 @@ public final class HitboxCarrier {
             return "not the twin " + tfc.twin() + " (TFC draws that vanilla block)";
         }
         if (v.isPool(state)) {
+            // PAR-FAUNA-41: pools go through the fluid rules too (a fluid pool draws water around the block)
+            VState pool = v.get(null, state);
+            if (pool.flag("fluid") && !tfc.waterlogged()) {
+                return "waterlogged pool (TFC is not)";
+            }
+            if (!pool.flag("fluid") && tfc.waterlogged()) {
+                return "dry pool (TFC is waterlogged; only a waterlogged carrier draws the water)";
+            }
             return null;
         }
         String ban = v.hardBan(block);

@@ -181,7 +181,7 @@ class GeneratedCarrierTest {
         assertThat(plantPoolStates.get(PlantPools.TRIPWIRE)).contains(HitboxDemands.TWIG_SHARE_KEY);
         // PAR-WORLD-59: the fruit tree leaves (tfp:plant/<tree>_leaves, leaves pool) are checked since the plant exemption went
         assertThat(fruitLeaves).isEqualTo(HitboxDemands.FRUIT_TREES.size() * 4); // 4 lifecycles each
-        assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 4 + 7 + fruitLeaves // + 7: PAR-POT-14 pit kiln stages 10..16 on the leaves pool; PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
+        assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 4 + 7 + fruitLeaves + 12 // + 12: PAR-FAUNA-41 the wet lobster trap on the waterlogged leaves pool; + 7: PAR-POT-14 pit kiln stages 10..16 on the leaves pool; PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
             + 2 // PAR-METAL-15: the blast furnace, unlit and lit, on the solid pool
             + (int) HitboxDemands.all().stream().filter(d -> d.blockId().startsWith("tfp:grass_path/") && agreedOrOld(d).pool())
                 .count() // PAR-WORLD-42: the grass paths on the leaves pool
@@ -655,6 +655,47 @@ class GeneratedCarrierTest {
                 shared = shared == null ? a.state() : shared;
                 assertThat(a.state()).isEqualTo(shared);
             }
+        }
+    }
+
+    @Test
+    void theWetLobsterTrapTakesTheWaterloggedLeavesPool() {
+        // PAR-FAUNA-41: TFC's trap in water (tfc:lobster_trap[fluid=water], Shapes.block(), noOcclusion) takes the CE group
+        // waterlogged_tintable_leaves for all twelve wet appearances (the client draws the water); the dry ones keep the
+        // shared hitbox-only carrier, which is no fluid state.
+        assertThat(TfcShapes.load()).containsKey(HitboxDemands.LOBSTER_TRAP_WET_ROW);
+        String dry = HitboxAllocation.agreed(HitboxDemands.LOBSTER_TRAP_ID,
+            HitboxDemands.lobsterTrapAppearance(HitboxDemands.FACINGS.getFirst(), HitboxDemands.LOBSTER_TRAP_STATES.getFirst())).state();
+        for (String version : VanillaCandidates.load().versions()) {
+            assertThat(VanillaCandidates.load().get(version, dry).flag("fluid")).as(dry + " on " + version).isFalse();
+        }
+        for (String f : HitboxDemands.FACINGS) {
+            for (String t : HitboxDemands.LOBSTER_TRAP_STATES) {
+                Assignment a = HitboxAllocation.agreed(HitboxDemands.LOBSTER_TRAP_ID, HitboxDemands.lobsterTrapWetAppearance(f, t));
+                assertThat(a.demand().tfcKey()).isEqualTo(HitboxDemands.LOBSTER_TRAP_WET_ROW);
+                assertThat(a.mode()).isEqualTo(HitboxAllocation.Mode.POOL);
+                assertThat(a.state()).isEqualTo(VanillaCandidates.POOL_PREFIX + HitboxDemands.LOBSTER_TRAP_WET_POOL);
+                assertThat(a.hideTarget()).isNull();
+            }
+        }
+    }
+
+    @Test
+    void onlyWaterloggedRowsTakeTheFluidPool() {
+        // PAR-FAUNA-41: no other demand moved onto the fluid pool, and no waterlogged demand onto a dry pool.
+        for (HitboxAllocation.Result r : HitboxAllocation.standard().values()) {
+            for (Assignment a : r.assignments()) {
+                boolean wetPool = a.state().equals(VanillaCandidates.POOL_PREFIX + HitboxDemands.LOBSTER_TRAP_WET_POOL);
+                assertThat(wetPool).as(a.demand().id()).isEqualTo(a.demand().tfcKey().equals(HitboxDemands.LOBSTER_TRAP_WET_ROW));
+            }
+        }
+        VanillaCandidates v = VanillaCandidates.load();
+        String fluidPool = VanillaCandidates.POOL_PREFIX + HitboxDemands.LOBSTER_TRAP_WET_POOL;
+        for (dev.tfp.datagen.visuals.VersionFamily f : dev.tfp.datagen.visuals.VersionFamily.values()) {
+            assertThat(HitboxCarrier.filter(HitboxCarrier.TfcState.of(HitboxDemands.LOBSTER_TRAP_ROW), f, v, fluidPool)).isNotNull();
+            assertThat(HitboxCarrier.filter(HitboxCarrier.TfcState.of(HitboxDemands.LOBSTER_TRAP_WET_ROW), f, v, fluidPool)).isNull();
+            assertThat(HitboxCarrier.filter(HitboxCarrier.TfcState.of(HitboxDemands.LOBSTER_TRAP_WET_ROW), f, v,
+                VanillaCandidates.POOL_PREFIX + "leaves")).isNotNull();
         }
     }
 

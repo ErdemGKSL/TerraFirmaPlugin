@@ -433,6 +433,9 @@ VisualAllocator's full cubes and only hold appearances with a model; the selecto
 allocate. `HardcodedCarrierTest` forbids vanilla state literals outside `hitbox/` and `visuals/`; `GeneratedCarrierTest`
 checks the output: every explicit appearance `state:` in the generated CE YAML (bare stateless ids included) equals
 `HitboxAllocation.agreed(...)` of its demand, and every generator `block_state_mappings` entry is a selector hide mapping.
+PAR-FAUNA-41: a pool may carry a `fluid` flag (`waterlogged_tintable_leaves`, CE's waterlogged oak/jungle/acacia/dark-oak/
+mangrove leaves): the selector applies the fluid rules to pools as to explicit states, so only a waterlogged TFC row
+(the wet lobster trap) takes it and the client draws the water around the block.
 Verification split (decided 2026-10-23, manager decision under the owner's standing instruction; general rule in
 `plans/parity/PROTOCOL.md` 6.5): PAR-INFRA-13 is done with the datagen selector, which is all its dependents need;
 the in-game outline, stand-height and prediction checks are PAR-INFRA-23, which re-runs per carrier class as each family's

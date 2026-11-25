@@ -29,6 +29,7 @@ import dev.tfp.datagen.device.DeviceProperty;
 import dev.tfp.datagen.device.DeviceYaml;
 import dev.tfp.datagen.hitbox.HitboxAllocation;
 import dev.tfp.datagen.hitbox.HitboxDemands;
+import dev.tfp.datagen.hitbox.VanillaCandidates;
 import dev.tfp.datagen.rotation.RotationBlocks;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,7 +50,11 @@ import java.util.regex.Pattern;
  *       carries as a property because a CraftEngine block cannot be fluid-logged, as the pipe's {@code fluid}). 24 states.</li>
  *   <li>One appearance per (facing, trap) on the carrier the hitbox selector picks for TFC's full-block outline
  *       ({@link HitboxDemands#LOBSTER_TRAP_ROW}); every one is hitbox-only (drawn empty) on one shared carrier and TFC's
- *       open, bait or closed model is an item display turned as TFC's blockstate turns it. The fluid has no appearance.</li>
+ *       open, bait or closed model is an item display turned as TFC's blockstate turns it.</li>
+ *   <li>PAR-FAUNA-41: the {@code fluid=water} states take their own appearances ({@code north_open_wet}) on the waterlogged
+ *       carrier the selector picks for {@link HitboxDemands#LOBSTER_TRAP_WET_ROW} (CraftEngine's
+ *       {@code waterlogged_tintable_leaves} pool, one shared pool state drawn with an element-less model), so the client
+ *       draws water around TFC's model, with the same item displays.</li>
  *   <li>The {@code tfp:device} behaviour, TFC's settings (strength 3, metal sounds, the pickaxe tag), the loot (the trap
  *       itself under survives_explosion) and the block item with TFC's item model.</li>
  * </ul>
@@ -72,6 +77,11 @@ public final class LobsterTrapBlock {
     public static final Map<String, String> MODEL_OF = Map.of("open", "lobster_trap", "baited", "lobster_trap_bait",
         "closed", "lobster_trap_closed");
     static final String FLUID = "fluid";
+    /** PAR-FAUNA-41: the share key of the wet appearances' pool state (all twelve on one state). */
+    static final String WET_SHARE = BLOCK;
+    static final String WET_MODEL_FILE = "models/block/" + BLOCK + "_water.json";
+    /** TFC's particle texture of the trap model, also the wet carrier's (PAR-FAUNA-41). */
+    static final String TFC_PARTICLE = "block/lobster_trap";
     private static final Pattern TEXTURE = Pattern.compile(Json.FROM_NS + ":(block/[a-z0-9_/]+)");
     private static final Pattern VARIANT = Pattern.compile("facing=(\\w+),trap=(\\w+)");
 
@@ -171,6 +181,22 @@ public final class LobsterTrapBlock {
         return a;
     }
 
+    /** PAR-FAUNA-41: the carrier of one wet (facing, trap) appearance: a fluid pool, all twelve agreeing on it. */
+    static HitboxAllocation.Assignment wetCarrier(String facing, String trap) {
+        String app = HitboxDemands.lobsterTrapWetAppearance(facing, trap);
+        HitboxAllocation.Assignment a = HitboxAllocation.agreed(ID, app);
+        if (a.mode() != HitboxAllocation.Mode.POOL) {
+            throw new DatagenException(ID + "#" + app + ": the carrier is " + a.mode() + " on " + a.state()
+                + ", the wet trap needs a waterlogged auto_state pool (the client draws the water)");
+        }
+        String shared = HitboxAllocation.agreed(ID, HitboxDemands.lobsterTrapWetAppearance(HitboxDemands.FACINGS.getFirst(),
+            HitboxDemands.LOBSTER_TRAP_STATES.getFirst())).state();
+        if (!a.state().equals(shared)) {
+            throw new DatagenException(ID + "#" + app + ": carrier " + a.state() + " is not the shared wet carrier " + shared);
+        }
+        return a;
+    }
+
     static DeviceBlockSpec spec(TfcCheckout tfc, Map<String, Integer> turns) {
         DeviceBlockSpec.Builder b = DeviceBlockSpec.builder(ID)
             .property(DeviceProperty.names("facing", HitboxDemands.FACINGS, "north"))
@@ -189,9 +215,15 @@ public final class LobsterTrapBlock {
                 if (a.hideTarget() != null) {
                     hides.put(a.state(), a.hideTarget());
                 }
+                HitboxAllocation.Assignment w = wetCarrier(f, t);
+                b.appearance(DeviceAppearance.modelled(HitboxDemands.lobsterTrapWetAppearance(f, t),
+                    DeviceAppearance.Carrier.pool(VanillaCandidates.poolName(w.state()), WET_SHARE),
+                    HitboxDemands.LOBSTER_TRAP_WET_MODEL)
+                    .withOverlay(List.of(DeviceAppearance.Renderer.item(renderItem(t)).rotated(RotationBlocks.rotation(0, turns.get(f))))));
             }
         }
-        b.everyState(s -> HitboxDemands.lobsterTrapAppearance(s.get("facing"), s.get("trap")), null)
+        b.everyState(s -> "water".equals(s.get(FLUID)) ? HitboxDemands.lobsterTrapWetAppearance(s.get("facing"), s.get("trap"))
+                : HitboxDemands.lobsterTrapAppearance(s.get("facing"), s.get("trap")), null)
             .settings(DeviceBlockSpec.Settings.fromTfc(tfc, BLOCK))
             .loot(DeviceLoot.self())
             .deviceBehaviour()
@@ -206,6 +238,12 @@ public final class LobsterTrapBlock {
         for (String name : new TreeSet<>(MODEL_OF.values())) {
             String src = MODELS + "block/" + name + ".json";
             String text = tfc.readString(src);
+            if (name.equals(BLOCK)) {
+                JsonObject t = Json.parse(text, src).getAsJsonObject().getAsJsonObject("textures");
+                if (t == null || !t.has("particle") || !(Json.FROM_NS + ":" + TFC_PARTICLE).equals(t.get("particle").getAsString())) {
+                    throw new DatagenException(src + ": the particle texture is no longer " + TFC_PARTICLE);
+                }
+            }
             Matcher m = TEXTURE.matcher(text);
             while (m.find()) {
                 textures.add(m.group(1));
@@ -227,6 +265,13 @@ public final class LobsterTrapBlock {
                 out.put(RP + "textures/" + t + ".png.mcmeta", tfc.read(png + ".mcmeta"));
             }
         }
+        // PAR-FAUNA-41: the wet carrier's model: no elements (the look is the item display), TFC's particle texture
+        String particle = Json.TO_NS + ":" + TFC_PARTICLE;
+        JsonObject wet = new JsonObject();
+        JsonObject wetTextures = new JsonObject();
+        wetTextures.addProperty("particle", particle);
+        wet.add("textures", wetTextures);
+        out.put(RP + WET_MODEL_FILE, Json.write(wet));
         String isrc = MODELS + "item/" + BLOCK + ".json";
         JsonObject item = Json.parse(tfc.readString(isrc), isrc).getAsJsonObject();
         if (!(Json.FROM_NS + ":block/" + BLOCK).equals(item.get("parent").getAsString())) {
