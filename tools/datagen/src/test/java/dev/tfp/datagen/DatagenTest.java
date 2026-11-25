@@ -279,7 +279,7 @@ class DatagenTest {
         assertThat(occ.getAsJsonArray("occluding").toString()).contains("tfp:rock/raw/granite", "tfp:ore/normal_hematite/granite",
             "tfp:sand/red");
         assertThat(occ.getAsJsonArray("non_occluding").asList().stream().map(com.google.gson.JsonElement::getAsString).toList())
-            .containsExactly("tfp:firepit", "tfp:grill"); // PAR-HEAT-19 / PAR-HEAT-24: the fixture's firepit and grill are loaded; TFC's are noOcclusion
+            .containsExactly("tfp:firepit", "tfp:grill", "tfp:pot"); // PAR-HEAT-19 / 24 / 25: the fixture's firepit, grill and pot are loaded; TFC's are noOcclusion
     }
 
     @Test

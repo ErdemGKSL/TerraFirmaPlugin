@@ -29,15 +29,19 @@ import java.util.Map;
  * the hitbox selector picks for TFC's pot shape, in their vanilla look (placeholders, see {@link Firepit}). The entry is the
  * shared device spec ({@link Firepit#spec}) with TFC's settings, loot (wood ash and {@code tfp:ceramic/pot}) and lit light.
  *
- * <p>The output is {@code craftengine/tfp/devices/pot.yml}, outside the CraftEngine {@code configuration/} folder, so
- * CraftEngine does not load it yet. The pot's behaviour (the boiling, the soups and jams, the fluid transfer, the block
- * entity, the placed block) is not in this entry.
+ * <p>The outputs are {@code craftengine/tfp/devices/pot.yml}, the literal spec outside the CraftEngine
+ * {@code configuration/} folder, and {@link #LOADED_OUTPUT} (PAR-HEAT-25), the entry CraftEngine loads: the same spec
+ * through the device template {@code tfp:block/device}, which adds the {@code tfp:device} behaviour, so the placed block
+ * routes to the pot device kind ({@code paper/pot}). The pot's behaviour (the boiling, the soups and jams, the fluid
+ * transfer, the block entity, the placed block) is not in this entry.
  */
 final class Pot {
     static final String SOURCE = "src/main/java/net/dries007/tfc/common/blocks/devices/PotBlock.java";
     static final String CLASS = "PotBlock";
     static final String BLOCKSTATE = TfcCheckout.ASSETS + "blockstates/pot.json";
     static final String OUTPUT = AssetPipeline.PACK + "devices/pot.yml";
+    /** PAR-HEAT-25: where the loaded entry goes: the pot spec through the device template, the entry CraftEngine loads. */
+    static final String LOADED_OUTPUT = AssetPipeline.PACK + "configuration/devices/pot.yml";
     static final String BLOCK_ID = Json.TO_NS + ":pot";
 
     private Pot() {
@@ -48,8 +52,15 @@ final class Pot {
         List<DeviceProperty> props = props(tfc);
         List<Map<String, String>> states = DeviceBlockSpec.combinations(props);
         Firepit.checkMultipart(tfc, BLOCKSTATE, states);
-        out.put(OUTPUT, DeviceYaml.writeLiteral(Firepit.spec(tfc, BLOCK_ID, props)));
+        DeviceBlockSpec spec = Firepit.spec(tfc, BLOCK_ID, props);
+        out.put(OUTPUT, DeviceYaml.writeLiteral(spec));
+        out.put(LOADED_OUTPUT, DeviceYaml.writeTemplated(Firepit.loaded(spec))); // PAR-HEAT-25: the entry CraftEngine loads
         return states.size();
+    }
+
+    /** PAR-HEAT-25: the loaded entry: the pot spec with the {@code tfp:device} behaviour (template {@code tfp:block/device}). */
+    static String loadedYaml(TfcCheckout tfc) {
+        return DeviceYaml.writeTemplated(Firepit.loaded(Firepit.spec(tfc, BLOCK_ID, props(tfc))));
     }
 
     /** The pot's block state properties: the firepit's, in {@code builder.add} order. */

@@ -47,7 +47,7 @@ public final class ItemCoverage {
         Owner.of("ceramic/.+", "PAR-POT-02", "unfired and fired pottery, molds, vessels, jug"),
         Owner.of("(silica|hematitic|olivine|volcanic)_glass_batch|lamp_glass|lens", "PAR-PROC-17", "glass batches and glass items"),
         Owner.of("(silica|hematitic|olivine|volcanic)_glass_bottle", "PAR-POT-07", "glass bottles"),
-        Owner.of("(ceramic_)?blowpipe(_with_glass)?|jacks|paddle", "PAR-PROC-16", "glassworking tools"),
+        Owner.of("(ceramic_)?blowpipe(_with_glass)?|jacks|paddle", "PAR-PROC-52", "glassworking tools"),
         Owner.of("raw_iron_bloom|refined_iron_bloom", "PAR-METAL-14", "blooms"),
         Owner.of("seeds/.+", "PAR-FARM-03", "crop seeds (block items)"),
         Owner.of("flower_cutting", "PAR-FARM-11", "flower cuttings"),

@@ -56,6 +56,30 @@ class PotTest {
         FirepitTest.assertEntry(new String(out.get(Pot.OUTPUT), StandardCharsets.UTF_8), 4, Pot.BLOCK_ID, Pot.OUTPUT);
     }
 
+    /** PAR-HEAT-25: the loaded entry is the literal spec through the device template, written by {@code run}. */
+    @Test
+    @SuppressWarnings("unchecked")
+    void loadedEntryCallsTheDeviceTemplateWithTheSameStatesAndLoot() {
+        TfcCheckout tfc = FirepitTest.realCheckout();
+        OutputTree out = new OutputTree();
+        Pot.run(tfc, out);
+        assertThat(Pot.LOADED_OUTPUT).isEqualTo(AssetPipeline.PACK + "configuration/devices/pot.yml");
+        assertThat(out.get(Pot.LOADED_OUTPUT)).as("written by run since PAR-HEAT-25").isNotNull();
+        String loaded = new String(out.get(Pot.LOADED_OUTPUT), StandardCharsets.UTF_8);
+        assertThat(loaded).isEqualTo(Pot.loadedYaml(tfc));
+        String literal = new String(out.get(Pot.OUTPUT), StandardCharsets.UTF_8);
+        java.util.Map<?, ?> block = (java.util.Map<?, ?>) ((java.util.Map<?, ?>) ((java.util.Map<?, ?>) CeYamlCheck.parse(loaded, Pot.LOADED_OUTPUT))
+            .get("blocks")).get(Pot.BLOCK_ID);
+        java.util.Map<?, ?> literalBlock = (java.util.Map<?, ?>) ((java.util.Map<?, ?>) ((java.util.Map<?, ?>) CeYamlCheck.parse(literal, Pot.OUTPUT))
+            .get("blocks")).get(Pot.BLOCK_ID);
+        assertThat(block.get("template")).isEqualTo("tfp:block/device");
+        assertThat(block.get("states")).isEqualTo(literalBlock.get("states"));
+        assertThat(block.get("loot")).isEqualTo(literalBlock.get("loot"));
+        assertThat(loaded).contains("tfp:ceramic/pot", "tfp:powder/wood_ash");
+        assertThat(java.util.regex.Pattern.compile("(?m)^  " + java.util.regex.Pattern.quote(Pot.BLOCK_ID) + ":").matcher(loaded).results().count())
+            .as("one entry for tfp:pot in the loaded file").isEqualTo(1);
+    }
+
     @Test
     void fixtureStatesFollowTheInheritedDefinitionAndTheSmokeRangeOfTheSource() throws IOException {
         Path root = checkout();

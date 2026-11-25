@@ -39,8 +39,9 @@ import java.util.Map;
  * 83 to columns 3 and 4 of row 0; x 56, 74 and 92 to columns 3, 4 and 5 of row 1). The thermometer column (x 30) is
  * decoration: its four slots are buttons whose tooltip is the temperature. TFC's fluid tooltip (over the pot drawing,
  * x 121 to 162) is the button {@link #FLUID_SLOT}; TFC's label under it ("Boiling!", the output, "Finished") the button
- * {@link #STATUS_SLOT}. The background, thermometer and bubble art ({@link #BACKGROUND}, {@link #THERMOMETER},
- * {@link #BOILING}) are written by datagen in follow-up PAR-HEAT-25.
+ * {@link #STATUS_SLOT}. The background, thermometer, flame and bubble art ({@link #BACKGROUND}, {@link #THERMOMETER},
+ * {@link #FLAMES}, {@link #BOILING}) are written by datagen ({@code potgui/PotScreenArt}, PAR-HEAT-25); the numbers there equal
+ * these. The two buttons have no frame of their own: it would hide TFC's pot drawing.
  */
 public final class PotScreenLayout {
     public static final ChestGeometry CHEST = new ChestGeometry(4);
@@ -83,10 +84,20 @@ public final class PotScreenLayout {
     /** The 21-frame bubble strip moved by {@link #DY}. */
     public static final GuiImage BOILING = new GuiImage("tfp:gui/pot_boiling", TFC_BOILING_X, TFC_BOILING_Y + DY,
         BOILING_WIDTH, BOILING_HEIGHT, 3, 7);
+    /** TFC's three flames under the pot (13 x 13 at x 121, 136 and 151, y 58), drawn while the pot is above 0: frame 0 none, 1 lit. */
+    public static final int TFC_FLAME_X = 121;
+    public static final int TFC_FLAME_Y = 58;
+    public static final int FLAME_SIZE = 13;
+    public static final int FLAME_STEP = 15;
+    public static final int FLAME_COUNT = 3;
+    public static final GuiImage FLAMES = new GuiImage("tfp:gui/pot_flames", TFC_FLAME_X, TFC_FLAME_Y + DY,
+        FLAME_STEP * (FLAME_COUNT - 1) + FLAME_SIZE, FLAME_SIZE, 1, 2);
     public static final String THERMOMETER_LAYER = "thermometer";
     public static final String BOILING_LAYER = "boiling";
+    public static final String FLAMES_LAYER = "flames";
     public static final GuiLayers LAYERS = new GuiLayers(BACKGROUND, List.of(
-        new GuiLayers.Layer(THERMOMETER_LAYER, 10, THERMOMETER), new GuiLayers.Layer(BOILING_LAYER, 20, BOILING)));
+        new GuiLayers.Layer(THERMOMETER_LAYER, 10, THERMOMETER), new GuiLayers.Layer(FLAMES_LAYER, 15, FLAMES),
+        new GuiLayers.Layer(BOILING_LAYER, 20, BOILING)));
 
     private PotScreenLayout() {
     }
@@ -122,6 +133,7 @@ public final class PotScreenLayout {
 
     /** The frames of a pot at {@code temperature} with {@code boilingTicks}. */
     public static Map<String, Integer> frames(float temperature, int boilingTicks) {
-        return Map.of(THERMOMETER_LAYER, ProgressFrames.thermometer(temperature), BOILING_LAYER, boilingFrame(boilingTicks));
+        return Map.of(THERMOMETER_LAYER, ProgressFrames.thermometer(temperature), BOILING_LAYER, boilingFrame(boilingTicks),
+            FLAMES_LAYER, temperature > 0 ? 1 : 0);
     }
 }
