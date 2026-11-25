@@ -47,6 +47,8 @@ done_criteria:
 
 # PAR-MECH-18: Water wheel and windmill in game
 
+> Claimed: claude MECH session 011osUpA, 2026-11-25
+
 > Created by PAR-MECH-03/PAR-MECH-04, which built the rules and the Paper services (`paper/waterwheel`, `paper/windmill`) without blocks, items or models. Holds their moved in-game checks.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
