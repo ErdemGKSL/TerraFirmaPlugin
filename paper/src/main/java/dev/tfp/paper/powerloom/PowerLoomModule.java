@@ -18,6 +18,8 @@ import dev.tfp.paper.loom.LoomDevice;
 import dev.tfp.paper.loom.PaperLoomEffects;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
+import dev.tfp.paper.neighbour.NeighbourService;
+import dev.tfp.paper.placed.PlacedSupport;
 import dev.tfp.paper.powerloom.PowerLoomIndex.Key;
 import dev.tfp.paper.recipe.RecipeTypes;
 import dev.tfp.paper.recipe.Recipes;
@@ -29,7 +31,7 @@ import org.bukkit.inventory.ItemStack;
 /**
  * PAR-MECH-08: the power loom. Registers the {@link PowerLoomDevice} kind ({@code tfp:power_loom}), watches the looms that a
  * rotation node can reach ({@link PowerLoomService}) and sets the facing on placement. Needs the device, recipe and rotation
- * modules before it in the service file; without the rotation module the loom is a loom nobody pushes. The block is written by
+ * modules before it in the service file (the neighbour module is optional: without it the floor rule is off); without the rotation module the loom is a loom nobody pushes. The block is written by
  * datagen (PAR-MECH-22).
  */
 public final class PowerLoomModule implements FeatureModule {
@@ -51,6 +53,9 @@ public final class PowerLoomModule implements FeatureModule {
         PaperLoomEffects effects = new PaperLoomEffects(context.scheduler(), blocks, () -> context.integrations().blockVisuals(),
             devices::neighbourChanged);
         context.listen(new PowerLoomListener(blocks, effects, context.scheduler()));
+        // BottomSupportedDeviceBlock: the loom breaks without a solid block below (the neighbour runner decides, then applies)
+        context.services().get(NeighbourService.class).ifPresent(n -> n.register(new PowerLoomSupport(
+            id -> !id.equals(PowerLoomDevice.ID) && PlacedSupport.solidId(id))));
         Optional<RotationService> networks = context.services().get(RotationService.class);
         if (networks.isEmpty()) {
             context.logger().warning("Power loom: the rotation module is not running; power looms stay still");

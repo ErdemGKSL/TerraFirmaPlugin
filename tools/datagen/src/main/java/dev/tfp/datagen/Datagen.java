@@ -343,6 +343,9 @@ public final class Datagen {
         if (dev.tfp.datagen.crankshaft.CrankshaftBlock.available(tfc)) { // PAR-MECH-21: tfp:crankshaft; fixtures have no crankshaft
             dev.tfp.datagen.crankshaft.CrankshaftBlock.run(tfc, out);
         }
+        if (dev.tfp.datagen.powerloom.PowerLoomBlock.available(tfc)) { // PAR-MECH-22: tfp:power_loom; fixtures have no power loom
+            dev.tfp.datagen.powerloom.PowerLoomBlock.run(tfc, out);
+        }
         if (dev.tfp.datagen.coverage.BlockCoverage.available(tfc)) { // PAR-INFRA-49: TFC blockstate coverage gate; after every block generator and ItemCoverage; fixtures have no TFCItems
             dev.tfp.datagen.coverage.BlockCoverage.run(tfc, out);
         }

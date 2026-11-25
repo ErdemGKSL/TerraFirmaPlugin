@@ -39,3 +39,5 @@ done_criteria:
 > Claimed: claude MECH session 011osUpA, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.
+
+Code done (the `PAR-MECH-22: Power loom block` commit): block, tests; pending in-game check (datagen `powerloom/PowerLoomBlock` + `PowerLoomBlockTest` 5, paper `PowerLoomSupport` + `PowerLoomSupportTest` 4; the carrier is the barrier, see the ledger divergences).
