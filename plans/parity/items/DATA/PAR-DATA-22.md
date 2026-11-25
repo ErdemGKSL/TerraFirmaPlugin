@@ -28,4 +28,6 @@ done_criteria:
 
 # PAR-DATA-22: Piglin currency
 
+> Claimed: parity worker session_011osUp9Lr5PbNofhx4XEc3S, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
