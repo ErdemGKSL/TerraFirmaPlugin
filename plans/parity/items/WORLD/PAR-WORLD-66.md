@@ -2,7 +2,7 @@
 id: PAR-WORLD-66
 title: "Surface decoration in generation: wire the forest floor, island guano, tide pools, sea stacks and bamboo into TfcTerrain, the worldgen.decoration itest"
 area: WORLD
-status: open
+status: done
 wave: 52
 deps: [PAR-WORLD-21, PAR-WORLD-65, PAR-DECO-23]
 size: M
@@ -24,6 +24,8 @@ in_game_steps:
 plan:
   - "Rules from PAR-WORLD-21/65 in core/worldgen/decoration: ForestFloor.forestPlants (inside #tfc:feature/land_plants at index 15 of its 128 entries: run it in that slot of the plant step), guanoIslands (large features of guano_island), atollGuano (ocean_atolls, deep_ocean_atolls, after the atoll corals), and the tide pool, sea stack and bamboo rules of PAR-WORLD-65 in their biome tag order. The glacial oceanic spring already runs through VolcanicFeatures (PAR-WORLD-21)."
   - "Per NP-WORLD-01 decide the features of this chunk and its 8 neighbours, write only this chunk's blocks, as the shore groundcover does; feed GroundView.forestDensity and topBlockStone (forest-bounded patches place nothing where the forest is unknown). Covers as the CE groundcover blocks (tfp:groundcover/<type>, placeholder fallback); golden bamboo through PAR-DECO-23's block."
+  - "Done 2026-11-25: paper worldgen/SurfaceDecorationStep decides the 3x3 origin chunks, each over a fresh DecorationLevel on the terrain with the trees (PlantGround now a DecorationLevel.Terrain), for the biome at the origin centre (core decoration/DecorationBiomes: 99 land biomes, guano island, atolls, tidal flats): bamboo in the large features order (rare_bamboo, bamboo, rare_bamboo_golden, bamboo_golden) after the forest; island and atoll guano, sea stacks and the forest floor before the surface plants; tide pools after the shore groundcover. TfcTerrain.writeSurface writes only this chunk's blocks where they fit (covers on free positions, ground blocks on ground, never over trees), CE groundcover/cobble/hardened/golden bamboo with vanilla fallbacks. SurfaceDecorationStepTest 4; itest worldgen.decoration written (WorldgenDecorationCase, not run here). PAR-DECO-23 is still open: golden bamboo is written as vanilla bamboo until its block exists (ledger). Ledger: feature row + 3 divergences."
+  - "Pending in-game check (container cannot run client): the screenshots of in_game_steps into docs/verification/PAR-WORLD-66/, and the itest run of worldgen.decoration."
 tests:
   - "paper: SurfaceDecoration wiring test (only free positions of this chunk written, the tag slot order)"
   - "itest: worldgen.decoration case counts forest-floor groundcover, tide pools and bamboo per biome sample within TFC's ranges"
@@ -33,8 +35,6 @@ done_criteria:
 ---
 
 # PAR-WORLD-66: Surface decoration in generation
-
-> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-25
 
 > see_not_parity: NP-WORLD-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

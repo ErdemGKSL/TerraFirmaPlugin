@@ -88,6 +88,7 @@ public final class DecorationLevel {
 
     private final Terrain terrain;
     private final Map<Long, Block> placed = new LinkedHashMap<>();
+    private final List<Placed> log = new ArrayList<>();
     /** The highest placed y of each column, for the heightmaps. */
     private final Map<Long, Integer> topPlaced = new HashMap<>();
     private final Map<Long, Integer> topSolid = new HashMap<>();
@@ -171,8 +172,14 @@ public final class DecorationLevel {
         return top == null ? h : Math.max(h, top + 1);
     }
 
+    /** Every {@link #set} in call order (an overwritten position appears again), for a writer that applies them in order. */
+    public List<Placed> log() {
+        return Collections.unmodifiableList(log);
+    }
+
     /** {@code setBlock}. */
     public void set(int x, int y, int z, Block block) {
+        log.add(new Placed(x, y, z, block));
         placed.put(key(x, y, z), block);
         topPlaced.merge(column(x, z), y, Math::max);
         if (block.blocksMotion()) {

@@ -176,6 +176,8 @@ final class TfcTerrain {
     private final VolcanicFeatures volcanicFeatures;
     /** PAR-WORLD-64: the underground lakes, cave decorations and cave vegetation of this world. */
     private final CaveDecorationStep caveStep;
+    /** PAR-WORLD-66: the bamboo, guano, sea stacks, forest floor and tide pools of this world. */
+    private final SurfaceDecorationStep surfaceStep;
     /** The placeholder block data by material and waterlogging. */
     private final Map<String, BlockData> placeholders = new ConcurrentHashMap<>();
     /** TFC's surface heights of this seed (M2-GEN-06), with the river samplers and the cinder cones; pure, shared by the workers. */
@@ -237,6 +239,7 @@ final class TfcTerrain {
         this.volcanoes = new Volcanoes(seed);
         this.volcanicFeatures = new VolcanicFeatures(seed, volcanoes);
         this.caveStep = new CaveDecorationStep(seed);
+        this.surfaceStep = new SurfaceDecorationStep(seed);
         this.surfaceHeights = new SurfaceHeights(seed, regions, layers, RiverBlendType.createSamplers(seed), volcanoes.cones());
     }
 
@@ -688,6 +691,10 @@ final class TfcTerrain {
                 data.setBlock(localX, y, localZ, water ? placeholderData(Material.MANGROVE_ROOTS, true) : treeData(block));
             }
         });
+        // PAR-WORLD-66: the bamboo, guano, sea stacks, forest floor and tide pools, decided over the terrain with the trees
+        final Map<SurfaceDecorationStep.Slot, List<SurfaceDecorationStep.Write>> surface = surfaceStep.decide(chunkX, chunkZ,
+            new PlantGround(view, trees));
+        writeSurface(data, surface.get(SurfaceDecorationStep.Slot.BAMBOO), palette);
         // PAR-WORLD-64: the cave vegetation (a large feature, after the forest)
         writeCave(data, cave.get(CaveDecorationStep.Stage.VEGETATION), palette);
         // M2-GEN-14, PAR-WORLD-27: every volcanic feature (large features, after the forest: the rivulets, crater lakes,
@@ -741,6 +748,10 @@ final class TfcTerrain {
         // and the chunk's carver mask (TFC's cave vines)
         final PlantGround plantView = new PlantGround(view, trees);
         for (Plants.Step step : Plants.Step.values()) {
+            if (step == Plants.Step.SURFACE_DECORATION) {
+                // PAR-WORLD-66: the island and atoll guano (after the corals), the sea stacks and the forest floor
+                writeSurface(data, surface.get(SurfaceDecorationStep.Slot.BEFORE_PLANTS), palette);
+            }
             final List<PlantBlock> placed = new ArrayList<>();
             plants.place(chunkX, chunkZ, plantView, step, placed::add);
             PlantBlocks.write(placed, chunkX, chunkZ, minY, maxY, plantTarget);
@@ -749,6 +760,61 @@ final class TfcTerrain {
         shoreCover.place(chunkX, chunkZ, view, covers);
         looseRocks.place(chunkX, chunkZ, view, covers);
         GroundcoverBlocks.write(covers, chunkX, chunkZ, minY, maxY, coverTarget);
+        // PAR-WORLD-66: the tide pools (after the shore decorations of the tidal flats)
+        writeSurface(data, surface.get(SurfaceDecorationStep.Slot.AFTER_SHORE), palette);
+    }
+
+    /**
+     * PAR-WORLD-66: writes this chunk's surface decoration blocks where they still fit ({@link SurfaceDecorationStep#fits}):
+     * the CraftEngine groundcover (with {@code fluid=water} in water), cobble, hardened rock and golden bamboo, else the
+     * vanilla placeholders; the palette's raw rock, water, vanilla bamboo and rooted dirt.
+     */
+    private void writeSurface(ChunkGenerator.ChunkData data, List<SurfaceDecorationStep.Write> writes, RockPalette<BlockData> palette) {
+        final int minY = data.getMinHeight();
+        final int maxY = data.getMaxHeight();
+        for (SurfaceDecorationStep.Write w : writes) {
+            if (w.y() <= minY || w.y() >= maxY) {
+                continue;
+            }
+            final int lx = w.x() & 15;
+            final int lz = w.z() & 15;
+            final Material type = data.getType(lx, w.y(), lz);
+            final boolean free = type == Material.AIR || type == Material.CAVE_AIR || type == Material.WATER;
+            final String name = type.name();
+            final boolean solidGround = type.isSolid() && !name.endsWith("_LOG") && !name.endsWith("_WOOD") && !name.endsWith("_LEAVES");
+            final dev.tfp.core.worldgen.decoration.DecorationLevel.Block b = w.block();
+            if (!SurfaceDecorationStep.fits(b, w.before(), free, solidGround)) {
+                continue;
+            }
+            final boolean wet = type == Material.WATER || b.kind() == dev.tfp.core.worldgen.decoration.DecorationLevel.Kind.SALT_WATER_COVER;
+            String ref = SurfaceDecorationStep.ceRef(b);
+            if (ref != null && b.kind() == dev.tfp.core.worldgen.decoration.DecorationLevel.Kind.COVER) {
+                ref = withFluid(ref, wet);
+            }
+            final BlockData custom = ref == null ? null : customBlockData(ref);
+            final BlockData block = custom != null ? custom : switch (b.kind()) {
+                case RAW, HARDENED -> palette.block(b.rock());
+                case COBBLE -> placeholderData(Material.COBBLESTONE, false);
+                case SALT_WATER -> water;
+                case COVER, SALT_WATER_COVER -> placeholderData(Material.valueOf(SurfaceDecorationStep.coverPlaceholder(b.id())), wet);
+                case BAMBOO -> bambooData(b.stalk());
+                case ROOTED_DIRT -> placeholderData(Material.ROOTED_DIRT, false);
+            };
+            data.setBlock(lx, w.y(), lz, block);
+        }
+    }
+
+    /** PAR-WORLD-66: vanilla bamboo of a stalk state (age, leaves, stage), cached. */
+    private BlockData bambooData(dev.tfp.core.worldgen.decoration.Bamboo.Stalk stalk) {
+        return placeholders.computeIfAbsent("bamboo/" + stalk.name(), k -> {
+            final BlockData out = Material.BAMBOO.createBlockData();
+            if (out instanceof org.bukkit.block.data.type.Bamboo bamboo) {
+                bamboo.setAge(stalk.age());
+                bamboo.setLeaves(org.bukkit.block.data.type.Bamboo.Leaves.valueOf(stalk.leaves().toUpperCase(java.util.Locale.ROOT)));
+                bamboo.setStage(stalk.stage());
+            }
+            return out;
+        });
     }
 
     /**
@@ -971,7 +1037,8 @@ final class TfcTerrain {
      * the carvers' mask ({@code tfc:carving_mask}: the positions inside a carver's tunnel shapes, as vanilla's AIR carving
      * mask). Only the trees of the decorated chunk's 3x3 window are seen (ledger).
      */
-    static final class PlantGround implements dev.tfp.core.worldgen.tree.TreeView, dev.tfp.core.worldgen.plant.CarvingMaskView {
+    static final class PlantGround implements dev.tfp.core.worldgen.tree.TreeView, dev.tfp.core.worldgen.plant.CarvingMaskView,
+            dev.tfp.core.worldgen.decoration.DecorationLevel.Terrain {
         private final Ground ground;
         private final Map<Long, TreeGround> trees = new HashMap<>();
 
@@ -997,6 +1064,12 @@ final class TfcTerrain {
         public TreeGround ground(int x, int y, int z) {
             final TreeGround tree = trees.get(treeKey(x, y, z));
             return tree != null ? tree : ground.ground(x, y, z);
+        }
+
+        /** PAR-WORLD-66: the rock of the rock layers at a position (the tide pools' rim and floor). */
+        @Override
+        public int rock(int x, int y, int z) {
+            return ground.rockAt(x, y, z);
         }
 
         @Override
