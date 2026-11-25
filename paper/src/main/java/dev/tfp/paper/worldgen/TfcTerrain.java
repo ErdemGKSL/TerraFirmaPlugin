@@ -704,10 +704,24 @@ final class TfcTerrain {
             public void place(int localX, int y, int localZ, PlantBlock block, Material material, boolean upperHalf) {
                 data.setBlock(localX, y, localZ, plantData(block.state(), material, upperHalf));
             }
+
+            // PAR-WORLD-46: the CraftEngine plant blocks (PAR-WORLD-12, PAR-WORLD-47), cached per CE generation
+            @Override
+            public boolean known(String ceRef) {
+                return customBlockData(ceRef) != null;
+            }
+
+            @Override
+            public void placeCustom(int localX, int y, int localZ, PlantBlock block, String ceRef) {
+                data.setBlock(localX, y, localZ, customBlockData(ceRef));
+            }
         };
+        // PAR-WORLD-46: the plant features see the trees decided above (logs and leaves for the epiphytes, vines and creepers)
+        // and the chunk's carver mask (TFC's cave vines)
+        final PlantGround plantView = new PlantGround(view, trees);
         for (Plants.Step step : Plants.Step.values()) {
             final List<PlantBlock> placed = new ArrayList<>();
-            plants.place(chunkX, chunkZ, view, step, placed::add);
+            plants.place(chunkX, chunkZ, plantView, step, placed::add);
             PlantBlocks.write(placed, chunkX, chunkZ, minY, maxY, plantTarget);
         }
         covers.clear();
@@ -787,6 +801,131 @@ final class TfcTerrain {
             case COBBLE -> placeholderData(Material.COBBLESTONE, false);
             case MOSSY_COBBLE -> placeholderData(Material.MOSSY_COBBLESTONE, false);
         };
+    }
+
+    /**
+     * PAR-WORLD-46: what the plant features read: the terrain {@link Ground} with the tree blocks the forest decided for this
+     * chunk and its neighbours (TFC's plants run after the trees in the same region and attach to their logs and leaves) and
+     * the carvers' mask ({@code tfc:carving_mask}: the positions inside a carver's tunnel shapes, as vanilla's AIR carving
+     * mask). Only the trees of the decorated chunk's 3x3 window are seen (ledger).
+     */
+    static final class PlantGround implements dev.tfp.core.worldgen.tree.TreeView, dev.tfp.core.worldgen.plant.CarvingMaskView {
+        private final Ground ground;
+        private final Map<Long, TreeGround> trees = new HashMap<>();
+
+        PlantGround(Ground ground, List<Forest.Placed> placed) {
+            this.ground = ground;
+            for (Forest.Placed p : placed) {
+                trees.putIfAbsent(treeKey(p.x(), p.y(), p.z()), switch (p.block().kind()) {
+                    case LOG, WOOD -> TreeGround.LOG;
+                    case LEAVES -> TreeGround.LEAVES;
+                    case ROOTED_DIRT -> TreeGround.ROOTED_DIRT;
+                    case MUDDY_ROOTS -> TreeGround.MUDDY_ROOTS;
+                    case TREE_ROOTS -> TreeGround.TREE_ROOTS;
+                    case KRUMMHOLZ -> TreeGround.KRUMMHOLZ;
+                });
+            }
+        }
+
+        private static long treeKey(int x, int y, int z) {
+            return ((long) x & 0x3FFFFFFL) << 38 | ((long) z & 0x3FFFFFFL) << 12 | (long) y & 0xFFFL;
+        }
+
+        @Override
+        public TreeGround ground(int x, int y, int z) {
+            final TreeGround tree = trees.get(treeKey(x, y, z));
+            return tree != null ? tree : ground.ground(x, y, z);
+        }
+
+        @Override
+        public boolean carved(int x, int y, int z) {
+            return ground.cavesOf(x >> 4, z >> 4).mask().contains(x & 15, y, z & 15);
+        }
+
+        @Override
+        public ForestType forestType(int chunkX, int chunkZ) {
+            return ground.forestType(chunkX, chunkZ);
+        }
+
+        @Override
+        public int minY() {
+            return ground.minY();
+        }
+
+        @Override
+        public int seaLevel() {
+            return ground.seaLevel();
+        }
+
+        @Override
+        public int oceanFloor(int x, int z) {
+            return ground.oceanFloor(x, z);
+        }
+
+        @Override
+        public int worldSurface(int x, int z) {
+            return ground.worldSurface(x, z);
+        }
+
+        @Override
+        public boolean onIce(int x, int z) {
+            return ground.onIce(x, z);
+        }
+
+        @Override
+        public boolean saltWater(int x, int z) {
+            return ground.saltWater(x, z);
+        }
+
+        @Override
+        public int surfaceRock(int x, int z) {
+            return ground.surfaceRock(x, z);
+        }
+
+        @Override
+        public int biome(int x, int z) {
+            return ground.biome(x, z);
+        }
+
+        @Override
+        public float averageTemperature(int x, int z) {
+            return ground.averageTemperature(x, z);
+        }
+
+        @Override
+        public float averageRainfall(int x, int z) {
+            return ground.averageRainfall(x, z);
+        }
+
+        @Override
+        public float groundwater(int x, int z) {
+            return ground.groundwater(x, z);
+        }
+
+        @Override
+        public float rainVariance(int x, int z) {
+            return ground.rainVariance(x, z);
+        }
+
+        @Override
+        public double tideLevel(int x, int z) {
+            return ground.tideLevel(x, z);
+        }
+
+        @Override
+        public int forestDensity(int x, int z) {
+            return ground.forestDensity(x, z);
+        }
+
+        @Override
+        public boolean topBlockStone(int x, int z) {
+            return ground.topBlockStone(x, z);
+        }
+
+        @Override
+        public boolean water(int x, int y, int z) {
+            return ground.water(x, y, z);
+        }
     }
 
     /** The CraftEngine block of a reference, or null while CraftEngine has not loaded or does not know it. */

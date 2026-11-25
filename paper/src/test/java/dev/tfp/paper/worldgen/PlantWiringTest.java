@@ -30,6 +30,8 @@ class PlantWiringTest {
     void everySupportedTypeAndKindHasAPlaceholder() {
         for (PlantType type : PlantType.values()) {
             if (!type.survivable()) {
+                // PAR-WORLD-46: the PAR-WORLD-13 shapes are CraftEngine blocks only
+                assertThat(PlantBlocks.placeholder(plant("x", type, PlantState.Part.SINGLE, PlantState.Fluid.EMPTY))).isNull();
                 continue;
             }
             final PlantState.Fluid fluid = type.fluidProperty() == null ? PlantState.Fluid.EMPTY : type.fluidProperty();
@@ -139,5 +141,93 @@ class PlantWiringTest {
         assertThat(world.get("0,50,0")).isEqualTo(Material.TUBE_CORAL_BLOCK);
         assertThat(world.get("0,51,0")).isEqualTo(Material.TUBE_CORAL_BLOCK);
         assertThat(world.get("0,52,0")).isEqualTo(Material.STONE);
+    }
+
+    @Test
+    void ceRefOfEveryPlantTypeCarriesItsBlockProperties() {
+        final PlantState.Fluid empty = PlantState.Fluid.EMPTY;
+        for (PlantType type : PlantType.values()) {
+            final PlantState.Part part = type.isTall() ? PlantState.Part.LOWER : PlantState.Part.SINGLE;
+            assertThat(PlantBlocks.ceRef(plant("x", type, part, empty))).as("%s", type).startsWith("tfp:plant/x");
+        }
+        assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/rose", PlantState.Kind.PLANT, PlantType.TALL_GRASS,
+            PlantState.Part.UPPER, 2, empty, -1))).isEqualTo("tfp:plant/rose[age=2,half=upper]");
+        assertThat(PlantBlocks.ceRef(plant("allium", PlantType.STANDARD, PlantState.Part.SINGLE, empty)))
+            .isEqualTo("tfp:plant/allium");
+        // creepers: the face mask in Direction order (down, up, north, south, west, east)
+        assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/moss", PlantState.Kind.PLANT, PlantType.CREEPING,
+            PlantState.Part.SINGLE, -1, empty, 0b100001))).isEqualTo(
+            "tfp:plant/moss[down=true,up=false,north=false,south=false,west=false,east=true]");
+        assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/jungle_vines", PlantState.Kind.PLANT, PlantType.VINE,
+            PlantState.Part.SINGLE, -1, empty, 1 << 3))).isEqualTo(
+            "tfp:plant/jungle_vines[up=false,north=false,south=true,west=false,east=false]");
+        assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/guzmania", PlantState.Kind.PLANT, PlantType.EPIPHYTE,
+            PlantState.Part.SINGLE, -1, empty, 5))).isEqualTo("tfp:plant/guzmania[facing=east]");
+        assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/starfish", PlantState.Kind.PLANT, PlantType.OCEAN_ROTATABLE,
+            PlantState.Part.SINGLE, -1, PlantState.Fluid.SALT_WATER, 0))).isEqualTo("tfp:plant/starfish[facing=down,open=true]");
+        assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/star_grass", PlantState.Kind.PLANT, PlantType.GRASS_WATER,
+            PlantState.Part.SINGLE, 2, PlantState.Fluid.SALT_WATER, -1))).isEqualTo("tfp:plant/star_grass[age=2]");
+        // the saguaro head's bit 6 (grows branches) is no block property
+        assertThat(PlantBlocks.ceRef(new PlantState("tfp:plant/saguaro", PlantState.Kind.PLANT, PlantType.BRANCHING_CACTUS_TOP,
+            PlantState.Part.SINGLE, -1, empty, 64 | 2))).isEqualTo(
+            "tfp:plant/saguaro[down=false,up=true,north=false,south=false,west=false,east=false]");
+        assertThat(PlantBlocks.ceRef(plant("cattail", PlantType.TALL_WATER_FRESH, PlantState.Part.UPPER, empty)))
+            .isEqualTo("tfp:plant/cattail[half=upper,waterlogged=false]");
+        assertThat(PlantBlocks.ceRef(other("tfp:wild_crop/wheat", PlantState.Kind.WILD_CROP, empty, -1))).isNull();
+        assertThat(PlantBlocks.ceRef(other("tfp:coral/tube_coral", PlantState.Kind.CORAL, PlantState.Fluid.SALT_WATER, -1))).isNull();
+    }
+
+    @Test
+    void craftEngineBlocksGoFirstAndTallOnesAsTwoHalves() {
+        final Map<String, String> world = new HashMap<>();
+        world.put("0,60,0", "WATER");
+        final PlantBlocks.Target target = new PlantBlocks.Target() {
+            @Override
+            public Material type(int localX, int y, int localZ) {
+                final String v = world.get(localX + "," + y + "," + localZ);
+                return v == null ? Material.AIR : v.equals("WATER") ? Material.WATER : Material.TRIPWIRE;
+            }
+
+            @Override
+            public void place(int localX, int y, int localZ, PlantBlock block, Material material, boolean upperHalf) {
+                world.put(localX + "," + y + "," + localZ, material.name());
+            }
+
+            @Override
+            public boolean known(String ceRef) {
+                return !ceRef.contains("unknown");
+            }
+
+            @Override
+            public void placeCustom(int localX, int y, int localZ, PlantBlock block, String ceRef) {
+                world.put(localX + "," + y + "," + localZ, ceRef);
+            }
+        };
+        final PlantState.Fluid empty = PlantState.Fluid.EMPTY;
+        final List<PlantBlock> blocks = List.of(
+            // an emergent cattail: a waterlogged CE lower half in the water, a dry CE upper half above
+            new PlantBlock(0, 60, 0, plant("cattail", PlantType.TALL_WATER_FRESH, PlantState.Part.LOWER, PlantState.Fluid.WATER)),
+            new PlantBlock(0, 61, 0, plant("cattail", PlantType.TALL_WATER_FRESH, PlantState.Part.UPPER, empty)),
+            new PlantBlock(1, 65, 0, plant("rose", PlantType.TALL_GRASS, PlantState.Part.LOWER, empty)),
+            new PlantBlock(1, 66, 0, plant("rose", PlantType.TALL_GRASS, PlantState.Part.UPPER, empty)),
+            // CraftEngine does not know it: the placeholder
+            new PlantBlock(2, 65, 0, plant("unknown_poppy", PlantType.STANDARD, PlantState.Part.SINGLE, empty)),
+            // a shape without a placeholder that CraftEngine does not know: skipped
+            new PlantBlock(3, 65, 0, plant("unknown_moss", PlantType.CREEPING, PlantState.Part.SINGLE, empty)),
+            // a CE plant already there reads as its carrier, so a second plant is not written over it
+            new PlantBlock(1, 65, 0, plant("allium", PlantType.STANDARD, PlantState.Part.SINGLE, empty)));
+        final int written = PlantBlocks.write(blocks, 0, 0, -64, 320, target);
+        assertThat(written).isEqualTo(5);
+        assertThat(world.get("0,60,0")).isEqualTo("tfp:plant/cattail[half=lower,waterlogged=true]");
+        assertThat(world.get("0,61,0")).isEqualTo("tfp:plant/cattail[half=upper,waterlogged=false]");
+        assertThat(world.get("1,65,0")).isEqualTo("tfp:plant/rose[age=0,half=lower]");
+        assertThat(world.get("1,66,0")).isEqualTo("tfp:plant/rose[age=0,half=upper]");
+        assertThat(world.get("2,65,0")).isNotNull().doesNotStartWith("tfp:");
+        assertThat(world.get("3,65,0")).isNull();
+    }
+
+    @Test
+    void everyPlantTypeIsWrittenNow() {
+        assertThat(PlantResources.WRITTEN_TYPES).containsExactlyInAnyOrder(PlantType.values());
     }
 }

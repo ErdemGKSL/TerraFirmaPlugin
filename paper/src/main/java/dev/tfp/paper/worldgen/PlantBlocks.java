@@ -88,7 +88,9 @@ final class PlantBlocks {
             case WATER, WATER_FRESH, GRASS_WATER, GRASS_WATER_FRESH -> Material.SEAGRASS;
             // submerged (both halves in water): tall seagrass; emergent (the upper half in air): seagrass under the surface only
             case TALL_WATER, TALL_WATER_FRESH -> upper && fluid == PlantState.Fluid.EMPTY ? null : Material.TALL_SEAGRASS;
-            default -> throw new IllegalArgumentException("no placeholder for plant type " + type);
+            // PAR-WORLD-46: the ocean creepers and rotatables, the barrel cactus, the saguaro fruit and bamboo have no
+            // placeholder: they are written only as CraftEngine blocks (ceRef)
+            default -> null;
         };
     }
 
@@ -99,10 +101,13 @@ final class PlantBlocks {
     }
 
     /**
-     * PAR-WORLD-12: the CraftEngine state of a plant block ({@code tfp:plant/rose[age=2,half=upper]}) for the types datagen
-     * generates (land and floating plants: {@code dev.tfp.datagen.plant.PlantBlockGen.TYPES}), or null for the others
-     * (water plants, wild crops, corals), which keep their vanilla placeholder. TFC's {@code part} is CraftEngine's
-     * {@code half}; an age not drawn yet is age 0 (TFC's default state).
+     * PAR-WORLD-12, PAR-WORLD-47: the CraftEngine state of a plant block ({@code tfp:plant/rose[age=2,half=upper]},
+     * {@code tfp:plant/anemone_green[down=true,...,open=true]}), the berry bushes' and the growing shapes' ({@link #growingRef}),
+     * or null for the other kinds (wild crops, corals). The properties are the ones datagen gives each block type
+     * ({@code PlantBlockGen}, {@code PlantShapeGen}): TFC's {@code part} is {@code half}, an age not drawn yet is age 0 (TFC's
+     * default state), the face mask of the ocean creepers (bits in {@code Direction} order) is six booleans, the facing of the
+     * rotatable ocean plants a {@code Direction} index, the ocean plants are open in salt water (TFC's features), and the tall
+     * water plants are waterlogged while they hold water.
      */
     static String ceRef(PlantState state) {
         switch (state.kind()) {
@@ -124,18 +129,35 @@ final class PlantBlocks {
         if (state.kind() == PlantState.Kind.PLANT && GROWING_TYPES.contains(state.type())) {
             return growingRef(state);
         }
-        if (state.kind() != PlantState.Kind.PLANT || !CE_TYPES.contains(state.type())) {
+        if (state.kind() != PlantState.Kind.PLANT) {
             return null;
         }
-        final List<String> props = new java.util.ArrayList<>(2);
-        if (state.type().hasAge()) {
-            props.add("age=" + Math.max(0, state.age()));
+        final List<String> props = new java.util.ArrayList<>(8);
+        final PlantType type = state.type();
+        switch (type) {
+            case OCEAN_CREEPING, OCEAN_ROCK_CREEPING -> faces(props, Math.max(0, state.extra()));
+            case OCEAN_ROTATABLE -> props.add("facing=" + FACES[state.extra() < 0 ? 1 : Math.min(state.extra(), 5)]);
+            default -> { }
         }
-        if (state.type().isTall()) {
+        if (type == PlantType.OCEAN_CREEPING || type == PlantType.OCEAN_ROCK_CREEPING || type == PlantType.OCEAN_ROTATABLE) {
+            props.add("open=" + (state.fluid() == PlantState.Fluid.SALT_WATER));
+        }
+        if (CE_AGED.contains(type)) {
+            props.add("age=" + Math.clamp(state.age(), 0, 3));
+        }
+        if (type.isTall()) {
             props.add("half=" + (state.part() == PlantState.Part.UPPER ? "upper" : "lower"));
+        }
+        if (type == PlantType.TALL_WATER || type == PlantType.TALL_WATER_FRESH) {
+            props.add("waterlogged=" + (state.fluid() != PlantState.Fluid.EMPTY));
         }
         return props.isEmpty() ? state.block() : state.block() + "[" + String.join(",", props) + "]";
     }
+
+    /** The types whose CraftEngine block has TFC's {@code age} (drawn by age, or PAR-WORLD-12's aged land plants). */
+    static final java.util.Set<PlantType> CE_AGED = java.util.EnumSet.of(PlantType.FLOWERBED, PlantType.CACTUSBED,
+        PlantType.SHORT_GRASS, PlantType.BEACH_GRASS, PlantType.TALL_GRASS, PlantType.TALL_SHRUB, PlantType.FLOATING,
+        PlantType.FLOATING_FRESH, PlantType.GRASS_WATER, PlantType.GRASS_WATER_FRESH);
 
     /**
      * PAR-WORLD-25: the CraftEngine state of a coral plant, fan, wall fan or sea pickle
@@ -220,12 +242,6 @@ final class PlantBlocks {
         }
     }
 
-    /** The plant types generated as CraftEngine blocks (PAR-WORLD-12). */
-    static final java.util.Set<PlantType> CE_TYPES = java.util.EnumSet.of(PlantType.STANDARD, PlantType.SHORT_SHRUB,
-        PlantType.SHRUB, PlantType.FLOWERBED, PlantType.CACTUSBED, PlantType.PASSABLE_CACTUS, PlantType.DRY,
-        PlantType.SHORT_GRASS, PlantType.BEACH_GRASS, PlantType.TALL_GRASS, PlantType.TALL_SHRUB, PlantType.FLOATING,
-        PlantType.FLOATING_FRESH);
-
     /** Whether a placeholder is a vanilla two-block plant ({@code Bisected}), written as a lower and an upper half. */
     static boolean twoHalves(Material material) {
         return material == Material.TALL_GRASS || material == Material.LARGE_FERN || material == Material.ROSE_BUSH
@@ -245,6 +261,16 @@ final class PlantBlocks {
          * @param upperHalf for a {@link #twoHalves} placeholder, whether this is its upper half
          */
         void place(int localX, int y, int localZ, PlantBlock block, Material material, boolean upperHalf);
+
+        /** PAR-WORLD-46: whether CraftEngine knows a state ({@link #ceRef}); false while it has not loaded. */
+        default boolean known(String ceRef) {
+            return false;
+        }
+
+        /** PAR-WORLD-46: places the CraftEngine state {@code ceRef} ({@link #known}). */
+        default void placeCustom(int localX, int y, int localZ, PlantBlock block, String ceRef) {
+            throw new UnsupportedOperationException("no CraftEngine blocks here");
+        }
     }
 
     /**
@@ -252,7 +278,9 @@ final class PlantBlocks {
      * still holds what TFC's feature saw there, re-validated against the chunk as it is now: a block filled with water on
      * water, any other plant on air, a coral block on water or a coral, so an earlier feature's block (a tree, a neighbouring
      * chunk's plant) is kept. A two-block placeholder is written with both halves or not at all; the lower half of a
-     * two-block plant whose placeholder is one block goes alone.
+     * two-block plant whose placeholder is one block goes alone. PAR-WORLD-46: a plant whose CraftEngine state the target
+     * knows ({@link #ceRef}) is written as that block, a two-block plant as two CraftEngine halves or not at all (never a
+     * CraftEngine half beside a placeholder half); the placeholders are the fallback while CraftEngine has not loaded.
      *
      * @return the number of blocks written
      */
@@ -269,13 +297,30 @@ final class PlantBlocks {
                 || b.state().part() == PlantState.Part.UPPER) {
                 continue;
             }
+            final int lx = b.x() & 15;
+            final int lz = b.z() & 15;
+            final PlantBlock upper = upperHalves.get(key(b.x(), b.y() + 1, b.z()));
+            final String ref = ceRef(b.state());
+            if (ref != null && target.known(ref)) {
+                if (b.state().part() == PlantState.Part.LOWER) {
+                    final String upperRef = upper == null ? null : ceRef(upper.state());
+                    if (upperRef == null || !target.known(upperRef) || b.y() + 1 >= maxY || !free(target, lx, b.y(), lz, b.state())
+                        || !free(target, lx, b.y() + 1, lz, upper.state())) {
+                        continue;
+                    }
+                    target.placeCustom(lx, b.y(), lz, b, ref);
+                    target.placeCustom(lx, b.y() + 1, lz, upper, upperRef);
+                    written += 2;
+                } else if (free(target, lx, b.y(), lz, b.state())) {
+                    target.placeCustom(lx, b.y(), lz, b, ref);
+                    written++;
+                }
+                continue;
+            }
             Material material = placeholder(b.state());
             if (material == null) {
                 continue;
             }
-            final int lx = b.x() & 15;
-            final int lz = b.z() & 15;
-            final PlantBlock upper = upperHalves.get(key(b.x(), b.y() + 1, b.z()));
             if (twoHalves(material) && upper != null && placeholder(upper.state()) == null) {
                 // an emergent water plant: its upper half (in air) has no placeholder, so the lower one goes alone
                 material = Material.SEAGRASS;
