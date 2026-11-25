@@ -164,3 +164,4 @@ dev.tfp.paper.wildraid.WildRaidModule
 dev.tfp.paper.effect.EffectsModule
 dev.tfp.paper.largevessel.LargeVesselModule
 dev.tfp.paper.drying.DryingModule
+dev.tfp.paper.lookinfo.LookInfoModule

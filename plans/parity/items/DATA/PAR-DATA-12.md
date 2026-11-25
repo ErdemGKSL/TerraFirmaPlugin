@@ -2,7 +2,7 @@
 id: PAR-DATA-12
 title: "Block info readout (Jade-like tooltips) on the actionbar"
 area: DATA
-status: open
+status: done
 wave: 39
 deps: [PAR-INFRA-02]
 size: S
@@ -27,8 +27,9 @@ done_criteria:
 
 # PAR-DATA-12: Block info readout (Jade-like tooltips) on the actionbar
 
-> Claimed: parity worker session_011osUp9Lr5PbNofhx4XEc3S, 2026-11-25
 
 > see_not_parity: NP-UI-01, NP-CLIENT-03, NP-MOD-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+Done: `paper/lookinfo/` (LookInfoText, LookInfoOverlay, LookInfoModule + service line + en_us/tr_tr keys): sneak-look at a crop shows growth % and yield multiplier on the action bar (4/s, resend only on change or after 40 ticks, none in spectator); other devices plug in via `LookInfoOverlay.register`; animals already by PAR-FAUNA-22. Tests `LookInfoTest` (5). Pending in-game check (container cannot run client)

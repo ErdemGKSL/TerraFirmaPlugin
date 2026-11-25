@@ -356,7 +356,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DATA-10 | Dispenser behaviours, bonemeal, vanilla rule overrides | DATA | 38 | done |
 | PAR-DATA-11 | Paintings, armour trims, misc data registries | DATA | 38 | done |
 | PAR-FAUNA-01 | Entity model import: TFC bbmodels and Java animations converted to BetterModel | FAUNA | 38 | done |
-| PAR-DATA-12 | Block info readout (Jade-like tooltips) on the actionbar | DATA | 39 | open |
+| PAR-DATA-12 | Block info readout (Jade-like tooltips) on the actionbar | DATA | 39 | done |
 | PAR-DATA-13 | TFC pin drift check in CI | DATA | 39 | done |
 | PAR-FAUNA-02 | Entity models for Java-only TFC models via the rig generator | FAUNA | 39 | done |
 | PAR-FAUNA-21 | Animal framework completion: species behaviour SPI, goal replacement, model re-apply checks | FAUNA | 39 | done |
