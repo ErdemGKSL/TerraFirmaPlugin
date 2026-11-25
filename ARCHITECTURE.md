@@ -480,6 +480,15 @@ Looks are collapsed to two groups per model (blooming look for blooming/budding/
 dormant/dying) and each model gets its dormant state only from what the PAR-WORLD-59 selector reports left over, flowers
 first; a plant without a spare state keeps the blooming look all year (divergence). Tint stays baked with TFC's default
 climate colour: the plant carriers have no colour handler and a look per colour band does not fit. Work: PAR-WORLD-61.
+Built (PAR-WORLD-61): the dormant looks are the states of one never-placed CE block `tfp:plant/dormant_look` (int `look`,
+one appearance per distinct dormant look on a plant pool state; a dormant look equal to an existing look reuses its
+`auto_state` id). `PlantBlockGen` serves whole plants (every state or none) from the pool states left over, flowers (TFC's
+`minecraft:flowers`/`small_flowers`/`tall_flowers` tags) first, then TFC's enum order; with 2 tripwire states left that is
+canna, water canna and goldenrod. The table `dormant_states` (base CE state to `{plant, state}`) sits in the lifecycle data
+map. At packet time the server state id of a base plant is swapped for the server id of its `tfp:plant/dormant_look` state,
+so CraftEngine's own encoder (after PacketEvents in the pipeline) sends that look's client state:
+`paper/plant/lifecycle/PlantStageRemap` (pure: resolve CE states to server ids, `block`, `section` over 4096 ids, climate
+through `PlantStageClimate`), the PacketEvents handler and module wiring are PAR-WORLD-63.
 
 ## 10. Packet layer
 

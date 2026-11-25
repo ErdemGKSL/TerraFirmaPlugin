@@ -432,8 +432,9 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-POT-13 | Placed item block: hitbox demand, datagen wiring, config keys, use-duration spike, in-game check | POTTERY | 22 | done |
 | PAR-WORLD-60 | Volcanic feature blocks with rock index -1 refuse chunks (VolcanoBlocks.rockBlockId) | WORLD | 28 | done |
 | PAR-WORLD-59 | Plant pools into the hitbox selector: PlantBlockGen and PlantShapeGen stop choosing tripwire/sugar_cane/sapling/kelp themselves | WORLD | 28 | done |
-| PAR-WORLD-61 | Plant stage looks at packet time: blooming/dormant client states per plant from the selector's left-over pool states, chosen per viewer by PlantLifecycle | WORLD | 29 | open |
+| PAR-WORLD-61 | Plant stage looks at packet time: blooming/dormant client states per plant from the selector's left-over pool states, chosen per viewer by PlantLifecycle | WORLD | 29 | done |
 | PAR-WORLD-62 | Ore overlay default radius from the PAR-WORLD-19 census | WORLD | 29 | done |
+| PAR-WORLD-63 | Plant stage packet handler: CHUNK_DATA / BLOCK_CHANGE / MULTI_BLOCK_CHANGE rewrite through PlantStageRemap, CE state id resolution and the module wiring | WORLD | 30 | open |
 | PAR-WORLD-54 | Bubble columns above the CE magma blocks: drag-down columns that survive vanilla's support check, and the hot spring tracker | WORLD | 30 | done |
 | PAR-MECH-03 | Water wheel | MECH | 51 | done |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | done |
