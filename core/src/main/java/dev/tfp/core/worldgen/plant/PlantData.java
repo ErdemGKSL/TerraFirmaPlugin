@@ -59,13 +59,28 @@ public final class PlantData {
     private final Map<String, PlantFeature.Placed> placed = new HashMap<>();
     private final Map<String, String> skipped = new LinkedHashMap<>();
 
-    private PlantData(Function<String, Optional<String>> read) {
+    /** The plant block types the caller can write; the features of the others are left out like an unported part. */
+    private final Set<PlantType> types;
+
+    private PlantData(Function<String, Optional<String>> read, Set<PlantType> types) {
         this.read = read;
+        this.types = types;
     }
 
     /** @param read the text of a file below the data root, or empty when it is missing */
     public static PlantData of(Function<String, Optional<String>> read) {
-        return new PlantData(read);
+        return new PlantData(read, EnumSet.allOf(PlantType.class));
+    }
+
+    /**
+     * Data whose features place only plants of the given block types (a writer that has blocks for some types only); the
+     * features that place another type are left out and listed in {@link #skipped()}.
+     *
+     * @param read  the text of a file below the data root, or empty when it is missing
+     * @param types the plant block types that may be placed
+     */
+    public static PlantData of(Function<String, Optional<String>> read, Set<PlantType> types) {
+        return new PlantData(read, EnumSet.copyOf(types));
     }
 
     /** The features left out, by placed feature id, with the reason. */
@@ -461,7 +476,7 @@ public final class PlantData {
     }
 
     /** A block state ({@code {"Name": ..., "Properties": {...}}}) of a plant or wild crop. */
-    static PlantState state(JsonObject s) {
+    PlantState state(JsonObject s) {
         final PlantState base = blockState(string(s, "Name"));
         final JsonObject props = s.has("Properties") ? s.getAsJsonObject("Properties") : new JsonObject();
         PlantState out = base;
@@ -503,11 +518,14 @@ public final class PlantData {
     }
 
     /** The default state of a block id: a plant whose survival is ported, or a wild crop. */
-    static PlantState blockState(String id) {
+    PlantState blockState(String id) {
         final PlantType type = PlantType.of(id);
         if (type != null) {
             if (!type.survivable()) {
                 throw new Unsupported("plant type " + type + " (" + id + ")");
+            }
+            if (!types.contains(type)) {
+                throw new Unsupported("plant type " + type + " is not written yet (" + id + ")");
             }
             final PlantState plant = PlantState.of(id, PlantState.Kind.PLANT, type).withAge(type.hasAge() ? 0 : -1);
             // The default facing: EpiphytePlantBlock north, RotatableWaterPlantBlock up

@@ -117,7 +117,10 @@ class PlantPropertyTest {
                     assertThat(s.block()).startsWith("tfp:plant/");
                     assertThat(PlantType.of(s.block())).isEqualTo(s.type());
                     assertThat(s.type().survivable()).isTrue();
-                    assertThat(s.age() >= 0).isEqualTo(s.type().hasAge());
+                    if (s.type().survivesOnBelow()) {
+                        // the shapes set their own ages (growing heads 0..25, bodies none)
+                        assertThat(s.age() >= 0).isEqualTo(s.type().hasAge());
+                    }
                 }
                 case WILD_CROP -> assertThat(WildCrop.of(s.block())).isNotNull();
                 case WILD_CROP_FRUIT -> assertThat(s.block()).isIn("tfp:pumpkin", "tfp:melon");
@@ -146,7 +149,10 @@ class PlantPropertyTest {
                 final TreeGround at = view.ground(b.x(), b.y(), b.z());
                 final TreeGround below = view.ground(b.x(), b.y() - 1, b.z());
                 final boolean upper = s.part() == PlantState.Part.UPPER;
-                if (s.kind() == PlantState.Kind.PLANT && !upper) {
+                if (s.kind() == PlantState.Kind.PLANT && !s.type().survivesOnBelow()) {
+                    // the shapes (PAR-WORLD-13, golden-tested in PlantShapeGoldenTest) only replace air and water
+                    assertThat(at.isAirOrEmptyFluid()).as("%s", b).isTrue();
+                } else if (s.kind() == PlantState.Kind.PLANT && !upper) {
                     checked++;
                     switch (s.type()) {
                         case FLOATING, FLOATING_FRESH -> {
@@ -197,9 +203,10 @@ class PlantPropertyTest {
             .contains("tfp:plant/manatee_grass_patch").doesNotContain("tfp:plant/allium_patch");
         assertThat(plants.features(Plants.Step.LARGE_FEATURES, TfcBiomes.OCEAN_REEF).stream().map(PlantFeature.Placed::id))
             .containsExactly("tfp:coral_mushroom", "tfp:coral_tree", "tfp:coral_claw");
-        // Not ported: atoll corals (tfc:atoll), vines, kelp, epiphytes, creeping plants, cacti, fruit trees and bushes
-        assertThat(plants.skipped()).containsKeys("tfp:atoll_coral_tree", "tfp:plant/jungle_vines", "tfp:plant/giant_kelp_patch",
-            "tfp:plant/moss_cover", "tfp:plant/barrel_cactus_patch");
+        // Not here: the fruit trees and berry bushes (PAR-FARM items)
+        assertThat(plants.skipped()).containsKeys("tfp:plant/cherry", "tfp:plant/blackberry_bush", "tfp:plant/bunchberry_bush_patch")
+            .doesNotContainKeys("tfp:atoll_coral_tree", "tfp:plant/jungle_vines", "tfp:plant/giant_kelp_patch", "tfp:plant/moss_cover",
+                "tfp:plant/barrel_cactus_patch");
         for (int biome = 0; biome < TfcBiomes.COUNT; biome++) {
             for (Plants.Step step : Plants.Step.values()) {
                 for (PlantFeature.Placed p : plants.features(step, biome)) {
