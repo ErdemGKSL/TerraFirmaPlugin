@@ -142,6 +142,9 @@ public final class Datagen {
         if (dev.tfp.datagen.shield.ShieldItems.available(tfc)) { // PAR-TOOL-07: metal shields; before the coverage gate
             dev.tfp.datagen.shield.ShieldItems.run(tfc, out);
         }
+        if (dev.tfp.datagen.fishing.FishingRodItems.available(tfc)) { // PAR-FAUNA-35: the nine metal fishing rods; before the coverage gate
+            dev.tfp.datagen.fishing.FishingRodItems.run(tfc, out);
+        }
         if (dev.tfp.datagen.pan.PanItems.available(tfc)) { // PAR-PROC-12: pan items, models and deposit loot tables; before the coverage gate; fixtures have no pan
             dev.tfp.datagen.pan.PanItems.run(tfc, out);
         }
