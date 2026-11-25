@@ -8,6 +8,7 @@ package dev.tfp.paper.device.automation;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.tfp.core.barrel.BarrelData;
+import dev.tfp.core.config.TfpConfig;
 import dev.tfp.core.device.DeviceRecord;
 import dev.tfp.core.device.ItemBlob;
 import dev.tfp.core.device.automation.AutomationRules;
@@ -25,14 +26,13 @@ import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.testing.MockServerTest;
 import java.lang.reflect.Proxy;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -43,7 +43,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * PAR-INFRA-60: {@link HopperAutomationListener} on a {@link HopperInventorySearchEvent} next to device blocks, with the
@@ -141,9 +140,14 @@ class HopperAutomationMockBukkitTest extends MockServerTest {
             });
     }
 
-    private void wire(AutomationRules.Switches switches) {
+    /** What {@code config.yml}'s automation section reads as right now (a reload replaces it). */
+    private final AtomicReference<AutomationRules.Switches> switches =
+        new AtomicReference<>(AutomationRules.Switches.TFC_DEFAULTS);
+
+    private void wire(AutomationRules.Switches initial) {
+        switches.set(initial);
         DeviceAutomation automation = new DeviceAutomation();
-        DeviceAutomationModule.registerDefaults(automation, switches, new ArrayList<>());
+        DeviceAutomationModule.registerDefaults(automation, switches::get, new ArrayList<>());
         port = new Port(server.createInventory(null, InventoryType.HOPPER));
         listener = new HopperAutomationListener(automation, new HopperMover(devices), blocks, scheduler(),
             b -> Optional.of(port), b -> screen.get(), Logger.getLogger("test"));
@@ -292,13 +296,24 @@ class HopperAutomationMockBukkitTest extends MockServerTest {
     }
 
     @Test
-    void switchesReadFromConfigWithTfcDefaults(@TempDir Path dir) throws Exception {
-        assertThat(DeviceAutomationModule.switches(dir.resolve("missing.yml")))
+    void switchesComeFromTheTypedAutomationSection() {
+        assertThat(DeviceAutomationModule.switches(TfpConfig.Automation.DEFAULTS))
             .isEqualTo(AutomationRules.Switches.TFC_DEFAULTS);
-        Path file = dir.resolve("config.yml");
-        Files.writeString(file, "automation:\n  quern: false\n");
-        assertThat(DeviceAutomationModule.switches(file))
+        assertThat(DeviceAutomationModule.switches(new TfpConfig.Automation(true, true, false, true, true)))
             .isEqualTo(new AutomationRules.Switches(true, true, false, true, true));
+    }
+
+    @Test
+    void aReloadSwitchesAutomationOffAndOnAtTheNextMove() {
+        Block q = device(4, 64, 0, BlockStateRef.of("tfp:quern"));
+        port.inventory.setItem(0, new ItemStack(Material.BONE, 8));
+        assertThat(search(q.getRelative(0, 0, 1), q, HopperInventorySearchEvent.ContainerType.DESTINATION)).isTrue();
+        port.cooldown = -1;
+        switches.set(new AutomationRules.Switches(true, true, false, true, true)); // /tfp reload config with quern: false
+        assertThat(search(q.getRelative(0, 0, 1), q, HopperInventorySearchEvent.ContainerType.DESTINATION)).isFalse();
+        assertThat(port.inventory.getItem(0).getAmount()).as("nothing moved while off").isEqualTo(7);
+        switches.set(AutomationRules.Switches.TFC_DEFAULTS);
+        assertThat(search(q.getRelative(0, 0, 1), q, HopperInventorySearchEvent.ContainerType.DESTINATION)).isTrue();
     }
 
     @Test

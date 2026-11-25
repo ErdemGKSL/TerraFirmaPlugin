@@ -110,3 +110,15 @@ survival:
 # heat: If true, for items that are hot, they will show a bar on the item like a durability bar
 item-bars:
   heat: true
+
+# Device automation (TFC server config *EnableAutomation). Hoppers, droppers and hopper minecarts feed and empty
+# these devices through the sides TFC's sided handlers give them. Apply changes with /tfp reload config: the next
+# hopper move reads the new value.
+# barrel: barrelEnableAutomation. fire-pit: firePitEnableAutomation (the firepit, grill and pot).
+# quern: quernEnableAutomation. composter: composterEnableAutomation. powder-keg: powderKegEnableAutomation.
+automation:
+  barrel: true
+  fire-pit: true
+  quern: true
+  composter: true
+  powder-keg: true

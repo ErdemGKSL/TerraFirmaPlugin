@@ -7,6 +7,7 @@ package dev.tfp.core.config;
 
 import dev.tfp.core.bucket.BucketConfig;
 import dev.tfp.core.config.TfpConfig.AutoInstall;
+import dev.tfp.core.config.TfpConfig.Automation;
 import dev.tfp.core.config.TfpConfig.CatchUp;
 import dev.tfp.core.config.TfpConfig.Hud;
 import dev.tfp.core.config.TfpConfig.ItemBars;
@@ -55,7 +56,7 @@ public final class ConfigCodec {
         Reader r = new Reader();
         Map<?, ?> top = root == null ? Map.of() : root;
         r.unknown(top, "", List.of("visuals", "ore-overlay", "auto-install", "catchup", "hud",
-                BucketConfig.SECTION, Survival.SECTION, ItemBars.SECTION));
+                BucketConfig.SECTION, Survival.SECTION, ItemBars.SECTION, Automation.SECTION));
 
         Map<?, ?> v = r.section(top, "visuals");
         r.unknown(v, "visuals.", List.of("profile", "solid-reserve-warning", "use-nether-end-blocks"));
@@ -147,8 +148,20 @@ public final class ConfigCodec {
         Map<?, ?> ib = r.section(top, ItemBars.SECTION);
         r.unknown(ib, ip, ItemBars.KEYS);
         ItemBars itemBars = new ItemBars(r.bool(ib, ip, ItemBars.HEAT_KEY, ItemBars.DEFAULTS.heat()));
+
+        // PAR-INFRA-64: TFC ServerConfig *EnableAutomation, typed here (they were unknown keys before).
+        String ap = Automation.SECTION + ".";
+        Map<?, ?> am = r.section(top, Automation.SECTION);
+        r.unknown(am, ap, Automation.KEYS);
+        Automation ad = Automation.DEFAULTS;
+        Automation automation = new Automation(
+                r.bool(am, ap, Automation.BARREL_KEY, ad.barrel()),
+                r.bool(am, ap, Automation.FIRE_PIT_KEY, ad.firePit()),
+                r.bool(am, ap, Automation.QUERN_KEY, ad.quern()),
+                r.bool(am, ap, Automation.COMPOSTER_KEY, ad.composter()),
+                r.bool(am, ap, Automation.POWDER_KEG_KEY, ad.powderKeg()));
         return new Parsed(new TfpConfig(new Visuals(profiles, reserve, netherEnd), overlay, auto, catchUp, hud, buckets,
-                survival, itemBars), r.warnings, r.defaulted);
+                survival, itemBars, automation), r.warnings, r.defaulted);
     }
 
     /** The tree that {@link #parse} reads back to an equal config. Keys in config.yml order. */
@@ -196,6 +209,14 @@ public final class ConfigCodec {
         Map<String, Object> itemBars = new LinkedHashMap<>();
         itemBars.put(ItemBars.HEAT_KEY, c.itemBars().heat());
         root.put(ItemBars.SECTION, itemBars);
+        Automation au = c.automation();
+        Map<String, Object> automation = new LinkedHashMap<>();
+        automation.put(Automation.BARREL_KEY, au.barrel());
+        automation.put(Automation.FIRE_PIT_KEY, au.firePit());
+        automation.put(Automation.QUERN_KEY, au.quern());
+        automation.put(Automation.COMPOSTER_KEY, au.composter());
+        automation.put(Automation.POWDER_KEG_KEY, au.powderKeg());
+        root.put(Automation.SECTION, automation);
         return root;
     }
 

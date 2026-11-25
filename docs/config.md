@@ -77,7 +77,7 @@ Every `define(...)` key of TFC's `ServerConfig`, `CommonConfig`, `ClientConfig` 
 | ServerConfig | `chestMaximumItemSize` | `Size.LARGE` | — | pending: consumer item |
 | ServerConfig | `largeVesselEnableAutomation` | `true` | — | pending: consumer item |
 | ServerConfig | `crateEnableAutomation` | `true` | — | pending: consumer item |
-| ServerConfig | `quernEnableAutomation` | `true` | — | pending: consumer item |
+| ServerConfig | `quernEnableAutomation` | `true` | `automation.quern` | mapped |
 | ServerConfig | `torchTicks` | `86400` | — | pending: consumer item |
 | ServerConfig | `candleTicks` | `288000` | — | pending: consumer item |
 | ServerConfig | `mudBricksTicks` | `28800` | — | pending: consumer item |
@@ -97,11 +97,11 @@ Every `define(...)` key of TFC's `ServerConfig`, `CommonConfig`, `ClientConfig` 
 | ServerConfig | `anvilMaxDurabilityMultiplier` | `0.5` | — | pending: consumer item |
 | ServerConfig | `anvilMaxDamageMultiplier` | `1.5` | — | pending: consumer item |
 | ServerConfig | `barrelCapacity` | `10000` | — | pending: consumer item |
-| ServerConfig | `barrelEnableAutomation` | `true` | — | pending: consumer item |
+| ServerConfig | `barrelEnableAutomation` | `true` | `automation.barrel` | mapped |
 | ServerConfig | `barrelEnableRedstoneSeal` | `true` | — | pending: consumer item |
 | ServerConfig | `largeVesselEnableRedstoneSeal` | `true` | — | pending: consumer item |
 | ServerConfig | `composterTicks` | `288000` | — | pending: consumer item |
-| ServerConfig | `composterEnableAutomation` | `true` | — | pending: consumer item |
+| ServerConfig | `composterEnableAutomation` | `true` | `automation.composter` | mapped |
 | ServerConfig | `sluiceTicks` | `100` | — | pending: consumer item |
 | ServerConfig | `lampCapacity` | `250` | — | pending: consumer item |
 | ServerConfig | `enablePumpkinCarving` | `true` | — | pending: consumer item |
@@ -123,11 +123,11 @@ Every `define(...)` key of TFC's `ServerConfig`, `CommonConfig`, `ClientConfig` 
 | ServerConfig | `maxPlacedLargeItemSize` | `Size.HUGE` | — | pending: consumer item |
 | ServerConfig | `enablePlacingItems` | `true` | — | pending: consumer item |
 | ServerConfig | `charcoalForgeEnableAutomation` | `true` | — | pending: consumer item |
-| ServerConfig | `firePitEnableAutomation` | `true` | — | pending: consumer item |
+| ServerConfig | `firePitEnableAutomation` | `true` | `automation.fire-pit` | mapped |
 | ServerConfig | `nestBoxEnableAutomation` | `true` | — | pending: consumer item |
 | ServerConfig | `powderKegEnabled` | `true` | — | pending: consumer item |
 | ServerConfig | `powderKegOnlyBreaksNaturalBlocks` | `false` | — | pending: consumer item |
-| ServerConfig | `powderKegEnableAutomation` | `true` | — | pending: consumer item |
+| ServerConfig | `powderKegEnableAutomation` | `true` | `automation.powder-keg` | mapped |
 | ServerConfig | `powderKegStrengthModifier` | `1d` | — | pending: consumer item |
 | ServerConfig | `powderKegFuseTime` | `80` | — | pending: consumer item |
 | ServerConfig | `fireboxEnableAutomation` | `true` | — | pending: consumer item |

@@ -21,15 +21,22 @@ import java.util.Optional;
  * here as their features land.
  */
 public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp, Hud hud,
-        BucketConfig buckets, Survival survival, ItemBars itemBars) {
+        BucketConfig buckets, Survival survival, ItemBars itemBars, Automation automation) {
     public static final TfpConfig DEFAULTS = new TfpConfig(Visuals.DEFAULTS, OreOverlay.DEFAULTS, AutoInstall.DEFAULTS,
-            CatchUp.DEFAULTS, Hud.DEFAULTS, BucketConfig.DEFAULTS, Survival.DEFAULTS, ItemBars.DEFAULTS);
+            CatchUp.DEFAULTS, Hud.DEFAULTS, BucketConfig.DEFAULTS, Survival.DEFAULTS, ItemBars.DEFAULTS, Automation.DEFAULTS);
 
     public TfpConfig {
         Objects.requireNonNull(hud, "hud");
         Objects.requireNonNull(buckets, "buckets");
         Objects.requireNonNull(survival, "survival");
         Objects.requireNonNull(itemBars, "itemBars");
+        Objects.requireNonNull(automation, "automation");
+    }
+
+    /** A config with TFC's automation defaults ({@link Automation#DEFAULTS}). */
+    public TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall autoInstall, CatchUp catchUp, Hud hud,
+            BucketConfig buckets, Survival survival, ItemBars itemBars) {
+        this(visuals, oreOverlay, autoInstall, catchUp, hud, buckets, survival, itemBars, Automation.DEFAULTS);
     }
 
     /** A config with TFC's item bar default ({@link ItemBars#DEFAULTS}). */
@@ -286,5 +293,29 @@ public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall auto
         public static final List<String> KEYS = List.of(HEAT_KEY);
         /** TFC's {@code ClientConfig} default. */
         public static final ItemBars DEFAULTS = new ItemBars(true);
+    }
+
+    /**
+     * {@code automation.*}: TFC's {@code *EnableAutomation} server options for the devices that hoppers, droppers and
+     * hopper minecarts feed and empty (PAR-INFRA-60, PAR-INFRA-64). All {@code true} in TFC. Read again at every move, so
+     * {@code /tfp reload config} applies them at once.
+     *
+     * @param barrel     TFC {@code barrelEnableAutomation}
+     * @param firePit    TFC {@code firePitEnableAutomation} (the firepit, grill and pot)
+     * @param quern      TFC {@code quernEnableAutomation}
+     * @param composter  TFC {@code composterEnableAutomation}
+     * @param powderKeg  TFC {@code powderKegEnableAutomation}
+     */
+    public record Automation(boolean barrel, boolean firePit, boolean quern, boolean composter, boolean powderKeg) {
+        public static final String SECTION = "automation";
+        public static final String BARREL_KEY = "barrel";
+        public static final String FIRE_PIT_KEY = "fire-pit";
+        public static final String QUERN_KEY = "quern";
+        public static final String COMPOSTER_KEY = "composter";
+        public static final String POWDER_KEG_KEY = "powder-keg";
+        /** The keys of the section, in config.yml order (the order of this record's components). */
+        public static final List<String> KEYS = List.of(BARREL_KEY, FIRE_PIT_KEY, QUERN_KEY, COMPOSTER_KEY, POWDER_KEG_KEY);
+        /** TFC's {@code ServerConfig} defaults: every switch on. */
+        public static final Automation DEFAULTS = new Automation(true, true, true, true, true);
     }
 }

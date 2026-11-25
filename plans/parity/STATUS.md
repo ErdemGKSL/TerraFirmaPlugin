@@ -238,7 +238,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-08 | Disc, pipe and kaolin veins; montane second pass; ore distribution statistics | WORLD | 19 | done |
 | PAR-HEAT-31 | Firebox block loaded in game (full-cube pool, copper sounds, in-game screen check), stove and stove pot | HEAT | 19 | open |
 | PAR-INFRA-63 | Device automation follow-ups: droppers and hopper minecarts into devices, screen-aware moves, per-device settle after a move, config.yml automation keys | INFRA | 19 | done |
-| PAR-INFRA-64 | Device automation, remaining parts: hopper minecarts, screen-aware moves, barrel fluid settle after a hopper insert, config.yml automation keys with reload | INFRA | 20 | open |
+| PAR-INFRA-64 | Device automation, remaining parts: hopper minecarts, screen-aware moves, barrel fluid settle after a hopper insert, config.yml automation keys with reload | INFRA | 20 | done |
 | PAR-INFRA-66 | Device automation, screens and barrel: the device screens' own edit/reload instead of the 8-block pause, barrel fluid settle after a hopper insert | INFRA | 21 | open |
 | PAR-PROC-20 | Knapping in-game verification: axe head from two granite loose rocks, clay and leather screens | PROC | 20 | done |
 | PAR-TOOL-02 | Tool mechanics on Paper: TFC mining speed, durability rules, forging efficiency | TOOL | 20 | done |
