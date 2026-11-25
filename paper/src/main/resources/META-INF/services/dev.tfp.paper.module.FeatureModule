@@ -138,3 +138,4 @@ dev.tfp.paper.plantable.PlantableModule
 dev.tfp.paper.beam.BeamModule
 dev.tfp.paper.amphibian.AmphibianModule
 dev.tfp.paper.command.DataCommandsModule
+dev.tfp.paper.critter.CritterModule

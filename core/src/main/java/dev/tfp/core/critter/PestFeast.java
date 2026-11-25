@@ -51,6 +51,41 @@ public final class PestFeast {
         return new Step(next, next > END_TICKS);
     }
 
+    /**
+     * The ticks a pest holds a taken item before it is cleared: the server ticks from {@link #IDLE} until {@link #tick} clears the
+     * item. Lazy form of the counter: one timer of this length replaces the per-tick count.
+     */
+    public static int ticksUntilCleared() {
+        int counter = IDLE;
+        int ticks = 0;
+        while (true) {
+            Step step = tick(counter, true);
+            counter = step.dragTicks();
+            ticks++;
+            if (step.clearItem()) {
+                return ticks;
+            }
+        }
+    }
+
+    /** TFC {@code MoveOntoBlockBehavior}: the walk to the smelly container gives up after this many ticks. */
+    public static final int WALK_TICKS = 100;
+
+    /**
+     * TFC {@code PestFeastBehavior.afterReached}: the first slot (in slot order) that holds food, or -1 when none does, which
+     * makes the pest forget the smell. One item is taken from it.
+     *
+     * @param food whether each slot of the container holds an item of the food tag
+     */
+    public static int firstFoodSlot(boolean[] food) {
+        for (int slot = 0; slot < food.length; slot++) {
+            if (food[slot]) {
+                return slot;
+            }
+        }
+        return -1;
+    }
+
     /** TFC's move control predicate: free to move when idle, or once the feast has ended. */
     public static boolean canMove(int dragTicks) {
         return dragTicks == IDLE || dragTicks > END_TICKS;

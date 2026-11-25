@@ -35,6 +35,21 @@ public final class PestInfestation {
     private PestInfestation() {
     }
 
+    /**
+     * The food stacks TFC counts in a container, stopping at five (the {@code break} at {@code infestation == 5}).
+     *
+     * @param food whether each slot of the container holds an item of the food tag
+     */
+    public static int countFood(boolean[] food) {
+        int n = 0;
+        for (boolean f : food) {
+            if (f && ++n == MAX_LEVEL) {
+                break;
+            }
+        }
+        return n;
+    }
+
     /** TFC's clamp of the infestation level to [0, 5]. */
     public static int clampLevel(int level) {
         return Math.max(0, Math.min(MAX_LEVEL, level));
