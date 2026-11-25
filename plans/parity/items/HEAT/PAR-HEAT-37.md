@@ -2,7 +2,7 @@
 id: PAR-HEAT-37
 title: "Pot in game: the in-game soup check, the pot screen at GUI scale 2 and 3, TFC's pot models and the fluid colour"
 area: HEAT
-status: open
+status: done
 wave: 19
 deps: [PAR-HEAT-25]
 size: S
@@ -28,6 +28,7 @@ in_game_steps:
   - "take soup with a bowl (right-click with `minecraft:bowl`); hover it: the food tooltip shows the mixed nutrition"
 plan:
   - "Run the steps per PROTOCOL section 6 (a Haiku agent runs, the main session judges) with CraftEngine self-host so the pack applies. The pot is a placeholder look today (the carriers' vanilla look, as before PAR-HEAT-24 for the grill): give it TFC's models as PAR-HEAT-24 did for the grill (merged lit and unlit models, entity_renderer look on a hitbox-only carrier, hitbox demands) and draw the tinted fluid band (TFC fills a 24 x 6 sprite at (131, 33) with the fluid colour; a frame grid per fluid, or the jam texture) if the look reads empty without it."
+  - "Done 2026-11-25: TFC's pot model on the pot: datagen Pot merges the blockstate's parts (firepit_pot over firepit_lit_low or firepit_unlit) into tfp:block/pot_lit and pot_unlit, four (lit, axis) appearances as item displays on the selector's hitbox-only carrier (HitboxDemands: the old vanilla-look demands stay reserved, new demands with weight -8), PotTest updated (5 more assertions: entry, merged models), DeviceSpecParityTest pot part, GeneratedCarrierTest pin. In game on Paper 1.21.11 with the 1.21.11 client at GUI scale 2 and 3 (docs/verification/PAR-HEAT-37/, PAR-HEAT-09/): the pot model, the screen (title, frames, thermometer, flames), the soup status button and the soup item with mixed nutrition PASS. Not captured: the bubble animation while boiling (the container OOM-killed the server twice in the 60 s window): follow-up PAR-HEAT-38. The pot's world model has no fluid surface (ledger divergence)."
 tests:
   - "Screenshots + verdict.md in docs/verification/PAR-HEAT-37/ (moves the pending soup check of PAR-HEAT-09)"
 done_criteria:
@@ -37,6 +38,5 @@ done_criteria:
 
 # PAR-HEAT-37: Pot in game
 
-> Claimed: worker session_011osUpAUVyyokAxf5Kiw72D, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.

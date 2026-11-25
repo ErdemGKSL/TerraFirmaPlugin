@@ -596,23 +596,27 @@ class GeneratedCarrierTest {
     }
 
     @Test
-    void theStoveAndStovePotCarriersArePinned() {
-        // PAR-HEAT-31: the stove and the stove pot are item displays of TFC's models: every (lit, facing) appearance of a block
-        // is hitbox-only on the one carrier of its outline, drawn empty. Served last (weight -9, -10): they moved no other
-        // block's carrier.
-        for (String id : List.of(HitboxDemands.STOVE_ID, HitboxDemands.STOVE_POT_ID)) {
+    void theStovePotAndStoveCarriersArePinned() {
+        // PAR-HEAT-31 / PAR-HEAT-37: the pot, the stove and the stove pot are item displays of TFC's models: every (lit, axis or
+        // facing) appearance of a block is hitbox-only on the one carrier of its outline, drawn empty. Served last (weights
+        // -8 and -9): the stove blocks moved no other carrier, and the pot's old vanilla-look carriers stay reserved.
+        for (String id : List.of(HitboxDemands.POT_ID, HitboxDemands.STOVE_ID, HitboxDemands.STOVE_POT_ID)) {
             java.util.Set<String> carriers = new java.util.HashSet<>();
+            int appearances = 0;
             for (boolean lit : new boolean[] {true, false}) {
-                for (String facing : HitboxDemands.FACINGS) {
-                    String app = HitboxDemands.stoveAppearance(lit, facing);
+                for (String turn : id.equals(HitboxDemands.POT_ID) ? HitboxDemands.FIREPIT_AXES : HitboxDemands.FACINGS) {
+                    String app = id.equals(HitboxDemands.POT_ID) ? HitboxDemands.firepitAppearance(lit, turn)
+                        : HitboxDemands.stoveAppearance(lit, turn);
                     Assignment a = HitboxAllocation.agreed(id, app);
                     assertThat(a.mode()).as(id + "#" + app).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
                     assertThat(a.demand().look()).as(id + "#" + app).isEqualTo(HitboxAllocation.TRANSPARENT);
                     carriers.add(a.state());
+                    appearances++;
                 }
             }
             assertThat(carriers).as(id + " carrier").hasSize(1);
-            // no other block draws the carrier with a model
+            assertThat(appearances).isEqualTo(id.equals(HitboxDemands.POT_ID) ? 4 : 8);
+            // no other block draws the carrier with a model or a vanilla look
             String carrier = carriers.iterator().next();
             for (Demand d : agreedDemands()) {
                 Assignment a = agreedOrOld(d);
@@ -622,6 +626,11 @@ class GeneratedCarrierTest {
                 }
             }
         }
+        // the pot's old vanilla-look carriers stay reserved (no appearance uses them)
+        assertThat(HitboxAllocation.agreed(HitboxDemands.POT_ID, HitboxDemands.POT_RESERVED_LIT).mode())
+            .isEqualTo(HitboxAllocation.Mode.VANILLA);
+        assertThat(HitboxAllocation.agreed(HitboxDemands.POT_ID, HitboxDemands.POT_RESERVED_UNLIT).mode())
+            .isEqualTo(HitboxAllocation.Mode.VANILLA);
     }
 
     @Test

@@ -221,7 +221,7 @@ Totals: 388 items; open 208, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-CLIM-25 | Vanilla /time set <marker> on 26.x answers "already at time marker" although the time and the calendar moved (skip amount 0 after DaylightSync) | CLIMATE | 17 | done |
 | PAR-HEAT-36 | Firepit carrier culls the top face of the block below: the floor shows through the gaps of TFC's firepit model | HEAT | 17 | done |
 | PAR-HEAT-25 | Pot loaded in game: configuration/devices/pot.yml, pot screen art (tfp:gui/pot, thermometer, bubbles) and the in-game soup check | HEAT | 18 | done |
-| PAR-HEAT-37 | Pot in game: the in-game soup check, the pot screen at GUI scale 2 and 3, TFC's pot models and the fluid colour | HEAT | 19 | open |
+| PAR-HEAT-37 | Pot in game: the in-game soup check, the pot screen at GUI scale 2 and 3, TFC's pot models and the fluid colour | HEAT | 19 | done |
 | PAR-GATHER-05 | Soil interactions: hoeing, paths, mud, rooted dirt, grass spread and rock spawning | GATHER | 18 | done |
 | PAR-GATHER-11 | Grass spread, grass death and rising loose rocks: the lazy sweep of TFC's grass random tick | GATHER | 19 | done |
 | PAR-GATHER-06 | Raw rock drops and mossy rock spreading | GATHER | 18 | done |
@@ -415,6 +415,7 @@ Totals: 388 items; open 208, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-01 | Rotation network blocks: axle, encased axle, gearbox, clutch, creative motor | MECH | 49 | done |
 | PAR-DECO-16 | Fire brick extras and smooth mud bricks: reinforced fire bricks, fire brick shelf, fireproof door, fire clay block | DECO | 49 | open |
 | PAR-HEAT-27 | Candle cake bite and pumpkin carving hooked to the cake and pumpkin blocks | HEAT | 49 | open |
+| PAR-HEAT-38 | Pot screen bubbles in game: the boiling bubble frames and the water-blue fluid band (the checks PAR-HEAT-37 could not capture) | HEAT | 50 | open |
 | PAR-MECH-02 | Rotation visuals: spinning axles and gears | MECH | 50 | done |
 | PAR-MECH-11 | Rotation blocks: axle carriers in the hitbox allocation, startup re-add, in-game check of PAR-MECH-01 | MECH | 50 | done |
 | PAR-MECH-05 | Crankshaft and powered bellows | MECH | 50 | done |

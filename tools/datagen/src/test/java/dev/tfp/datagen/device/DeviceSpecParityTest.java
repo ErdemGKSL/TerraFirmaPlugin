@@ -131,18 +131,20 @@ class DeviceSpecParityTest {
         assertThat(grillText).contains("luminance: 15", "luminance: 0", "minecraft:mineable/pickaxe",
             "tfp:powder/wood_ash", "tfp:wrought_iron_grill", "transparent: true");
 
-        for (String device : List.of("pot")) {
-            var lit = DeviceAppearance.Carrier.state(HitboxAllocation.agreed("tfp:" + device, "lit").state());
-            var unlit = DeviceAppearance.Carrier.state(HitboxAllocation.agreed("tfp:" + device, "unlit").state());
-            DeviceBlockSpec spec = DeviceSpecs.firepitFamily("tfp:" + device, firepitProps(), lit, unlit,
-                DeviceBlockSpec.Settings.fromTfc(tfc, device), DeviceLoot.fromTfc(tfc, device), 15);
-            assertThat(spec.stateCount()).isEqualTo(20);
-            String text = text(files, PACK + "devices/" + device + ".yml");
-            assertThat(text).as(device).isEqualTo(DeviceYaml.writeLiteral(spec));
-            Map<String, Object> block = block(load(text), spec.id());
-            assertThat(block).containsKeys("settings", "loot").doesNotContainKeys("template", "behavior");
-            assertThat(text).contains("luminance: 15", "luminance: 0", "minecraft:mineable/pickaxe", "tfp:powder/wood_ash");
-        }
+        // PAR-HEAT-37: the pot, item displays of its two merged models over one empty carrier, axis z turned 90.
+        DeviceBlockSpec pot = DeviceSpecs.firepitRendered("tfp:pot", firepitProps(),
+            (lit, axis) -> DeviceAppearance.Carrier.state(
+                HitboxAllocation.agreed("tfp:pot", DeviceSpecs.firepitAppearance(lit, axis)).state()),
+            lit -> lit ? "tfp:render/pot_lit" : "tfp:render/pot_unlit",
+            lit -> lit ? "tfp:block/pot_lit" : "tfp:block/pot_unlit",
+            axis -> axis.equals("z") ? "0,90,0" : "0,180,0",
+            DeviceBlockSpec.Settings.fromTfc(tfc, "pot"), DeviceLoot.fromTfc(tfc, "pot"), 15, Map.of());
+        assertThat(pot.stateCount()).isEqualTo(20);
+        assertThat(pot.strategies()).containsExactly(DeviceAppearance.Strategy.ENTITY_RENDERER);
+        String potText = text(files, PACK + "devices/pot.yml");
+        assertThat(potText).isEqualTo(DeviceYaml.writeLiteral(pot));
+        assertThat(potText).contains("luminance: 15", "luminance: 0", "minecraft:mineable/pickaxe", "tfp:powder/wood_ash",
+            "tfp:ceramic/pot", "transparent: true");
 
         Map<Integer, String> models = new LinkedHashMap<>();
         for (int level = 0; level <= 7; level++) {
