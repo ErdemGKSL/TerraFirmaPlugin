@@ -50,6 +50,17 @@ public record Hook(int exhaustion, long lastPulled) {
     }
 
     /**
+     * The state after {@code elapsed} hook ticks without a pull: the same as calling {@link #tick()} that many times, so a hook
+     * that is not ticked (lazy state, see paper {@code FishingModule}) reads its exhaustion when someone looks.
+     *
+     * @param elapsed the game ticks since the state was written
+     * @return the state now
+     */
+    public Hook after(long elapsed) {
+        return elapsed <= 0 ? this : new Hook((int) Math.max(0L, exhaustion - elapsed), lastPulled);
+    }
+
+    /**
      * One retrieve, TFC {@code retrieve}. A pull within {@value #PULL_WINDOW} ticks of the last one adds {@code (window - diff) * 2}
      * exhaustion; past {@value #MAX_EXHAUSTION} the bait is eaten, the hook is discarded and the rod takes 1 damage. Otherwise the
      * owner pulls: a hooked entity is pulled, the hook is discarded when no live entity is held, and the rod takes 2 damage on the ground

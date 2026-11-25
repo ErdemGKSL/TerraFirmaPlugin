@@ -2,7 +2,7 @@
 id: PAR-FAUNA-18
 title: "Fishing: rod, hook, bait"
 area: FAUNA
-status: open
+status: done
 wave: 44
 deps: [PAR-FAUNA-11]
 size: M
@@ -23,6 +23,7 @@ in_game_steps:
   - "ce item give Bot tfp:metal/fishing_rod/copper; bait; cast near fish"
 plan:
   - "Vanilla fishing rod carrier with bait component; fish entities approach baited hooks (GetHookedGoal) instead of vanilla loot; pull strength and break (Hook)."
+  - "Done: paper/fishing (FishingModule, HookGoal, RodBait, BaitTooltipContributor) on top of the existing core/fishing rules; core HookedSpecies + Hook.after; tests HookedSpeciesTest (3), FishingModuleMockBukkitTest (4). The nine rod CE items need datagen (outside files_owned): follow-up PAR-FAUNA-35. In-game check pending (container cannot run client): ledger line."
 tests:
   - "core: FishingRulesTest exists"
 done_criteria:
@@ -31,6 +32,5 @@ done_criteria:
 
 # PAR-FAUNA-18: Fishing: rod, hook, bait
 
-> Claimed: worker session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

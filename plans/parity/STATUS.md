@@ -382,7 +382,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-14 | Pets: dogs and cats with commands | FAUNA | 44 | done |
 | PAR-FAUNA-15 | Horses, donkeys and mules: riding, breeding, chests | FAUNA | 44 | done |
 | PAR-FAUNA-17 | Hunting drops, butchering, hides | FAUNA | 44 | done |
-| PAR-FAUNA-18 | Fishing: rod, hook, bait | FAUNA | 44 | open |
+| PAR-FAUNA-18 | Fishing: rod, hook, bait | FAUNA | 44 | done |
 | PAR-FAUNA-23 | Fertilized egg incubation bar (TFC BarSystem EGG) on the shared item-bar layer | FAUNA | 44 | open |
 | PAR-FAUNA-24 | Wild raids and armadillo scutes: fox berry picking, rabbit garden raids, calendar scutes | FAUNA | 44 | open |
 | PAR-FAUNA-27 | Nest box block and ground-laying hand-off (follow-up of PAR-FAUNA-07) | FAUNA | 44 | done |
@@ -503,6 +503,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-21 | Metal bars and chains (follow-up of PAR-DECO-09) | DECO | 49 | open |
 | PAR-FAUNA-33 | 200-animal load: spread the path starts of the livestock and prey goals (single-call spikes) (follow-up of PAR-FAUNA-28) | FAUNA | 56 | open |
 | PAR-FAUNA-34 | Livestock check hands horse-family mating and birth to the mount module (follow-up of PAR-FAUNA-15) | FAUNA | 46 | open |
+| PAR-FAUNA-35 | Fishing rod items: the 9 TFC metal rods as CE items (follow-up of PAR-FAUNA-18) | FAUNA | 45 | open |
 | PAR-POT-15 | Bowl automation: hoppers fill and empty powder bowls, the powder layer follows (follow-up of PAR-POT-09) | POTTERY | 28 | open |
 | PAR-DATA-19 | Advancement triggers left from PAR-DATA-03: feature events for TFC's 21 own triggers | DATA | 40 | open |
 | PAR-DECO-22 | Rock walls, aqueducts and rope anchors (follow-up of PAR-DECO-06) | DECO | 49 | open |
