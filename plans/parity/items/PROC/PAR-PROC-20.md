@@ -2,7 +2,7 @@
 id: PAR-PROC-20
 title: "Knapping in-game verification: axe head from two granite loose rocks, clay and leather screens"
 area: PROC
-status: open
+status: done
 wave: 20
 deps: [PAR-TOOL-01]
 size: S
@@ -25,6 +25,7 @@ in_game_steps:
   - "ce item give Bot tfp:goat_horn 1; right-click air: no horn sound plays; click one cell: the off cell shows goat_horn_disabled, the horn is gone and the window stays open"
 plan:
   - "Deferred screenshot check of PAR-PROC-01 (PROTOCOL §6.5): the axe head output needs the stone tool head CE items of PAR-TOOL-01; before that the output of a rock recipe is an unknown item and stays empty. Store crops and verdict.md in docs/verification/PAR-PROC-01/."
+  - "Done: in-game check run 2026-11-25 on Paper 1.21.11 with the headless client (GUI scale 2 and 3): the axe head from two granite loose rocks (ten cells clicked, Stone Axe Head, Igneous Intrusive, granite stack 2 to 1), clay / fire clay / goat horn show their disabled tile on the clicked cell and are not consumed (leather is consumed and the window stays open), no tooltip on an on or off cell. Not checked: the goat horn sound (no audio headless) and the 1.21.4 / 26.x client rewrite of hide_tooltip. Evidence and verdict: docs/verification/PAR-PROC-01/ (verdict.md). No code change."
 tests: []
 done_criteria:
   - "Knapping an axe head from two granite loose rocks in-game"
