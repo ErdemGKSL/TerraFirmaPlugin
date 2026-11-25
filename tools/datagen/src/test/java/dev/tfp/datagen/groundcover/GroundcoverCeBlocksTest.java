@@ -60,7 +60,7 @@ class GroundcoverCeBlocksTest {
         assertThat(blocks(GroundcoverCeBlocks.SMALL_ORE_OUTPUT)).hasSize(12);
         assertThat(blocks(GroundcoverCeBlocks.GROUNDCOVER_OUTPUT)).hasSize(17);
         assertThat(counts.blocks()).isEqualTo(42 + 12 + 17);
-        assertThat(counts.states()).isEqualTo(42 * 3 + 12 + 17);
+        assertThat(counts.states()).isEqualTo((42 * 3 + 12 + 17) * 3); // PAR-GATHER-12: x the fluid property (empty, water, salt water)
         // each appearance is drawn once per version family
         assertThat(counts.modelCarriers() + counts.hitboxOnly()).isEqualTo(2 * (42 * 3 + 12 + 17));
     }
@@ -79,7 +79,13 @@ class GroundcoverCeBlocksTest {
         assertThat((List<Map<String, Object>>) app.get("entity_renderer")).singleElement()
             .satisfies(r -> assertThat(r.get("item")).isEqualTo("tfp:render/rock/loose/granite_2_mossy"));
         assertThat(out.get("craftengine/tfp/resourcepack/assets/tfp/models/block/rock/loose/granite_2_mossy.json")).isNotNull();
-        assertThat(((Map<String, Object>) states.get("variants")).keySet()).containsExactly("count=1", "count=2", "count=3");
+        assertThat(((Map<String, Object>) states.get("properties")).get("fluid")).isEqualTo(Map.of("type", "string",
+            "values", List.of("empty", "water", "salt_water"), "default", "empty"));
+        assertThat(((Map<String, Object>) states.get("variants")).keySet()).hasSize(9).contains("count=1,fluid=empty",
+            "count=3,fluid=salt_water");
+        // TFC canSurvive: a sturdy block below
+        assertThat(granite.get("behavior")).isEqualTo(Map.of("type", "sturdy_base_block", "direction", "down",
+            "support_types", List.of("full", "center")));
         // the loose rock item stays the plain drops.yml item; the mossy one is a block item here
         Map<String, Object> items = (Map<String, Object>) root(GroundcoverCeBlocks.LOOSE_OUTPUT).get("items");
         assertThat(items).containsKey("tfp:rock/mossy_loose/granite").doesNotContainKey("tfp:rock/loose/granite");
@@ -90,7 +96,13 @@ class GroundcoverCeBlocksTest {
     void smallOresAndGroundcoverDrawTfcsModelsOnTheirCarrier() {
         for (String file : List.of(GroundcoverCeBlocks.SMALL_ORE_OUTPUT, GroundcoverCeBlocks.GROUNDCOVER_OUTPUT)) {
             blocks(file).forEach((id, entry) -> {
-                Map<String, Object> state = (Map<String, Object>) ((Map<String, Object>) entry).get("state");
+                Map<String, Object> states = (Map<String, Object>) ((Map<String, Object>) entry).get("states");
+                assertThat(((Map<String, Object>) states.get("variants")).keySet()).as(id)
+                    .containsExactly("fluid=empty", "fluid=water", "fluid=salt_water");
+                assertThat(((Map<String, Object>) entry).get("behavior")).as(id)
+                    .isEqualTo(Map.of("type", "sturdy_base_block", "direction", "down", "support_types", List.of("full")));
+                Map<String, Object> state = (Map<String, Object>) ((Map<String, Object>) states.get("appearances"))
+                    .get(HitboxDemands.GROUNDCOVER_APPEARANCE);
                 for (VersionFamily f : VersionFamily.values()) {
                     Map<String, Object> look = state.containsKey("$$fallback")
                         ? (Map<String, Object>) state.get(f == VersionFamily.V26 ? GroundcoverCeBlocks.NEW_FAMILY : "$$fallback") : state;

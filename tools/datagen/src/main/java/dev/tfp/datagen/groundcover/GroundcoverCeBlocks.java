@@ -107,6 +107,30 @@ public final class GroundcoverCeBlocks {
         return first;
     }
 
+    /** TFC {@code TFCBlockStateProperties.WATER}: the {@code fluid} property of every groundcover block. */
+    public static final List<String> FLUIDS = List.of("empty", "water", "salt_water");
+
+    /** The {@code fluid} property (TFC {@code GroundcoverBlock.FLUID}, {@code LooseRockBlock}: empty, water, salt water). */
+    static Map<String, Object> fluidProperty() {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("type", "string");
+        m.put("values", FLUIDS);
+        m.put("default", "empty");
+        return m;
+    }
+
+    /**
+     * TFC {@code canSurvive}: the block below must be sturdy on its top face (a loose rock of count 1 needs a centre
+     * support, two or three a full one; ours takes either for every count, ledger divergence).
+     */
+    static Map<String, Object> support(boolean looseRock) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("type", "sturdy_base_block");
+        m.put("direction", "down");
+        m.put("support_types", looseRock ? List.of("full", "center") : List.of("full"));
+        return m;
+    }
+
     /** The item display turn of a model drawn unrotated (CropBlocks.rotation(0)). */
     static final String RENDER_ROTATION = CropBlocks.rotation(0);
     /** TFC's groundcover types with a vanilla item (no block item of their own: the drop is the vanilla item). */
@@ -400,19 +424,25 @@ public final class GroundcoverCeBlocks {
             property.put("type", "int");
             property.put("range", "1~" + HitboxDemands.LOOSE_MAX);
             property.put("default", 1);
+            Map<String, Object> props = new LinkedHashMap<>();
+            props.put("count", property);
+            props.put("fluid", fluidProperty());
             Map<String, Object> appearances = new LinkedHashMap<>();
             Map<String, Object> variants = new LinkedHashMap<>();
             for (int count = 1; count <= HitboxDemands.LOOSE_MAX; count++) {
                 String name = HitboxDemands.looseAppearance(count);
                 appearances.put(name, appearance(root, id, name, models(bs, BLOCKSTATES + path + ".json", "count=" + count)));
-                variants.put("count=" + count, Map.of("appearance", name));
+                for (String fluid : FLUIDS) {
+                    variants.put("count=" + count + ",fluid=" + fluid, Map.of("appearance", name));
+                }
             }
             Map<String, Object> st = new LinkedHashMap<>();
-            st.put("properties", Map.of("count", property));
+            st.put("properties", props);
             st.put("appearances", appearances);
             st.put("variants", variants);
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("settings", settings(DeviceSound.STONE.yaml()));
+            entry.put("behavior", support(true));
             entry.put("states", st);
             ((Map<String, Object>) root.get("blocks")).put(id, entry);
             loot(path);
@@ -420,7 +450,7 @@ public final class GroundcoverCeBlocks {
                 blockItem(root, path, "block." + Json.TO_NS + "." + path.replace('/', '.'));
             }
             blocks++;
-            states += HitboxDemands.LOOSE_MAX;
+            states += HitboxDemands.LOOSE_MAX * FLUIDS.size();
         }
 
         @SuppressWarnings("unchecked")
@@ -428,7 +458,17 @@ public final class GroundcoverCeBlocks {
             JsonObject bs = blockstate(path);
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("settings", settings(sound));
-            entry.put("state", appearance(root, id, HitboxDemands.GROUNDCOVER_APPEARANCE, models(bs, BLOCKSTATES + path + ".json", "")));
+            Map<String, Object> variants = new LinkedHashMap<>();
+            for (String fluid : FLUIDS) {
+                variants.put("fluid=" + fluid, Map.of("appearance", HitboxDemands.GROUNDCOVER_APPEARANCE));
+            }
+            Map<String, Object> st = new LinkedHashMap<>();
+            st.put("properties", Map.of("fluid", fluidProperty()));
+            st.put("appearances", Map.of(HitboxDemands.GROUNDCOVER_APPEARANCE,
+                appearance(root, id, HitboxDemands.GROUNDCOVER_APPEARANCE, models(bs, BLOCKSTATES + path + ".json", ""))));
+            st.put("variants", variants);
+            entry.put("behavior", support(false));
+            entry.put("states", st);
             ((Map<String, Object>) root.get("blocks")).put(id, entry);
             loot(path);
             if (blockItem) {
@@ -437,7 +477,7 @@ public final class GroundcoverCeBlocks {
                 blockItem(root, path, kind + Json.TO_NS + "." + path.replace('/', '.'));
             }
             blocks++;
-            states++;
+            states += FLUIDS.size();
         }
 
         void loot(String path) {

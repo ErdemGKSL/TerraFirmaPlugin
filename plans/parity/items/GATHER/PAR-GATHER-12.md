@@ -2,7 +2,7 @@
 id: PAR-GATHER-12
 title: "CraftEngine blocks for loose rocks and groundcover, so pickup and stacking work in the world"
 area: GATHER
-status: blocked
+status: done
 wave: 22
 deps: [PAR-GATHER-01, PAR-WORLD-09, PAR-INFRA-13]
 size: L
@@ -36,6 +36,7 @@ plan:
   - "Datagen: tfp:rock/loose/<rock> and tfp:rock/mossy_loose/<rock> (count 1-3, fluid property as TFC), tfp:groundcover/<type> from the TFC blockstates, models and loot; canSurvive as GroundcoverBlock / LooseRockBlock (below sturdy; count 1 centre support)."
   - "Swap GroundcoverBlocks.ceId users from the vanilla placeholders to the CE blocks (terrain writer) once the blocks exist."
   - "Then run the in-game steps; PAR-GATHER-01's pickup and stacking apply unchanged."
+  - "Done: GroundcoverCeBlocks (PAR-WORLD-31's generator) now writes the fluid property (empty, water, salt_water; variants per count x fluid) and the sturdy_base_block canSurvive; TfcTerrain writes the ids through customBlockData (GroundcoverCeIdTest 2). Tests: GroundcoverCeBlocksTest (5, updated). In-game pickup/stacking: pending in-game check (container cannot run client)"
 tests:
   - "datagen: state counts and loot vs TFC blockstates; hitbox carrier pins"
 done_criteria:
@@ -43,7 +44,5 @@ done_criteria:
 ---
 
 # PAR-GATHER-12: CraftEngine blocks for loose rocks and groundcover
-
-> Claimed: outline worker, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
