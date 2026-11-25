@@ -1,13 +1,13 @@
 # PAR-PROC-47 verdict
 
-Date 2026-11-25, HEAD 14fd4e2, Paper 1.21.11, vanilla 1.21.11 client. PARTIAL, findings in PAR-PROC-53.
+Date 2026-11-25 (second run), HEAD 0b20422, Paper 1.21.11 + vanilla client 1.21.11, headless. PARTIAL: Pending in-game check (deposit intake and loot, water removal, break). The first run is in PAR-PROC-53's evidence.
 
 | Step | Result | Evidence |
 |---|---|---|
-| place tfp:wood/sluice/oak: both halves, model drawn | PASS (upper half `tfp:wood/sluice/oak[facing=south,upper=true]`; the model is a ramp) | sluice-ramp-upper-half.png |
-| water appears at the output two ahead and one down | PASS only after a neighbour update (water that arrives after the placement is not noticed): output water in the pit | sluice-output-water.png |
-| thrown deposits are taken; loot every 5 s | PARTIAL: thrown items leave the ground, but no loot appeared in 25 s and the device state did not advance | |
-| water removed stops it; break one half removes the other, output water and drops soil | NOT RUN | |
-| selection outline per half, model alignment per facing | NOT CHECKED | |
+| `tfp:wood/sluice/oak` placed on a floor block facing the player's look direction: both halves appear, the model is a two-block ramp that descends toward the output pit | PASS | sluice-ramp-both-halves-facing-pit.png |
+| Water placed after the sluice (a 7-cell stone channel, flowing level 1 in the input cell above and behind the upper half): the output water appears in the pit two ahead and one down, with no poke | PASS (RCON `execute if block` confirmed water in the pit) | output-water-after-source-placed.png |
+| Throw 4 deposits onto the upper half: each is taken after about 1 s | PARTIAL: the first two thrown vanished (taken); later throws were either picked up again by the creative Bot standing on the drop point or lay on the ramp; the loot of 12 deposits (small cassiterite with chance 0.5 per cycle) was not seen at the output | deposits-on-ground-not-taken.png |
+| Remove the water source: the countdown stops; break one half: the other half and the output water go, soil is dropped | NOT RUN (the break click missed the block) | |
+| Selection outline of both halves against TFC | NOT CHECKED beyond PAR-PROC-53's by-eye note | |
 
-Verdict: not passed. Follow-up PAR-PROC-53.
+Verdict: not passed. The remaining steps need a controlled setup (drop from a hopper-less dispenser or a thrown stack from a distance, with the player away from the drop point).

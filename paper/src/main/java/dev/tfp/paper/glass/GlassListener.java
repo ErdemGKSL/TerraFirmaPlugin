@@ -21,13 +21,22 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import java.util.Optional;
+import java.util.function.Predicate;
+import org.bukkit.block.Block;
 
 /** PAR-PROC-16: the right click with a glass blowpipe ({@link GlassWork#use}) and a batch put on a blowpipe. */
 public final class GlassListener implements Listener {
     private final GlassWork work;
+    private final Predicate<Block> device;
+
+    /** @param device whether a block is a device (a powder bowl): its own use runs first, as TFC's {@code useItemOn} */
+    public GlassListener(GlassWork work, Predicate<Block> device) {
+        this.work = work;
+        this.device = device;
+    }
 
     public GlassListener(GlassWork work) {
-        this.work = work;
+        this(work, block -> false);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -37,6 +46,12 @@ public final class GlassListener implements Listener {
             return;
         }
         Player player = event.getPlayer();
+        // a device (the powder bowl) takes the click through its own behaviour, which runs after this event: cancelling it here
+        // would stop the bowl from adding its powder to the glass (TFC: the block's useItemOn first, the item's use after)
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null
+            && event.useInteractedBlock() != Event.Result.DENY && device.test(event.getClickedBlock())) {
+            return;
+        }
         // a block with its own use (a table, a door) keeps its use unless sneaking, as vanilla does
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null
             && event.useInteractedBlock() != Event.Result.DENY && event.getClickedBlock().getType().isInteractable()

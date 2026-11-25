@@ -21,6 +21,7 @@ in_game_steps:
 plan:
   - "Verify PAR-PROC-06 in game. Then draw the cloth in progress (TFC renders the recipe's texture growing with the progress and the push animation getAnimPos) as an item display / entity_renderer element keyed by the stored progress; the loom recipe's texture field names the vanilla or TFC texture."
   - "In-game run 2026-11-25 (docs/verification/PAR-PROC-48/verdict.md): placement, 16 yarn, 16 pushes and the cloth pass; the in-progress cloth is not drawn yet (still to build here). Item stays open for that visual."
+  - "Second in-game run 2026-11-25 (docs/verification/PAR-PROC-48/verdict.md): 16 yarn, 16 pushes, the cloth and the sneak take-back pass; the in-progress cloth is still not drawn (nothing on the loom with 16 yarn loaded). Not built in this pass: it needs an item display of the result cloth scaled by the progress (the bowl powder display pattern in paper/bowl/PaperBowlEffects) kept in `LoomEffects`."
 tests:
   - "Screenshots + verdict.md in docs/verification/PAR-PROC-48/"
 done_criteria:

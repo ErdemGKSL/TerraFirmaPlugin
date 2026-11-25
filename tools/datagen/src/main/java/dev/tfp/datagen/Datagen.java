@@ -124,6 +124,9 @@ public final class Datagen {
         if (dev.tfp.datagen.glassbottle.GlassBottleItems.available(tfc)) { // PAR-POT-12: the four glass bottles and the jug fluid overlay; after PotteryItems, before the coverage gate
             dev.tfp.datagen.glassbottle.GlassBottleItems.run(tfc, out);
         }
+        if (dev.tfp.datagen.glass.GlassItems.available(tfc)) { // PAR-PROC-52: blowpipes, jacks, paddle, the four glass batches, lamp glass and lens; before the coverage gate
+            dev.tfp.datagen.glass.GlassItems.run(tfc, out);
+        }
         if (dev.tfp.datagen.tool.RockTools.available(tfc)) { // PAR-TOOL-01: rock tool heads and tools; before the coverage gate
             dev.tfp.datagen.tool.RockTools.run(tfc, out);
         }

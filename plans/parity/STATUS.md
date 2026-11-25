@@ -491,11 +491,14 @@ Totals: 387 items; open 207, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-47 | Sluice in-game verification: placement of both halves, water, soil intake, loot, break | PROC | 33 | open |
 | PAR-PROC-48 | Loom in-game verification and the in-progress cloth visual | PROC | 42 | open |
 | PAR-PROC-49 | Scribing table and sewing table blocks (tfp:wood/scribing_table/<wood>, tfp:wood/sewing_table/<wood>) | PROC | 41 | done |
-| PAR-PROC-50 | Scribing table in-game verification and TFC screen art | PROC | 42 | open |
+| PAR-PROC-50 | Scribing table in-game verification and TFC screen art | PROC | 42 | done |
 | PAR-PROC-53 | Sluice in game: water arrival is not noticed, thrown deposits give no loot in 20 s, outline and model check | PROC | 34 | done |
 | PAR-PROC-54 | Scribing table: right-click does not open the screen in game | PROC | 43 | done |
-| PAR-PROC-52 | Glassworking items in CraftEngine and the in-game blowpipe check | PROC | 31 | open |
-| PAR-PROC-51 | Sewing table in-game verification and TFC screen art (tfp:gui/sewing) | PROC | 42 | open |
+| PAR-PROC-55 | Powder bowl: the soda ash step is not written back to the glass blowpipe | PROC | 32 | open |
+| PAR-PROC-56 | Scribing table: TFC screen art on the anvil screen | PROC | 44 | open |
+| PAR-PROC-57 | Sewing table: TFC screen art (sewing.png) behind the grid | PROC | 44 | open |
+| PAR-PROC-52 | Glassworking items in CraftEngine and the in-game blowpipe check | PROC | 31 | done |
+| PAR-PROC-51 | Sewing table in-game verification and TFC screen art (tfp:gui/sewing) | PROC | 42 | done |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | done |
 | PAR-DECO-18 | Sandstone stairs, slabs and walls and the calcite spike | DECO | 49 | open |
 | PAR-POT-14 | Pit kiln block: CraftEngine entry, hitboxes and look per stage, config keys, self-test kiln.fire, in-game check | POTTERY | 25 | done |

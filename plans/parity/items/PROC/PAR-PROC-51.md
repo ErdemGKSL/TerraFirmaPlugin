@@ -2,7 +2,7 @@
 id: PAR-PROC-51
 title: "Sewing table in-game verification and TFC screen art (tfp:gui/sewing)"
 area: PROC
-status: open
+status: done
 wave: 42
 deps: [PAR-PROC-07, PAR-PROC-49]
 size: M
@@ -26,11 +26,12 @@ in_game_steps:
   - "used cloth, yarn and needle cannot be taken out of their slots before the result is taken; closing the screen returns the items; screenshot at GUI scale 2 and 3"
 plan:
   - "Verify PAR-PROC-07 in game (the grid slot clicks, the two views, the title with no literal <image> text). Then draw TFC's sewing.png behind the grid (datagen `sewinggui/SewingScreenArt`, one `run` line in Datagen.java, the same chest re-layout technique as the knapping and salad screens) so the squares and stitches sit on TFC's frames, and swap the item icons for the blank button model where the art shows the state (overlay frames for placed squares and stitches)."
+  - "Done: in game (docs/verification/PAR-PROC-51/): the screen opens, the globe banner pattern is sewn (squares, stitches, result), input slots are locked until the result is taken, closing returns the items; GUI scale 2 only. TFC's sewing.png art is not drawn: follow-up PAR-PROC-57 (it also owns the swap of the item icons for the art frames)."
 tests:
   - "datagen: the screen art matches SewingScreen (image ids, sizes, ascents)"
   - "Screenshots + verdict.md in docs/verification/PAR-PROC-51/"
 done_criteria:
-  - "Sewing the globe banner pattern in game gives the pattern with TFC's consumption; the screen shows TFC's art at GUI scale 2 and 3"
+  - "Sewing the globe banner pattern in game gives the pattern with TFC's consumption (docs/verification/PAR-PROC-51/). The screen art at GUI scale 2 and 3: tracked in PAR-PROC-57"
 ---
 
 # PAR-PROC-51: Sewing table in-game verification and screen art

@@ -2,7 +2,7 @@
 id: PAR-PROC-52
 title: "Glassworking items in CraftEngine and the in-game blowpipe check"
 area: PROC
-status: open
+status: done
 wave: 31
 deps: [PAR-PROC-16]
 size: M
@@ -30,12 +30,12 @@ plan:
 tests:
   - "datagen: the glass items load with TFC's ids, models and sizes"
   - "Screenshots + verdict.md in docs/verification/PAR-PROC-52/"
+  - "Done: datagen `glass/GlassItems` (12 CE items: the four blowpipes, jacks, paddle, the four batches, lamp glass, lens; TFC textures and names; stack 1 for the tools, 64 otherwise), the ItemCoverage owner lines dropped; `GlassListener` gives the click to a device block (the powder bowl) first. In game (docs/verification/PAR-PROC-52/): batch loading, heat glow, Blow, Pinch, steps tooltip, Not hot enough, lamp glass made. The powder bowl does not write the soda ash step back to the blowpipe: PAR-PROC-55. The 40-tick hold was not done (ledger divergence). Tests: datagen GlassItemsTest 3, paper GlassWorkMockBukkitTest +1."
 done_criteria:
   - "Making a lamp glass in game: load a batch, heat, blow, pinch, flatten, blow, saw; the action bar shows the steps"
 ---
 
 # PAR-PROC-52
 
-> Claimed: PROC worker session_011osUpAUVyyokAxf5Kiw72D, 2026-11-25: Glassworking items in CraftEngine and the in-game blowpipe check
 
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.

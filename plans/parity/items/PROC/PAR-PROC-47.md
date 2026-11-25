@@ -20,6 +20,7 @@ in_game_steps:
 plan:
   - "Verification of PAR-PROC-13 once deposit items exist. Also check the selection outline of both halves against TFC (hitbox-only carriers farmland / daylight detector) and the model alignment with the display rotation per facing."
   - "Partial in-game run 2026-11-25 (docs/verification/PAR-PROC-47/verdict.md): placement and output water pass; water arrival is not noticed and thrown deposits gave no loot in 25 s. Pending in-game check, fixes in PAR-PROC-53; rerun the steps after it."
+  - "Second in-game run 2026-11-25 (docs/verification/PAR-PROC-47/verdict.md): placement, ramp orientation and output water after the source pass; the deposit intake and loot were not confirmed (first deposits vanished, later ones were re-picked by the creative Bot or lay on the ramp; no loot seen) and the water-removal and break steps were not run. Pending in-game check: rerun with the player away from the drop point (throw from a distance) and break one half."
 tests:
   - "Screenshots + verdict.md in docs/verification/PAR-PROC-47/"
 done_criteria:

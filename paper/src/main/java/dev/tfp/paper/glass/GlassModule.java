@@ -21,6 +21,7 @@ import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.recipe.ModifierExtensions;
 import dev.tfp.paper.recipe.Recipes;
+import dev.tfp.paper.device.DeviceService;
 import dev.tfp.paper.tags.Tags;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
@@ -51,7 +52,8 @@ public final class GlassModule implements FeatureModule {
             id -> create(items, id, 1), out -> result(items, out), GlassRecipes.ALL,
             () -> ThreadLocalRandom.current().nextDouble(), context.messages()));
         context.services().provide(BowlGlass.class, new GlassBowl());
-        context.listen(new GlassListener(work));
+        DeviceService devices = context.services().require(DeviceService.class);
+        context.listen(new GlassListener(work, block -> devices.inspect(block).isPresent()));
         recipes.extend(ModifierExtensions.Kind.ADD_GLASS, (stack, input, inputs, modifier) -> {
             if (input == null || input.isEmpty()) {
                 return Optional.of(stack);

@@ -114,6 +114,20 @@ class GlassWorkMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void aDeviceBlockKeepsTheClickForItsOwnUse() {
+        org.bukkit.event.HandlerList.unregisterAll(plugin);
+        server.getPluginManager().registerEvents(new GlassListener(work, block -> block.getType() == Material.STONE), plugin);
+        player.getInventory().setItemInMainHand(pipe(Material.BLAZE_ROD, silica()));
+        org.bukkit.block.Block bowl = player.getWorld().getBlockAt(0, 64, 0);
+        bowl.setType(Material.STONE);
+        PlayerInteractEvent e = new PlayerInteractEvent(player, Action.RIGHT_CLICK_BLOCK,
+            player.getInventory().getItemInMainHand(), bowl, BlockFace.UP, EquipmentSlot.HAND);
+        server.getPluginManager().callEvent(e);
+        assertThat(e.isCancelled()).as("the bowl's own behaviour (adding powder) must still run").isFalse();
+        assertThat(state().steps()).isEmpty();
+    }
+
+    @Test
     void anUnrelatedItemInTheOtherHandDoesNothing() {
         player.getInventory().setItemInMainHand(pipe(Material.BLAZE_ROD, silica()));
         use(new ItemStack(Material.DIRT));
