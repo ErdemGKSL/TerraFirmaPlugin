@@ -37,4 +37,6 @@ done_criteria:
 
 # PAR-POT-03: Pit kiln: straw and log stages, lighting, lazy firing
 
+> Claimed: REL session_011osUpAJcukeqydbqrkqw9X (takeover, owner request), 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
