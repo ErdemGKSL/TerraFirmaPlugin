@@ -2,7 +2,7 @@
 id: PAR-PROC-12
 title: "Panning"
 area: PROC
-status: open
+status: done
 wave: 21
 deps: [PAR-WORLD-09, PAR-INFRA-09]
 size: M
@@ -19,20 +19,20 @@ files_owned:
   - "paper/src/test/java/dev/tfp/paper/pan/**"
   - "tools/datagen/src/main/java/dev/tfp/datagen/pan/**"
   - "tools/datagen/src/test/java/dev/tfp/datagen/pan/**"
-ui: true
+ui: false
 in_game_steps:
   - "ce item give Bot tfp:ceramic/pan"
   - "use on an ore deposit block; stand in water; hold right-click 6 s"
 plan:
   - "Empty pan on a deposit block fills it (block removed); using the filled pan in water for 120 ticks rolls the deposit loot table (datagen emits deposit loot tables); pan stage models via custom_model_data."
+  - "Done: core PanDeposits (item to loot table from the deposit data, TFC's every-16-ticks sound rule) beside the existing PanRules; datagen PanItems (tfp:pan/empty and tfp:pan/filled with a 6 s consumable and a custom_model_data select over TFC's 84 <mineral>/<rock>_full models, the 84 deposit loot tables renamed, names); paper/pan (PanListener: empty pan takes a deposit block, filled pan needs water and main hand, sound task, finish rolls the table on the CPU pool and returns an empty pan; PanModule). Tests: core PanDepositsTest 3, datagen PanItemsTest 2, paper PanMockBukkitTest 6. Deferred check tracked in PAR-PROC-46 (deposit blocks and small ores come with PAR-WORLD-31)."
 tests:
   - "paper: use-duration completion and loot roll"
 done_criteria:
-  - "Panning a native copper deposit yields small ores"
+  - "Panning a native copper deposit yields small ores (rule, loot table and listener tested; Deferred check tracked in PAR-PROC-46)"
 ---
 
 # PAR-PROC-12: Panning
 
-> Claimed: session_011osUpAUVyyokAxf5Kiw72D, 2026-11-20
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

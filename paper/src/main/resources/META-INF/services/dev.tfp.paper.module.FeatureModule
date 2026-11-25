@@ -112,3 +112,4 @@ dev.tfp.paper.pump.PumpModule
 dev.tfp.paper.channel.ChannelModule
 dev.tfp.paper.charcoalforge.CharcoalForgeModule
 dev.tfp.paper.placed.PlacedItemsModule
+dev.tfp.paper.pan.PanModule
