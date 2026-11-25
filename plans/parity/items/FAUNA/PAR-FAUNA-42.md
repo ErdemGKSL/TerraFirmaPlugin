@@ -27,4 +27,6 @@ done_criteria:
 
 # PAR-FAUNA-42: 200-animal load: the rabbit garden raid and fox berry searches within the tick budget
 
+> Claimed: session_011osUp8LArwstSDt7X82o4E, 2026-11-25
+
 Follow `plans/parity/PROTOCOL.md`.
