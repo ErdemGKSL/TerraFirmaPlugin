@@ -32,4 +32,25 @@ class WoodBlocksTest {
         assertThat(chestnut).contains("tfp:wood/leaves/chestnut:");
         assertThat(report.emittedIds()).contains("wood/leaves/chestnut"); // the multipart burr state is replaced by the dense leaves
     }
+
+    /** PAR-GATHER-09: branch_direction on the four log kinds, persistent on the leaves, appearances unchanged. */
+    @Test
+    void logsCarryBranchDirectionAndLeavesPersistent() {
+        Path path = Path.of(System.getProperty("tfc.checkout", "/opt/tfc"));
+        Assumptions.assumeTrue(Files.isDirectory(path.resolve(".git")), "no TFC checkout at " + path);
+        TfcCheckout tfc = TfcCheckout.open(path, TfcCheckout.PINNED_COMMIT);
+        OutputTree out = new OutputTree();
+        AssetPipeline.run(tfc, out, new Report());
+        String oak = new String(out.get(AssetPipeline.CONFIG + "wood/oak.yml"), StandardCharsets.UTF_8);
+        for (String kind : new String[] {"log", "stripped_log", "wood", "stripped_wood"}) {
+            String block = oak.substring(oak.indexOf("  tfp:wood/" + kind + "/oak:"));
+            block = block.substring(0, block.indexOf("\n  tfp:", 5) < 0 ? block.length() : block.indexOf("\n  tfp:", 5));
+            assertThat(block).as(kind).contains("branch_direction:", "default: none", "- down_north_west", "- trunk_south_east",
+                "axis=y:", "axis=x:", "axis=z:");
+            assertThat(block).as(kind).doesNotContain("branch_direction=");
+        }
+        String leaves = oak.substring(oak.indexOf("  tfp:wood/leaves/oak:"), oak.indexOf("\nitems:"));
+        assertThat(leaves).contains("persistent:", "type: boolean", "default: false", "persistent=false:", "persistent=true:",
+            "template: tfp:visual/wood/leaves/oak");
+    }
 }

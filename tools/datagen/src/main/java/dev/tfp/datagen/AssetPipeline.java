@@ -955,7 +955,15 @@ public final class AssetPipeline {
         if (loot != null) { // null: the Paper loot runtime drops this block's TFC table (LootTableExport)
             entry.put("loot", loot);
         }
-        entry.put(state.key(), state.section());
+        String stateKey = state.key();
+        Map<String, Object> stateSection = state.section();
+        if (id.matches("wood/(log|stripped_log|wood|stripped_wood)/.+")) {
+            stateSection = withBranchDirection(stateSection);
+        } else if (id.startsWith("wood/leaves/")) {
+            stateKey = "states";
+            stateSection = leavesStates(stateSection);
+        }
+        entry.put(stateKey, stateSection);
         state.appearances().forEach((name, models) -> demand.add(new VisualDemand(id, name, models)));
         file.blocks.put(Json.TO_NS + ":" + id, entry);
         if (Profile.ORE.matcher(id).matches()) {
@@ -972,6 +980,47 @@ public final class AssetPipeline {
                 CeBlockStates.call("tfp:item/block_item", Map.of("item_lang_key", langKey("block", id))));
         }
         report.emitted(id);
+    }
+
+    /**
+     * PAR-GATHER-09: TFC's {@code branch_direction} (default {@code none}: a player-placed log) on a log or wood block. The variants
+     * still match on {@code axis} alone (the other properties are wildcards), so no appearance is added.
+     */
+    static Map<String, Object> withBranchDirection(Map<String, Object> section) {
+        Map<String, Object> out = new LinkedHashMap<>(section);
+        Map<String, Object> props = new LinkedHashMap<>(castMap(out.get("properties")));
+        Map<String, Object> branch = new LinkedHashMap<>();
+        branch.put("type", "string");
+        branch.put("values", java.util.Arrays.stream(dev.tfp.core.worldgen.tree.BranchDirection.values())
+            .map(dev.tfp.core.worldgen.tree.BranchDirection::serializedName).toList());
+        branch.put("default", "none");
+        props.put("branch_direction", branch);
+        out.put("properties", props);
+        return out;
+    }
+
+    /** PAR-GATHER-09: the leaves' single state as a {@code states} section with TFC's {@code persistent} flag (default false). */
+    static Map<String, Object> leavesStates(Map<String, Object> visualCall) {
+        Map<String, Object> persistent = new LinkedHashMap<>();
+        persistent.put("type", "boolean");
+        persistent.put("default", false);
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("persistent", persistent);
+        Map<String, Object> appearances = new LinkedHashMap<>();
+        appearances.put("leaves", visualCall);
+        Map<String, Object> variants = new LinkedHashMap<>();
+        variants.put("persistent=false", Map.of("appearance", "leaves"));
+        variants.put("persistent=true", Map.of("appearance", "leaves"));
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("properties", props);
+        out.put("appearances", appearances);
+        out.put("variants", variants);
+        return out;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> castMap(Object o) {
+        return (Map<String, Object>) o;
     }
 
     private void requireItemModel(String id) {

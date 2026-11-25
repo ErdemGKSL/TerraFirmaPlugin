@@ -5,6 +5,7 @@
  */
 package dev.tfp.core.sapling;
 
+import dev.tfp.core.worldgen.tree.BranchDirection;
 import dev.tfp.core.worldgen.tree.TreeBlock;
 import java.util.Locale;
 import java.util.Optional;
@@ -20,14 +21,16 @@ public final class SaplingTreeRefs {
     public static Optional<String> ref(TreeBlock block) {
         final String name = block.wood().serializedName();
         return switch (block.kind()) {
-            case LOG -> Optional.of("tfp:wood/log/" + name + "[axis=" + axis(block) + "]");
-            case WOOD -> Optional.of("tfp:wood/wood/" + name + "[axis=" + axis(block) + "]");
+            case LOG -> Optional.of("tfp:wood/log/" + name + properties(block));
+            case WOOD -> Optional.of("tfp:wood/wood/" + name + properties(block));
             case LEAVES -> Optional.of("tfp:wood/leaves/" + name);
             default -> Optional.empty();
         };
     }
 
-    private static String axis(TreeBlock block) {
-        return block.axis().name().toLowerCase(Locale.ROOT);
+    /** {@code [axis=y,branch_direction=down]}: the natural direction TFC's tree templates set (PAR-GATHER-09); {@code none} is the default. */
+    private static String properties(TreeBlock block) {
+        String axis = "axis=" + block.axis().name().toLowerCase(Locale.ROOT);
+        return block.branch() == BranchDirection.NONE ? "[" + axis + "]" : "[" + axis + ",branch_direction=" + block.branch().serializedName() + "]";
     }
 }

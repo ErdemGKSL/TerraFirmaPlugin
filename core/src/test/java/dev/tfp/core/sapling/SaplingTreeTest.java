@@ -120,4 +120,18 @@ class SaplingTreeTest {
         assertThat(tree.blocks().stream().map(SaplingTreeRefs::ref).flatMap(Optional::stream))
             .allMatch(r -> r.startsWith("tfp:wood/log/oak[axis=") || r.startsWith("tfp:wood/wood/oak[axis=") || r.equals("tfp:wood/leaves/oak"));
     }
+
+    @Test
+    void refsCarryTheTemplatesBranchDirection() {
+        final Tree tree = SaplingTree.grow(normal(Wood.OAK), new Flat((p, g) -> g), 7L, 0, 61, 0).orElseThrow();
+        final java.util.List<String> refs = tree.blocks().stream().map(SaplingTreeRefs::ref).flatMap(Optional::stream).toList();
+        assertThat(refs).anyMatch(r -> r.contains(",branch_direction=down]"));
+        assertThat(refs).anyMatch(r -> r.startsWith("tfp:wood/wood/oak[axis=") && r.contains("branch_direction="));
+        // every log or wood ref names a TFC branch direction other than none (a natural block)
+        assertThat(refs.stream().filter(r -> r.startsWith("tfp:wood/log/") || r.startsWith("tfp:wood/wood/")))
+            .allMatch(r -> r.matches(".*,branch_direction=[a-z_]+\\]") && !r.contains("branch_direction=none"));
+        // a player-placed log is the default state and names no branch direction
+        assertThat(SaplingTreeRefs.ref(new TreeBlock(0, 0, 0, TreeBlock.Kind.LOG, Wood.OAK, TreeBlock.Axis.X,
+            dev.tfp.core.worldgen.tree.BranchDirection.NONE, false))).contains("tfp:wood/log/oak[axis=x]");
+    }
 }

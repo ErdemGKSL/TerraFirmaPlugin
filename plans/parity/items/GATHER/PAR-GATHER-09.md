@@ -2,7 +2,7 @@
 id: PAR-GATHER-09
 title: "Natural logs and leaves: branch_direction on logs, persistent on leaves, set by tree generation and placement"
 area: GATHER
-status: open
+status: done
 wave: 24
 deps: [PAR-GATHER-03, PAR-WORLD-11]
 size: M
@@ -26,6 +26,7 @@ plan:
   - "TfcTerrain.customTreeData: append branch_direction=<TreeBlock.branch lowercase> to the log and wood refs and key the placeholder cache by it."
   - "Leaves (PAR-GATHER-04's LeafDecay only decays leaves that carry persistent=false): add the boolean property persistent (default false) to tfp:wood/leaves/<wood>, appearances unchanged; TfcTerrain places natural leaves with persistent=false; a leaf placed by a player gets persistent=true (TFC getStateForPlacement: persistent = placed by a player), through the CE placement behaviour or a BlockPlaceEvent fix-up."
   - "Keep stripped forms in step: PAR-GATHER-08's StripTable already copies branch_direction."
+  - "Done: datagen AssetPipeline.withBranchDirection (branch_direction string property, 31 TFC values, default none, on log, stripped_log, wood, stripped_wood; variants still match axis only) and leavesStates (persistent boolean default false, one shared appearance; the visual demand is unchanged); TfcTerrain.customTreeData and the sapling growth share core SaplingTreeRefs, which appends branch_direction=<template value> for a natural log or wood block. Tests: datagen WoodBlocksTest +1, core SaplingTreeTest +1 (the ref of the placeholder cache key = the ref string). Player-placed leaves persistent=true is outside files_owned: follow-up PAR-GATHER-15. Unrelated failures seen: VisualBudgetTest (rock units, tfp:wood/scribing_table device behaviour) from others' work. Pending in-game check (container cannot run client)."
 tests:
   - "datagen: the four wood block kinds list branch_direction with default none; appearances unchanged"
   - "datagen: the leaves list persistent with default false"
@@ -35,7 +36,5 @@ done_criteria:
 ---
 
 # PAR-GATHER-09: Natural logs and leaves: branch_direction on logs, persistent on leaves, set by tree generation and placement
-
-> Claimed: sapling worker, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

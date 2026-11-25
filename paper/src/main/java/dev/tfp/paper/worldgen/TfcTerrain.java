@@ -845,13 +845,7 @@ final class TfcTerrain {
         if (visuals == null || !visuals.isLoaded()) {
             return null;
         }
-        final String name = block.wood().serializedName();
-        final String ref = switch (block.kind()) {
-            case LOG -> "tfp:wood/log/" + name + "[axis=" + block.axis().name().toLowerCase(java.util.Locale.ROOT) + "]";
-            case WOOD -> "tfp:wood/wood/" + name + "[axis=" + block.axis().name().toLowerCase(java.util.Locale.ROOT) + "]";
-            case LEAVES -> "tfp:wood/leaves/" + name;
-            default -> null;
-        };
+        final String ref = dev.tfp.core.sapling.SaplingTreeRefs.ref(block).orElse(null);
         if (ref == null) {
             return null;
         }
