@@ -521,7 +521,7 @@ public final class PlantData {
     PlantState blockState(String id) {
         final PlantType type = PlantType.of(id);
         if (type != null) {
-            if (!type.survivable()) {
+            if (!type.placeable()) {
                 throw new Unsupported("plant type " + type + " (" + id + ")");
             }
             if (!types.contains(type)) {

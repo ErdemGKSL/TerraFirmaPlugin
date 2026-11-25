@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  * TFC's plant block types ({@code Plant.BlockType}) and which plant has which. A type decides whether the plant has an age
- * property (drawn at worldgen) and what it survives on; {@link #survivable()} marks the types whose survival rule is ported.
+ * property (drawn at worldgen) and what it survives on; {@link #placeable()} marks the types worldgen places.
  */
 public enum PlantType {
     STANDARD, SHORT_SHRUB, SHRUB, FLOWERBED, CACTUSBED, CACTUS_FLOWER, CACTUS, PASSABLE_CACTUS, DRY, CREEPING, CREEPING_STONE,
@@ -243,15 +243,18 @@ public enum PlantType {
     }
 
     /**
-     * Whether the type's {@code canSurvive} is ported ({@link #survives} for the types that only look down, {@code PlantLevel}
-     * for the shapes of PAR-WORLD-13 that look around). The bamboo's features are not placed.
+     * Whether worldgen places the type: its {@code canSurvive} is ported ({@link #survives} for the types that only look down,
+     * {@code PlantLevel} for the shapes of PAR-WORLD-13 that look around). The bamboo's features are not placed.
      */
-    public boolean survivable() {
+    public boolean placeable() {
         return this != BAMBOO && this != BAMBOO_SAPLING;
     }
 
-    /** Whether {@link #survives} decides the type's {@code canSurvive} (it only needs the block below). */
-    boolean survivesOnBelow() {
+    /**
+     * Whether {@link #survives} decides the type's {@code canSurvive} (it only needs the block below): the types placed before
+     * PAR-WORLD-13, which have vanilla placeholders.
+     */
+    public boolean survivable() {
         return switch (this) {
             case STANDARD, SHORT_SHRUB, SHRUB, FLOWERBED, CACTUSBED, PASSABLE_CACTUS, DRY, SHORT_GRASS, BEACH_GRASS, TALL_GRASS,
                  TALL_SHRUB, FLOATING, FLOATING_FRESH, TALL_WATER, TALL_WATER_FRESH, WATER, WATER_FRESH, GRASS_WATER,

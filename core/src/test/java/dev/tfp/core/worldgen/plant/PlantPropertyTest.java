@@ -116,8 +116,8 @@ class PlantPropertyTest {
                 case PLANT -> {
                     assertThat(s.block()).startsWith("tfp:plant/");
                     assertThat(PlantType.of(s.block())).isEqualTo(s.type());
-                    assertThat(s.type().survivable()).isTrue();
-                    if (s.type().survivesOnBelow()) {
+                    assertThat(s.type().placeable()).isTrue();
+                    if (s.type().survivable()) {
                         // the shapes set their own ages (growing heads 0..25, bodies none)
                         assertThat(s.age() >= 0).isEqualTo(s.type().hasAge());
                     }
@@ -149,7 +149,7 @@ class PlantPropertyTest {
                 final TreeGround at = view.ground(b.x(), b.y(), b.z());
                 final TreeGround below = view.ground(b.x(), b.y() - 1, b.z());
                 final boolean upper = s.part() == PlantState.Part.UPPER;
-                if (s.kind() == PlantState.Kind.PLANT && !s.type().survivesOnBelow()) {
+                if (s.kind() == PlantState.Kind.PLANT && !s.type().survivable()) {
                     // the shapes (PAR-WORLD-13, golden-tested in PlantShapeGoldenTest) only replace air and water
                     assertThat(at.isAirOrEmptyFluid()).as("%s", b).isTrue();
                 } else if (s.kind() == PlantState.Kind.PLANT && !upper) {

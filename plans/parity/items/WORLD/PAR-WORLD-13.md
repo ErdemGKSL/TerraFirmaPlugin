@@ -2,7 +2,7 @@
 id: PAR-WORLD-13
 title: "Remaining plant features: vines, kelp, epiphytes, creeping plants, cacti, algae, atoll corals"
 area: WORLD
-status: open
+status: done
 wave: 25
 deps: [PAR-WORLD-12]
 size: M
@@ -21,6 +21,7 @@ ui: false
 in_game_steps: []
 plan:
   - "Port the 96 open features (berry bush and fruit tree placement stays in PAR-FARM items) with oracle goldens; forest groundcover."
+  - "Done: core `ShapedPlants` (creeping/ocean creeping, epiphytes, rotatable ocean plants, twisting/weeping/kelp columns, vines, giant kelp trees, saguaros), `Atolls` (tfc:atoll), `CarvingMaskView` (tfc:carving_mask), height_range, near_fluid, climate forest types, dry_replaceable, matching salt water, single-state dual_noise_provider (algae, water canna); `PlantLevel` look-around canSurvive rules (cacti, creepers, epiphytes, growing columns, kelp trees, branching cacti) and the region random of the saguaro. Tests: PlantShapeGoldenTest (39 oracle goldens), PlantShapePropertyTest 6, PlantPropertyTest updated; flora/open_gaps.txt = the 27 fruit tree/banana/berry bush ids. Paper: `PlantResources.WRITTEN_TYPES` keeps the shape features out of the world until PAR-WORLD-46 writes their blocks and passes a carving mask (ledger divergences). Oracle note: no Minecraft jar was available, so the oracle is TFC's code with stub types and the port's verified Xoroshiro random."
 tests:
   - "core: PlantGoldenTest + open_gaps.txt shrinks to the farm-owned ids"
 done_criteria:
@@ -29,7 +30,6 @@ done_criteria:
 
 # PAR-WORLD-13: Remaining plant features: vines, kelp, epiphytes, creeping plants, cacti, algae, atoll corals
 
-> Claimed: worker session_011osUp5nmwNAYj7g53gEDAm, 2026-11-20
 
 > see_not_parity: NP-WORLD-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

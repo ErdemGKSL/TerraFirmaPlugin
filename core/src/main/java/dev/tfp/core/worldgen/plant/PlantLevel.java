@@ -231,7 +231,7 @@ final class PlantLevel {
         final PlantState below = placed(x, y - 1, z);
         return switch (state.kind()) {
             case PLANT -> {
-                if (!state.type().survivesOnBelow()) {
+                if (!state.type().survivable()) {
                     yield shapeSurvives(state, x, y, z);
                 }
                 if (state.part() == PlantState.Part.UPPER) {
