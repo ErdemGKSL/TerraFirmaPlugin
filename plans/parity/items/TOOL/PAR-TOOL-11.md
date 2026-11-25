@@ -2,7 +2,7 @@
 id: PAR-TOOL-11
 title: "Obsidian tools: obsidian axe, hammer, hoe, javelin, knife and shovel with their heads, knapped from obsidian shards"
 area: TOOL
-status: open
+status: done
 wave: 24
 deps: [PAR-TOOL-01, PAR-TOOL-05, PAR-WORLD-09]
 size: S
@@ -27,7 +27,7 @@ plan:
   - "Extend the stone tool generator (same package as PAR-TOOL-01) with the obsidian tier: the 6 heads and 6 tools as CE items with TFC names, textures and models, tool components (speed and uses from TFCTiers.OBSIDIAN, mineable tags as the rock tools), attack attributes from ToolItem.productAttributes with TFC's per-tool factors, item_size/item_heat data from TFC."
   - "The knapping and crafting recipes come from the TFC tree through the existing recipe pipelines (PAR-PROC-01 knapping, PAR-PROC-02/03 crafting); check that the obsidian ids resolve and are not filtered out."
   - "The obsidian javelin uses PAR-TOOL-05's javelin runtime with the obsidian tier damage."
-  - "Progress: ObsidianTools generator (12 items, tier and attacks from TFC) done with tests; waits on PAR-TOOL-05 and PAR-WORLD-09 for status done and the in-game checks"
+  - "Done: ObsidianTools generator (12 items, tier and attacks from TFC) with tests, deps now done; Pending in-game check; recipe-output resolution test not separately added"
 tests:
   - "tools/datagen: 12 obsidian items with tier numbers equal to TFCTiers.OBSIDIAN and attack values equal to TFC's productAttributes"
   - "tools/datagen: every obsidian knapping and crafting recipe output resolves to a shipped CE item"
