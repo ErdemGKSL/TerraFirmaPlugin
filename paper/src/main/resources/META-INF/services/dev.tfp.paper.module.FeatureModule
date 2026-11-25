@@ -150,3 +150,5 @@ dev.tfp.paper.mount.MountModule
 dev.tfp.paper.blastfurnace.BlastFurnaceModule
 dev.tfp.paper.camel.CamelModule
 dev.tfp.paper.fishing.FishingModule
+dev.tfp.paper.sewing.SewingModule
+dev.tfp.paper.crankshaft.CrankshaftModule

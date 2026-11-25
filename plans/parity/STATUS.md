@@ -366,7 +366,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-17 | Wood workbenches: the 20 tfc:wood/workbench blocks as CE blocks that open the 3x3 crafting grid | DECO | 41 | open |
 | PAR-FAUNA-05 | Livestock: feeding, familiarity and breeding interactions | FAUNA | 41 | done |
 | PAR-PROC-06 | Loom: weaving cloth, burlap, wool, silk | PROC | 41 | done |
-| PAR-PROC-07 | Sewing table GUI | PROC | 41 | open |
+| PAR-PROC-07 | Sewing table GUI | PROC | 41 | done |
 | PAR-PROC-15 | Scribing table | PROC | 41 | done |
 | PAR-FAUNA-06 | Animal products: milk, wool, eggs; sheared look | FAUNA | 42 | done |
 | PAR-FAUNA-08 | Livestock AI and roster: graze, follow food, herd; all 18 domestic species | FAUNA | 42 | done |
@@ -416,7 +416,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-HEAT-27 | Candle cake bite and pumpkin carving hooked to the cake and pumpkin blocks | HEAT | 49 | open |
 | PAR-MECH-02 | Rotation visuals: spinning axles and gears | MECH | 50 | done |
 | PAR-MECH-11 | Rotation blocks: axle carriers in the hitbox allocation, startup re-add, in-game check of PAR-MECH-01 | MECH | 50 | done |
-| PAR-MECH-05 | Crankshaft and powered bellows | MECH | 50 | open |
+| PAR-MECH-05 | Crankshaft and powered bellows | MECH | 50 | done |
 | PAR-MECH-06 | Quern automation | MECH | 50 | done |
 | PAR-MECH-07 | Trip hammer | MECH | 50 | open |
 | PAR-WORLD-21 | Untracked surface features: forest-floor patches, tide pools, guano islands, bamboo, sea stack patches and five volcanic ids | WORLD | 50 | open |
@@ -449,6 +449,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-18 | Water wheel and windmill in game: CE blocks, wheel and blade items, spinning models, in-game checks of PAR-MECH-03 and PAR-MECH-04 | MECH | 54 | open |
 | PAR-MECH-19 | Spinning shafts in game: axles turn at the right speed and hand on 1.21.11 and 26.x (PAR-MECH-12 in-game check) | MECH | 53 | open |
 | PAR-MECH-20 | Bladed axle as TFC: the axle with a steel blade, its network node and spinning blade, the trip hammer's drive | MECH | 53 | open |
+| PAR-MECH-21 | Crankshaft in game: the tfp:crankshaft CE block, its sink node in the rotation network (CrankRotation), the powered bellows in-game check | MECH | 54 | open |
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |
 | PAR-REL-03 | Dependency and version updates (MC, Paper, Folia, CE, BetterModel, BetterHud) | REL | 52 | done |
 | PAR-REL-04 | Stone-age run self-test | REL | 52 | done |
@@ -481,6 +482,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-48 | Loom in-game verification and the in-progress cloth visual | PROC | 42 | open |
 | PAR-PROC-49 | Scribing table and sewing table blocks (tfp:wood/scribing_table/<wood>, tfp:wood/sewing_table/<wood>) | PROC | 41 | done |
 | PAR-PROC-50 | Scribing table in-game verification and TFC screen art | PROC | 42 | open |
+| PAR-PROC-51 | Sewing table in-game verification and TFC screen art (tfp:gui/sewing) | PROC | 42 | open |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | done |
 | PAR-DECO-18 | Sandstone stairs, slabs and walls and the calcite spike | DECO | 49 | open |
 | PAR-POT-14 | Pit kiln block: CraftEngine entry, hitboxes and look per stage, config keys, self-test kiln.fire, in-game check | POTTERY | 25 | open |
