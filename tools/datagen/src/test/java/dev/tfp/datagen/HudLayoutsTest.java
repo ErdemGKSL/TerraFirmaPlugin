@@ -29,9 +29,9 @@ class HudLayoutsTest {
     void realCatalogueRowCountsMatchTheCountsSection() {
         HudLayouts.Catalogue cat = HudLayouts.parse(HudLayouts.catalogue());
 
-        assertThat(cat.elements()).hasSize(38);
+        assertThat(cat.elements()).hasSize(40);
         Map<String, Integer> expected = Map.of(
-            "placeholder", 19, "bar", 7, "overlay", 1, "readout", 4, "popup", 2, "indicator", 1, "hidden-vanilla", 4);
+            "placeholder", 20, "bar", 7, "overlay", 2, "readout", 4, "popup", 2, "indicator", 1, "hidden-vanilla", 4);
         assertThat(countsByKind(cat.elements())).isEqualTo(expected);
         assertThat(cat.total()).isEqualTo(expected);
     }
@@ -41,7 +41,7 @@ class HudLayoutsTest {
         HudLayouts.Summary s = HudLayouts.run(new OutputTree(), HudLayouts.catalogue());
 
         assertThat(s.emitted()).isEqualTo(Map.of(
-            "placeholder", 19, "bar", 7, "overlay", 1, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 4));
+            "placeholder", 20, "bar", 7, "overlay", 2, "readout", 0, "popup", 1, "indicator", 0, "hidden-vanilla", 4));
         assertThat(s.leftOut()).hasSize(4);
         assertThat(String.join("\n", s.leftOut())).contains(
             "m3-surv-02-nutrition-readout", "m6-mech-01-rotation-readout", "m4-pros-01-result-message",
@@ -80,7 +80,8 @@ class HudLayoutsTest {
 
         assertThat(yaml(out, HudLayouts.BAR_LAYOUTS).keySet()).containsExactlyInAnyOrder(
             "tfp_m3_surv_06_health_bar", "tfp_m3_surv_06_thirst_bar", "tfp_m3_surv_06_hunger_bar", "tfp_m3_surv_06_air_bar",
-            "tfp_m3_surv_06_armor_bar", "tfp_par_hud_09_mount_health_bar", "tfp_par_hud_09_mount_health_bar_low");
+            "tfp_m3_surv_06_armor_bar", "tfp_par_hud_09_mount_health_bar", "tfp_par_hud_09_mount_health_bar_low",
+            "tfp_par_hud_20_ink_1", "tfp_par_hud_20_ink_2");
         assertThat(yaml(out, HudLayouts.INFO_LAYOUTS).keySet()).isEqualTo(BetterHudPack.INFO_LAYOUTS);
         assertThat(out.contains(HudLayouts.READOUT_LAYOUTS)).as("both readouts duplicate BetterHudPack").isFalse();
         assertThat(yaml(out, HudLayouts.POPUP_LAYOUTS).keySet()).containsExactly("tfp_m3_surv_06_held_temp_popup");
@@ -187,7 +188,7 @@ class HudLayoutsTest {
         assertThat(names).containsExactlyInAnyOrder("tfp_health", "tfp_max_health", "tfp_thirst", "tfp_hunger",
             "tfp_held_temp", "tfp_date", "tfp_season", "tfp_ambient_temp", "tfp_air", "tfp_armor", "tfp_mount_health",
             "tfp_mount_max_health", "tfp_held_heat", "tfp_held_heat_color", "tfp_health_text", "tfp_absorption",
-            "tfp_health_surplus", "tfp_health_glow", "tfp_thirst_overheat");
+            "tfp_health_surplus", "tfp_health_glow", "tfp_thirst_overheat", "tfp_ink");
     }
 
     @Test
@@ -775,10 +776,15 @@ class HudLayoutsTest {
         assertThat(hud).isNotEmpty();
         for (Object entry : hud.values()) {
             String name = (String) map(entry).get("name");
+            if (name.startsWith("tfp_par_hud_20_ink")) {
+                continue; // PAR-HUD-20: not gated on purpose (creative draws it), see inkSplatterLayoutsAreGatedOnTfpInk...
+            }
             Map<String, Object> conds = map(map(bars.get(name)).get("conditions"));
             assertThat(conds.get(String.valueOf(conds.size()))).as(name).isEqualTo(gate);
         }
         assertThat(bars.keySet()).hasSize(hud.size());
+        assertThat(hud.values().stream().filter(e -> ((String) map(e).get("name")).startsWith("tfp_par_hud_20_ink")))
+            .as("only the ink layouts are ungated").hasSize(2);
         Map<String, Object> armor = map(map(bars.get("tfp_m3_surv_06_armor_bar")).get("conditions"));
         assertThat(armor).hasSize(2);
         assertThat(map(armor.get("1"))).containsEntry("first", "tfp_armor");
@@ -902,6 +908,53 @@ class HudLayoutsTest {
                 }
                 assertThat(opaque).as(st.file()).isPositive();
             }
+        }
+    }
+
+    /**
+     * PAR-HUD-20, TFC {@code IngameOverlays.renderInk}: one full-screen layout per splatter, centred on the screen,
+     * behind the bars, shown while {@code tfp_ink} is 1 (ink) or 2 (glow ink). Not behind the {@code tfp_max_health}
+     * gate (creative draws it); the spectator hiding is in the value.
+     */
+    @Test
+    void inkSplatterLayoutsAreGatedOnTfpInkAndCoverTheScreen() {
+        OutputTree out = new OutputTree();
+        HudLayouts.run(out, HudLayouts.catalogue());
+
+        Map<String, Object> layouts = yaml(out, HudLayouts.BAR_LAYOUTS);
+        Map<String, Object> hud = map(map(yaml(out, HudLayouts.BARS_HUDS).get(HudLayouts.BARS_HUD)).get("layouts"));
+        Map<String, Object> images = yaml(out, HudLayouts.IMAGES);
+        String[] arts = {"par_hud_20_ink_splatter.png", "par_hud_20_glow_ink_splatter.png"};
+        for (int i = 0; i < 2; i++) {
+            String layoutName = "tfp_par_hud_20_ink_" + (i + 1);
+            Map<String, Object> layout = map(layouts.get(layoutName));
+            Map<String, Object> conditions = map(layout.get("conditions"));
+            assertThat(conditions).as("only the tfp_ink condition, no game-mode gate").hasSize(1);
+            Map<String, Object> c = map(conditions.get("1"));
+            assertThat(c).containsEntry("first", "tfp_ink").containsEntry("second", i + 1).containsEntry("operation", "==");
+
+            Map<String, Object> img = map(map(layout.get("images")).get("1"));
+            assertThat(img.get("layer")).as("behind the bars").isEqualTo(HudLayouts.LAYER_OVERLAY);
+            assertThat(img.get("name")).isEqualTo("tfp_" + arts[i].substring(0, arts[i].length() - 4));
+            double scale = ((Number) img.get("scale")).doubleValue();
+            double w = HudLayouts.INK_ART_WIDTH * scale;
+            double h = HudLayouts.INK_ART_HEIGHT * scale;
+            assertThat(w).as("covers 1920x1080 at GUI scale 2").isGreaterThanOrEqualTo(960);
+            assertThat(h).isGreaterThanOrEqualTo(540);
+            assertThat(((Number) img.get("x")).doubleValue()).as("centred").isEqualTo(-w / 2);
+            assertThat(((Number) img.get("y")).doubleValue()).isEqualTo(-h / 2);
+
+            // On the screen centre, in the bars HUD.
+            Map<String, Object> entry = hud.values().stream().map(HudLayoutsTest::map)
+                .filter(m -> m.get("name").equals(layoutName)).findFirst().orElseThrow();
+            assertThat(map(entry.get("gui"))).containsEntry("x", 50).containsEntry("y", 50);
+
+            // The art is the 480x270 stretched copy of TFC's 256x256 splatter.
+            java.awt.image.BufferedImage art = HudArt.image(arts[i]);
+            assertThat(art.getWidth()).isEqualTo(HudLayouts.INK_ART_WIDTH);
+            assertThat(art.getHeight()).isEqualTo(HudLayouts.INK_ART_HEIGHT);
+            assertThat(HudArt.firstOpaqueRow(arts[i])).as("no trim shift").isZero();
+            assertThat(map(images.get("tfp_" + arts[i].substring(0, arts[i].length() - 4)))).containsEntry("type", "single");
         }
     }
 }

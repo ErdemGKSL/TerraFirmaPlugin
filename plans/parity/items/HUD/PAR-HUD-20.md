@@ -2,7 +2,7 @@
 id: PAR-HUD-20
 title: "Ink splatter: the full-screen ink and glow-ink overlay while the player has tfc:ink / tfc:glow_ink (squid and octopoteuthis hits)"
 area: HUD
-status: open
+status: done
 wave: 43
 deps: [PAR-DATA-07, PAR-FAUNA-11, PAR-HUD-12]
 size: S
@@ -36,6 +36,7 @@ plan:
   - "Art: migrate TFC's two splatter textures through the datagen (tfc-asset-migration, attribution in NOTICE) as BetterHud images; HudLayouts adds a full-screen layout (BetterHud screen-relative position and scale so it covers the GUI at every GUI scale; check the 1.21.x and 26.x HUD shader paths), shown while `tfp_ink` = 1 or 2, under the bars, behind the hotbar like TFC's `top` layer order allows. If BetterHud cannot stretch an image to the screen, tile or pre-scale the image per GUI scale and record the divergence."
   - "Game modes: hidden in spectator; TFC draws it only in first person, which the server cannot see: draw it in every camera mode and record that divergence."
   - "Ledger: feature row and the camera-mode divergence; catalogue row (`par-hud-20-ink`)."
+  - "Done: InkOverlayService (feature module, paper/hud) publishes tfp_ink from EntityPotionEffectEvent (our InkListener effects: cause PLUGIN, 100 ticks), game mode, death/respawn/quit and a 1 s check; HudEffectValues + BetterHudIntegration register tfp_ink; HudLayouts emits two full-screen overlay layouts (TFC splatters pre-stretched to 480x270 under datagen hud/ink/, image scale 2, layer 0, ungated by tfp_max_health); catalogue rows par-hud-20-ph-ink and par-hud-20-ink. Tests: InkOverlayServiceTest 8, HudEffectValuesTest 2, HudLayoutsTest +1 and counts (datagenRunWritesTheHudFilesIntoTheBetterHudPack was already failing at HEAD: no TFC loot table for mud_bricks). Ledger rows added. Pending in-game check (container cannot run client)."
 tests:
   - "paper: InkOverlayServiceTest: effect added/removed/expired, respawn clears, spectator hides"
   - "integration/betterhud: HudEffectValues placeholder values"

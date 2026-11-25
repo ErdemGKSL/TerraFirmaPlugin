@@ -189,8 +189,31 @@ final class HudLayouts {
 
     /** A single-layer image (the info plate) at a HUD gui anchor; {@code flipX} ships a mirrored copy. */
     record OverlaySpec(String file, int guiX, int guiY, int x, int y, boolean flipX, double opacity, List<Cond> shownWhile,
-                       String hud) {
+                       String hud, double scale) {
+        OverlaySpec(String file, int guiX, int guiY, int x, int y, boolean flipX, double opacity, List<Cond> shownWhile,
+                    String hud) {
+            this(file, guiX, guiY, x, y, flipX, opacity, shownWhile, hud, 1.0);
+        }
     }
+
+    /**
+     * {@link OverlaySpec#hud}: an overlay of the bars HUD that is not behind the game-mode gate {@link #NEEDS_ACTIVE}
+     * (PAR-HUD-20: the ink splatter shows in creative too; its own value hides it in spectator).
+     */
+    static final String BARS_UNGATED = "bars-ungated";
+
+    /** PAR-HUD-20: 0 none, 1 ink, 2 glow ink ({@code InkOverlayService}, {@code HudEffectValues}); TFC {@code renderInk}. */
+    static final String INK = "tfp_ink";
+    /**
+     * PAR-HUD-20: TFC stretches the 256x256 splatter over the whole screen. BetterHud cannot stretch an image to the
+     * screen, so the art is pre-stretched to 480x270 (16:9) and drawn at image scale 2 (960x540 GUI px), centred on the
+     * screen: it covers a 1920x1080 screen at GUI scale 2 and more at higher scales (the edges are cropped there).
+     */
+    static final String INK_ART = "par_hud_20_ink_splatter.png";
+    static final String GLOW_INK_ART = "par_hud_20_glow_ink_splatter.png";
+    static final int INK_ART_WIDTH = 480;
+    static final int INK_ART_HEIGHT = 270;
+    static final double INK_SCALE = 2.0;
 
     /** Vanilla's full breath ({@code Player.getMaxAirSupply}), the top of {@code tfp_air}. */
     static final int FULL_AIR = 300;
@@ -279,7 +302,13 @@ final class HudLayouts {
     /** Single-layer images: the plate behind the date and temperature lines (top-left, {@link BetterHudPack}). */
     static final Map<String, List<OverlaySpec>> OVERLAYS = Map.of(
         "m2-cal-02-info-plate", List.of(
-            new OverlaySpec("m2_cal_02_info_plate.png", 0, 0, 1, 1, false, 1.0, List.of(), INFO_HUD)));
+            new OverlaySpec("m2_cal_02_info_plate.png", 0, 0, 1, 1, false, 1.0, List.of(), INFO_HUD)),
+        "par-hud-20-ink", List.of(
+            new OverlaySpec(INK_ART, 50, 50, -(int) (INK_ART_WIDTH * INK_SCALE / 2), -(int) (INK_ART_HEIGHT * INK_SCALE / 2),
+                false, 1.0, List.of(new Cond(INK, "==", 1)), BARS_UNGATED, INK_SCALE),
+            new OverlaySpec(GLOW_INK_ART, 50, 50, -(int) (INK_ART_WIDTH * INK_SCALE / 2),
+                -(int) (INK_ART_HEIGHT * INK_SCALE / 2), false, 1.0, List.of(new Cond(INK, "==", 2)), BARS_UNGATED,
+                INK_SCALE)));
 
 
     static final Map<String, Place> READOUTS = Map.of(
@@ -493,8 +522,12 @@ final class HudLayouts {
                 if (o.opacity() < 1.0) {
                     entry.put("opacity", BigDecimal.valueOf(o.opacity()));
                 }
+                if (o.scale() != 1.0) {
+                    entry.put("scale", BigDecimal.valueOf(o.scale()));
+                }
                 Map<String, Object> layout = m("offset", "left", "images", m("1", entry));
-                List<Cond> shown = o.hud().equals(INFO_HUD) ? o.shownWhile() : gated(o.shownWhile());
+                List<Cond> shown = o.hud().equals(INFO_HUD) || o.hud().equals(BARS_UNGATED) ? o.shownWhile()
+                    : gated(o.shownWhile());
                 if (!shown.isEmpty()) {
                     layout.put("conditions", conditions(shown, e, names));
                 }

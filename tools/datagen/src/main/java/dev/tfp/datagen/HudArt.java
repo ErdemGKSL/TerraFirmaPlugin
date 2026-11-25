@@ -38,6 +38,12 @@ import javax.imageio.ImageIO;
  */
 final class HudArt {
     static final String DIR = "/dev/tfp/datagen/hud/";
+    /**
+     * PAR-HUD-20: the full-screen ink splatters live in {@code hud/ink/}, found by file name like the others. They are
+     * TFC's soft-edged textures pre-stretched to 480x270 (art/raw/par-hud-20-ink/notes.md), not pixel art, so they stay
+     * out of the bar-art rules (binary alpha, small palette) that cover the files directly in {@link #DIR}.
+     */
+    static final String INK_DIR = "ink/";
 
     /** One rectangle of the interior mask, {@code [x0, x1) x [y0, y1)} in canvas pixels. */
     record Rect(int x0, int y0, int x1, int y1) {
@@ -110,7 +116,8 @@ final class HudArt {
 
     /** The resource bytes of {@code file} (a file name under {@link #DIR}). */
     static byte[] bytes(String file) {
-        try (InputStream in = HudArt.class.getResourceAsStream(DIR + file)) {
+        try (InputStream plain = HudArt.class.getResourceAsStream(DIR + file);
+             InputStream in = plain != null ? plain : HudArt.class.getResourceAsStream(DIR + INK_DIR + file)) {
             if (in == null) {
                 throw new DatagenException("missing HUD art resource " + DIR + file);
             }
