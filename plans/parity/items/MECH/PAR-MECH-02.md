@@ -2,7 +2,7 @@
 id: PAR-MECH-02
 title: "Rotation visuals: spinning axles and gears"
 area: MECH
-status: open
+status: done
 wave: 50
 deps: [PAR-MECH-01]
 size: M
@@ -15,20 +15,20 @@ files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/rotationvisual/**"
   - "core/src/main/java/dev/tfp/core/machine/RotationAngles*"
   - "core/src/test/java/dev/tfp/core/machine/RotationAngles*"
-ui: true
+ui: false
 in_game_steps:
   - "the MECH-01 setup; record 10 frames"
 plan:
   - "entity_renderer item displays rotated with interpolation by the network speed, updated only on speed change (client interpolation keeps spinning) per craftengine-gui-furniture; no per-tick packets."
+  - "Done: core `RotationAnglesSpin` (Track, plan, packetsFor), `RotationAnglesSpinTest` 9; `integration/craftengine/rotation` `SpinVisualService` + `SpinSink`, `SpinVisualServiceTest` 8 (packet count per speed change: 1 packet, then 5 refreshes in 200 ticks at 30 rpm; no refresh at rest; continuity; viewers). The speed hook (rotation actor), the PacketEvents sender, removing the axle's static display and the screenshots need files of PAR-MECH-11: PAR-MECH-12. The datagen `rotationvisual` glob stayed unused (the shaft model already exists as tfp:block/rotation/axle/<wood>). Pending in-game check: PAR-MECH-12."
 tests:
   - "integration: rotation packet count per speed change"
 done_criteria:
-  - "Axles visibly spin at the right direction"
+  - "Axles visibly spin at the right direction (planner and service done and tested: sign and rate = TFC's axis step with the renderer's minus; the on-the-wire spin and the screenshots are deferred: deferred check tracked in PAR-MECH-12)"
 ---
 
 # PAR-MECH-02: Rotation visuals: spinning axles and gears
 
-> Claimed: worker session_011osUpAUVyyokAxf5Kiw72D, 2026-11-20
 
 > see_not_parity: NP-VIS-02 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

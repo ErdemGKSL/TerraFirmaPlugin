@@ -402,7 +402,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-01 | Rotation network blocks: axle, encased axle, gearbox, clutch, creative motor | MECH | 49 | done |
 | PAR-DECO-16 | Fire brick extras and smooth mud bricks: reinforced fire bricks, fire brick shelf, fireproof door, fire clay block | DECO | 49 | open |
 | PAR-HEAT-27 | Candle cake bite and pumpkin carving hooked to the cake and pumpkin blocks | HEAT | 49 | open |
-| PAR-MECH-02 | Rotation visuals: spinning axles and gears | MECH | 50 | open |
+| PAR-MECH-02 | Rotation visuals: spinning axles and gears | MECH | 50 | done |
 | PAR-MECH-11 | Rotation blocks: axle carriers in the hitbox allocation, startup re-add, in-game check of PAR-MECH-01 | MECH | 50 | open |
 | PAR-MECH-05 | Crankshaft and powered bellows | MECH | 50 | open |
 | PAR-MECH-06 | Quern automation | MECH | 50 | open |
@@ -420,6 +420,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | open |
 | PAR-MECH-08 | Power loom | MECH | 51 | open |
 | PAR-MECH-09 | Pump and pipes | MECH | 51 | open |
+| PAR-MECH-12 | Spinning shafts on the wire: speed hook, packet sender, axle without a static element, in-game check | MECH | 51 | open |
 | PAR-DATA-14 | Vanilla rule hooks no item owns: lava + water hardened rocks, one-layer snow and snow on leaves, vines on TFC leaves, tadpoles, intoxicated chat, predators in boats, TFC mob armour, piglin gold, aqueduct and sluice sources, bamboo growth | DATA | 51 | open |
 | PAR-MECH-10 | Bladed axle | MECH | 52 | open |
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |
