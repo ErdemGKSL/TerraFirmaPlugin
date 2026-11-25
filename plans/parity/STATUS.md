@@ -424,11 +424,12 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-03 | Water wheel | MECH | 51 | open |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | open |
 | PAR-MECH-08 | Power loom | MECH | 51 | open |
-| PAR-MECH-09 | Pump and pipes | MECH | 51 | open |
+| PAR-MECH-09 | Pump and pipes | MECH | 51 | done |
 | PAR-MECH-12 | Spinning shafts on the wire: speed hook, packet sender, axle without a static element, in-game check | MECH | 51 | open |
 | PAR-MECH-13 | Powered quern in game: handstone spin, grind sounds and particles, hopper and axle screenshots | MECH | 52 | open |
 | PAR-DATA-14 | Vanilla rule hooks no item owns: lava + water hardened rocks, one-layer snow and snow on leaves, vines on TFC leaves, tadpoles, intoxicated chat, predators in boats, TFC mob armour, piglin gold, aqueduct and sluice sources, bamboo growth | DATA | 51 | open |
 | PAR-MECH-10 | Bladed axle | MECH | 52 | open |
+| PAR-MECH-14 | Pump in game: a crankshaft powers a pump that moves water 10 pipes up (PAR-MECH-09 in-game check and crankshaft wiring) | MECH | 52 | open |
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |
 | PAR-REL-03 | Dependency and version updates (MC, Paper, Folia, CE, BetterModel, BetterHud) | REL | 52 | done |
 | PAR-REL-04 | Stone-age run self-test | REL | 52 | open |

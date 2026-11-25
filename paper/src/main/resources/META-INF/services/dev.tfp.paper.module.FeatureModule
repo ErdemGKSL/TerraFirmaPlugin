@@ -108,3 +108,4 @@ dev.tfp.paper.animal.sound.AnimalSoundsModule
 dev.tfp.paper.magma.MagmaModule
 dev.tfp.paper.quern.powered.PoweredQuernModule
 dev.tfp.paper.climate.fog.FogModule
+dev.tfp.paper.pump.PumpModule
