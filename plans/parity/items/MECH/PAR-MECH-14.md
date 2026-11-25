@@ -31,4 +31,6 @@ done_criteria:
 
 # PAR-MECH-14: Pump in game: a crankshaft powers a pump that moves water 10 pipes up
 
+> Claimed: claude MECH session 011osUpA, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
