@@ -62,7 +62,9 @@ public final class AssetPipeline {
         "^(block|item)\\." + Json.FROM_NS + "\\.(" + String.join("|", FAMILIES) + ")\\..*"
             + "|^item\\." + Json.FROM_NS + "\\.(food|metal|jar)\\..*"
             + "|^item\\." + Json.FROM_NS + "\\.[a-z_]+_jam$"
-            + "|^block\\." + Json.FROM_NS + "\\.(charcoal_forge|bellows)$");
+            + "|^block\\." + Json.FROM_NS + "\\.(charcoal_forge|bellows|hardened_clay|halite|lignite|bituminous_coal"
+            + "|(raw|smooth|cut)_sandstone\\.[a-z]+)$"
+            + "|^item\\." + Json.FROM_NS + "\\.powder\\.salt$"); // halite drops salt (PAR-DECO-08)
 
     private final TfcCheckout tfc;
     private final OutputTree out;
@@ -149,6 +151,16 @@ public final class AssetPipeline {
                     modelQueue.add("item/" + id);
                 }
             }
+        }
+        // PAR-DECO-08: the item model of each natural full block (sandstones, hardened clay, halite, coal); the block
+        // models come from the blockstates. Absent files (small fixture checkouts) are skipped.
+        for (String id : naturalBlockIds()) {
+            if (tfc.exists(TfcCheckout.ASSETS + "models/item/" + id + ".json")) {
+                modelQueue.add("item/" + id);
+            }
+        }
+        if (tfc.exists(TfcCheckout.ASSETS + "models/item/powder/salt.json")) {
+            modelQueue.add("item/powder/salt"); // the drop of halite; a plain CE item through the drops file
         }
         // Metal material items (M4-MET-01): one model per metal for each kind below, found by the model folders of TFC.
         for (String kind : METAL_ITEM_KINDS) {
@@ -709,6 +721,8 @@ public final class AssetPipeline {
             }
         }
         woods.forEach((wood, file) -> file.write("wood/" + wood));
+        // PAR-DECO-08: sandstones, hardened clay, halite, coal (one file per kind)
+        writeNaturalBlocks();
         // drop items (ore pieces, loose rocks) in one file
         ConfigFile drops = new ConfigFile();
         dropItems.keySet().removeAll(report.emittedIds()); // a delegated table may name another emitted block (its item exists)
@@ -767,6 +781,60 @@ public final class AssetPipeline {
         }
         metal.write("metal");
         reportSkipped();
+    }
+
+    /** PAR-DECO-08: TFC {@code SandstoneBlockType} strengths (hardness = resistance) per kind. */
+    private static final Map<String, String> SANDSTONE_STRENGTH = new LinkedHashMap<>();
+
+    static {
+        SANDSTONE_STRENGTH.put("raw", "0.8");
+        SANDSTONE_STRENGTH.put("smooth", "1.2");
+        SANDSTONE_STRENGTH.put("cut", "1.2");
+    }
+
+    /** PAR-DECO-08: one natural full block: id, strength, vanilla sound group, instrument and map colour. */
+    private record NaturalBlock(String id, String strength, String sound, String instrument, int mapColor) {
+    }
+
+    /**
+     * PAR-DECO-08: the full-cube blocks of this item, from TFC's {@code TFCBlocks} (HARDENED_CLAY, HALITE, LIGNITE,
+     * BITUMINOUS_COAL) and {@code SandstoneBlockType}. TFC's custom charcoal sound is {@code stone} here (ledger).
+     */
+    private List<NaturalBlock> naturalBlocks() {
+        List<NaturalBlock> list = new ArrayList<>();
+        for (String kind : SANDSTONE_STRENGTH.keySet()) {
+            for (String f : tfc.list(TfcCheckout.ASSETS + "blockstates/" + kind + "_sandstone/")) {
+                String name = f.substring(f.lastIndexOf('/') + 1, f.length() - 5);
+                Integer map = TfcTables.SAND_MAP_COLOR.get(name);
+                if (map != null) { // the colour blocks; _slab/_stairs/_wall are the shape families
+                    list.add(new NaturalBlock(kind + "_sandstone/" + name, SANDSTONE_STRENGTH.get(kind), "stone", "harp", map));
+                }
+            }
+        }
+        // MapColor ids: TERRACOTTA_ORANGE 37, SNOW 8, TERRACOTTA_BLACK 51
+        list.add(new NaturalBlock("hardened_clay", "7.0", "packed_mud", "basedrum", 37));
+        list.add(new NaturalBlock("halite", "6.0", "stone", "harp", 8));
+        list.add(new NaturalBlock("lignite", "6.0", "stone", "harp", 51));
+        list.add(new NaturalBlock("bituminous_coal", "6.0", "stone", "harp", 51));
+        return list.stream().filter(b -> tfc.exists(blockstate(b.id()))).toList();
+    }
+
+    private List<String> naturalBlockIds() {
+        return naturalBlocks().stream().map(NaturalBlock::id).toList();
+    }
+
+    private void writeNaturalBlocks() {
+        Map<String, ConfigFile> files = new TreeMap<>();
+        for (NaturalBlock b : naturalBlocks()) {
+            Map<String, Object> args = new LinkedHashMap<>();
+            args.put("sound_block_type", b.sound());
+            args.put("natural_hardness", new BigDecimal(b.strength()));
+            args.put("natural_instrument", b.instrument());
+            args.put("natural_map_color", b.mapColor());
+            String file = b.id().contains("/") ? "sandstone" : b.id();
+            block(files.computeIfAbsent(file, k -> new ConfigFile()), b.id(), CeBlockStates.call("tfp:settings/natural_stone", args));
+        }
+        files.forEach((name, file) -> file.write("natural/" + name));
     }
 
     private static String blockstate(String id) {

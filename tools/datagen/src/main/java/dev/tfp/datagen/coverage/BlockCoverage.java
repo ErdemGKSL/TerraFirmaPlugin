@@ -92,8 +92,8 @@ public final class BlockCoverage {
         Owner.of("(grass|clay_grass|coarse_dirt|mud|rooted_dirt)/.+|peat|peat_grass|"
             + "kaolin_clay_grass|(pink|red|white)_kaolin_clay", "PAR-WORLD-04", "soil block set per soil variant, peat, kaolin"),
         Owner.of("deposit/.+|groundcover/.+|ore/small_.+", "PAR-WORLD-09", "ore deposits, groundcover, small ores"),
-        Owner.of("(raw|smooth|cut)_sandstone/.+|hardened_clay|halite|calcite|bituminous_coal|lignite", "PAR-DECO-08",
-            "sandstone families and misc natural blocks"),
+        Owner.of("(raw|smooth|cut)_sandstone/[a-z]+_(slab|stairs|wall)|calcite", "PAR-DECO-18",
+            "sandstone stairs, slabs and walls, calcite spike (the cubes, hardened clay, halite and coal are PAR-DECO-08, emitted)"),
         // building blocks
         Owner.of("drying_bricks/.+", "PAR-POT-08", "drying mud bricks"),
         Owner.of("smooth_mud_bricks|reinforced_fire_bricks|fire_brick_shelf|fireproof_door|fire_clay_block", "PAR-DECO-16",

@@ -391,7 +391,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-05 | Tool racks, shelves, bookshelves, lecterns | DECO | 46 | open |
 | PAR-DECO-06 | Rock families: bricks, cobble, smooth, stairs, slabs, walls, aqueducts, spikes, pressure plates, buttons | DECO | 46 | open |
 | PAR-DECO-07 | Mud bricks, alabaster, aggregate, fire bricks, wattle and daub, thatch | DECO | 47 | open |
-| PAR-DECO-08 | Sand, sandstone families, hardened clay, halite, coal, calcite, misc natural blocks | DECO | 47 | open |
+| PAR-DECO-08 | Sand, sandstone families, hardened clay, halite, coal, calcite, misc natural blocks | DECO | 47 | done |
 | PAR-DECO-09 | Metal decoration blocks: metal blocks (and weathered), bars, chains, grates, trapdoors | DECO | 47 | open |
 | PAR-TOOL-09 | Chisel: smoothing, slabs and stairs with mode cycling | TOOL | 47 | open |
 | PAR-INFRA-53 | Hitbox carrier in-game verification of the classes added by family items: piles, rocks, ores, groundcover, placed items, containers, seals, heavy_core | INFRA | 47 | open |
@@ -456,3 +456,5 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-24 | Wire SpreadingFruit into the crop device: fruit placement at full growth, crowding limit, fruit sides | FARM | 31 | open |
 | PAR-PROC-46 | Panning in-game verification: deposit pickup, water hint, 6 s pan, small ores | PROC | 33 | open |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | open |
+
+| PAR-DECO-18 | Sandstone stairs, slabs and walls and the calcite spike | DECO | 49 | open |
