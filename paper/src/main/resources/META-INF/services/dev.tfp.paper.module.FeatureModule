@@ -169,3 +169,4 @@ dev.tfp.paper.lamp.LampModule
 dev.tfp.paper.worldrules.WorldRulesModule
 dev.tfp.paper.sign.SignModule
 dev.tfp.paper.hud.InkOverlayService
+dev.tfp.paper.plant.lifecycle.PlantStageModule

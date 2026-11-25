@@ -2,7 +2,7 @@
 id: PAR-WORLD-63
 title: "Plant stage packet handler: CHUNK_DATA / BLOCK_CHANGE / MULTI_BLOCK_CHANGE rewrite through PlantStageRemap, CE state id resolution and the module wiring"
 area: WORLD
-status: open
+status: done
 wave: 30
 deps: [PAR-WORLD-61]
 size: M
@@ -22,6 +22,8 @@ plan:
   - "Module (paper/plant/lifecycle, FeatureModule + one service-file line): load PlantStageTable on the CPU pool; once CraftEngine has loaded, resolve every CE state to its server id (BlockVisuals.blockData(BlockStateRef) then the packet layer's id of that BlockData) into a volatile PlantStageRemap; re-resolve on /tfp reload and CE reload."
   - "Handler (paper/packet/plantstage): on CHUNK_DATA decode only sections whose palette holds an id PlantStageRemap.rewrites, call section() with the viewer's View (calendar fraction of year and day time from the ClockSnapshot, northern hemisphere from the viewer's z as HudHemisphere) and the world's PlantStageClimate; write the section back (palette may grow: fresh palette as SeasonalBiomeHandler does). BLOCK_CHANGE / MULTI_BLOCK_CHANGE through block(). Netty thread, no world reads. Check first (log one chunk) that PacketEvents sees the server ids before CraftEngine's encoder maps them (docs/spikes/M0-NET-01.md pipeline order)."
   - "Season change: when a plant crosses dormant/blooming the client keeps its old look until the chunk is resent; resend the chunks in view at each month change through the seasonal biome resend (ResendLimiter) or a weekly resend of chunks that hold plants."
+  - "Done 2026-11-25: paper/plant/lifecycle/PlantStageModule (+ service-file line) reads the table on the CPU pool, PlantStageService resolves CE states to server ids (ServerStateIds: CraftBlockData.getState + Block.getId) after each CE load/reload and tracks viewers per TFC overworld; paper/packet/plantstage/PlantStagePacketHandler rewrites CHUNK_DATA sections (palette pre-check, PlantSectionRewrite keeps vanilla 4-bit list / 5-8-bit map / server-width global palettes), BLOCK_CHANGE and MULTI_BLOCK_CHANGE, PASS when nothing changes; logs the first rewritten chunk. Season changes reach clients through the monthly seasonal biome resend. Hemisphere taken at the chunk column (ledger divergence). Tests: PlantStagePacketHandlerTest 6, PlantStageModuleTest 4."
+  - "Pending in-game check (container cannot run client): the per-season screenshots of in_game_steps into docs/verification/PAR-WORLD-63/."
 tests:
   - "paper: handler rewrites a CHUNK_DATA section holding a base plant id by season and leaves every other packet byte-identical; BLOCK_CHANGE likewise"
 done_criteria:
@@ -29,7 +31,5 @@ done_criteria:
 ---
 
 # PAR-WORLD-63: Plant stage packet handler
-
-> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
