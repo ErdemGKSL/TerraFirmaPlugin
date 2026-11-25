@@ -27,10 +27,12 @@ import dev.tfp.core.worldgen.chunk.PlaceholderRocks;
 import dev.tfp.core.worldgen.deposit.DepositBlock;
 import dev.tfp.core.worldgen.deposit.DepositMaterial;
 import dev.tfp.core.worldgen.deposit.Deposits;
+import dev.tfp.core.worldgen.groundcover.Boulders;
 import dev.tfp.core.worldgen.groundcover.Groundcover;
 import dev.tfp.core.worldgen.groundcover.LooseRocks;
 import dev.tfp.core.worldgen.groundcover.SaltWater;
 import dev.tfp.core.worldgen.groundcover.ShoreGroundcover;
+import dev.tfp.core.worldgen.groundcover.UndergroundLooseRocks;
 import dev.tfp.core.worldgen.groundcover.VeinIndicators;
 import dev.tfp.core.worldgen.height.BiomeLayers;
 import dev.tfp.core.worldgen.height.LakeCarving;
@@ -156,6 +158,9 @@ final class TfcTerrain {
     private final VeinIndicators indicators;
     private final ShoreGroundcover shoreCover;
     private final LooseRocks looseRocks;
+    /** PAR-WORLD-32: TFC's boulders (the first large features) and the cave floor loose rocks (underground decoration). */
+    private final Boulders boulders;
+    private final UndergroundLooseRocks caveRocks;
     /** The deposit material of each terrain block, for the palette it was built from. */
     private volatile Map.Entry<RockPalette<BlockData>, Map<BlockData, DepositMaterial>> depositMaterials;
     /** The trees of this world (M2-GEN-12, PAR-WORLD-11): TFC's forest, dead forest (lowlands) and mangrove forest (salt marshes). */
@@ -219,6 +224,8 @@ final class TfcTerrain {
         this.indicators = new VeinIndicators(ores);
         this.shoreCover = new ShoreGroundcover(seed);
         this.looseRocks = new LooseRocks(seed);
+        this.boulders = new Boulders(seed);
+        this.caveRocks = new UndergroundLooseRocks(seed);
         this.forest = TreeResources.forest(seed, TfcTerrain.class.getClassLoader());
         this.plants = new Plants(seed, PlantResources.fromJar(TfcTerrain.class.getClassLoader()), settings.grassDensity());
         this.volcanoes = new Volcanoes(seed);
@@ -594,7 +601,14 @@ final class TfcTerrain {
         final Map<BlockData, DepositMaterial> materials = depositMaterials(palette);
         for (DepositBlock block : deposits.chunk(chunkX, chunkZ, view,
             (x, y, z) -> y < minY || y >= maxY ? null : materials.get(data.getBlockData(x & 15, y, z & 15)))) {
-            data.setBlock(block.x() & 15, block.y(), block.z() & 15, placeholderData(GroundcoverBlocks.placeholder(block), false));
+            // PAR-WORLD-32: MOLLISOL only changes the soil variant, which the placeholder terrain does not show: keep the block
+            final Material placeholder = GroundcoverBlocks.placeholder(block);
+            if (placeholder == null) {
+                continue;
+            }
+            final String ce = GroundcoverBlocks.ceId(block, PlaceholderRocks.names().get(view.rockAt(block.x(), block.y(), block.z())));
+            final BlockData custom = ce == null ? null : customBlockData(ce);
+            data.setBlock(block.x() & 15, block.y(), block.z() & 15, custom != null ? custom : placeholderData(placeholder, false));
         }
         final List<Groundcover> covers = new ArrayList<>();
         final GroundcoverBlocks.Target coverTarget = new GroundcoverBlocks.Target() {
@@ -606,14 +620,44 @@ final class TfcTerrain {
 
             @Override
             public void place(int localX, int y, int localZ, Groundcover cover) {
-                // PAR-GATHER-12: the CraftEngine loose rock or groundcover block once CraftEngine knows it, else the placeholder
-                final BlockData custom = customBlockData(GroundcoverBlocks.ceId(cover));
-                data.setBlock(localX, y, localZ, custom != null ? custom
-                    : placeholderData(GroundcoverBlocks.placeholder(cover.kind(), cover.waterlogged()), cover.waterlogged()));
+                data.setBlock(localX, y, localZ, coverData(cover));
             }
         };
         indicators.place(chunkX, chunkZ, view, view::rock, covers);
         GroundcoverBlocks.write(covers, chunkX, chunkZ, minY, maxY, coverTarget);
+        // PAR-WORLD-32: the cave floor loose rocks (underground decoration, after the vein indicators), read from this chunk's
+        // blocks; outside the chunk nothing matches
+        covers.clear();
+        caveRocks.place(chunkX, chunkZ, view, new UndergroundLooseRocks.CaveView() {
+            @Override
+            public boolean air(int x, int y, int z) {
+                return inChunk(x, y, z) && data.getType(x & 15, y, z & 15) == Material.AIR;
+            }
+
+            @Override
+            public boolean solid(int x, int y, int z) {
+                return inChunk(x, y, z) && data.getType(x & 15, y, z & 15).isSolid();
+            }
+
+            @Override
+            public boolean ice(int x, int y, int z) {
+                if (!inChunk(x, y, z)) {
+                    return false;
+                }
+                final Material type = data.getType(x & 15, y, z & 15);
+                return type == Material.ICE || type == Material.PACKED_ICE || type == Material.BLUE_ICE || type == Material.FROSTED_ICE;
+            }
+
+            private boolean inChunk(int x, int y, int z) {
+                return x >> 4 == chunkX && z >> 4 == chunkZ && y >= minY && y < maxY;
+            }
+        }, covers);
+        GroundcoverBlocks.write(covers, chunkX, chunkZ, minY, maxY, coverTarget);
+        // PAR-WORLD-32: the boulders, the first large features (before the forest), over whatever is there
+        final List<Boulders.Block> boulderBlocks = new ArrayList<>();
+        boulders.place(chunkX, chunkZ, view, boulderBlocks::add);
+        GroundcoverBlocks.writeBoulders(boulderBlocks, chunkX, chunkZ, minY, maxY,
+            (localX, y, localZ, block) -> data.setBlock(localX, y, localZ, boulderData(block, palette)));
         final List<Forest.Placed> trees = new ArrayList<>();
         forest.place(chunkX, chunkZ, view, trees::add);
         TreeBlocks.write(trees, chunkX, chunkZ, minY, maxY, new TreeBlocks.Target() {
@@ -712,6 +756,34 @@ final class TfcTerrain {
             }
         }
         return palette.block(block.rock());
+    }
+
+    /**
+     * PAR-WORLD-32: the block of a groundcover decision: its CraftEngine block (PAR-WORLD-31) when loaded, else the vanilla
+     * placeholder. A waterlogged decision keeps the waterloggable placeholder: the CraftEngine groundcover has no fluid state
+     * yet (PAR-WORLD-58).
+     */
+    private BlockData coverData(Groundcover cover) {
+        if (!cover.waterlogged()) {
+            final BlockData custom = customBlockData(GroundcoverBlocks.ceId(cover));
+            if (custom != null) {
+                return custom;
+            }
+        }
+        return placeholderData(GroundcoverBlocks.placeholder(cover.kind(), cover.waterlogged()), cover.waterlogged());
+    }
+
+    /** PAR-WORLD-32: a boulder block: the CraftEngine rock block, else the palette's raw rock or vanilla (mossy) cobblestone. */
+    private BlockData boulderData(Boulders.Block block, RockPalette<BlockData> palette) {
+        final BlockData custom = customBlockData(GroundcoverBlocks.ceId(block, PlaceholderRocks.names()));
+        if (custom != null) {
+            return custom;
+        }
+        return switch (block.material()) {
+            case RAW -> palette.block(block.rock());
+            case COBBLE -> placeholderData(Material.COBBLESTONE, false);
+            case MOSSY_COBBLE -> placeholderData(Material.MOSSY_COBBLESTONE, false);
+        };
     }
 
     /** The CraftEngine block of a reference, or null while CraftEngine has not loaded or does not know it. */
@@ -840,6 +912,10 @@ final class TfcTerrain {
         out.put(surfaceBlocks[SurfaceKind.DIRT.ordinal()], DepositMaterial.DIRT);
         out.put(surfaceBlocks[SurfaceKind.GRASS.ordinal()], DepositMaterial.GRASS);
         out.put(surfaceBlocks[SurfaceKind.MUD.ordinal()], DepositMaterial.MUD);
+        // PAR-WORLD-32: #tfc:powder_snow_replaceable (snow block, packed ice, blue ice) for the powder snow discs
+        out.put(surfaceBlocks[SurfaceKind.SNOW.ordinal()], DepositMaterial.SNOW);
+        out.put(surfaceBlocks[SurfaceKind.PACKED_ICE.ordinal()], DepositMaterial.SNOW);
+        out.put(Material.BLUE_ICE.createBlockData(), DepositMaterial.SNOW);
         final Map<BlockData, DepositMaterial> table = Map.copyOf(out);
         depositMaterials = Map.entry(palette, table);
         return table;
@@ -1219,6 +1295,22 @@ final class TfcTerrain {
         @Override
         public ForestType forestType(int chunkX, int chunkZ) {
             return chunks.forestType(chunkX, chunkZ);
+        }
+
+        /** PAR-WORLD-32: {@code ForestType.getDensity} of the column's chunk data (the mollisol discs filter on it). */
+        @Override
+        public int forestDensity(int x, int z) {
+            return forestType(x >> 4, z >> 4).density();
+        }
+
+        /**
+         * PAR-WORLD-32: whether the column's top block is in {@code #tfc:creeping_stone_plantable_on} (the guano ground): the
+         * raw rock below the surface layers, or a raw rock or sandstone surface block.
+         */
+        @Override
+        public boolean topBlockStone(int x, int z) {
+            final SurfaceKind kind = surface(x, z).kind(top(x, z));
+            return kind == null || kind == SurfaceKind.ROCK_SURFACE || kind == SurfaceKind.SANDSTONE;
         }
 
         /** The rock of the rock layers at a position ({@code RockData.getRock}), whatever block the column holds there. */

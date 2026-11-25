@@ -38,6 +38,29 @@ class GroundcoverWiringTest {
         }
     }
 
+    /** PAR-WORLD-32: the CraftEngine blocks of PAR-WORLD-31 the terrain writes. */
+    @Test
+    void ceIdsNameThePar31Blocks() {
+        assertThat(GroundcoverBlocks.ceId(new Groundcover(0, 64, 0, Groundcover.Kind.MOSSY_LOOSE_ROCK, "tfp:rock/mossy_loose/chert", 2,
+            false))).isEqualTo("tfp:rock/mossy_loose/chert[count=2]");
+        assertThat(GroundcoverBlocks.ceId(new Groundcover(0, 64, 0, Groundcover.Kind.SMALL_ORE, "tfp:ore/small_hematite", 1, false)))
+            .isEqualTo("tfp:ore/small_hematite");
+        assertThat(GroundcoverBlocks.ceId(new DepositBlock(0, 60, 0, DepositKind.ORE_DEPOSIT, DepositMaterial.GRAVEL, "cassiterite",
+            "tfc:deposit/cassiterite"), "granite")).isEqualTo("tfp:deposit/cassiterite/granite");
+        for (DepositKind kind : DepositKind.values()) {
+            if (kind != DepositKind.ORE_DEPOSIT) {
+                assertThat(GroundcoverBlocks.ceId(new DepositBlock(0, 60, 0, kind, DepositMaterial.DIRT, "clay", "f"), "granite"))
+                    .as(kind.name()).isNull();
+            }
+        }
+        assertThat(GroundcoverBlocks.ceId(new dev.tfp.core.worldgen.groundcover.Boulders.Block(0, 70, 0, 1,
+            dev.tfp.core.worldgen.groundcover.Boulders.Material.MOSSY_COBBLE, "f"), List.of("granite", "diorite")))
+            .isEqualTo("tfp:rock/mossy_cobble/diorite");
+        // MOLLISOL keeps the block (only the soil variant changes)
+        assertThat(GroundcoverBlocks.placeholder(new DepositBlock(0, 60, 0, DepositKind.MOLLISOL, DepositMaterial.DIRT, "mollisol",
+            "f"))).isNull();
+    }
+
     private static Groundcover cover(int x, int y, int z) {
         return new Groundcover(x, y, z, Groundcover.Kind.LOOSE_ROCK, "tfp:rock/loose/granite", 1, false);
     }

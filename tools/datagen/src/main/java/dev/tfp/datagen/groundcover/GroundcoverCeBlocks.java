@@ -29,6 +29,7 @@ import dev.tfp.datagen.device.DeviceSound;
 import dev.tfp.datagen.device.DeviceYaml;
 import dev.tfp.datagen.hitbox.HitboxAllocation;
 import dev.tfp.datagen.hitbox.HitboxDemands;
+import dev.tfp.datagen.visuals.VersionFamily;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -75,9 +76,37 @@ public final class GroundcoverCeBlocks {
     /** TFC {@code strength(0.05F, 0.0F)} of every groundcover block. */
     public static final BigDecimal HARDNESS = new BigDecimal("0.05");
     public static final BigDecimal RESISTANCE = BigDecimal.ZERO;
-    /** Vanilla {@code SoundType.NETHER_ORE} (1.0, 1.0): its own events. */
-    static final DeviceSound NETHER_ORE = new DeviceSound("minecraft:block.nether_ore.break", "minecraft:block.nether_ore.step",
-        "minecraft:block.nether_ore.place", "minecraft:block.nether_ore.hit", "minecraft:block.nether_ore.fall");
+    /** Vanilla {@code SoundType.NETHER_ORE} (volume and pitch 1.0): its own events, as plain ids. */
+    static final Map<String, Object> NETHER_ORE = netherOre();
+    /** CraftEngine version keys of the two families ({@link VersionFamily}): 26.x and 1.21.x. */
+    static final String NEW_FAMILY = "$$>=26.1";
+    static final String OLD_FAMILY = "$$<26.1";
+
+    /**
+     * The carrier of a demand in one version family: both profiles of the family must agree (the output does not depend
+     * on the profile).
+     */
+    static HitboxAllocation.Assignment agreed(String blockId, String appearance, VersionFamily family) {
+        HitboxAllocation.Assignment first = null;
+        for (HitboxAllocation.Result r : HitboxAllocation.standard().values()) {
+            if (r.family() != family) {
+                continue;
+            }
+            HitboxAllocation.Assignment a = r.get(blockId, appearance);
+            if (first == null) {
+                first = a;
+            } else if (!first.state().equals(a.state()) || first.mode() != a.mode()
+                || !java.util.Objects.equals(first.hideTarget(), a.hideTarget())) {
+                throw new DatagenException("hitbox carrier of " + blockId + "#" + appearance + " differs between the profiles of "
+                    + family.id());
+            }
+        }
+        if (first == null) {
+            throw new DatagenException("no hitbox allocation for " + family.id());
+        }
+        return first;
+    }
+
     /** The item display turn of a model drawn unrotated (CropBlocks.rotation(0)). */
     static final String RENDER_ROTATION = CropBlocks.rotation(0);
     /** TFC's groundcover types with a vanilla item (no block item of their own: the drop is the vanilla item). */
@@ -89,13 +118,21 @@ public final class GroundcoverCeBlocks {
     private GroundcoverCeBlocks() {
     }
 
+    private static Map<String, Object> netherOre() {
+        Map<String, Object> m = new LinkedHashMap<>();
+        for (String event : List.of("break", "step", "place", "hit", "fall")) {
+            m.put(event, "minecraft:block.nether_ore." + event);
+        }
+        return java.util.Collections.unmodifiableMap(m);
+    }
+
     /** True when the checkout has the groundcover (the small test fixtures do not). */
     public static boolean available(TfcCheckout tfc) {
         return tfc.exists(TYPE_SOURCE) && tfc.exists(BLOCKSTATES + "rock/loose/granite.json");
     }
 
     /** The counts of one run. */
-    public record Counts(int blocks, int states, int modelCarriers, int hitboxOnly) {
+    public record Counts(int blocks, int states, int modelCarriers, int hitboxOnly, int familySplit) {
     }
 
     /** Writes the three files, the models, item models, loot tables and names. */
@@ -116,12 +153,13 @@ public final class GroundcoverCeBlocks {
         out.put(SMALL_ORE_OUTPUT, Yaml.write(DeviceYaml.HEADER, w.finish(ores)));
         Map<String, Object> covers = w.file();
         for (String type : HitboxDemands.GROUNDCOVER_TYPES.keySet()) {
-            w.single(covers, HitboxDemands.groundcoverId(type), "groundcover/" + type, DeviceSound.NETHER_WART,
+            w.single(covers, HitboxDemands.groundcoverId(type), "groundcover/" + type, DeviceSound.NETHER_WART.yaml(),
                 !VANILLA_ITEM_TYPES.contains(type));
         }
+        covers.put("block_state_mappings", w.mappings());
         out.put(GROUNDCOVER_OUTPUT, Yaml.write(DeviceYaml.HEADER, w.finish(covers)));
         writeLang(tfc, out);
-        return new Counts(w.blocks, w.states, w.modelCarriers, w.hitboxOnly);
+        return new Counts(w.blocks, w.states, w.modelCarriers, w.hitboxOnly, w.familySplit);
     }
 
     /** TFC's types, rocks, ores, settings and properties the generator depends on. */
@@ -223,11 +261,11 @@ public final class GroundcoverCeBlocks {
     }
 
     /** The settings of every groundcover block. */
-    static Map<String, Object> settings(DeviceSound sound) {
+    static Map<String, Object> settings(Map<String, Object> sounds) {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("hardness", HARDNESS);
         m.put("resistance", RESISTANCE);
-        m.put("sounds", sound.yaml());
+        m.put("sounds", new LinkedHashMap<>(sounds));
         m.put("push_reaction", "destroy");
         m.put("can_occlude", false);
         m.put("is_suffocating", false);
@@ -240,7 +278,9 @@ public final class GroundcoverCeBlocks {
         final TfcCheckout tfc;
         final OutputTree out;
         final Set<String> copied = new TreeSet<>();
-        final Map<String, String> hidden = new TreeMap<>();
+        final Map<String, String> hidden121 = new TreeMap<>();
+        final Map<String, String> hidden26 = new TreeMap<>();
+        int familySplit;
         int blocks;
         int states;
         int modelCarriers;
@@ -255,7 +295,6 @@ public final class GroundcoverCeBlocks {
             Map<String, Object> root = new LinkedHashMap<>();
             root.put("blocks", new LinkedHashMap<String, Object>());
             root.put("items", new LinkedHashMap<String, Object>());
-            root.put("block_state_mappings", new LinkedHashMap<String, Object>());
             return root;
         }
 
@@ -273,10 +312,25 @@ public final class GroundcoverCeBlocks {
         /** One appearance: the model list on a model carrier, or the first model as an item display on a hitbox-only one. */
         @SuppressWarnings("unchecked")
         Map<String, Object> appearance(Map<String, Object> root, String id, String name, List<Map<String, Object>> models) {
-            HitboxAllocation.Assignment a = HitboxAllocation.agreed(id, name);
             for (Map<String, Object> model : models) {
                 CropBlocks.copyModel(tfc, out, Json.FROM_NS + ((String) model.get("path")).substring(Json.TO_NS.length()), copied);
             }
+            Map<String, Object> old = appearance(root, agreed(id, name, VersionFamily.V1_21), models, hidden121);
+            Map<String, Object> current = appearance(root, agreed(id, name, VersionFamily.V26), models, hidden26);
+            if (old.equals(current)) {
+                return current;
+            }
+            // the families' carriers differ (26.x has newer vanilla states): a CraftEngine version selector
+            Map<String, Object> selector = new LinkedHashMap<>();
+            selector.put(NEW_FAMILY, current);
+            selector.put("$$fallback", old);
+            familySplit++;
+            return selector;
+        }
+
+        @SuppressWarnings("unchecked")
+        private Map<String, Object> appearance(Map<String, Object> root, HitboxAllocation.Assignment a,
+                List<Map<String, Object>> models, Map<String, String> hidden) {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("state", a.state());
             switch (a.mode()) {
@@ -301,13 +355,40 @@ public final class GroundcoverCeBlocks {
                     m.put("entity_renderer", List.of(renderer));
                     hitboxOnly++;
                 }
-                default -> throw new DatagenException(id + "#" + name + " got a " + a.mode() + " carrier; GroundcoverCeBlocks "
+                default -> throw new DatagenException(a.demand().id() + " got a " + a.mode() + " carrier; GroundcoverCeBlocks "
                     + "draws a model or item displays");
             }
-            if (a.hideTarget() != null && !a.pool() && hidden.putIfAbsent(a.state(), a.hideTarget()) == null) {
-                ((Map<String, Object>) root.get("block_state_mappings")).put(a.state(), a.hideTarget());
+            if (a.hideTarget() != null && !a.pool()) {
+                String prev = hidden.putIfAbsent(a.state(), a.hideTarget());
+                if (prev != null && !prev.equals(a.hideTarget())) {
+                    throw new DatagenException(a.state() + " hidden as both " + prev + " and " + a.hideTarget());
+                }
             }
             return m;
+        }
+
+        /**
+         * The hide mappings of every carrier used: those both families share as plain keys, the others under
+         * {@code $$>=26.1} or {@code $$<26.1}.
+         */
+        Map<String, Object> mappings() {
+            Map<String, Object> shared = new TreeMap<>();
+            Map<String, Object> onlyNew = new TreeMap<>();
+            Map<String, Object> onlyOld = new TreeMap<>();
+            hidden26.forEach((k, v) -> (v.equals(hidden121.get(k)) ? shared : onlyNew).put(k, v));
+            hidden121.forEach((k, v) -> {
+                if (!v.equals(hidden26.get(k))) {
+                    onlyOld.put(k, v);
+                }
+            });
+            Map<String, Object> result = new LinkedHashMap<>(shared);
+            if (!onlyNew.isEmpty()) {
+                result.put(NEW_FAMILY, onlyNew);
+            }
+            if (!onlyOld.isEmpty()) {
+                result.put(OLD_FAMILY, onlyOld);
+            }
+            return result;
         }
 
         @SuppressWarnings("unchecked")
@@ -331,7 +412,7 @@ public final class GroundcoverCeBlocks {
             st.put("appearances", appearances);
             st.put("variants", variants);
             Map<String, Object> entry = new LinkedHashMap<>();
-            entry.put("settings", settings(DeviceSound.STONE));
+            entry.put("settings", settings(DeviceSound.STONE.yaml()));
             entry.put("states", st);
             ((Map<String, Object>) root.get("blocks")).put(id, entry);
             loot(path);
@@ -343,7 +424,7 @@ public final class GroundcoverCeBlocks {
         }
 
         @SuppressWarnings("unchecked")
-        void single(Map<String, Object> root, String id, String path, DeviceSound sound, boolean blockItem) {
+        void single(Map<String, Object> root, String id, String path, Map<String, Object> sound, boolean blockItem) {
             JsonObject bs = blockstate(path);
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("settings", settings(sound));

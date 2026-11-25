@@ -46,6 +46,16 @@ final class GroundcoverBlocks {
         };
     }
 
+    /**
+     * PAR-WORLD-32: the CraftEngine block of a deposit block: {@code tfp:deposit/<mineral>/<rock>} for an ore deposit (the rock
+     * of the replaced gravel); null for the soil discs, whose blocks keep their placeholder until the soil families are
+     * written by the terrain.
+     */
+    static String ceId(DepositBlock block, String rockName) {
+        return block.kind() == dev.tfp.core.worldgen.deposit.DepositKind.ORE_DEPOSIT
+            ? "tfp:deposit/" + block.mineral() + "/" + rockName : null;
+    }
+
     /** The CraftEngine block of a boulder piece: {@code tfp:rock/<raw|cobble|mossy_cobble>/<rock>}. */
     static String ceId(Boulders.Block block, List<String> rockNames) {
         return "tfp:rock/" + block.material().name().toLowerCase(Locale.ROOT) + "/" + rockNames.get(block.rock());

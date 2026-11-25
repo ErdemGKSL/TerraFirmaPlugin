@@ -11,6 +11,7 @@ import dev.tfp.datagen.OutputTree;
 import dev.tfp.datagen.TfcCheckout;
 import dev.tfp.datagen.hitbox.HitboxAllocation;
 import dev.tfp.datagen.hitbox.HitboxDemands;
+import dev.tfp.datagen.visuals.VersionFamily;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,7 +61,8 @@ class GroundcoverCeBlocksTest {
         assertThat(blocks(GroundcoverCeBlocks.GROUNDCOVER_OUTPUT)).hasSize(17);
         assertThat(counts.blocks()).isEqualTo(42 + 12 + 17);
         assertThat(counts.states()).isEqualTo(42 * 3 + 12 + 17);
-        assertThat(counts.modelCarriers() + counts.hitboxOnly()).isEqualTo(42 * 3 + 12 + 17);
+        // each appearance is drawn once per version family
+        assertThat(counts.modelCarriers() + counts.hitboxOnly()).isEqualTo(2 * (42 * 3 + 12 + 17));
     }
 
     @Test
@@ -72,7 +74,8 @@ class GroundcoverCeBlocksTest {
             "default", 1));
         Map<String, Object> app = (Map<String, Object>) ((Map<String, Object>) states.get("appearances")).get("count_2");
         assertThat(app.get("transparent")).isEqualTo(true);
-        assertThat(app.get("state")).isEqualTo(HitboxAllocation.agreed("tfp:rock/mossy_loose/granite", "count_2").state());
+        assertThat(app.get("state")).isEqualTo(GroundcoverCeBlocks.agreed("tfp:rock/mossy_loose/granite", "count_2",
+            VersionFamily.V26).state());
         assertThat((List<Map<String, Object>>) app.get("entity_renderer")).singleElement()
             .satisfies(r -> assertThat(r.get("item")).isEqualTo("tfp:render/rock/loose/granite_2_mossy"));
         assertThat(out.get("craftengine/tfp/resourcepack/assets/tfp/models/block/rock/loose/granite_2_mossy.json")).isNotNull();
@@ -88,12 +91,16 @@ class GroundcoverCeBlocksTest {
         for (String file : List.of(GroundcoverCeBlocks.SMALL_ORE_OUTPUT, GroundcoverCeBlocks.GROUNDCOVER_OUTPUT)) {
             blocks(file).forEach((id, entry) -> {
                 Map<String, Object> state = (Map<String, Object>) ((Map<String, Object>) entry).get("state");
-                HitboxAllocation.Assignment a = HitboxAllocation.agreed(id, HitboxDemands.GROUNDCOVER_APPEARANCE);
-                assertThat(state.get("state")).as(id).isEqualTo(a.state());
-                if (a.mode() == HitboxAllocation.Mode.MODEL) {
-                    assertThat((List<Object>) state.get("models")).as(id).hasSizeGreaterThanOrEqualTo(4);
-                } else {
-                    assertThat(state.get("transparent")).as(id).isEqualTo(true);
+                for (VersionFamily f : VersionFamily.values()) {
+                    Map<String, Object> look = state.containsKey("$$fallback")
+                        ? (Map<String, Object>) state.get(f == VersionFamily.V26 ? GroundcoverCeBlocks.NEW_FAMILY : "$$fallback") : state;
+                    HitboxAllocation.Assignment a = GroundcoverCeBlocks.agreed(id, HitboxDemands.GROUNDCOVER_APPEARANCE, f);
+                    assertThat(look.get("state")).as(id).isEqualTo(a.state());
+                    if (a.mode() == HitboxAllocation.Mode.MODEL) {
+                        assertThat((List<Object>) look.get("models")).as(id).hasSizeGreaterThanOrEqualTo(4);
+                    } else {
+                        assertThat(look.get("transparent")).as(id).isEqualTo(true);
+                    }
                 }
             });
         }
