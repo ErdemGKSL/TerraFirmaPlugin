@@ -12,7 +12,7 @@ package dev.tfp.core.regrowth;
 
 /**
  * How a plant spreads over time: the {@code spreadSelf} arguments of its block class. Only the plants that spread by a random draw within
- * a range are here; creeping and floating water plants have their own rules (follow-up PAR-FARM-21).
+ * a range are here; creeping and floating water plants have their own rules ({@link CreepingRules}, {@link FloatingRules}, PAR-FARM-22).
  *
  * @param range     the largest offset of a new plant on each axis ({@code selfSpreadRange})
  * @param radius    the square radius checked for plants of the natural-regrowing set ({@code radius})

@@ -8,6 +8,7 @@ package dev.tfp.paper.regrowth;
 
 import dev.tfp.core.catchup.SweepArea;
 import dev.tfp.core.world.ChunkPos;
+import dev.tfp.core.worldwater.WaterKind;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
@@ -15,6 +16,7 @@ import dev.tfp.paper.recipe.ModifierExtensions;
 import dev.tfp.paper.recipe.Recipes;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tags.Tags;
+import dev.tfp.paper.worldwater.WorldWaterService;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.Bukkit;
@@ -24,7 +26,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 /**
- * PAR-FARM-11: plants that spread over time (the lazy sweep of grasses and tall plants, like {@code GrassModule}), flower cuttings from
+ * PAR-FARM-11, PAR-FARM-22: plants that spread over time (the lazy sweep of grasses, tall plants, creeping plants and floating water plants, like {@code GrassModule}), flower cuttings from
  * shearing a flower and the {@code tfc:flower_cutting} crafting modifier. A chunk is swept shortly after it loads and every
  * {@value #PERIOD_TICKS} ticks around each player. Must be listed after the tags and recipe modules.
  */
@@ -47,6 +49,13 @@ public final class RegrowthModule implements FeatureModule {
         Tags tags = context.services().require(Tags.class);
         CustomBlocks blocks = context.integrations().customBlocks();
         PlantSweeper sweeper = new PlantSweeper(blocks, tags, scheduler, RegrowthModule::randomTickSpeed, () -> context.clock().get());
+        sweeper.withWater(block -> {
+            try {
+                return context.services().get(WorldWaterService.class).map(w -> w.kindOf(block)).orElse(WaterKind.FRESH);
+            } catch (RuntimeException e) {
+                return WaterKind.FRESH; // a world without water terrain
+            }
+        });
         blocks.onChunkLoad(chunk -> {
             World world = chunk.getWorld();
             long delay = 60 + ThreadLocalRandom.current().nextInt(200);

@@ -53,6 +53,8 @@ class PlantRegrowthTest {
         try (InputStream in = getClass().getResourceAsStream("/dev/tfp/core/regrowth/plant-kinds.txt")) {
             String text = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             int spreading = 0;
+            int creeping = 0;
+            int floating = 0;
             for (String line : text.strip().split("\n")) {
                 String[] p = line.split(" ");
                 Optional<SpreadKind> kind = PlantKinds.of(p[0]);
@@ -65,9 +67,30 @@ class PlantRegrowthTest {
                         assertThat(kind).as(p[0]).contains(SpreadKind.TALL);
                         spreading++;
                     }
+                    case "creeping" -> {
+                        assertThat(kind).as(p[0]).isEmpty();
+                        assertThat(PlantKinds.creeping(p[0])).as(p[0]).contains(CreepKind.NORMAL);
+                        creeping++;
+                    }
+                    case "creeping_stone" -> {
+                        assertThat(kind).as(p[0]).isEmpty();
+                        assertThat(PlantKinds.creeping(p[0])).as(p[0]).contains(CreepKind.STONE);
+                        creeping++;
+                    }
+                    case "floating", "floating_fresh" -> {
+                        assertThat(kind).as(p[0]).isEmpty();
+                        assertThat(PlantKinds.floating(p[0])).as(p[0]).contains(p[1].equals("floating") ? FloatKind.SALT : FloatKind.FRESH);
+                        floating++;
+                    }
                     default -> assertThat(kind).as(p[0]).isEmpty();
                 }
+                if (!p[1].startsWith("creeping") && !p[1].startsWith("floating")) {
+                    assertThat(PlantKinds.creeping(p[0])).as(p[0]).isEmpty();
+                    assertThat(PlantKinds.floating(p[0])).as(p[0]).isEmpty();
+                }
             }
+            assertThat(creeping).isEqualTo(PlantKinds.CREEPING.size() + PlantKinds.CREEPING_STONE.size());
+            assertThat(floating).isEqualTo(PlantKinds.FLOATING_SALT.size() + PlantKinds.FLOATING_FRESH.size());
             assertThat(spreading).isEqualTo(PlantKinds.SHORT.size() + PlantKinds.TALL.size());
         }
     }

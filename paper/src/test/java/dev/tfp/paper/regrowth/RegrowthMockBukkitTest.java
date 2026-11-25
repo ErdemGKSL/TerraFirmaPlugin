@@ -55,4 +55,46 @@ class RegrowthMockBukkitTest extends MockServerTest {
         assertThat(PlantSweeper.winter(july, 8, true)).isFalse();
         assertThat(PlantSweeper.winter(july, 8, false)).isTrue();
     }
+
+    @Test
+    void aCreepingPlantCopiesTheParentAndSetsEachSide() {
+        BlockStateRef parent = BlockStateRef.of("tfp:plant/moss").with("age", "2").with("down", "true");
+        // bit i is side i: down, up, north, south, west, east
+        BlockStateRef child = PlantSweeper.creepState(parent, 0b100010);
+        assertThat(child.properties()).containsEntry("age", "2").containsEntry("down", "false").containsEntry("up", "true")
+            .containsEntry("north", "false").containsEntry("south", "false").containsEntry("west", "false").containsEntry("east", "true");
+    }
+
+    @Test
+    void creepFacesAskTheOppositeFaceAndTheKindsTag() {
+        java.util.Set<String> sturdy = new java.util.HashSet<>();
+        java.util.Set<String> tags = new java.util.HashSet<>();
+        PlantSweeper.GrowthLive live = new PlantSweeper.GrowthLive() {
+            @Override
+            public boolean sturdy(int x, int y, int z, dev.tfp.paper.plant.growth.Face face) {
+                return sturdy.contains(x + "," + y + "," + z + "," + face);
+            }
+
+            @Override
+            public boolean tagged(int x, int y, int z, String tag) {
+                return tags.contains(x + "," + y + "," + z + "," + tag);
+            }
+        };
+        // the block below (0, -1, 0) holds the plant by its UP face; the block to the east holds it by its WEST face
+        sturdy.add("0,-1,0,UP");
+        sturdy.add("1,0,0,WEST");
+        sturdy.add("-1,0,0,UP"); // the wrong face of the west neighbour: no ground
+        assertThat(PlantSweeper.creepFaces(live, 0, 0, 0, dev.tfp.core.regrowth.CreepKind.NORMAL, 0, 0)).isEqualTo(0b100001);
+        // ice, snow: the not-plantable tag takes a side out
+        tags.add("1,0,0," + PlantSweeper.CREEPING_NOT_ON);
+        assertThat(PlantSweeper.creepFaces(live, 0, 0, 0, dev.tfp.core.regrowth.CreepKind.NORMAL, 0, 0)).isEqualTo(0b000001);
+        // the stone kind needs the stone tag
+        assertThat(PlantSweeper.creepFaces(live, 0, 0, 0, dev.tfp.core.regrowth.CreepKind.STONE, 0, 0)).isZero();
+        tags.add("0,-1,0," + PlantSweeper.CREEPING_STONE_ON);
+        assertThat(PlantSweeper.creepFaces(live, 0, 0, 0, dev.tfp.core.regrowth.CreepKind.STONE, 0, 0)).isEqualTo(0b000001);
+        // a neighbour outside the chunk (z -1 is chunk -1) is not read, though its face is sturdy
+        sturdy.add("0,0,-1,SOUTH");
+        assertThat(PlantSweeper.creepFaces(live, 0, 0, 0, dev.tfp.core.regrowth.CreepKind.NORMAL, 0, 0) & 0b000100).isZero();
+        assertThat(PlantSweeper.creepFaces(live, 0, 0, 0, dev.tfp.core.regrowth.CreepKind.NORMAL, 0, -1) & 0b000100).isNotZero();
+    }
 }
