@@ -105,4 +105,21 @@ class PlantShapeGenTest {
         assertThat(PlantShapeGen.rotation(270, 90)).isEqualTo("90,90,0");
         assertThat(PlantShapeGen.rotation(180, 0)).isEqualTo("180,180,0");
     }
+
+    @Test
+    void dryPlantsTakeNoNewCarrier() {
+        // every profile and version family: the plant shapes share carriers other blocks already use (transparent)
+        for (dev.tfp.datagen.hitbox.HitboxAllocation.Result r : dev.tfp.datagen.hitbox.HitboxAllocation.standard().values()) {
+            Set<String> others = new HashSet<>();
+            Set<String> plants = new HashSet<>();
+            for (dev.tfp.datagen.hitbox.HitboxAllocation.Assignment a : r.assignments()) {
+                (a.demand().blockId().startsWith("tfp:plant/") ? plants : others).add(a.state());
+                if (a.demand().blockId().startsWith("tfp:plant/")) {
+                    assertThat(a.mode()).isEqualTo(dev.tfp.datagen.hitbox.HitboxAllocation.Mode.HITBOX_ONLY);
+                }
+            }
+            assertThat(plants).isNotEmpty().hasSizeLessThanOrEqualTo(3); // the berry bush and barrel rows may share one
+            assertThat(others).containsAll(plants);
+        }
+    }
 }

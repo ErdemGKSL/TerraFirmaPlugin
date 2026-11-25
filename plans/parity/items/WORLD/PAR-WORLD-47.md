@@ -2,7 +2,7 @@
 id: PAR-WORLD-47
 title: "Remaining plant shapes as CE blocks: water plants (waterlogged), creeping, epiphytes, vines, weeping/twisting columns, kelp, cacti, bamboo, intertidal plant-likes"
 area: WORLD
-status: open
+status: done
 wave: 27
 deps: [PAR-WORLD-12]
 size: L
@@ -25,6 +25,10 @@ files_owned:
   - "tools/datagen/src/test/java/dev/tfp/datagen/plant/shape/**"
   - "content/generated/content/craftengine/tfp/configuration/plant_water/**"
   - "content/generated/content/craftengine/tfp/configuration/plant_shape/**"
+  - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxDemands.java"
+  - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/GeneratedCarrierTest.java"
+  - "tools/datagen/src/test/java/dev/tfp/datagen/hitbox/HardcodedCarrierTest.java"
+  - "tools/datagen/src/main/java/dev/tfp/datagen/plant/PlantBlockGen.java"
 ui: false
 plan:
   - "Decision 2026-11-25 (world session, no owner needed): combine the options. Creeping plants, pipe plants and other rare/multiface shapes: hitbox-only vanilla carrier + entity_renderer item displays (0 pool states, like snow piles and PAR-WORLD-53). Water plants: one shared look per plant family per state class (kelp pool 25) with the species texture on the entity_renderer where families overflow. Record each as a ledger divergence. Commit WIP early."
@@ -32,6 +36,7 @@ plan:
   - "PAR-WORLD-12 generated the 13 land/floating block types (`dev.tfp.datagen.plant.PlantBlockGen.TYPES`; tripwire 123/126, sugar_cane 15/15, sapling 8/8 used). The other 31 types of Plant.java (70 plants) have no CE block: WATER(_FRESH), GRASS_WATER(_FRESH), TALL_WATER(_FRESH) need a waterlogged carrier and TFC's `fluid` property (kelp pool 25, seagrass/tall_seagrass once the worldgen placeholders are gone, else the hitbox selector's carriers + entity_renderer); CREEPING/CREEPING_STONE/OCEAN_* and EPIPHYTE are multi-face (6 booleans); VINE, WEEPING/TWISTING (+_TOP) are columns; CACTUS/BRANCHING_CACTUS need collision; BAMBOO/KELP/KELP_TREE have their own growth."
   - "Reuse PlantBlockGen's Blockstate/Assets helpers (make them package-visible if needed: they are in PAR-WORLD-12's glob, edit them minimally and say so) and its tint baking. Pick carriers with the hitbox selector (PAR-INFRA-13) where the pools are full; record pool and entity counts. Then give PlantBlocks.ceRef the new types (PAR-WORLD-46 file)."
   - "Move the plant-pool choice into the selector: PlantBlockGen picks tripwire/sugar_cane/sapling itself (HardcodedCarrierTest exempts it until then); model the plant pools in hitbox/ (carrier-policy pools) and remove the exemption. Also widen files_owned to hitbox/** for that step or split it out. BlockCoverage now names this item as the owner of the remaining plant/* blocks."
+  - "Done (2026-11-25): datagen `plant/shape/PlantShapeGen` writes the 70 plants of the 31 remaining types (`configuration/plant_shape`, `plant_water`), properties read from TFC's blockstates (half, faces, facing, age, open, leaves; waterlogged for the tall water plants). Kelp pool 25/25 (24 single-part water looks + one shared empty state), weeping_vines pool 14/25 (hanging vines, single-face jungle vines, empty), every other look one item display per model part on a hitbox-only carrier from `HitboxDemands.PLANT_SHAPE_ROWS` (39 dry plants on the crop quarter, berry bush and barrel rows, weight -100: no new carrier, no other carrier moved). files_owned widened (plan-authorised): HitboxDemands, the two hitbox carrier tests, and minimal PlantBlockGen edits (Assets public, plants(tfc, types), water/vine tint names). Tests: PlantShapeGenTest 5, GeneratedCarrierTest pins the 39 ids. Ledger: feature row + 6 divergences. The last plan line (plant pools into the selector) is split out as PAR-WORLD-55. ceRef for the new types: PAR-WORLD-46."
 tests:
   - "tools/datagen: counts vs Plant.java for every remaining type; pools within budget"
 done_criteria:
