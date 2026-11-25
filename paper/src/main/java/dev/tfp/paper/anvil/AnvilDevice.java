@@ -17,6 +17,7 @@ import dev.tfp.core.anvil.AnvilState;
 import dev.tfp.core.anvil.AnvilTiers;
 import dev.tfp.core.anvil.AnvilVisuals;
 import dev.tfp.core.device.DeviceRecord;
+import org.bukkit.block.Block;
 import dev.tfp.paper.device.DeviceContext;
 import dev.tfp.paper.device.DeviceHandler;
 import dev.tfp.paper.device.DeviceInventory;
@@ -59,13 +60,55 @@ public final class AnvilDevice {
      * @param effects the world effects
      * @param clicks  the clicks this device consumed (the other hand's event of the same click is cancelled)
      */
-    public record Services(Predicate<ItemStack> hammer, Predicate<ItemStack> flux, AnvilEffects effects, AnvilClicks clicks) {
+    public record Services(Predicate<ItemStack> hammer, Predicate<ItemStack> flux, AnvilEffects effects, AnvilClicks clicks,
+            Plans plans) {
         public Services {
             Objects.requireNonNull(hammer, "hammer");
             Objects.requireNonNull(flux, "flux");
             Objects.requireNonNull(effects, "effects");
             Objects.requireNonNull(clicks, "clicks");
+            Objects.requireNonNull(plans, "plans");
         }
+
+        /** Services without plan selection (the plain click does nothing). */
+        public Services(Predicate<ItemStack> hammer, Predicate<ItemStack> flux, AnvilEffects effects, AnvilClicks clicks) {
+            this(hammer, flux, effects, clicks, Plans.NONE);
+        }
+    }
+
+    /**
+     * PAR-METAL-04: the plan rules of the main input and the plan screen, which the anvil device calls. A change to the
+     * main input may select a plan (TFC {@code setAndUpdateSlots}), taking it out clears an unworked plan ({@code
+     * clearRecipeIfNotWorked}), and the plain click opens the screen.
+     */
+    public interface Plans {
+        /** No plans: nothing changes and the plain click passes. */
+        Plans NONE = new Plans() { };
+
+        /**
+         * After a hand change of the slots: the record to store (a default plan on the main input).
+         *
+         * @param tier the anvil's tier
+         */
+        default DeviceRecord<AnvilState> slotsChanged(Block block, int tier, DeviceRecord<AnvilState> record,
+                dev.tfp.paper.device.StackCodec stacks) {
+            return record;
+        }
+
+        /** A stack taken out of the main or second input by hand: the stack to hand over. */
+        default ItemStack taken(ItemStack stack) {
+            return stack;
+        }
+
+        /** The plain right click: opens the screen for {@code viewer}. */
+        default void open(Player viewer, Block block) {
+        }
+    }
+
+    /** What runs after the player chose a plan on the plan screen. */
+    @FunctionalInterface
+    public interface Chosen {
+        void chosen(Player viewer, Block block);
     }
 
     private AnvilDevice() {
@@ -111,7 +154,7 @@ public final class AnvilDevice {
                 for (int slot : AnvilSlots.BY_HAND_EXTRACT) {
                     if (!StackCodec.isEmpty(inv.get(slot))) {
                         DeviceInventory.Extract<AnvilState> taken = inv.extract(slot, 1);
-                        player.getInventory().setItem(hand, taken.extracted());
+                        player.getInventory().setItem(hand, services.plans().taken(taken.extracted()));
                         return finish(ctx, taken.inventory().record());
                     }
                 }
@@ -130,7 +173,20 @@ public final class AnvilDevice {
             return DeviceResult.pass();
         }
 
+        /** TFC {@code AnvilBlock.interactWithAnvil}, the not-sneaking branch: opens the anvil's screen. */
+        @Override
+        public DeviceResult<AnvilState> use(DeviceContext<AnvilState> ctx) {
+            Player player = ctx.player();
+            if (player == null || player.isSneaking()) {
+                return DeviceResult.pass();
+            }
+            services.plans().open(player, ctx.block());
+            services.clicks().mark(player);
+            return DeviceResult.consume();
+        }
+
         private DeviceResult<AnvilState> finish(DeviceContext<AnvilState> ctx, DeviceRecord<AnvilState> next) {
+            next = services.plans().slotsChanged(ctx.block(), AnvilTiers.tier(ctx.state().id()).orElse(0), next, ctx.stacks());
             services.effects().show(ctx.block(), view(ctx, next));
             if (ctx.player() != null) {
                 services.clicks().mark(ctx.player());

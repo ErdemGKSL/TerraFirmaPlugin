@@ -9,7 +9,11 @@
  */
 package dev.tfp.paper.anvil;
 
+import dev.tfp.paper.anvil.plan.AnvilPlanScreens;
+import dev.tfp.paper.anvil.plan.PlanBook;
 import dev.tfp.paper.device.DeviceService;
+import dev.tfp.paper.gui.GuiService;
+import dev.tfp.paper.recipe.Recipes;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.tags.Tags;
@@ -17,8 +21,8 @@ import dev.tfp.paper.tags.Tags;
 /**
  * PAR-METAL-03: the anvil blocks. Registers the device kinds of the metal and rock anvils with the device framework (the
  * blocks are written by datagen, {@code configuration/anvil/anvil.yml}) and the {@link AnvilListener}. Needs the tags and
- * device modules before it in the service file. The forging screens (PAR-METAL-04, PAR-METAL-05) and welding
- * (PAR-METAL-06) build on the same kinds.
+ * device modules before it in the service file. The plan selection screen (PAR-METAL-04, {@link AnvilPlanScreens}, also a
+ * module service) opens on the plain click; the forging screen (PAR-METAL-05) and welding (PAR-METAL-06) build on the same kinds.
  */
 public final class AnvilModule implements FeatureModule {
     public static final String ID = "anvil";
@@ -35,8 +39,14 @@ public final class AnvilModule implements FeatureModule {
         PaperAnvilEffects effects = new PaperAnvilEffects(context.scheduler(), context.integrations().customBlocks(),
             () -> context.integrations().blockVisuals());
         AnvilClicks clicks = new AnvilClicks();
+        Recipes recipes = context.services().require(Recipes.class);
+        AnvilPlanScreens plans = new AnvilPlanScreens(context.services().require(GuiService.class), context.scheduler(), devices,
+            new PlanBook(recipes), recipes,
+            context.integrations().customItems(), context.integrations().customBlocks(),
+            p -> context.messages().get(p, "gui.anvil.title"));
+        context.services().provide(AnvilPlanScreens.class, plans);
         AnvilDevice.Services services = new AnvilDevice.Services(stack -> tags.is(stack, AnvilDevice.HAMMERS),
-            stack -> tags.is(stack, AnvilDevice.FLUXES), effects, clicks);
+            stack -> tags.is(stack, AnvilDevice.FLUXES), effects, clicks, plans);
         devices.register(AnvilDevice.kind(AnvilDevice.METAL_ID, services));
         devices.register(AnvilDevice.kind(AnvilDevice.ROCK_ID, services));
         context.listen(new AnvilListener(context.integrations().customBlocks(), devices,
