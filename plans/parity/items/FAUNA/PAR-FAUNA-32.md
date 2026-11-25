@@ -2,7 +2,7 @@
 id: PAR-FAUNA-32
 title: "Pest infestation of large vessels and nest boxes (follow-up of PAR-FAUNA-13)"
 area: FAUNA
-status: open
+status: done
 wave: 46
 deps: [PAR-FAUNA-13]
 size: S
@@ -19,6 +19,7 @@ ui: false
 plan:
   - "PAR-FAUNA-13 infests chests on right click (CritterModule.infest(location, level, player), a service in ModuleServices). TFC also infests on PlayerContainerEvent.Open for the large vessel and nest box menus: the level is the food stacks in the container slots only (at most five), 0 when the enableInfestations option is off; LargeVesselContainer.canBeInfested is false while the vessel is sealed."
   - "Call it from the two screens' open paths with PestInfestation.openLevel(enabled, foodStacks)."
+  - "Done: NestBoxScreens.open rolls CritterModule.infest(box, PestInfestation.openLevel(true, foodStacks), viewer) with the c:foods stacks in the four slots (NestBoxInfestationMockBukkitTest, 3 tests). VesselScreens is the small vessel item screen, which is not a TFC PestContainer, and the large vessel has no screen yet (PAR-POT-06 is open): the large vessel half moved to PAR-FAUNA-38. In-game check pending (container cannot run client)."
 tests:
   - "paper: MockBukkit test that opening each screen rolls with the food count"
 done_criteria:
@@ -27,6 +28,5 @@ done_criteria:
 
 # PAR-FAUNA-32: Pest infestation of large vessels and nest boxes
 
-> Claimed: worker session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 Follow `plans/parity/PROTOCOL.md`.
