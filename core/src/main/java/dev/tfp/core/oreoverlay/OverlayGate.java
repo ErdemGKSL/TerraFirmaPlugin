@@ -26,12 +26,17 @@ public record OverlayGate(int cutoffBlocks, boolean outcropsFullRange) {
         }
     }
 
-    /** {@code ceil(cutoff / 16) + 1}: 4 chunks (81 chunks) for the default 48 m. */
+    /**
+     * {@code ceil(cutoff / 16)}: 3 chunks (49 chunks) for the default 40 m. PAR-WORLD-62: the smallest radius that covers the
+     * cutoff sphere from anywhere in the viewer's chunk (a block within {@code cutoff} of a viewer at local x in [0, 16) lies
+     * at most {@code floor((15 + cutoff) / 16) = ceil(cutoff / 16)} chunks away); the viewer set is reconciled whenever the
+     * viewer's chunk changes. The former {@code + 1} ring only added overlays the client never draws.
+     */
     public int radiusChunks() {
-        return cutoffBlocks == 0 ? -1 : (cutoffBlocks + 15) / 16 + 1;
+        return cutoffBlocks == 0 ? -1 : (cutoffBlocks + 15) / 16;
     }
 
-    /** The {@code view_range} of a cave overlay: {@code cutoff / 64} (0.75 for 48 m, at entity distance 100 %). */
+    /** The {@code view_range} of a cave overlay: {@code cutoff / 64} (0.625 for 40 m, at entity distance 100 %). */
     public float viewRange() {
         return cutoffBlocks / 64f;
     }

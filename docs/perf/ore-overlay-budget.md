@@ -57,8 +57,10 @@ The fixture recounts S1 exactly: the per-chunk and 20-sample radius p50/p95/max 
   - The raw 48 m count is still above the gate at p95 on seeds 1 and 3. That is the open S1 owner question. The test pins it at the S1
     values; it does not claim a pass.
   - The 3-chunk radius keeps p95 ≤ 5.7 k on every seed.
-- Radius formula. `OverlayGate.radiusChunks` is `ceil(cutoff / 16) + 1`, so a 40 m cutoff gives **4** chunks, not the 3 the
-  S1 doc assumes for its "40 m" option. The 3-chunk radius needs `cutoff-blocks ≤ 32`, or a change to the formula.
+- Radius formula. `OverlayGate.radiusChunks` was `ceil(cutoff / 16) + 1`, so a 40 m cutoff gave **4** chunks, not the 3 the
+  S1 doc assumes for its "40 m" option. PAR-WORLD-62 changed it to `ceil(cutoff / 16)` (the smallest radius covering the
+  sphere from anywhere in the viewer's chunk) and the default cutoff to 40 m: 3 chunks, 49 chunks. `OreOverlayBudgetTest`
+  pins S1's 4-chunk figures with an explicit 4-chunk gate and checks the default against the 3-chunk square.
   The test asserts both values, so the owner decision has to account for this.
 
 ### Table build CPU (core, `ExposedFaces.compute` only, this 4-core container, 2026-11-07)

@@ -39,8 +39,9 @@ import org.junit.jupiter.api.Test;
  *       the published census numbers, so a change of the table build that alters the face count fails here.</li>
  *   <li>Gate ({@value #GATE} overlays per player, {@code ore-overlay.max-per-player} default and the S1 gate): today's
  *       world (measured faces) stays within it at every sample; with the S1 combined estimate (TFC caves) the overlays a
- *       player is actually sent never exceed it (nearest-first cap), the 40 m cutoff (3-chunk radius) keeps p95 within it,
- *       and the raw 48 m p95 is pinned at S1's values (above the gate on seed 1: the open S1 owner question).</li>
+ *       player is actually sent never exceed it (nearest-first cap), the default 40 m cutoff (3-chunk radius, PAR-WORLD-62)
+ *       keeps p95 within it, and the raw 4-chunk p95 (S1's former 48 m square) is pinned at S1's values (above the gate on
+ *       seed 1: why the default moved to 40 m).</li>
  *   <li>CPU: the table build of the median, p95 and largest chunk stays within the design's 0.5 ms per chunk target
  *       (median of 20 timed runs after warm-up, with a generous margin for shared CI machines).</li>
  * </ul>
@@ -48,8 +49,10 @@ import org.junit.jupiter.api.Test;
 class OreOverlayBudgetTest {
     /** S1 gate and default {@code ore-overlay.max-per-player}. */
     static final int GATE = 8000;
-    /** Default {@code ore-overlay.cutoff-blocks}. */
-    static final int CUTOFF = 48;
+    /** Default {@code ore-overlay.cutoff-blocks} (PAR-WORLD-62). */
+    static final int CUTOFF = 40;
+    /** S1's published radius (its former 48 m square, 81 chunks): a cutoff of 64 m in {@code ceil(cutoff / 16)}. */
+    static final OverlayGate S1_FOUR_CHUNKS = new OverlayGate(64, true);
     /** design §4.3: table build target per chunk. */
     static final double BUILD_TARGET_MS = 0.5;
     /** Margin on the target for noisy shared CI cores (the test fails only far above the target). */
@@ -139,7 +142,8 @@ class OreOverlayBudgetTest {
         for (int i = 0; i < areas.size(); i++) {
             BudgetFixture.Area a = areas.get(i);
             CensusReport r = shell(a);
-            int radius = new OverlayGate(CUTOFF, true).radiusChunks();
+            int radius = S1_FOUR_CHUNKS.radiusChunks();
+            assertThat(radius).isEqualTo(4);
             assertThat(dist(faces(estimateTables.get(i)))).as("seed %d estimate per chunk", a.seed())
                     .isEqualTo(a.estimatePerChunk());
             assertThat(dist(r.radiusTotals(faces(estimateTables.get(i)), radius, a.seed())))
@@ -202,7 +206,7 @@ class OreOverlayBudgetTest {
 
     @Test
     void withTfcCavesAPlayerIsNeverSentMoreThanTheGate() {
-        OverlayGate gate = new OverlayGate(CUTOFF, true);
+        OverlayGate gate = S1_FOUR_CHUNKS;
         StringBuilder report = new StringBuilder("ore overlay budget, S1 combined estimate, 4-chunk radius, 20 samples:\n");
         for (int i = 0; i < areas.size(); i++) {
             BudgetFixture.Area a = areas.get(i);
@@ -212,7 +216,7 @@ class OreOverlayBudgetTest {
                 assertThat(sent[s]).as("seed %d sample %d", a.seed(), s).isEqualTo(Math.min(raw[s], GATE));
             }
             assertThat(Arrays.stream(sent).max().orElse(0)).as("seed %d entities per player", a.seed()).isLessThanOrEqualTo(GATE);
-            // the raw count is pinned at S1 (its p95 is above the gate on seed 1: the open owner question)
+            // the raw count is pinned at S1 (its p95 is above the gate on seed 1: why the default is 40 m, PAR-WORLD-62)
             assertThat(dist(raw)).isEqualTo(a.estimateGated());
             long capped = Arrays.stream(raw).filter(n -> n > GATE).count();
             report.append(String.format(Locale.ROOT,
@@ -225,10 +229,8 @@ class OreOverlayBudgetTest {
 
     @Test
     void aThreeChunkRadiusKeepsTheEstimateWithinTheGate() {
-        OverlayGate gate = new OverlayGate(40, true);
-        assertThat(gate.radiusChunks()).isEqualTo(4);
-        // ceil(40 / 16) + 1 = 4 as well; S1's "40 m" option is the 3-chunk square (49 chunks): cutoff 32 m in this formula
-        OverlayGate threeChunks = new OverlayGate(32, true);
+        // PAR-WORLD-62: the default 40 m is S1's "40 m" option, the 3-chunk square (49 chunks)
+        OverlayGate threeChunks = new OverlayGate(CUTOFF, true);
         assertThat(threeChunks.radiusChunks()).isEqualTo(3);
         StringBuilder report = new StringBuilder("ore overlay budget, S1 combined estimate, 3-chunk radius, 20 samples:\n");
         for (int i = 0; i < areas.size(); i++) {

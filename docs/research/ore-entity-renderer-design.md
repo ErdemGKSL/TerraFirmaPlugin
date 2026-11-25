@@ -174,6 +174,8 @@ It never degrades silently.
   ≈16 screen pixels at 1080p / FOV 70, so an ore speck is ≈1–2 pixels. The pop is low-contrast; S2 checks it with
   screenshots at 32/48/64 m.
 - Server side: faces are sent for chunks within `ceil(48/16) + 1 = 4` chunks (Chebyshev) of the player, i.e. 81 chunks.
+  **Superseded by PAR-WORLD-62:** default cutoff 40 m and radius `ceil(cutoff/16)` = 3 chunks (49 chunks), the S1 census
+  option 1 (`docs/spikes/S1-ore-overlay.md` §4).
   The send radius covers the client cutoff sphere, so the visible edge is always the client's sphere, never the server's
   chunk square.
 - Config: `ore-overlay.cutoff-blocks` (default 48), `ore-overlay.max-per-player` (8000),

@@ -131,7 +131,7 @@ class ConfigCodecTest {
     void defaultsAreLevel2OnBothFamiliesAndOnlyThreeProfilesExist() {
         assertThat(Profile.values()).extracting(Profile::id).containsExactly("level-0", "level-1", "level-2");
         assertThat(Visuals.DEFAULT_PROFILES).containsExactly(Map.entry("1.21", Profile.LEVEL_2), Map.entry("26", Profile.LEVEL_2));
-        assertThat(TfpConfig.DEFAULTS.oreOverlay()).isEqualTo(new OreOverlay(48, 8000, true));
+        assertThat(TfpConfig.DEFAULTS.oreOverlay()).isEqualTo(new OreOverlay(40, 8000, true));
         assertThat(Profile.byId("level-3a")).isEmpty();
     }
 

@@ -154,15 +154,16 @@ public record TfpConfig(Visuals visuals, OreOverlay oreOverlay, AutoInstall auto
     /**
      * {@code ore-overlay.*}: the exposed-face ore overlays (ARCHITECTURE.md §9.1, design
      * {@code docs/research/ore-entity-renderer-design.md} §3.4; read by the overlay runtime, PAR-INFRA-16). Defaults from the
-     * S1 verdict of PAR-WORLD-17 (unchanged: the owner question there is open).
+     * S1 census of PAR-WORLD-19 (PAR-WORLD-62: 40 m, the cutoff whose 3-chunk radius keeps p95 within the 8 k gate on every
+     * seed with caves).
      *
      * @param cutoffBlocks             client draw distance of a face overlay in blocks (sets {@code view_range} and the
-     *                                 server send radius {@code ceil(cutoff / 16) + 1} chunks)
+     *                                 server send radius {@code ceil(cutoff / 16)} chunks)
      * @param maxPerPlayer             face overlays sent to one player at most, nearest first
      * @param surfaceOutcropsFullRange faces at the surface (cliffs, outcrops) are sent within the full view distance
      */
     public record OreOverlay(int cutoffBlocks, int maxPerPlayer, boolean surfaceOutcropsFullRange) {
-        public static final OreOverlay DEFAULTS = new OreOverlay(48, 8000, true);
+        public static final OreOverlay DEFAULTS = new OreOverlay(40, 8000, true);
 
         public OreOverlay {
             if (cutoffBlocks < 0 || maxPerPlayer < 0) {

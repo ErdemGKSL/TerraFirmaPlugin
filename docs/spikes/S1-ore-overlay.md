@@ -226,7 +226,10 @@ Quads on real exposed faces of a stone quarry and the terrain around it (§1). F
 | Client frame time + ≤ 2 ms at 8 k | **Fails on the test client**: +6 ms average over 240 frames at 8 k (+2 ms at 2 k) on llvmpipe. A GPU measurement is still needed: **pending in-game check (container cannot run client)**, PAR-WORLD-19 |
 | Join MSPT unchanged within noise | Passes (2.4 → 1.9 ms at 8 k; 1.8 ms at 20 k) |
 
-**Owner question (recorded, defaults unchanged):** the overlay as designed needs a decision before PAR-INFRA-16:
+**Decided (PAR-WORLD-62, 2026-11-25): option 1.** Default `cutoff-blocks: 40` with the send radius `ceil(cutoff / 16)` = 3
+chunks (the former `+ 1` made 40 m a 4-chunk radius); `max-per-player` stays 8000.
+
+**Owner question (recorded):** the overlay as designed needs a decision before PAR-INFRA-16:
 1. **Lower the cutoff to 40 m** (3-chunk radius, 49 chunks): measured p95 3.1-7.6 k with caves (PAR-WORLD-19), within
    the 8 k cap at p95 on every seed, above it in 0-3.8 % of positions (max 11.2 k, where the cap then binds). Specks fade
    one ring earlier.

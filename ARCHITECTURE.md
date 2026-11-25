@@ -256,7 +256,7 @@ What CraftEngine offers beyond these pools: there is no CE setting that raises t
 hardness, tool tier, loot and sounds, but its appearance is the host rock's raw-rock visual (0 extra visual states; ore
 demand 1113 → 0). The ore texture is a packet-only `item_display` per exposed face (neighbour is air, fluid or
 non-occluding), placed in the neighbour cell and pulled back to 0.01 in front of the face, sent only to viewers within a
-4-chunk radius (≈48 m spherical client cutoff). Buried ores look exactly like rock (anti-xray bonus). Expected ≈1.8 k
+3-chunk radius (≈40 m spherical client cutoff; 48 m / 4 chunks until PAR-WORLD-62). Buried ores look exactly like rock (anti-xray bonus). Expected ≈1.8 k
 overlay entities per player typical, ≈7.8 k worst average. Design, budget, data flow (decide async on the CPU pool,
 publish on the chunk's region thread, same-tick fast path on the block-change packet), feel checklist and spikes:
 `docs/research/ore-entity-renderer-design.md`. Backlog: PAR-WORLD-17, PAR-INFRA-15/16/17, PAR-REL-12. `level-3a`/`3b`
@@ -281,8 +281,11 @@ faces per block; vanilla's carvers are more frequent than TFC's, so this proxy p
 ore (≤ 42 faces in 1024 chunks). Combined estimate within the 4-chunk radius: p95 6.8-9.4 k per player (8-17 % of positions
 above 8 k on 2 of 3 seeds); with a 40 m cutoff (radius 3) p95 4.6-6.2 k. Packets ≈ 120 B uncompressed per quad, server tick
 unchanged up to 8 k; client frame time +6 ms at 8 k (F3 + 2 average over 240 frames, quads on real faces) on the llvmpipe test client (GPU measurement pending, PAR-WORLD-19).
-Gate failed: **owner question open** (40 m cutoff, rely on the 8 k cap, a lower cap, or per-ore entities); the config
-defaults below are unchanged until it is answered. The census logic (`core/oreoverlay/census`, `ExposureRule`) is the
+Gate failed at 48 m; with caves (PAR-WORLD-19 census) 48 m gives p95 8.9 k / 11.3 k / 4.6 k on seeds 1-3 and 40 m (3-chunk
+radius) 7.0 k / 7.6 k / 3.1 k. **Decided (PAR-WORLD-62):** the default cutoff is 40 m and the send radius is the tight
+`ceil(cutoff/16)` (it covers the client sphere from anywhere in the viewer's chunk; the viewer set is reconciled on every
+chunk change), so 40 m sends 49 chunks. The cap stays 8000 (S1 recommended 6000 with option 1; open with the GPU
+measurement). The census logic (`core/oreoverlay/census`, `ExposureRule`) is the
 exposure rule PAR-INFRA-16 reuses.
 
 **Always on, in every profile:**
@@ -323,7 +326,7 @@ visuals:
   solid-reserve-warning: 500  # warn at startup if fewer free solid-pool slots remain for other CE packs
   use-nether-end-blocks: auto # auto = only if the server has no vanilla Nether/End (allow-nether / allow-end off)
 ore-overlay:
-  cutoff-blocks: 48           # client view_range cutoff; faces are sent for chunks within ceil(cutoff/16)+1
+  cutoff-blocks: 40           # client view_range cutoff; faces are sent for chunks within ceil(cutoff/16) (PAR-WORLD-62)
   max-per-player: 8000        # nearest first
   surface-outcrops-full-range: true
 ```
@@ -344,7 +347,7 @@ before `absent_minor`" tweak is **off** (decided by `VisualBudgetTest`): with `h
   cells, converges to the full build), `OreOverlayTable` (immutable: ore local indices, kind, face mask, outcrop mask),
   `FastPath` (provisional face changes for one block change, O(7) table lookups), `ViewerSet` (what one viewer was sent:
   reconcile nearest first under the cap and a spawn budget), `TokenBucket` (1000 burst, 25 per tick), `OverlayGate`
-  (radius `ceil(cutoff/16)+1`, `view_range` cutoff/64, outcrops full range).
+  (radius `ceil(cutoff/16)`, `view_range` cutoff/64, outcrops full range).
 - Triggers are the viewer's own packets (`OreOverlayPacketHandler`, Netty): `LOGIN`/`RESPAWN` reset the viewer (the client
   dropped its entities), `SET_CHUNK_CACHE_CENTER` re-gates chunks crossing the radius, `CHUNK_DATA` reconciles the chunk's
   faces (or queues a build), `UNLOAD_CHUNK` sends one removal, `BLOCK_CHANGE`/`MULTI_BLOCK_CHANGE` run the fast path and mark

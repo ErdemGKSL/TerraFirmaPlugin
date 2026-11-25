@@ -104,14 +104,35 @@ class ViewerSetTest {
 
     @Test
     void gateRadiusAndViewRange() {
-        OverlayGate g = new OverlayGate(48, true);
-        assertThat(g.radiusChunks()).isEqualTo(4);
-        assertThat(g.viewRange()).isEqualTo(0.75f);
-        assertThat(new OverlayGate(40, true).radiusChunks()).isEqualTo(4);
-        assertThat(new OverlayGate(32, true).radiusChunks()).isEqualTo(3);
-        assertThat(g.near(0, 0, 4, -4)).isTrue();
-        assertThat(g.near(0, 0, 5, 0)).isFalse();
+        // PAR-WORLD-62: the default 40 m sends 3 chunks (S1 census option 1), ceil(cutoff / 16)
+        OverlayGate g = new OverlayGate(40, true);
+        assertThat(g.radiusChunks()).isEqualTo(3);
+        assertThat(g.viewRange()).isEqualTo(0.625f);
+        assertThat(new OverlayGate(48, true).radiusChunks()).isEqualTo(3);
+        assertThat(new OverlayGate(49, true).radiusChunks()).isEqualTo(4);
+        assertThat(new OverlayGate(32, true).radiusChunks()).isEqualTo(2);
+        assertThat(new OverlayGate(0, true).radiusChunks()).isEqualTo(-1);
+        assertThat(g.near(0, 0, 3, -3)).isTrue();
+        assertThat(g.near(0, 0, 4, 0)).isFalse();
         assertThat(OverlayGate.fullViewRange(10)).isEqualTo(2.5f);
+    }
+
+    /**
+     * PAR-WORLD-62: the send radius covers the client's cutoff from anywhere in the viewer's chunk (every block within
+     * {@code cutoff} horizontally is in a near chunk) and is the smallest radius that does.
+     */
+    @Test
+    void gateRadiusCoversTheCutoffFromAnywhereInTheChunkAndIsTight() {
+        for (int cutoff = 1; cutoff <= 160; cutoff++) {
+            OverlayGate g = new OverlayGate(cutoff, true);
+            int farthest = 0;
+            for (int local = 0; local < 16; local++) {
+                // the viewer at local + 0.999 reaches local + 0.999 + cutoff; at local reaches local - cutoff
+                farthest = Math.max(farthest, Math.floorDiv(local + cutoff, 16));
+                farthest = Math.max(farthest, -Math.floorDiv(local - cutoff, 16));
+            }
+            assertThat(g.radiusChunks()).as("cutoff %d", cutoff).isEqualTo(farthest);
+        }
     }
 
     @Test

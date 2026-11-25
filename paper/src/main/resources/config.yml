@@ -21,12 +21,13 @@ visuals:
 
 # Ore face overlays: the ore texture is drawn only on faces a player can see.
 # cutoff-blocks: how far (in blocks) an overlay is drawn; overlays are sent for chunks within
-#   ceil(cutoff-blocks / 16) + 1 chunks of the player.
+#   ceil(cutoff-blocks / 16) chunks of the player (40 -> 3 chunks; 48 or more raises the overlay
+#   count above 8000 per player near rich veins in caves).
 # max-per-player: most overlays one player is sent at once (nearest first).
 # surface-outcrops-full-range: ore faces at the surface (cliffs, outcrops) are drawn within the
 #   full view distance, like TFC, so surface prospecting works.
 ore-overlay:
-  cutoff-blocks: 48
+  cutoff-blocks: 40
   max-per-player: 8000
   surface-outcrops-full-range: true
 
