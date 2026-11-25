@@ -283,6 +283,19 @@ public final class HitboxDemands {
     /** PAR-POT-13: served after every other demand (the placed item block moves no carrier of another block). */
     static final int PLACED_ITEM_WEIGHT = -102;
 
+    /** PAR-FAUNA-36: the lobster trap, one hitbox-only appearance per (facing, trap) on TFC's full-block outline row. */
+    public static final String LOBSTER_TRAP_ID = "tfp:lobster_trap";
+    public static final String LOBSTER_TRAP_ROW = "tfc:lobster_trap";
+    /** TFC's {@code TrapState} in declaration order. */
+    public static final List<String> LOBSTER_TRAP_STATES = List.of("open", "baited", "closed");
+    /** PAR-FAUNA-36: served after every other demand (adding the trap moves no carrier of another block). */
+    static final int LOBSTER_TRAP_WEIGHT = -103;
+
+    /** PAR-FAUNA-36: the appearance of a lobster trap state ({@code north_open}; the fluid draws no appearance). */
+    public static String lobsterTrapAppearance(String facing, String trap) {
+        return facing + "_" + trap;
+    }
+
     /**
      * PAR-CLIM-04: TFC's weather blocks. The snow pile ({@code tfc:snow_pile[layers=1..8]}) draws vanilla's snow models;
      * vanilla snow's own states are mostly taken (other blocks' carriers and their hide targets), so every pile appearance
@@ -578,6 +591,14 @@ public final class HitboxDemands {
         // are item displays).
         d.add(new Demand(dev.tfp.datagen.placed.PlacedItemBlock.ID, dev.tfp.datagen.placed.PlacedItemBlock.APPEARANCE,
             dev.tfp.datagen.placed.PlacedItemBlock.DEMAND_KEY, 0, HitboxAllocation.TRANSPARENT, true, PLACED_ITEM_WEIGHT));
+        // PAR-FAUNA-36: the lobster trap (TFC LobsterTrapBlock, Shapes.block(), noOcclusion), every (facing, trap) appearance
+        // hitbox-only on one carrier, drawn empty; TFC's open, bait or closed model is an item display turned per facing.
+        for (String f : FACINGS) {
+            for (String t : LOBSTER_TRAP_STATES) {
+                d.add(new Demand(LOBSTER_TRAP_ID, lobsterTrapAppearance(f, t), LOBSTER_TRAP_ROW, 0,
+                    HitboxAllocation.TRANSPARENT, true, LOBSTER_TRAP_WEIGHT));
+            }
+        }
         // PAR-HEAT-35 (owner decision 2026-11-18, was PAR-HEAT-23's four model carriers): every (lit, axis) appearance of
         // the firepit is hitbox-only on one shared carrier, drawn empty; TFC's lit or unlit model is an item display
         // turned per axis (Firepit), as the grill's.

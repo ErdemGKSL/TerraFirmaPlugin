@@ -139,8 +139,7 @@ public final class BlockCoverage {
         Owner.of("firebox|stove|stove_pot", "PAR-HEAT-31", "firebox block, stove and stove pot"),
         Owner.of("torch|wall_torch|dead_torch|dead_wall_torch", "PAR-HEAT-21", "torches and dead torches"),
         Owner.of("thermometer|anemometer|vane|calendar_clock", "PAR-CLIM-09", "climate instruments"),
-        Owner.of("nest_box", "PAR-FAUNA-07", "nest box"),
-        Owner.of("lobster_trap", "PAR-FAUNA-19", "lobster trap"));
+        Owner.of("nest_box", "PAR-FAUNA-07", "nest box"));
 
     /** TFC blocks that are not parity targets: the NOT-PARITY.md entry that replaces them (checked by the test). */
     public static final List<Owner> NOT_PARITY = List.of(
