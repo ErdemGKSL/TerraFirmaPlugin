@@ -41,4 +41,6 @@ done_criteria:
 
 # PAR-DECO-26: Chest extras (follow-up of PAR-DECO-04)
 
+> Claimed: claude session_011osUp8LgspZkGFjFNWFDqQ (DECO helper), 2026-11-25
+
 All fields live in the front matter above. Follow `plans/parity/PROTOCOL.md`. PAR-DECO-04 shipped the blocks (`dev.tfp.datagen.chest.ChestBlocks`, `configuration/chest/<wood>.yml`), the models of `ChestModels`, the device kinds, the screens and the pairing (`paper/chest`, `core/chest`).
