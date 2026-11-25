@@ -26,6 +26,8 @@ done_criteria:
   - "A glass blowpipe gets the powder step from a powder bowl in game (docs/verification/PAR-PROC-55/)"
 ---
 
-# PAR-PROC-55: Powder bowl: the soda ash step is not written back to the glass blowpipe
+# PAR-PROC-55
+
+> Claimed: PROC worker session_011osUpAUVyyokAxf5Kiw72D, 2026-11-25: Powder bowl: the soda ash step is not written back to the glass blowpipe
 
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.
