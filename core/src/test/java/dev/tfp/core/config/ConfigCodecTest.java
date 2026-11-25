@@ -82,6 +82,15 @@ class ConfigCodecTest {
     }
 
     @Test
+    void thePaperLayersRawSectionsAreKnownTopLevelKeys() {
+        var parsed = ConfigCodec.parse(Map.of("bloomery", Map.of("x", 1), "blast-furnace", Map.of("x", 1),
+            "pit-kiln", Map.of("ticks", 1)));
+        assertThat(parsed.warnings()).noneMatch(w -> w.contains("unknown key"));
+        assertThat(ConfigCodec.parse(Map.of("blooomery", Map.of())).warnings())
+            .anyMatch(w -> w.contains("unknown key 'blooomery' (ignored)"));
+    }
+
+    @Test
     void unknownKeysAreWarningsNotFailures() {
         Map<String, Object> root = Map.of(
                 "visual", Map.of(),
