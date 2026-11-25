@@ -9,7 +9,8 @@
  * AvoidPredatorsBehavior.java (isAvoided), src/main/java/net/dries007/tfc/common/entities/ai/prey/
  * AvoidPredatorAndRammersBehavior.java (create), src/main/java/net/dries007/tfc/common/entities/ai/prey/PreyAi.java
  * (createIdleMovementBehaviors is not ported here), src/main/java/net/dries007/tfc/common/entities/prey/Prey.java
- * (hurt)
+ * (hurt); the away-position draw follows vanilla 1.21.1 SetWalkTargetAwayFrom / LandRandomPos.getPosAway /
+ * RandomPos.generateRandomDirectionWithinRadians, which TFC calls
  */
 package dev.tfp.core.prey;
 
@@ -26,13 +27,18 @@ import dev.tfp.core.calendar.CalendarTicks;
  * <p>The rules are:
  * <ul>
  *   <li>Trigger ({@link #trigger}): when not already fleeing, the nearest sighting that is avoided becomes the threat.
- *       TFC has no distance check of its own here; the sensor decides what is visible.</li>
- *   <li>Retreat length ({@link #retreatTicks}): uniform in 7 to 22 seconds, in player ticks, drawn by the caller.</li>
+ *       TFC has no distance check of its own here; the sensor decides what is visible. The sighting memory is set
+ *       with no expiry ({@link #sighted}): only the 20-block rule ends that flee.</li>
+ *   <li>Retreat length ({@link #retreatTicks}): uniform in 7 to 22 seconds, in player ticks, drawn by the caller. Only the
+ *       memory set from a hit ({@link #hurt}, {@link #broadcast}) carries it.</li>
+ *   <li>Run ({@link #runsAway}): a new walk target away from the threat is chosen only while the threat is closer than
+ *       15 blocks ({@code SetWalkTargetAwayFrom.entity(AVOID_TARGET, 1.1F, 15, false)}), at speed 1.1.</li>
  *   <li>Stop ({@link #wantsToStopFleeing}): the memory has expired, or the threat is more than 20 blocks away
  *       (the squared distance is strictly greater than 400).</li>
  *   <li>Hurt ({@link #hurt}): only while fleeing, and only from a different entity type, the attacker replaces the threat.</li>
  *   <li>Friends ({@link #broadcast}): a same-type friend that sees the attacker takes the nearer of its own threat and the attacker.</li>
- *   <li>Flee target ({@link #fleeTarget}): 15 blocks directly away from the threat, with the caller's radius scale and angle offset.</li>
+ *   <li>Away position ({@link #awayOffset}): vanilla's {@code getPosAway(mob, 16, 7, threat)} candidate, a random point
+ *       within a half-circle facing away from the threat, at most 16 blocks out on each axis.</li>
  * </ul>
  *
  * <p>Out of scope: the brain, the activities and priorities, the sensors, the walk and look targets, the {@code AnimalPanic}
@@ -51,8 +57,20 @@ public final class PreyFlee {
     public static final int RETREAT_MIN_TICKS = RETREAT_MIN_SECONDS * CalendarTicks.PLAYER_TICKS_PER_SECOND;
     public static final int RETREAT_MAX_TICKS = RETREAT_MAX_SECONDS * CalendarTicks.PLAYER_TICKS_PER_SECOND;
 
-    /** The horizontal radius passed to TFC's {@code SetWalkTargetAwayFrom.entity(AVOID_TARGET, 1.1F, 15, false)}. */
-    public static final double FLEE_RADIUS_BLOCKS = 15.0;
+    /** TFC {@code SetWalkTargetAwayFrom.entity(AVOID_TARGET, 1.1F, 15, false)}: a new away target only while closer than 15. */
+    public static final int AWAY_DISTANCE = 15;
+
+    /** TFC's speed modifier for the run ({@code 1.1F}); the armadillo uses {@code 2.0F}. */
+    public static final float FLEE_SPEED = 1.1f;
+    public static final float ARMADILLO_FLEE_SPEED = 2.0f;
+
+    /** Vanilla {@code LandRandomPos.getPosAway(mob, 16, 7, pos)} as called by {@code SetWalkTargetAwayFrom}. */
+    public static final int AWAY_HORIZONTAL = 16;
+    public static final int AWAY_VERTICAL = 7;
+
+    /** A block offset from the prey's block position. */
+    public record Offset(int dx, int dy, int dz) {
+    }
 
     private PreyFlee() {
     }
@@ -68,13 +86,26 @@ public final class PreyFlee {
      * @return the new threat, or empty when already fleeing or no sighting is avoided
      */
     public static Optional<Sighting> trigger(boolean fleeing, Position prey, List<Sighting> visible) {
+        return trigger(fleeing, prey, visible, Avoidance.PREDATORS_PLAYERS_AND_RAMMERS);
+    }
+
+    /**
+     * The trigger for a given brain's {@link Avoidance} form.
+     *
+     * @param fleeing   {@code true} if the {@code AVOID_TARGET} memory is present
+     * @param prey      the prey animal's position
+     * @param visible   the visible living entities
+     * @param avoidance which sightings this brain avoids
+     * @return the new threat, or empty
+     */
+    public static Optional<Sighting> trigger(boolean fleeing, Position prey, List<Sighting> visible, Avoidance avoidance) {
         if (fleeing) {
             return Optional.empty();
         }
         Sighting best = null;
         double bestDistance = Double.POSITIVE_INFINITY;
         for (Sighting sighting : visible) {
-            if (!sighting.avoided()) {
+            if (!avoidance.avoids(sighting)) {
                 continue;
             }
             final double distance = prey.distanceSq(sighting.at());
@@ -108,6 +139,28 @@ public final class PreyFlee {
             throw new IllegalArgumentException("offset outside [0, " + (RETREAT_MAX_TICKS - RETREAT_MIN_TICKS) + "]: " + offset);
         }
         return RETREAT_MIN_TICKS + offset;
+    }
+
+    /**
+     * The memory set by {@code AvoidPredatorsBehavior}: {@code avoiding.set(closest)}, with no expiry. The flee ends only by
+     * {@link #wantsToStopFleeing} (threat more than 20 blocks away) or when the threat is gone.
+     *
+     * @param threatType the sighted threat's type
+     * @return the new state
+     */
+    public static FleeState sighted(String threatType) {
+        return new FleeState(threatType, Long.MAX_VALUE);
+    }
+
+    /**
+     * Whether the run picks a new walk target away from the threat: vanilla {@code mob.closerThan(pos, 15)}, a squared
+     * distance strictly below {@code 15 * 15}. Between 15 and 20 blocks the prey stays in the avoid activity and idles.
+     *
+     * @param threatDistanceSq the squared distance to the threat
+     * @return {@code true} to run away
+     */
+    public static boolean runsAway(double threatDistanceSq) {
+        return threatDistanceSq < AWAY_DISTANCE * AWAY_DISTANCE;
     }
 
     /**
@@ -171,39 +224,66 @@ public final class PreyFlee {
      */
     public static FleeState broadcast(Position friendPosition, FleeState friendState, long friendNowTick,
                                       Position currentThreat, Sighting attacker, int retreatTicks) {
-        final boolean hasThreat = friendState.isActive(friendNowTick) && currentThreat != null;
-        if (!hasThreat) {
-            return startFlee(friendNowTick, attacker.type(), retreatTicks);
-        }
-        // Vanilla getCloserEntity: keep the current threat unless the attacker is strictly closer.
-        final boolean attackerCloser = friendPosition.distanceSq(attacker.at()) < friendPosition.distanceSq(currentThreat);
-        final String nearest = attackerCloser ? attacker.type() : friendState.threatType();
+        final String nearest = friendTakesAttacker(friendPosition, friendState, friendNowTick, currentThreat, attacker.at())
+            ? attacker.type() : friendState.threatType();
         return startFlee(friendNowTick, nearest, retreatTicks);
     }
 
     /**
-     * The flee target: a point {@code FLEE_RADIUS_BLOCKS * radiusScale} blocks from the prey in the direction away from the
-     * threat, rotated by {@code angleOffsetRadians}. The caller draws the scale and the offset (TFC's
-     * {@code DefaultRandomPos} candidate is vanilla and not in the TFC tree). The Y is kept at the prey's Y.
+     * Which entity {@link #broadcast} keeps: the attacker when the friend has no active threat, or when the attacker is
+     * strictly closer (vanilla {@code BehaviorUtils.getNearestTarget}); otherwise the friend's own threat.
      *
-     * <p>When the prey and the threat share a horizontal position, the base direction is the +x axis.
-     *
-     * @param prey                the prey position
-     * @param threat              the threat position
-     * @param radiusScale         the fraction of the radius, in (0, 1]
-     * @param angleOffsetRadians  the rotation added to the away direction
-     * @return the target position
-     * @throws IllegalArgumentException if the scale is outside (0, 1]
+     * @return {@code true} if the friend's new threat is the attacker
      */
-    public static Position fleeTarget(Position prey, Position threat, double radiusScale, double angleOffsetRadians) {
-        if (!(radiusScale > 0.0 && radiusScale <= 1.0)) {
-            throw new IllegalArgumentException("radiusScale outside (0, 1]: " + radiusScale);
+    public static boolean friendTakesAttacker(Position friendPosition, FleeState friendState, long friendNowTick,
+                                              Position currentThreat, Position attacker) {
+        if (!friendState.isActive(friendNowTick) || currentThreat == null) {
+            return true;
         }
-        final double dx = prey.x() - threat.x();
-        final double dz = prey.z() - threat.z();
-        final double base = (dx == 0.0 && dz == 0.0) ? 0.0 : Math.atan2(dz, dx);
-        final double angle = base + angleOffsetRadians;
-        final double distance = FLEE_RADIUS_BLOCKS * radiusScale;
-        return new Position(prey.x() + Math.cos(angle) * distance, prey.y(), prey.z() + Math.sin(angle) * distance);
+        return friendPosition.distanceSq(attacker) < friendPosition.distanceSq(currentThreat);
+    }
+
+    /**
+     * Vanilla {@code RandomPos.generateRandomDirectionWithinRadians(random, 16, 7, 0, dx, dz, PI / 2)}, the candidate of
+     * {@code getPosAway}: an angle within a quarter turn either side of the away direction, a radius of
+     * {@code sqrt(u) * sqrt(2) * 16}, rejected when either horizontal offset exceeds 16. The draws are in vanilla order:
+     * {@code nextFloat} (angle), {@code nextDouble} (radius), then {@code nextInt(15)} (height) only when accepted.
+     *
+     * @param awayX  the prey x minus the threat x
+     * @param awayZ  the prey z minus the threat z
+     * @param random the draws
+     * @return the block offset from the prey, or empty when the candidate is rejected
+     */
+    public static Optional<Offset> awayOffset(double awayX, double awayZ, RandomGenerator random) {
+        final float angleDraw = random.nextFloat();
+        final double radiusDraw = random.nextDouble();
+        final Optional<double[]> xz = awayXz(awayX, awayZ, angleDraw, radiusDraw);
+        if (xz.isEmpty()) {
+            return Optional.empty();
+        }
+        final int dy = random.nextInt(2 * AWAY_VERTICAL + 1) - AWAY_VERTICAL;
+        return Optional.of(new Offset((int) Math.floor(xz.get()[0]), dy, (int) Math.floor(xz.get()[1])));
+    }
+
+    /**
+     * The horizontal part of {@link #awayOffset} for given draws.
+     *
+     * @param awayX      the prey x minus the threat x
+     * @param awayZ      the prey z minus the threat z
+     * @param angleDraw  the {@code nextFloat()} draw in [0, 1)
+     * @param radiusDraw the {@code nextDouble()} draw in [0, 1)
+     * @return {x, z}, or empty when rejected
+     */
+    public static Optional<double[]> awayXz(double awayX, double awayZ, float angleDraw, double radiusDraw) {
+        final double maxAngle = (float) Math.PI / 2F;
+        final double base = Math.atan2(awayZ, awayX) - (double) ((float) Math.PI / 2F);
+        final double angle = base + (double) (2.0F * angleDraw - 1.0F) * maxAngle;
+        final double radius = Math.sqrt(radiusDraw) * (double) (float) Math.sqrt(2.0F) * AWAY_HORIZONTAL;
+        final double x = -radius * Math.sin(angle);
+        final double z = radius * Math.cos(angle);
+        if (Math.abs(x) > AWAY_HORIZONTAL || Math.abs(z) > AWAY_HORIZONTAL) {
+            return Optional.empty();
+        }
+        return Optional.of(new double[] {x, z});
     }
 }

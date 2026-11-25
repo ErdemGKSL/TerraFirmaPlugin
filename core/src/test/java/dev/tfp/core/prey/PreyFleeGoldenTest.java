@@ -56,8 +56,12 @@ class PreyFleeGoldenTest {
         assertThat(PreyFlee.RETREAT_MIN_TICKS).isEqualTo(140);
         assertThat(PreyFlee.RETREAT_MAX_TICKS).isEqualTo(440);
         assertThat(CalendarTicks.PLAYER_TICKS_PER_SECOND).isEqualTo(20);
-        // SetWalkTargetAwayFrom.entity(..., 15, ...)
-        assertThat(PreyFlee.FLEE_RADIUS_BLOCKS).isEqualTo(15.0);
+        // SetWalkTargetAwayFrom.entity(AVOID_TARGET, 1.1F, 15, false) and getPosAway(mob, 16, 7, pos)
+        assertThat(PreyFlee.AWAY_DISTANCE).isEqualTo(15);
+        assertThat(PreyFlee.FLEE_SPEED).isEqualTo(1.1f);
+        assertThat(PreyFlee.ARMADILLO_FLEE_SPEED).isEqualTo(2.0f);
+        assertThat(PreyFlee.AWAY_HORIZONTAL).isEqualTo(16);
+        assertThat(PreyFlee.AWAY_VERTICAL).isEqualTo(7);
     }
 
     @Test
@@ -172,30 +176,61 @@ class PreyFleeGoldenTest {
     }
 
     @Test
-    void fleeTargetIsFifteenBlocksDirectlyAwayFromTheThreat() {
-        // prey at x = 10, threat at x = 0: away is +x; scale 1 and offset 0 give x = 25
-        final Position target = PreyFlee.fleeTarget(new Position(10, 64, 0), ORIGIN, 1.0, 0.0);
-        assertThat(target.x()).isCloseTo(25.0, org.assertj.core.api.Assertions.within(1e-9));
-        assertThat(target.z()).isCloseTo(0.0, org.assertj.core.api.Assertions.within(1e-9));
-        assertThat(target.y()).isEqualTo(64.0);
-        // half the radius: 7.5 blocks away
-        final Position half = PreyFlee.fleeTarget(new Position(10, 64, 0), ORIGIN, 0.5, 0.0);
-        assertThat(half.x()).isCloseTo(17.5, org.assertj.core.api.Assertions.within(1e-9));
+    void awayCandidateWithCentreDrawsPointsStraightAwayFromTheThreat() {
+        // angle draw 0.5 -> no offset; radius draw 0.5 -> sqrt(0.5) * sqrt(2) * 16 = 16 (float sqrt(2) rounding)
+        final double[] xz = PreyFlee.awayXz(10, 0, 0.5f, 0.5).orElseThrow();
+        assertThat(xz[0]).isCloseTo(16.0, org.assertj.core.api.Assertions.within(1e-5));
+        // vanilla subtracts the float PI / 2, so the straight-away point is off by about 1e-6
+        assertThat(xz[1]).isCloseTo(0.0, org.assertj.core.api.Assertions.within(1e-5));
+        // away along -z: the candidate is on -z
+        final double[] south = PreyFlee.awayXz(0, -3, 0.5f, 0.25).orElseThrow();
+        assertThat(south[0]).isCloseTo(0.0, org.assertj.core.api.Assertions.within(1e-5));
+        assertThat(south[1]).isCloseTo(-Math.sqrt(0.25) * (float) Math.sqrt(2.0f) * 16, org.assertj.core.api.Assertions.within(1e-5));
     }
 
     @Test
-    void fleeTargetRotatesByTheDrawnOffset() {
-        // a quarter turn from +x is +z: prey (10, 0) gets (10, 15)
-        final Position target = PreyFlee.fleeTarget(new Position(10, 64, 0), ORIGIN, 1.0, Math.PI / 2);
-        assertThat(target.x()).isCloseTo(10.0, org.assertj.core.api.Assertions.within(1e-9));
-        assertThat(target.z()).isCloseTo(15.0, org.assertj.core.api.Assertions.within(1e-9));
+    void awayCandidateTurnsAtMostAQuarterTurnAndRejectsOutOfRange() {
+        // angle draw 1 -> +PI/2: away +x becomes +z
+        final double[] turned = PreyFlee.awayXz(1, 0, 1.0f, 0.25).orElseThrow();
+        assertThat(turned[0]).isCloseTo(0.0, org.assertj.core.api.Assertions.within(1e-6));
+        assertThat(turned[1]).isGreaterThan(0.0);
+        // radius draw 0.99 straight away: 0.995 * 22.6 = 22.5 > 16, rejected (vanilla returns null)
+        assertThat(PreyFlee.awayXz(1, 0, 0.5f, 0.99)).isEmpty();
+        // a diagonal at full radius stays within 16 on both axes and is accepted
+        assertThat(PreyFlee.awayXz(1, 1, 0.5f, 0.99)).isPresent();
     }
 
     @Test
-    void colocatedThreatUsesThePositiveXAxis() {
-        final Position target = PreyFlee.fleeTarget(ORIGIN, ORIGIN, 1.0, 0.0);
-        assertThat(target.x()).isCloseTo(15.0, org.assertj.core.api.Assertions.within(1e-9));
-        assertThat(target.z()).isCloseTo(0.0, org.assertj.core.api.Assertions.within(1e-9));
+    void runsAwayOnlyWhileCloserThanFifteenBlocks() {
+        assertThat(PreyFlee.runsAway(224.99)).isTrue();
+        assertThat(PreyFlee.runsAway(225.0)).isFalse();
+    }
+
+    @Test
+    void sightedMemoryHasNoExpiry() {
+        // AvoidPredatorsBehavior: avoiding.set(closest) without expiry; only distance ends it
+        final FleeState seen = PreyFlee.sighted("minecraft:player");
+        assertThat(seen.isActive(Long.MAX_VALUE - 1)).isTrue();
+        assertThat(PreyFlee.wantsToStopFleeing(seen, 1_000_000, 400.0)).isFalse();
+        assertThat(PreyFlee.wantsToStopFleeing(seen, 1_000_000, 401.0)).isTrue();
+    }
+
+    @Test
+    void avoidanceFormsMatchEachBrain() {
+        // rammers (AvoidPredatorsBehavior.create(true)): players and rammers are not feared, predators are
+        assertThat(Avoidance.PREDATORS_ONLY.avoids(player(2, false))).isFalse();
+        assertThat(Avoidance.PREDATORS_ONLY.avoids(boar(2))).isFalse();
+        assertThat(Avoidance.PREDATORS_ONLY.avoids(bear(2))).isTrue();
+        // armadillo (AvoidPredatorAndRammersBehavior.create(true)): rammers and predators, not players
+        assertThat(Avoidance.PREDATORS_AND_RAMMERS.avoids(player(2, false))).isFalse();
+        assertThat(Avoidance.PREDATORS_AND_RAMMERS.avoids(boar(2))).isTrue();
+        assertThat(Avoidance.PREDATORS_AND_RAMMERS.avoids(bear(2))).isTrue();
+        // prey and pests: all three, creative players excepted
+        assertThat(Avoidance.PREDATORS_PLAYERS_AND_RAMMERS.avoids(player(2, false))).isTrue();
+        assertThat(Avoidance.PREDATORS_PLAYERS_AND_RAMMERS.avoids(player(2, true))).isFalse();
+        // a rammer seeing a player and a bear: only the bear starts the flee
+        assertThat(PreyFlee.trigger(false, ORIGIN, List.of(player(1, false), bear(9)), Avoidance.PREDATORS_ONLY))
+            .contains(bear(9));
     }
 
     @Test

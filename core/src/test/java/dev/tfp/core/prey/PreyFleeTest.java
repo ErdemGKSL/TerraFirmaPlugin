@@ -40,18 +40,25 @@ class PreyFleeTest {
     }
 
     @Test
-    void fleeTargetIsRadiusScaleFromThePreyAtAnyOffset() {
-        final Position prey = new Position(3.5, 70, -2.25);
-        final Position threat = new Position(-1, 70, 4);
-        for (double scale : new double[] {0.1, 0.5, 1.0}) {
-            for (int i = 0; i < 64; i++) {
-                final double offset = -Math.PI + i * (2 * Math.PI / 64);
-                final Position target = PreyFlee.fleeTarget(prey, threat, scale, offset);
-                assertThat(Math.hypot(target.x() - prey.x(), target.z() - prey.z()))
-                    .isCloseTo(PreyFlee.FLEE_RADIUS_BLOCKS * scale, org.assertj.core.api.Assertions.within(1e-9));
-                assertThat(target.y()).isEqualTo(prey.y());
+    void everyAcceptedAwayCandidateIsWithinTheBoxAndNotTowardsTheThreat() {
+        final Random random = new Random(11L);
+        int accepted = 0;
+        for (int i = 0; i < 5_000; i++) {
+            final double ax = random.nextDouble() * 2 - 1;
+            final double az = random.nextDouble() * 2 - 1;
+            final java.util.Optional<PreyFlee.Offset> off = PreyFlee.awayOffset(ax, az, random);
+            if (off.isEmpty()) {
+                continue;
             }
+            accepted++;
+            final PreyFlee.Offset o = off.get();
+            assertThat(Math.abs(o.dx())).isLessThanOrEqualTo(PreyFlee.AWAY_HORIZONTAL);
+            assertThat(Math.abs(o.dz())).isLessThanOrEqualTo(PreyFlee.AWAY_HORIZONTAL);
+            assertThat(o.dy()).isBetween(-PreyFlee.AWAY_VERTICAL, PreyFlee.AWAY_VERTICAL);
+            // within a quarter turn of the away direction: the dot product is not negative (floor may shift by one block)
+            assertThat((o.dx() + 0.5) * ax + (o.dz() + 0.5) * az).isGreaterThan(-1.5 * (Math.abs(ax) + Math.abs(az)));
         }
+        assertThat(accepted).isGreaterThan(2_500);
     }
 
     @Test
@@ -67,13 +74,5 @@ class PreyFleeTest {
             stopped = stop;
         }
         assertThat(stopped).isTrue();
-    }
-
-    @Test
-    void offsetOutsideTheRangeIsRejected() {
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> PreyFlee.fleeTarget(new Position(0, 0, 0), new Position(1, 0, 0), 0.0, 0.0))
-            .isInstanceOf(IllegalArgumentException.class);
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> PreyFlee.fleeTarget(new Position(0, 0, 0), new Position(1, 0, 0), 1.5, 0.0))
-            .isInstanceOf(IllegalArgumentException.class);
     }
 }

@@ -34,6 +34,6 @@ public record Sighting(
      * @return {@code true} if this sighting starts a flee
      */
     public boolean avoided() {
-        return (!creativeOrSpectator && (player || landPredator)) || (!player && rammingAnimal);
+        return Avoidance.PREDATORS_PLAYERS_AND_RAMMERS.avoids(this);
     }
 }
