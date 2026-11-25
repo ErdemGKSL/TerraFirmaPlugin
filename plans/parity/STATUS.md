@@ -501,7 +501,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-26 | Bellows visuals: pressed animation, TFC model and the blow sound | METAL | 33 | open |
 | PAR-PHYS-07 | Collapse follow-ups: Folia stress self-test, TFC rock-slide sounds in the pack, collapse server config keys | PHYS | 18 | open |
 | PAR-FAUNA-28 | 200-animal load: staggered check phase and goal spikes within the tick budget (follow-up of PAR-FAUNA-26) | FAUNA | 55 | blocked |
-| PAR-WORLD-58 | Waterlogged groundcover: TFC's FLUID property on the CE loose rocks, small ores and groundcover, wet hitbox rows, and the worldgen writing them under water | WORLD | 23 | open |
+| PAR-WORLD-58 | Waterlogged groundcover: TFC's FLUID property on the CE loose rocks, small ores and groundcover, wet hitbox rows, and the worldgen writing them under water | WORLD | 23 | blocked |
 | PAR-WORLD-57 | In-game verification of PAR-WORLD-31, PAR-WORLD-32 and PAR-WORLD-42: groundcover, boulders and cave rocks in a fresh world; the remaining soil blocks | WORLD | 24 | open |
 | PAR-DECO-21 | Metal bars and chains (follow-up of PAR-DECO-09) | DECO | 49 | open |
 | PAR-FAUNA-33 | 200-animal load: spread the path starts of the livestock and prey goals (single-call spikes) (follow-up of PAR-FAUNA-28) | FAUNA | 56 | open |
