@@ -143,3 +143,11 @@ blast-furnace:
   max-chimney-height: 5
   fluid-capacity: 10000
   fuel-consumption-multiplier: 4
+
+# Pit kiln (TFC server config pitKilnTicks and pitKilnTemperature). Apply changes with /tfp reload config.
+# ticks: how many ticks a lit pit kiln burns before it is done (TFC default 7200, six minutes; at least 20).
+#   The kiln runs on the calendar, so time while its chunk is unloaded counts.
+# temperature: the temperature in degrees Celsius a kiln heats its contents to (TFC default 1400, at least 0).
+pit-kiln:
+  ticks: 7200
+  temperature: 1400

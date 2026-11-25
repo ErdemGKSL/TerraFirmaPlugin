@@ -169,7 +169,8 @@ class GeneratedCarrierTest {
             + 20 * (80 + 4 + 32 + 32) // PAR-DECO-01: per wood stairs, slab (double draws the planks' visual), fence, log fence
             + 20 * (32 + 64 + 64 + 24 + 2) // PAR-DECO-02: per wood fence gate, door, trapdoor, button, pressure plate
             + 144 // PAR-METAL-13: the channel (128 states) and the mold table (16)
-            + 14); // PAR-METAL-16: the ingot pile's 8 and the double ingot pile's 6 layer appearances (100 server states)
+            + 14 // PAR-METAL-16: the ingot pile's 8 and the double ingot pile's 6 layer appearances (100 server states)
+            + 10); // PAR-POT-14: the pit kiln's stages 0..9 (10..16 are leaves pool appearances)
         // PAR-CLIM-04: the ice pile and sea ice (one leaves pool appearance each).
         // PAR-WORLD-44: the 20 twigs on their one shared tripwire state.
         // PAR-WORLD-59: the plant pools hold every distinct look (and the twigs' one shared tripwire state) within their size
@@ -179,7 +180,7 @@ class GeneratedCarrierTest {
         assertThat(plantPoolStates.get(PlantPools.TRIPWIRE)).contains(HitboxDemands.TWIG_SHARE_KEY);
         // PAR-WORLD-59: the fruit tree leaves (tfp:plant/<tree>_leaves, leaves pool) are checked since the plant exemption went
         assertThat(fruitLeaves).isEqualTo(HitboxDemands.FRUIT_TREES.size() * 4); // 4 lifecycles each
-        assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 4 + fruitLeaves // PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
+        assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 4 + 7 + fruitLeaves // + 7: PAR-POT-14 pit kiln stages 10..16 on the leaves pool; PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
             + 2 // PAR-METAL-15: the blast furnace, unlit and lit, on the solid pool
             + (int) HitboxDemands.all().stream().filter(d -> d.blockId().startsWith("tfp:grass_path/") && agreedOrOld(d).pool())
                 .count() // PAR-WORLD-42: the grass paths on the leaves pool
@@ -195,7 +196,8 @@ class GeneratedCarrierTest {
                 HitboxDemands.BARREL_RACK_ID, HitboxDemands.TORCH_ID, HitboxDemands.WALL_TORCH_ID,
                 HitboxDemands.DEAD_TORCH_ID, HitboxDemands.DEAD_WALL_TORCH_ID, HitboxDemands.POWDERKEG_ID,
                 HitboxDemands.NEST_BOX_ID,
-                HitboxDemands.JACK_O_LANTERN_ID, HitboxDemands.SNOW_PILE_ID, HitboxDemands.ICICLE_ID));
+                HitboxDemands.JACK_O_LANTERN_ID, HitboxDemands.SNOW_PILE_ID, HitboxDemands.ICICLE_ID,
+                HitboxDemands.PIT_KILN_ID)); // PAR-POT-14: the pit kiln (stages 0..9 explicit)
         HitboxDemands.BARREL_WOODS.forEach(w -> expected.add(HitboxDemands.barrelId(w)));
         // PAR-FARM-26: the farmland of each soil (one appearance, TFC's farmland outline).
         HitboxDemands.FARMLAND_SOILS.forEach(soil -> expected.add(HitboxDemands.farmlandId(soil)));
@@ -246,7 +248,7 @@ class GeneratedCarrierTest {
         expected.addAll(List.of(HitboxDemands.BANANA_SAPLING_ID, HitboxDemands.BANANA_PLANT_ID, HitboxDemands.BANANA_DEAD_ID));
         // PAR-WORLD-47: the plant shapes with dry states (hitbox-only on the berry bush and barrel rows).
         HitboxDemands.PLANT_SHAPE_ROWS.values().forEach(names -> names.forEach(n -> expected.add(HitboxDemands.plantId(n))));
-        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3 + 8 + 41 + 14 + 2); // + 8: PAR-FARM-26 farmland, + 41: PAR-FARM-25 growing plants and the PAR-FARM-30 saguaro fruit, + 14: PAR-WORLD-47 plant shapes, + 2: PAR-METAL-16 ingot piles
+        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3 + 8 + 41 + 14 + 2 + 1); // + 1: PAR-POT-14 pit kiln; + 8: PAR-FARM-26 farmland, + 41: PAR-FARM-25 growing plants and the PAR-FARM-30 saguaro fruit, + 14: PAR-WORLD-47 plant shapes, + 2: PAR-METAL-16 ingot piles
         // PAR-WORLD-31: the loose and mossy loose rocks, small ores and groundcover types; PAR-WORLD-42: the grass paths
         for (String rock : HitboxDemands.LOOSE_ROCKS) {
             HitboxDemands.LOOSE_KINDS.forEach(k -> expected.add(HitboxDemands.looseRockId(k, rock)));

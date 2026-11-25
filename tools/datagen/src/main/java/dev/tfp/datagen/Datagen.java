@@ -188,6 +188,9 @@ public final class Datagen {
         if (dev.tfp.datagen.charcoal.CharcoalBlocks.available(tfc)) { // PAR-PROC-37: tfp:log_pile, tfp:burning_log_pile, tfp:charcoal_pile entries, models, textures; fixtures have no log pile
             dev.tfp.datagen.charcoal.CharcoalBlocks.run(tfc, out);
         }
+        if (dev.tfp.datagen.kiln.PitKilnBlock.available(tfc)) { // PAR-POT-14: tfp:pit_kiln entry (17 stages), models, textures; fixtures have no pit kiln
+            dev.tfp.datagen.kiln.PitKilnBlock.run(tfc, out);
+        }
         if (dev.tfp.datagen.wood.WoodPlantBlocks.available(tfc)) { // PAR-WORLD-44: tfp:wood/{sapling,potted_sapling,fallen_leaves,twig}/<wood> entries, models, baked textures, loot; fixtures have none
             dev.tfp.datagen.wood.WoodPlantBlocks.run(tfc, out);
         }

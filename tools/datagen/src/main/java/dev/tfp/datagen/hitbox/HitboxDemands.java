@@ -539,6 +539,14 @@ public final class HitboxDemands {
             d.add(new Demand(CHARCOAL_PILE_ID, charcoalPileAppearance(layers), charcoalDemandKey(layers), 0,
                 charcoalPileModel(layers), true, CHARCOAL_WEIGHT));
         }
+        // PAR-POT-14: the pit kiln, one outline per stage (TFC SHAPE_BY_LAYER: 1..8 px of straw, the log rows, the lit full
+        // cube) and TFC's pitkiln_<stage> model; served after every other demand (weight -30), so no carrier moves. The
+        // stages from PIT_KILN_POOL_FROM up (a second log row on, outlines 12 to 16 px high) score highest on CE's leaves
+        // pool (TFC's kiln is noOcclusion), so they are no demands but declared pool appearances (POOLS).
+        for (int stage = 0; stage < PIT_KILN_POOL_FROM; stage++) {
+            d.add(new Demand(PIT_KILN_ID, pitKilnAppearance(stage), TfcShapes.pitKilnKey(stage), 0, pitKilnModel(stage), true,
+                PIT_KILN_WEIGHT));
+        }
         // PAR-HEAT-21: the torches. The lit ones keep vanilla's torch look (TFC's blockstates draw minecraft:block/torch and
         // wall_torch); the dead ones carry TFC's dead torch models (the wall model turned by TFC's blockstate y) or, with no
         // free carrier of light 0 in their outline, go hitbox-only with the model as an item display (TorchBlocks).
@@ -1601,6 +1609,12 @@ public final class HitboxDemands {
         all.put(CHARCOAL_PILE_ID, java.util.Map.of(charcoalPileAppearance(CHARCOAL_PILE_MAX), CHARCOAL_POOL));
         all.put(ICE_PILE_ID, java.util.Map.of(ICE_APPEARANCE, ICE_POOL));
         all.put(SEA_ICE_ID, java.util.Map.of(ICE_APPEARANCE, ICE_POOL));
+        // PAR-POT-14: the pit kiln stages 10..16 (TFC noOcclusion) on the leaves pool.
+        java.util.Map<String, String> kiln = new java.util.LinkedHashMap<>();
+        for (int stage = PIT_KILN_POOL_FROM; stage <= PIT_KILN_LIT; stage++) {
+            kiln.put(pitKilnAppearance(stage), BURNING_LOG_PILE_POOL);
+        }
+        all.put(PIT_KILN_ID, java.util.Collections.unmodifiableMap(kiln));
         // PAR-FARM-16: the fruit tree leaves (TFC's full cube, noOcclusion, tinted like leaves) on the leaves pool.
         for (String tree : FRUIT_TREES) {
             all.put(fruitId(tree, "leaves"), java.util.Map.of(FRUIT_LEAVES_PATTERN, FRUIT_LEAVES_POOL));
@@ -1623,6 +1637,23 @@ public final class HitboxDemands {
 
     public static String composterKey(int stage) {
         return "tfc:composter[stage=" + stage + "]";
+    }
+
+    /** PAR-POT-14: the pit kiln block, TFC's {@code PIT_KILN_STAGE} 0..16. */
+    public static final String PIT_KILN_ID = "tfp:pit_kiln";
+    public static final int PIT_KILN_LIT = TfcShapes.PIT_KILN_LIT;
+    static final int PIT_KILN_WEIGHT = -30;
+    /** PAR-POT-14: the first stage drawn from the leaves pool (the selector's own pick for stages 10..16). */
+    public static final int PIT_KILN_POOL_FROM = 10;
+
+    /** PAR-POT-14: the pit kiln appearance of {@code stage} ({@code stage_7}). */
+    public static String pitKilnAppearance(int stage) {
+        return "stage_" + stage;
+    }
+
+    /** PAR-POT-14: TFC's pit kiln model of {@code stage} (blockstates/pit_kiln.json). */
+    public static String pitKilnModel(int stage) {
+        return "tfp:block/pit_kiln/pitkiln_" + stage;
     }
 
     /** PAR-PROC-37: the log pile (and burning log pile) appearance of {@code axis} and {@code count} ({@code x_1}). */

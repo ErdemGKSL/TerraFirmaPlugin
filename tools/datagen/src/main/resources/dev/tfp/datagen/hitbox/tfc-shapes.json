@@ -2079,6 +2079,159 @@
       "from": "TFCBellBlock.java (ported)"
     },
     {
+      "key": "tfc:pit_kiln[stage=0]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 1, 16]],
+      "collision": [[0, 0, 0, 16, 1, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=1]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 2, 16]],
+      "collision": [[0, 0, 0, 16, 2, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=2]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 3, 16]],
+      "collision": [[0, 0, 0, 16, 3, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=3]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 4, 16]],
+      "collision": [[0, 0, 0, 16, 4, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=4]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 5, 16]],
+      "collision": [[0, 0, 0, 16, 5, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=5]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 6, 16]],
+      "collision": [[0, 0, 0, 16, 6, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=6]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 7, 16]],
+      "collision": [[0, 0, 0, 16, 7, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=7]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=8]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 4, 12, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 4, 12, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=9]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 12, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 8, 12, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=10]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 12, 12, 16]],
+      "collision": [[0, 0, 0, 16, 8, 16], [0, 8, 0, 12, 12, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=11]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=12]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16], [0, 12, 0, 4, 16, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16], [0, 12, 0, 4, 16, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=13]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16], [0, 12, 0, 8, 16, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16], [0, 12, 0, 8, 16, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=14]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 12, 16], [0, 12, 0, 12, 16, 16]],
+      "collision": [[0, 0, 0, 16, 12, 16], [0, 12, 0, 12, 16, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=15]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
+      "key": "tfc:pit_kiln[stage=16]",
+      "class": "pit_kiln",
+      "kind": "object",
+      "selection": [[0, 0, 0, 16, 16, 16]],
+      "collision": [[0, 0, 0, 16, 16, 16]],
+      "see_through": true,
+      "from": "PitKilnBlock.java (ported)"
+    },
+    {
       "key": "tfc:snow_pile[layers=1]",
       "class": "snow_layer",
       "kind": "object",

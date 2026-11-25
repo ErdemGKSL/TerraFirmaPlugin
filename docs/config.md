@@ -82,8 +82,8 @@ Every `define(...)` key of TFC's `ServerConfig`, `CommonConfig`, `ClientConfig` 
 | ServerConfig | `candleTicks` | `288000` | — | pending: consumer item |
 | ServerConfig | `mudBricksTicks` | `28800` | — | pending: consumer item |
 | ServerConfig | `charcoalTicks` | `18000` | — | pending: consumer item |
-| ServerConfig | `pitKilnTicks` | `7200` | — | pending: consumer item |
-| ServerConfig | `pitKilnTemperature` | `1400` | — | pending: consumer item |
+| ServerConfig | `pitKilnTicks` | `7200` | `pit-kiln.ticks` | mapped |
+| ServerConfig | `pitKilnTemperature` | `1400` | `pit-kiln.temperature` | mapped |
 | ServerConfig | `crucibleCapacity` | `4000` | — | pending: consumer item |
 | ServerConfig | `cruciblePouringRate` | `4` | — | pending: consumer item |
 | ServerConfig | `crucibleFastPouringRate` | `1` | — | pending: consumer item |

@@ -6,10 +6,13 @@
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/blocks/devices/PitKilnBlock.java @ c3b4d9536 (useItemOn: server side,
  *       main hand only),
- *       src/main/java/net/dries007/tfc/common/blocks/devices/PlacedItemBlock.java @ c3b4d9536 (useItemOn: straw first)
+ *       src/main/java/net/dries007/tfc/common/blocks/devices/PlacedItemBlock.java @ c3b4d9536 (useItemOn: straw first),
+ *       src/main/java/net/dries007/tfc/common/blocks/devices/PitKilnBlock.java @ c3b4d9536 (getDestroyProgress: the lit
+ *       stage cannot be broken)
  */
 package dev.tfp.paper.kiln;
 
+import dev.tfp.core.kiln.PitKilnLayers;
 import dev.tfp.paper.device.StackCodec;
 import dev.tfp.paper.placed.PlacedItemDevice;
 import dev.tfp.paper.integration.CustomBlocks;
@@ -23,6 +26,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -79,5 +84,26 @@ public final class PitKilnListener implements Listener {
             event.setUseInteractedBlock(Event.Result.DENY);
             event.setUseItemInHand(Event.Result.DENY);
         }
+    }
+
+    /** TFC {@code getDestroyProgress}: a lit kiln (stage 16) takes no damage in survival or adventure. */
+    @EventHandler(priority = EventPriority.LOW)
+    public void onDamage(BlockDamageEvent event) {
+        if (lockedFor(event.getPlayer(), event.getBlock())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** The same for a break that arrives without a damage event (server-side mining). */
+    @EventHandler(priority = EventPriority.LOW)
+    public void onBreak(BlockBreakEvent event) {
+        if (lockedFor(event.getPlayer(), event.getBlock())) {
+            event.setCancelled(true);
+        }
+    }
+
+    private boolean lockedFor(Player player, Block block) {
+        GameMode mode = player.getGameMode();
+        return (mode == GameMode.SURVIVAL || mode == GameMode.ADVENTURE) && kilns.stageAt(block) == PitKilnLayers.LIT;
     }
 }

@@ -56,7 +56,8 @@ public final class ConfigCodec {
         Reader r = new Reader();
         Map<?, ?> top = root == null ? Map.of() : root;
         r.unknown(top, "", List.of("visuals", "ore-overlay", "auto-install", "catchup", "hud",
-                BucketConfig.SECTION, Survival.SECTION, ItemBars.SECTION, Automation.SECTION));
+                BucketConfig.SECTION, Survival.SECTION, ItemBars.SECTION, Automation.SECTION,
+                "pit-kiln")); // PAR-POT-14: read raw by PitKilnModule (pit-kiln.ticks, pit-kiln.temperature)
 
         Map<?, ?> v = r.section(top, "visuals");
         r.unknown(v, "visuals.", List.of("profile", "solid-reserve-warning", "use-nether-end-blocks"));

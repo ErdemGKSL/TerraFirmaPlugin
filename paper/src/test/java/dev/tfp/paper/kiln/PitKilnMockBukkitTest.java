@@ -733,6 +733,26 @@ class PitKilnMockBukkitTest extends MockServerTest {
     }
 
     @Test
+    void aLitKilnCannotBeBrokenInSurvivalOrAdventure() {
+        fullKiln(pit(20, 64, 4));
+        Block full = world.getBlockAt(20, 64, 4);
+        org.bukkit.event.block.BlockBreakEvent unlit = new org.bukkit.event.block.BlockBreakEvent(full, player);
+        listener.onBreak(unlit);
+        assertThat(unlit.isCancelled()).as("an unlit kiln breaks").isFalse();
+        assertThat(kilns.tryLight(full)).isTrue();
+        for (GameMode mode : List.of(GameMode.SURVIVAL, GameMode.ADVENTURE)) {
+            player.setGameMode(mode);
+            org.bukkit.event.block.BlockBreakEvent e = new org.bukkit.event.block.BlockBreakEvent(full, player);
+            listener.onBreak(e);
+            assertThat(e.isCancelled()).as("lit kiln in " + mode).isTrue();
+        }
+        player.setGameMode(GameMode.CREATIVE);
+        org.bukkit.event.block.BlockBreakEvent creative = new org.bukkit.event.block.BlockBreakEvent(full, player);
+        listener.onBreak(creative);
+        assertThat(creative.isCancelled()).as("creative breaks it").isFalse();
+    }
+
+    @Test
     void configKeysFallBackToTfcDefaults() {
         org.bukkit.configuration.file.YamlConfiguration yaml = new org.bukkit.configuration.file.YamlConfiguration();
         assertThat(PitKilnModule.config(yaml, Logger.getLogger("test"))).isEqualTo(PitKilnRules.Config.DEFAULT);

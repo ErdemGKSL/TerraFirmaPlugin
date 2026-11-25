@@ -62,6 +62,7 @@ public final class SelfTestSuite {
                 new dev.tfp.itest.cases.FlammabilityCase(),
                 new dev.tfp.itest.cases.CraftLeakageCase(),
                 new dev.tfp.itest.cases.CharcoalForgeContinuousCase(),
+                new dev.tfp.itest.cases.PitKilnFireCase(),
                 new dev.tfp.itest.cases.CatchUpCase(),
                 new dev.tfp.itest.cases.CropGrowCase(),
                 new dev.tfp.itest.cases.PrecipSampleCase(),

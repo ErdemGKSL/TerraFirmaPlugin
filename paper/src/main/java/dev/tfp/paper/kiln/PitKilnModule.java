@@ -51,10 +51,10 @@ import org.bukkit.inventory.ItemStack;
  * listener ({@link PitKilnListener}: straw on a placed item, straw, logs and take-back on a kiln), the
  * {@code FireLightable} (a strong fire start on a kiln with its eight logs), the {@link KilnClock} task and the chunk
  * hooks (a lit kiln catches up on chunk load). Needs the tags, device, catch-up, heating, fire and placed item modules
- * before it in the service file. Without the CraftEngine block (follow-up PAR-POT-14) no kiln can be built.
+ * before it in the service file. The CraftEngine block is {@code configuration/kiln/pit_kiln.yml} (PAR-POT-14).
  *
- * <p>Config, read from the plugin's {@code config.yml} when present (the keys are not in the shipped defaults yet,
- * PAR-POT-14): {@code pit-kiln.ticks} (TFC {@code pitKilnTicks}, default 7200, at least 20) and
+ * <p>Config, read from the plugin's {@code config.yml} (shipped with the defaults since PAR-POT-14):
+ * {@code pit-kiln.ticks} (TFC {@code pitKilnTicks}, default 7200, at least 20) and
  * {@code pit-kiln.temperature} (TFC {@code pitKilnTemperature}, default 1400, at least 0).
  */
 public final class PitKilnModule implements FeatureModule {

@@ -9,6 +9,7 @@
  *       src/main/java/net/dries007/tfc/common/blocks/devices/PlacedItemBlock.java @ c3b4d9536 (makeShapes: the union of the occupied quadrants),
  *       src/main/java/net/dries007/tfc/common/blocks/devices/CrucibleBlock.java @ c3b4d9536 (the shape without channel connections),
  *       src/main/java/net/dries007/tfc/common/blocks/devices/TFCComposterBlock.java @ c3b4d9536 (SHAPES: the well per stage),
+ *       src/main/java/net/dries007/tfc/common/blocks/devices/PitKilnBlock.java @ c3b4d9536 (SHAPE_BY_LAYER, built in a loop),
  *       src/main/java/net/dries007/tfc/common/blocks/devices/LogPileBlock.java @ c3b4d9536 (SHAPES_BY_DIR_BY_COUNT,
  *       BASED_SHAPES_BY_DIR_BY_COUNT, getShapeByDirByCount),
  *       src/main/java/net/dries007/tfc/common/blocks/{TFCTorchBlock,TFCWallTorchBlock,DeadTorchBlock,DeadWallTorchBlock}.java
@@ -133,6 +134,10 @@ public final class TfcShapes {
             for (int count = 1; count <= LOG_PILE_MAX; count++) {
                 m.put(burningKey(axis, count), ".cloneItem(Items.CHARCOAL).noOcclusion()));");
             }
+        }
+        // PAR-POT-14: the pit kiln is noOcclusion (TFCBlocks), every stage.
+        for (int stage = 0; stage <= PIT_KILN_LIT; stage++) {
+            m.put(pitKilnKey(stage), "ExtendedProperties.of(MapColor.WOOD).sound(SoundType.WOOD).strength(0.6f).noOcclusion()");
         }
         return m;
     }
@@ -417,6 +422,14 @@ public final class TfcShapes {
                     List.of("public class TFCBellBlock extends BellBlock"), List.of("getShape(", "getCollisionShape"),
                     x -> bellShape(cls)));
             }
+        }
+        // PAR-POT-14: the pit kiln, SHAPE_BY_LAYER[stage] (built in a Util.make loop, so ported) for the selection and the
+        // collision (getShape, getCollisionShape and the support shape all return it).
+        String kiln = D + "PitKilnBlock.java";
+        for (int stage = 0; stage <= PIT_KILN_LIT; stage++) {
+            final int st = stage;
+            s.add(new Spec(pitKilnKey(stage), "pit_kiln", Kind.OBJECT, List.of(kiln), null, null, PIT_KILN_NEEDLES, List.of(),
+                x -> pitKiln(st)));
         }
         // PAR-CLIM-04: the weather blocks. The snow pile extends vanilla SnowLayerBlock with no shape override: vanilla's
         // SHAPE_BY_LAYER (the selection 2 px per layer, the collision one layer lower), ported. The ice pile and sea ice
@@ -945,6 +958,37 @@ public final class TfcShapes {
 
     public static String logPileKey(String axis, int count) {
         return "tfc:log_pile[axis=" + axis + ",count=" + count + "]";
+    }
+
+    /** TFC {@code PitKilnBlock.LIT}: the stages are 0..16 (8 straw, 8 logs, lit). */
+    public static final int PIT_KILN_LIT = 16;
+    static final List<String> PIT_KILN_NEEDLES = List.of(
+        "shapes[i] = Block.box(0.0D, 0.0D, 0.0D, 16.0D, i + 1, 16.0D);",
+        "shapes[8 + i] = Shapes.or(shapes[7 + i], Block.box(4 * i, 8.0D, 0.0D, 4 * (i + 1), 12.0D, 16.0D));",
+        "shapes[12 + i] = Shapes.or(shapes[11 + i], Block.box(4 * i, 12.0D, 0.0D, 4 * (i + 1), 16.0D, 16.0D));",
+        "shapes[16] = Shapes.block();",
+        "new VoxelShape[17]",
+        "protected VoxelShape getShape(BlockState state, BlockGetter levle, BlockPos pos, CollisionContext context)\n    {\n        return SHAPE_BY_LAYER[state.getValue(STAGE)];",
+        "protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context)\n    {\n        return SHAPE_BY_LAYER[state.getValue(STAGE)];");
+
+    public static String pitKilnKey(int stage) {
+        return "tfc:pit_kiln[stage=" + stage + "]";
+    }
+
+    /** {@code PitKilnBlock.SHAPE_BY_LAYER[stage]}: the straw slab 1..8 px, then the log rows (4 px wide) at 8..12 and 12..16. */
+    static Shape[] pitKiln(int stage) {
+        Shape[] shapes = new Shape[PIT_KILN_LIT + 1];
+        for (int i = 0; i < 8; i++) {
+            shapes[i] = Shape.box(0, 0, 0, 16, i + 1, 16);
+        }
+        for (int i = 0; i < 4; i++) {
+            shapes[8 + i] = shapes[7 + i].union(Shape.box(4 * i, 8, 0, 4 * (i + 1), 12, 16));
+        }
+        for (int i = 0; i < 4; i++) {
+            shapes[12 + i] = shapes[11 + i].union(Shape.box(4 * i, 12, 0, 4 * (i + 1), 16, 16));
+        }
+        shapes[PIT_KILN_LIT] = Shape.FULL;
+        return new Shape[] {shapes[stage], shapes[stage]};
     }
 
     public static String burningKey(String axis, int count) {
