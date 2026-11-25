@@ -28,7 +28,9 @@ class HardcodedCarrierTest {
     private static final Pattern STATE_LITERAL = Pattern.compile("\"minecraft:[a-z0-9_]+\\[");
     private static final Pattern AUTO_STATE = Pattern.compile("\"auto_state\"");
     // PAR-WORLD-59: the plant pools are the selector's (hitbox/PlantPools), so the plant generators are no exemption.
-    private static final Set<String> AUTO_STATE_SERIALISERS = Set.of("device/DeviceAppearance.java");
+    // PAR-WORLD-42 (repair): SoilExtraBlocks only serialises the pool the selector hands the grass path
+    // (HitboxAllocation.Assignment#pool, VanillaCandidates.poolName), as DeviceAppearance does for the devices.
+    private static final Set<String> AUTO_STATE_SERIALISERS = Set.of("device/DeviceAppearance.java", "soil/SoilExtraBlocks.java");
 
     @Test
     void noVanillaStateLiteralOutsideTheSelector() throws IOException {

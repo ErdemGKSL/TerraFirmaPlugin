@@ -181,7 +181,13 @@ class GeneratedCarrierTest {
         assertThat(fruitLeaves).isEqualTo(HitboxDemands.FRUIT_TREES.size() * 4); // 4 lifecycles each
         assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 4 + fruitLeaves // PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
             + (int) HitboxDemands.all().stream().filter(d -> d.blockId().startsWith("tfp:grass_path/") && agreedOrOld(d).pool())
-                .count()); // PAR-WORLD-42: the grass paths on the leaves pool
+                .count() // PAR-WORLD-42: the grass paths on the leaves pool
+            // PAR-WORLD-42 (repair): the farmland of every soil whose outline the selector serves from a pool; the eight
+            // vanilla farmland states go to demands served first (composter, charcoal and log piles, sluice, fruit
+            // branches), so seven farmlands take the leaves pool (FarmlandBlocks writes it, FarmlandBlocksTest checks it)
+            + (int) HitboxDemands.FARMLAND_SOILS.stream()
+                .filter(soil -> agreedOrOld(demand(HitboxDemands.farmlandId(soil), HitboxDemands.FARMLAND_APPEARANCE)).pool())
+                .count());
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
             List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern",
                 "tfp:scraping", HitboxDemands.COMPOSTER_ID, HitboxDemands.LOG_PILE_ID, HitboxDemands.CHARCOAL_PILE_ID,
