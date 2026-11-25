@@ -33,6 +33,8 @@ done_criteria:
 
 # PAR-WORLD-65: Tide pools, sea stack patches and bamboo rules, and the coverage guard
 
+> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-25
+
 > see_not_parity: NP-WORLD-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
