@@ -21,6 +21,7 @@ in_game_steps:
   - "Bot sends the chat line 'the quick brown fox jumps over the lazy dog' ten times; screenshot the chat at GUI scale 2"
   - "tfp debug intox Bot clear; send the line again; screenshot (unchanged)"
 plan:
+  - "Pending in-game check (container cannot run client): headless probe 2026-11-25 reached the server login but the bot never joined (server log: TFC worldgen refused chunk, ArrayIndexOutOfBoundsException at VolcanoBlocks.rockBlockId:59, outside this area). Re-run the in_game_steps once chunk generation is fixed."
   - "In-game check of PAR-SURV-08 (PROTOCOL 6.5), split off because drinking from a jug is PAR-POT-07 (wave 26), which calls IntoxicationService.drink with the drained fluid. TFC gives no nausea or other effect for alcohol: the visible effect is drunk chat above 0.2 (swapped, repeated and replaced letters). Run the steps on Paper 1.21.11 with the headless client (docs/testing/headless.md). A failure is fixed in PAR-SURV-08's files (`core/.../intox/**`, `paper/.../intox/**`) or PAR-POT-07's through a follow-up."
 tests:
   - "none (in-game check only)"

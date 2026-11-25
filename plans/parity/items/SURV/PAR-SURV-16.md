@@ -24,6 +24,7 @@ in_game_steps:
   - "tfp time add 30d; hover the plain beef: Rotten in red and no nutrition block"
   - "hover tfp:jar/plum_jam: grey italic Sealed line"
 plan:
+  - "Pending in-game check (container cannot run client): headless probe 2026-11-25 reached the server login but the bot never joined (server log: TFC worldgen refused chunk, ArrayIndexOutOfBoundsException at VolcanoBlocks.rockBlockId:59, outside this area). Re-run the in_game_steps once chunk generation is fixed."
   - "PAR-SURV-01 (food items) and PAR-SURV-02 (food tooltip) were set done with the in-game step marked 'the workflow's screenshot step'; no evidence exists (PAR-INFRA-05's verdict even notes ce item give not stamping food while PAR-SURV-01 was open). Run the steps on Paper 1.21.11 with the headless client (docs/testing/headless.md), compare every line with TFC (FoodCapability.addTooltipInfo order: expiry, traits, nutrition with TFC's colours) and write verdict.md under docs/verification/PAR-SURV-16/ (copy the crops for the old ids into their folders so the items' paths resolve)."
   - "A failure is fixed through a follow-up item owning paper/food/** or the datagen food generator; do not reopen PAR-SURV-01/02 unless a criterion of theirs breaks."
 tests:

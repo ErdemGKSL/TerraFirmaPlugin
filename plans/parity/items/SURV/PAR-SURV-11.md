@@ -22,6 +22,7 @@ in_game_steps:
   - "place a chest, open it, try to put the anvil in by click, shift-click and number key: it stays in the player inventory (screenshot of the open chest); a copper ingot goes in"
   - "switch to creative with both anvils: walking works at once; back to survival: overburdened again"
 plan:
+  - "Pending in-game check (container cannot run client): headless probe 2026-11-25 reached the server login but the bot never joined (server log: TFC worldgen refused chunk, ArrayIndexOutOfBoundsException at VolcanoBlocks.rockBlockId:59, outside this area). Re-run the in_game_steps once chunk generation is fixed."
   - "Deferred from PAR-SURV-06 (PROTOCOL §6.5): the runtime and its MockBukkit tests are done there (paper/itemsize, core/item); the anvil items (tfp:metal/anvil/*) come with PAR-METAL-03, so the in-game steps cannot run before it."
   - "Run every in_game_step on the headless Paper 1.21.11 server and client (spikes/client/, CraftEngine self-host), store crops and verdict.md in docs/verification/PAR-SURV-06/. A failure is fixed through PAR-SURV-06's files (paper/itemsize, core/item) in a follow-up."
 tests:
