@@ -35,12 +35,17 @@ import org.yaml.snakeyaml.Yaml;
 class GeneratedCarrierTest {
     private static final String GROUNDCOVER_PREFIX = "tfp:groundcover/";
 
+    /** The demands whose carrier all profiles and families agree on: everything but the per-family groundcover. */
+    private static java.util.List<Demand> agreedDemands() {
+        return HitboxDemands.all().stream().filter(d -> !d.blockId().startsWith(GROUNDCOVER_PREFIX)).toList();
+    }
+
     @org.junit.jupiter.api.Test
     void groundcoverCarriersAreAllocatedInEveryFamily() {
         long demands = HitboxDemands.all().stream().filter(d -> d.blockId().startsWith(GROUNDCOVER_PREFIX)).count();
         assertThat(demands).isPositive();
         for (java.util.Map.Entry<String, HitboxAllocation.Result> e : HitboxAllocation.standard().entrySet()) {
-            for (Demand d : HitboxDemands.all()) {
+            for (Demand d : agreedDemands()) {
                 if (d.blockId().startsWith(GROUNDCOVER_PREFIX)) {
                     assertThat(e.getValue().get(d.blockId(), d.appearance()).state()).as(e.getKey() + " " + d.id()).isNotBlank();
                 }
@@ -381,7 +386,7 @@ class GeneratedCarrierTest {
                 assertThat(c.chosen().carrier()).as(k[0]).isEqualTo(VanillaCandidates.POOL_PREFIX + k[1]);
             }
         }
-        for (Demand d : HitboxDemands.all()) {
+        for (Demand d : agreedDemands()) {
             if (d.blockId().contains("pile")) {
                 assertThat(agreedOrOld(d).state()).as(d.id())
                     .doesNotStartWith("minecraft:daylight_detector").doesNotStartWith(VanillaCandidates.POOL_PREFIX);
@@ -401,7 +406,7 @@ class GeneratedCarrierTest {
         long ice = HitboxDemands.all().stream().filter(d -> d.blockId().equals(HitboxDemands.ICE_PILE_ID)
             || d.blockId().equals(HitboxDemands.SEA_ICE_ID)).count();
         assertThat(List.of(snow, icicle, ice)).containsExactly(8L, 2L, 0L);
-        for (Demand d : HitboxDemands.all()) {
+        for (Demand d : agreedDemands()) {
             if (d.blockId().equals(HitboxDemands.SNOW_PILE_ID) || d.blockId().equals(HitboxDemands.ICICLE_ID)) {
                 assertThat(rows).as(d.id()).containsKey(d.tfcKey());
             }
@@ -504,13 +509,13 @@ class GeneratedCarrierTest {
         }
         assertThat(carriers).hasSize(1);
         // The three powers PAR-HEAT-23 took are free again: no demand of any block sits on them.
-        for (Demand d : HitboxDemands.all()) {
+        for (Demand d : agreedDemands()) {
             for (int power : new int[] {10, 12, 14}) {
                 assertThat(agreedOrOld(d).state()).as(d.id())
                     .isNotEqualTo("minecraft:daylight_detector[inverted=false,power=" + power + "]");
             }
         }
-        for (Demand d : HitboxDemands.all()) {
+        for (Demand d : agreedDemands()) {
             // PAR-METAL-13: the channel's outlines are served last and may share a hitbox-only carrier (same transparent look)
             if (!d.blockId().equals(HitboxDemands.FIREPIT_ID) && !d.blockId().equals(HitboxDemands.CHANNEL_ID)) {
                 assertThat(agreedOrOld(d).state()).as(d.id()).isNotIn(carriers);
@@ -537,7 +542,7 @@ class GeneratedCarrierTest {
         Assignment reserved = HitboxAllocation.agreed(HitboxDemands.GRILL_ID, HitboxDemands.GRILL_RESERVED);
         assertThat(reserved.state()).isEqualTo("minecraft:snow[layers=5]");
         assertThat(reserved.mode()).isEqualTo(HitboxAllocation.Mode.VANILLA);
-        for (Demand d : HitboxDemands.all()) {
+        for (Demand d : agreedDemands()) {
             if (!d.blockId().equals(HitboxDemands.GRILL_ID)) {
                 Assignment a = agreedOrOld(d);
                 assertThat(a.state()).as(d.id()).isNotEqualTo(reserved.state());
@@ -569,7 +574,7 @@ class GeneratedCarrierTest {
         assertThat(List.of(unsealed, sealed, lit)).extracting(Assignment::hideTarget).containsOnlyNulls();
         assertThat(HitboxDemands.powderkegModel(HitboxDemands.POWDERKEG_LIT)).isEqualTo("tfp:block/powderkeg_lit");
         // the keg's carriers are no other block's
-        for (Demand d : HitboxDemands.all()) {
+        for (Demand d : agreedDemands()) {
             if (!d.blockId().equals(HitboxDemands.POWDERKEG_ID)) {
                 assertThat(agreedOrOld(d).state()).as(d.id())
                     .isNotIn(unsealed.state(), sealed.state(), lit.state());
