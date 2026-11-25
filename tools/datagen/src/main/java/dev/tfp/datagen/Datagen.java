@@ -209,6 +209,9 @@ public final class Datagen {
         if (dev.tfp.datagen.crucible.CrucibleScreenArt.available(tfc)) { // PAR-METAL-12: crucible screen art, thermometer and fill; fixtures have no crucible screen
             dev.tfp.datagen.crucible.CrucibleScreenArt.run(tfc, out);
         }
+        if (dev.tfp.datagen.anvil.AnvilPlanArt.available(tfc)) { // PAR-METAL-04: anvil plan screen art, button frames and arrows; fixtures have no plan screen
+            dev.tfp.datagen.anvil.AnvilPlanArt.run(tfc, out);
+        }
         if (dev.tfp.datagen.grillgui.GrillScreenArt.available(tfc)) { // PAR-HEAT-24: grill screen art; fixtures have no grill screen
             dev.tfp.datagen.grillgui.GrillScreenArt.run(tfc, out);
         }
