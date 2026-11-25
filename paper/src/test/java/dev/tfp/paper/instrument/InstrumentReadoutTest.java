@@ -117,6 +117,29 @@ class InstrumentReadoutTest {
     }
 
     @Test
+    void deviceSourcesReadTheBlastFurnaceTheBloomeryAndTheBarrel() {
+        dev.tfp.core.blastfurnace.BlastFurnaceData furnace = new dev.tfp.core.blastfurnace.BlastFurnaceData(
+            new dev.tfp.core.blastfurnace.BlastFurnaceState(true, 100, 1200f, 50, 1100f),
+            dev.tfp.core.blastfurnace.BlastFurnaceData.FRESH.input(), dev.tfp.core.blastfurnace.BlastFurnaceData.FRESH.output(), 0L);
+        assertThat(DeviceSources.temperature(furnace)).contains(1100f);
+        assertThat(DeviceSources.timer(furnace, 0L)).isEmpty();
+        // bloomery: duration - (now - litTick) while lit, zero while unlit
+        dev.tfp.core.bloomery.BloomeryData lit = dev.tfp.core.bloomery.BloomeryData.FRESH.lit(1000L, 15000);
+        assertThat(DeviceSources.timer(lit, 4000L)).contains(new InstrumentSources.Timer(15000, 12000));
+        assertThat(DeviceSources.timer(dev.tfp.core.bloomery.BloomeryData.FRESH, 4000L))
+            .contains(new InstrumentSources.Timer(0, 0));
+        assertThat(DeviceSources.temperature(lit)).isEmpty();
+        // barrel: the matching recipe's duration - (now - recipeTick), only while sealed
+        dev.tfp.core.barrel.BarrelData sealed = dev.tfp.core.barrel.BarrelData.FRESH.sealedAt(100L, true);
+        assertThat(DeviceSources.barrelTimer(sealed, java.util.Optional.of(8000), 600L))
+            .isEqualTo(new InstrumentSources.Timer(8000, 7500));
+        assertThat(DeviceSources.barrelTimer(sealed, java.util.Optional.empty(), 600L))
+            .isEqualTo(new InstrumentSources.Timer(0, 0));
+        assertThat(DeviceSources.barrelTimer(dev.tfp.core.barrel.BarrelData.FRESH, java.util.Optional.of(8000), 600L))
+            .isEqualTo(new InstrumentSources.Timer(0, 0));
+    }
+
+    @Test
     void clockNamesItsModeAndTheDate() {
         Result r = InstrumentReadout.compute(capture(true, false, Float.NaN, ClockMode.MONTH, null), Kind.CALENDAR_CLOCK);
         assertThat(r.readout().key()).isEqualTo("instrument.clock.month");

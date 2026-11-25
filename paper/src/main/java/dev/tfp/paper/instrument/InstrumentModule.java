@@ -45,9 +45,11 @@ public final class InstrumentModule implements FeatureModule {
     public void enable(ModuleContext context) {
         DeviceService devices = context.services().require(DeviceService.class);
         InstrumentSources.Registry sources = new InstrumentSources.Registry();
-        sources.register(new DeviceSources(devices));
-        context.services().provide(InstrumentSources.Registry.class, sources);
         Tags tags = context.services().require(Tags.class);
+        BarrelDurations barrels = new BarrelDurations(context.services().require(dev.tfp.paper.recipe.Recipes.class), tags,
+            context.integrations().customItems(), devices.stacks());
+        sources.register(new DeviceSources(devices, barrels));
+        context.services().provide(InstrumentSources.Registry.class, sources);
         InstrumentRules.Support support = support(context, tags);
         Scheduler scheduler = context.scheduler();
         InstrumentDevices.Computer compute = new InstrumentDevices.Computer() {

@@ -2,7 +2,7 @@
 id: PAR-CLIM-29
 title: "Climate instrument sources: blast furnace, bloomery and the barrel recipe timer"
 area: CLIMATE
-status: open
+status: done
 wave: 37
 deps: [PAR-CLIM-28, PAR-METAL-14, PAR-METAL-15]
 size: S
@@ -18,6 +18,7 @@ ui: false
 in_game_steps: []
 plan:
   - "PAR-CLIM-28 wired the firebox (heat, kiln timer) and crucible (heat) through instrument/DeviceSources. Add the blast furnace heat (IHeatable) and the bloomery timer (IRecipeTimer) once their device kinds exist, and the barrel's sealed-recipe timer (duration of the matching recipe, remaining = duration - (now - recipeTick)) through the barrel recipe lookup."
+  - "Done: DeviceSources reads BlastFurnaceData (heat), BloomeryData (timer) and BarrelData (timer via BarrelDurations: first matching sealed recipe duration over an own BarrelRecipeBook, no barrel file touched); InstrumentReadoutTest.deviceSourcesReadTheBlastFurnaceTheBloomeryAndTheBarrel; ledger feature row and one divergence row. Pending in-game check (container cannot run client)."
 tests:
   - "paper: DeviceSources cases for each new state type, as InstrumentReadoutTest.deviceSourcesReadTheFireboxAndTheCrucible"
 done_criteria:

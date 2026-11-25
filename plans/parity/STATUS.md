@@ -187,7 +187,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-CLIM-26 | Client snow look: freezing seasonal variants carry a below-0.15 biome temperature | CLIMATE | 15 | done |
 | PAR-CLIM-27 | Climate instrument blocks: CraftEngine entries, hitbox demands, models and animated parts | CLIMATE | 35 | done |
 | PAR-CLIM-28 | Climate instruments: moving parts, device sources and support rules | CLIMATE | 36 | done |
-| PAR-CLIM-29 | Climate instrument sources: blast furnace, bloomery and the barrel recipe timer | CLIMATE | 37 | open |
+| PAR-CLIM-29 | Climate instrument sources: blast furnace, bloomery and the barrel recipe timer | CLIMATE | 37 | done |
 | PAR-CLIM-30 | Climate fog on vanilla clients: the client spike, foggy datapack variants and the seasonal remap hook | CLIMATE | 38 | done |
 | PAR-HEAT-23 | Firepit look in game: TFC's lit and unlit models on their own carriers (axis z turned 90), and the in-game firepit check | HEAT | 16 | done |
 | PAR-HEAT-28 | Torch burnout on chunk load leaves the client's block light at 14 until the chunk is sent again | HEAT | 16 | done |
