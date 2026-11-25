@@ -183,6 +183,7 @@ class GeneratedCarrierTest {
         assertThat(fruitLeaves).isEqualTo(HitboxDemands.FRUIT_TREES.size() * 4); // 4 lifecycles each
         assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 4 + 7 + fruitLeaves + 12 // + 12: PAR-FAUNA-41 the wet lobster trap on the waterlogged leaves pool; + 7: PAR-POT-14 pit kiln stages 10..16 on the leaves pool; PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
             + 2 // PAR-METAL-15: the blast furnace, unlit and lit, on the solid pool
+            + 2 // PAR-HEAT-31: the firebox, unlit and lit, on the solid pool
             + (int) HitboxDemands.all().stream().filter(d -> d.blockId().startsWith("tfp:grass_path/") && agreedOrOld(d).pool())
                 .count() // PAR-WORLD-42: the grass paths on the leaves pool
             // PAR-WORLD-42 (repair): the farmland of every soil whose outline the selector serves from a pool; the eight
@@ -192,7 +193,7 @@ class GeneratedCarrierTest {
                 .filter(soil -> agreedOrOld(demand(HitboxDemands.farmlandId(soil), HitboxDemands.FARMLAND_APPEARANCE)).pool())
                 .count() + 1); // PAR-POT-08: the thatch block on the leaves pool
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
-            List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern",
+            List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:stove", "tfp:stove_pot", "tfp:quern",
                 "tfp:scraping", "tfp:placed_item", HitboxDemands.COMPOSTER_ID, HitboxDemands.LOG_PILE_ID, HitboxDemands.CHARCOAL_PILE_ID,
                 HitboxDemands.BARREL_RACK_ID, HitboxDemands.TORCH_ID, HitboxDemands.WALL_TORCH_ID,
                 HitboxDemands.DEAD_TORCH_ID, HitboxDemands.DEAD_WALL_TORCH_ID, HitboxDemands.POWDERKEG_ID,
@@ -253,7 +254,7 @@ class GeneratedCarrierTest {
         // PAR-WORLD-47: the plant shapes with dry states (hitbox-only on the berry bush and barrel rows).
         HitboxDemands.PLANT_SHAPE_ROWS.values().forEach(names -> names.forEach(n -> expected.add(HitboxDemands.plantId(n))));
         HitboxDemands.METAL_ALL.forEach(m -> expected.add(HitboxDemands.lampId(m))); // PAR-METAL-19: the nine metal lamps (4 states, hitbox-only)
-        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3 + 8 + 41 + 14 + 2 + 1 + 1 + 1 + 9); // + 1: PAR-FAUNA-36 lobster trap; + 1: PAR-POT-13 placed item; + 1: PAR-POT-14 pit kiln; + 8: PAR-FARM-26 farmland, + 41: PAR-FARM-25 growing plants and the PAR-FARM-30 saguaro fruit, + 14: PAR-WORLD-47 plant shapes, + 2: PAR-METAL-16 ingot piles, + 9: PAR-METAL-19 metal lamps
+        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3 + 8 + 41 + 14 + 2 + 1 + 1 + 1 + 9 + 2); // + 1: PAR-FAUNA-36 lobster trap; + 1: PAR-POT-13 placed item; + 1: PAR-POT-14 pit kiln; + 8: PAR-FARM-26 farmland, + 41: PAR-FARM-25 growing plants and the PAR-FARM-30 saguaro fruit, + 14: PAR-WORLD-47 plant shapes, + 2: PAR-METAL-16 ingot piles, + 9: PAR-METAL-19 metal lamps, + 2: PAR-HEAT-31 stove and stove pot
         // PAR-WORLD-42 (repair): a farmland on the leaves pool has no explicit state (counted with the pools above)
         HitboxDemands.FARMLAND_SOILS.stream()
             .filter(soil -> agreedOrOld(demand(HitboxDemands.farmlandId(soil), HitboxDemands.FARMLAND_APPEARANCE)).pool())
@@ -590,6 +591,35 @@ class GeneratedCarrierTest {
                 Assignment a = agreedOrOld(d);
                 assertThat(a.state()).as(d.id()).isNotEqualTo(reserved.state());
                 assertThat(a.state().equals(carrier) && a.mode() != HitboxAllocation.Mode.HITBOX_ONLY).as(d.id()).isFalse();
+            }
+        }
+    }
+
+    @Test
+    void theStoveAndStovePotCarriersArePinned() {
+        // PAR-HEAT-31: the stove and the stove pot are item displays of TFC's models: every (lit, facing) appearance of a block
+        // is hitbox-only on the one carrier of its outline, drawn empty. Served last (weight -9, -10): they moved no other
+        // block's carrier.
+        for (String id : List.of(HitboxDemands.STOVE_ID, HitboxDemands.STOVE_POT_ID)) {
+            java.util.Set<String> carriers = new java.util.HashSet<>();
+            for (boolean lit : new boolean[] {true, false}) {
+                for (String facing : HitboxDemands.FACINGS) {
+                    String app = HitboxDemands.stoveAppearance(lit, facing);
+                    Assignment a = HitboxAllocation.agreed(id, app);
+                    assertThat(a.mode()).as(id + "#" + app).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
+                    assertThat(a.demand().look()).as(id + "#" + app).isEqualTo(HitboxAllocation.TRANSPARENT);
+                    carriers.add(a.state());
+                }
+            }
+            assertThat(carriers).as(id + " carrier").hasSize(1);
+            // no other block draws the carrier with a model
+            String carrier = carriers.iterator().next();
+            for (Demand d : agreedDemands()) {
+                Assignment a = agreedOrOld(d);
+                if (a.state().equals(carrier)) {
+                    assertThat(a.mode()).as(d.id() + " shares " + carrier).isIn(HitboxAllocation.Mode.HITBOX_ONLY,
+                        HitboxAllocation.Mode.VANILLA);
+                }
             }
         }
     }

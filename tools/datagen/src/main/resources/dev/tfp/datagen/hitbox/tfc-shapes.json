@@ -339,6 +339,22 @@
       "from": "PotBlock.java POT_SHAPE / same"
     },
     {
+      "key": "tfc:stove",
+      "class": "stove",
+      "kind": "object",
+      "selection": [[1, 0, 1, 15, 12, 15]],
+      "collision": [[1, 0, 1, 15, 12, 15]],
+      "from": "StoveBlock.java (ported)"
+    },
+    {
+      "key": "tfc:stove_pot",
+      "class": "stove_pot",
+      "kind": "object",
+      "selection": [[1, 0, 1, 15, 12, 15], [2, 12, 2, 14, 16, 14]],
+      "collision": [[1, 0, 1, 15, 12, 15], [2, 12, 2, 14, 16, 14]],
+      "from": "StovePotBlock.java (ported)"
+    },
+    {
       "key": "tfc:bellows[facing=north]",
       "class": "bellows",
       "kind": "object",

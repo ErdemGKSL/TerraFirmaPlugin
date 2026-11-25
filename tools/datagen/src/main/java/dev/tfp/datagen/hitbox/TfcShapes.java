@@ -195,6 +195,23 @@ public final class TfcShapes {
             List.of("super(properties, GRILL_SHAPE);"), List.of("getCollisionShape")));
         s.add(Spec.of("tfc:pot", "pot", Kind.OBJECT, List.of(D + "PotBlock.java", firepit), "POT_SHAPE", "same",
             List.of("super(properties, POT_SHAPE);"), List.of("getCollisionShape")));
+        // PAR-HEAT-31: the stove (StoveBlock.BASE_SHAPE) and the stove pot (BASE_SHAPE plus the pot box), the same for getShape
+        // and the collision; ported, as the stove pot's shape names another class's constant.
+        s.add(new Spec("tfc:stove", "stove", Kind.OBJECT, List.of(D + "StoveBlock.java", firepit), null, null,
+            List.of("public static final VoxelShape BASE_SHAPE = box(1, 0, 1, 15, 12, 15);", "super(properties, BASE_SHAPE);"),
+            List.of("getCollisionShape"), x -> {
+                require(x.source(D + "StoveBlock.java"), "box(1, 0, 1, 15, 12, 15);", "StoveBlock.java");
+                Shape base = Shape.box(1, 0, 1, 15, 12, 15);
+                return new Shape[] {base, base};
+            }));
+        s.add(new Spec("tfc:stove_pot", "stove_pot", Kind.OBJECT, List.of(D + "StovePotBlock.java", firepit), null, null,
+            List.of("Shapes.or(StoveBlock.BASE_SHAPE, box(2, 12, 2, 14, 16, 14));", "super(properties, POT_SHAPE);"),
+            List.of("getCollisionShape"), x -> {
+                require(x.source(D + "StovePotBlock.java"), "Shapes.or(StoveBlock.BASE_SHAPE, box(2, 12, 2, 14, 16, 14));",
+                    "StovePotBlock.java");
+                Shape pot = Shape.box(1, 0, 1, 15, 12, 15).union(Shape.box(2, 12, 2, 14, 16, 14));
+                return new Shape[] {pot, pot};
+            }));
         for (String f : List.of("north", "east", "south", "west")) {
             s.add(new Spec("tfc:bellows[facing=" + f + "]", "bellows", Kind.OBJECT, List.of(D + "BellowsBlock.java", HELPERS),
                 null, null, List.of("COMPLETE_SHAPES = Helpers.computeHorizontalShapes(d -> createShapeFor(d, 0.875f));"),

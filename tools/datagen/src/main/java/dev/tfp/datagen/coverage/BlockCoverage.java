@@ -135,7 +135,6 @@ public final class BlockCoverage {
         Owner.of("ingot_pile|double_ingot_pile", "PAR-METAL-16", "ingot and double-ingot piles"),
         Owner.of("bronze_bell|brass_bell", "PAR-METAL-18", "bronze and brass bells"),
         Owner.of("candle(/.+)?|candle_cake(/.+)?|jack_o_lantern", "PAR-HEAT-26", "candles, candle cakes, jack-o'-lanterns"),
-        Owner.of("firebox|stove|stove_pot", "PAR-HEAT-31", "firebox block, stove and stove pot"),
         Owner.of("torch|wall_torch|dead_torch|dead_wall_torch", "PAR-HEAT-21", "torches and dead torches"),
         Owner.of("thermometer|anemometer|vane|calendar_clock", "PAR-CLIM-09", "climate instruments"),
         Owner.of("nest_box", "PAR-FAUNA-07", "nest box"));

@@ -150,7 +150,7 @@ public final class PaperFirepitEffects implements FirepitEffects {
     public void show(Block block, BlockStateRef state) {
         scheduler.region(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, () -> {
             Optional<BlockStateRef> now = blocks.stateAt(block);
-            if (now.isEmpty() || !now.get().id().equals(FirepitDevice.ID) || state.equals(now.get())) {
+            if (now.isEmpty() || !FirepitDevice.isFirepit(now.get().id()) || state.equals(now.get())) {
                 return;
             }
             Optional<BlockData> data = visuals.get().blockData(state);
@@ -231,7 +231,7 @@ public final class PaperFirepitEffects implements FirepitEffects {
     public void breakBlock(Block block) {
         scheduler.region(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, () -> {
             Optional<BlockStateRef> now = blocks.stateAt(block);
-            if (now.isPresent() && now.get().id().equals(FirepitDevice.ID)) {
+            if (now.isPresent() && FirepitDevice.isFirepit(now.get().id())) {
                 blocks.remove(block);
             }
         });

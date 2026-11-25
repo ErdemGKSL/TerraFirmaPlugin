@@ -74,6 +74,13 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class PotDevice {
     public static final String ID = "tfp:pot";
+    /** PAR-HEAT-31: TFC's {@code StovePotBlock extends PotBlock}: the same device on the block {@code tfp:stove_pot}. */
+    public static final String STOVE_ID = "tfp:stove_pot";
+
+    /** Whether {@code blockId} is a block run by a pot device: the pot and the stove pot. */
+    public static boolean isPot(String blockId) {
+        return ID.equals(blockId) || STOVE_ID.equals(blockId);
+    }
     public static final String LIT = "lit";
     public static final String SMOKE_LEVEL = "smoke_level";
     public static final String AXIS = "axis";
@@ -142,9 +149,14 @@ public final class PotDevice {
     private final DeviceKind<PotData> kind;
 
     public PotDevice(Services services, StackCodec stacks) {
+        this(ID, services, stacks);
+    }
+
+    /** PAR-HEAT-31: a device of another block that shares the pot's rules and state ({@code tfp:stove_pot}). */
+    public PotDevice(String id, Services services, StackCodec stacks) {
         this.services = Objects.requireNonNull(services, "services");
         this.stacks = Objects.requireNonNull(stacks, "stacks");
-        this.kind = DeviceKind.builder(ID, PotData.CODEC, PotData.FRESH)
+        this.kind = DeviceKind.builder(Objects.requireNonNull(id, "id"), PotData.CODEC, PotData.FRESH)
             .slots(PotSim.SLOTS)
             .slotLimit(PotSim::slotLimit)
             .filter(this::isItemValid)
@@ -448,8 +460,9 @@ public final class PotDevice {
         private DeviceResult<PotData> finish(DeviceContext<PotData> ctx, DeviceRecord<PotData> record, boolean consumed) {
             Block block = ctx.block();
             PotData data = record.state();
-            String axis = ctx.state().properties().getOrDefault(AXIS, "x");
-            BlockStateRef wanted = state(data, axis);
+            // the current state with the record's lit and smoke level: every other property (axis, a stove's facing) stays
+            BlockStateRef wanted = ctx.state().with(LIT, Boolean.toString(data.firepit().lit()))
+                .with(SMOKE_LEVEL, Integer.toString(data.firepit().smokeLevel()));
             if ("true".equals(ctx.state().properties().get(LIT)) && !data.firepit().lit()) {
                 services.effects().sound(block, PotEffects.Sound.EXTINGUISH);
             }

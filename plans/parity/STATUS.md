@@ -237,7 +237,7 @@ Totals: 388 items; open 208, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-TOOL-03 | In-game verification of metal tools and armour | TOOL | 19 | done |
 | PAR-WORLD-06 | Cave tunnels and canyons (vanilla carvers with TFC carveBlock) | WORLD | 19 | done |
 | PAR-WORLD-08 | Disc, pipe and kaolin veins; montane second pass; ore distribution statistics | WORLD | 19 | done |
-| PAR-HEAT-31 | Firebox block loaded in game (full-cube pool, copper sounds, in-game screen check), stove and stove pot | HEAT | 19 | open |
+| PAR-HEAT-31 | Firebox block loaded in game (full-cube pool, copper sounds, in-game screen check), stove and stove pot | HEAT | 19 | done |
 | PAR-INFRA-63 | Device automation follow-ups: droppers and hopper minecarts into devices, screen-aware moves, per-device settle after a move, config.yml automation keys | INFRA | 19 | done |
 | PAR-INFRA-64 | Device automation, remaining parts: hopper minecarts, screen-aware moves, barrel fluid settle after a hopper insert, config.yml automation keys with reload | INFRA | 20 | done |
 | PAR-INFRA-66 | Device automation, screens and barrel: the device screens' own edit/reload instead of the 8-block pause, barrel fluid settle after a hopper insert | INFRA | 21 | done |

@@ -29,6 +29,6 @@ public final class FirepitWorldModule implements FeatureModule {
     public void enable(ModuleContext context) {
         DeviceService devices = context.services().require(DeviceService.class);
         context.listen(new FirepitWorldListener(context.scheduler(), context.integrations().customBlocks(), devices,
-            Set.of(FirepitDevice.ID, GrillDevice.ID, PotDevice.ID)));
+            Set.of(FirepitDevice.ID, GrillDevice.ID, PotDevice.ID, FirepitDevice.STOVE_ID, PotDevice.STOVE_ID)));
     }
 }

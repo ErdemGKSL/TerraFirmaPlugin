@@ -98,14 +98,14 @@ public final class PaperPotEffects implements PotEffects {
     }
 
     private boolean isPot(Block block) {
-        return blocks.stateAt(block).map(s -> s.id().equals(PotDevice.ID)).orElse(false);
+        return blocks.stateAt(block).map(s -> PotDevice.isPot(s.id())).orElse(false);
     }
 
     @Override
     public void show(Block block, BlockStateRef state) {
         scheduler.region(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, () -> {
             Optional<BlockStateRef> now = blocks.stateAt(block);
-            if (now.isEmpty() || !now.get().id().equals(PotDevice.ID) || state.equals(now.get())) {
+            if (now.isEmpty() || !PotDevice.isPot(now.get().id()) || state.equals(now.get())) {
                 return;
             }
             Optional<BlockData> data = visuals.get().blockData(state);

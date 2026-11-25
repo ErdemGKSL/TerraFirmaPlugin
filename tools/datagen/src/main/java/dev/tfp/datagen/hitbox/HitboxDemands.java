@@ -707,6 +707,16 @@ public final class HitboxDemands {
                     HitboxAllocation.TRANSPARENT, true, GRILL_WEIGHT));
             }
         }
+        // PAR-HEAT-31: the stove and the stove pot, every (lit, facing) appearance hitbox-only on the carrier of TFC's own
+        // outline (StoveBlock.BASE_SHAPE; plus the pot box), drawn empty; TFC's model is an item display turned per facing.
+        for (boolean lit : new boolean[] {true, false}) {
+            for (String facing : FACINGS) {
+                d.add(new Demand(STOVE_ID, stoveAppearance(lit, facing), "tfc:stove", lit ? FIREPIT_LIT_LIGHT : 0,
+                    HitboxAllocation.TRANSPARENT, true, STOVE_WEIGHT));
+                d.add(new Demand(STOVE_POT_ID, stoveAppearance(lit, facing), "tfc:stove_pot", lit ? FIREPIT_LIT_LIGHT : 0,
+                    HitboxAllocation.TRANSPARENT, true, STOVE_WEIGHT - 1));
+            }
+        }
         // PAR-HEAT-26: the candles (per count, lit, waterlogged), the candle cakes (per lit) and the jack-o'-lantern (per
         // facing). TFC draws vanilla's own models for all of them, so each takes its vanilla twin's state of the same
         // properties with the vanilla look (twin): the client's flame and smoke particles and its extinguish prediction are
@@ -1678,6 +1688,38 @@ public final class HitboxDemands {
         return lit ? "tfp:block/grill_lit" : "tfp:block/grill_unlit";
     }
 
+    /** PAR-HEAT-31: the stove and the stove pot blocks (TFC {@code StoveBlock}, {@code StovePotBlock}). */
+    public static final String STOVE_ID = "tfp:stove";
+    public static final String STOVE_POT_ID = "tfp:stove_pot";
+    /** PAR-HEAT-31: served after every other demand (adding the stove models moves no carrier of another block). */
+    static final int STOVE_WEIGHT = -9;
+
+    /** PAR-HEAT-31: the stove appearance of {@code lit} and a facing ({@code lit_north}, {@code unlit_east}). */
+    public static String stoveAppearance(boolean lit, String facing) {
+        return (lit ? "lit" : "unlit") + "_" + facing;
+    }
+
+    /** PAR-HEAT-31: TFC's stove model of a lit value ({@code tfp:block/stove_lit} / {@code _unlit}). */
+    public static String stoveModel(boolean lit) {
+        return lit ? "tfp:block/stove_lit" : "tfp:block/stove_unlit";
+    }
+
+    /** PAR-HEAT-31: the stove pot's merged model of a lit value ({@code tfp:block/stove_pot_lit} / {@code _unlit}). */
+    public static String stovePotModel(boolean lit) {
+        return lit ? "tfp:block/stove_pot_lit" : "tfp:block/stove_pot_unlit";
+    }
+
+    /** PAR-HEAT-31: TFC's stove blockstates turn the model y by facing (east 0, south 90, west 180, north 270). */
+    public static int stoveRotation(String facing) {
+        return switch (facing) {
+            case "east" -> 0;
+            case "south" -> 90;
+            case "west" -> 180;
+            case "north" -> 270;
+            default -> throw new IllegalArgumentException("not a horizontal facing: " + facing);
+        };
+    }
+
     /** PAR-PROC-39: TFC's model of a powderkeg appearance ({@code tfp:block/powderkeg}, {@code _sealed}, {@code _lit}). */
     public static String powderkegModel(String appearance) {
         return switch (appearance) {
@@ -1738,12 +1780,20 @@ public final class HitboxDemands {
     public static final String BLAST_FURNACE_POOL = "solid";
 
     /**
+     * PAR-HEAT-31: the firebox (TFC's full cube column, lit and unlit) is drawn on CraftEngine's {@code solid} auto_state
+     * pool with its own models, like every full cube; not a demand of the explicit-carrier budget.
+     */
+    public static final String FIREBOX_ID = "tfp:firebox";
+    public static final String FIREBOX_POOL = "solid";
+
+    /**
      * Full-cube appearances drawn from a CE pool by their generator instead of an explicit carrier: block id to the
      * appearance pattern and the pool. GeneratedCarrierTest accepts {@code auto_state} only for these.
      */
     public static final java.util.Map<String, java.util.Map.Entry<String, String>> FULL_CUBE_POOLS = java.util.Map.of(
         COMPOSTER_ID, java.util.Map.entry("*_" + COMPOSTER_POOL_STAGE, COMPOSTER_POOL),
-        BLAST_FURNACE_ID, java.util.Map.entry("*", BLAST_FURNACE_POOL));
+        BLAST_FURNACE_ID, java.util.Map.entry("*", BLAST_FURNACE_POOL),
+        FIREBOX_ID, java.util.Map.entry("*", FIREBOX_POOL));
 
     /**
      * PAR-PROC-37: the pool appearances of the charcoal pit blocks (block id to appearance pattern to pool), in the order

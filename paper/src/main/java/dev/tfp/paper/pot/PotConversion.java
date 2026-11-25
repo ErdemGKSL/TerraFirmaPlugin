@@ -22,6 +22,7 @@ import dev.tfp.core.pot.PotSim;
 import dev.tfp.paper.device.DeviceKind;
 import dev.tfp.paper.device.DeviceService;
 import dev.tfp.paper.device.StackCodec;
+import dev.tfp.paper.firepit.FirepitDevice;
 import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
 import java.util.ArrayList;
@@ -71,29 +72,53 @@ public final class PotConversion {
         this.placer = Objects.requireNonNull(placer, "placer");
     }
 
-    /** The firepit kind registered with the device service, if the firepit module runs. */
+    /** The firepit kind of block id {@code id} registered with the device service, if the firepit module runs. */
     @SuppressWarnings("unchecked")
-    Optional<DeviceKind<FirepitData>> firepitKind() {
-        return devices.kinds().find(PotModule.FIREPIT_ID)
+    Optional<DeviceKind<FirepitData>> firepitKind(String id) {
+        return devices.kinds().find(id)
             .filter(k -> k.stateCodec() == FirepitData.CODEC)
             .map(k -> (DeviceKind<FirepitData>) k);
     }
 
-    /** Whether {@code block} is a firepit. */
-    public boolean isFirepit(Block block) {
-        return blocks.stateAt(block).map(s -> s.id().equals(PotModule.FIREPIT_ID)).orElse(false);
+    /** The pot kind of block id {@code id}: the given one for the pot, the registered one for the stove pot. */
+    @SuppressWarnings("unchecked")
+    Optional<DeviceKind<PotData>> potKind(String id) {
+        if (id.equals(pot.id())) {
+            return Optional.of(pot);
+        }
+        return devices.kinds().find(id).filter(k -> k.stateCodec() == PotData.CODEC).map(k -> (DeviceKind<PotData>) k);
     }
 
-    /** Whether {@code block} is a pot. */
+    /** PAR-HEAT-31: the pot a firepit-family block becomes with a ceramic pot (the stove becomes the stove pot). */
+    static String potOf(String firepitId) {
+        return FirepitDevice.STOVE_ID.equals(firepitId) ? PotDevice.STOVE_ID : PotDevice.ID;
+    }
+
+    /** PAR-HEAT-31: the firepit a pot-family block becomes when the pot is taken (the stove pot becomes the stove). */
+    static String firepitOf(String potId) {
+        return PotDevice.STOVE_ID.equals(potId) ? FirepitDevice.STOVE_ID : PotModule.FIREPIT_ID;
+    }
+
+    /** Whether {@code block} is a firepit or a stove (TFC {@code FirepitBlock} that is no grill or pot). */
+    public boolean isFirepit(Block block) {
+        return blocks.stateAt(block).map(s -> FirepitDevice.isFirepit(s.id())).orElse(false);
+    }
+
+    /** Whether {@code block} is a pot or a stove pot. */
     public boolean isPot(Block block) {
-        return blocks.stateAt(block).map(s -> s.id().equals(PotDevice.ID)).orElse(false);
+        return blocks.stateAt(block).map(s -> PotDevice.isPot(s.id())).orElse(false);
     }
 
     /** TFC {@code FirepitBlock.useItemOn} with a ceramic pot: the firepit becomes a pot. Returns whether it did. */
     public boolean toPot(Block block) {
         Optional<BlockStateRef> state = blocks.stateAt(block);
-        Optional<DeviceKind<FirepitData>> kind = firepitKind();
-        if (state.isEmpty() || !state.get().id().equals(PotModule.FIREPIT_ID) || kind.isEmpty()) {
+        if (state.isEmpty() || !FirepitDevice.isFirepit(state.get().id())) {
+            return false;
+        }
+        String potId = potOf(state.get().id());
+        Optional<DeviceKind<FirepitData>> kind = firepitKind(state.get().id());
+        Optional<DeviceKind<PotData>> pot = potKind(potId);
+        if (kind.isEmpty() || pot.isEmpty()) {
             return false;
         }
         Object[] old = new Object[1];
@@ -106,13 +131,13 @@ public final class PotConversion {
         }
         @SuppressWarnings("unchecked")
         DeviceRecord<FirepitData> before = (DeviceRecord<FirepitData>) old[0];
-        BlockStateRef next = copyProperties(BlockStateRef.of(PotDevice.ID), state.get());
+        BlockStateRef next = copyProperties(BlockStateRef.of(potId), state.get());
         if (!placer.place(block, next)) {
             devices.edit(block, kind.get(), (record, now) -> before.withLastUpdateTick(record.lastUpdateTick()));
             return false;
         }
         FirepitData f = before.state();
-        devices.edit(block, pot, (record, now) -> {
+        devices.edit(block, pot.get(), (record, now) -> {
             DeviceRecord<PotData> r = record;
             for (int i = FirepitSim.SLOT_FUEL_CONSUME; i <= FirepitSim.SLOT_FUEL_INPUT; i++) {
                 r = r.withSlot(i, before.slot(i));
@@ -127,12 +152,17 @@ public final class PotConversion {
     /** TFC {@code PotBlock.useItemOn}, sneaking with an empty hand: the pot becomes a firepit. Returns whether it did. */
     public boolean toFirepit(Block block) {
         Optional<BlockStateRef> state = blocks.stateAt(block);
-        Optional<DeviceKind<FirepitData>> kind = firepitKind();
-        if (state.isEmpty() || !state.get().id().equals(PotDevice.ID) || kind.isEmpty()) {
+        if (state.isEmpty() || !PotDevice.isPot(state.get().id())) {
+            return false;
+        }
+        String firepitId = firepitOf(state.get().id());
+        Optional<DeviceKind<PotData>> pot = potKind(state.get().id());
+        Optional<DeviceKind<FirepitData>> kind = firepitKind(firepitId);
+        if (kind.isEmpty() || pot.isEmpty()) {
             return false;
         }
         Object[] old = new Object[1];
-        Optional<DeviceRecord<PotData>> emptied = devices.edit(block, pot, (record, now) -> {
+        Optional<DeviceRecord<PotData>> emptied = devices.edit(block, pot.get(), (record, now) -> {
             old[0] = record;
             return record.cleared();
         });
@@ -141,9 +171,9 @@ public final class PotConversion {
         }
         @SuppressWarnings("unchecked")
         DeviceRecord<PotData> before = (DeviceRecord<PotData>) old[0];
-        BlockStateRef next = copyProperties(BlockStateRef.of(PotModule.FIREPIT_ID), state.get());
+        BlockStateRef next = copyProperties(BlockStateRef.of(firepitId), state.get());
         if (!placer.place(block, next)) {
-            devices.edit(block, pot, (record, now) -> before.withLastUpdateTick(record.lastUpdateTick()));
+            devices.edit(block, pot.get(), (record, now) -> before.withLastUpdateTick(record.lastUpdateTick()));
             return false;
         }
         FirepitData f = before.state().firepit();
@@ -172,7 +202,7 @@ public final class PotConversion {
     /** TFC {@code Helpers.copyProperties}: {@code lit}, {@code smoke_level} and {@code axis} onto the new block. */
     static BlockStateRef copyProperties(BlockStateRef target, BlockStateRef from) {
         BlockStateRef out = target;
-        for (String p : List.of(PotDevice.LIT, PotDevice.SMOKE_LEVEL, PotDevice.AXIS)) {
+        for (String p : List.of(PotDevice.LIT, PotDevice.SMOKE_LEVEL, PotDevice.AXIS, "facing")) { // facing: a stove's (PAR-HEAT-31)
             String v = from.properties().get(p);
             if (v != null) {
                 out = out.with(p, v);

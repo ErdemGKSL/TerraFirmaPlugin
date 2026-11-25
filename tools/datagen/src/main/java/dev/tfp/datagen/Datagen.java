@@ -124,7 +124,7 @@ public final class Datagen {
         if (dev.tfp.datagen.glassbottle.GlassBottleItems.available(tfc)) { // PAR-POT-12: the four glass bottles and the jug fluid overlay; after PotteryItems, before the coverage gate
             dev.tfp.datagen.glassbottle.GlassBottleItems.run(tfc, out);
         }
-        if (dev.tfp.datagen.glass.GlassItems.available(tfc)) { // PAR-PROC-52: blowpipes, jacks, paddle, the four glass batches, lamp glass and lens; before the coverage gate
+        if (dev.tfp.datagen.glass.GlassItems.available(tfc)) { // PAR-PROC-52: blowpipes, jacks, paddle and the four glass batches; before the coverage gate
             dev.tfp.datagen.glass.GlassItems.run(tfc, out);
         }
         if (dev.tfp.datagen.tool.RockTools.available(tfc)) { // PAR-TOOL-01: rock tool heads and tools; before the coverage gate
@@ -282,6 +282,12 @@ public final class Datagen {
         }
         if (dev.tfp.datagen.lobstertrap.LobsterTrapBlock.available(tfc)) { // PAR-FAUNA-36: tfp:lobster_trap on the selector's carrier, models, texture, names; fixtures have no trap
             dev.tfp.datagen.lobstertrap.LobsterTrapBlock.run(tfc, out);
+        }
+        if (dev.tfp.datagen.firebox.FireboxBlock.available(tfc)) { // PAR-HEAT-31: tfp:firebox entry on the solid pool, models, textures, names; fixtures have no firebox
+            dev.tfp.datagen.firebox.FireboxBlock.run(tfc, out);
+        }
+        if (dev.tfp.datagen.stove.StoveBlocks.available(tfc)) { // PAR-HEAT-31: tfp:stove and tfp:stove_pot entries (item displays on hitbox-only carriers), models, textures, names; fixtures have none
+            dev.tfp.datagen.stove.StoveBlocks.run(tfc, out);
         }
         if (dev.tfp.datagen.firebox.FireboxScreenArt.available(tfc)) { // PAR-HEAT-12: firebox screen art; fixtures have no firebox screen
             dev.tfp.datagen.firebox.FireboxScreenArt.run(tfc, out);

@@ -70,6 +70,13 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class FirepitDevice {
     public static final String ID = "tfp:firepit";
+    /** PAR-HEAT-31: TFC's {@code StoveBlock extends FirepitBlock}: the same device on the block {@code tfp:stove}. */
+    public static final String STOVE_ID = "tfp:stove";
+
+    /** Whether {@code blockId} is a block run by a firepit device: the firepit and the stove. */
+    public static boolean isFirepit(String blockId) {
+        return ID.equals(blockId) || STOVE_ID.equals(blockId);
+    }
     public static final String LIT = "lit";
     public static final String SMOKE_LEVEL = "smoke_level";
     public static final String AXIS = "axis";
@@ -156,6 +163,7 @@ public final class FirepitDevice {
     private final Screen screen;
     private final Map<Pos, Pending> pending = new ConcurrentHashMap<>();
     private final DeviceKind<FirepitData> kind;
+    private final String id;
 
     /** A device without a screen (tests of the other paths, the grill and pot conversions). */
     public FirepitDevice(Services services, StackCodec stacks) {
@@ -163,10 +171,19 @@ public final class FirepitDevice {
     }
 
     public FirepitDevice(Services services, StackCodec stacks, Screen screen) {
+        this(ID, services, stacks, screen);
+    }
+
+    /**
+     * PAR-HEAT-31: a device of another block that shares the firepit's rules and state ({@code tfp:stove}: TFC's
+     * {@code StoveBlock extends FirepitBlock}); the block state keeps its other properties ({@code facing}).
+     */
+    public FirepitDevice(String id, Services services, StackCodec stacks, Screen screen) {
+        this.id = Objects.requireNonNull(id, "id");
         this.services = Objects.requireNonNull(services, "services");
         this.stacks = Objects.requireNonNull(stacks, "stacks");
         this.screen = Objects.requireNonNull(screen, "screen");
-        this.kind = DeviceKind.builder(ID, FirepitData.CODEC, FirepitData.FRESH)
+        this.kind = DeviceKind.builder(this.id, FirepitData.CODEC, FirepitData.FRESH)
             .slots(FirepitSim.SLOTS)
             .slotLimit(FirepitSim::slotLimit)
             .filter(this::isItemValid)
@@ -480,8 +497,9 @@ public final class FirepitDevice {
                     data.ash(), data.lastMaxBurnTicks(), data.raining());
                 record = record.withState(data);
             }
-            String axis = ctx.state().properties().getOrDefault(AXIS, "x");
-            BlockStateRef wanted = state(data, axis);
+            // the current state with the record's lit and smoke level: every other property (axis, a stove's facing) stays
+            BlockStateRef wanted = ctx.state().with(LIT, Boolean.toString(data.lit()))
+                .with(SMOKE_LEVEL, Integer.toString(data.smokeLevel()));
             if ("true".equals(ctx.state().properties().get(LIT)) && !data.lit()) {
                 // TFC extinguish plays FIRE_EXTINGUISH on a douse and when the fuel runs out
                 services.effects().sound(block, FirepitEffects.Sound.EXTINGUISH);

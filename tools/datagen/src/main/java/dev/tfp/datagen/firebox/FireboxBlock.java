@@ -45,12 +45,10 @@ import java.util.regex.Pattern;
  *   <li>Two appearances, as TFC's blockstate draws them: {@code unlit} ({@code firebox_off}) and {@code lit}
  *       ({@code firebox_on}, the animated side texture). TFC's firebox is a full cube column, so both take a state of
  *       CraftEngine's {@code solid} auto_state pool with our copy of TFC's model.</li>
- *   <li>The {@code tfp:device} behaviour, TFC's settings (strength 6, the pickaxe tag; metal sounds for TFC's copper
- *       ones), the loot (the firebox itself under survives_explosion) and the block item with TFC's item model.</li>
+ *   <li>The {@code tfp:device} behaviour, TFC's settings (strength 6, the pickaxe tag; copper sounds), the loot (the firebox itself under survives_explosion) and the block item with TFC's item model.</li>
  * </ul>
  *
- * <p>Not run by {@code Datagen} yet: a full cube on a CE pool must be declared in {@code HitboxDemands.FULL_CUBE_POOLS}
- * (GeneratedCarrierTest), which is outside PAR-HEAT-12's files. PAR-HEAT-31 declares it and adds the run line.
+ * <p>PAR-HEAT-31: declared in {@code HitboxDemands.FULL_CUBE_POOLS} (a full cube on a CE pool) and run by {@code Datagen}.
  */
 public final class FireboxBlock {
     public static final String ID = Json.TO_NS + ":firebox";
@@ -75,11 +73,8 @@ public final class FireboxBlock {
     static final String POOL = "solid";
     /** TFC {@code litBlockEmission(15)}. */
     static final int LIT_LIGHT = 15;
-    /**
-     * TFC's {@code SoundType.COPPER} has no mapping in the shared device sound table yet ({@code DeviceSound},
-     * {@code RenderedSound}); vanilla's metal set stands in until follow-up PAR-HEAT-31 adds it (ledger divergence).
-     */
-    static final DeviceSound SOUND = DeviceSound.METAL;
+    /** TFC's {@code SoundType.COPPER} (PAR-HEAT-31: mapped in {@code DeviceSound} and {@code RenderedSound}). */
+    static final DeviceSound SOUND = DeviceSound.COPPER;
     private static final Pattern TEXTURE = Pattern.compile(Json.FROM_NS + ":(block/[a-z0-9_/]+)");
     private static final Pattern REGISTRATION = Pattern.compile(
         "register\\(\"firebox\", \\(\\) -> new FireboxBlock\\(ExtendedProperties\\.of\\(\\)\\.mapColor\\(MapColor\\.COLOR_BROWN\\)"

@@ -172,3 +172,4 @@ dev.tfp.paper.hud.InkOverlayService
 dev.tfp.paper.plant.lifecycle.PlantStageModule
 dev.tfp.paper.rack.RackModule
 dev.tfp.paper.piglin.PiglinModule
+dev.tfp.paper.stove.StoveModule

@@ -36,12 +36,14 @@ public record DeviceSound(String breakSound, String step, String place, String h
     public static final DeviceSound STONE = vanillaGroup("stone");
     public static final DeviceSound WOOD = vanillaGroup("wood");
     public static final DeviceSound METAL = vanillaGroup("metal");
+    /** PAR-HEAT-31: vanilla {@code SoundType.COPPER} ({@code minecraft:block.copper.*}, volume 1, pitch 1): the firebox's sounds. */
+    public static final DeviceSound COPPER = vanillaGroup("copper");
     /** Vanilla {@code SoundType.NETHER_WART}: nether wart break and plant, stone step, hit and fall. */
     public static final DeviceSound NETHER_WART = new DeviceSound("minecraft:block.nether_wart.break",
         "minecraft:block.stone.step", "minecraft:item.nether_wart.plant", "minecraft:block.stone.hit", "minecraft:block.stone.fall");
 
     private static final Map<String, DeviceSound> VANILLA = Map.of("STONE", STONE, "WOOD", WOOD, "METAL", METAL,
-        "NETHER_WART", NETHER_WART);
+        "NETHER_WART", NETHER_WART, "COPPER", COPPER);
 
     public DeviceSound {
         for (String s : new String[] {breakSound, step, place, hit, fall}) {

@@ -99,15 +99,18 @@ public final class PotModule implements FeatureModule {
         PotScreens s = new PotScreens(gui, scheduler, context.messages(), TooltipStyles.TFC_DEFAULTS.heat());
         screens = s;
         PotDevice[] device = new PotDevice[1];
+        PotDevice[] stove = new PotDevice[1];
         PotConversion[] conversion = new PotConversion[1];
         BiConsumer<Player, Block> open = (player, block) -> s.open(player, PotScreenLink.Key.of(block),
-            new PotScreenLink(new PotScreenLink.Env(devices, device[0], scheduler), block),
+            new PotScreenLink(new PotScreenLink.Env(devices,
+                blocks.stateAt(block).map(st -> PotDevice.STOVE_ID.equals(st.id())).orElse(false) ? stove[0] : device[0],
+                scheduler), block),
             p -> context.messages().get(p, "gui.pot.title"));
         PaperPotEffects effects = new PaperPotEffects(scheduler, blocks, () -> context.integrations().blockVisuals(),
             () -> context.clock().get().playerTicks(), devices::neighbourChanged,
             block -> conversion[0].toFirepit(block), open);
         sweep = effects.start();
-        device[0] = new PotDevice(new PotDevice.Services(
+        PotDevice.Services services = new PotDevice.Services(
             stack -> tags.itemId(stack).flatMap(id -> fuels.get().get(id)),
             stack -> tags.is(stack, FIREPIT_FUEL),
             book, tanks,
@@ -118,16 +121,31 @@ public final class PotModule implements FeatureModule {
             block -> canSurvive(block, tags),
             n -> items.create(PotDevice.WOOD_ASH, n).orElse(ItemStack.empty()),
             () -> items.create(PotDevice.POT_ITEM, 1).orElse(ItemStack.empty()),
-            ThreadLocalRandom::current, HeatConfig.DEFAULT, effects), devices.stacks());
+            ThreadLocalRandom::current, HeatConfig.DEFAULT, effects);
+        device[0] = new PotDevice(services, devices.stacks());
         devices.register(device[0].kind());
+        // PAR-HEAT-31: TFC's StovePotBlock extends PotBlock: the same rules and services on the block tfp:stove_pot
+        stove[0] = new PotDevice(PotDevice.STOVE_ID, services, devices.stacks());
+        devices.register(stove[0].kind());
         conversion[0] = new PotConversion(devices, blocks, device[0].kind());
         context.listen(new PotGuiListener(s));
         context.listen(new PotInteractListener(devices, conversion[0], tanks, tags::itemId, scheduler, context.logger()));
-        hook = devices.hook(PotDevice.ID, new ScreenSync(s, scheduler));
+        ScreenSync sync = new ScreenSync(s, scheduler);
+        AutoCloseable potHook = devices.hook(PotDevice.ID, sync);
+        AutoCloseable stoveHook = devices.hook(PotDevice.STOVE_ID, sync);
+        hook = () -> {
+            potHook.close();
+            stoveHook.close();
+        };
         context.services().provide(PotScreens.class, s);
-        context.services().get(FireStarting.class).ifPresent(fire -> fire.register(ctx -> ctx.strong()
-            && blocks.stateAt(ctx.block()).map(st -> st.id().equals(PotDevice.ID)).orElse(false)
-            && device[0].light(ctx.block(), devices::neighbourChanged)));
+        context.services().get(FireStarting.class).ifPresent(fire -> {
+            fire.register(ctx -> ctx.strong()
+                && blocks.stateAt(ctx.block()).map(st -> st.id().equals(PotDevice.ID)).orElse(false)
+                && device[0].light(ctx.block(), devices::neighbourChanged));
+            fire.register(ctx -> ctx.strong()
+                && blocks.stateAt(ctx.block()).map(st -> st.id().equals(PotDevice.STOVE_ID)).orElse(false)
+                && stove[0].light(ctx.block(), devices::neighbourChanged));
+        });
     }
 
     @Override

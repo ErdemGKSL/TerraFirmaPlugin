@@ -60,6 +60,8 @@ public final class FirepitModule implements FeatureModule {
     public static final String FIREPIT_FUEL = "tfc:firepit_fuel";
     public static final String SOLID_TOP_FACE = "tfc:solid_top_face";
     public static final String SHOVELS = "minecraft:shovels";
+    /** PAR-HEAT-31: the item a stove refuses (TFC {@code StoveBlock}: "can't add a grill for balance reasons"). */
+    static final String STOVE_REFUSES = "tfp:wrought_iron_grill";
 
     private volatile AutoCloseable hook;
     /** PAR-HEAT-33: the calendar-jump sweep of the burn-out callbacks. */
@@ -105,7 +107,7 @@ public final class FirepitModule implements FeatureModule {
         scheduler.entityDelayed(player, 1, () -> {
             Optional<FirepitScreens> s = screens.get();
             if (s.isEmpty() || device == null || !player.isOnline() || !owned(scheduler, block)
-                    || !blocks.stateAt(block).map(st -> st.id().equals(FirepitDevice.ID)).orElse(false)) {
+                    || !blocks.stateAt(block).map(st -> FirepitDevice.isFirepit(st.id())).orElse(false)) {
                 return;
             }
             FirepitScreenLink link = new FirepitScreenLink(devices, device, block, b -> owned(scheduler, b));
@@ -168,7 +170,8 @@ public final class FirepitModule implements FeatureModule {
             devices::neighbourChanged);
         sweep = effects.start();
         AtomicReference<FirepitDevice> deviceRef = new AtomicReference<>();
-        FirepitDevice device = new FirepitDevice(new FirepitDevice.Services(
+        AtomicReference<FirepitDevice> stoveRef = new AtomicReference<>();
+        FirepitDevice.Services services = new FirepitDevice.Services(
             stack -> tags.itemId(stack).flatMap(id -> fuels.get().get(id)),
             stack -> tags.is(stack, FIREPIT_FUEL),
             capacities::of,
@@ -177,15 +180,33 @@ public final class FirepitModule implements FeatureModule {
             block -> raining(context, block),
             block -> canSurvive(block, tags),
             n -> context.integrations().customItems().create(FirepitDevice.WOOD_ASH, n).orElse(ItemStack.empty()),
-            ThreadLocalRandom::current, HeatConfig.DEFAULT, effects), devices.stacks(),
+            ThreadLocalRandom::current, HeatConfig.DEFAULT, effects);
+        FirepitDevice device = new FirepitDevice(services, devices.stacks(),
             (player, block) -> openScreen(context, devices, deviceRef.get(), player, block));
         deviceRef.set(device);
         devices.register(device.kind());
-        hook = devices.hook(FirepitDevice.ID, new ScreenSync(() -> context.services().get(FirepitScreens.class),
-            context.scheduler()));
+        // PAR-HEAT-31: TFC's StoveBlock extends FirepitBlock: the same rules and services on the block tfp:stove
+        FirepitDevice stove = new FirepitDevice(FirepitDevice.STOVE_ID, services, devices.stacks(),
+            (player, block) -> {
+                // TFC StoveBlock.useItemOn: a wrought iron grill is refused (FAIL): nothing happens, no screen
+                if (!tags.itemId(player.getInventory().getItemInMainHand()).map(STOVE_REFUSES::equals).orElse(false)) {
+                    openScreen(context, devices, stoveRef.get(), player, block);
+                }
+            });
+        stoveRef.set(stove);
+        devices.register(stove.kind());
+        ScreenSync sync = new ScreenSync(() -> context.services().get(FirepitScreens.class), context.scheduler());
+        AutoCloseable firepitHook = devices.hook(FirepitDevice.ID, sync);
+        AutoCloseable stoveHook = devices.hook(FirepitDevice.STOVE_ID, sync);
+        hook = () -> {
+            firepitHook.close();
+            stoveHook.close();
+        };
         context.services().get(FireStarting.class).ifPresent(fire -> {
             fire.register(ctx -> ctx.strong() && blocks.stateAt(ctx.block()).map(s -> s.id().equals(FirepitDevice.ID)).orElse(false)
                 && device.light(ctx.block(), devices::neighbourChanged));
+            fire.register(ctx -> ctx.strong() && blocks.stateAt(ctx.block()).map(s -> s.id().equals(FirepitDevice.STOVE_ID)).orElse(false)
+                && stove.light(ctx.block(), devices::neighbourChanged));
             fire.firepitFactory(factory(device, blocks, tags, devices));
         });
     }

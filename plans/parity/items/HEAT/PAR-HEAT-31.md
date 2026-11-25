@@ -2,7 +2,7 @@
 id: PAR-HEAT-31
 title: "Firebox block loaded in game (full-cube pool, copper sounds, in-game screen check), stove and stove pot"
 area: HEAT
-status: open
+status: done
 wave: 19
 deps: [PAR-HEAT-23, PAR-HEAT-25, PAR-INFRA-13]
 size: M
@@ -47,12 +47,12 @@ plan:
   - "Firebox block (deferred from PAR-HEAT-12, PROTOCOL 3 + 6.5): datagen firebox/FireboxBlock already writes configuration/firebox/firebox.yml (lit, firebox_off / firebox_on on the solid auto_state pool, light 15, strength 6, pickaxe, self loot, block item, names; FireboxBlockTest) but Datagen does not run it: GeneratedCarrierTest refuses an auto_state full cube that HitboxDemands.FULL_CUBE_POOLS does not declare. Declare tfp:firebox (appearances unlit, lit -> solid), add the run line `if (FireboxBlock.available(tfc)) FireboxBlock.run(tfc, out);` to Datagen.generate, raise GeneratedCarrierTest's pool count by 2, drop firebox from the BlockCoverage owner line. The runtime (FireboxDevice, screen art firebox_gui.yml) is done."
   - "Copper sounds: DeviceSound has no SoundType.COPPER mapping (RenderedSound throws), so FireboxBlock uses DeviceSound.METAL (ledger divergence). Add COPPER (vanilla SoundType.COPPER: minecraft:block.copper.*, volume 1, pitch 1) to DeviceSound.VANILLA and RenderedSound, switch FireboxBlock.SOUND and its test, and drop the divergence row."
   - "Stove and stove pot: TFC's StoveBlock extends FirepitBlock (BASE_SHAPE box(1, 0, 1, 15, 12, 15), FACING + AXIS, no random-tick fire spread, a pot item converts it to STOVE_POT via AbstractFirepitBlockEntity.convertTo, a wrought iron grill is refused), StovePotBlock extends PotBlock (POT_SHAPE, sneak + empty hand gives the pot back and converts to STOVE, hurting the player and playing ITEM_COOL when lit). Both need hitbox demands and the firepit and pot device kinds (paper/firepit, paper/pot) for tfp:stove and tfp:stove_pot: register kinds reusing FirepitDevice / PotDevice, or add the ids to those modules' kind registration with the owners' agreement."
+  - "Done 2026-11-25: firebox loaded (HitboxDemands.FIREBOX_ID in FULL_CUBE_POOLS, run line in Datagen, copper sounds DeviceSound.COPPER / RenderedSound, FireboxBlockTest, GeneratedCarrierTest pool count +2, BlockCoverage owner line dropped); stove and stove pot: datagen stove/StoveBlocks (80 states each, TFC models, item displays per facing on the selector's hitbox-only carrier, TfcShapes rows tfc:stove and tfc:stove_pot with tfc-shapes.json regenerated, HitboxDemands demands), FirepitDevice / PotDevice take a block id (STOVE_ID, isFirepit, isPot; their effects, FirepitModule, PotModule, FirepitWorldModule and PotConversion handle the family), paper/stove (StoveModule, StoveListener: a grill is refused; the stove's screen opener refuses it too, because CraftEngine's handler runs whatever the Bukkit event says). Tests: datagen StoveBlocksTest 3, FireboxBlockTest 3, GeneratedCarrierTest.theStovePotAndStoveCarriersArePinned, TfcShapesTest; paper StoveMockBukkitTest 4 and the firepit, pot, grill and module suites (110). In game on Paper 1.21.11 with the 1.21.11 client at GUI scale 2 and 3: docs/verification/PAR-HEAT-31/ and PAR-HEAT-12/ (all PASS; the copper break sound is checked in the generated entry only). Known unrelated failures left: DeviceSpecParityTest (bellows), BlockCoverageTest (3), HitboxCarrierTest.containers, GeneratedCarrierTest explicit-state count (9 entries of other items)."
 tests:
   - "datagen: firebox, stove and stove_pot entries (carriers / pools pinned in GeneratedCarrierTest); paper: pot conversion both ways (MockBukkit)"
 ---
 
 # PAR-HEAT-31: Firebox block in game, stove and stove pot
 
-> Claimed: worker session_011osUpAUVyyokAxf5Kiw72D, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

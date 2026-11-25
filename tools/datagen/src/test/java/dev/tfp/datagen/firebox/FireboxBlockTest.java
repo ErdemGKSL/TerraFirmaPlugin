@@ -69,11 +69,11 @@ class FireboxBlockTest {
         Map<String, Object> b = block();
         assertThat(b.get("template")).isEqualTo("tfp:block/device");
         Map<String, Object> args = (Map<String, Object>) b.get("arguments");
-        // TFCBlocks: strength(6f); generated mineable/pickaxe.json; metal stands in for SoundType.COPPER (ledger)
+        // TFCBlocks: strength(6f); generated mineable/pickaxe.json; SoundType.COPPER
         assertThat(args.get("device_hardness")).isEqualTo(6.0);
         assertThat(args.get("device_resistance")).isEqualTo(6.0);
         assertThat(args.get("device_tool_tag")).isEqualTo("minecraft:mineable/pickaxe");
-        assertThat(((Map<String, Object>) args.get("device_sound_break")).get("id")).isEqualTo("minecraft:block.metal.break");
+        assertThat(args.get("device_sound_break")).isEqualTo("minecraft:block.copper.break"); // (1.0, 1.0): a plain id
         assertThat(((Map<String, Object>) b.get("loot")).get("template")).isEqualTo("tfp:loot_table/self");
         Map<String, Object> st = (Map<String, Object>) b.get("states");
         Map<String, Object> props = (Map<String, Object>) st.get("properties");
