@@ -34,4 +34,6 @@ done_criteria:
 
 # PAR-FAUNA-36: Lobster trap block
 
+> Claimed: sonnet-5.5 session_011osUp8, 2026-11-25
+
 Follow `plans/parity/PROTOCOL.md`.
