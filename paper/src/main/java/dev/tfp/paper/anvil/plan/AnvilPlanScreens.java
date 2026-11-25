@@ -251,8 +251,8 @@ public final class AnvilPlanScreens implements AnvilDevice.Plans {
         if (material != null && material.isItem()) {
             return new ItemStack(material, count);
         }
-        ItemStack paper = GuiButtons.icon(gui.glyphs(), id); // an unknown result id: a named paper so the plan still shows
-        return paper;
+        // a result whose item does not exist yet (another item adds it): a visible, named paper so the plan still shows
+        return GuiButtons.icon(false, id);
     }
 
     private ItemStack arrowIcon() {

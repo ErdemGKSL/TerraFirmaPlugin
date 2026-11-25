@@ -101,9 +101,14 @@ public record AnvilRecipe(String id, Ingredient input, int minTier, List<ForgeRu
         return workTarget(worldSeed, output.item());
     }
 
-    /** {@link #computeTarget(long)} for the result item id {@code resultItem} (the registry key, {@code namespace:path}). */
+    /**
+     * {@link #computeTarget(long)} for the result item id {@code resultItem} ({@code namespace:path}). TFC hashes its own registry
+     * key, so a {@code tfp:} item (this plugin's namespace for TFC's items) is hashed as the {@code tfc:} key it was made from and
+     * every TFC item keeps TFC's target; other namespaces (vanilla) are hashed as they are.
+     */
     public static int workTarget(long worldSeed, String resultItem) {
-        return TARGET_MIN + PositionalRandom.fork(new XoroshiroRandomSource(worldSeed)).fromHashOf(resultItem)
+        final String key = resultItem.startsWith("tfp:") ? "tfc:" + resultItem.substring("tfp:".length()) : resultItem;
+        return TARGET_MIN + PositionalRandom.fork(new XoroshiroRandomSource(worldSeed)).fromHashOf(key)
             .nextInt(TARGET_BOUND - 2 * TARGET_MIN);
     }
 

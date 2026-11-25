@@ -75,6 +75,15 @@ class AnvilRecipePlanTest {
         assertThat(AnvilRecipe.workTarget(1234567890123L, "tfc:metal/hammer_head/copper")).isEqualTo(GOLDEN_HAMMER_SEED);
     }
 
+    @Test
+    void ourTfpItemsAreHashedAsTfcsKeys() {
+        assertThat(AnvilRecipe.workTarget(99L, "tfp:metal/pickaxe_head/copper"))
+            .isEqualTo(AnvilRecipe.workTarget(99L, "tfc:metal/pickaxe_head/copper"));
+        // the in-game check world (seed -34252288505622952), plan pickaxe head (PAR-METAL-04 verification)
+        assertThat(AnvilRecipe.workTarget(-34252288505622952L, "tfp:metal/pickaxe_head/copper")).isEqualTo(74);
+        assertThat(AnvilRecipe.workTarget(5L, "minecraft:copper_door")).isBetween(40, 113);
+    }
+
     static final int GOLDEN_PICKAXE_0 = 104;
     static final int GOLDEN_PICKAXE_SEED = 102;
     static final int GOLDEN_HAMMER_SEED = 47;
