@@ -42,14 +42,17 @@ import org.bukkit.inventory.ItemStack;
  * with no click. The forge is placed through our CraftEngine adapter on a stone floor, a charcoal goes into fuel slot 0 and
  * a copper ingot into input slot 5 ({@link DeviceService#edit}: the self-test server has no player to click), the forge is
  * lit ({@link CharcoalForgeDevice#lightAt}), the calendar moves {@value #SKIP_TICKS} ticks (60 s), the device is caught up,
- * and the ingot's heat record must equal the forge temperature (1200 C after 1200 ticks of warming at one degree a tick).
+ * and the ingot's heat record must equal the forge temperature (1350 C once the charcoal has settled).
  */
 public final class CharcoalForgeContinuousCase implements SelfTestCase {
     static final String CHARCOAL = "minecraft:charcoal";
     static final String INGOT = "tfp:metal/ingot/copper";
     /** Chunks east of spawn: away from firepit.cook (56), device.roundtrip (48) and ce.block_roundtrip (40). */
     static final int CHUNK_OFFSET = 64;
+    /** The first skip (60 s): the ingot is hot and follows the forge. */
     static final int SKIP_TICKS = 1_200;
+    /** The second skip: two charcoal burn 3600 ticks, so the forge sits at 1350 C while the ingot (a heat capacity above 2) catches up. */
+    static final int SETTLE_TICKS = 1_800;
     private static final Duration STEP = Duration.ofSeconds(20);
 
     @Override
@@ -59,7 +62,7 @@ public final class CharcoalForgeContinuousCase implements SelfTestCase {
 
     @Override
     public Duration timeout() {
-        return CraftEngineBlockRoundTripCase.REBUILD.plusSeconds(60 + 6 * STEP.toSeconds());
+        return CraftEngineBlockRoundTripCase.REBUILD.plusSeconds(60 + 8 * STEP.toSeconds());
     }
 
     @Override
@@ -119,6 +122,7 @@ public final class CharcoalForgeContinuousCase implements SelfTestCase {
                 check(blocks.place(b, CharcoalForgeDevice.state(0), false), "place(charcoal_forge) returned false");
                 Optional<DeviceRecord<CharcoalForgeData>> filled = devices.edit(b, device.kind(), (r, now) -> r
                         .withSlot(CharcoalForgeSim.SLOT_FUEL_MIN, devices.stacks().encode(fuel))
+                        .withSlot(CharcoalForgeSim.SLOT_FUEL_MIN + 1, devices.stacks().encode(fuel))
                         .withSlot(CharcoalForgeSim.SLOT_INPUT_MIN, devices.stacks().encode(ingot)));
                 check(filled.isPresent(), "the forge at " + x + "," + y[0] + "," + z + " has no device record");
                 check(device.lightAt(devices, b), "the forge did not light from its charcoal");
@@ -126,23 +130,30 @@ public final class CharcoalForgeContinuousCase implements SelfTestCase {
             });
             log.add("placed at " + x + "," + y[0] + "," + z + " with charcoal and a copper ingot, lit");
 
+            Block b = world.getBlockAt(x, y[0], z);
             long before = tfp.clock().get().playerTicks();
             OnThread.global(s, STEP, () -> tfp.calendar().skip(TimeCommand.add(TimeCommand.Unit.TICKS, SKIP_TICKS)));
             long skipped = tfp.clock().get().playerTicks() - before;
             check(skipped >= SKIP_TICKS, "the calendar skip moved " + skipped + " player ticks, expected " + SKIP_TICKS);
-            Block b = world.getBlockAt(x, y[0], z);
+            String first = OnThread.region(s, world, cx, cz, STEP, () -> {
+                check(devices.catchUp(b).isPresent(), "the catch-up found no device");
+                float[] t = temperatures(devices, device, b);
+                check(t[1] >= 1000f, "the forge only reached " + t[1] + " C");
+                check(t[0] >= 0.5f * t[1] && t[0] <= t[1] + 1f,
+                        "the ingot is at " + t[0] + " C, the forge at " + t[1] + " C");
+                return "+" + skipped + " ticks: ingot " + t[0] + " C, forge " + t[1] + " C";
+            });
+            log.add(first);
+            long mid = tfp.clock().get().playerTicks();
+            OnThread.global(s, STEP, () -> tfp.calendar().skip(TimeCommand.add(TimeCommand.Unit.TICKS, SETTLE_TICKS)));
+            long settled = tfp.clock().get().playerTicks() - mid;
+            check(settled >= SETTLE_TICKS, "the second skip moved " + settled + " player ticks, expected " + SETTLE_TICKS);
             String done = OnThread.region(s, world, cx, cz, STEP, () -> {
                 check(devices.catchUp(b).isPresent(), "the catch-up found no device");
-                DeviceRecord<CharcoalForgeData> r = devices.edit(b, device.kind(), (rec, now) -> rec)
-                        .orElseThrow(() -> new AssertionError("no forge record"));
-                ItemStack held = devices.stacks().decode(r.slot(CharcoalForgeSim.SLOT_INPUT_MIN));
-                check(!held.isEmpty(), "the ingot is gone");
-                HeatState heat = HeatPdc.read(held).orElseThrow(() -> new AssertionError("the ingot has no heat record"));
-                float forge = r.state().temperature();
-                check(forge >= 1000f, "the forge only reached " + forge + " C");
-                check(Math.abs(heat.temperature() - forge) <= 1f,
-                        "the ingot is at " + heat.temperature() + " C, the forge at " + forge + " C");
-                return "+" + skipped + " ticks: ingot " + heat.temperature() + " C, forge " + forge + " C";
+                float[] t = temperatures(devices, device, b);
+                check(t[1] == 1350f, "the forge is at " + t[1] + " C, expected the charcoal's 1350 C");
+                check(Math.abs(t[0] - t[1]) <= 1f, "the ingot is at " + t[0] + " C, the forge at " + t[1] + " C");
+                return "+" + settled + " ticks: ingot " + t[0] + " C = forge " + t[1] + " C";
             });
             log.add(done);
             return String.join("; ", log);
@@ -170,6 +181,16 @@ public final class CharcoalForgeContinuousCase implements SelfTestCase {
                 return null;
             });
         }
+    }
+
+    /** The ingot's and the forge's temperature after the last catch-up. */
+    private static float[] temperatures(DeviceService devices, CharcoalForgeDevice device, Block b) {
+        DeviceRecord<CharcoalForgeData> r = devices.edit(b, device.kind(), (rec, now) -> rec)
+                .orElseThrow(() -> new AssertionError("no forge record"));
+        ItemStack held = devices.stacks().decode(r.slot(CharcoalForgeSim.SLOT_INPUT_MIN));
+        check(!held.isEmpty(), "the ingot is gone");
+        HeatState heat = HeatPdc.read(held).orElseThrow(() -> new AssertionError("the ingot has no heat record"));
+        return new float[] {heat.temperature(), r.state().temperature()};
     }
 
     private static void check(boolean condition, String message) {

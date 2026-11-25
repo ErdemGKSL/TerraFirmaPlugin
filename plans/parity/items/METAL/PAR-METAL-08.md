@@ -2,7 +2,7 @@
 id: PAR-METAL-08
 title: "Charcoal forge block entity: creation from a charcoal pile, lighting, continuous heating of held items"
 area: METAL
-status: open
+status: done
 wave: 29
 deps: [PAR-INFRA-02, PAR-HEAT-05, PAR-HEAT-04, PAR-INFRA-13]
 size: M
@@ -30,6 +30,7 @@ plan:
   - "Device kind `charcoal_forge`: 5 fuel + 5 input + 4 extra slots; created by lighting a 7-layer charcoal pile with a valid structure (TFC isValid); CharcoalForgeState persisted."
   - "Continuous heating without a ticker: each input item keeps its own heat record; the device's `advance(now)` applies the forge temperature curve to every slot item from lastUpdateTick (lazy, closed form per fuel segment), run on GUI open, interaction, chunk load and a slow sweep while a player is within 16 blocks; heat_level state updated from the curve."
   - "Remove the click-heating ForgeHeatListener once the controller exists; update the ledger divergence."
+  - "Done: core `CharcoalForgeData`, `CharcoalForgeStructure` (TFC FORGE_MULTIBLOCK), `CharcoalForgeSim` (lazy replay with per-item `addTemp`, heat runs for the block above); paper `CharcoalForgeDevice` (kind `tfp:charcoal_forge`, 14 slots, creation from a 7 layer pile, lighting by the forge or the crucible above, interim clicks until PAR-METAL-09's screen, level callbacks), `CharcoalForgeModule` (+ `/tfp debug charcoalforge`); `ForgeHeatListener` removed. Narrow widenings: TfpPlugin (one registration), DeviceSpecs (`.deviceBehaviour()` on the forge spec), `itest/.../CharcoalForgeContinuousCase.java` + its SelfTestSuite line. Tests: core CharcoalForgeSimTest (11), paper CharcoalForgeMockBukkitTest (9), self-test `forge.continuous` (compiled, not run). In game: docs/verification/PAR-METAL-08/verdict.md (pass). Follow-up: PAR-METAL-25."
 tests:
   - "core: CharcoalForgeRulesTest lazy == stepped for slot items"
   - "paper: MockBukkit advance heats a slot item to the forge temperature"
@@ -39,6 +40,5 @@ done_criteria:
 
 # PAR-METAL-08: Charcoal forge block entity: creation from a charcoal pile, lighting, continuous heating of held items
 
-> Claimed: Sonnet session_011osUp6aEeM6XBUKHoB7Lf2, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

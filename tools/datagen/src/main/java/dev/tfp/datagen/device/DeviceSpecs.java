@@ -131,6 +131,7 @@ public final class DeviceSpecs {
             b.appearance(a);
         }
         b.everyState(s -> "heat_" + s.get(heat.name()), s -> light.applyAsInt(Integer.parseInt(s.get(heat.name()))))
+            .deviceBehaviour() // PAR-METAL-08: the forge keeps a device record (fuel, items, temperature)
             .settings(settings)
             .loot(loot);
         stateMappings.forEach(b::stateMapping);
