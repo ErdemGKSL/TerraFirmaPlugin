@@ -263,6 +263,7 @@ public final class Datagen {
         BetterHudPack.write(out);
         HudLayouts.run(out, HudLayouts.catalogue());
         SeasonalBiomes.write(tfc, out);
+        dev.tfp.datagen.fog.FogVariants.run(tfc, out); // PAR-CLIM-30: foggy biome variants (datapack tfp_fog, not registered until the client spike)
         VanillaLootOverrides.run(tfc, out); // PAR-INFRA-30: TFC's replacements of vanilla loot tables, in the bootstrap datapack
         dev.tfp.datagen.damagetypes.DamageTypes.run(tfc, out); // PAR-SURV-10: TFC's damage types and no_knockback tag, in the bootstrap datapack
         CommonTags.run(out); // PAR-INFRA-14: NeoForge c: tags (skipped without -Dtfp.neoforgeJar, e.g. fixtures)
