@@ -83,6 +83,8 @@ public final class SelfTestSuite {
                 new dev.tfp.itest.cases.MetalArmorCase(),
                 new dev.tfp.itest.cases.StoneAgeRunCase(),
                 new dev.tfp.itest.cases.DeviceAutomationCase(),
+                new dev.tfp.itest.cases.HusbandryRunCase(),
+                new dev.tfp.itest.cases.HusbandryRunCase.Load(),
                 new dev.tfp.itest.rotation.RotationStressCase());
     }
 }
