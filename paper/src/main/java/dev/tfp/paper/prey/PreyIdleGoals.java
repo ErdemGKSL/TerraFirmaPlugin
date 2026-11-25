@@ -120,9 +120,14 @@ final class PreyIdleGoals {
             nextTry = now + PreyIdle.duration(PreyIdle.LOOK_INTERVAL_MIN, PreyIdle.LOOK_INTERVAL_MAX, random);
             LivingEntity best = null;
             double bestSq = PreyIdle.LOOK_PLAYER_RANGE * PreyIdle.LOOK_PLAYER_RANGE;
-            for (LivingEntity e : PreyFleeGoal.seen(brain, body, now)) {
+            Reading seen = PreyFleeGoal.seen(brain, body, now);
+            for (int i = 0; i < seen.size(); i++) {
+                LivingEntity e = seen.get(i);
+                if (!(e instanceof Player) || PreySenses.creativeOrSpectator(e)) {
+                    continue;
+                }
                 double d = PreySenses.at(e).distanceSq(PreySenses.at(mob));
-                if (e instanceof Player && !PreySenses.creativeOrSpectator(e) && d <= bestSq) {
+                if (d <= bestSq && seen.visible(i)) {
                     best = e;
                     bestSq = d;
                 }
@@ -175,12 +180,14 @@ final class PreyIdleGoals {
                 return false;
             }
             double best = Double.POSITIVE_INFINITY;
-            for (LivingEntity e : PreyFleeGoal.seen(brain, body, now)) {
-                if (!brain.species.equals(PreySenses.species(e)) || PreySenses.baby(e, now)) {
+            Reading seen = PreyFleeGoal.seen(brain, body, now);
+            for (int i = 0; i < seen.size(); i++) {
+                LivingEntity e = seen.get(i);
+                if (!brain.species.equals(seen.species(i))) {
                     continue;
                 }
                 double d = PreySenses.at(e).distanceSq(PreySenses.at(mob));
-                if (d < best) {
+                if (d < best && !PreySenses.baby(e, now) && seen.visible(i)) {
                     best = d;
                     adult = e;
                 }

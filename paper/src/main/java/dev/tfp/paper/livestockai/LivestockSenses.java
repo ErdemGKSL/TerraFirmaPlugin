@@ -11,6 +11,9 @@ import dev.tfp.core.livestock.LivestockAge;
 import dev.tfp.core.prey.Position;
 import dev.tfp.core.prey.Sighting;
 import dev.tfp.paper.animal.AnimalPdc;
+import dev.tfp.paper.prey.Sightings;
+import dev.tfp.paper.prey.SpeciesCache;
+import dev.tfp.paper.prey.SpeciesTags;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 import org.bukkit.GameMode;
@@ -25,14 +28,15 @@ import org.bukkit.entity.Player;
  * then apply"). Owning thread only; the tag test itself is thread-safe.
  */
 final class LivestockSenses {
-    static final String LAND_PREDATORS = "tfp:land_predators";
-    static final String RAMMING_ANIMALS = "tfp:ramming_animals";
+    static final String LAND_PREDATORS = SpeciesTags.LAND_PREDATORS;
+    static final String RAMMING_ANIMALS = SpeciesTags.RAMMING_ANIMALS;
 
-    /** Whether the species id ({@code tfp:wolf}) is in the entity tag. */
-    private final BiPredicate<String, String> speciesInTag;
+    private final SpeciesTags tags;
+    /** Sightings built, for the load tests. */
+    long sightingsBuilt;
 
     LivestockSenses(BiPredicate<String, String> speciesInTag) {
-        this.speciesInTag = speciesInTag;
+        this.tags = new SpeciesTags(speciesInTag);
     }
 
     static Position at(Entity e) {
@@ -48,9 +52,9 @@ final class LivestockSenses {
         return AnimalPdc.read(e.getPersistentDataContainer());
     }
 
-    /** Our species id for one of our animals, else the vanilla type key. */
+    /** Our species id for one of our animals, else the vanilla type key (cached, see {@link SpeciesCache}). */
     static String species(Entity e) {
-        return record(e).map(AnimalRecord::species).orElseGet(() -> e.getType().getKey().toString());
+        return SpeciesCache.of(e);
     }
 
     /** {@code isBaby}: a livestock child by its birth tick, a wild baby by its flag, else the vanilla age. */
@@ -66,17 +70,32 @@ final class LivestockSenses {
         return e instanceof Player p && (p.getGameMode() == GameMode.CREATIVE || p.getGameMode() == GameMode.SPECTATOR);
     }
 
-    private boolean inTag(Entity e, String tag) {
-        Optional<AnimalRecord> r = record(e);
-        if (r.isEmpty()) {
-            return false;
-        }
-        String s = r.get().species();
-        return speciesInTag.test("tfp:" + s.substring(s.indexOf(':') + 1), tag);
+    private int flags(Entity e) {
+        return tags.flags(SpeciesCache.ours(e));
+    }
+
+    /**
+     * Whether a sighting of {@code e} could start the avoid: a player, a land predator or a ramming animal. The cheap
+     * pre-filter before the line of sight and the {@link Sighting}; the rule itself stays {@code Avoidance.avoids}.
+     */
+    boolean mayAvoid(Entity e) {
+        return (kind(e) & SpeciesTags.MAY_AVOID) != 0;
+    }
+
+    /** The kind bits ({@link SpeciesTags#kind}). */
+    int kind(Entity e) {
+        return tags.kind(e);
     }
 
     Sighting sighting(LivingEntity e) {
-        return new Sighting(species(e), e instanceof Player, creativeOrSpectator(e), inTag(e, LAND_PREDATORS),
-                inTag(e, RAMMING_ANIMALS), at(e));
+        sightingsBuilt++;
+        int f = flags(e);
+        return new Sighting(species(e), e instanceof Player, creativeOrSpectator(e), (f & SpeciesTags.LAND_PREDATOR) != 0,
+                (f & SpeciesTags.RAMMER) != 0, at(e));
+    }
+
+    /** {@link #sighting} built once per entity and tick (stamp), shared by every animal that sees it. */
+    Sighting sighting(LivingEntity e, long stamp) {
+        return Sightings.of(e, stamp, this::sighting);
     }
 }

@@ -2,7 +2,7 @@
 id: PAR-FAUNA-26
 title: "Animal AI under load: livestock avoid and prey flee sensing within the tick budget; prey moveTo on Folia"
 area: FAUNA
-status: open
+status: blocked
 wave: 54
 deps: [PAR-FAUNA-08, PAR-FAUNA-09]
 size: M
@@ -22,10 +22,12 @@ files_owned:
 ui: false
 in_game_steps: []
 plan:
+  - "Blocked on PAR-FAUNA-28 (2026-11-25): the AI fixes below brought the goals from 13.2 to 0.65 ms/tick (Paper, p99 1.55, max 38.3) and 13.1 to 0.42 (Folia, p99 1.14, max 4.1), Folia has no crash, but husbandry.load_200 still fails: slice mean 2.01 / 1.60, p99 2.92 / 2.32, max 39.7 / 5.2 ms, because the case adds the heaviest staggered-check phase (1.36 / 1.18 ms, AnimalService and the livestock/products/sounds/aquatic onCheck, outside files_owned) to every tick, plus single-tick goal spikes. Numbers: docs/perf/animals-200.md."
   - "Current: the itest husbandry.load_200 (PAR-REL-06, docs/perf/animals-200.md) measures the plugin's goals on 200 animals of 10 species in 3x3 chunks at 13.2 ms per tick mean (p99 32.6, max 52.9) on Paper 1.21.11, against PERF-TICK-01 2 ms and PERF-COMMIT-01 1.5 ms. By goal class (ms/tick): livestockai.LivestockGoals$Avoid 12.55, prey.PreyFleeGoal 1.64, prey.SmallPreyGoals$AvoidPredator 0.50, LivestockGoals$FollowAdult 0.30, LivestockGoals$Tempt 0.14."
   - "Cause to confirm with a profile: Avoid.wants() (every PERIOD = 5 ticks per animal) builds a Sighting for every living entity seen (LivestockSenses.sighting: PDC record read and tag lookups) before PreyFlee.trigger filters them, so a dense herd costs O(n^2) per period; PreyFleeGoal does the same for prey."
   - "Fix while keeping TFC's behaviour (PreyAi.broadcastAvoidTarget, sensing range and memory): filter by avoidance kind and distance before building sightings (cheap entity-type check first, record read only for candidates), cache each animal's own sighting per tick, share one nearby-entity scan per chunk section and tick, and spread the senses of a herd over the period (stagger by entity id). Decide async where the snapshot allows."
   - "Bug found by the same test on Folia 1.21.11 (2026-11-25): PaperPreyBody.moveTo(Mob, Entity, double) calls Pathfinder.moveTo(Entity, double), which Folia 1.21.11-14 does not have; the baby prey's FollowAdult goal throws NoSuchMethodError and Folia removes the entity ('Entity threw exception'). Fix as PaperLivestockBody does: `to instanceof LivingEntity living && mob.getPathfinder().moveTo(living, speed)`; check every Pathfinder/MobGoals call in paper/prey and paper/livestockai against the oldest supported API (1.21.4)."
+  - "Done so far (PAR-FAUNA-26 commit): lazy line of sight per reading (prey/Reading, vanilla NearestVisibleLivingEntities), kind filter before sightings (SpeciesCache, SpeciesTags, MAY_AVOID), one sighting per entity and tick (Sightings), one nearby scan per chunk section and tick (NearbyScan), first reading staggered 0-19 ticks by entity id, PaperPreyBody.moveTo(LivingEntity) for Folia; every Pathfinder/MobGoals call in both packages checked against the Folia 1.21.11-14 API. No async hand-off: Goal.shouldActivate answers in the same call and the decisions left are microseconds. Tests: LivestockGoalsMockBukkitTest 11 (new herdOfFiftyBuildsAtMostOneSightingPerCandidatePerPeriod), PreyGoalsMockBukkitTest 14, core prey/livestockai goldens unchanged."
   - "Done when husbandry.load_200 passes on Paper and Folia 1.21.11 (plugin slice per tick max <= 2 ms, p99 <= 1.5 ms) and the numbers are added to docs/perf/animals-200.md."
 tests:
   - "itest husbandry.load_200 (exists)"
@@ -36,7 +38,5 @@ done_criteria:
 ---
 
 # PAR-FAUNA-26: Animal AI under load: livestock avoid and prey flee sensing within the tick budget; prey moveTo on Folia
-
-> Claimed: REL session_011osUpAJcukeqydbqrkqw9X, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

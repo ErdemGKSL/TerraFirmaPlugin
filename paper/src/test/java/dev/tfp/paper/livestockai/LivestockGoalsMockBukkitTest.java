@@ -57,6 +57,9 @@ class LivestockGoalsMockBukkitTest extends MockServerTest {
 
     private static final class Body implements LivestockBody {
         List<LivingEntity> visible = new ArrayList<>();
+        /** In range but out of sight. */
+        final java.util.Set<LivingEntity> hidden = new java.util.HashSet<>();
+        int sightTests;
         List<Player> players = new ArrayList<>();
         final List<String> log = new ArrayList<>();
         double lastSpeed;
@@ -64,8 +67,14 @@ class LivestockGoalsMockBukkitTest extends MockServerTest {
         boolean path;
 
         @Override
-        public List<LivingEntity> visible(Mob mob, double range) {
+        public List<LivingEntity> nearby(Mob mob, double range, long now) {
             return visible.stream().filter(e -> e != mob).toList();
+        }
+
+        @Override
+        public boolean sees(Mob mob, LivingEntity e) {
+            sightTests++;
+            return !hidden.contains(e);
         }
 
         @Override
@@ -414,5 +423,37 @@ class LivestockGoalsMockBukkitTest extends MockServerTest {
         server.getPluginManager().callEvent(new org.bukkit.event.entity.EntityRemoveEvent(cow,
                 org.bukkit.event.entity.EntityRemoveEvent.Cause.DISCARD));
         assertThat(module.brain(cow)).isNull();
+    }
+
+    /**
+     * PAR-FAUNA-26: a herd of 50 asking the avoid question in one period builds a sighting only for the entities that
+     * could be avoided (a player, a land predator, a ramming animal), once each, and tests the line of sight only for
+     * those: not one per herd mate per observer. The decision is unchanged: every cow flees from the wolf.
+     */
+    @Test
+    void herdOfFiftyBuildsAtMostOneSightingPerCandidatePerPeriod() {
+        List<Mob> herd = new ArrayList<>();
+        List<Goal<Mob>> avoids = new ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            Mob cow = animal("tfc:cow", (i % 10) - 5, i % 2 == 0, false, false);
+            herd.add(cow);
+            avoids.add(goals(module.brainBehaviour(), cow).get("livestock_avoid"));
+        }
+        Mob wolf = animal("tfc:wolf", 12, true, false, false);
+        Mob boar = animal("tfc:boar", -12, true, false, false);
+        Player p = player(9, GameMode.SURVIVAL, Material.STONE);
+        body.visible.addAll(herd);
+        body.visible.addAll(List.of(wolf, boar, p));
+        body.hidden.add(boar);
+        long before = module.senses().sightingsBuilt;
+        for (int i = 0; i < herd.size(); i++) {
+            align(herd.get(i), LivestockGoals.Avoid.PERIOD);
+            assertThat(avoids.get(i).shouldActivate()).as("cow %d sees the wolf", i).isTrue();
+            assertThat(module.brain(herd.get(i)).threat).isSameAs(wolf);
+        }
+        int candidates = 3; // wolf, boar (out of sight), player
+        assertThat(module.senses().sightingsBuilt - before).as("sightings built in the period")
+                .isLessThanOrEqualTo(candidates);
+        assertThat(body.sightTests).as("line-of-sight tests: candidates only").isLessThanOrEqualTo(herd.size() * candidates);
     }
 }

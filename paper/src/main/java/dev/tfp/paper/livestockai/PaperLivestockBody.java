@@ -6,6 +6,7 @@
 package dev.tfp.paper.livestockai;
 
 import java.util.ArrayList;
+import dev.tfp.paper.prey.NearbyScan;
 import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -20,15 +21,13 @@ import org.bukkit.util.Vector;
 /** {@link LivestockBody} on Paper's pathfinder, look control and entity queries. Owning thread only. */
 final class PaperLivestockBody implements LivestockBody {
     @Override
-    public List<LivingEntity> visible(Mob mob, double range) {
-        List<LivingEntity> out = new ArrayList<>();
-        for (Entity e : mob.getNearbyEntities(range, range, range)) {
-            if (e instanceof LivingEntity living && e != mob && !living.isDead() && Bukkit.isOwnedByCurrentRegion(e)
-                    && mob.hasLineOfSight(e)) {
-                out.add(living);
-            }
-        }
-        return out;
+    public List<LivingEntity> nearby(Mob mob, double range, long now) {
+        return NearbyScan.around(mob, range, now);
+    }
+
+    @Override
+    public boolean sees(Mob mob, LivingEntity e) {
+        return mob.hasLineOfSight(e);
     }
 
     @Override

@@ -43,8 +43,12 @@ final class SmallPreyGoals {
         private Location target;
         private double speed;
 
-        AvoidPredator(PreyBrain brain, PreyBody body, PreySenses senses, SmallPrey.Speeds speeds, RandomGenerator random) {
+        private final LongSupplier clock;
+
+        AvoidPredator(PreyBrain brain, PreyBody body, PreySenses senses, SmallPrey.Speeds speeds, LongSupplier clock,
+                RandomGenerator random) {
             super(brain.mob, "prey_avoid_predator", PERIOD, GoalType.MOVE);
+            this.clock = clock;
             this.body = body;
             this.senses = senses;
             this.speeds = speeds;
@@ -72,8 +76,10 @@ final class SmallPreyGoals {
             List<LivingEntity> near = new ArrayList<>();
             List<SmallPrey.Threat> facts = new ArrayList<>();
             double y = mob.getLocation().getY();
-            for (LivingEntity e : body.visible(mob, SmallPrey.AVOID_RANGE)) {
-                if (Math.abs(e.getLocation().getY() - y) <= SmallPrey.AVOID_VERTICAL && senses.landPredator(e)) {
+            // the predator filter first, the line of sight only for predators (TargetingConditions tests it last)
+            for (LivingEntity e : body.nearby(mob, SmallPrey.AVOID_RANGE, clock.getAsLong())) {
+                if (Math.abs(e.getLocation().getY() - y) <= SmallPrey.AVOID_VERTICAL && senses.landPredator(e)
+                        && body.sees(mob, e)) {
                     near.add(e);
                     facts.add(senses.threat(e));
                 }
@@ -157,8 +163,10 @@ final class SmallPreyGoals {
         protected boolean wants() {
             long now = clock.getAsLong();
             List<SmallPrey.Threat> predators = new ArrayList<>();
-            for (LivingEntity e : PreyFleeGoal.seen(brain, body, now)) {
-                if (senses.landPredator(e)) {
+            Reading seen = PreyFleeGoal.seen(brain, body, now);
+            for (int i = 0; i < seen.size(); i++) {
+                LivingEntity e = seen.get(i);
+                if ((seen.kind(i) & SpeciesTags.LAND_PREDATOR) != 0 && seen.visible(i)) {
                     predators.add(senses.threat(e));
                 }
             }

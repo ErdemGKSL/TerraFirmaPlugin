@@ -23,15 +23,13 @@ import org.bukkit.util.Vector;
 /** {@link PreyBody} on Paper's pathfinder, look control and entity queries. Owning thread only. */
 final class PaperPreyBody implements PreyBody {
     @Override
-    public List<LivingEntity> visible(Mob mob, double range) {
-        List<LivingEntity> out = new ArrayList<>();
-        for (Entity e : mob.getNearbyEntities(range, range, range)) {
-            if (e instanceof LivingEntity living && e != mob && !living.isDead() && Bukkit.isOwnedByCurrentRegion(e)
-                    && mob.hasLineOfSight(e)) {
-                out.add(living);
-            }
-        }
-        return out;
+    public List<LivingEntity> nearby(Mob mob, double range, long now) {
+        return NearbyScan.around(mob, range, now);
+    }
+
+    @Override
+    public boolean sees(Mob mob, LivingEntity e) {
+        return mob.hasLineOfSight(e);
     }
 
     @Override
@@ -77,7 +75,8 @@ final class PaperPreyBody implements PreyBody {
 
     @Override
     public boolean moveTo(Mob mob, Entity to, double speed) {
-        return mob.getPathfinder().moveTo(to, speed);
+        // Pathfinder.moveTo(Entity, double) is newer than Folia 1.21.11-14's API: the LivingEntity form exists everywhere
+        return to instanceof LivingEntity living && mob.getPathfinder().moveTo(living, speed);
     }
 
     @Override

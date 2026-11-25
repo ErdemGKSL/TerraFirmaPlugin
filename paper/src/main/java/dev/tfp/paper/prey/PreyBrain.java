@@ -14,7 +14,6 @@ import dev.tfp.core.prey.FleeState;
 import dev.tfp.core.prey.PreyFlee;
 import dev.tfp.core.prey.RamCharge;
 import dev.tfp.core.prey.WildPrey;
-import java.util.List;
 import java.util.random.RandomGenerator;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -47,7 +46,9 @@ final class PreyBrain {
     /** The tick the armadillo's own {@code DANGER_DETECTED_RECENTLY} runs out, or {@code Long.MIN_VALUE}. */
     long dangerUntil = Long.MIN_VALUE;
     /** The last {@code NEAREST_VISIBLE_LIVING_ENTITIES} reading and its tick. */
-    List<LivingEntity> seen = List.of();
+    Reading seen = Reading.NONE;
+    /** The kind bits of a sighted entity ({@code SpeciesTags#kind}); set by the module. */
+    java.util.function.ToIntFunction<LivingEntity> kinds = e -> 0;
     long seenAt = Long.MIN_VALUE;
 
     PreyBrain(Mob mob, String species, WildPrey.Kind kind, Avoidance avoidance, float fleeSpeed) {

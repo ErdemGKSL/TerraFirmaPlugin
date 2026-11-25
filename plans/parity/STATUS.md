@@ -449,7 +449,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-REL-11 | Design docs and skills kept current | REL | 53 | done |
 | PAR-DATA-15 | TFC's ten creative tabs as CraftEngine item browser categories, in TFC's order with TFC's icons and names | DATA | 53 | open |
 | PAR-REL-07 | Performance audit with 50 bots | REL | 54 | open |
-| PAR-FAUNA-26 | Animal AI under load: livestock avoid and prey flee sensing within the tick budget; prey moveTo on Folia | FAUNA | 54 | open |
+| PAR-FAUNA-26 | Animal AI under load: livestock avoid and prey flee sensing within the tick budget; prey moveTo on Folia | FAUNA | 54 | blocked |
 | PAR-REL-08 | Full playthrough and visual QA | REL | 55 | open |
 | PAR-REL-09 | Release packaging | REL | 56 | blocked |
 | PAR-FARM-14 | Stationary berry bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 30 | done |
@@ -488,3 +488,4 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-30 | Growing plant shapes part 3: per-shape outlines and the saguaro fruit block | FARM | 37 | open |
 | PAR-METAL-26 | Bellows visuals: pressed animation, TFC model and the blow sound | METAL | 33 | open |
 | PAR-PHYS-07 | Collapse follow-ups: Folia stress self-test, TFC rock-slide sounds in the pack, collapse server config keys | PHYS | 18 | open |
+| PAR-FAUNA-28 | 200-animal load: staggered check phase and goal spikes within the tick budget (follow-up of PAR-FAUNA-26) | FAUNA | 55 | open |

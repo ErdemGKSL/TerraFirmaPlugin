@@ -16,8 +16,14 @@ import org.bukkit.entity.Mob;
  * tests use a recorder. Every call runs on the animal's owning thread (the goal tick or its damage event).
  */
 interface PreyBody {
-    /** Living entities within {@code range} blocks (a cube) that the animal can see, owned by the current region. */
-    List<LivingEntity> visible(Mob mob, double range);
+    /**
+     * Living entities within {@code range} blocks (a cube around the animal's box), alive and owned by the current region;
+     * line of sight is not tested ({@link #sees}). {@code now} is the current tick: scans in one tick may be shared.
+     */
+    List<LivingEntity> nearby(Mob mob, double range, long now);
+
+    /** Line of sight from the animal to {@code e} (vanilla {@code Sensing.hasLineOfSight}). */
+    boolean sees(Mob mob, LivingEntity e);
 
     /** Living entities in the animal's bounding box inflated by {@code reach} (the ram hit box). */
     List<LivingEntity> touching(Mob mob, double reach);

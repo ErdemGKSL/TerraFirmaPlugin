@@ -165,6 +165,7 @@ public final class PreyModule implements FeatureModule, Listener {
 
     private PreyBrain newBrain(Mob mob, String species, WildPrey.Kind kind, Avoidance avoidance, float speed) {
         PreyBrain brain = new PreyBrain(mob, species, kind, avoidance, speed);
+        brain.kinds = senses::kind;
         brains.put(mob.getUniqueId(), brain);
         return brain;
     }
@@ -223,7 +224,7 @@ public final class PreyModule implements FeatureModule, Listener {
             SmallPrey.Speeds speeds = SmallPrey.avoidSpeeds(record.species()).orElseThrow();
             PreyBrain brain = newBrain(mob, record.species(), null, Avoidance.PREDATORS_ONLY, (float) speeds.far());
             int priority = record.species().equals("tfc:panda") ? 6 : 4;
-            return List.of(new GoalSpec(priority, new SmallPreyGoals.AvoidPredator(brain, body, senses, speeds, random)));
+            return List.of(new GoalSpec(priority, new SmallPreyGoals.AvoidPredator(brain, body, senses, speeds, clock, random)));
         }
 
         @Override
@@ -298,9 +299,10 @@ public final class PreyModule implements FeatureModule, Listener {
 
     /** {@code PreyAi.broadcastAvoidTarget}: each visible friend of the same type takes the nearer of its threat and the attacker. */
     void broadcast(PreyBrain hurt, LivingEntity attacker, long now) {
-        for (LivingEntity e : body.visible(hurt.mob, PreyFleeGoal.SENSE_RANGE)) {
+        for (LivingEntity e : body.nearby(hurt.mob, PreyFleeGoal.SENSE_RANGE, now)) {
             PreyBrain friend = brains.get(e.getUniqueId());
-            if (friend == null || friend == hurt || !friend.species.equals(hurt.species) || !Bukkit.isOwnedByCurrentRegion(e)) {
+            if (friend == null || friend == hurt || !friend.species.equals(hurt.species) || !Bukkit.isOwnedByCurrentRegion(e)
+                    || !body.sees(hurt.mob, e)) {
                 continue;
             }
             boolean hasThreat = PreyBrain.alive(friend.threat);
@@ -354,6 +356,7 @@ public final class PreyModule implements FeatureModule, Listener {
     @EventHandler
     public void onRemove(EntityRemoveEvent event) {
         brains.remove(event.getEntity().getUniqueId());
+        SpeciesCache.forget(event.getEntity().getUniqueId());
     }
 
     /** For tests: the stored flee state of {@code e}. */

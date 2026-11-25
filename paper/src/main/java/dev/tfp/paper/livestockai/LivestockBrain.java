@@ -13,7 +13,7 @@ import dev.tfp.core.livestockai.LivestockRoster;
 import dev.tfp.core.prey.FleeState;
 import dev.tfp.core.prey.PreyFlee;
 import dev.tfp.core.prey.PreyIdle;
-import java.util.List;
+import dev.tfp.paper.prey.Reading;
 import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
 import org.bukkit.entity.LivingEntity;
@@ -45,7 +45,9 @@ final class LivestockBrain {
     /** {@code BreedBehavior.nextAttemptTime}, starting at -1 as in TFC. */
     long nextBreedAttempt = -1L;
     LivingEntity lookTarget;
-    List<LivingEntity> seen = List.of();
+    Reading seen = Reading.NONE;
+    /** The kind bits of a sighted entity ({@code SpeciesTags#kind}); set by the module. */
+    java.util.function.ToIntFunction<LivingEntity> kinds = e -> 0;
     long seenAt = Long.MIN_VALUE;
 
     LivestockBrain(Mob mob, String species, LivestockRoster.Profile profile, Predicate<ItemStack> food) {

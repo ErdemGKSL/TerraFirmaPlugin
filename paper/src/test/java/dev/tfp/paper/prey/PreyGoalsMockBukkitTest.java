@@ -55,6 +55,9 @@ class PreyGoalsMockBukkitTest extends MockServerTest {
     /** Records every world write and answers the reads from lists the test sets. */
     private static final class Body implements PreyBody {
         List<LivingEntity> visible = new ArrayList<>();
+        /** In range but out of sight. */
+        final java.util.Set<LivingEntity> hidden = new java.util.HashSet<>();
+        int sightTests;
         List<LivingEntity> touching = new ArrayList<>();
         final List<String> log = new ArrayList<>();
         Location lastTarget;
@@ -63,8 +66,14 @@ class PreyGoalsMockBukkitTest extends MockServerTest {
         boolean water;
 
         @Override
-        public List<LivingEntity> visible(Mob mob, double range) {
+        public List<LivingEntity> nearby(Mob mob, double range, long now) {
             return visible.stream().filter(e -> e != mob).toList();
+        }
+
+        @Override
+        public boolean sees(Mob mob, LivingEntity e) {
+            sightTests++;
+            return !hidden.contains(e);
         }
 
         @Override

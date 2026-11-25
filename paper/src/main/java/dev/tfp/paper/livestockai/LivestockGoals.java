@@ -20,6 +20,8 @@ import dev.tfp.core.prey.PreyFlee;
 import dev.tfp.core.prey.PreyIdle;
 import dev.tfp.core.prey.Sighting;
 import dev.tfp.paper.animal.AnimalGoal;
+import dev.tfp.paper.prey.Reading;
+import dev.tfp.paper.prey.SpeciesTags;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -64,11 +66,16 @@ final class LivestockGoals {
     private LivestockGoals() {
     }
 
-    /** The visible entities, re-read at most every {@link #SENSE_TICKS}. Shared by the brain's goals. */
-    static List<LivingEntity> seen(LivestockBrain brain, LivestockBody body, long now) {
+    /**
+     * The sensor reading ({@code NEAREST_VISIBLE_LIVING_ENTITIES}, line of sight tested lazily), re-read at most every
+     * {@link #SENSE_TICKS}. Shared by the brain's goals. The first reading is dated back by up to {@link #SENSE_TICKS} - 1
+     * ticks by entity id (vanilla's sensor starts at a random tick), so a herd's readings spread over the period.
+     */
+    static Reading seen(LivestockBrain brain, LivestockBody body, long now) {
         if (brain.seenAt == Long.MIN_VALUE || now - brain.seenAt >= SENSE_TICKS || now < brain.seenAt) {
-            brain.seen = body.visible(brain.mob, SENSE_RANGE);
-            brain.seenAt = now;
+            Mob mob = brain.mob;
+            brain.seen = new Reading(body.nearby(mob, SENSE_RANGE, now), e -> body.sees(mob, e), brain.kinds);
+            brain.seenAt = brain.seenAt == Long.MIN_VALUE ? now - Math.floorMod(mob.getEntityId() * 7, SENSE_TICKS) : now;
         }
         return brain.seen;
     }
@@ -179,17 +186,36 @@ final class LivestockGoals {
                 return !PreyFlee.wantsToStopFleeing(brain.flee, now, threatDistanceSq());
             }
             brain.setThreat(null, FleeState.IDLE);
-            List<LivingEntity> seen = seen(brain, body, now);
-            List<Sighting> sightings = new ArrayList<>(seen.size());
-            for (LivingEntity e : seen) {
-                sightings.add(senses.sighting(e));
+            Reading seen = seen(brain, body, now);
+            // findClosest(isAvoided): the kind filter, then the line of sight, then the sighting, for candidates only
+            List<Sighting> sightings = null;
+            List<LivingEntity> who = null;
+            for (int i = 0; i < seen.size(); i++) {
+                LivingEntity e = seen.get(i);
+                if ((seen.kind(i) & SpeciesTags.MAY_AVOID) == 0 || !seen.visible(i)) {
+                    continue;
+                }
+                if (sightings == null) {
+                    sightings = new ArrayList<>();
+                    who = new ArrayList<>();
+                }
+                sightings.add(senses.sighting(e, now));
+                who.add(e);
+            }
+            if (sightings == null) {
+                return false;
             }
             Optional<Sighting> found = PreyFlee.trigger(false, LivestockSenses.at(mob), sightings, brain.profile.avoidance());
             if (found.isEmpty()) {
                 return false;
             }
-            brain.setThreat(seen.get(sightings.indexOf(found.get())), PreyFlee.sighted(found.get().type()));
-            return true;
+            for (int k = 0; k < sightings.size(); k++) {
+                if (sightings.get(k) == found.get()) {
+                    brain.setThreat(who.get(k), PreyFlee.sighted(found.get().type()));
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
@@ -288,17 +314,24 @@ final class LivestockGoals {
                 return false;
             }
             brain.nextBreedAttempt = now + BreedApproach.ATTEMPT_INTERVAL;
-            List<LivingEntity> seen = seen(brain, body, now);
-            List<BreedApproach.Partner> partners = new ArrayList<>(seen.size());
-            for (LivingEntity e : seen) {
-                boolean same = brain.species.equals(LivestockSenses.species(e));
-                partners.add(new BreedApproach.Partner(LivestockSenses.distanceSq(e, mob), same, same && canMate.test(mob, e)));
+            Reading seen = seen(brain, body, now);
+            // entities of our species; the line of sight only for those it could mate with
+            List<LivingEntity> mates = new ArrayList<>();
+            List<BreedApproach.Partner> partners = new ArrayList<>();
+            for (int i = 0; i < seen.size(); i++) {
+                LivingEntity e = seen.get(i);
+                if (!brain.species.equals(seen.species(i))) {
+                    continue;
+                }
+                mates.add(e);
+                partners.add(new BreedApproach.Partner(LivestockSenses.distanceSq(e, mob), true,
+                        canMate.test(mob, e) && seen.visible(i)));
             }
             OptionalInt found = BreedApproach.partner(partners);
             if (found.isEmpty()) {
                 return false;
             }
-            LivingEntity target = seen.get(found.getAsInt());
+            LivingEntity target = mates.get(found.getAsInt());
             brain.breedPartner = target;
             brain.pairAt = BreedApproach.pairAt(now, random);
             LivestockBrain other = brains.apply(target);
@@ -464,12 +497,14 @@ final class LivestockGoals {
                 return false;
             }
             double best = Double.POSITIVE_INFINITY;
-            for (LivingEntity e : seen(brain, body, now)) {
-                if (!brain.species.equals(LivestockSenses.species(e)) || LivestockSenses.baby(e, now)) {
+            Reading seen = seen(brain, body, now);
+            for (int i = 0; i < seen.size(); i++) {
+                LivingEntity e = seen.get(i);
+                if (!brain.species.equals(seen.species(i))) {
                     continue;
                 }
                 double d = LivestockSenses.distanceSq(e, mob);
-                if (d < best) {
+                if (d < best && !LivestockSenses.baby(e, now) && seen.visible(i)) {
                     best = d;
                     adult = e;
                 }
@@ -596,9 +631,14 @@ final class LivestockGoals {
             nextTry = now + PreyIdle.duration(PreyIdle.LOOK_INTERVAL_MIN, PreyIdle.LOOK_INTERVAL_MAX, random);
             LivingEntity best = null;
             double bestSq = PreyIdle.LOOK_PLAYER_RANGE * PreyIdle.LOOK_PLAYER_RANGE;
-            for (LivingEntity e : seen(brain, body, now)) {
+            Reading seen = seen(brain, body, now);
+            for (int i = 0; i < seen.size(); i++) {
+                LivingEntity e = seen.get(i);
+                if (!(e instanceof Player p) || p.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
+                    continue;
+                }
                 double d = LivestockSenses.distanceSq(e, mob);
-                if (e instanceof Player p && p.getGameMode() != org.bukkit.GameMode.SPECTATOR && d <= bestSq) {
+                if (d <= bestSq && seen.visible(i)) {
                     best = e;
                     bestSq = d;
                 }

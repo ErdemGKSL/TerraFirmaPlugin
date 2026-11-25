@@ -22,6 +22,7 @@ import java.util.random.RandomGenerator;
 import org.bukkit.Location;
 import org.bukkit.entity.Armadillo;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 
 /**
  * TFC's {@code AVOID} activity: the nearest avoided sighting ({@link dev.tfp.core.prey.Avoidance}) starts a flee with no
@@ -56,13 +57,61 @@ final class PreyFleeGoal extends AnimalGoal {
         this.random = random;
     }
 
-    /** The visible entities, re-read at most every {@link #SENSE_TICKS}. Shared by the brain's goals. */
-    static List<LivingEntity> seen(PreyBrain brain, PreyBody body, long now) {
+    /**
+     * The sensor reading, re-read at most every {@link #SENSE_TICKS}. Shared by the brain's goals. The first reading is
+     * dated back by up to {@link #SENSE_TICKS} - 1 ticks by entity id, as vanilla's sensor starts at a random tick, so the
+     * herd's readings spread over the period instead of landing in the same tick.
+     */
+    static Reading seen(PreyBrain brain, PreyBody body, long now) {
         if (brain.seenAt == Long.MIN_VALUE || now - brain.seenAt >= SENSE_TICKS || now < brain.seenAt) {
-            brain.seen = body.visible(brain.mob, SENSE_RANGE);
-            brain.seenAt = now;
+            Mob mob = brain.mob;
+            brain.seen = new Reading(body.nearby(mob, SENSE_RANGE, now), e -> body.sees(mob, e), brain.kinds);
+            brain.seenAt = brain.seenAt == Long.MIN_VALUE ? now - stagger(mob) : now;
         }
         return brain.seen;
+    }
+
+    /** The herd stagger of the sensor: 0 to {@link #SENSE_TICKS} - 1 by entity id. */
+    static int stagger(Mob mob) {
+        return Math.floorMod(mob.getEntityId() * 7, SENSE_TICKS);
+    }
+
+    /**
+     * {@code AvoidPredatorAndRammersBehavior}'s {@code findClosest(isAvoided)} on the reading: the cheap kind filter
+     * ({@link SpeciesTags#MAY_AVOID}), then the line of sight, then the sighting, for candidates only; the choice is
+     * {@link PreyFlee#trigger}.
+     *
+     * @return the reading's index of the threat, or -1
+     */
+    static int threat(Reading seen, Mob mob, PreySenses senses, dev.tfp.core.prey.Avoidance avoidance, long now) {
+        List<Sighting> sightings = null;
+        int[] index = null;
+        int n = 0;
+        for (int i = 0; i < seen.size(); i++) {
+            LivingEntity e = seen.get(i);
+            if ((seen.kind(i) & SpeciesTags.MAY_AVOID) == 0 || !seen.visible(i)) {
+                continue;
+            }
+            if (sightings == null) {
+                sightings = new ArrayList<>();
+                index = new int[seen.size()];
+            }
+            sightings.add(senses.sighting(e, now));
+            index[n++] = i;
+        }
+        if (sightings == null) {
+            return -1;
+        }
+        Optional<Sighting> found = PreyFlee.trigger(false, PreySenses.at(mob), sightings, avoidance);
+        if (found.isEmpty()) {
+            return -1;
+        }
+        for (int k = 0; k < n; k++) {
+            if (sightings.get(k) == found.get()) {
+                return index[k];
+            }
+        }
+        return -1;
     }
 
     private double threatDistanceSq() {
@@ -76,16 +125,13 @@ final class PreyFleeGoal extends AnimalGoal {
             return !PreyFlee.wantsToStopFleeing(brain.flee, now, threatDistanceSq());
         }
         brain.setThreat(null, dev.tfp.core.prey.FleeState.IDLE);
-        List<LivingEntity> seen = seen(brain, body, now);
-        List<Sighting> sightings = new ArrayList<>(seen.size());
-        for (LivingEntity e : seen) {
-            sightings.add(senses.sighting(e));
-        }
-        Optional<Sighting> found = PreyFlee.trigger(false, PreySenses.at(mob), sightings, brain.avoidance);
-        if (found.isEmpty()) {
+        Reading seen = seen(brain, body, now);
+        int i = threat(seen, mob, senses, brain.avoidance, now);
+        if (i < 0) {
             return false;
         }
-        brain.setThreat(seen.get(sightings.indexOf(found.get())), PreyFlee.sighted(found.get().type()));
+        LivingEntity threat = seen.get(i);
+        brain.setThreat(threat, PreyFlee.sighted(senses.sighting(threat, now).type()));
         return true;
     }
 

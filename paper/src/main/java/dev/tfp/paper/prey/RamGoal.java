@@ -84,12 +84,14 @@ final class RamGoal extends AnimalGoal {
         boolean male = adultMale(now);
         LivingEntity best = null;
         double bestSq = Double.POSITIVE_INFINITY;
-        for (LivingEntity e : PreyFleeGoal.seen(brain, body, now)) {
-            if (!PreyBrain.alive(e) || !RamRules.canRam(male, senses.candidate(e, now))) {
+        Reading seen = PreyFleeGoal.seen(brain, body, now);
+        for (int i = 0; i < seen.size(); i++) {
+            LivingEntity e = seen.get(i);
+            if (!PreyBrain.alive(e)) {
                 continue;
             }
             double d = PreySenses.at(e).distanceSq(PreySenses.at(mob));
-            if (d < bestSq) {
+            if (d < bestSq && RamRules.canRam(male, senses.candidate(e, now)) && seen.visible(i)) {
                 best = e;
                 bestSq = d;
             }

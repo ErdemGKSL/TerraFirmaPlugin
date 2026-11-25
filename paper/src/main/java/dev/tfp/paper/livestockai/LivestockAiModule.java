@@ -145,6 +145,11 @@ public final class LivestockAiModule implements FeatureModule, Listener {
         return clock.get().playerTicks();
     }
 
+    /** For tests: the senses (their sighting count). */
+    LivestockSenses senses() {
+        return senses;
+    }
+
     LivestockBrain brain(Entity e) {
         return brains.get(e.getUniqueId());
     }
@@ -156,6 +161,7 @@ public final class LivestockAiModule implements FeatureModule, Listener {
 
     private LivestockBrain newBrain(Mob mob, String species, LivestockRoster.Profile profile) {
         LivestockBrain brain = new LivestockBrain(mob, species, profile, food.apply(species));
+        brain.kinds = senses::kind;
         brains.put(mob.getUniqueId(), brain);
         return brain;
     }
@@ -295,9 +301,10 @@ public final class LivestockAiModule implements FeatureModule, Listener {
 
     /** {@code PreyAi.broadcastAvoidTarget}: each visible herd mate takes the nearer of its threat and the attacker. */
     void broadcast(LivestockBrain hurt, LivingEntity attacker, long now) {
-        for (LivingEntity e : body.visible(hurt.mob, LivestockGoals.SENSE_RANGE)) {
+        for (LivingEntity e : body.nearby(hurt.mob, LivestockGoals.SENSE_RANGE, now)) {
             LivestockBrain friend = brains.get(e.getUniqueId());
-            if (friend == null || friend == hurt || !friend.species.equals(hurt.species) || !Bukkit.isOwnedByCurrentRegion(e)) {
+            if (friend == null || friend == hurt || !friend.species.equals(hurt.species) || !Bukkit.isOwnedByCurrentRegion(e)
+                    || !body.sees(hurt.mob, e)) {
                 continue;
             }
             boolean hasThreat = LivestockBrain.alive(friend.threat);
@@ -312,6 +319,7 @@ public final class LivestockAiModule implements FeatureModule, Listener {
     @EventHandler
     public void onRemove(EntityRemoveEvent event) {
         brains.remove(event.getEntity().getUniqueId());
+        dev.tfp.paper.prey.SpeciesCache.forget(event.getEntity().getUniqueId());
     }
 
     // ---- debug ----------------------------------------------------------------------------------------------------
