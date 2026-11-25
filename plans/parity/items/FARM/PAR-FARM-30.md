@@ -36,4 +36,6 @@ done_criteria:
 
 # PAR-FARM-30: Growing plant shapes, part 3
 
+> Claimed: outline worker, 2026-11-25
+
 Follow-up of PAR-FARM-29. Follow `plans/parity/PROTOCOL.md`.
