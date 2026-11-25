@@ -10,6 +10,7 @@
  */
 package dev.tfp.paper.predator;
 
+import dev.tfp.core.predator.PackTaming;
 import dev.tfp.core.predator.PredatorActivity;
 import dev.tfp.core.predator.PredatorIdle;
 import dev.tfp.core.predator.PredatorMemory;
@@ -35,6 +36,9 @@ final class PredatorBrain {
     static final NamespacedKey HOME = new NamespacedKey("tfp", "predator_home");
     static final NamespacedKey RESPECT = new NamespacedKey("tfp", "predator_respect");
     static final NamespacedKey SLEEPING = new NamespacedKey("tfp", "predator_sleeping");
+    /** {@code PackPredator}: the saved {@code familiarity} and {@code nextFeed} of a tamable pack predator. */
+    static final NamespacedKey FAMILIARITY = new NamespacedKey("tfp", "predator_familiarity");
+    static final NamespacedKey NEXT_FEED = new NamespacedKey("tfp", "predator_next_feed");
     /** Vanilla {@code LivingEntity}: the last attacker is remembered for 100 ticks ({@code HURT_BY_ENTITY}). */
     static final int HURT_BY_MEMORY_TICKS = 100;
 
@@ -56,6 +60,12 @@ final class PredatorBrain {
     long packScanAt = Long.MIN_VALUE;
     PredatorBrain alpha;
     boolean howled;
+    /** {@code DelegatingTemptingSensor}: the last scan, the tempting player, and {@code FollowTemptation}'s state. */
+    long temptScanAt = Long.MIN_VALUE;
+    org.bukkit.entity.Player tempting;
+    boolean tempted;
+    long temptCooldownUntil = Long.MIN_VALUE;
+    private PackTaming.State taming = PackTaming.State.FRESH;
     PredatorSchedule.Activity lastScheduled;
     List<LivingEntity> seen = List.of();
     long seenAt = Long.MIN_VALUE;
@@ -82,6 +92,9 @@ final class PredatorBrain {
             // PredatorAi.getHomePos / Predator.finalizeSpawn: the block the predator stands on
             setHome(mob.getLocation().getBlockX(), mob.getLocation().getBlockY(), mob.getLocation().getBlockZ());
         }
+        if (profile.tamable()) {
+            loadTaming();
+        }
         if (profile.pack()) {
             Integer r = pdc.get(RESPECT, PersistentDataType.INTEGER);
             setRespect(r != null ? r : respectDraw.getAsInt());
@@ -91,6 +104,25 @@ final class PredatorBrain {
             memory = with(memory, memory.attacking(), true);
             body.sleepPose(mob, true);
         }
+    }
+
+    /** The saved taming values (a wild predator has none). */
+    void loadTaming() {
+        PersistentDataContainer pdc = mob.getPersistentDataContainer();
+        Float f = pdc.get(FAMILIARITY, PersistentDataType.FLOAT);
+        Long next = pdc.get(NEXT_FEED, PersistentDataType.LONG);
+        taming = new PackTaming.State(f == null ? 0f : f, next == null ? PackTaming.NEVER_FED : next);
+    }
+
+    PackTaming.State taming() {
+        return taming;
+    }
+
+    void setTaming(PackTaming.State next) {
+        taming = next;
+        PersistentDataContainer pdc = mob.getPersistentDataContainer();
+        pdc.set(FAMILIARITY, PersistentDataType.FLOAT, next.familiarity());
+        pdc.set(NEXT_FEED, PersistentDataType.LONG, next.nextFeed());
     }
 
     int[] home() {

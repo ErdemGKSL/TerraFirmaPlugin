@@ -26,6 +26,11 @@ interface PredatorBody {
     /** Living entities other than the predator inside its bounding box. */
     List<LivingEntity> touching(Mob mob);
 
+    /** Players within {@code range} blocks (a cube) that are not spectators, owned by the current region. */
+    default List<org.bukkit.entity.Player> players(Mob mob, double range) {
+        return List.of();
+    }
+
     /** Whether {@code mob} can see {@code target} within {@code range} blocks (the visible-entities memory). */
     boolean sees(Mob mob, LivingEntity target, double range);
 

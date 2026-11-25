@@ -47,6 +47,7 @@ class PredatorGoalsMockBukkitTest extends MockServerTest {
     private static final class Body implements PredatorBody {
         List<LivingEntity> visible = new ArrayList<>();
         List<LivingEntity> touching = new ArrayList<>();
+        List<Player> players = new ArrayList<>();
         final List<String> log = new ArrayList<>();
         long dayTime = 18000;
         boolean peaceful;
@@ -62,6 +63,11 @@ class PredatorGoalsMockBukkitTest extends MockServerTest {
         @Override
         public List<LivingEntity> nearby(Mob mob, double range) {
             return visible(mob, range);
+        }
+
+        @Override
+        public List<Player> players(Mob mob, double range) {
+            return players;
         }
 
         @Override
@@ -424,5 +430,120 @@ class PredatorGoalsMockBukkitTest extends MockServerTest {
         goals(wolf);
         assertThat(module.brain(wolf).respect()).isEqualTo(respect);
         assertThat(module.brain(wolf).home()).containsExactly(0, 64, 0);
+    }
+
+    /** PAR-FAUNA-29: the dog-food test (a bone stands for the {@code tfc:dog_food} tag) and a recording conversion. */
+    private final List<String> conversions = new ArrayList<>();
+
+    private void taming() {
+        module.initTamingForTest(stack -> stack.getType() == org.bukkit.Material.BONE,
+            (wolf, male, baby) -> conversions.add("dog male=" + male + " baby=" + baby));
+    }
+
+    private void feed(Player player, Mob wolf) {
+        server.getPluginManager().callEvent(new org.bukkit.event.player.PlayerInteractEntityEvent(player, wolf,
+            org.bukkit.inventory.EquipmentSlot.HAND));
+    }
+
+    @Test
+    void aWolfTemptedByDogFoodIsPassiveFor400TicksAndFollowsTheHolder() {
+        taming();
+        Mob wolf = animal("tfc:wolf", 0, false);
+        Mob deer = animal("tfc:deer", 6, false);
+        Player player = player(5, GameMode.SURVIVAL);
+        player.getInventory().setItemInMainHand(new org.bukkit.inventory.ItemStack(org.bukkit.Material.BONE));
+        body.visible.add(deer);
+        body.players.add(player);
+        Map<String, Goal<Mob>> goals = goals(wolf);
+        PredatorBrain brain = module.brain(wolf);
+        Goal<Mob> hunt = goals.get("predator_hunt");
+
+        align(wolf);
+        hunt.start();
+        hunt.tick();
+        // becomePassiveIf(TEMPTING_PLAYER, 400): no attack on the deer in sight, a walk to the player at 1.2
+        assertThat(brain.target).isNull();
+        assertThat(brain.memory.pacified(now + 399)).isTrue();
+        assertThat(brain.memory.pacified(now + 400)).isFalse();
+        assertThat(body.lastSpeed).isEqualTo(1.2, org.assertj.core.api.Assertions.within(1e-6));
+        assertThat(body.log).contains("follow 1.2000000476837158");
+
+        // the player puts the food away: after the 400 ticks the wolf hunts again
+        player.getInventory().setItemInMainHand(new org.bukkit.inventory.ItemStack(org.bukkit.Material.AIR));
+        now += 400;
+        body.players.clear();
+        align(wolf);
+        hunt.tick();
+        assertThat(brain.target).isSameAs(deer);
+    }
+
+    @Test
+    void nothingTemptsAHyenaOrAWolfHoldingTheWrongFood() {
+        taming();
+        Mob hyena = animal("tfc:hyena", 0, false);
+        Mob wolf = animal("tfc:wolf", 10, false);
+        Player player = player(4, GameMode.SURVIVAL);
+        player.getInventory().setItemInMainHand(new org.bukkit.inventory.ItemStack(org.bukkit.Material.BONE));
+        body.players.add(player);
+        Goal<Mob> hyenaHunt = goals(hyena).get("predator_hunt");
+        align(hyena);
+        hyenaHunt.start();
+        hyenaHunt.tick();
+        assertThat(module.brain(hyena).memory.pacified(now)).isFalse(); // not tamable: no temptation sensor use
+
+        player.getInventory().setItemInMainHand(new org.bukkit.inventory.ItemStack(org.bukkit.Material.STICK));
+        Goal<Mob> wolfHunt = goals(wolf).get("predator_hunt");
+        align(wolf);
+        wolfHunt.start();
+        wolfHunt.tick();
+        assertThat(module.brain(wolf).memory.pacified(now)).isFalse();
+    }
+
+    @Test
+    void tenDailyFeedsMakeAWolfADogOfTheSameGenderAndOneADayIsAllItEats() {
+        taming();
+        Mob wolf = animal("tfc:wolf", 0, false);
+        goals(wolf);
+        PredatorBrain brain = module.brain(wolf);
+        Player player = player(1, GameMode.SURVIVAL);
+        player.getInventory().setItemInMainHand(new org.bukkit.inventory.ItemStack(org.bukkit.Material.BONE, 20));
+
+        feed(player, wolf);
+        assertThat(brain.taming().familiarity()).isEqualTo(0.1f);
+        assertThat(player.getInventory().getItemInMainHand().getAmount()).isEqualTo(19);
+        assertThat(body.log).contains("sound minecraft:entity.generic.eat");
+        // the same day: the click is taken but nothing is eaten
+        feed(player, wolf);
+        assertThat(brain.taming().familiarity()).isEqualTo(0.1f);
+        assertThat(player.getInventory().getItemInMainHand().getAmount()).isEqualTo(19);
+
+        for (int day = 2; day <= 9; day++) {
+            now += 24_001;
+            feed(player, wolf);
+        }
+        assertThat(conversions).isEmpty();
+        assertThat(wolf.getPersistentDataContainer().get(PredatorBrain.FAMILIARITY,
+            org.bukkit.persistence.PersistentDataType.FLOAT)).isGreaterThan(0.89f);
+        now += 24_001;
+        feed(player, wolf);
+        // the animal's record is male (see animal()): the dog is male and, as an adult wolf, an adult
+        assertThat(conversions).containsExactly("dog male=true baby=false");
+        assertThat(player.getInventory().getItemInMainHand().getAmount()).isEqualTo(10);
+    }
+
+    @Test
+    void creativeFeedsKeepTheItemAndAHyenaIsNotFedAtAll() {
+        taming();
+        Mob wolf = animal("tfc:wolf", 0, false);
+        Mob hyena = animal("tfc:hyena", 8, false);
+        goals(wolf);
+        goals(hyena);
+        Player player = player(1, GameMode.CREATIVE);
+        player.getInventory().setItemInMainHand(new org.bukkit.inventory.ItemStack(org.bukkit.Material.BONE, 3));
+        feed(player, wolf);
+        assertThat(player.getInventory().getItemInMainHand().getAmount()).isEqualTo(3);
+        assertThat(module.brain(wolf).taming().familiarity()).isEqualTo(0.1f);
+        feed(player, hyena);
+        assertThat(module.brain(hyena).taming().familiarity()).isEqualTo(0f);
     }
 }

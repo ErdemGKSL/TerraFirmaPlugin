@@ -390,7 +390,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-16 | Camels (dromedary, bactrian) | FAUNA | 45 | open |
 | PAR-FAUNA-19 | Lobster traps | FAUNA | 45 | open |
 | PAR-FAUNA-20 | Pluckable feathers, animal sounds | FAUNA | 45 | open |
-| PAR-FAUNA-29 | Pack predator taming and temptation, predator sleep sound (follow-up of PAR-FAUNA-10) | FAUNA | 45 | open |
+| PAR-FAUNA-29 | Pack predator taming and temptation, predator sleep sound (follow-up of PAR-FAUNA-10) | FAUNA | 45 | done |
 | PAR-DECO-03 | Signs and hanging signs (per wood, per metal hanger) | DECO | 46 | open |
 | PAR-DECO-04 | Chests, trapped chests and barrel racks per wood | DECO | 46 | open |
 | PAR-DECO-05 | Tool racks, shelves, bookshelves, lecterns | DECO | 46 | open |

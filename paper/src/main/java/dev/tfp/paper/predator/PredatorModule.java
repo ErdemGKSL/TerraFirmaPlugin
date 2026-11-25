@@ -11,12 +11,20 @@
 package dev.tfp.paper.predator;
 
 import dev.tfp.core.animal.AnimalRecord;
+import dev.tfp.core.animal.Carrier;
+import dev.tfp.core.animal.AnimalSpawnRoll;
 import dev.tfp.core.predator.PackRules;
+import dev.tfp.core.predator.PackTaming;
 import dev.tfp.core.predator.PredatorMemory;
 import dev.tfp.core.predator.PredatorRules;
 import dev.tfp.core.predator.PredatorSpecies;
 import dev.tfp.paper.TfpPlugin;
+import dev.tfp.paper.animal.AnimalPdc;
+import dev.tfp.paper.animal.AnimalService;
 import dev.tfp.paper.animal.SpeciesBehaviour;
+import dev.tfp.paper.food.ItemFoodHooks;
+import dev.tfp.paper.scheduler.Scheduler;
+import dev.tfp.paper.tags.Tags;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
 import java.util.ArrayList;
@@ -27,19 +35,25 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.LongSupplier;
+import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRemoveEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * Predator AI (PAR-FAUNA-10): bears, big cats, the crocodile and the pack predators (wolf, direwolf, hyena) lose their
@@ -57,6 +71,10 @@ public final class PredatorModule implements FeatureModule, Listener {
     private PredatorBody body;
     private LongSupplier clock;
     private RandomGenerator random = ThreadLocalRandom.current();
+    /** {@code PackPredator.isFood} for a tamable predator: not rotten, in {@code #tfc:dog_food}. */
+    private Predicate<ItemStack> dogFood = stack -> false;
+    private DogConverter converter = (wolf, male, baby) -> {
+    };
 
     @Override
     public String id() {
@@ -67,8 +85,45 @@ public final class PredatorModule implements FeatureModule, Listener {
     public void enable(ModuleContext context) {
         this.body = new PaperPredatorBody(() -> context.integrations().entityModels());
         this.clock = () -> context.clock().get().playerTicks();
-        ((TfpPlugin) context.plugin()).animals().behaviours().register(new Ai());
+        AnimalService animals = ((TfpPlugin) context.plugin()).animals();
+        Tags tags = context.services().require(Tags.class);
+        ItemFoodHooks foodHooks = context.services().require(ItemFoodHooks.class);
+        this.dogFood = stack -> PackTaming.isFood(true, foodHooks.isRotten(stack), tags.is(stack, DOG_FOOD));
+        this.converter = (wolf, male, baby) -> convertToDog(animals, context.scheduler(), wolf, male, baby);
+        animals.behaviours().register(new Ai());
         context.listen(this);
+    }
+
+    /** What happens to a wolf that was fed to a dog: a dog of its gender replaces it. */
+    interface DogConverter {
+        void toDog(Mob wolf, boolean male, boolean baby);
+    }
+
+    static final String DOG_FOOD = "tfp:dog_food";
+
+    /**
+     * {@code PackPredator.mobInteract}'s {@code convertTo(TFCEntities.DOG)}: the dog takes the wolf's place with the wolf's
+     * gender and name, an adult unless the wolf was a baby ({@code setBirthTickToALongTimeAgo}); the wolf is removed once the
+     * dog exists.
+     */
+    private static void convertToDog(AnimalService animals, Scheduler scheduler, Mob wolf, boolean male, boolean baby) {
+        Carrier dog = animals.table().find("tfc:dog").orElse(null);
+        if (dog == null) {
+            return;
+        }
+        net.kyori.adventure.text.Component name = wolf.customName();
+        animals.spawn(wolf.getLocation(), dog, baby ? AnimalSpawnRoll.AgeHint.CHILD : AnimalSpawnRoll.AgeHint.ADULT, male)
+                .whenComplete((spawned, error) -> {
+                    if (error != null) {
+                        return;
+                    }
+                    if (name != null) {
+                        scheduler.entity(spawned, () -> spawned.customName(name), () -> {
+                        });
+                    }
+                    scheduler.entity(wolf, wolf::remove, () -> {
+                    });
+                });
     }
 
     /** Test seam: the world, the clock and the draws. */
@@ -76,6 +131,12 @@ public final class PredatorModule implements FeatureModule, Listener {
         this.body = body;
         this.clock = clock;
         this.random = random;
+    }
+
+    /** Test seam: the dog food test and the wolf-to-dog conversion. */
+    void initTamingForTest(Predicate<ItemStack> dogFood, DogConverter converter) {
+        this.dogFood = dogFood;
+        this.converter = converter;
     }
 
     PredatorBrain brain(Entity e) {
@@ -99,7 +160,7 @@ public final class PredatorModule implements FeatureModule, Listener {
             PredatorBrain brain = new PredatorBrain(mob, profile, body);
             brain.load(() -> random.nextInt(PackRules.INITIAL_RESPECT_BOUND));
             brains.put(mob.getUniqueId(), brain);
-            PredatorGoals.Deps d = new PredatorGoals.Deps(body, clock, random);
+            PredatorGoals.Deps d = new PredatorGoals.Deps(body, clock, random, dogFood);
             return List.of(
                     new GoalSpec(0, new PredatorGoals.Swim(brain, d)),
                     new GoalSpec(1, new PredatorGoals.Fight(brain, d)),
@@ -252,6 +313,40 @@ public final class PredatorModule implements FeatureModule, Listener {
             }
             PredatorMemory next = PackRules.alerted(other.memory, attacker != null);
             other.update(next);
+        }
+    }
+
+    /**
+     * {@code PackPredator.mobInteract}: a tamable pack predator offered dog food eats it at most once a calendar day, gains
+     * 0.1 familiarity, and above 0.99 becomes a dog. The click is taken whether or not the food was eaten.
+     */
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onFeed(PlayerInteractEntityEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+        PredatorBrain brain = brains.get(event.getRightClicked().getUniqueId());
+        Player player = event.getPlayer();
+        ItemStack held = player.getInventory().getItemInMainHand();
+        if (brain == null || !brain.profile.tamable() || held.isEmpty() || !dogFood.test(held)
+                || !Bukkit.isOwnedByCurrentRegion(brain.mob)) {
+            return;
+        }
+        event.setCancelled(true);
+        long now = clock.getAsLong();
+        PackTaming.Feed feed = PackTaming.feed(brain.taming(), now);
+        if (!feed.accepted()) {
+            return;
+        }
+        brain.setTaming(feed.state());
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            held.subtract(1);
+        }
+        body.vanillaSound(brain.mob, "minecraft:entity.generic.eat", 1.0f,
+                PaperPredatorBody.voicePitch(brain.mob));
+        if (feed.converts()) {
+            boolean male = AnimalPdc.read(brain.mob.getPersistentDataContainer()).map(r -> r.state().male()).orElse(true);
+            converter.toDog(brain.mob, male, PredatorSenses.baby(brain.mob, now));
         }
     }
 

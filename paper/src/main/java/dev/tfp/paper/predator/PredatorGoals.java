@@ -13,7 +13,9 @@
 package dev.tfp.paper.predator;
 
 import com.destroystokyo.paper.entity.ai.GoalType;
+import dev.tfp.core.livestockai.Temptation;
 import dev.tfp.core.predator.PackRules;
+import dev.tfp.core.predator.PackTaming;
 import dev.tfp.core.predator.PredatorActivity;
 import dev.tfp.core.predator.PredatorIdle;
 import dev.tfp.core.predator.PredatorMelee;
@@ -28,9 +30,13 @@ import dev.tfp.paper.animal.AnimalGoal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.function.Predicate;
 import java.util.function.LongSupplier;
 import java.util.random.RandomGenerator;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
 
 /**
@@ -53,7 +59,10 @@ final class PredatorGoals {
     }
 
     /** The shared parts of every goal. */
-    record Deps(PredatorBody body, LongSupplier clock, RandomGenerator random) {
+    record Deps(PredatorBody body, LongSupplier clock, RandomGenerator random, Predicate<ItemStack> dogFood) {
+        Deps(PredatorBody body, LongSupplier clock, RandomGenerator random) {
+            this(body, clock, random, stack -> false);
+        }
     }
 
     static boolean beat(PredatorBrain brain, int every) {
@@ -452,10 +461,14 @@ final class PredatorGoals {
         @Override
         void think(long now) {
             float health = (float) mob.getHealth();
+            Player tempting = null;
             if (brain.profile.pack()) {
                 PredatorBrain alpha = brain.alphaOrSelf();
                 boolean alphaPacified = alpha.memory.pacified(now);
                 brain.update(PackRules.becomePassive(brain.memory, now, health, alphaPacified));
+                // becomePassiveIf(TEMPTING_PLAYER present, 400): a tamable pack predator is tempted by dog food
+                tempting = brain.profile.tamable() ? tempting(now) : null;
+                brain.update(PackTaming.becomePassiveTempted(brain.memory, now, tempting != null));
                 Optional<LivingEntity> alphaTarget = Optional.ofNullable(alpha.target).filter(PredatorBrain::alive);
                 LivingEntity found = PackRules.attackTarget(alpha == brain,
                         () -> Optional.ofNullable(ownTarget(brain, d, now, PredatorSchedule.Activity.HUNT)), alphaTarget)
@@ -469,6 +482,8 @@ final class PredatorGoals {
                     return;
                 }
             }
+            // FollowTemptation runs beside the passive checks: a tempted predator is pacified, so it comes first here
+            followTemptation(tempting, now);
             if (brain.memory.pacified(now)) {
                 return;
             }
@@ -482,6 +497,48 @@ final class PredatorGoals {
                 idle(brain, d, now);
             }
             brain.tickSchedule();
+        }
+
+        /**
+         * {@code DelegatingTemptingSensor}: every 20 ticks the nearest non-spectator player within 10 blocks holding dog food
+         * in either hand (line of sight ignored); none erases the memory.
+         */
+        private Player tempting(long now) {
+            if (brain.temptScanAt == Long.MIN_VALUE || now - brain.temptScanAt >= SENSE_TICKS || now < brain.temptScanAt) {
+                brain.temptScanAt = now;
+                List<Player> players = d.body().players(mob, Temptation.RANGE);
+                List<Temptation.Candidate> candidates = new ArrayList<>(players.size());
+                for (Player p : players) {
+                    candidates.add(new Temptation.Candidate(p.getLocation().distanceSquared(mob.getLocation()),
+                            p.getGameMode() == org.bukkit.GameMode.SPECTATOR, p.isValid() && !p.isDead(),
+                            holds(p.getInventory().getItemInMainHand()) || holds(p.getInventory().getItemInOffHand())));
+                }
+                OptionalInt i = Temptation.temptingPlayer(candidates);
+                brain.tempting = i.isPresent() ? players.get(i.getAsInt()) : null;
+            }
+            Player p = brain.tempting;
+            return p != null && p.isValid() && !p.isDead() ? p : null;
+        }
+
+        private boolean holds(ItemStack stack) {
+            return stack != null && !stack.isEmpty() && d.dogFood().test(stack);
+        }
+
+        /** {@code FollowTemptation}: walk to the tempting player (1.2, a baby 1.5) until 2.5 blocks away; 100-tick cooldown after. */
+        private void followTemptation(Player tempting, long now) {
+            if (Temptation.follows(tempting != null, now, brain.temptCooldownUntil, false, false)) {
+                brain.tempted = true;
+                d.body().lookAt(mob, tempting);
+                if (Temptation.walks(tempting.getLocation().distanceSquared(mob.getLocation()))) {
+                    d.body().moveTo(mob, tempting, PackTaming.followSpeed(PredatorSenses.baby(mob, now)));
+                } else {
+                    d.body().stop(mob);
+                }
+            } else if (brain.tempted && tempting == null) {
+                brain.tempted = false;
+                brain.temptCooldownUntil = Temptation.cooldownUntil(now);
+                d.body().stop(mob);
+            }
         }
 
         /** {@code listenToAlpha}: a member copies the alpha's home and walks to it at 1.1 until within 6 blocks. */

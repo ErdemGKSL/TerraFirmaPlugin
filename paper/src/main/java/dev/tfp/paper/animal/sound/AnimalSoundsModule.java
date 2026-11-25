@@ -11,6 +11,7 @@ package dev.tfp.paper.animal.sound;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import dev.tfp.core.animal.AnimalRecord;
+import dev.tfp.core.predator.PredatorSpecies;
 import dev.tfp.paper.TfpPlugin;
 import dev.tfp.paper.animal.AnimalPdc;
 import dev.tfp.paper.animal.AnimalService;
@@ -26,6 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Entity;
@@ -36,6 +38,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Animal sounds (PAR-FAUNA-20): the carriers are silent, so the plugin plays an animal's voice itself on a throttled
@@ -70,8 +74,10 @@ public final class AnimalSoundsModule implements FeatureModule, Listener {
     /** The TFC sound event for {@code species} and {@code kind}, if TFC has one ({@code entity.bear.ambient} for all bears). */
     static Optional<String> event(Set<String> events, String species, String kind) {
         String name = species.substring(species.indexOf(':') + 1);
+        // a predator's TFC sound id is its own ({@code tfc_wolf}, {@code dog} for the direwolf): the sleep sound lives there
+        String predator = PredatorSpecies.profile(species).map(PredatorSpecies.Profile::sound).orElse(name);
         for (String candidate : new String[] {name, name.replaceAll("^(black|grizzly|polar)_", ""),
-                name.replaceAll("_camel$", "")}) {
+                name.replaceAll("_camel$", ""), predator}) {
             String key = "entity." + candidate + "." + kind;
             if (events.contains(key)) {
                 return Optional.of(key);
@@ -123,6 +129,29 @@ public final class AnimalSoundsModule implements FeatureModule, Listener {
         play(event.getEntity(), "death");
     }
 
+    /** {@code PetPdc.FLAGS} and {@code PredatorBrain.SLEEPING}: the saved sleeping flags the sleep sound reads. */
+    static final NamespacedKey PET_FLAGS = new NamespacedKey("tfp", "pet_flags");
+    static final NamespacedKey PREDATOR_SLEEPING = new NamespacedKey("tfp", "predator_sleeping");
+    /** {@code TamableMammal.FLAG_SLEEPING}: the sleeping bit of the pet flags byte. */
+    static final int PET_SLEEPING_BIT = 1;
+
+    /**
+     * The kind of an ambient sound now: TFC's {@code Predator.getAmbientSound} and {@code TamableMammal.getAmbientSound}
+     * give {@code entity.<sound>.sleep} while the animal is asleep.
+     */
+    static String ambientKind(Entity e) {
+        return sleeping(e.getPersistentDataContainer()) ? "sleep" : "ambient";
+    }
+
+    static boolean sleeping(PersistentDataContainer pdc) {
+        Byte predator = pdc.get(PREDATOR_SLEEPING, PersistentDataType.BYTE);
+        if (predator != null && predator != 0) {
+            return true;
+        }
+        Byte pet = pdc.get(PET_FLAGS, PersistentDataType.BYTE);
+        return pet != null && (pet & PET_SLEEPING_BIT) != 0;
+    }
+
     private final class Ambient implements SpeciesBehaviour {
         @Override
         public Set<String> species() {
@@ -137,7 +166,7 @@ public final class AnimalSoundsModule implements FeatureModule, Listener {
         @Override
         public void onCheck(Check check) {
             if (ThreadLocalRandom.current().nextDouble() < AMBIENT_CHANCE) {
-                play(check.entity(), check.record().species(), "ambient");
+                play(check.entity(), check.record().species(), ambientKind(check.entity()));
             }
         }
     }

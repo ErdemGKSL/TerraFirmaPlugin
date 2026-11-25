@@ -59,6 +59,17 @@ final class PaperPredatorBody implements PredatorBody {
     }
 
     @Override
+    public List<org.bukkit.entity.Player> players(Mob mob, double range) {
+        List<org.bukkit.entity.Player> out = new ArrayList<>();
+        for (LivingEntity e : nearby(mob, range)) {
+            if (e instanceof org.bukkit.entity.Player p && p.getGameMode() != org.bukkit.GameMode.SPECTATOR) {
+                out.add(p);
+            }
+        }
+        return out;
+    }
+
+    @Override
     public List<LivingEntity> touching(Mob mob) {
         List<LivingEntity> out = new ArrayList<>();
         for (Entity e : mob.getWorld().getNearbyEntities(mob.getBoundingBox())) {
