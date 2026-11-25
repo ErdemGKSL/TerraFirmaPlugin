@@ -22,12 +22,15 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 
 /**
  * PAR-INFRA-60: hopper automation of device blocks. Provides {@link DeviceAutomation} (the registration API for device
  * modules), registers TFC's sides for the barrel, firepit, grill, pot, quern and powder keg, and listens to Paper's
- * {@code HopperInventorySearchEvent} ({@link HopperAutomationListener}). The composter keeps its own hopper-below rule
+ * {@code HopperInventorySearchEvent} ({@link HopperAutomationListener}) and to droppers facing a device ({@link DropperAutomationListener}, PAR-INFRA-63). The composter keeps its own hopper-below rule
  * (PAR-PROC-11: its output is a count, not a slot); its TFC table is {@link TfcSideTables#composter()}.
  *
  * <p>The {@code *EnableAutomation} switches are read once at enable from {@code config.yml} ({@link AutomationRules#KEYS},
@@ -60,6 +63,13 @@ public final class DeviceAutomationModule implements FeatureModule {
         context.listen(new HopperAutomationListener(automation, new HopperMover(devices),
             context.integrations().customBlocks(), context.scheduler(), HopperAutomationListener.HopperPort::of,
             HopperAutomationListener::screenNearby, context.logger()));
+        context.listen(new DropperAutomationListener(automation, new HopperMover(devices),
+            context.integrations().customBlocks(), context.scheduler(), HopperAutomationListener::screenNearby,
+            DropperAutomationListener::liveInventory, item -> {
+                Inventory hand = Bukkit.createInventory(null, InventoryType.HOPPER);
+                hand.setItem(0, item);
+                return hand;
+            }, context.logger()));
     }
 
     /** TFC's switches from {@code config.yml}, TFC's defaults for missing keys or a missing file. */

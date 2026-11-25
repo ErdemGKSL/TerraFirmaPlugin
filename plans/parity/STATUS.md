@@ -235,7 +235,8 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-06 | Cave tunnels and canyons (vanilla carvers with TFC carveBlock) | WORLD | 19 | done |
 | PAR-WORLD-08 | Disc, pipe and kaolin veins; montane second pass; ore distribution statistics | WORLD | 19 | done |
 | PAR-HEAT-31 | Firebox block loaded in game (full-cube pool, copper sounds, in-game screen check), stove and stove pot | HEAT | 19 | open |
-| PAR-INFRA-63 | Device automation follow-ups: droppers and hopper minecarts into devices, screen-aware moves, per-device settle after a move, config.yml automation keys | INFRA | 19 | open |
+| PAR-INFRA-63 | Device automation follow-ups: droppers and hopper minecarts into devices, screen-aware moves, per-device settle after a move, config.yml automation keys | INFRA | 19 | done |
+| PAR-INFRA-64 | Device automation, remaining parts: hopper minecarts, screen-aware moves, barrel fluid settle after a hopper insert, config.yml automation keys with reload | INFRA | 20 | open |
 | PAR-PROC-20 | Knapping in-game verification: axe head from two granite loose rocks, clay and leather screens | PROC | 20 | open |
 | PAR-TOOL-02 | Tool mechanics on Paper: TFC mining speed, durability rules, forging efficiency | TOOL | 20 | done |
 | PAR-TOOL-04 | Swords, maces, macuahuitl: attack damage per TFC tier | TOOL | 20 | done |
