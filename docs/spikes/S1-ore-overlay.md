@@ -175,7 +175,12 @@ Paper 1.21.11 build 132, tree `30332e3`, 230-280 s per census. Faces = surface +
   as solid, so the totals are a slight lower bound). The logged cause is `ArrayIndexOutOfBoundsException: Index -1` in
   `VolcanoBlocks.rockBlockId` (from `TfcTerrain.volcanicData`, a volcanic feature block with rock index −1). Follow-up:
   PAR-WORLD-60.
-- Folia: see §2.4.
+
+### 2.4 Folia (PAR-WORLD-19)
+
+`ore.census` passes on Folia 1.21.11 build 14 (TFC world seed 1, 4 × 4 chunks at 23, -135: 3 126 ore blocks, faces per
+chunk max 486, 2 refused chunks, 13.9 s; `out/ore-census-tfc-1-folia.json`) and on Paper 1.21.11 (the 32 × 32 runs above).
+The default self-test suite's 4 × 4 vanilla-world census passes on both platforms too.
 
 
 ## 3. Client cost (seed 2, Paper 1.21.11, client 1.21.11 on Xvfb + llvmpipe, 1280 × 720)

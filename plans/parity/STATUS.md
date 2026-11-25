@@ -245,7 +245,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-TOOL-04 | Swords, maces, macuahuitl: attack damage per TFC tier | TOOL | 20 | done |
 | PAR-WORLD-07 | Aquifer barrier noise and the grass rule under carved surfaces | WORLD | 20 | done |
 | PAR-WORLD-09 | Groundcover, loose rocks, deposits and boulders as CE blocks in generation | WORLD | 20 | done |
-| PAR-WORLD-19 | Ore overlay S1 rerun on a world with caves: census, exposed-vein reference screenshots, GPU client cost | WORLD | 20 | open |
+| PAR-WORLD-19 | Ore overlay S1 rerun on a world with caves: census, exposed-vein reference screenshots, GPU client cost | WORLD | 20 | done |
 | PAR-WORLD-28 | Wire the cave and canyon tunnel masks into the terrain fill, and the in-game cave check | WORLD | 20 | done |
 | PAR-WORLD-29 | Wire the aquifer barrier noise and the fluid support rule into the terrain fill, and the floating-fluid scan | WORLD | 21 | done |
 | PAR-INFRA-61 | Static info tooltip lines in-game verification: damage type, resistances, fuel and rock lore (the check PAR-INFRA-46 closed without) | INFRA | 20 | done |
