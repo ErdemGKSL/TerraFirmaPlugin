@@ -32,4 +32,6 @@ done_criteria:
 
 # PAR-FAUNA-24: Wild raids and armadillo scutes
 
+> Claimed: sonnet-5.5 session_011osUp8, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
