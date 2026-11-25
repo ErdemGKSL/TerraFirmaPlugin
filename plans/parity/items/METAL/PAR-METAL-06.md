@@ -2,7 +2,7 @@
 id: PAR-METAL-06
 title: "Welding on the anvil (flux)"
 area: METAL
-status: open
+status: done
 wave: 31
 deps: [PAR-METAL-05]
 size: S
@@ -29,3 +29,5 @@ done_criteria:
 # PAR-METAL-06: Welding on the anvil (flux)
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+Done: PAR-METAL-06 commit (welding: `anvil/weld` `WeldBook`, `Welder`, `AnvilWelding`, `AnvilWeldListener`, `AnvilWeldModule`, three lang keys); tests: paper AnvilWeldMockBukkitTest (11), core WeldingGoldenTest (from PAR-METAL-03); verification `docs/verification/PAR-METAL-06/verdict.md`. Pending in-game check (container cannot run client): another agent's servers were running and the container's memory cgroup OOM-killed the server when the client joined for PAR-METAL-05.
