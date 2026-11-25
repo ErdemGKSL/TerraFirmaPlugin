@@ -253,6 +253,9 @@ public final class Datagen {
         if (dev.tfp.datagen.powderkeg.PowderkegScreenArt.available(tfc)) { // PAR-PROC-18: powderkeg screen art; fixtures have no powderkeg screen
             dev.tfp.datagen.powderkeg.PowderkegScreenArt.run(tfc, out);
         }
+        if (dev.tfp.datagen.largevessel.LargeVesselBlocks.available(tfc)) { // PAR-POT-06: tfp:ceramic/large_vessel and its 16 glazed colours; fixtures have no large vessel
+            dev.tfp.datagen.largevessel.LargeVesselBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.powderkeg.PowderkegBlock.available(tfc)) { // PAR-PROC-39: tfp:powderkeg entry on the selector's carriers, models, textures, names; fixtures have no powderkeg
             dev.tfp.datagen.powderkeg.PowderkegBlock.run(tfc, out);
         }

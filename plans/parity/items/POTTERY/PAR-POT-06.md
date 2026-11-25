@@ -2,7 +2,7 @@
 id: PAR-POT-06
 title: "Large vessel (and glazed): nine slots, sealing, preservation, automation"
 area: POTTERY
-status: open
+status: done
 wave: 26
 deps: [PAR-INFRA-03, PAR-POT-02, PAR-INFRA-13]
 size: M
@@ -31,6 +31,7 @@ in_game_steps:
 plan:
   - "CE block (17 colours) with a 9-slot GUI + seal button; sealing applies `preserved` via LargeVesselRules; redstone seal; hopper automation only when unsealed (InventoryMoveItemEvent); breaking drops the vessel with contents (item list on the item)."
   - "Visual and hitbox: hitbox-only carrier from PAR-INFRA-13 (owner decision: heavy_core[waterlogged=false], fallback lone cobblestone wall post), the vessel look per colour, facing and sealed state from entity_renderer; never choose a carrier here."
+  - "Done: PAR-POT-06 commit. `tfp:ceramic/large_vessel` and 16 glazed colours (datagen `largevessel/LargeVesselBlocks`, 17 blocks x 8 states, hitbox-only heavy_core carrier + item-display models), `paper/largevessel` device (SAVE removal, instant seal applying/removing `preserved`, redstone seal, screen on `SampleScreen` art, hopper sides, sizer, facing on place), `core/largevessel` state + sides. Tests: core LargeVesselStateTest (7), paper LargeVesselMockBukkitTest (10), datagen LargeVesselBlocksTest (5). Pending in-game check (container cannot run client): server booted with the module and the CE entries loaded without issues (docs/verification/PAR-POT-06/verdict.md); the in_game_steps stay for the check."
 tests:
   - "paper: MockBukkit seal applies trait"
 done_criteria:
@@ -38,7 +39,5 @@ done_criteria:
 ---
 
 # PAR-POT-06: Large vessel (and glazed): nine slots, sealing, preservation, automation
-
-> Claimed: claude session_011osUp6aEeM6XBUKHoB7Lf2, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

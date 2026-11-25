@@ -756,6 +756,17 @@ public final class HitboxDemands {
             d.add(new Demand(DOUBLE_INGOT_PILE_ID, ingotPileAppearance(layer), ingotPileDemandKey(TfcShapes.doubleIngotPileKey(layer)), 0,
                 HitboxAllocation.TRANSPARENT, true, INGOT_PILE_WEIGHT));
         }
+        // PAR-POT-06: the large vessel and its 16 glazed colours, one demand per sealed state and facing; every one takes TFC's
+        // outline of its sealed state (the facing only turns the item display), hitbox-only like the loom; the look is
+        // TFC's model as an item display (LargeVesselBlocks).
+        for (String id : largeVesselIds()) {
+            for (boolean sealed : new boolean[] {false, true}) {
+                for (String f : FACINGS) {
+                    d.add(new Demand(id, largeVesselAppearance(sealed, f), "tfc:ceramic/large_vessel[sealed=" + sealed + "]", 0,
+                        HitboxAllocation.TRANSPARENT, true, LARGE_VESSEL_WEIGHT));
+                }
+            }
+        }
         // PAR-CLIM-27: the four climate instruments, hitbox-only per TFC outline; the look is an item display (InstrumentBlocks).
         for (String f : FACINGS) {
             d.add(new Demand(THERMOMETER_ID, f + "_*", TfcShapes.instrumentKey("thermometer", "facing=" + f), 0,
@@ -1797,6 +1808,23 @@ public final class HitboxDemands {
     /** PAR-PROC-49: the sewing table's one appearance and the weight of the tables' demands (served after the loom's). */
     public static final String SEWING_APPEARANCE = "base";
     static final int TABLE_WEIGHT = -23;
+
+    /** PAR-POT-06: the large vessel block, its glazed colours ({@code <id>/<colour>}, vanilla DyeColor order) and the weight. */
+    public static final String LARGE_VESSEL_ID = "tfp:ceramic/large_vessel";
+    static final int LARGE_VESSEL_WEIGHT = -31;
+
+    /** PAR-POT-06: the plain large vessel first, then the glazed one of every dye colour. */
+    public static List<String> largeVesselIds() {
+        List<String> ids = new ArrayList<>();
+        ids.add(LARGE_VESSEL_ID);
+        CANDLE_COLORS.forEach(c -> ids.add(LARGE_VESSEL_ID + "/" + c));
+        return List.copyOf(ids);
+    }
+
+    /** PAR-POT-06: the appearance (and demand) of a large vessel, {@code opened_north} or {@code sealed_east}. */
+    public static String largeVesselAppearance(boolean sealed, String facing) {
+        return (sealed ? "sealed" : "opened") + "_" + facing;
+    }
 
     /** PAR-PROC-06: the loom block of {@code wood} and the weight of its demands (served after the sluice's). */
     public static String loomId(String wood) {

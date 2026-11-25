@@ -290,7 +290,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-14 | Volcanic features: springs, rivulets, flood-fill lakes, calderas of other cones | WORLD | 25 | done |
 | PAR-WORLD-25 | TFC corals and sea pickle as CE blocks: 5 colours x (coral, coral fan, wall fan) live and dead, the salt-water sea pickle, dying out of water, drops; replace the vanilla coral placeholders in generation | WORLD | 25 | done |
 | PAR-FARM-12 | Wild plant block rules: survival per shape, cactus damage, tall halves, plant stacking, flower shearing, long growth of vines, kelp, kelp trees and branching cacti | FARM | 26 | done |
-| PAR-POT-06 | Large vessel (and glazed): nine slots, sealing, preservation, automation | POTTERY | 26 | open |
+| PAR-POT-06 | Large vessel (and glazed): nine slots, sealing, preservation, automation | POTTERY | 26 | done |
 | PAR-POT-07 | Jugs and glass bottles: fill, drink, pour, break | POTTERY | 26 | done |
 | PAR-WORLD-15 | Volcanic and spring CE blocks: hardened rock, magma blocks, spring water look | WORLD | 26 | done |
 | PAR-WORLD-27 | Wire VolcanicFeatures into the Paper terrain: rivulets, crater lakes, tuya and stratovolcano fissures, pumice and obsidian patches, springs; spring water of crater lakes | WORLD | 26 | done |

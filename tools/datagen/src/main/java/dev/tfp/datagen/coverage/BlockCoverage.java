@@ -126,7 +126,6 @@ public final class BlockCoverage {
         Owner.of("([a-z_]+_)?poured_glass|glass_basin", "PAR-PROC-17", "glass basin, hot and coloured poured glass"),
         Owner.of("placed_item", "PAR-POT-01", "placed items"),
         Owner.of("pit_kiln", "PAR-POT-03", "pit kiln"),
-        Owner.of("ceramic/large_vessel(/.+)?", "PAR-POT-06", "large vessels and glazed large vessels"),
         Owner.of("ceramic/bowl|wooden_bowl", "PAR-POT-09", "bowl blocks"),
         Owner.of("metal/anvil/.+", "PAR-METAL-03", "metal anvils"),
         Owner.of("crucible", "PAR-METAL-12", "crucible"),
