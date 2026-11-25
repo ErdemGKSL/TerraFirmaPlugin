@@ -461,10 +461,11 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |
 | PAR-REL-03 | Dependency and version updates (MC, Paper, Folia, CE, BetterModel, BetterHud) | REL | 52 | done |
 | PAR-REL-04 | Stone-age run self-test | REL | 52 | done |
-| PAR-REL-05 | Metal run self-test | REL | 53 | open |
+| PAR-REL-05 | Metal run self-test | REL | 53 | done |
 | PAR-REL-06 | Husbandry run self-test and 200-animal load test | REL | 53 | blocked |
 | PAR-REL-10 | Art backlog: replace every placeholder texture | REL | 53 | blocked |
 | PAR-REL-11 | Design docs and skills kept current | REL | 53 | done |
+| PAR-REL-13 | Metal run self-test: pig iron from a real blast furnace | REL | 54 | open |
 | PAR-DATA-15 | TFC's ten creative tabs as CraftEngine item browser categories, in TFC's order with TFC's icons and names | DATA | 53 | open |
 | PAR-REL-07 | Performance audit with 50 bots | REL | 54 | open |
 | PAR-FAUNA-26 | Animal AI under load: livestock avoid and prey flee sensing within the tick budget; prey moveTo on Folia | FAUNA | 54 | blocked |
