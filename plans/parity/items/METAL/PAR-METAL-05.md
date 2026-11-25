@@ -2,7 +2,7 @@
 id: PAR-METAL-05
 title: "Anvil forging GUI: step buttons, target and progress markers, hammering, forging bonus"
 area: METAL
-status: open
+status: done
 wave: 30
 deps: [PAR-METAL-04, PAR-HEAT-02]
 size: M
@@ -18,6 +18,10 @@ files_owned:
   - "paper/src/test/java/dev/tfp/paper/anvil/forge/**"
   - "core/src/main/java/dev/tfp/core/forge/**"
   - "core/src/test/java/dev/tfp/core/forge/**"
+  - "tools/datagen/src/main/java/dev/tfp/datagen/anvil/AnvilForgeArt.java"
+  - "tools/datagen/src/test/java/dev/tfp/datagen/anvil/AnvilForgeArtTest.java"
+  - "paper/src/main/java/dev/tfp/paper/anvil/plan/AnvilPlanScreens.java"
+  - "paper/src/main/java/dev/tfp/paper/anvil/AnvilModule.java"
 ui: true
 in_game_steps:
   - "copper anvil, hot copper double ingot, hammer"
@@ -33,6 +37,6 @@ done_criteria:
 
 # PAR-METAL-05: Anvil forging GUI: step buttons, target and progress markers, hammering, forging bonus
 
-> Claimed: session_011osUp6aEeM6XBUKHoB7Lf2, 2026-11-25
-
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+Done: PAR-METAL-05 commit (anvil forging screen: `AnvilScreenLayout`, `AnvilForger`, `AnvilForgeScreens`, art `AnvilForgeArt`); tests: core AnvilScreenLayoutTest (8), datagen AnvilForgeArtTest (5), paper AnvilForgeMockBukkitTest (17); verification `docs/verification/PAR-METAL-05/verdict.md`. Pending in-game check (container cannot run client): the server was OOM-killed twice by the container's memory cgroup when the client joined.

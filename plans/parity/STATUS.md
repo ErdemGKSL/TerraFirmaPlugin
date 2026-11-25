@@ -316,7 +316,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-23 | TFC rock layers: the rock layer settings walk and per-rock rock settings replace PlaceholderRocks (rock stacking, sand colour, karst surface rocks) | WORLD | 29 | done |
 | PAR-FARM-05 | Wild crops and spreading crops (pumpkin, melon), rotten pumpkins | FARM | 30 | done |
 | PAR-FARM-07 | Spreading bushes, canes and cranberries | FARM | 30 | done |
-| PAR-METAL-05 | Anvil forging GUI: step buttons, target and progress markers, hammering, forging bonus | METAL | 30 | open |
+| PAR-METAL-05 | Anvil forging GUI: step buttons, target and progress markers, hammering, forging bonus | METAL | 30 | done |
 | PAR-PROC-16 | Glassworking: blowpipe operations (blow, roll, stretch, pinch, flatten, saw) | PROC | 30 | open |
 | PAR-FARM-08 | Fruit trees: saplings, growing branches, seasonal leaves, fruit | FARM | 31 | done |
 | PAR-METAL-06 | Welding on the anvil (flux) | METAL | 31 | open |
