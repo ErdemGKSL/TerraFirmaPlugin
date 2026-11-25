@@ -142,6 +142,17 @@ public final class CinderCones {
         return NOT_PRESENT;
     }
 
+    /**
+     * {@code getCenterBiome} (PAR-WORLD-43): the biome at the center of the cone cell that holds {@code (x, z)}, whether or not
+     * the cell has a cone. TFC's chunk generator reads it at the chunk center to pick the frequency of the surface easing.
+     *
+     * @param biomeAt the TFC biome id at a block column
+     */
+    public int centerBiome(int x, int z, IntBinaryOperator biomeAt) {
+        final Cellular2D.Cell cell = cellNoise.cell(x, z);
+        return biomeAt.applyAsInt((int) cell.x(), (int) cell.y());
+    }
+
     /** {@code calculateEasing}: how close a column is to a cone's center in [0, 1] (1 at the center, 0 outside a cone). */
     public float easing(int x, int z, float frequency) {
         final Cellular2D.Cell cell = cellNoise.cell(x, z);

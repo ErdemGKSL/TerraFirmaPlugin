@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 /** PAR-WORLD-41: the surface blocks map to the palette's CraftEngine soil and gravel ids. */
 class TfcTerrainSoilTest {
-    private static final List<String> IDS = RockPalette.surfaceIds(TfcTerrain.ROCK_IDS);
+    private static final List<String> IDS = TfcTerrain.SURFACE_IDS;
 
     @Test
     void soilVariantsMapToTheirOwnIds() {
@@ -47,9 +47,21 @@ class TfcTerrainSoilTest {
     @Test
     void otherKindsKeepTheVanillaBlock() {
         for (SurfaceBlock block : new SurfaceBlock[] {SurfaceBlock.ROCK_SAND, SurfaceBlock.YELLOW_SANDSTONE, SurfaceBlock.SNOW,
-            SurfaceBlock.PACKED_ICE, SurfaceBlock.BASALT_GRAVEL, SurfaceBlock.TUFF_GRAVEL, SurfaceBlock.HARDENED_CLAY, SurfaceBlock.RAW}) {
+            SurfaceBlock.PACKED_ICE, SurfaceBlock.HARDENED_CLAY, SurfaceBlock.RAW}) {
             assertThat(TfcTerrain.surfaceIndex(block, 0)).as(block.name()).isEqualTo(-1);
         }
         assertThat(SurfaceKind.values()).isNotEmpty();
+    }
+
+    @Test
+    void cobbleBasaltTuffAndSeaIceMapToTheirIds() {
+        final int granite = TfcTerrain.ROCK_IDS.indexOf("tfp:rock/raw/granite");
+        assertThat(IDS.get(TfcTerrain.surfaceIndex(SurfaceBlock.COBBLE, granite))).isEqualTo("tfp:rock/cobble/granite");
+        assertThat(IDS.get(TfcTerrain.surfaceIndex(SurfaceBlock.BASALT_COBBLE, 0))).isEqualTo("tfp:rock/cobble/basalt");
+        assertThat(IDS.get(TfcTerrain.surfaceIndex(SurfaceBlock.BASALT_GRAVEL, 0))).isEqualTo("tfp:rock/gravel/basalt");
+        assertThat(IDS.get(TfcTerrain.surfaceIndex(SurfaceBlock.TUFF_GRAVEL, 0))).isEqualTo("tfp:rock/gravel/tuff");
+        assertThat(IDS.get(TfcTerrain.surfaceIndex(SurfaceBlock.SEA_ICE, 0))).isEqualTo("tfp:sea_ice");
+        assertThat(TfcTerrain.needsRock(SurfaceBlock.COBBLE)).isTrue();
+        assertThat(TfcTerrain.needsRock(SurfaceBlock.SEA_ICE)).isFalse();
     }
 }

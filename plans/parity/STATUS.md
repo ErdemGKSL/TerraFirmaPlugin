@@ -304,7 +304,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-03 | Anvil blocks: rock anvils and metal anvils with items shown on top | METAL | 28 | done |
 | PAR-METAL-22 | Small vessel stores a mixed alloy: fills and melts write tfp:alloy, the vessel tooltip shows the mix | METAL | 28 | open |
 | PAR-WORLD-22 | TFC world generator settings as server config (flat bedrock, spawn distance and centre, climate scales, continentalness, grass density); close the spawn-settings and river open gaps | WORLD | 28 | done |
-| PAR-WORLD-43 | Wire every biome's own surface builder (BiomeSurfaces) and the full surface block set into the Paper terrain | WORLD | 28 | open |
+| PAR-WORLD-43 | Wire every biome's own surface builder (BiomeSurfaces) and the full surface block set into the Paper terrain | WORLD | 28 | done |
 | PAR-FARM-04 | Crop growth glue: lazy calendar growth, climate checks, death, harvest yields | FARM | 29 | done |
 | PAR-FARM-06 | Stationary berry bushes: lifecycle, picking, propagation | FARM | 29 | done |
 | PAR-METAL-04 | Anvil plan selection GUI | METAL | 29 | open |

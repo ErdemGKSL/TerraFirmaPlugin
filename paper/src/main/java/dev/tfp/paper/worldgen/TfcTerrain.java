@@ -5,6 +5,8 @@
  */
 package dev.tfp.paper.worldgen;
 
+import dev.tfp.core.climate.OverworldClimate;
+import dev.tfp.core.weather.SeaIce;
 import dev.tfp.core.worldgen.FastConcurrentCache;
 import dev.tfp.core.worldgen.Seed;
 import dev.tfp.core.worldgen.density.NoiseCaves;
@@ -51,8 +53,8 @@ import dev.tfp.core.worldgen.settings.BedrockLayer;
 import dev.tfp.core.worldgen.settings.WorldSettings;
 import dev.tfp.core.worldgen.surface.ColumnSurface;
 import dev.tfp.core.worldgen.surface.SurfaceColumn;
+import dev.tfp.core.worldgen.surface.BiomeSurfaces;
 import dev.tfp.core.worldgen.surface.SurfaceBlock;
-import dev.tfp.core.worldgen.surface.SurfaceFamily;
 import dev.tfp.core.worldgen.surface.SurfaceKind;
 import dev.tfp.core.worldgen.surface.SurfaceNoise;
 import dev.tfp.core.worldgen.surface.SurfaceSlope;
@@ -60,6 +62,7 @@ import dev.tfp.core.worldgen.tree.Forest;
 import dev.tfp.core.worldgen.tree.ForestType;
 import dev.tfp.core.worldgen.tree.TreeBlock;
 import dev.tfp.core.worldgen.tree.TreeGround;
+import dev.tfp.core.worldgen.volcano.CinderCones;
 import dev.tfp.core.worldgen.volcano.VolcanicBlock;
 import dev.tfp.core.worldgen.volcano.VolcanicFeatures;
 import dev.tfp.core.worldgen.volcano.VolcanoView;
@@ -95,6 +98,16 @@ import org.bukkit.generator.ChunkGenerator;
 final class TfcTerrain {
     /** The raw rock ids of the content, in {@link PlaceholderRocks#names()} order. */
     static final List<String> ROCK_IDS = PlaceholderRocks.names().stream().map(n -> "tfp:rock/raw/" + n).toList();
+    /** PAR-WORLD-43: where the cobble ids start in {@link #SURFACE_IDS}: after the soils and the rock gravel. */
+    private static final int COBBLE_START = RockPalette.surfaceIds(ROCK_IDS).size();
+    /**
+     * PAR-WORLD-41, PAR-WORLD-43: the CraftEngine blocks the surface writes, appended to the palette ids after the rocks and
+     * ores: {@link RockPalette#surfaceIds} (soils, rock gravel), then the rock cobble of every rock, then TFC's sea ice.
+     */
+    static final List<String> SURFACE_IDS = surfaceIds();
+    private static final int SEA_ICE_INDEX = SURFACE_IDS.size() - 1;
+    private static final int BASALT_ROCK = PlaceholderRocks.names().indexOf("basalt");
+    private static final int TUFF_ROCK = PlaceholderRocks.names().indexOf("tuff");
 
 
     private final RegionGenerator regions;
@@ -106,6 +119,7 @@ final class TfcTerrain {
     private final int fallbackBiomes;
     private final BlockData bedrock = Material.BEDROCK.createBlockData();
     private final BlockData water = Material.WATER.createBlockData();
+    private final BlockData blueIce = Material.BLUE_ICE.createBlockData();
     private final BlockData air = Material.AIR.createBlockData();
     /** The air of a carved cave: TFC's carvers write {@code cave_air} ({@code CarverHelpers.AIR}). */
     private final BlockData caveAir = Material.CAVE_AIR.createBlockData();
@@ -129,6 +143,12 @@ final class TfcTerrain {
     private final List<String> paletteIds;
     /** PAR-WORLD-41: where {@link RockPalette#surfaceIds} start in the palette ids. */
     private final int surfaceBase;
+    /** PAR-WORLD-43: every TFC biome's own surface builder, from the shared seed stream ({@link BiomeSurfaces}). */
+    private final BiomeSurfaces biomeSurfaces;
+    /** PAR-WORLD-43: the climate model of the world's seed, for the warmest month of the sea ice. */
+    private final OverworldClimate climateModel;
+    /** PAR-WORLD-43: whether each placeholder rock is karst ({@code getRock()} of the badlands builders). */
+    private final boolean[] karstRocks;
     private volatile RockPalette<BlockData> palette;
     /** The groundcover and deposit decisions of this world (M2-GEN-11), in TFC's decoration step order. */
     private final Deposits deposits;
@@ -171,6 +191,14 @@ final class TfcTerrain {
         this.chunks = new ChunkDataGenerator(regions, stream);
         // TFC's initRandomState: the biome layer takes its seeds from the stream after the region and chunk data generators
         final BiomeLayers layers = new BiomeLayers(regions, stream);
+        // PAR-WORLD-43: TFC's noise sampler takes one seed, then the surface manager builds every biome's builder
+        stream.next();
+        this.biomeSurfaces = new BiomeSurfaces(stream);
+        this.climateModel = OverworldClimate.forWorldSeed(seed, settings.temperatureScale());
+        this.karstRocks = new boolean[PlaceholderRocks.count()];
+        for (int i = 0; i < karstRocks.length; i++) {
+            karstRocks[i] = rockSettings.get("tfc:" + PlaceholderRocks.names().get(i)).isKarst();
+        }
         this.shoreTide = SurfaceNoise.shoreTide(seed);
         this.aquiferFork = PositionalRandom.fork(new XoroshiroRandomSource(seed));
         this.barrier = AquiferBarrierNoise.create(aquiferFork);
@@ -184,7 +212,7 @@ final class TfcTerrain {
         final List<String> baseIds = withGeodeBlocks(veinStep.paletteIds(), geodes.geode().config());
         this.surfaceBase = baseIds.size();
         final List<String> allIds = new ArrayList<>(baseIds);
-        allIds.addAll(RockPalette.surfaceIds(ROCK_IDS));
+        allIds.addAll(SURFACE_IDS);
         this.paletteIds = List.copyOf(allIds);
         this.deposits = new Deposits(seed);
         this.indicators = new VeinIndicators(ores);
@@ -318,6 +346,7 @@ final class TfcTerrain {
         final ChunkData climate = chunks.generate(chunkX, chunkZ).modifyBaseGroundwater(heights);
         final int minY = data.getMinHeight();
         final int sea = ChunkData.SEA_LEVEL_Y;
+        final int waterTop = sea - 1;
         // PAR-WORLD-28: the view carries the chunk's cave carves (and its neighbours', for the decorations)
         final Ground view = new Ground(chunkX, chunkZ, columns, climate, minY, data.getMaxHeight());
         final VeinStep.Chunk veins = veinChunk(chunkX, chunkZ, view);
@@ -337,7 +366,7 @@ final class TfcTerrain {
                         data.setBlock(lx, y, lz, bedrock);
                         continue;
                     }
-                    final Material opened = densityCarve(sample, y, top, sea);
+                    final Material opened = densityCarve(sample, y, top, waterTop);
                     if (opened != null) {
                         data.setBlock(lx, y, lz, opened == Material.WATER ? water : air);
                         continue;
@@ -348,8 +377,9 @@ final class TfcTerrain {
                         data.setBlock(lx, y, lz, carvedBlock(carve));
                         continue;
                     }
-                    final SurfaceKind kind = surface.kind(y);
-                    if (kind == null || kind == SurfaceKind.ROCK_SURFACE) {
+                    final SurfaceBlock written = surface.block(y);
+                    final SurfaceKind kind = written == null ? null : written.kind();
+                    if (kind == null || written == SurfaceBlock.RAW || written == SurfaceBlock.HALITE) {
                         ChunkDataGenerator.RockSample rock = chunks.generateRock(x, y, z, height);
                         final int rockIndex = PlaceholderRocks.index(rock.point(), rock.layer());
                         data.setBlock(lx, y, lz, veinBlock(veins.isEmpty() ? rockIndex : veins.rock(x, y, z, rockIndex), palette));
@@ -357,18 +387,22 @@ final class TfcTerrain {
                         final int clay = veins.isEmpty() ? VeinStep.KEEP : veins.soil(x, y, z, kaolinSoil(kind));
                         BlockData surfaceData = null;
                         if (clay == VeinStep.KEEP) {
-                            int gravelRock = -1;
-                            if (kind == SurfaceKind.GRAVEL) {
-                                final ChunkDataGenerator.RockSample under = chunks.generateRock(x, y, z, height);
-                                gravelRock = PlaceholderRocks.index(under.point(), under.layer());
-                            }
-                            surfaceData = surfaceData(surface.block(y), gravelRock, palette);
+                            surfaceData = surfaceDataAt(written, x, y, z, height, palette);
                         }
                         data.setBlock(lx, y, lz, clay == VeinStep.KEEP ? surfaceData : veinBlock(clay, palette));
                     }
                 }
-                for (int y = top + 1; y <= sea; y++) {
+                // PAR-WORLD-43: TFC's aquifer fills below sea level (y <= 62); the surface pass sees that water
+                for (int y = top + 1; y <= waterTop; y++) {
                     data.setBlock(lx, y, lz, water);
+                }
+                // PAR-WORLD-43: what the surface wrote above the rock: sea ice on the water, icebergs
+                final int highest = Math.min(surface.highestY(), data.getMaxHeight() - 1);
+                for (int y = Math.max(top + 1, surface.lowestY()); y <= highest; y++) {
+                    final SurfaceBlock above = surface.block(y);
+                    if (above != null && above != SurfaceBlock.RAW && above != SurfaceBlock.HALITE) {
+                        data.setBlock(lx, y, lz, surfaceDataAt(above, x, y, z, height, palette));
+                    }
                 }
             }
         }
@@ -462,6 +496,15 @@ final class TfcTerrain {
         };
     }
 
+    private static List<String> surfaceIds() {
+        final List<String> ids = new ArrayList<>(RockPalette.surfaceIds(ROCK_IDS));
+        for (String raw : ROCK_IDS) {
+            ids.add("tfp:rock/cobble/" + raw.substring("tfp:rock/raw/".length()));
+        }
+        ids.add("tfp:sea_ice");
+        return List.copyOf(ids);
+    }
+
     /**
      * PAR-WORLD-41: the position in {@link RockPalette#surfaceIds} of the CraftEngine block of a surface block, or -1 where
      * the vanilla block of its kind stays (sand, sandstone, snow, ice, basalt and tuff gravel, hardened clay).
@@ -469,6 +512,20 @@ final class TfcTerrain {
      * @param rockIndex the placeholder rock index at the position, for gravel
      */
     static int surfaceIndex(SurfaceBlock block, int rockIndex) {
+        switch (block) {
+            case COBBLE:
+                return rockIndex < 0 ? -1 : COBBLE_START + rockIndex;
+            case BASALT_COBBLE:
+                return COBBLE_START + BASALT_ROCK;
+            case BASALT_GRAVEL:
+                return RockPalette.surfaceIndex(SurfaceKind.GRAVEL, 0, BASALT_ROCK, ROCK_IDS.size());
+            case TUFF_GRAVEL:
+                return RockPalette.surfaceIndex(SurfaceKind.GRAVEL, 0, TUFF_ROCK, ROCK_IDS.size());
+            case SEA_ICE:
+                return SEA_ICE_INDEX;
+            default:
+                break;
+        }
         final SurfaceKind kind = block.kind();
         if (kind == SurfaceKind.GRAVEL) {
             return block == SurfaceBlock.GRAVEL && rockIndex >= 0
@@ -482,10 +539,31 @@ final class TfcTerrain {
         return soil < 0 ? -1 : RockPalette.surfaceIndex(kind, soil, rockIndex, ROCK_IDS.size());
     }
 
+    /** PAR-WORLD-43: whether the block needs the rock at its position to pick its CraftEngine id. */
+    static boolean needsRock(SurfaceBlock block) {
+        return block == SurfaceBlock.GRAVEL || block == SurfaceBlock.COBBLE;
+    }
+
+    /** PAR-WORLD-43: {@link #surfaceData} with the placeholder rock at the position, for the blocks that name one. */
+    private BlockData surfaceDataAt(SurfaceBlock block, int x, int y, int z, int height, RockPalette<BlockData> palette) {
+        int rockIndex = -1;
+        if (needsRock(block)) {
+            final ChunkDataGenerator.RockSample under = chunks.generateRock(x, y, z, height);
+            rockIndex = PlaceholderRocks.index(under.point(), under.layer());
+        }
+        return surfaceData(block, rockIndex, palette);
+    }
+
     /** PAR-WORLD-41: the block data a surface block is written as: the palette's TFC soil or gravel, else the vanilla kind. */
     private BlockData surfaceData(SurfaceBlock block, int rockIndex, RockPalette<BlockData> palette) {
+        if (block == SurfaceBlock.BASALT || block == SurfaceBlock.TUFF) {
+            return palette.block(block == SurfaceBlock.BASALT ? BASALT_ROCK : TUFF_ROCK);
+        }
         final int index = surfaceIndex(block, rockIndex);
-        return index < 0 ? surfaceBlocks[block.kind().ordinal()] : palette.block(surfaceBase + index);
+        if (index >= 0) {
+            return palette.block(surfaceBase + index);
+        }
+        return block == SurfaceBlock.BLUE_ICE ? blueIce : surfaceBlocks[block.kind().ordinal()];
     }
 
     /** The block of a vein step code: the palette's, or a custom block (CraftEngine's, else its vanilla placeholder). */
@@ -773,7 +851,7 @@ final class TfcTerrain {
      * rocks, and the forest type of a chunk.
      * Built per chunk on the worldgen worker and confined to it; the neighbouring chunks' values are computed on demand.
      */
-    private final class Ground implements VolcanoView {
+    final class Ground implements VolcanoView {
         private final int chunkX;
         private final int chunkZ;
         private final int[] ownHeights;
@@ -953,17 +1031,39 @@ final class TfcTerrain {
             return heightsOf(x >> 4, z >> 4)[(x & 15) + 16 * (z & 15)];
         }
 
-        /** The surface of a column, as {@link #fill} builds it. */
-        private ColumnSurface surface(int x, int z) {
-            return surfaces.computeIfAbsent(key(x, z), k -> {
-                final int cx = x >> 4;
-                final int cz = z >> 4;
-                final double[] slope = slopes.computeIfAbsent(key(cx, cz),
-                    s -> SurfaceSlope.slopeMap(cx << 4, cz << 4, TfcTerrain.this::heightAt));
-                final int top = surfaceTop(x, z);
-                return ColumnSurface.build(SurfaceFamily.forBiome(biomeOf(x, z)).builder(),
-                    column(x, z, height(x, z), climateOf(x, z), SurfaceSlope.sample(slope, x & 15, z & 15)), top, minY);
-            });
+        /**
+         * The surface of a column, as {@link #fill} builds it. TFC builds a chunk's columns together, in order (x outer, z
+         * inner), sharing one random source, so asking for one column builds its whole chunk (PAR-WORLD-43).
+         */
+        ColumnSurface surface(int x, int z) {
+            final ColumnSurface cached = surfaces.get(key(x, z));
+            if (cached != null) {
+                return cached;
+            }
+            buildChunkSurfaces(x >> 4, z >> 4);
+            return surfaces.get(key(x, z));
+        }
+
+        private void buildChunkSurfaces(int cx, int cz) {
+            final double[] slope = slopes.computeIfAbsent(key(cx, cz),
+                s -> SurfaceSlope.slopeMap(cx << 4, cz << 4, TfcTerrain.this::heightAt));
+            final Columns cols = columnsOf(cx, cz);
+            final ChunkData climate = climateOf(cx << 4, cz << 4);
+            final XoroshiroRandomSource random = ColumnSurface.chunkRandom(cx, cz);
+            // TFC's cinder cone biome of the chunk: the biome at the center of the cone cell of the chunk's center
+            final int cinderBiome = volcanoes.cones().centerBiome((cx << 4) + 8, (cz << 4) + 8, TfcTerrain.this::biomeId);
+            final float cinderFrequency = CinderCones.hasCinderCones(cinderBiome) ? CinderCones.frequency(cinderBiome) : 0f;
+            for (int lx = 0; lx < 16; lx++) {
+                for (int lz = 0; lz < 16; lz++) {
+                    final int x = (cx << 4) + lx;
+                    final int z = (cz << 4) + lz;
+                    final int i = lx + 16 * lz;
+                    final SurfaceColumn column = column(x, z, cols.heights()[i], climate, SurfaceSlope.sample(slope, lx, lz),
+                        cols.samples()[i], cinderFrequency);
+                    surfaces.put(key(x, z), ColumnSurface.build(biomeSurfaces.builder(cols.biomes()[i]), column,
+                        surfaceTop(x, z), minY, random));
+                }
+            }
         }
 
         /** The rock index at a position, or -1 where the column holds no rock there (above the top, or a surface block). */
@@ -997,7 +1097,7 @@ final class TfcTerrain {
 
         @Override
         public int worldSurface(int x, int z) {
-            return Math.max(top(x, z), ChunkData.SEA_LEVEL_Y) + 1;
+            return Math.max(top(x, z), ChunkData.SEA_LEVEL_Y - 1) + 1;
         }
 
         @Override
@@ -1064,7 +1164,7 @@ final class TfcTerrain {
                 }
             }
             if (y > top || (y > minY && opened(x, y, z))) {
-                return y > ChunkData.SEA_LEVEL_Y ? TreeGround.AIR : saltWater(x, z) ? TreeGround.SALT_WATER : TreeGround.WATER;
+                return y >= ChunkData.SEA_LEVEL_Y ? TreeGround.AIR : saltWater(x, z) ? TreeGround.SALT_WATER : TreeGround.WATER;
             }
             if (y <= minY) {
                 return TreeGround.SOLID;
@@ -1286,14 +1386,25 @@ final class TfcTerrain {
         };
     }
 
-    /** The inputs of a column for its surface builder: the climate of its chunk, its slope, its tide and its sea-level rock. */
-    private SurfaceColumn column(int x, int z, int top, ChunkData climate, double slope) {
+    /**
+     * The inputs of a column for its surface builder: the climate of its chunk, its slope, its tide, its sea-level rock
+     * (PAR-WORLD-43: and the rest of TFC's {@code SurfaceBuilderContext}: the biome weight, the height before the cinder cones,
+     * the cone easing, the warmest month, the rock at y = 0 and the biome without the river).
+     */
+    private SurfaceColumn column(int x, int z, int top, ChunkData climate, double slope, SurfaceHeights.Column sample,
+                                 float cinderFrequency) {
         final int sea = ChunkData.SEA_LEVEL_Y;
         final ChunkDataGenerator.RockSample seaRock = chunks.generateRock(x, sea, z, top);
+        final ChunkDataGenerator.RockSample zeroRock = chunks.generateRock(x, 0, z, top);
+        final int zeroIndex = PlaceholderRocks.index(zeroRock.point(), zeroRock.layer());
         return new SurfaceColumn(x, z, sea, slope,
             climate.averageSeaLevelTemperature(x, z), climate.averageRainfall(x, z), climate.baseGroundwater(x, z),
             climate.rainVariance(x, z), (int) shoreTide.noise(x, z),
-            PlaceholderRocks.isMafic(PlaceholderRocks.index(seaRock.point(), seaRock.layer())));
+            PlaceholderRocks.isMafic(PlaceholderRocks.index(seaRock.point(), seaRock.layer())),
+            sample.biomeWeight(), (int) sample.preVolcanicHeight(),
+            cinderFrequency > 0f ? volcanoes.cones().easing(x, z, cinderFrequency) : 0f,
+            SeaIce.warmestMonth(climateModel, climate.climateAt(x, z), z),
+            karstRocks[zeroIndex], PlaceholderRocks.isMafic(zeroIndex), sample.biome());
     }
 
     /** The block of each surface kind, indexed by {@link SurfaceKind#ordinal}. Rock has no entry: it is the palette's. */
