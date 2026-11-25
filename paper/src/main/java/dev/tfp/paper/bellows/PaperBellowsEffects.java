@@ -18,15 +18,22 @@ import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-/** PAR-METAL-11: {@link BellowsEffects} on Paper. */
+/** PAR-METAL-11: {@link BellowsEffects} on Paper; PAR-METAL-26: the pack's blow sound and the pressed morphs. */
 public final class PaperBellowsEffects implements BellowsEffects {
-    /** The blow sound. TFC's {@code tfc:block.bellows.blow} has no pack entry yet, so a vanilla hiss stands in (ledger). */
-    static final String SOUND = "minecraft:block.fire.extinguish";
+    /** TFC's {@code tfc:block.bellows.blow}, copied by datagen into the pack as {@code tfp_bellows:block.bellows.blow}. */
+    static final String SOUND = "tfp_bellows:block.bellows.blow";
 
     private final Scheduler scheduler;
+    private final BellowsVisuals visuals;
 
     public PaperBellowsEffects(Scheduler scheduler) {
+        this(scheduler, null);
+    }
+
+    /** With the pressed look: every blow also runs the morphs of {@link BellowsVisuals}. */
+    public PaperBellowsEffects(Scheduler scheduler, BellowsVisuals visuals) {
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
+        this.visuals = visuals;
     }
 
     @Override
@@ -46,6 +53,9 @@ public final class PaperBellowsEffects implements BellowsEffects {
     @Override
     public void blow(Block bellows, String facing) {
         World world = bellows.getWorld();
+        if (visuals != null) {
+            visuals.press(bellows);
+        }
         ThreadLocalRandom r = ThreadLocalRandom.current();
         float pitch = 1f + (r.nextFloat() - r.nextFloat()) / 16f;
         world.playSound(bellows.getLocation().add(0.5, 0.5, 0.5), SOUND, SoundCategory.BLOCKS, 1f, pitch);

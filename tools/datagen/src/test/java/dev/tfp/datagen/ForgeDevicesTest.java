@@ -87,7 +87,7 @@ class ForgeDevicesTest {
         assertThat(bellowsBlock.get("loot")).isEqualTo(Map.of("template", "tfp:loot_table/self"));
         assertThat(bellows).doesNotContain("tfp:settings/device", "luminance");
         for (String f : ForgeDevices.FACINGS) {
-            assertThat(bellows).contains("facing=" + f + ":");
+            assertThat(bellows).contains("'facing=" + f + ",pressed=0':", "'facing=" + f + ",pressed=4':"); // PAR-METAL-26
         }
     }
 

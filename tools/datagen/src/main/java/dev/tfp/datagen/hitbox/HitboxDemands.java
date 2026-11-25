@@ -469,7 +469,7 @@ public final class HitboxDemands {
         // PAR-METAL-07: every heat level on one carrier with the cold model; the lit levels are display overlays.
         d.add(new Demand("tfp:charcoal_forge", FORGE_APPEARANCE, "tfc:charcoal_forge", 0, FORGE_MODEL, true, 1));
         for (String f : FACINGS) {
-            d.add(new Demand("tfp:bellows", f, "tfc:bellows[facing=" + f + "]", 0, HitboxAllocation.VANILLA_LOOK, true, 1));
+            d.add(new Demand("tfp:bellows", f, "tfc:bellows[facing=" + f + "]", 0, HitboxAllocation.TRANSPARENT, true, 1)); // PAR-METAL-26: item displays
         }
         // M3-HEAT-03 placeholder: the carrier's vanilla look until the pot's models exist (the grill's: PAR-HEAT-24, below).
         d.add(new Demand("tfp:pot", "lit", "tfc:pot", FIREPIT_LIT_LIGHT, HitboxAllocation.VANILLA_LOOK, true, 1));

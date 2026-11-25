@@ -42,7 +42,8 @@ public final class BellowsModule implements FeatureModule {
                 }
             }));
         BellowsDevice device = new BellowsDevice(consumers, b -> blocks.stateAt(b).map(BlockStateRef::id),
-            new PaperBellowsEffects(ctx.scheduler()));
+            new PaperBellowsEffects(ctx.scheduler(), new BellowsVisuals(ctx.scheduler(), blocks::stateAt,
+                ctx.integrations().blockVisuals()::blockData)));
         devs.register(device.kind());
         ctx.services().provide(BellowsConsumers.class, consumers);
         ctx.services().provide(BellowsDevice.class, device);

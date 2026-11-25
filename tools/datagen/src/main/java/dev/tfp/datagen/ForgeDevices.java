@@ -132,8 +132,10 @@ final class ForgeDevices {
         out.put(FORGE_OUTPUT, DeviceYaml.writeLiteral(forgeSpec(tfc, heat, models)));
         checkBellows(tfc);
         requireItemModel(out, BELLOWS_BLOCK);
+        // PAR-METAL-26: the bellows is drawn by item displays (pressed levels) with TFC's blow sound
         out.put(BELLOWS_OUTPUT, DeviceYaml.writeLiteral(bellowsSpec(tfc)));
-        return (heat.max() - heat.min() + 1) + FACINGS.size();
+        dev.tfp.datagen.bellows.BellowsAppearance.writeAssets(tfc, out);
+        return (heat.max() - heat.min() + 1) + FACINGS.size() * dev.tfp.datagen.bellows.BellowsAppearance.LEVELS;
     }
 
     /** The forge's heat level property and the variants of its blockstate, checked against the class. */
@@ -265,9 +267,7 @@ final class ForgeDevices {
      * itself).
      */
     static DeviceBlockSpec bellowsSpec(TfcCheckout tfc) {
-        return DeviceSpecs.facing(BELLOWS_ID, DeviceProperty.names("facing", FACINGS, "north"),
-            f -> bellowsCarrier(f).state(), "block.tfp." + BELLOWS_BLOCK,
-            DeviceBlockSpec.Settings.fromTfc(tfc, BELLOWS_BLOCK), DeviceLoot.fromTfc(tfc, BELLOWS_BLOCK));
+        return dev.tfp.datagen.bellows.BellowsAppearance.spec(tfc, dev.tfp.datagen.bellows.BellowsAppearance.turns(tfc));
     }
 
     /** The forge's carrier (every heat level): explicit state with our model, and its hide target. */

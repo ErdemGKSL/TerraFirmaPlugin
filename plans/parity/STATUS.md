@@ -507,7 +507,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-56 | Per-world TFC settings in the remaining climate readers (fog, crops, farmland, wild crops, rising rocks, regrowth, water terrain, calendar sample) | WORLD | 30 | done |
 | PAR-FARM-29 | Growing plant shapes part 2: vine, kelp tree and branching cactus growth, survival, per-shape outlines, worldgen wiring | FARM | 36 | done |
 | PAR-FARM-30 | Growing plant shapes part 3: per-shape outlines and the saguaro fruit block | FARM | 37 | done |
-| PAR-METAL-26 | Bellows visuals: pressed animation, TFC model and the blow sound | METAL | 33 | open |
+| PAR-METAL-26 | Bellows visuals: pressed animation, TFC model and the blow sound | METAL | 33 | done |
 | PAR-PHYS-07 | Collapse follow-ups: Folia stress self-test, TFC rock-slide sounds in the pack, collapse server config keys | PHYS | 18 | open |
 | PAR-FAUNA-28 | 200-animal load: staggered check phase and goal spikes within the tick budget (follow-up of PAR-FAUNA-26) | FAUNA | 55 | blocked |
 | PAR-WORLD-58 | Waterlogged groundcover: TFC's FLUID property on the CE loose rocks, small ores and groundcover, wet hitbox rows, and the worldgen writing them under water | WORLD | 23 | blocked |
