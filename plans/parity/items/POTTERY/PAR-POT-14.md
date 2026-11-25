@@ -51,4 +51,6 @@ done_criteria:
 
 # PAR-POT-14: Pit kiln block: CraftEngine entry, hitboxes and look per stage, config keys, self-test kiln.fire, in-game check
 
+> Claimed: subagent PAR-POT-14, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
