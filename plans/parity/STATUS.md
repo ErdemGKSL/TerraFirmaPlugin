@@ -474,11 +474,10 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-25 | Charcoal forge: melting into extra-slot molds, the grilled trait on outputs, picking up dropped fuel | METAL | 34 | done |
 | PAR-METAL-24 | Crucible channel nubs: the crucible draws TFC's crucible_connection toward adjacent channels | METAL | 35 | done |
 | PAR-FARM-20 | Verification: crops grow, die and yield in game (itest crop.grow and screenshots) | FARM | 34 | done |
-| PAR-FARM-23 | Fruit and wild spreading crop blocks: tfp:fruit pumpkin/melon (and rotten), hitbox rows, loot, wild crop worldgen fruit | FARM | 31 | open |
-| PAR-FARM-24 | Wire SpreadingFruit into the crop device: fruit placement at full growth, crowding limit, fruit sides | FARM | 31 | open |
+| PAR-FARM-23 | Fruit and wild spreading crop blocks: tfp:fruit pumpkin/melon (and rotten), hitbox rows, loot, wild crop worldgen fruit | FARM | 31 | done |
+| PAR-FARM-24 | Wire SpreadingFruit into the crop device: fruit placement at full growth, crowding limit, fruit sides | FARM | 31 | done |
 | PAR-FARM-21 | Flower cutting item and plant block items: tfp:flower_cutting content | FARM | 34 | done |
 | PAR-FARM-25 | CraftEngine blocks and runtime for the growing plant shapes: vines, columns, kelp, kelp trees, branching cacti | FARM | 35 | done |
-| PAR-FARM-20 | Verification: crops grow, die and yield in game (itest crop.grow and screenshots) | FARM | 34 | done |
 | PAR-PROC-46 | Panning in-game verification: deposit pickup, water hint, 6 s pan, small ores | PROC | 33 | open |
 | PAR-PROC-47 | Sluice in-game verification: placement of both halves, water, soil intake, loot, break | PROC | 33 | open |
 | PAR-PROC-48 | Loom in-game verification and the in-progress cloth visual | PROC | 42 | open |
