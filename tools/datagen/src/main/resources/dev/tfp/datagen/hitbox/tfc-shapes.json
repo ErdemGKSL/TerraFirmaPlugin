@@ -267,6 +267,14 @@
       "from": "FarmlandBlock.java SHAPE / same"
     },
     {
+      "key": "tfc:plant/body_plant",
+      "class": "growing_plant",
+      "kind": "object",
+      "selection": [[1, 0, 1, 15, 16, 15]],
+      "collision": [],
+      "from": "BodyPlantBlock.java BODY_SHAPE / Shapes.empty()"
+    },
+    {
       "key": "tfc:rock/spike[part=base]",
       "class": "spike",
       "kind": "object",

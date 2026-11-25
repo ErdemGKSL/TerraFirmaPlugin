@@ -178,6 +178,12 @@ public final class TfcShapes {
         }
         s.add(Spec.of("tfc:farmland", "farmland", Kind.OBJECT, List.of(B + "soil/FarmlandBlock.java"), "SHAPE", "same",
             List.of("return SHAPE;"), List.of("getCollisionShape")));
+        // PAR-FARM-25: the growing plant shapes (columns, kelp, kelp trees, vines, creepers, epiphytes, branching cacti) are
+        // served on the column body's outline, no collision: TFC's nonSolidTallPlant blocks have none, and one full-height
+        // row stands in for the per-shape ones (ledger divergence).
+        s.add(Spec.of(GROWING_PLANT_KEY, "growing_plant", Kind.OBJECT, List.of(B + "plant/BodyPlantBlock.java"), "BODY_SHAPE",
+            "Shapes.empty()", List.of("public static final VoxelShape BODY_SHAPE = box(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);"),
+            List.of()));
         String spike = B + "rock/RockSpikeBlock.java";
         for (String part : List.of("base", "middle", "tip")) {
             s.add(Spec.of("tfc:rock/spike[part=" + part + "]", "spike", Kind.OBJECT, List.of(spike),
@@ -847,6 +853,9 @@ public final class TfcShapes {
      * bushes and the canes (PAR-FARM-15: 8 x 9 x 16 boxes, no collision) borrow it: no tall or wide no-collision carrier exists.
      */
     public static final String BERRY_BUSH_KEY = "tfc:plant/berry_bush";
+
+    /** PAR-FARM-25: the row every growing plant block (columns, kelp, vines, creepers, epiphytes) is served on. */
+    public static final String GROWING_PLANT_KEY = "tfc:plant/body_plant";
 
     /** PAR-FARM-16: the connection flags of a fruit tree branch, bit i of a row is {@code FRUIT_FLAGS[i]} (TFC's PipeBlock order). */
     public static final List<String> FRUIT_FLAGS = List.of("north", "east", "south", "west", "up", "down");

@@ -74,6 +74,28 @@ public final class HitboxDemands {
     /** PAR-PROC-38: served after every other demand (adding the rack and the side states moves no other carrier). */
     static final int BARREL_SIDE_WEIGHT = -2;
 
+    /**
+     * PAR-FARM-25: TFC's growing plant shapes (Plant.java: vines, weeping and twisting columns, kelp, kelp trees, branching
+     * cacti, creeping plants, epiphytes), one block {@code tfp:plant/<name>} each, hitbox-only on one outline row
+     * ({@link TfcShapes#GROWING_PLANT_KEY}); the look is item displays (GrowingPlantBlocks checks the list against the checkout).
+     */
+    public static final List<String> GROWING_PLANTS = List.of(
+        "bird_nest_fern", "cobblestone_lichen", "elegant_sunburst_lichen", "guzmania", "licorice_fern",
+        "artists_conk", "morning_glory", "moss", "philodendron", "ramirezella", "reindeer_lichen",
+        "silver_bromeliad", "tank_bromeliad", "vriesea", "hanging_vines_plant", "hanging_vines",
+        "spanish_moss_plant", "spanish_moss", "liana_plant", "liana", "flame_vine_plant", "flame_vine",
+        "tree_fern_plant", "tree_fern", "cycad_plant", "cycad", "arundo_plant", "arundo",
+        "dry_phragmite_plant", "dry_phragmite", "winged_kelp_plant", "winged_kelp", "leafy_kelp_plant",
+        "leafy_kelp", "giant_kelp_plant", "giant_kelp_flower", "ivy", "jungle_vines", "saguaro_plant",
+        "saguaro");
+    public static final String GROWING_PLANT_PATTERN = "plant_*";
+    /** PAR-FARM-25: served after every other demand (adding the growing plants moves no carrier of another block). */
+    static final int GROWING_PLANT_WEIGHT = -16;
+
+    public static String growingPlantId(String name) {
+        return "tfp:plant/" + name;
+    }
+
     /** PAR-FARM-26: TFC's soils (SoilBlockType.Variant; FarmlandBlocks checks the list) and the farmland of each. */
     public static final List<String> FARMLAND_SOILS = List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol",
         "podzol", "alfisol", "mollisol");
@@ -604,6 +626,11 @@ public final class HitboxDemands {
         for (String soil : FARMLAND_SOILS) {
             d.add(new Demand(farmlandId(soil), FARMLAND_APPEARANCE, "tfc:farmland", 0, farmlandModel(soil), true,
                 FARMLAND_WEIGHT));
+        }
+        // PAR-FARM-25: the growing plants, hitbox-only on the body plant outline, one demand per block (any appearance).
+        for (String name : GROWING_PLANTS) {
+            d.add(new Demand(growingPlantId(name), GROWING_PLANT_PATTERN, TfcShapes.GROWING_PLANT_KEY, 0,
+                HitboxAllocation.TRANSPARENT, true, GROWING_PLANT_WEIGHT));
         }
         return d;
     }
