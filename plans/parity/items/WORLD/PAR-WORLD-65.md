@@ -2,7 +2,7 @@
 id: PAR-WORLD-65
 title: "Tide pools, sea stack patches and bamboo rules, and the placed-feature coverage guard over every TFC biome tag"
 area: WORLD
-status: open
+status: done
 wave: 51
 deps: [PAR-WORLD-21]
 size: M
@@ -24,6 +24,7 @@ plan:
   - "PAR-WORLD-21 ported ForestFloor (the six forest_plants patches, extra_island_guano_patch, atoll_guano) with oracle goldens (DecorationGoldenTest) and the glacial oceanic spring; decoration/open_gaps.txt lists tfc:tide_pool, tfc:big_tide_pool, tfc:sea_stacks_patch, tfc:bamboo, tfc:rare_bamboo, tfc:bamboo_golden, tfc:rare_bamboo_golden."
   - "Port in core/worldgen/decoration with TFC's draws in TFC's order, golden against a scratch oracle (the method bodies on Minecraft 1.21.11's RandomSource from the run-paper server jar, as DecorationGoldenTest describes): TidePoolFeature (tide_pool, big_tide_pool: pool shape, water, the decorations it places), SeaStacksFeature through sea_stacks_patch (random_patch 6 tries, xz 8, y 2), TFCBambooFeature (vanilla bamboo, golden bamboo as a block id the wiring maps; podzol base, probability 0.25). Remove each id from open_gaps.txt (empty at done)."
   - "Coverage guard: a scratch script exports every placed feature id reachable from TFC's in_biome tags (tags expanded) into a test resource; the test asserts each is ruled (a rule list per package: groundcover_deposit.tsv minus its gaps, volcano_features.tsv and VolcanicFeatures, the plant and tree placement goldens, cave/CaveDecoration, ForestFloor, this item's rules) or listed in one of the open-gaps files, so no TFC id is untracked again."
+  - "Done 2026-11-25: core/worldgen/decoration TidePools (tide_pool, big_tide_pool), SeaStacks (sea_stacks_patch), Bamboo (bamboo, bamboo_golden, rare_bamboo, rare_bamboo_golden; MarsagliaPolarGaussian for the clamped normal offset) over DecorationLevel (terrain + the origin chunk's own placed blocks; heightmaps follow them; ledger divergence). ShoreFeaturesGoldenTest 4 (35 oracle hashes), PlacedFeatureCoverageTest 3 (360 TFC in_biome ids: ruled or an open gap; vein and plant ids load from the exported data). open_gaps.txt empty. The guard found tfc:flood_fill_lake unruled: coverage_gaps.txt + follow-up PAR-WORLD-67."
 tests:
   - "core: DecorationGoldenTest gains tide pools, sea stacks and bamboo vs the oracle; decoration/open_gaps.txt empty"
   - "core: coverage guard over all TFC biomes"
@@ -32,8 +33,6 @@ done_criteria:
 ---
 
 # PAR-WORLD-65: Tide pools, sea stack patches and bamboo rules, and the coverage guard
-
-> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-25
 
 > see_not_parity: NP-WORLD-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

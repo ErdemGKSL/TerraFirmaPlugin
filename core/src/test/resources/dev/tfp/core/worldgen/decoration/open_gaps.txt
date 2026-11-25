@@ -1,9 +1,2 @@
 # PAR-WORLD-21: TFC placed features reachable from the biome tags that no rule places yet (feature/tide_pool_decorations,
-# sea_stacks_patch, the tfc:bamboo features). Remove an id when its rule lands (empty at done).
-tfc:big_tide_pool
-tfc:tide_pool
-tfc:sea_stacks_patch
-tfc:bamboo
-tfc:rare_bamboo
-tfc:bamboo_golden
-tfc:rare_bamboo_golden
+# sea_stacks_patch, the tfc:bamboo features). Remove an id when its rule lands (empty at done). Empty since PAR-WORLD-65.

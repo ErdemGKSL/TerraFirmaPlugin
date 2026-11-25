@@ -179,9 +179,8 @@ class DecorationGoldenTest {
             gaps = Arrays.stream(new String(in.readAllBytes(), StandardCharsets.UTF_8).split("\n")).map(String::trim)
                 .filter(l -> !l.isEmpty() && !l.startsWith("#")).toList();
         }
-        final List<String> ruled = new ArrayList<>(ForestFloor.FOREST_PLANTS.stream().map(ForestFloor.Patch::id).toList());
-        ruled.add(ForestFloor.EXTRA_ISLAND_GUANO.id());
-        ruled.add(ForestFloor.ATOLL_GUANO);
+        final List<String> ruled = PlacedFeatureCoverageTest.decorationRules();
+        assertThat(gaps).isEmpty();
         final List<String> covered = new ArrayList<>(ruled);
         covered.addAll(gaps);
         assertThat(covered).containsExactlyInAnyOrderElementsOf(ITEM_IDS);
