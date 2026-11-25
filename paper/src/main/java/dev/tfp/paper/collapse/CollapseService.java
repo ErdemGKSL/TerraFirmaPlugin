@@ -93,6 +93,7 @@ public final class CollapseService {
     private final LongAdder triggers = new LongAdder();
     private final LongAdder real = new LongAdder();
     private final LongAdder fake = new LongAdder();
+    private final LongAdder explosions = new LongAdder();
     private final LongAdder propagations = new LongAdder();
     private final LongAdder decided = new LongAdder();
 
@@ -340,6 +341,50 @@ public final class CollapseService {
                     }
                     case TriggerDecision.None none -> CompletableFuture.completedFuture(null);
                 }), "trigger at " + mined);
+    }
+
+    /** TFC {@code collapseExplosionPropagateChance}: the chance a blown block's upper neighbour is checked (fixed). */
+    public static final double EXPLOSION_PROPAGATE_CHANCE = 0.3;
+
+    /**
+     * PAR-PHYS-05, TFC {@code WorldTracker.addCollapsePositions}: an explosion at {@code center} that blows {@code blown}
+     * (the unfiltered block list, read before any plugin changes it) starts a collapse in progress. Each blown block's upper
+     * neighbour joins the first propagation with chance 0.3 (one draw per block, in list order); the reach is the farthest
+     * blown block, squared. Nothing falls immediately: the collapse then runs exactly like a mining collapse's follow-up
+     * (after TFC's per-tick 1-in-10 delay, decided on the CPU pool from a snapshot, applied on the owners). Call on the
+     * explosion's owner thread; an explosion that selects no position starts nothing (TFC's collapse would end at once).
+     */
+    public void explosion(World world, BlockPos center, List<BlockPos> blown) {
+        if (blown.isEmpty()) {
+            return;
+        }
+        CollapseRandom random = randoms.get();
+        List<BlockPos> next = new ArrayList<>();
+        double maxRadiusSquared = 0;
+        for (BlockPos pos : blown) {
+            double dx = pos.x() - center.x();
+            double dy = pos.y() - center.y();
+            double dz = pos.z() - center.z();
+            double dist = dx * dx + dy * dy + dz * dz;
+            if (dist > maxRadiusSquared) {
+                maxRadiusSquared = dist;
+            }
+            if (random.nextFloat() < EXPLOSION_PROPAGATE_CHANCE) {
+                next.add(pos.offset(0, 1, 0));
+            }
+        }
+        if (next.isEmpty()) {
+            return;
+        }
+        explosions.increment();
+        WorldRunner w = runner(world);
+        schedulePropagation(w, new CollapseRules.InProgress(center, next, maxRadiusSquared),
+                CollapseRules.propagationDelay(random), supports.get(), random, 0);
+    }
+
+    /** Explosion collapses started. */
+    public long explosions() {
+        return explosions.sum();
     }
 
     private static boolean areaLoaded(World world, BlockPos pos) {

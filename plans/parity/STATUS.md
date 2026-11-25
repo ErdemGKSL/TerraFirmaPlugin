@@ -224,7 +224,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-GATHER-05 | Soil interactions: hoeing, paths, mud, rooted dirt, grass spread and rock spawning | GATHER | 18 | done |
 | PAR-GATHER-11 | Grass spread, grass death and rising loose rocks: the lazy sweep of TFC's grass random tick | GATHER | 19 | done |
 | PAR-GATHER-06 | Raw rock drops and mossy rock spreading | GATHER | 18 | done |
-| PAR-PHYS-05 | Explosion collapses | PHYS | 18 | open |
+| PAR-PHYS-05 | Explosion collapses | PHYS | 18 | done |
 | PAR-WORLD-05 | Ice sheets, sea ice and icebergs at generation; lava flows; remaining biome surface builders | WORLD | 18 | done |
 | PAR-HEAT-30 | Firepit, grill and pot world rules: fuel thrown on top is gathered, a lit firepit burns entities standing on it (hot floor) | HEAT | 18 | done |
 | PAR-HEAT-34 | Grill and pot burn-out after a calendar jump: the lit look turns off without a click, as the firepit since PAR-HEAT-33 | HEAT | 18 | done |
