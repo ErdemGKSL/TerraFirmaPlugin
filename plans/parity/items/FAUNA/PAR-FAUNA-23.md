@@ -34,6 +34,8 @@ done_criteria:
 
 # PAR-FAUNA-23: Fertilized egg incubation bar
 
+> Claimed: sonnet-5.5 session_011osUp8, 2026-11-25
+
 > see_not_parity: NP-CLIENT-02 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
