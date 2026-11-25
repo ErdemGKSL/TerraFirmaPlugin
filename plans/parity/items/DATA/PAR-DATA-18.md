@@ -27,4 +27,6 @@ done_criteria:
 
 # PAR-DATA-18: Vanilla rules left from PAR-DATA-10
 
+> Claimed: parity worker session_011osUp9Lr5PbNofhx4XEc3S, 2026-11-25
+
 Follow-up created by PAR-DATA-10. Follow `plans/parity/PROTOCOL.md`.
