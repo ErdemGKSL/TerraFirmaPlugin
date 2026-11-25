@@ -51,6 +51,7 @@ import dev.tfp.core.worldgen.settings.BedrockLayer;
 import dev.tfp.core.worldgen.settings.WorldSettings;
 import dev.tfp.core.worldgen.surface.ColumnSurface;
 import dev.tfp.core.worldgen.surface.SurfaceColumn;
+import dev.tfp.core.worldgen.surface.SurfaceBlock;
 import dev.tfp.core.worldgen.surface.SurfaceFamily;
 import dev.tfp.core.worldgen.surface.SurfaceKind;
 import dev.tfp.core.worldgen.surface.SurfaceNoise;
@@ -126,6 +127,8 @@ final class TfcTerrain {
     private final OreVeins ores;
     /** The palette ids ({@link VeinStep#paletteIds}): {@link #ROCK_IDS}, the ores, then the other rocks the veins write. */
     private final List<String> paletteIds;
+    /** PAR-WORLD-41: where {@link RockPalette#surfaceIds} start in the palette ids. */
+    private final int surfaceBase;
     private volatile RockPalette<BlockData> palette;
     /** The groundcover and deposit decisions of this world (M2-GEN-11), in TFC's decoration step order. */
     private final Deposits deposits;
@@ -178,7 +181,11 @@ final class TfcTerrain {
         this.geodes = new Geodes(seed);
         this.veinStep = new VeinStep(seed, OreVeinResources.jar(TfcTerrain.class.getClassLoader()), ROCK_IDS);
         this.ores = veinStep.main();
-        this.paletteIds = withGeodeBlocks(veinStep.paletteIds(), geodes.geode().config());
+        final List<String> baseIds = withGeodeBlocks(veinStep.paletteIds(), geodes.geode().config());
+        this.surfaceBase = baseIds.size();
+        final List<String> allIds = new ArrayList<>(baseIds);
+        allIds.addAll(RockPalette.surfaceIds(ROCK_IDS));
+        this.paletteIds = List.copyOf(allIds);
         this.deposits = new Deposits(seed);
         this.indicators = new VeinIndicators(ores);
         this.shoreCover = new ShoreGroundcover(seed);
@@ -348,7 +355,16 @@ final class TfcTerrain {
                         data.setBlock(lx, y, lz, veinBlock(veins.isEmpty() ? rockIndex : veins.rock(x, y, z, rockIndex), palette));
                     } else {
                         final int clay = veins.isEmpty() ? VeinStep.KEEP : veins.soil(x, y, z, kaolinSoil(kind));
-                        data.setBlock(lx, y, lz, clay == VeinStep.KEEP ? surfaceBlocks[kind.ordinal()] : veinBlock(clay, palette));
+                        BlockData surfaceData = null;
+                        if (clay == VeinStep.KEEP) {
+                            int gravelRock = -1;
+                            if (kind == SurfaceKind.GRAVEL) {
+                                final ChunkDataGenerator.RockSample under = chunks.generateRock(x, y, z, height);
+                                gravelRock = PlaceholderRocks.index(under.point(), under.layer());
+                            }
+                            surfaceData = surfaceData(surface.block(y), gravelRock, palette);
+                        }
+                        data.setBlock(lx, y, lz, clay == VeinStep.KEEP ? surfaceData : veinBlock(clay, palette));
                     }
                 }
                 for (int y = top + 1; y <= sea; y++) {
@@ -444,6 +460,32 @@ final class TfcTerrain {
             case DIRT, GRAVEL, SNOW, ROCK_SURFACE -> KaolinDisc.Soil.REPLACEABLE;
             case COARSE_DIRT, MUD, SAND, SANDSTONE, PACKED_ICE -> KaolinDisc.Soil.OTHER;
         };
+    }
+
+    /**
+     * PAR-WORLD-41: the position in {@link RockPalette#surfaceIds} of the CraftEngine block of a surface block, or -1 where
+     * the vanilla block of its kind stays (sand, sandstone, snow, ice, basalt and tuff gravel, hardened clay).
+     *
+     * @param rockIndex the placeholder rock index at the position, for gravel
+     */
+    static int surfaceIndex(SurfaceBlock block, int rockIndex) {
+        final SurfaceKind kind = block.kind();
+        if (kind == SurfaceKind.GRAVEL) {
+            return block == SurfaceBlock.GRAVEL && rockIndex >= 0
+                ? RockPalette.surfaceIndex(kind, 0, rockIndex, ROCK_IDS.size()) : -1;
+        }
+        if (!RockPalette.SOIL_KINDS.contains(kind)) {
+            return -1;
+        }
+        final String name = block.name();
+        final int soil = RockPalette.SOILS.indexOf(name.substring(name.lastIndexOf('_') + 1).toLowerCase(java.util.Locale.ROOT));
+        return soil < 0 ? -1 : RockPalette.surfaceIndex(kind, soil, rockIndex, ROCK_IDS.size());
+    }
+
+    /** PAR-WORLD-41: the block data a surface block is written as: the palette's TFC soil or gravel, else the vanilla kind. */
+    private BlockData surfaceData(SurfaceBlock block, int rockIndex, RockPalette<BlockData> palette) {
+        final int index = surfaceIndex(block, rockIndex);
+        return index < 0 ? surfaceBlocks[block.kind().ordinal()] : palette.block(surfaceBase + index);
     }
 
     /** The block of a vein step code: the palette's, or a custom block (CraftEngine's, else its vanilla placeholder). */
@@ -689,8 +731,18 @@ final class TfcTerrain {
             return current.getValue();
         }
         final Map<BlockData, DepositMaterial> out = new HashMap<>();
-        for (int i = 0; i < paletteIds.size(); i++) {
+        for (int i = 0; i < surfaceBase; i++) {
             out.put(palette.block(i), DepositMaterial.RAW_ROCK);
+        }
+        for (int i = surfaceBase; i < paletteIds.size(); i++) {
+            final String id = paletteIds.get(i);
+            final DepositMaterial material = id.startsWith("tfp:grass/") ? DepositMaterial.GRASS
+                : id.startsWith("tfp:dirt/") ? DepositMaterial.DIRT
+                : id.startsWith("tfp:mud/") ? DepositMaterial.MUD
+                : id.startsWith("tfp:rock/gravel/") ? DepositMaterial.GRAVEL : null;
+            if (material != null) {
+                out.put(palette.block(i), material);
+            }
         }
         out.put(surfaceBlocks[SurfaceKind.GRAVEL.ordinal()], DepositMaterial.GRAVEL);
         out.put(surfaceBlocks[SurfaceKind.DIRT.ordinal()], DepositMaterial.DIRT);
