@@ -24,6 +24,7 @@ import dev.tfp.paper.catchup.CatchUpService;
 import dev.tfp.paper.device.DeviceService;
 import dev.tfp.paper.fire.FireStarting;
 import dev.tfp.paper.firebox.HeatConsumers;
+import dev.tfp.paper.gui.GuiService;
 import dev.tfp.paper.heat.HeatingService;
 import dev.tfp.paper.heat.ItemHeatDefinitionsCache;
 import dev.tfp.paper.heat.ItemHeatHooks;
@@ -126,13 +127,18 @@ public final class BlastFurnaceModule implements FeatureModule {
             }
         }, () -> ctx.logger().warning("blastfurnace: no BellowsConsumers; bellows do not blow into blast furnaces"));
 
-        BlastFurnaceScreens screens = new BlastFurnaceScreens(device, devs, sch, ctx.messages());
-        device.screen((player, block) -> sch.entityDelayed(player, 1, () -> {
-            if (player.isOnline()) {
-                screens.open(player, block);
-            }
-        }, () -> { }));
-        ctx.listen(screens);
+        Optional<GuiService> gui = ctx.services().get(GuiService.class);
+        if (gui.isPresent()) { // PAR-METAL-27: the textured screen on the GUI framework
+            BlastFurnaceScreens screens = new BlastFurnaceScreens(device, devs, gui.get(), sch, ctx.messages());
+            device.screen((player, block) -> sch.entityDelayed(player, 1, () -> {
+                if (player.isOnline()) {
+                    screens.open(player, block);
+                }
+            }, () -> { }));
+            ctx.listen(screens);
+        } else {
+            ctx.logger().warning("blastfurnace: no GuiService; the blast furnace opens no screen");
+        }
         ctx.services().get(FireStarting.class).ifPresent(fire -> fire.register(fc -> fc.strong()
             && lightable(blocks, devs, device, fc.block())));
         Optional<CatchUpService> catchUp = ctx.services().get(CatchUpService.class);

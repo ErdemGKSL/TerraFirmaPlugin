@@ -529,7 +529,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-24 | Crate storage, buoys and cakes (follow-up of PAR-DECO-12) | DECO | 49 | open |
 | PAR-DECO-25 | Sign runtime: placement rotation, text editing, text display, sign carriers (follow-up of PAR-DECO-03) | DECO | 47 | open |
 | PAR-DECO-26 | Chest extras: lid animation, trapped chest signal, waterlogging, better carrier, automation, custom names (follow-up of PAR-DECO-04) | DECO | 47 | open |
-| PAR-METAL-27 | Blast furnace textured screen: temperature bar and tank bars | METAL | 37 | open |
+| PAR-METAL-27 | Blast furnace textured screen: temperature bar and tank bars | METAL | 37 | done |
 | PAR-METAL-28 | Anvil remote work: TFC AnvilBlockEntity.workRemotely for the trip hammer (the AnvilRemote service) | METAL | 55 | open |
 | PAR-DATA-20 | Field guide BOOK tab: the fifth player tab opens the field guide (follow-up of PAR-DATA-04) | DATA | 36 | open |
 | PAR-DATA-21 | Field guide translations: TFC's nine other book locales as per-player books (follow-up of PAR-DATA-04) | DATA | 36 | open |
