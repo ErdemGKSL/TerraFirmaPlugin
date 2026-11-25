@@ -17,6 +17,26 @@ public interface CharcoalForgeEffects {
     /** TFC {@code ItemHandlerHelper.giveItemToPlayer}. */
     void give(Player player, ItemStack stack);
 
+    /** A dropped item entity in the forge's pickup box (PAR-METAL-25). */
+    interface Drop {
+        /** The entity's stack; the caller must not change it. */
+        ItemStack stack();
+
+        /** How many items the entity still holds. */
+        int count();
+
+        /** TFC {@code stack.split(1)} (discarding the entity at zero): takes {@code n} items. */
+        void take(int n);
+    }
+
+    /**
+     * TFC {@code level.getEntitiesOfClass(ItemEntity.class, bounds, ENTITY_STILL_ALIVE)} with {@code bounds} = x/z from -0.2
+     * to 1.2, y from 0.875 to 1.25 around the block. The default finds none.
+     */
+    default java.util.List<Drop> dropped(Block block) {
+        return java.util.List.of();
+    }
+
     /** Queues the device router's update for the block in {@code ticks} ticks (only the latest per block runs). */
     void callbackIn(Block block, long ticks);
 }

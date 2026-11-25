@@ -15,6 +15,9 @@ import dev.tfp.core.device.ItemBlob;
 import dev.tfp.core.fuel.Fuel;
 import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.persist.DataMap;
+import dev.tfp.core.alloy.FluidAlloy;
+import dev.tfp.core.vessel.FluidAmount;
+import dev.tfp.paper.crucible.CrucibleMolds;
 import dev.tfp.paper.device.DeviceKind;
 import dev.tfp.paper.device.DeviceKinds;
 import dev.tfp.paper.device.DeviceService;
@@ -98,6 +101,12 @@ class CharcoalForgeMockBukkitTest extends MockServerTest {
         Integer shown;
         final List<Long> callbacks = new ArrayList<>();
         final List<ItemStack> given = new ArrayList<>();
+        final List<TestDrop> drops = new ArrayList<>();
+
+        @Override
+        public List<Drop> dropped(Block block) {
+            return new ArrayList<>(drops);
+        }
 
         @Override
         public void show(Block block, int heatLevel) {
@@ -112,6 +121,71 @@ class CharcoalForgeMockBukkitTest extends MockServerTest {
         @Override
         public void callbackIn(Block block, long ticks) {
             callbacks.add(ticks);
+        }
+    }
+
+    /** A dropped item entity: a stack that shrinks as it is taken. */
+    static final class TestDrop implements CharcoalForgeEffects.Drop {
+        final ItemStack stack;
+
+        TestDrop(ItemStack stack) {
+            this.stack = stack;
+        }
+
+        @Override
+        public ItemStack stack() {
+            return stack;
+        }
+
+        @Override
+        public int count() {
+            return stack.getAmount();
+        }
+
+        @Override
+        public void take(int n) {
+            stack.setAmount(stack.getAmount() - n);
+        }
+    }
+
+    /** Buckets are molds that hold one mB per lore line (an amount of up to 100 mB), at most 100 mB. */
+    static final class FakeMolds implements CrucibleMolds {
+        @Override
+        public boolean isMold(ItemStack stack) {
+            return stack.getType() == Material.BUCKET;
+        }
+
+        @Override
+        public boolean isMolten(ItemStack mold) {
+            return false;
+        }
+
+        @Override
+        public FluidAmount content(ItemStack mold) {
+            return new FluidAmount("tfc:metal/gold", mold.hasItemMeta() && mold.getItemMeta().hasLore()
+                ? Integer.parseInt(mold.getItemMeta().getLore().getFirst()) : 0);
+        }
+
+        @Override
+        public int pourStep(FluidAmount fluid, float temperature, ItemStack mold) {
+            int now = content(mold).amount();
+            if (now >= 100) {
+                return 0;
+            }
+            var meta = mold.getItemMeta();
+            meta.setLore(List.of(Integer.toString(now + 1), Float.toString(temperature)));
+            mold.setItemMeta(meta);
+            return 1;
+        }
+
+        @Override
+        public boolean drainOne(ItemStack mold) {
+            return false;
+        }
+
+        @Override
+        public String result(FluidAlloy alloy) {
+            return "";
         }
     }
 
@@ -138,7 +212,7 @@ class CharcoalForgeMockBukkitTest extends MockServerTest {
         service = new DeviceService(new DeviceKinds(), blocks, () -> store, clock::get, stacks, new FakeCustomItems(),
             Logger.getLogger("test"));
         ItemHeatHooks.Capacities capacities = s -> switch (s.getType()) {
-            case IRON_INGOT, RAW_COPPER, COPPER_INGOT, BUCKET -> 0.5f;
+            case IRON_INGOT, RAW_COPPER, COPPER_INGOT, GOLD_INGOT, BUCKET -> 0.5f;
             default -> 0f;
         };
         device = new CharcoalForgeDevice(new CharcoalForgeDevice.Services(
@@ -149,7 +223,17 @@ class CharcoalForgeMockBukkitTest extends MockServerTest {
             new CharcoalForgeDevice.Converter() {
                 @Override
                 public float recipeTemperature(ItemStack stack) {
-                    return stack.getType() == Material.RAW_COPPER ? 1000f : Float.NaN;
+                    return stack.getType() == Material.RAW_COPPER ? 1000f : stack.getType() == Material.GOLD_INGOT ? 800f
+                        : Float.NaN;
+                }
+
+                @Override
+                public Optional<CharcoalForgeDevice.Melted> melt(ItemStack heated, float temperature) {
+                    if (heated.getType() == Material.GOLD_INGOT && temperature >= 800f) {
+                        return Optional.of(new CharcoalForgeDevice.Melted(ItemStack.empty(),
+                            new FluidAmount("tfc:metal/gold", 100)));
+                    }
+                    return convert(heated, temperature).map(i -> new CharcoalForgeDevice.Melted(i, FluidAmount.EMPTY));
                 }
 
                 @Override
@@ -162,7 +246,14 @@ class CharcoalForgeMockBukkitTest extends MockServerTest {
             b -> false,
             consumers,
             b -> blocks.stateAt(b).map(BlockStateRef::id),
-            effects), stacks);
+            effects,
+            stack -> {
+                var meta = stack.getItemMeta();
+                meta.setLore(List.of("grilled"));
+                stack.setItemMeta(meta);
+                return stack;
+            },
+            new FakeMolds()), stacks);
         kind = service.register(device.kind());
         forge = world.getBlockAt(0, 64, 0);
         blocks.place(forge, CharcoalForgeDevice.state(0), true);
@@ -246,6 +337,80 @@ class CharcoalForgeMockBukkitTest extends MockServerTest {
         clock.set(START + 2000);
         service.neighbourChanged(forge);
         assertThat(stacks.decode(record().slot(5)).getType()).isEqualTo(Material.COPPER_INGOT);
+    }
+
+    private void fire(ItemStack input) {
+        device.createFromPile(service, forge);
+        put(0, new ItemStack(Material.CHARCOAL));
+        put(5, input);
+        clock.set(START + 2000);
+        service.neighbourChanged(forge);
+    }
+
+    @Test
+    void aMeltedIngotFillsTheMoldInAnExtraSlotAndTheInputEmpties() {
+        put(11, new ItemStack(Material.BUCKET));
+        fire(new ItemStack(Material.GOLD_INGOT));
+        assertThat(record().slot(5).isEmpty()).isTrue();
+        ItemStack mold = stacks.decode(record().slot(11));
+        assertThat(new FakeMolds().content(mold).amount()).isEqualTo(100);
+    }
+
+    @Test
+    void aMeltedIngotWithNoMoldIsLost() {
+        fire(new ItemStack(Material.GOLD_INGOT));
+        assertThat(record().slot(5).isEmpty()).isTrue();
+    }
+
+    @Test
+    void aFullMoldPassesTheRestOnToTheNextMold() {
+        put(10, new ItemStack(Material.BUCKET));
+        put(12, new ItemStack(Material.BUCKET));
+        service.edit(forge, kind, (r, now) -> {
+            ItemStack full = stacks.decode(r.slot(10));
+            for (int i = 0; i < 70; i++) {
+                new FakeMolds().pourStep(new FluidAmount("tfc:metal/gold", 1), 0f, full);
+            }
+            return r.withSlot(10, stacks.encode(full));
+        });
+        fire(new ItemStack(Material.GOLD_INGOT));
+        assertThat(new FakeMolds().content(stacks.decode(record().slot(10))).amount()).isEqualTo(100);
+        assertThat(new FakeMolds().content(stacks.decode(record().slot(12))).amount()).isEqualTo(70);
+    }
+
+    @Test
+    void theOutputOfAFiredRecipeIsGrilled() {
+        fire(new ItemStack(Material.RAW_COPPER));
+        ItemStack out = stacks.decode(record().slot(5));
+        assertThat(out.getType()).isEqualTo(Material.COPPER_INGOT);
+        assertThat(out.getItemMeta().getLore()).containsExactly("grilled");
+    }
+
+    @Test
+    void droppedFuelAboveTheForgeGoesIntoTheFirstFreeFuelSlots() {
+        put(0, new ItemStack(Material.CHARCOAL));
+        TestDrop stack = new TestDrop(new ItemStack(Material.CHARCOAL, 3));
+        TestDrop other = new TestDrop(new ItemStack(Material.IRON_INGOT, 2));
+        effects.drops.add(other);
+        effects.drops.add(stack);
+        service.neighbourChanged(forge);
+        for (int i = 0; i <= 3; i++) {
+            assertThat(stacks.decode(record().slot(i)).getType()).as("slot " + i).isEqualTo(Material.CHARCOAL);
+        }
+        assertThat(record().slot(4).isEmpty()).isTrue();
+        assertThat(stack.count()).isZero();
+        assertThat(other.count()).as("not a fuel").isEqualTo(2);
+    }
+
+    @Test
+    void fuelSlotsThatAreFullTakeNothingMore() {
+        for (int i = 0; i <= 4; i++) {
+            put(i, new ItemStack(Material.CHARCOAL));
+        }
+        TestDrop drop = new TestDrop(new ItemStack(Material.CHARCOAL, 2));
+        effects.drops.add(drop);
+        service.neighbourChanged(forge);
+        assertThat(drop.count()).isEqualTo(2);
     }
 
     @Test

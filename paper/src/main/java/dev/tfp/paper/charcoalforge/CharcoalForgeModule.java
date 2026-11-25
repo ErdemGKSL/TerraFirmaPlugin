@@ -21,6 +21,10 @@ import dev.tfp.core.firepit.FirepitFuels;
 import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.heat.HeatState;
 import dev.tfp.core.registry.Registries;
+import dev.tfp.core.vessel.FluidAmount;
+import dev.tfp.paper.alloy.AlloyRecipes;
+import dev.tfp.paper.crucible.CrucibleMolds;
+import dev.tfp.paper.recipe.Recipes;
 import dev.tfp.core.world.BlockPos;
 import dev.tfp.paper.boot.TfpCommands.Reply;
 import dev.tfp.paper.catchup.CatchUpModule;
@@ -75,6 +79,8 @@ import org.bukkit.inventory.ItemStack;
 public final class CharcoalForgeModule implements FeatureModule {
     public static final String ID = "charcoalforge";
     public static final String FORGE_FUEL = "tfc:forge_fuel";
+    /** TFC {@code FoodTraits.CHARCOAL_GRILLED}, ours. */
+    public static final String CHARCOAL_GRILLED = "tfp:charcoal_grilled";
     public static final String CHARCOAL_PILE = "tfp:charcoal_pile";
     public static final String CRUCIBLE = "tfp:crucible";
     /** TFC {@code CharcoalPileBlock.LAYERS} needed to make a forge. */
@@ -117,7 +123,9 @@ public final class CharcoalForgeModule implements FeatureModule {
             block -> raining(block),
             consumers,
             block -> blocks.stateAt(block).map(BlockStateRef::id),
-            effects), devs.stacks());
+            effects,
+            stack -> ctx.services().get(Recipes.class).map(r -> r.modifiers().addTrait(stack, CHARCOAL_GRILLED)).orElse(stack),
+            CrucibleMolds.lazy(() -> ctx.services().get(MoldItems.class), ctx.services().require(AlloyRecipes.class))), devs.stacks());
         devs.register(d.kind());
         ctx.services().provide(CharcoalForgeDevice.class, d);
         d.structure(block -> valid(block, tg, sch)); // PAR-METAL-09: the multiblock scan on every callback and neighbour change
@@ -126,6 +134,7 @@ public final class CharcoalForgeModule implements FeatureModule {
             && lightable(blocks, devs, d, tg, sch, fc.block())));
         Optional<CatchUpService> catchUp = ctx.services().get(CatchUpService.class);
         blocks.onChunkLoad(chunk -> catchUp.ifPresent(c -> chunkLoaded(chunk, c, blocks, devs, sch)));
+        ctx.listen(new ForgeDropListener(blocks, devs, sch));
         this.device = d;
         this.devices = devs;
         this.scheduler = sch;
@@ -221,19 +230,23 @@ public final class CharcoalForgeModule implements FeatureModule {
 
     // ---- services ------------------------------------------------------------------------------------------
 
-    /** The heating recipes as the forge uses them: only a recipe with no fluid fires here. */
+    /** The heating recipes as the forge uses them: every recipe fires here, a melting one pours into the extra-slot molds. */
     static CharcoalForgeDevice.Converter converter(HeatingService heating) {
         return new CharcoalForgeDevice.Converter() {
             @Override
             public float recipeTemperature(ItemStack stack) {
-                return heating.recipe(stack).filter(r -> r.resultFluid().isEmpty()).map(r -> r.temperature())
-                    .orElse(Float.NaN);
+                return heating.recipe(stack).map(r -> r.temperature()).orElse(Float.NaN);
             }
 
             @Override
             public Optional<ItemStack> convert(ItemStack heated, float temperature) {
-                return heating.convertIfReady(heated, temperature).filter(c -> c.fluid().isEmpty())
-                    .map(HeatingService.Conversion::item);
+                return heating.convertIfReady(heated, temperature).map(HeatingService.Conversion::item);
+            }
+
+            @Override
+            public Optional<CharcoalForgeDevice.Melted> melt(ItemStack heated, float temperature) {
+                return heating.convertIfReady(heated, temperature).map(c -> new CharcoalForgeDevice.Melted(c.item(),
+                    c.fluid().map(f -> new FluidAmount(f.fluid(), f.amount())).orElse(FluidAmount.EMPTY)));
             }
         };
     }

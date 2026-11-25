@@ -19,7 +19,10 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.inventory.ItemStack;
 
 /** PAR-METAL-08: {@link CharcoalForgeEffects} on Paper. State writes are region tasks; callbacks are delayed region tasks. */
@@ -67,6 +70,39 @@ public final class PaperCharcoalForgeEffects implements CharcoalForgeEffects {
         for (ItemStack rest : player.getInventory().addItem(stack).values()) {
             player.getWorld().dropItem(player.getLocation(), rest);
         }
+    }
+
+    @Override
+    public java.util.List<Drop> dropped(Block block) {
+        BoundingBox box = new BoundingBox(block.getX() - 0.2, block.getY() + 0.875, block.getZ() - 0.2, block.getX() + 1.2,
+            block.getY() + 1.25, block.getZ() + 1.2);
+        java.util.List<Drop> out = new java.util.ArrayList<>();
+        for (Entity e : block.getWorld().getNearbyEntities(box, x -> x instanceof Item i && i.isValid())) {
+            Item item = (Item) e;
+            out.add(new Drop() {
+                @Override
+                public ItemStack stack() {
+                    return item.getItemStack();
+                }
+
+                @Override
+                public int count() {
+                    return item.getItemStack().getAmount();
+                }
+
+                @Override
+                public void take(int n) {
+                    ItemStack stack = item.getItemStack();
+                    if (stack.getAmount() <= n) {
+                        item.remove();
+                    } else {
+                        stack.setAmount(stack.getAmount() - n);
+                        item.setItemStack(stack);
+                    }
+                }
+            });
+        }
+        return out;
     }
 
     @Override

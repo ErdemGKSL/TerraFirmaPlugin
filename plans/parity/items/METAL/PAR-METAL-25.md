@@ -2,7 +2,7 @@
 id: PAR-METAL-25
 title: "Charcoal forge: melting into extra-slot molds, the grilled trait on outputs, picking up dropped fuel"
 area: METAL
-status: open
+status: done
 wave: 34
 deps: [PAR-METAL-08, PAR-POT-05]
 size: M
@@ -19,6 +19,7 @@ ui: false
 plan:
   - "PAR-METAL-08 left three pieces of TFC's `serverTick` out of `CharcoalForgeDevice`: (1) an input item whose heating recipe has a fluid result melts into the molds in extra slots 10 to 13 (`Helpers.mergeOutputFluidIntoSlot`: fill the mold, mix its temperature by heat capacity with `MoldPouring.mix`, the item is gone even with no mold); today it stays in its slot. (2) The output of a recipe that fires gets the `charcoal_grilled` food trait. (3) Every 20 ticks while lit, dropped items inside the box (x/z -0.2..1.2, y 0.875..1.25 around the forge) that are forge fuel go into the fuel slots (`gatherAndConsumeItems`)."
   - "Melting runs inside the lazy replay: `CharcoalForgeSim` already stops at the tick an item reaches its recipe temperature; give the converter a fluid variant and let `CharcoalForgeDevice.catchUp` pour into the extra-slot molds (`MoldItems.pourStep`) before replacing the slot. The gather runs on the region thread from the lit callback, never as a ticker."
+  - "Done: charcoal forge melts fluid recipes into extra-slot molds (CharcoalForgeDevice.melted), applies tfp:charcoal_grilled to outputs, gathers dropped fuel (gather + ForgeDropListener); 7 new CharcoalForgeMockBukkitTest cases (15 total); ledger divergences rewritten. ui false, no screenshot check; vessels in extra slots are not poured (ledger)."
 tests:
   - "paper: a molten ingot fills the mold in an extra slot and the input slot empties; with no mold the item is lost as in TFC"
   - "paper: a dropped charcoal item above a lit forge goes into the first free fuel slot"

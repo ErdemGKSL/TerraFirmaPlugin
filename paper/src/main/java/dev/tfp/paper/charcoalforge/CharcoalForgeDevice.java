@@ -24,6 +24,8 @@ import dev.tfp.core.device.ItemBlob;
 import dev.tfp.core.fuel.Fuel;
 import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.heat.HeatState;
+import dev.tfp.core.vessel.FluidAmount;
+import dev.tfp.paper.crucible.CrucibleMolds;
 import dev.tfp.paper.device.DeviceContext;
 import dev.tfp.paper.device.DeviceHandler;
 import dev.tfp.paper.device.DeviceKind;
@@ -41,6 +43,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -59,9 +62,10 @@ import org.bukkit.inventory.ItemStack;
  *       ({@code onFirstCreation}). A strong start on an unlit forge or on the crucible above it lights it from its first
  *       fuel slot ({@link #lightAt}).</li>
  *   <li><b>Heat</b>: every warm tick the forge heats each input item toward its temperature (TFC {@code addTemp}); the
- *       heat records go onto the stacks. An item whose heating recipe has an item result and no fluid is replaced by that
- *       item when it reaches the recipe temperature; one that melts (a fluid result) stays until the molds in the extra
- *       slots can be poured into (ledger divergence). Every tick of the temperature is also handed to the heat consumer
+ *       heat records go onto the stacks. An item whose heating recipe fires is replaced by its item result (with the
+ *       {@code charcoal_grilled} trait, nothing when the recipe has none) when it reaches the recipe temperature; a fluid
+ *       result is poured into the molds of the extra slots in order (PAR-METAL-25) and is lost where none takes it.
+ *       Dropped fuel in the pickup box above goes into the fuel slots on every access ({@link #gather}). Every tick of the temperature is also handed to the heat consumer
  *       above ({@link HeatConsumers}, the crucible); while one stands above a lit forge the forge re-runs every
  *       {@link #HEAT_PERIOD} ticks to keep it supplied.</li>
  *   <li><b>Right click</b>: with a screen installed ({@link #screen}, PAR-METAL-09) a click opens it, as TFC. Until then a
@@ -91,11 +95,27 @@ public final class CharcoalForgeDevice {
 
     /** TFC {@code HeatingRecipe} lookup and conversion, as the forge uses them. */
     public interface Converter {
-        /** The temperature the stack's heating recipe fires at in the forge, NaN when it never does (no recipe, or it melts). */
+        /** The temperature the stack's heating recipe fires at in the forge, NaN when it never does (no recipe). */
         float recipeTemperature(ItemStack stack);
 
         /** What one {@code heated} item leaves at {@code temperature} (an empty stack for nothing), empty when it does not fire. */
         Optional<ItemStack> convert(ItemStack heated, float temperature);
+
+        /**
+         * TFC {@code assembleItem} and {@code assembleFluid} of the recipe (PAR-METAL-25): the item left and the fluid it
+         * melts into. The default has no fluid.
+         */
+        default Optional<Melted> melt(ItemStack heated, float temperature) {
+            return convert(heated, temperature).map(item -> new Melted(item, FluidAmount.EMPTY));
+        }
+    }
+
+    /** What a fired heating recipe leaves: the item (empty for none) and the fluid (empty for none). */
+    public record Melted(ItemStack item, FluidAmount fluid) {
+        public Melted {
+            Objects.requireNonNull(item, "item");
+            Objects.requireNonNull(fluid, "fluid");
+        }
     }
 
     /**
@@ -111,11 +131,22 @@ public final class CharcoalForgeDevice {
      * @param consumers  the heat consumers ({@code IHeatConsumer} of the block above)
      * @param blockId    the CraftEngine block id at a block, if any (region thread)
      * @param effects    the world effects
+     * @param grilled    TFC {@code FoodCapability.applyTrait(output, CHARCOAL_GRILLED)} on a converted stack
+     * @param molds      the molds the melted fluid is poured into (the extra slots)
      */
     public record Services(Function<ItemStack, Optional<Fuel>> fuel, Predicate<ItemStack> forgeFuel,
             ItemHeatHooks.Capacities capacities, Predicate<ItemStack> container, Converter converter, HeatConfig heatConfig,
             Predicate<Block> raining, HeatConsumers consumers, Function<Block, Optional<String>> blockId,
-            CharcoalForgeEffects effects) {
+            CharcoalForgeEffects effects, UnaryOperator<ItemStack> grilled, CrucibleMolds molds) {
+        /** The services without the grilled trait and the molds (a fluid result is lost). */
+        public Services(Function<ItemStack, Optional<Fuel>> fuel, Predicate<ItemStack> forgeFuel,
+                ItemHeatHooks.Capacities capacities, Predicate<ItemStack> container, Converter converter,
+                HeatConfig heatConfig, Predicate<Block> raining, HeatConsumers consumers,
+                Function<Block, Optional<String>> blockId, CharcoalForgeEffects effects) {
+            this(fuel, forgeFuel, capacities, container, converter, heatConfig, raining, consumers, blockId, effects,
+                stack -> stack, CrucibleMolds.NONE);
+        }
+
         public Services {
             Objects.requireNonNull(fuel, "fuel");
             Objects.requireNonNull(forgeFuel, "forgeFuel");
@@ -127,6 +158,8 @@ public final class CharcoalForgeDevice {
             Objects.requireNonNull(consumers, "consumers");
             Objects.requireNonNull(blockId, "blockId");
             Objects.requireNonNull(effects, "effects");
+            Objects.requireNonNull(grilled, "grilled");
+            Objects.requireNonNull(molds, "molds");
         }
     }
 
@@ -258,9 +291,10 @@ public final class CharcoalForgeDevice {
             for (int k : r.conversions()) {
                 ItemStack heated = items.get(k);
                 HeatPdc.write(heated, r.heats().get(k));
-                Optional<ItemStack> made = services.converter().convert(heated, r.heats().get(k).temperature());
+                float temperature = r.heats().get(k).temperature();
+                Optional<Melted> made = services.converter().melt(heated, temperature);
                 if (made.isPresent()) {
-                    record = record.withSlot(CharcoalForgeSim.SLOT_INPUT_MIN + k, stacks.encode(made.get()));
+                    record = melted(record, CharcoalForgeSim.SLOT_INPUT_MIN + k, made.get(), temperature);
                 }
             }
             if (r.finished(to)) {
@@ -270,6 +304,73 @@ public final class CharcoalForgeDevice {
         }
         RUNS.set(runs.isEmpty() ? null : new Caught(record.state(), List.copyOf(runs)));
         return record;
+    }
+
+    /**
+     * TFC {@code handleInputMelting}: the fluid is poured into the molds of the extra slots in order (each fills from the
+     * remainder; a fluid no mold takes is lost), then the item output (with the grilled trait) replaces the input.
+     */
+    DeviceRecord<CharcoalForgeData> melted(DeviceRecord<CharcoalForgeData> record, int slot, Melted made, float temperature) {
+        FluidAmount fluid = made.fluid();
+        for (int extra = CharcoalForgeSim.SLOT_EXTRA_MIN; extra <= CharcoalForgeSim.SLOT_EXTRA_MAX && !fluid.isEmpty(); extra++) {
+            ItemStack mold = stacks.decode(record.slot(extra));
+            if (StackCodec.isEmpty(mold) || !services.molds().isMold(mold)) {
+                continue;
+            }
+            int poured = 0;
+            while (poured < fluid.amount() && services.molds().pourStep(new FluidAmount(fluid.fluid(), fluid.amount() - poured),
+                    temperature, mold) == 1) {
+                poured++;
+            }
+            if (poured > 0) {
+                record = record.withSlot(extra, stacks.encode(mold));
+                fluid = new FluidAmount(fluid.fluid(), fluid.amount() - poured);
+            }
+        }
+        ItemStack output = made.item();
+        if (StackCodec.isEmpty(output)) {
+            return record.withSlot(slot, ItemBlob.EMPTY);
+        }
+        return record.withSlot(slot, stacks.encode(services.grilled().apply(output)));
+    }
+
+    /**
+     * TFC {@code Helpers.gatherAndConsumeItems(level, bounds, inventory, SLOT_FUEL_MIN, SLOT_FUEL_MAX)}: dropped items of the
+     * box that the fuel slots take go in one by one into the first free fuel slot. Region thread of {@code forge}.
+     */
+    DeviceRecord<CharcoalForgeData> gather(Block forge, DeviceRecord<CharcoalForgeData> record) {
+        int free = 0;
+        for (int i = CharcoalForgeSim.SLOT_FUEL_MIN; i <= CharcoalForgeSim.SLOT_FUEL_MAX; i++) {
+            if (record.slot(i).isEmpty()) {
+                free++;
+            }
+        }
+        if (free == 0) {
+            return record;
+        }
+        DeviceRecord<CharcoalForgeData> next = record;
+        for (CharcoalForgeEffects.Drop drop : services.effects().dropped(forge)) {
+            ItemStack stack = drop.stack();
+            if (!isItemValid(CharcoalForgeSim.SLOT_FUEL_MAX, stack)) {
+                continue;
+            }
+            while (free > 0 && drop.count() > 0) {
+                ItemStack one = stack.clone();
+                one.setAmount(1);
+                for (int i = CharcoalForgeSim.SLOT_FUEL_MIN; i <= CharcoalForgeSim.SLOT_FUEL_MAX; i++) {
+                    if (next.slot(i).isEmpty()) {
+                        next = next.withSlot(i, stacks.encode(one));
+                        break;
+                    }
+                }
+                drop.take(1);
+                free--;
+            }
+            if (free == 0) {
+                break;
+            }
+        }
+        return next == record ? record : cascade(next);
     }
 
     /** The sim's view of one input: its heat record, capacity and recipe temperature. {@code null} for an empty slot. */
@@ -452,7 +553,7 @@ public final class CharcoalForgeDevice {
             if (player == null || ctx.hand() == null) {
                 return DeviceResult.pass();
             }
-            DeviceRecord<CharcoalForgeData> record = sampled(ctx);
+            DeviceRecord<CharcoalForgeData> record = gather(ctx.block(), sampled(ctx));
             BiConsumer<Player, Block> open = screen;
             if (open != null) {
                 // serverPlayer.openMenu(forge, pos), after this handler stored the record
@@ -482,7 +583,7 @@ public final class CharcoalForgeDevice {
         /** The burn-out and heat callbacks, and neighbour changes. */
         @Override
         public DeviceResult<CharcoalForgeData> neighbourChanged(DeviceContext<CharcoalForgeData> ctx) {
-            DeviceRecord<CharcoalForgeData> record = sampled(ctx);
+            DeviceRecord<CharcoalForgeData> record = gather(ctx.block(), sampled(ctx));
             Predicate<Block> check = structure;
             if (check != null && record.state().state().lit() && !check.test(ctx.block())) {
                 // updateShape / randomTick: a lit forge whose insulation or chimney is gone is put out
