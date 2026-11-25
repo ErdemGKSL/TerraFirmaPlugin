@@ -33,6 +33,8 @@ done_criteria:
 
 # PAR-MECH-12: Spinning shafts on the wire
 
+> Claimed: worker F (session_011osUpAUVyyokAxf5Kiw72D), 2026-11-25
+
 > Created by PAR-MECH-02, which owns only the pure planner and the service: the speed hook in the rotation actor, the packet sender and the axle YAML belong to files PAR-MECH-11 owns (`paper/rotation/**`, `datagen/rotation/**`). Start after PAR-MECH-11 is done.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
