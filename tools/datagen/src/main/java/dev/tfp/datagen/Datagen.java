@@ -142,6 +142,9 @@ public final class Datagen {
         if (dev.tfp.datagen.pan.PanItems.available(tfc)) { // PAR-PROC-12: pan items, models and deposit loot tables; before the coverage gate; fixtures have no pan
             dev.tfp.datagen.pan.PanItems.run(tfc, out);
         }
+        if (dev.tfp.datagen.hunt.HideItems.available(tfc)) { // PAR-FAUNA-17: small/medium/large raw, soaked, scraped, prepared, sheepskin hides; before the coverage gate
+            dev.tfp.datagen.hunt.HideItems.run(tfc, out);
+        }
         if (dev.tfp.datagen.material.MaterialItems.available(tfc)) { // PAR-PROC-19: plain TFC material items + TFCItems coverage gate; fixtures have no TFCItems
             dev.tfp.datagen.material.MaterialItems.run(tfc, out);
             dev.tfp.datagen.material.ItemCoverage.run(tfc, out);

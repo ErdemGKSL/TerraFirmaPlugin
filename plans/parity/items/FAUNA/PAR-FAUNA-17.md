@@ -2,7 +2,7 @@
 id: PAR-FAUNA-17
 title: "Hunting drops, butchering, hides"
 area: FAUNA
-status: open
+status: done
 wave: 44
 deps: [PAR-FAUNA-09, PAR-INFRA-09]
 size: M
@@ -24,6 +24,8 @@ in_game_steps:
   - "tfp debug animal spawn deer adult; kill; screenshot drops"
 plan:
   - "Death drops from HuntDrops (size, familiarity, player kill); hide items (raw/soaked/scraped/prepared, 3 sizes) and meat items generated."
+  - "Meat drops are the food items FoodItems already generates (HideItemsTest checks every HuntDrops item is a generated CE item or vanilla); hides are datagen hunt/HideItems (15 items incl. sheepskin)."
+  - "Done: PAR-FAUNA-17 commit: paper/hunt/HuntModule death drops (decide async, apply sync; predator/sex/size/familiarity/player kill; carrier loot replaced, babies and doMobLoot honoured), datagen hunt/HideItems; tests core HuntDropsGoldenTest+HuntDropsTest, paper HuntModuleMockBukkitTest 8, datagen HideItemsTest 2; ledger row + 3 divergences. Pending in-game check (container cannot run client)."
 tests:
   - "core: HuntDropsGoldenTest exists"
 done_criteria:
@@ -31,7 +33,5 @@ done_criteria:
 ---
 
 # PAR-FAUNA-17: Hunting drops, butchering, hides
-
-> Claimed: REL session_011osUpAJcukeqydbqrkqw9X (takeover, owner request), 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
