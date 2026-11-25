@@ -372,7 +372,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-09 | Prey AI and wild animals | FAUNA | 42 | done |
 | PAR-FAUNA-11 | Aquatic animals: fish, squid, jellyfish, dolphins, orcas, manatees; mob buckets | FAUNA | 42 | done |
 | PAR-FAUNA-22 | Familiarity readout: sneak-looking at a TFC animal within 5 blocks shows its familiarity and pregnancy on the action bar (NP-UI-01 substitute for IngameOverlays.FAMILIARITY) | FAUNA | 42 | done |
-| PAR-FAUNA-07 | Nest box: laying, hatching, GUI | FAUNA | 43 | open |
+| PAR-FAUNA-07 | Nest box: laying, hatching, GUI | FAUNA | 43 | done |
 | PAR-FAUNA-10 | Predator AI: hunting, home range, sleep schedule, packs | FAUNA | 43 | open |
 | PAR-FAUNA-12 | Amphibians: turtles, penguins, seals, crocodiles, frogs (play dead, land/water) | FAUNA | 43 | open |
 | PAR-FAUNA-13 | Pests and critters: rats raiding containers, lobsters, crayfish, isopods | FAUNA | 43 | open |
@@ -384,6 +384,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-18 | Fishing: rod, hook, bait | FAUNA | 44 | open |
 | PAR-FAUNA-23 | Fertilized egg incubation bar (TFC BarSystem EGG) on the shared item-bar layer | FAUNA | 44 | open |
 | PAR-FAUNA-24 | Wild raids and armadillo scutes: fox berry picking, rabbit garden raids, calendar scutes | FAUNA | 44 | open |
+| PAR-FAUNA-27 | Nest box block and ground-laying hand-off (follow-up of PAR-FAUNA-07) | FAUNA | 44 | open |
 | PAR-DECO-02 | Wood logic: doors, trapdoors, fence gates, buttons, pressure plates | DECO | 45 | done |
 | PAR-FAUNA-16 | Camels (dromedary, bactrian) | FAUNA | 45 | open |
 | PAR-FAUNA-19 | Lobster traps | FAUNA | 45 | open |
