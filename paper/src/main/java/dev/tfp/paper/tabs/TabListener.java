@@ -15,6 +15,9 @@ import dev.tfp.paper.i18n.Messages;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tabs.TabLayout.Page;
 import dev.tfp.paper.tabs.TabLayout.Tab;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.bukkit.GameMode;
@@ -40,7 +43,7 @@ import org.bukkit.inventory.ItemStack;
  *       window, but the server cannot see where outside the window the click was. A click holding a stack still drops it
  *       (vanilla). The creative inventory sends no click for this, so creative players have no trigger.</li>
  *   <li>On a page: the top slots are the tab buttons and decoration; every click there is cancelled and a tab button
- *       switches the page (INVENTORY closes it: the server cannot open a client's own inventory screen). The player
+ *       switches the page (BOOK closes it and opens the field guide's contents book, PAR-DATA-20; INVENTORY closes it: the server cannot open a client's own inventory screen). The player
  *       inventory below works as in TFC's tab screens, except shift-clicks and double-click collecting, which would move
  *       items into or out of the page.</li>
  *   <li>The crafting table shares the {@code container.crafting} title with the inventory, so it would show the tab art
@@ -51,11 +54,19 @@ public final class TabListener implements Listener {
     private final TabService service;
     private final Scheduler scheduler;
     private final Messages messages;
+    private final Supplier<Optional<Consumer<Player>>> fieldGuide;
 
     public TabListener(TabService service, Scheduler scheduler, Messages messages) {
+        this(service, scheduler, messages, Optional::empty);
+    }
+
+    /** {@code fieldGuide}: the BOOK tab's target (the field guide's contents book, if that module is enabled), looked up per click. */
+    public TabListener(TabService service, Scheduler scheduler, Messages messages,
+                       Supplier<Optional<Consumer<Player>>> fieldGuide) {
         this.service = service;
         this.scheduler = scheduler;
         this.messages = messages;
+        this.fieldGuide = fieldGuide;
     }
 
     /** {@code InventoryView.OUTSIDE}: the raw slot of a click outside the window. */
@@ -115,7 +126,11 @@ public final class TabListener implements Listener {
         }
         Page page = Page.of(tab);
         if (page == null) {
-            session.viewer().closeInventory(); // INVENTORY
+            Player viewer = session.viewer();
+            viewer.closeInventory(); // INVENTORY, and BOOK before the guide opens
+            if (tab == Tab.BOOK) {
+                fieldGuide.get().ifPresent(open -> open.accept(viewer));
+            }
             return;
         }
         service.open(session.viewer(), page);

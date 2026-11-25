@@ -11,11 +11,14 @@ import dev.tfp.paper.hud.HudStylesHolder;
 import dev.tfp.paper.install.Installer;
 import dev.tfp.paper.module.DebugTree;
 import dev.tfp.paper.module.FeatureModule;
+import dev.tfp.paper.guide.FieldGuideService;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.tabs.TabLayout.Page;
 import io.papermc.paper.command.brigadier.Commands;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import org.bukkit.entity.Player;
 
 /**
  * PAR-SURV-07: TFC's player tab screens (calendar, nutrition, climate) on the module SPI. A click outside the inventory
@@ -37,7 +40,8 @@ public final class PlayerTabsModule implements FeatureModule {
         boolean glyphs = context.integrations().activePlugins().contains(Installer.CRAFTENGINE);
         TabService s = new TabService(context.plugin().getServer(), context.scheduler(), context.messages(),
             () -> context.clock().get(), id -> context.playerData().get(id), () -> HudStylesHolder.current().climate(), glyphs);
-        context.listen(new TabListener(s, context.scheduler(), context.messages()));
+        context.listen(new TabListener(s, context.scheduler(), context.messages(),
+            () -> context.services().get(FieldGuideService.class).map(g -> (Consumer<Player>) g::openIndex)));
         this.service = s;
     }
 

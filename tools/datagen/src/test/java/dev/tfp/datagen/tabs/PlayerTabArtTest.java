@@ -74,7 +74,7 @@ class PlayerTabArtTest {
                 .containsEntry("font", GuiImage.FONT);
         }
         assertThat(images.get(PlayerTabArt.INVENTORY_TABS)).containsEntry("font", "minecraft:default")
-            .containsEntry("ascent", 9).containsEntry("height", 91);
+            .containsEntry("ascent", 9).containsEntry("height", 114);
         assertThat(png(PlayerTabArt.inventoryTabs()).getWidth()).isEqualTo(25);
     }
 

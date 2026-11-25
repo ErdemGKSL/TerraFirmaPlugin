@@ -42,7 +42,7 @@ import javax.imageio.ImageIO;
  * <ul>
  *   <li>the three page backgrounds: TFC's {@code player_*.png} re-laid out into a 4-row chest (the art stays, an 18-pixel
  *       row for the tab buttons opens above the player inventory, which moves down 19 pixels);</li>
- *   <li>the four tab buttons (18 x 18, frame 0 inactive, 1 active) built from TFC's tab sprites and icons in
+ *   <li>the five tab buttons (PAR-DATA-20 added BOOK) (18 x 18, frame 0 inactive, 1 active) built from TFC's tab sprites and icons in
  *       {@code icons.png}; the five nutrient bars (94 frames, 0 to 93 pixels wide); the calendar's night sprite;</li>
  *   <li>the inventory screen's tab column ({@code inventory_tabs}, TFC's tabs exactly as TFC places them right of the
  *       window, inventory active) in {@code minecraft:default}, drawn by a {@code lang} override of
@@ -72,7 +72,7 @@ public final class PlayerTabArt {
     static final ChestGeometry CHEST = new ChestGeometry(4);
     static final int TFC_HEIGHT = 166;
     static final List<String> PAGES = List.of("calendar", "nutrition", "climate");
-    static final List<String> TABS = List.of("inventory", "calendar", "nutrition", "climate");
+    static final List<String> TABS = List.of("inventory", "calendar", "nutrition", "climate", "book");
     static final int TAB_ROW = 3;
     static final int BUTTON = 18;
     /** PlayerInventoryTabButton: sprite size, sprite v, inactive and active u, tab y offsets, icon size. */
@@ -81,7 +81,7 @@ public final class PlayerTabArt {
     static final int TAB_V = 16;
     static final int TAB_U_INACTIVE = 0;
     static final int TAB_U_ACTIVE = 24;
-    static final int[] TAB_Y = {4, 27, 50, 73};
+    static final int[] TAB_Y = {4, 27, 50, 73, 96};
     static final int TAB_X = 176;
     static final int ICON = 16;
     /** NutritionScreen: bars at (76, 18 + 11 i), 93 x 5, sprite at (0, 166). */
@@ -99,7 +99,7 @@ public final class PlayerTabArt {
     static final int INV_X = TAB_X - 3;
     static final int INV_Y = TAB_Y[0];
     static final int INV_W = TAB_X - 2 + TAB_W - INV_X;
-    static final int INV_H = TAB_Y[3] + TAB_H - INV_Y;
+    static final int INV_H = TAB_Y[TAB_Y.length - 1] + TAB_H - INV_Y;
     /** {@code InventoryScreen.titleLabelX}. */
     static final int INVENTORY_TITLE_X = 97;
     public static final String INVENTORY_TABS = "tfp:gui/inventory_tabs";
@@ -140,7 +140,7 @@ public final class PlayerTabArt {
         "\\(int\\) \\(nutrition\\.getNutrient\\(nutrient\\) \\* (\\d+)\\);\\s*graphics\\.blit\\(texture, leftPos \\+ (\\d+), "
             + "topPos \\+ (\\d+) \\+ (\\d+) \\* nutrient\\.ordinal\\(\\), (\\d+), (\\d+), width, (\\d+)\\);");
     private static final Pattern NIGHT_BLIT = Pattern.compile("graphics\\.blit\\(texture, (\\d+), (\\d+), (\\d+), (\\d+), (\\d+), (\\d+)\\);");
-    private static final Pattern TAB_ENUM = Pattern.compile("(INVENTORY|CALENDAR|NUTRITION|CLIMATE)\\((\\d+), (\\d+), (\\d+), (\\d+)\\)");
+    private static final Pattern TAB_ENUM = Pattern.compile("(INVENTORY|CALENDAR|NUTRITION|CLIMATE|BOOK)\\((\\d+), (\\d+), (\\d+), (\\d+)\\)");
     private static final Pattern TAB_SIZE = Pattern.compile("\\(guiTop \\+ tab\\.yIn\\), (\\d+), (\\d+), Component\\.empty\\(\\)");
     private static final Pattern TAB_UV = Pattern.compile("this\\.textureU = detached \\? \\(active \\? \\d+ : \\d+\\) : \\(active \\? (\\d+) : (\\d+)\\);\\s*"
         + "this\\.textureV = (\\d+);");

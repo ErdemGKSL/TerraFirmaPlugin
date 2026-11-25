@@ -37,12 +37,13 @@ public final class TabLayout {
     public static final int TAB_ROW = 3;
     public static final int BUTTON_SIZE = 18;
 
-    /** The four tabs TFC shows (BOOK needs Patchouli and is left out). */
+    /** TFC's five tabs; BOOK (PAR-DATA-20) opens the field guide instead of a page. */
     public enum Tab {
         INVENTORY(0),
         CALENDAR(16),
         NUTRITION(32),
-        CLIMATE(48);
+        CLIMATE(48),
+        BOOK(64);
 
         /** TFC {@code Tab.iconU} in {@code icons.png} (v 0, 16 x 16). */
         public final int iconU;
@@ -76,7 +77,7 @@ public final class TabLayout {
         }
     }
 
-    /** The three pages; INVENTORY is not a page (it closes the screen). */
+    /** The three pages; INVENTORY (closes the screen) and BOOK (opens the field guide) are not pages. */
     public enum Page {
         CALENDAR(Tab.CALENDAR),
         NUTRITION(Tab.NUTRITION),
@@ -141,14 +142,14 @@ public final class TabLayout {
 
     /**
      * The inventory screen's tab column, as TFC places it right of the window: INVENTORY active at x 173 (176 - 3), the
-     * others inactive at x 174, y 4 + 23 * i, each 24 x 22, so the image spans x 173 to 197 and y 4 to 94. It is drawn by
+     * others inactive at x 174, y 4 + 23 * i (BOOK at 96), each 24 x 22, BOOK at y 96 (TFC's Patchouli tab), so the image spans x 173 to 197 and y 4 to 117. It is drawn by
      * CraftEngine's {@code lang} override of {@code container.crafting} in {@code minecraft:default} (the only font a
      * translation keeps), so it is not a {@link GuiImage} of the {@code tfp:gui} font.
      */
     public static final int INVENTORY_TABS_X = 173;
     public static final int INVENTORY_TABS_Y = 4;
     public static final int INVENTORY_TABS_WIDTH = 25;
-    public static final int INVENTORY_TABS_HEIGHT = 91;
+    public static final int INVENTORY_TABS_HEIGHT = 114;
     /** {@code InventoryScreen.titleLabelX}: where the {@code container.crafting} title starts. */
     public static final int INVENTORY_TITLE_X = 97;
     public static final String INVENTORY_TABS = "tfp:gui/inventory_tabs";

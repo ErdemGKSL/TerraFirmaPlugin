@@ -37,6 +37,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -102,6 +103,28 @@ class PlayerTabsMockBukkitTest extends MockServerTest {
         assertThat(top.getItem(Tab.CALENDAR.slot()).getItemMeta().lore()).hasSize(4); // clock, date, days left, season
         assertThat(top.getItem(Tab.NUTRITION.slot()).getItemMeta().hasLore()).isFalse();
         assertThat(s.page().plainLines().getFirst()).isEqualTo("10:30");
+    }
+
+    @Test
+    void theBookTabClosesThePageAndOpensTheFieldGuide() {
+        java.util.List<Player> opened = new java.util.ArrayList<>();
+        org.bukkit.event.HandlerList.unregisterAll(plugin); // setUp's listener has no field guide
+        server.getPluginManager().registerEvents(new TabListener(service, scheduler, messages,
+            () -> Optional.of(opened::add)), plugin);
+        click(TabListener.OUTSIDE, ClickType.LEFT, InventoryAction.NOTHING);
+        TabSession s = open();
+        assertThat(Tab.BOOK.slot()).isEqualTo(31);
+        assertThat(click(Tab.BOOK.slot(), ClickType.LEFT, InventoryAction.PICKUP_ALL).isCancelled()).isTrue();
+        assertThat(s.closed()).isTrue();
+        assertThat(open()).isNull();
+        assertThat(opened).containsExactly(player);
+    }
+
+    @Test
+    void theBookTabWithoutAFieldGuideJustCloses() {
+        click(TabListener.OUTSIDE, ClickType.LEFT, InventoryAction.NOTHING);
+        click(Tab.BOOK.slot(), ClickType.LEFT, InventoryAction.PICKUP_ALL);
+        assertThat(open()).isNull();
     }
 
     @Test
