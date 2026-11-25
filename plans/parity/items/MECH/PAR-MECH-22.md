@@ -36,4 +36,6 @@ done_criteria:
 
 # PAR-MECH-22: Power loom block and in-game check
 
+> Claimed: claude MECH session 011osUpA, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.
