@@ -32,4 +32,6 @@ done_criteria:
 
 # PAR-CLIM-30: Climate fog on vanilla clients
 
+> Claimed: climate-worker, 2026-11-25
+
 Follow-up of PAR-CLIM-14. Follow `plans/parity/PROTOCOL.md`.
