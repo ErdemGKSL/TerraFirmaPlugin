@@ -18,6 +18,7 @@
  *       src/main/java/net/dries007/tfc/common/blocks/{SnowPileBlock,IcePileBlock,SeaIceBlock,IcicleBlock,ThinSpikeBlock}.java
  *       @ c3b4d9536 (vanilla SnowLayerBlock and IceBlock outlines; TIP_SHAPE and PILLAR_SHAPE),
  *       src/main/java/net/dries007/tfc/common/blocks/crop/{CropBlock,Crop}.java @ c3b4d9536 (QUARTER/HALF/FULL_SHAPE, noCollission),
+ *       src/main/java/net/dries007/tfc/common/blocks/rotation/AbstractShaftAxleBlock.java @ c3b4d9536 (SHAPE_X/Y/Z by AXIS),
  *       the getShape / getCollisionShape choices of the block classes named in SPECS @ c3b4d9536
  */
 package dev.tfp.datagen.hitbox;
@@ -570,7 +571,25 @@ public final class TfcShapes {
                     "PRESSURE_PLATE(wood -> new TFCPressurePlateBlock("),
                 shapeAbsent, x -> new Shape[] {outline, Shape.EMPTY}));
         }
+        // PAR-MECH-15: the axle (AbstractShaftAxleBlock.getShape picks SHAPE_X/Y/Z by AXIS; no getCollisionShape, and
+        // ExtendedRotatedPillarBlock overrides neither, so the collision is the outline). One row per axis, shared by every wood.
+        String shaft = B + "rotation/AbstractShaftAxleBlock.java";
+        for (String axis : AXLE_AXES) {
+            String upper = axis.toUpperCase(java.util.Locale.ROOT);
+            s.add(Spec.of(axleKey(axis), "axle", Kind.OBJECT, List.of(shaft, B + "wood/ExtendedRotatedPillarBlock.java"),
+                "SHAPE_" + upper, "same", List.of("case " + upper + " -> SHAPE_" + upper + ";",
+                    "public abstract class AbstractShaftAxleBlock extends ExtendedRotatedPillarBlock"),
+                List.of("getCollisionShape")));
+        }
         return s;
+    }
+
+    /** PAR-MECH-15: TFC {@code RotatedPillarBlock.AXIS}, the axle's axes. */
+    public static final List<String> AXLE_AXES = List.of("x", "y", "z");
+
+    /** PAR-MECH-15: the shared tfc-shapes row of the axle along {@code axis} (every wood). */
+    public static String axleKey(String axis) {
+        return "tfc:wood/axle[axis=" + axis + "]";
     }
 
     static final List<Boolean> BOOLS = List.of(false, true);

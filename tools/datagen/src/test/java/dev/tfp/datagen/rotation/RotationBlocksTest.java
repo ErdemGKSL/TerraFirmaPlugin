@@ -9,12 +9,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.tfp.datagen.OutputTree;
 import dev.tfp.datagen.TfcCheckout;
-import dev.tfp.datagen.hitbox.HitboxCarrier;
+import dev.tfp.datagen.hitbox.HitboxAllocation;
+import dev.tfp.datagen.hitbox.HitboxDemands;
 import dev.tfp.datagen.hitbox.Shape;
 import dev.tfp.datagen.hitbox.TfcShapes;
 import dev.tfp.datagen.rendered.RenderedTemplates;
-import dev.tfp.datagen.visuals.Profile;
-import dev.tfp.datagen.visuals.VersionFamily;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -129,27 +128,29 @@ class RotationBlocksTest {
         assertThat(((Map<String, Object>) faces.get(3)).get("rotation")).isEqualTo(RotationBlocks.rotation(0, 180));
     }
 
-    /** The axle carriers have TFC's shaft outline: the hitbox selector scores each 1.0. */
+    /**
+     * PAR-MECH-15: the axle carriers come from the hitbox allocation (the demands of TFC's shaft outline), hitbox-only and
+     * transparent; the lightning rods that score 1.0 for the shaft keep their vanilla look (a crafted block), so none is used.
+     */
     @Test
     @SuppressWarnings("unchecked")
-    void axleCarriersMatchTheShaft() {
+    void axleCarriersComeFromTheAllocation() {
         Map<String, Shape> shapes = Map.of("x", Shape.box(0, 6, 6, 16, 10, 10), "y", Shape.box(6, 0, 6, 10, 16, 10),
             "z", Shape.box(6, 6, 0, 10, 10, 16));
+        Map<String, TfcShapes.Row> rows = TfcShapes.load();
         for (String axis : List.of("x", "y", "z")) {
-            TfcShapes.Row row = new TfcShapes.Row("tfc:wood/axle/oak[axis=" + axis + "]", "axle", TfcShapes.Kind.OBJECT,
-                shapes.get(axis), shapes.get(axis), true, "AbstractShaftAxleBlock.SHAPE_" + axis.toUpperCase());
-            for (VersionFamily f : VersionFamily.values()) {
-                HitboxCarrier.Choice c = HitboxCarrier.select(new HitboxCarrier.TfcState(row, 0, false), Profile.LEVEL_2, f);
-                String carrier = RotationBlocks.AXLE_CARRIERS.get(axis);
-                assertThat(c.ranked()).as("%s %s", axis, f).anySatisfy(s -> {
-                    assertThat(s.carrier()).isEqualTo(carrier);
-                    assertThat(s.score()).isEqualTo(c.chosen().score());
-                    assertThat(s.hideTarget()).isNull();
-                });
+            TfcShapes.Row row = rows.get(TfcShapes.axleKey(axis));
+            assertThat(row.selection()).as(axis).isEqualTo(shapes.get(axis));
+            assertThat(row.collision()).as(axis).isEqualTo(shapes.get(axis));
+            HitboxAllocation.Assignment a = RotationBlocks.axleCarrier(axis);
+            assertThat(a.demand().blockId()).isEqualTo(HitboxDemands.AXLE_ID);
+            assertThat(a.mode()).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
+            assertThat(a.state()).doesNotStartWith("minecraft:lightning_rod");
+            for (String wood : List.of("oak", "palm", "willow")) {
+                Map<String, Object> app = appearance(block("axle", "tfp:wood/axle/" + wood), axis);
+                assertThat(app.get("state")).isEqualTo(a.state());
+                assertThat(app.get("transparent")).isEqualTo(true);
             }
-            Map<String, Object> app = appearance(block("axle", "tfp:wood/axle/oak"), axis);
-            assertThat(app.get("state")).isEqualTo(RotationBlocks.AXLE_CARRIERS.get(axis));
-            assertThat(app.get("transparent")).isEqualTo(true);
         }
     }
 

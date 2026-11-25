@@ -4969,6 +4969,30 @@
       "selection": [[1, 0, 1, 15, 0.5, 15]],
       "collision": [],
       "from": "TFCPressurePlateBlock.java (ported)"
+    },
+    {
+      "key": "tfc:wood/axle[axis=x]",
+      "class": "axle",
+      "kind": "object",
+      "selection": [[0, 6, 6, 16, 10, 10]],
+      "collision": [[0, 6, 6, 16, 10, 10]],
+      "from": "AbstractShaftAxleBlock.java SHAPE_X / same"
+    },
+    {
+      "key": "tfc:wood/axle[axis=y]",
+      "class": "axle",
+      "kind": "object",
+      "selection": [[6, 0, 6, 10, 16, 10]],
+      "collision": [[6, 0, 6, 10, 16, 10]],
+      "from": "AbstractShaftAxleBlock.java SHAPE_Y / same"
+    },
+    {
+      "key": "tfc:wood/axle[axis=z]",
+      "class": "axle",
+      "kind": "object",
+      "selection": [[6, 6, 0, 10, 10, 16]],
+      "collision": [[6, 6, 0, 10, 10, 16]],
+      "from": "AbstractShaftAxleBlock.java SHAPE_Z / same"
     }
   ]
 }

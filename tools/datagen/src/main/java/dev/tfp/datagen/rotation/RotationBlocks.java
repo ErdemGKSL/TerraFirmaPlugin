@@ -24,6 +24,8 @@ import dev.tfp.datagen.device.DeviceLoot;
 import dev.tfp.datagen.device.DeviceProperty;
 import dev.tfp.datagen.device.DeviceSound;
 import dev.tfp.datagen.device.DeviceYaml;
+import dev.tfp.datagen.hitbox.HitboxAllocation;
+import dev.tfp.datagen.hitbox.HitboxDemands;
 import dev.tfp.datagen.rendered.RenderedCubeSpec;
 import dev.tfp.datagen.rendered.RenderedTemplates;
 import java.math.BigDecimal;
@@ -53,8 +55,8 @@ import java.util.regex.Pattern;
  *       pitch, the {@code destroy_stages} cracks and the break particles), with {@code states} in place of the template's one
  *       {@code state}: CraftEngine templates cannot drop a key, so the entry is written expanded. Each state's barrier
  *       carrier is drawn by item displays of TFC's models, turned as TFC's blockstate turns them ({@link #rotation}).</li>
- *   <li>The axle is TFC's 4x4 shaft drawn by one item display on a transparent {@code minecraft:lightning_rod} carrier of the
- *       same outline (the hitbox selector's first choice for the shaft, score 1.0; {@link #AXLE_CARRIERS}).</li>
+ *   <li>The axle is TFC's 4x4 shaft drawn by one item display on a transparent carrier from the hitbox allocation
+ *       ({@link #axleCarrier}, PAR-MECH-15).</li>
  * </ul>
  * TFC's models (renamed under {@code tfp:block/rotation/}), the textures they name, TFC's item models and the block names
  * ({@code assets/tfp_rotation/lang/}) are written beside the entries.
@@ -77,13 +79,23 @@ public final class RotationBlocks {
     /** TFC {@code GearBoxBlock.createBlockStateDefinition}: {@code builder.add(UP, DOWN, NORTH, SOUTH, EAST, WEST)}. */
     public static final List<String> FACES = List.of("up", "down", "north", "south", "east", "west");
     /**
-     * The axle carriers: lightning rods with TFC's shaft outline ({@code AbstractShaftAxleBlock.SHAPE_X/Y/Z}), unpowered and
-     * dry. {@code facing=down} is left to the rock spike tip, which the selector gives the down rod.
+     * PAR-MECH-15: the axle's carrier along {@code axis}, from the hitbox allocation ({@code HitboxDemands.AXLE_ID}, TFC's
+     * shaft outline {@code AbstractShaftAxleBlock.SHAPE_X/Y/Z}); every wood shares it. The best-scoring states, the
+     * lightning rods, keep their vanilla look (a crafted block, PAR-CLIM-27), so the shaft is hitbox-only on the best free
+     * transparent carrier (ledger divergence).
      */
-    public static final Map<String, String> AXLE_CARRIERS = Map.of(
-        "x", "minecraft:lightning_rod[facing=east,powered=false,waterlogged=false]",
-        "y", "minecraft:lightning_rod[facing=up,powered=false,waterlogged=false]",
-        "z", "minecraft:lightning_rod[facing=south,powered=false,waterlogged=false]");
+    public static HitboxAllocation.Assignment axleCarrier(String axis) {
+        HitboxAllocation.Assignment a = HitboxAllocation.agreed(HitboxDemands.AXLE_ID, axis);
+        if (a.mode() != HitboxAllocation.Mode.HITBOX_ONLY) {
+            throw new DatagenException("axle " + axis + " got a " + a.mode() + " carrier; RotationBlocks draws an item display");
+        }
+        if (a.hideTarget() != null) {
+            throw new DatagenException("axle carrier " + a.state() + " needs a hide mapping to " + a.hideTarget()
+                + " (emit it once for the 20 axle blocks)");
+        }
+        return a;
+    }
+
     /** TFC's AXLE registration ({@code noOcclusion().strength(2.5F)}). */
     private static final Pattern WOOD_TYPE = Pattern.compile(
         "\\n\\s*([A-Z_]+)\\(\\(self, wood\\) -> new (\\w+)\\(properties\\(wood\\)([^;]*?)\\.blockEntity\\(TFCBlockEntities\\.([A-Z_]+)\\)");
@@ -217,7 +229,7 @@ public final class RotationBlocks {
                         case "y" -> new int[] {90, 0};
                         default -> new int[] {0, 0};
                     };
-                    b.appearance(DeviceAppearance.rendered(axis, DeviceAppearance.Carrier.state(AXLE_CARRIERS.get(axis)),
+                    b.appearance(DeviceAppearance.rendered(axis, DeviceAppearance.Carrier.state(axleCarrier(axis).state()),
                         List.of(DeviceAppearance.Renderer.item(renderItem(model)).rotated(rotation(xy[0], xy[1])))));
                 }
                 b.everyState(s -> s.get("axis"), null);

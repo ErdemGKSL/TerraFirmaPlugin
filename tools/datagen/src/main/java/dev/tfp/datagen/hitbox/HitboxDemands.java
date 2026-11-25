@@ -632,8 +632,18 @@ public final class HitboxDemands {
             d.add(new Demand(growingPlantId(name), GROWING_PLANT_PATTERN, TfcShapes.GROWING_PLANT_KEY, 0,
                 HitboxAllocation.TRANSPARENT, true, GROWING_PLANT_WEIGHT));
         }
+        // PAR-MECH-15: the axle shaft per axis (every wood shares one carrier per axis), hitbox-only; the look is the spinning
+        // shaft display (RotationBlocks).
+        for (String axis : TfcShapes.AXLE_AXES) {
+            d.add(new Demand(AXLE_ID, axis, TfcShapes.axleKey(axis), 0, HitboxAllocation.TRANSPARENT, true, AXLE_WEIGHT));
+        }
         return d;
     }
+
+    /** PAR-MECH-15: the demand block of the axles ({@code tfp:wood/axle/<wood>} share it); appearances are the axes. */
+    public static final String AXLE_ID = "tfp:wood/axle";
+    /** PAR-MECH-15: served after every other demand (adding the axles moves no carrier of another block). */
+    static final int AXLE_WEIGHT = -22;
 
     /** PAR-WORLD-44: TFC's {@code Wood.BlockType} wood plant kinds, as block id folders ({@code tfp:wood/<kind>/<wood>}). */
     public static final String SAPLING = "sapling";
