@@ -299,7 +299,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-01 | Alloy display and fluid alloy glue for vessels and crucibles | METAL | 27 | done |
 | PAR-POT-12 | Jug fluid overlay and the four glass bottle items | POTTERY | 27 | open |
 | PAR-POT-08 | Drying bricks, mud bricks and thatch blocks | POTTERY | 27 | open |
-| PAR-POT-09 | Bowls and powder bowls (wooden and ceramic bowl blocks) | POTTERY | 27 | open |
+| PAR-POT-09 | Bowls and powder bowls (wooden and ceramic bowl blocks) | POTTERY | 27 | done |
 | PAR-CLIM-11 | Climate in worlds without the TFC generator: biome-based climate model for the Nether, the End and vanilla worlds (temperature, rainfall, consumers) | CLIMATE | 27 | done |
 | PAR-SURV-13 | Intoxication in-game verification: beer from a jug, drunk chat | SURV | 27 | open |
 | PAR-WORLD-45 | Place CE hardened rock and per-rock magma in the volcanic features; TFC magma behaviour on the CE magma block | WORLD | 27 | done |
@@ -502,3 +502,4 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-57 | In-game verification of PAR-WORLD-31, PAR-WORLD-32 and PAR-WORLD-42: groundcover, boulders and cave rocks in a fresh world; the remaining soil blocks | WORLD | 24 | open |
 | PAR-DECO-21 | Metal bars and chains (follow-up of PAR-DECO-09) | DECO | 49 | open |
 | PAR-FAUNA-33 | 200-animal load: spread the path starts of the livestock and prey goals (single-call spikes) (follow-up of PAR-FAUNA-28) | FAUNA | 56 | open |
+| PAR-POT-15 | Bowl automation: hoppers fill and empty powder bowls, the powder layer follows (follow-up of PAR-POT-09) | POTTERY | 28 | open |

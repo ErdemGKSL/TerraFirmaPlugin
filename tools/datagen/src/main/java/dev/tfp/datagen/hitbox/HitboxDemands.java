@@ -65,6 +65,15 @@ public final class HitboxDemands {
         };
     }
 
+    /** PAR-POT-09: the wooden and ceramic bowl blocks and their models (TFC {@code block/wooden_bowl}, {@code block/ceramic/bowl}). */
+    public static final String CERAMIC_BOWL_ID = "tfp:ceramic/bowl";
+    public static final String WOODEN_BOWL_ID = "tfp:wooden_bowl";
+    public static final String BOWL_APPEARANCE = "bowl";
+    public static final String CERAMIC_BOWL_MODEL = "tfp:block/ceramic/bowl";
+    public static final String WOODEN_BOWL_MODEL = "tfp:block/wooden_bowl";
+    /** PAR-POT-09: served after every other demand, so adding the bowls moves no carrier of another block. */
+    static final int BOWL_WEIGHT = -27;
+
     /** PAR-METAL-14: the bloomery, the bloom and the molten stack block. */
     public static final String BLOOMERY_ID = "tfp:bloomery";
     public static final String BLOOM_ID = "tfp:bloom";
@@ -683,6 +692,9 @@ public final class HitboxDemands {
                     BELL_WEIGHT));
             }
         }
+        // PAR-POT-09: both bowls draw TFC's 12x3x12 shape (one row, the ceramic bowl's) with their own model.
+        d.add(new Demand(CERAMIC_BOWL_ID, BOWL_APPEARANCE, "tfc:ceramic/bowl", 0, CERAMIC_BOWL_MODEL, true, BOWL_WEIGHT));
+        d.add(new Demand(WOODEN_BOWL_ID, BOWL_APPEARANCE, "tfc:ceramic/bowl", 0, WOODEN_BOWL_MODEL, true, BOWL_WEIGHT));
         // PAR-METAL-14: the bloomery (a facing and open outline each), the bloom (a layer each) and the molten stack block
         // (TFC's 4 px layers: the bloom rows of 2, 4, 6 and 8 layers), hitbox-only; the look is item displays (BloomeryBlocks).
         for (String f : FACINGS) {
