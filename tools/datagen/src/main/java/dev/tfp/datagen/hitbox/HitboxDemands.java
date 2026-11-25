@@ -987,6 +987,23 @@ public final class HitboxDemands {
         }
         GROUNDCOVER_TYPES.forEach((type, shape) -> d.add(new Demand(groundcoverId(type), GROUNDCOVER_APPEARANCE,
             groundcoverKey(shape), 0, groundcoverModel(GROUNDCOVER_LOOKS.getOrDefault(type, type)), true, GROUNDCOVER_WEIGHT)));
+        // PAR-WORLD-58 (owner decision 2026-11-25): the same blocks in water (TFC's fluid water or salt water), hitbox-only
+        // on waterlogged carriers of their outline (the selector refuses dry ones; the closed bottom iron trapdoors, whose
+        // 3 px collision TFC does not have: ledger divergence), the look TFC's model as an item display
+        for (String rock : LOOSE_ROCKS) {
+            for (String kind : LOOSE_KINDS) {
+                for (int count = 1; count <= LOOSE_MAX; count++) {
+                    d.add(new Demand(looseRockId(kind, rock), wet(looseAppearance(count)), TfcShapes.wetKey(looseKey(count)), 0,
+                        HitboxAllocation.TRANSPARENT, true, GROUNDCOVER_WET_WEIGHT));
+                }
+            }
+        }
+        for (String ore : SMALL_ORES) {
+            d.add(new Demand(smallOreId(ore), wet(GROUNDCOVER_APPEARANCE), TfcShapes.wetKey(SMALL_ORE_KEY), 0,
+                HitboxAllocation.TRANSPARENT, true, GROUNDCOVER_WET_WEIGHT));
+        }
+        GROUNDCOVER_TYPES.forEach((type, shape) -> d.add(new Demand(groundcoverId(type), wet(GROUNDCOVER_APPEARANCE),
+            TfcShapes.wetKey(groundcoverKey(shape)), 0, HitboxAllocation.TRANSPARENT, true, GROUNDCOVER_WET_WEIGHT)));
         // PAR-WORLD-42: the grass path of every soil (TFC PathBlock: 16 x 15 x 16, the farmland outline), TFC's per-soil model
         // on a carrier of that outline where one is free, else hitbox-only (SoilExtraBlocks)
         for (String soil : SOILS) {
@@ -1388,6 +1405,13 @@ public final class HitboxDemands {
 
     /** PAR-WORLD-31: served after every other demand (adding the groundcover moves no carrier of another block). */
     static final int GROUNDCOVER_WEIGHT = -15;
+    /** PAR-WORLD-58: the wet groundcover after every dry demand (adding it moves no carrier of another block). */
+    static final int GROUNDCOVER_WET_WEIGHT = -17;
+
+    /** PAR-WORLD-58: the appearance of a groundcover block in water ({@code count_1_wet}, {@code base_wet}). */
+    public static String wet(String appearance) {
+        return appearance + "_wet";
+    }
 
     private static java.util.Map<String, String> groundcoverTypes() {
         java.util.Map<String, String> m = new java.util.LinkedHashMap<>();

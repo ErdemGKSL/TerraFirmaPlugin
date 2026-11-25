@@ -72,7 +72,7 @@ public final class HitboxCarrier {
 
     /**
      * The TFC side of a selection: its shape row, the light it emits, whether it is waterlogged (a row key with
-     * {@code waterlogged=true}) and its vanilla twin, or null.
+     * {@code waterlogged=true}, or PAR-WORLD-58 a {@code fluid} other than {@code empty}) and its vanilla twin, or null.
      *
      * <p>PAR-HEAT-26: a <b>twin</b> is the vanilla block whose own models, light and client particles TFC's block reuses
      * (TFC's candles extend vanilla {@code CandleBlock} and their blockstates draw {@code minecraft:block/<colour>_candle_*};
@@ -90,7 +90,10 @@ public final class HitboxCarrier {
             if (r == null) {
                 throw new DatagenException("hitbox/tfc-shapes.json has no row " + key);
             }
-            return new TfcState(r, 0, "true".equals(r.properties().get("waterlogged")), null);
+            // PAR-WORLD-58: TFC's fluid property (groundcover, loose rocks, small ores) holding water is waterlogged too
+            String fluid = r.properties().get("fluid");
+            return new TfcState(r, 0, "true".equals(r.properties().get("waterlogged")) || fluid != null && !fluid.equals("empty"),
+                null);
         }
 
         public TfcState withLight(int l) {
@@ -313,6 +316,10 @@ public final class HitboxCarrier {
             }
             if (twin && !s.flag("fluid") && tfc.waterlogged()) {
                 return "dry (TFC is waterlogged; the twin's own waterlogged state draws the water)";
+            }
+            if (!twin && !s.flag("fluid") && tfc.waterlogged()) {
+                // PAR-WORLD-58: a dry carrier would draw an air pocket in the water around the block
+                return "dry (TFC is waterlogged; only a waterlogged carrier draws the water)";
             }
             if (s.flag("random_offset")) {
                 return "random offset: the outline moves per position";

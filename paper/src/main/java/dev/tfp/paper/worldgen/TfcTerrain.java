@@ -784,17 +784,23 @@ final class TfcTerrain {
 
     /**
      * PAR-WORLD-32: the block of a groundcover decision: its CraftEngine block (PAR-WORLD-31) when loaded, else the vanilla
-     * placeholder. A waterlogged decision keeps the waterloggable placeholder: the CraftEngine groundcover has no fluid state
-     * yet (PAR-WORLD-58).
+     * placeholder. PAR-WORLD-58: a waterlogged decision writes the CraftEngine block with TFC's {@code fluid=water} (salt
+     * water is written as water: CraftEngine has one water fluid state, ledger divergence).
      */
     private BlockData coverData(Groundcover cover) {
-        if (!cover.waterlogged()) {
-            final BlockData custom = customBlockData(GroundcoverBlocks.ceId(cover));
-            if (custom != null) {
-                return custom;
-            }
+        final BlockData custom = customBlockData(withFluid(GroundcoverBlocks.ceId(cover), cover.waterlogged()));
+        if (custom != null) {
+            return custom;
         }
         return placeholderData(GroundcoverBlocks.placeholder(cover.kind(), cover.waterlogged()), cover.waterlogged());
+    }
+
+    /** PAR-WORLD-58: a groundcover CE state with {@code fluid=water} added when {@code water}. */
+    static String withFluid(String ref, boolean water) {
+        if (!water) {
+            return ref;
+        }
+        return ref.endsWith("]") ? ref.substring(0, ref.length() - 1) + ",fluid=water]" : ref + "[fluid=water]";
     }
 
     /** PAR-WORLD-32: a boulder block: the CraftEngine rock block, else the palette's raw rock or vanilla (mossy) cobblestone. */

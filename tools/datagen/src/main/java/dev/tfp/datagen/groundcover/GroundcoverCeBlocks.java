@@ -120,6 +120,21 @@ public final class GroundcoverCeBlocks {
     }
 
     /**
+     * PAR-WORLD-58: the variant of one {@code fluid} value: the dry appearance when empty, else the waterlogged one with
+     * CraftEngine's water fluid state (CE knows only water: salt water draws and flows as fresh water, ledger divergence).
+     */
+    static Map<String, Object> variant(String appearance, String fluid) {
+        Map<String, Object> v = new LinkedHashMap<>();
+        if (fluid.equals("empty")) {
+            v.put("appearance", appearance);
+            return v;
+        }
+        v.put("appearance", HitboxDemands.wet(appearance));
+        v.put("settings", Map.of("fluid_state", "water"));
+        return v;
+    }
+
+    /**
      * TFC {@code canSurvive}: the block below must be sturdy on its top face (a loose rock of count 1 needs a centre
      * support, two or three a full one; ours takes either for every count, ledger divergence).
      */
@@ -431,9 +446,11 @@ public final class GroundcoverCeBlocks {
             Map<String, Object> variants = new LinkedHashMap<>();
             for (int count = 1; count <= HitboxDemands.LOOSE_MAX; count++) {
                 String name = HitboxDemands.looseAppearance(count);
-                appearances.put(name, appearance(root, id, name, models(bs, BLOCKSTATES + path + ".json", "count=" + count)));
+                List<Map<String, Object>> models = models(bs, BLOCKSTATES + path + ".json", "count=" + count);
+                appearances.put(name, appearance(root, id, name, models));
+                appearances.put(HitboxDemands.wet(name), appearance(root, id, HitboxDemands.wet(name), models));
                 for (String fluid : FLUIDS) {
-                    variants.put("count=" + count + ",fluid=" + fluid, Map.of("appearance", name));
+                    variants.put("count=" + count + ",fluid=" + fluid, variant(name, fluid));
                 }
             }
             Map<String, Object> st = new LinkedHashMap<>();
@@ -460,12 +477,16 @@ public final class GroundcoverCeBlocks {
             entry.put("settings", settings(sound));
             Map<String, Object> variants = new LinkedHashMap<>();
             for (String fluid : FLUIDS) {
-                variants.put("fluid=" + fluid, Map.of("appearance", HitboxDemands.GROUNDCOVER_APPEARANCE));
+                variants.put("fluid=" + fluid, variant(HitboxDemands.GROUNDCOVER_APPEARANCE, fluid));
             }
             Map<String, Object> st = new LinkedHashMap<>();
             st.put("properties", Map.of("fluid", fluidProperty()));
-            st.put("appearances", Map.of(HitboxDemands.GROUNDCOVER_APPEARANCE,
-                appearance(root, id, HitboxDemands.GROUNDCOVER_APPEARANCE, models(bs, BLOCKSTATES + path + ".json", ""))));
+            List<Map<String, Object>> models = models(bs, BLOCKSTATES + path + ".json", "");
+            Map<String, Object> appearances = new LinkedHashMap<>();
+            appearances.put(HitboxDemands.GROUNDCOVER_APPEARANCE, appearance(root, id, HitboxDemands.GROUNDCOVER_APPEARANCE, models));
+            String wet = HitboxDemands.wet(HitboxDemands.GROUNDCOVER_APPEARANCE);
+            appearances.put(wet, appearance(root, id, wet, models));
+            st.put("appearances", appearances);
             st.put("variants", variants);
             entry.put("behavior", support(false));
             entry.put("states", st);

@@ -272,19 +272,34 @@ public final class TfcShapes {
         String rock = B + "rock/Rock.java";
         String looseNoCollision = "LOOSE((rock, self) -> new LooseRockBlock(properties(rock).strength(0.05f, 0.0f).noCollission()), false),";
         String[] counts = {"ONE", "TWO", "THREE"};
+        String cover = B + "GroundcoverBlock.java";
+        // PAR-WORLD-58: GroundcoverBlock.FLUID (empty, water, salt water; LooseRockBlock extends GroundcoverBlock): the same
+        // outline in water, a row of its own so the selector serves it with a waterlogged carrier
+        String fluidNeedle = "public static final FluidProperty FLUID = TFCBlockStateProperties.WATER;";
         for (int n = 1; n <= 3; n++) {
             s.add(Spec.of("tfc:rock/loose[count=" + n + "]", "loose_rock_" + n, Kind.GROUND, List.of(loose, rock), counts[n - 1],
                 "Shapes.empty()", List.of("case " + n + " -> " + counts[n - 1] + ";", looseNoCollision), List.of()));
+            s.add(Spec.of(wetKey("tfc:rock/loose[count=" + n + "]"), "loose_rock_" + n, Kind.GROUND, List.of(loose, rock, cover),
+                counts[n - 1], "Shapes.empty()", List.of("case " + n + " -> " + counts[n - 1] + ";", looseNoCollision,
+                    "public class LooseRockBlock extends GroundcoverBlock", fluidNeedle), List.of()));
         }
-        String cover = B + "GroundcoverBlock.java";
         String blocks = B + "TFCBlocks.java";
-        s.add(Spec.of("tfc:ore/small", "small_ore", Kind.GROUND, List.of(cover, blocks), "SMALL", "Shapes.empty()",
-            List.of("return new GroundcoverBlock(ExtendedProperties.of(properties), SMALL);", "GroundcoverBlock.looseOre(Properties.of()",
-                ".sound(SoundType.NETHER_ORE).noCollission()"), List.of()));
+        List<String> oreNeedles = List.of("return new GroundcoverBlock(ExtendedProperties.of(properties), SMALL);",
+            "GroundcoverBlock.looseOre(Properties.of()", ".sound(SoundType.NETHER_ORE).noCollission()");
+        s.add(Spec.of("tfc:ore/small", "small_ore", Kind.GROUND, List.of(cover, blocks), "SMALL", "Shapes.empty()", oreNeedles,
+            List.of()));
+        List<String> wetOreNeedles = new ArrayList<>(oreNeedles);
+        wetOreNeedles.add(fluidNeedle);
+        s.add(Spec.of(wetKey("tfc:ore/small"), "small_ore", Kind.GROUND, List.of(cover, blocks), "SMALL", "Shapes.empty()",
+            wetOreNeedles, List.of()));
         for (String shape : List.of("small", "medium", "flat", "pixel_high", "twig")) {
-            s.add(Spec.of("tfc:groundcover[shape=" + shape + "]", "groundcover_" + shape, Kind.GROUND, List.of(cover),
-                shape.toUpperCase(java.util.Locale.ROOT), "Shapes.empty()",
-                List.of(".sound(SoundType.NETHER_WART).noCollission()", "return shape;"), List.of("getCollisionShape")));
+            for (boolean wet : List.of(false, true)) {
+                String key = "tfc:groundcover[shape=" + shape + "]";
+                s.add(Spec.of(wet ? wetKey(key) : key, "groundcover_" + shape, Kind.GROUND, List.of(cover),
+                    shape.toUpperCase(java.util.Locale.ROOT), "Shapes.empty()",
+                    wet ? List.of(".sound(SoundType.NETHER_WART).noCollission()", "return shape;", fluidNeedle)
+                        : List.of(".sound(SoundType.NETHER_WART).noCollission()", "return shape;"), List.of("getCollisionShape")));
+            }
         }
         String placed = D + "PlacedItemBlock.java";
         for (int mask = 0; mask < 16; mask++) {
@@ -1383,6 +1398,14 @@ public final class TfcShapes {
      * on the half row ({@link HitboxDemands#cropDemandKey}, ledger divergence).
      */
     public static final List<String> CROP_ROWS = List.of("quarter", "half");
+
+    /**
+     * PAR-WORLD-58: the row of a groundcover, loose rock or small ore state in water: TFC's {@code fluid} set to
+     * {@code water} ({@code tfc:ore/small[fluid=water]}). Salt water has the same outline and shares the row.
+     */
+    public static String wetKey(String key) {
+        return key.endsWith("]") ? key.substring(0, key.length() - 1) + ",fluid=water]" : key + "[fluid=water]";
+    }
 
     public static String cropKey(String shape) {
         return "tfc:crop[shape=" + shape + "]";

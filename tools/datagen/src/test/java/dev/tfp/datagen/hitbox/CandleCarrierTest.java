@@ -128,6 +128,11 @@ class CandleCarrierTest {
             Result before = HitboxAllocation.allocate(without, Profile.defaultFor(f), f, HitboxCarrier.standardContext());
             Result after = HitboxAllocation.standard().get(f.id() + "/" + Profile.defaultFor(f).id());
             for (Assignment a : before.assignments()) {
+                if (a.demand().tfcKey().contains("fluid=water")) {
+                    // PAR-WORLD-58: the wet groundcover (served last, hitbox-only) takes the waterlogged candles while no
+                    // candle claims them; with the candles it falls to the waterlogged iron trapdoors (owner decision)
+                    continue;
+                }
                 Assignment b = after.get(a.demand().blockId(), a.demand().appearance());
                 assertThat(b.state()).as(f.id() + " " + a.demand().id()).isEqualTo(a.state());
                 assertThat(b.mode()).isEqualTo(a.mode());

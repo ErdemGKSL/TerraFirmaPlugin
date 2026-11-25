@@ -755,7 +755,23 @@
       "from": "LooseRockBlock.java ONE / Shapes.empty()"
     },
     {
+      "key": "tfc:rock/loose[count=1,fluid=water]",
+      "class": "loose_rock_1",
+      "kind": "ground",
+      "selection": [[5, 0, 5, 11, 2, 11]],
+      "collision": [],
+      "from": "LooseRockBlock.java ONE / Shapes.empty()"
+    },
+    {
       "key": "tfc:rock/loose[count=2]",
+      "class": "loose_rock_2",
+      "kind": "ground",
+      "selection": [[2, 0, 2, 14, 2, 14]],
+      "collision": [],
+      "from": "LooseRockBlock.java TWO / Shapes.empty()"
+    },
+    {
+      "key": "tfc:rock/loose[count=2,fluid=water]",
       "class": "loose_rock_2",
       "kind": "ground",
       "selection": [[2, 0, 2, 14, 2, 14]],
@@ -771,7 +787,23 @@
       "from": "LooseRockBlock.java THREE / Shapes.empty()"
     },
     {
+      "key": "tfc:rock/loose[count=3,fluid=water]",
+      "class": "loose_rock_3",
+      "kind": "ground",
+      "selection": [[5, 0, 5, 11, 4, 11]],
+      "collision": [],
+      "from": "LooseRockBlock.java THREE / Shapes.empty()"
+    },
+    {
       "key": "tfc:ore/small",
+      "class": "small_ore",
+      "kind": "ground",
+      "selection": [[5, 0, 5, 11, 2, 11]],
+      "collision": [],
+      "from": "GroundcoverBlock.java SMALL / Shapes.empty()"
+    },
+    {
+      "key": "tfc:ore/small[fluid=water]",
       "class": "small_ore",
       "kind": "ground",
       "selection": [[5, 0, 5, 11, 2, 11]],
@@ -787,7 +819,23 @@
       "from": "GroundcoverBlock.java SMALL / Shapes.empty()"
     },
     {
+      "key": "tfc:groundcover[shape=small,fluid=water]",
+      "class": "groundcover_small",
+      "kind": "ground",
+      "selection": [[5, 0, 5, 11, 2, 11]],
+      "collision": [],
+      "from": "GroundcoverBlock.java SMALL / Shapes.empty()"
+    },
+    {
       "key": "tfc:groundcover[shape=medium]",
+      "class": "groundcover_medium",
+      "kind": "ground",
+      "selection": [[5, 0, 5, 11, 4, 11]],
+      "collision": [],
+      "from": "GroundcoverBlock.java MEDIUM / Shapes.empty()"
+    },
+    {
+      "key": "tfc:groundcover[shape=medium,fluid=water]",
       "class": "groundcover_medium",
       "kind": "ground",
       "selection": [[5, 0, 5, 11, 4, 11]],
@@ -803,6 +851,14 @@
       "from": "GroundcoverBlock.java FLAT / Shapes.empty()"
     },
     {
+      "key": "tfc:groundcover[shape=flat,fluid=water]",
+      "class": "groundcover_flat",
+      "kind": "ground",
+      "selection": [[2, 0, 2, 14, 2, 14]],
+      "collision": [],
+      "from": "GroundcoverBlock.java FLAT / Shapes.empty()"
+    },
+    {
       "key": "tfc:groundcover[shape=pixel_high]",
       "class": "groundcover_pixel_high",
       "kind": "ground",
@@ -811,7 +867,23 @@
       "from": "GroundcoverBlock.java PIXEL_HIGH / Shapes.empty()"
     },
     {
+      "key": "tfc:groundcover[shape=pixel_high,fluid=water]",
+      "class": "groundcover_pixel_high",
+      "kind": "ground",
+      "selection": [[0, 0, 0, 16, 1, 16]],
+      "collision": [],
+      "from": "GroundcoverBlock.java PIXEL_HIGH / Shapes.empty()"
+    },
+    {
       "key": "tfc:groundcover[shape=twig]",
+      "class": "groundcover_twig",
+      "kind": "ground",
+      "selection": [[2, 0, 2, 14, 2, 14]],
+      "collision": [],
+      "from": "GroundcoverBlock.java TWIG / Shapes.empty()"
+    },
+    {
+      "key": "tfc:groundcover[shape=twig,fluid=water]",
       "class": "groundcover_twig",
       "kind": "ground",
       "selection": [[2, 0, 2, 14, 2, 14]],

@@ -62,7 +62,8 @@ class GroundcoverCeBlocksTest {
         assertThat(counts.blocks()).isEqualTo(42 + 12 + 17);
         assertThat(counts.states()).isEqualTo((42 * 3 + 12 + 17) * 3); // PAR-GATHER-12: x the fluid property (empty, water, salt water)
         // each appearance is drawn once per version family
-        assertThat(counts.modelCarriers() + counts.hitboxOnly()).isEqualTo(2 * (42 * 3 + 12 + 17));
+        // PAR-WORLD-58: and once more in water
+        assertThat(counts.modelCarriers() + counts.hitboxOnly()).isEqualTo(2 * 2 * (42 * 3 + 12 + 17));
     }
 
     @Test
@@ -139,6 +140,44 @@ class GroundcoverCeBlocksTest {
         long demands = HitboxDemands.all().stream().filter(d -> d.blockId().startsWith("tfp:rock/loose/")
             || d.blockId().startsWith("tfp:rock/mossy_loose/") || d.blockId().startsWith("tfp:ore/small_")
             || d.blockId().startsWith("tfp:groundcover/")).count();
-        assertThat(demands).isEqualTo(42 * 3 + 12 + 17);
+        assertThat(demands).isEqualTo(2 * (42 * 3 + 12 + 17)); // PAR-WORLD-58: dry and wet
+    }
+
+    /** PAR-WORLD-58: every block has a wet appearance on a waterlogged carrier for fluid=water and salt_water. */
+    @Test
+    @SuppressWarnings("unchecked")
+    void waterVariantsTakeWaterloggedCarriers() {
+        int checked = 0;
+        for (String file : List.of(GroundcoverCeBlocks.LOOSE_OUTPUT, GroundcoverCeBlocks.SMALL_ORE_OUTPUT,
+                GroundcoverCeBlocks.GROUNDCOVER_OUTPUT)) {
+            for (Map.Entry<String, Object> b : blocks(file).entrySet()) {
+                String id = b.getKey();
+                Map<String, Object> states = (Map<String, Object>) ((Map<String, Object>) b.getValue()).get("states");
+                Map<String, Object> apps = (Map<String, Object>) states.get("appearances");
+                for (Map.Entry<String, Object> v : ((Map<String, Object>) states.get("variants")).entrySet()) {
+                    Map<String, Object> variant = (Map<String, Object>) v.getValue();
+                    String app = (String) variant.get("appearance");
+                    boolean wet = !v.getKey().endsWith("fluid=empty");
+                    assertThat(app.endsWith("_wet")).as(id + " " + v.getKey()).isEqualTo(wet);
+                    assertThat(apps).as(id).containsKey(app);
+                    if (wet) {
+                        assertThat(variant.get("settings")).as(id).isEqualTo(Map.of("fluid_state", "water"));
+                        for (VersionFamily f : VersionFamily.values()) {
+                            HitboxAllocation.Assignment a = GroundcoverCeBlocks.agreed(id, app, f);
+                            assertThat(a.state()).as(id + " " + app + " " + f).contains("waterlogged=true");
+                            assertThat(a.mode()).as(id).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
+                            checked++;
+                        }
+                    } else {
+                        assertThat(variant).as(id).doesNotContainKey("settings");
+                        for (VersionFamily f : VersionFamily.values()) {
+                            assertThat(GroundcoverCeBlocks.agreed(id, app, f).state()).as(id).doesNotContain("waterlogged=true");
+                        }
+                    }
+                }
+            }
+        }
+        // two wet fluids per appearance, two families
+        assertThat(checked).isEqualTo(2 * 2 * (42 * 3 + 12 + 17));
     }
 }
