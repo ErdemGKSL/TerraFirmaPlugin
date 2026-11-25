@@ -136,7 +136,7 @@ class ChannelBlocksTest {
             "models/block/channel_connection.json", "models/block/channel_stop.json", "models/block/mold_table_base.json",
             "models/block/mold_table_stop.json", "models/block/channel_flow_center.json", "models/block/channel_flow_arm.json",
             "models/block/channel_flow_fall.json", "models/item/channel.json", "models/item/mold_table.json",
-            "textures/block/crucible_like.png", "textures/block/crucible_top_like.png", "textures/block/molten_still.png"}) {
+            "textures/block/crucible_like.png", "textures/block/crucible_top_like.png", "textures/block/channel_molten.png"}) {
             assertThat(out.get(ChannelBlocks.RP + f)).as(f).isNotNull();
         }
         assertThat(new String(out.get(ChannelBlocks.RP + "models/block/mold_table_base.json"), StandardCharsets.UTF_8))

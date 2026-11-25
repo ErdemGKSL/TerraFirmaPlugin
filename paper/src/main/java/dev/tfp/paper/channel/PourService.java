@@ -86,6 +86,7 @@ final class PourService {
     private final LongSupplier clock;
     private final Logger logger;
     private final Set<Key> active = ConcurrentHashMap.newKeySet();
+    private final Set<Key> settling = ConcurrentHashMap.newKeySet();
     private final Map<Key, Scheduler.TaskHandle> handles = new ConcurrentHashMap<>();
     private volatile boolean running = true;
 
@@ -108,6 +109,7 @@ final class PourService {
 
     void stop() {
         running = false;
+        settling.clear();
         handles.values().forEach(Scheduler.TaskHandle::cancel);
         handles.clear();
         active.clear();
@@ -401,6 +403,55 @@ final class PourService {
 
     // ---- finish and break ----------------------------------------------------------------------------------
 
+    // ---- settle -----------------------------------------------------------------------------------------
+
+    /** A molten mold on a table is watched every second until it solidifies, so its casting appears without an access. */
+    static final long SETTLE_PERIOD = 20;
+
+    /**
+     * TFC's {@code serverTick} turns a solid mold into its casting every tick; here the table's catch-up does it on the next
+     * access, and this short chain of region tasks makes that access while the mold is still molten (one task a second per
+     * hot mold; nothing for a cold table). Owner thread of {@code table}.
+     */
+    void settle(Block table) {
+        if (!running || !settling.add(Key.of(table))) {
+            return;
+        }
+        scheduleSettle(table);
+    }
+
+    private void scheduleSettle(Block table) {
+        Key key = Key.of(table);
+        world.scheduler().regionDelayed(table.getWorld(), table.getX() >> 4, table.getZ() >> 4, SETTLE_PERIOD, () -> {
+            if (!running) {
+                return;
+            }
+            boolean again = false;
+            try {
+                Optional<DeviceRecord<MoldTableData>> record = world.tableRecord(table);
+                if (record.isPresent()) {
+                    ItemStack mold = stacks.decode(record.get().slot(MoldTableRules.MOLD_SLOT));
+                    MoldTableDisplays.sync(table, mold, stacks.decode(record.get().slot(MoldTableRules.OUTPUT_SLOT)));
+                    again = !StackCodec.isEmpty(mold) && molds.isMold(mold) && !molds.content(mold).isEmpty()
+                        && molds.isMolten(mold) && record.get().slot(MoldTableRules.OUTPUT_SLOT).isEmpty();
+                }
+            } catch (RuntimeException e) {
+                logger.log(Level.WARNING, "channel: settling mold table " + key + " failed", e);
+            }
+            if (again) {
+                scheduleSettle(table);
+            } else {
+                settling.remove(key);
+            }
+        });
+    }
+
+    /** Whether the table's mold holds molten metal (so {@link #settle} has something to wait for). */
+    boolean hasMoltenMold(DeviceRecord<MoldTableData> record) {
+        ItemStack mold = stacks.decode(record.slot(MoldTableRules.MOLD_SLOT));
+        return !StackCodec.isEmpty(mold) && molds.isMold(mold) && !molds.content(mold).isEmpty() && molds.isMolten(mold);
+    }
+
     /** TFC {@code finishFlow}: the feeding channel loses one route (upstream too), the table forgets its source. */
     void finish(Block table, MoldTableData data) {
         if (!data.hasSource()) {
@@ -408,6 +459,7 @@ final class PourService {
         }
         world.devices().edit(table, world.tableKind(), (r, now) -> r.withState(MoldTableData.IDLE));
         releaseUpstream(table.getWorld(), ChannelWorld.pos(table), data);
+        settle(table);
     }
 
     /** The table is gone (broken, exploded): its flow ends as in TFC's {@code onRemove}'s {@code finishFlow}. */
@@ -456,6 +508,16 @@ final class PourService {
             ChannelData data = e.getValue();
             world.onOwner(b, () -> world.writeChannel(b, data));
         }
+    }
+
+    /** The crucible at {@code block} as text (debug). */
+    Optional<String> crucibleInfo(Block block) {
+        if (!world.is(block, ChannelWorld.CRUCIBLE)) {
+            return Optional.empty();
+        }
+        heatBelow(block);
+        return world.devices().edit(block, crucibleKind, (r, now) -> r).map(r -> Math.round(r.state().degrees()) + " C, "
+            + r.state().alloy().amount() + " mB " + r.state().alloy().contents().keySet());
     }
 
     /** Direction names for the debug report. */

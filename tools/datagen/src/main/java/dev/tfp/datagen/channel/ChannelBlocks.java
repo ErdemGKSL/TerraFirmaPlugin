@@ -11,7 +11,7 @@
  *       lightLevel 10 with metal; MOLD_TABLE: strength(3), SoundType.METAL),
  *       src/main/resources/assets/tfc/blockstates/{channel,mold_table}.json, models/block/{channel_base,channel_bottom,
  *       channel_connection,channel_stop,mold_table_base,mold_table_stop}.json, models/item/{channel,mold_table}.json,
- *       textures/block/{crucible_like,crucible_top_like,molten_still}.png @ c3b4d9536 (copied),
+ *       textures/block/{crucible_like,crucible_top_like}.png @ c3b4d9536 (copied), molten_still.png @ c3b4d9536 (tinted),
  *       src/main/resources/data/tfc/loot_table/blocks/{channel,mold_table}.json @ c3b4d9536 (the block drops itself),
  *       src/main/resources/assets/tfc/lang/*.json @ c3b4d9536 (block.tfc.channel, block.tfc.mold_table)
  */
@@ -95,7 +95,11 @@ public final class ChannelBlocks {
     static final String FLOW_CENTER = Json.TO_NS + ":block/channel_flow_center";
     static final String FLOW_ARM = Json.TO_NS + ":block/channel_flow_arm";
     static final String FLOW_FALL = Json.TO_NS + ":block/channel_flow_fall";
-    static final String MOLTEN_TEXTURE = Json.FROM_NS + ":block/molten_still";
+    /** TFC's greyscale molten texture is tinted by each metal's colour; ours is one fixed molten orange (ledger divergence). */
+    static final String MOLTEN_SOURCE = ASSETS + "textures/block/molten_still.png";
+    static final String MOLTEN_TEXTURE = Json.TO_NS + ":block/channel_molten";
+    /** The tint multiplied into the greyscale: a hot orange. */
+    static final int[] MOLTEN_TINT = {255, 122, 30};
 
     private ChannelBlocks() {
     }
@@ -318,23 +322,45 @@ public final class ChannelBlocks {
 
     /** The molten surface models: 4 px wide basin, the arm toward east, and the stream through the missing bottom plate. */
     static void writeFlowModels(TfcCheckout tfc, OutputTree out) {
-        JsonObject probe = new JsonObject();
-        JsonObject tex = new JsonObject();
-        tex.addProperty("0", MOLTEN_TEXTURE);
-        probe.add("textures", tex);
-        copyTextures(tfc, out, probe, "channel flow models");
+        out.put(RP + "textures/block/channel_molten.png", tint(tfc.read(MOLTEN_SOURCE)));
+        if (tfc.exists(MOLTEN_SOURCE + ".mcmeta")) {
+            out.put(RP + "textures/block/channel_molten.png.mcmeta", tfc.read(MOLTEN_SOURCE + ".mcmeta"));
+        }
         // the surface sits 1 px above the bottom plate (TFC's CHANNEL_FLOW_*_SHAPE start at y 1 and end at y 4)
         out.put(RP + "models/block/channel_flow_center.json", flow(6, 2, 6, 10, 3, 10));
         out.put(RP + "models/block/channel_flow_arm.json", flow(10, 2, 6, 16, 3, 10));
         out.put(RP + "models/block/channel_flow_fall.json", flow(6, -16, 6, 10, 2, 10));
     }
 
+    /** The greyscale texture multiplied by {@link #MOLTEN_TINT}, alpha kept; animation strips keep their frames. */
+    static byte[] tint(byte[] png) {
+        try {
+            java.awt.image.BufferedImage in = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(png));
+            java.awt.image.BufferedImage outImage = new java.awt.image.BufferedImage(in.getWidth(), in.getHeight(),
+                java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            for (int y = 0; y < in.getHeight(); y++) {
+                for (int x = 0; x < in.getWidth(); x++) {
+                    int argb = in.getRGB(x, y);
+                    int r = ((argb >> 16) & 0xFF) * MOLTEN_TINT[0] / 255;
+                    int g = ((argb >> 8) & 0xFF) * MOLTEN_TINT[1] / 255;
+                    int b = (argb & 0xFF) * MOLTEN_TINT[2] / 255;
+                    outImage.setRGB(x, y, (argb & 0xFF000000) | (r << 16) | (g << 8) | b);
+                }
+            }
+            java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+            javax.imageio.ImageIO.write(outImage, "png", bytes);
+            return bytes.toByteArray();
+        } catch (java.io.IOException e) {
+            throw new DatagenException("cannot tint " + MOLTEN_SOURCE + ": " + e.getMessage());
+        }
+    }
+
     static String flow(double x1, double y1, double z1, double x2, double y2, double z2) {
         JsonObject m = new JsonObject();
         m.addProperty("ambientocclusion", false);
         JsonObject textures = new JsonObject();
-        textures.addProperty("0", MOLTEN_TEXTURE.replace(Json.FROM_NS + ":", Json.TO_NS + ":"));
-        textures.addProperty("particle", MOLTEN_TEXTURE.replace(Json.FROM_NS + ":", Json.TO_NS + ":"));
+        textures.addProperty("0", MOLTEN_TEXTURE);
+        textures.addProperty("particle", MOLTEN_TEXTURE);
         m.add("textures", textures);
         JsonObject e = new JsonObject();
         e.add("from", array(x1, y1, z1));
