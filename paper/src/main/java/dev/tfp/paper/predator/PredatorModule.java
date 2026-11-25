@@ -161,12 +161,16 @@ public final class PredatorModule implements FeatureModule, Listener {
             brain.load(() -> random.nextInt(PackRules.INITIAL_RESPECT_BOUND));
             brains.put(mob.getUniqueId(), brain);
             PredatorGoals.Deps d = new PredatorGoals.Deps(body, clock, random, dogFood);
-            return List.of(
-                    new GoalSpec(0, new PredatorGoals.Swim(brain, d)),
-                    new GoalSpec(1, new PredatorGoals.Fight(brain, d)),
-                    new GoalSpec(2, new PredatorGoals.Retreat(brain, d)),
-                    new GoalSpec(3, new PredatorGoals.Rest(brain, d)),
-                    new GoalSpec(4, new PredatorGoals.Hunt(brain, d)));
+            List<GoalSpec> goals = new ArrayList<>(5);
+            // AmphibiousPredatorAi.initCoreActivity has no AggressiveSwim (PredatorAi's has): the crocodile dives.
+            if (profile.kind() != PredatorSpecies.Kind.AMPHIBIOUS) {
+                goals.add(new GoalSpec(0, new PredatorGoals.Swim(brain, d)));
+            }
+            goals.add(new GoalSpec(1, new PredatorGoals.Fight(brain, d)));
+            goals.add(new GoalSpec(2, new PredatorGoals.Retreat(brain, d)));
+            goals.add(new GoalSpec(3, new PredatorGoals.Rest(brain, d)));
+            goals.add(new GoalSpec(4, new PredatorGoals.Hunt(brain, d)));
+            return goals;
         }
 
         @Override

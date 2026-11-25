@@ -2,7 +2,7 @@
 id: PAR-FAUNA-30
 title: "Crocodile without the aggressive swim goal, diving in water (follow-up of PAR-FAUNA-12)"
 area: FAUNA
-status: open
+status: done
 wave: 46
 deps: [PAR-FAUNA-10, PAR-FAUNA-12]
 size: S
@@ -21,6 +21,7 @@ in_game_steps:
 plan:
   - "TFC's AmphibiousPredatorAi.initCoreActivity has no AggressiveSwim (PredatorAi's has AggressiveSwim(0.8F)); PredatorModule gives every predator PredatorGoals.Swim, so the crocodile keeps jumping to the surface."
   - "Skip the Swim goal for PredatorSpecies.Kind.AMPHIBIOUS. PAR-FAUNA-12's AmphibianModule already runs TFC's TrueAmphibiousMoveControl water step for the crocodile (AmphibiousMover, per-mob task) and keeps it from drowning; with the jump gone the crocodile dives and swims along its path."
+  - "Done: PredatorModule skips PredatorGoals.Swim for Kind.AMPHIBIOUS; PredatorCrocodileMockBukkitTest (2 tests: crocodile goals have no predator_swim, bear/lion/wolf/hyena do) plus PredatorGoalsMockBukkitTest green. In-game screenshot pending (container cannot run client), noted in the ledger."
 tests:
   - "paper: MockBukkit: the crocodile's goals have no predator_swim; the wolf's still do"
 done_criteria:
@@ -29,6 +30,5 @@ done_criteria:
 
 # PAR-FAUNA-30: Crocodile without the aggressive swim goal, diving in water
 
-> Claimed: worker session_011osUp8LArwstSDt7X82o4E, 2026-11-25
 
 Follow `plans/parity/PROTOCOL.md`.

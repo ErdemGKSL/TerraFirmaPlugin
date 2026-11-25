@@ -396,7 +396,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-04 | Chests, trapped chests and barrel racks per wood | DECO | 46 | done |
 | PAR-DECO-05 | Tool racks, shelves, bookshelves, lecterns | DECO | 46 | open |
 | PAR-DECO-06 | Rock families: bricks, cobble, smooth, stairs, slabs, walls, aqueducts, spikes, pressure plates, buttons | DECO | 46 | done |
-| PAR-FAUNA-30 | Crocodile without the aggressive swim goal, diving in water (follow-up of PAR-FAUNA-12) | FAUNA | 46 | open |
+| PAR-FAUNA-30 | Crocodile without the aggressive swim goal, diving in water (follow-up of PAR-FAUNA-12) | FAUNA | 46 | done |
 | PAR-FAUNA-31 | Amphibian play-dead pose: penguin and turtle models (follow-up of PAR-FAUNA-12) | FAUNA | 46 | open |
 | PAR-FAUNA-32 | Pest infestation of large vessels and nest boxes (follow-up of PAR-FAUNA-13) | FAUNA | 46 | open |
 | PAR-DECO-07 | Mud bricks, alabaster, aggregate, fire bricks, wattle and daub, thatch | DECO | 47 | done |
