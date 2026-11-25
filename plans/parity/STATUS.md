@@ -405,7 +405,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-02 | Rotation visuals: spinning axles and gears | MECH | 50 | done |
 | PAR-MECH-11 | Rotation blocks: axle carriers in the hitbox allocation, startup re-add, in-game check of PAR-MECH-01 | MECH | 50 | open |
 | PAR-MECH-05 | Crankshaft and powered bellows | MECH | 50 | open |
-| PAR-MECH-06 | Quern automation | MECH | 50 | open |
+| PAR-MECH-06 | Quern automation | MECH | 50 | done |
 | PAR-MECH-07 | Trip hammer | MECH | 50 | open |
 | PAR-WORLD-21 | Untracked surface features: forest-floor patches, tide pools, guano islands, bamboo, sea stack patches and five volcanic ids | WORLD | 50 | open |
 | PAR-WORLD-46 | Write the CE plant blocks in generation: TfcTerrain places tfp:plant/* through PlantBlocks.ceRef, placeholders only as fallback | WORLD | 27 | open |
@@ -422,6 +422,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-08 | Power loom | MECH | 51 | open |
 | PAR-MECH-09 | Pump and pipes | MECH | 51 | open |
 | PAR-MECH-12 | Spinning shafts on the wire: speed hook, packet sender, axle without a static element, in-game check | MECH | 51 | open |
+| PAR-MECH-13 | Powered quern in game: handstone spin, grind sounds and particles, hopper and axle screenshots | MECH | 52 | open |
 | PAR-DATA-14 | Vanilla rule hooks no item owns: lava + water hardened rocks, one-layer snow and snow on leaves, vines on TFC leaves, tadpoles, intoxicated chat, predators in boats, TFC mob armour, piglin gold, aqueduct and sluice sources, bamboo growth | DATA | 51 | open |
 | PAR-MECH-10 | Bladed axle | MECH | 52 | open |
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |
