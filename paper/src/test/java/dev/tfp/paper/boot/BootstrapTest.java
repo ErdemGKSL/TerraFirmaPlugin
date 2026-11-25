@@ -317,6 +317,7 @@ class BootstrapTest {
                 "vessel",
                 "alloy",
                 "anvil",
+                "forge",
                 "crucible",
                 "charcoalforge",
                 "livestock",

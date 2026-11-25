@@ -199,11 +199,32 @@ public enum ForgeRule {
         return type == step;
     }
 
+    /** u of the rule's icon in TFC's {@code anvil.png} (its step's). */
+    public int iconX() {
+        return type.iconX();
+    }
+
+    /** v of the step icon of the rule's step in TFC's {@code anvil.png}; the rule icon is drawn from {@code iconY - 16}. */
+    public int iconY() {
+        return type.iconY();
+    }
+
+    /** v of the rule's order overlay (a 20 x 22 sprite at u 198) in TFC's {@code anvil.png}. */
+    public int overlayY() {
+        return order.y;
+    }
+
     private enum Order {
-        ANY,
-        LAST,
-        NOT_LAST,
-        SECOND_LAST,
-        THIRD_LAST
+        ANY(88),
+        LAST(0),
+        NOT_LAST(66),
+        SECOND_LAST(22),
+        THIRD_LAST(44);
+
+        private final int y;
+
+        Order(int y) {
+            this.y = y;
+        }
     }
 }

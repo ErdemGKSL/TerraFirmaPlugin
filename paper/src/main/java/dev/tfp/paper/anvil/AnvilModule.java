@@ -68,6 +68,7 @@ public final class AnvilModule implements FeatureModule {
             context.integrations().customItems(), context.integrations().customBlocks(),
             p -> context.messages().get(p, "gui.anvil.title"));
         context.services().provide(AnvilPlanScreens.class, plans);
+        context.services().provide(AnvilEffects.class, effects); // PAR-METAL-05: the forging screen redraws the displays
         AnvilDevice.Services services = new AnvilDevice.Services(stack -> tags.is(stack, AnvilDevice.HAMMERS),
             stack -> tags.is(stack, AnvilDevice.FLUXES), effects, clicks, plans);
         devices.register(AnvilDevice.kind(AnvilDevice.METAL_ID, services));

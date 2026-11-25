@@ -76,6 +76,7 @@ public final class AnvilPlanScreens implements AnvilDevice.Plans {
     private final CustomBlocks blocks;
     private final Function<Player, String> title;
     private volatile AnvilDevice.Chosen chosen = (player, block) -> { };
+    private volatile java.util.function.BiPredicate<Player, Block> plainClick;
 
     public AnvilPlanScreens(GuiService gui, Scheduler scheduler, DeviceService devices, PlanBook book,
             Supplier<IngredientContext<ItemStack>> ingredients, CustomItems items, CustomBlocks blocks, Function<Player, String> title) {
@@ -92,6 +93,14 @@ public final class AnvilPlanScreens implements AnvilDevice.Plans {
     /** What runs (on the viewer's thread) after a plan was chosen, in place of just closing the screen. */
     public void onChosen(AnvilDevice.Chosen chosen) {
         this.chosen = Objects.requireNonNull(chosen, "chosen");
+    }
+
+    /**
+     * PAR-METAL-05: what the plain right click opens in place of the plan screen: TFC always opens the forging screen and
+     * reaches the plan screen from its plan button ({@link #openNow}). The handler returns whether the click is consumed.
+     */
+    public void onPlainClick(java.util.function.BiPredicate<Player, Block> handler) {
+        this.plainClick = Objects.requireNonNull(handler, "handler");
     }
 
     // ---- the plan rules of the main input -----------------------------------------------------------------
@@ -139,6 +148,10 @@ public final class AnvilPlanScreens implements AnvilDevice.Plans {
     /** Opens the plan screen of the anvil at {@code block} for {@code viewer}, one tick later (off the click). */
     @Override
     public boolean open(Player viewer, Block block) {
+        java.util.function.BiPredicate<Player, Block> forging = plainClick;
+        if (forging != null) {
+            return forging.test(viewer, block);
+        }
         scheduler.entityDelayed(viewer, 1, () -> {
             if (viewer.isOnline()) {
                 openNow(viewer, block);
