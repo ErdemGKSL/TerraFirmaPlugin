@@ -119,4 +119,25 @@ class InstrumentsGoldenTest {
         assertThat(Instruments.clockMonthAngle(0L, 8)).isZero();
         assertThat(Instruments.clockMonthAngle(6L * 8 * 24_000, 8)).isCloseTo(twoPi / 2, within(EPS));
     }
+
+    /** PAR-CLIM-28: the resting steps of the vane arrow and the clock hands are the nearest to TFC's continuous angles. */
+    @Test
+    void restingSteps() {
+        assertThat(Instruments.vaneStep(0f)).isZero();
+        assertThat(Instruments.vaneStep((float) (Math.PI / 2))).isEqualTo(4); // 90 degrees: four steps of 22.5
+        assertThat(Instruments.vaneStep((float) -(Math.PI / 2))).isEqualTo(12); // atan2 is negative: wrapped
+        assertThat(Instruments.vaneStep((float) Math.toRadians(10))).isZero(); // nearest
+        assertThat(Instruments.vaneStep((float) Math.toRadians(12))).isEqualTo(1);
+        assertThat(Instruments.vaneStep((float) Math.PI)).isEqualTo(8);
+        assertThat(Instruments.clockDial(0L, 8)).isZero();
+        assertThat(Instruments.clockDial(12_000L, 8)).isZero(); // noon: the 12 hour face is full
+        assertThat(Instruments.clockDial(13_500L, 8)).isEqualTo(6); // 13:30: a half past one on the face, 6 quarter hours
+        assertThat(Instruments.clockDial(1_000L, 8)).isEqualTo(4); // one hour: four quarters
+        assertThat(Instruments.clockMonthDial(0L, 8)).isZero();
+        assertThat(Instruments.clockMonthDial(6L * 8 * 24_000, 8)).isEqualTo(6); // half a year
+        for (long t = 0; t < 400_000L; t += 997) {
+            assertThat(Instruments.clockDial(t, 8)).isBetween(0, Instruments.DIAL_STEPS - 1);
+            assertThat(Instruments.clockMonthDial(t, 8)).isBetween(0, Instruments.MONTH_STEPS - 1);
+        }
+    }
 }

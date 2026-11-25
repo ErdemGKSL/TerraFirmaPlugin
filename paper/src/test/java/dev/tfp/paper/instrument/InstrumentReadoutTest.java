@@ -80,6 +80,40 @@ class InstrumentReadoutTest {
         Result vane = InstrumentReadout.compute(c, Kind.VANE);
         int point = Instruments.cardinal16(Instruments.wrappedPositiveAngle(wind.angle()));
         assertThat(vane.readout().args()).containsExactly("instrument.vane.point." + point);
+        // PAR-CLIM-28: the arrow rests at the nearest step of the same angle; the others have no wind step
+        assertThat(vane.wind()).isEqualTo(Instruments.vaneStep(wind.angle())).isBetween(0, 15);
+        assertThat(anemometer.wind()).isEqualTo(-1);
+    }
+
+    @Test
+    void clockHandsRestAtTheReadingOfTheMode() {
+        // 13:30: six quarter hours past noon on the 12 hour face; month mode shows the month hand instead
+        assertThat(InstrumentReadout.compute(capture(true, false, Float.NaN, ClockMode.HOUR, null), Kind.CALENDAR_CLOCK).dial())
+            .isEqualTo(6);
+        assertThat(InstrumentReadout.compute(capture(true, false, Float.NaN, ClockMode.TIMER, null), Kind.CALENDAR_CLOCK).dial())
+            .isEqualTo(6);
+        assertThat(InstrumentReadout.compute(capture(true, false, Float.NaN, ClockMode.MONTH, null), Kind.CALENDAR_CLOCK).dial())
+            .isEqualTo(Instruments.clockMonthDial(CLOCK.calendarTicks(), 8)).isBetween(0, 11);
+        assertThat(InstrumentReadout.compute(capture(true, false, Float.NaN, ClockMode.HOUR, null), Kind.THERMOMETER).dial())
+            .isEqualTo(-1);
+    }
+
+    @Test
+    void deviceSourcesReadTheFireboxAndTheCrucible() {
+        dev.tfp.core.firebox.FireboxData box = new dev.tfp.core.firebox.FireboxData(100, 600f, 550f, 0, true, 0, 0L);
+        assertThat(DeviceSources.temperature(box)).contains(550f);
+        // a firebox with no kiln (heatingCount 0) still answers: TFC's IRecipeTimer is there, with a zero timer
+        assertThat(DeviceSources.timer(box, 10L)).contains(new InstrumentSources.Timer(0, 0));
+        dev.tfp.core.firebox.FireboxData kiln = new dev.tfp.core.firebox.FireboxData(100, 600f, 550f, 0, true, 10, 5L);
+        assertThat(DeviceSources.timer(kiln, 105L)).hasValueSatisfying(t -> {
+            assertThat(t.durationTicks()).isEqualTo(dev.tfp.core.firebox.FireboxSim.timeToHeat(10, 550f));
+            assertThat(t.remainingTicks()).isEqualTo(t.durationTicks() - 100L);
+        });
+        dev.tfp.core.crucible.CrucibleData crucible = new dev.tfp.core.crucible.CrucibleData(
+            new dev.tfp.core.crucible.CrucibleTemperature(900f, 900f, 5), dev.tfp.core.alloy.FluidAlloy.empty());
+        assertThat(DeviceSources.temperature(crucible)).contains(900f);
+        assertThat(DeviceSources.timer(crucible, 0L)).isEmpty();
+        assertThat(DeviceSources.temperature("a barrel")).isEmpty();
     }
 
     @Test

@@ -119,6 +119,35 @@ public final class Instruments {
         return TWO_PI * CalendarPhase.of(calendarTicks, daysInMonth).fractionOfYear();
     }
 
+    /** Resting steps of the vane arrow ({@code wind} state) and of the clock dial, as the instrument datagen draws them. */
+    public static final int WIND_STEPS = 16;
+    public static final int DIAL_STEPS = 48;
+    public static final int MONTH_STEPS = 12;
+
+    /**
+     * The step ({@code 0..15}, 22.5 degrees each, counted from the raw {@code atan2} angle) the vane arrow rests at:
+     * the nearest to the wind's angle. The display turns by {@code 90 + step * 22.5} degrees ({@code VaneModel}).
+     */
+    public static int vaneStep(float angle) {
+        final double steps = Math.rint(angle * RAD_TO_DEG / (360.0 / WIND_STEPS));
+        return Math.floorMod((int) steps, WIND_STEPS);
+    }
+
+    /**
+     * The clock dial in hour and timer mode: the quarter hour of the 12 hour face nearest to {@link #clockHourAngle}
+     * ({@code 0..47}); the hour hand rests at {@code dial * 7.5} degrees and the minute hand at {@code dial % 4} quarter turns.
+     */
+    public static int clockDial(long calendarTicks, int daysInMonth) {
+        final double turns = clockHourAngle(calendarTicks, daysInMonth) / (double) TWO_PI;
+        return Math.floorMod((int) Math.rint(turns * DIAL_STEPS), DIAL_STEPS);
+    }
+
+    /** The clock dial in month mode: the month hand's nearest twelfth of the year ({@code 0..11}). */
+    public static int clockMonthDial(long calendarTicks, int daysInMonth) {
+        final double turns = clockMonthAngle(calendarTicks, daysInMonth) / (double) TWO_PI;
+        return Math.floorMod((int) Math.rint(turns * MONTH_STEPS), MONTH_STEPS);
+    }
+
     /** TFC {@code getRedstoneSignal} in hour mode: {@code hour % 12}. */
     public static int clockHourSignal(long calendarTicks) {
         return CalendarTicks.hourOfDay(calendarTicks) % 12;

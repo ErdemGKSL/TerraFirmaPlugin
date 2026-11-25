@@ -67,14 +67,24 @@ public final class InstrumentReadout {
         }
     }
 
-    /** What an instrument shows, and the thermometer's redstone power for its visual (-1 for the others). */
-    public record Result(Readout readout, int power) {
+    /**
+     * What an instrument shows, and the block-state numbers of its visual ({@code -1}: this instrument has none, or no reading):
+     * the thermometer's {@code power}, the vane arrow's {@code wind} step and the clock's {@code dial} (PAR-CLIM-28: the moving
+     * parts rest at the reading taken on a click, a placement or a neighbour change; nothing ticks).
+     */
+    public record Result(Readout readout, int power, int wind, int dial) {
+        public Result(Readout readout, int power) {
+            this(readout, power, -1, -1);
+        }
     }
 
     /** The result for {@code kind}. Pure; any thread. */
     public static Result compute(Capture c, Kind kind) {
         if (kind == Kind.CALENDAR_CLOCK) {
-            return new Result(clock(c), -1);
+            final int dial = !c.clock().isSet() ? -1 : c.clockMode() == ClockMode.MONTH
+                ? Instruments.clockMonthDial(c.clock().calendarTicks(), c.clock().daysInMonth())
+                : Instruments.clockDial(c.clock().calendarTicks(), c.clock().daysInMonth());
+            return new Result(clock(c), -1, -1, dial);
         }
         if (kind == Kind.THERMOMETER && c.attached()) {
             final float t = Float.isNaN(c.deviceTemperature()) ? 0f : c.deviceTemperature();
@@ -101,7 +111,8 @@ public final class InstrumentReadout {
             default -> {
                 final WindField.Wind wind = wind(c, climate, chunk);
                 final int point = Instruments.cardinal16(Instruments.wrappedPositiveAngle(wind.angle()));
-                return new Result(Readout.of("instrument.vane.direction", "instrument.vane.point." + point), -1);
+                return new Result(Readout.of("instrument.vane.direction", "instrument.vane.point." + point), -1,
+                    Instruments.vaneStep(Instruments.vaneAngle(wind)), -1);
             }
         }
     }

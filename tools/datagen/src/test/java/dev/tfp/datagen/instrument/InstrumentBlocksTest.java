@@ -79,11 +79,11 @@ class InstrumentBlocksTest {
 
     @Test
     void statesAndPropertiesAreTfcs() {
-        assertThat(states).isEqualTo(16 * 4 * 2 + 2 + 2 + 3 * 6);
+        assertThat(states).isEqualTo(16 * 4 * 2 + 2 + 2 * 16 + 3 * 6 * 48);
         assertThat(states("thermometer", "properties").keySet()).containsExactly("power", "facing", "attached");
-        assertThat(states("calendar_clock", "properties").keySet()).containsExactly("mode", "facing");
+        assertThat(states("calendar_clock", "properties").keySet()).containsExactly("mode", "facing", "dial");
         assertThat(states("anemometer", "properties").keySet()).containsExactly("attached_wind_devices");
-        assertThat(states("vane", "properties").keySet()).containsExactly("attached_wind_devices");
+        assertThat(states("vane", "properties").keySet()).containsExactly("attached_wind_devices", "wind");
     }
 
     @Test
@@ -107,7 +107,8 @@ class InstrumentBlocksTest {
             Map<String, Map<String, Object>> apps = (Map<String, Map<String, Object>>) (Map<?, ?>) states(n, "appearances");
             for (Map.Entry<String, Map<String, Object>> a : apps.entrySet()) {
                 String key = a.getKey();
-                String pattern = n.equals("anemometer") || n.equals("vane") ? key : key.substring(0, key.indexOf('_')) + "_*";
+                String pattern = n.equals("anemometer") ? key : n.equals("vane") ? key.substring(0, key.indexOf('_'))
+                    : key.substring(0, key.indexOf('_')) + "_*";
                 assertThat(a.getValue().get("state")).as(n + "#" + key)
                     .isEqualTo(HitboxAllocation.agreed("tfp:" + n, pattern).state());
                 assertThat(a.getValue().get("transparent")).isEqualTo(true);
@@ -155,10 +156,54 @@ class InstrumentBlocksTest {
         assertThat(out.get(InstrumentBlocks.RP + "textures/block/instrument/calendar_clock_month.png")).isNotNull();
         assertThat(out.get(InstrumentBlocks.RP + "textures/block/instrument/vane.png")).isNotNull();
         JsonArray elements = model("vane").getAsJsonArray("elements");
-        assertThat(elements.size()).isGreaterThanOrEqualTo(5);
+        assertThat(elements.size()).isGreaterThanOrEqualTo(2);
+        assertThat(model("vane_arrow").getAsJsonArray("elements").size()).isGreaterThanOrEqualTo(1);
         for (JsonElement e : elements) {
             assertThat(e.getAsJsonObject().getAsJsonObject("faces").keySet()).hasSize(6);
         }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void theMovingPartsAreOwnDisplaysTurnedByTheirState() {
+        // vane: static model plus the arrow, one appearance per wind step
+        Map<String, Object> apps = states("vane", "appearances");
+        assertThat(apps).hasSize(2 * InstrumentBlocks.WIND_STEPS);
+        List<Map<String, Object>> els = (List<Map<String, Object>>) ((Map<String, Object>) apps.get("base_0")).get("entity_renderer");
+        assertThat(els).hasSize(2);
+        assertThat(els.get(1)).containsKeys("rotation", "translation");
+        assertThat((String) els.get(1).get("rotation")).matches("-?[0-9.]+(,-?[0-9.]+){3}");
+        List<Map<String, Object>> els4 = (List<Map<String, Object>>) ((Map<String, Object>) apps.get("base_4")).get("entity_renderer");
+        assertThat(els4.get(1).get("rotation")).isNotEqualTo(els.get(1).get("rotation"));
+        assertThat(els4.get(0)).isEqualTo(els.get(0));
+        // the arrow's pivot is the block axis (the display turns about the block centre)
+        assertThat(((String) els.get(1).get("translation")).split(",")[0]).isEqualTo("0");
+        assertThat(((String) els.get(1).get("translation")).split(",")[2]).isEqualTo("0");
+        // clock: four displays (plate and three hands); 48 plain and 12 month appearances per facing
+        Map<String, Object> clock = states("calendar_clock", "appearances");
+        assertThat(clock).hasSize(6 * (InstrumentBlocks.DIAL_STEPS + InstrumentBlocks.MONTH_STEPS));
+        for (String f : HitboxDemands.CLOCK_FACINGS) {
+            List<Map<String, Object>> e = (List<Map<String, Object>>) ((Map<String, Object>) clock.get(f + "_plain_5"))
+                .get("entity_renderer");
+            assertThat(e).hasSize(4);
+            assertThat(e.get(0)).doesNotContainKey("translation");
+            for (int i = 1; i < 4; i++) {
+                assertThat(e.get(i)).containsKeys("rotation", "translation");
+            }
+        }
+        // the four quarter turns of the minute hand give four different rotations
+        Map<String, Object> up = states("calendar_clock", "appearances");
+        List<String> minute = new ArrayList<>();
+        for (int d = 0; d < 4; d++) {
+            minute.add((String) ((List<Map<String, Object>>) ((Map<String, Object>) up.get("up_plain_" + d)).get("entity_renderer"))
+                .get(2).get("rotation"));
+        }
+        assertThat(minute).doesNotHaveDuplicates();
+        // rotating by a full turn is the identity: the rotation quaternion of 0 and 360 degrees agree
+        EntityBoxes.Moving m = new EntityBoxes.Moving("m", new double[] {8, 8, 8}, new double[] {1, 0, 0, 0, 1, 0, 0, 0, 1});
+        assertThat(m.quaternion(360)).isEqualTo(m.quaternion(0));
+        assertThat(m.quaternion(180)).isEqualTo("0,0,0,1"); // Rot180Y * rotY(180)
+        assertThat(m.quaternion(0)).isEqualTo("0,1,0,0"); // Rot180Y alone
     }
 
     @Test

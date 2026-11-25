@@ -227,9 +227,13 @@ final class EntityBoxes {
     }
 
     private Affine chain(Part leaf) {
+        return chain(leaf, restYaw);
+    }
+
+    private Affine chain(Part leaf, Map<String, Integer> yaws) {
         Affine a = Affine.IDENTITY;
         for (Part c = leaf; c != null; c = parts.get(c.parent())) {
-            int yaw = restYaw.getOrDefault(c.var(), c.yaw());
+            int yaw = yaws.getOrDefault(c.var(), c.yaw());
             a = Affine.translate(c.offset()[0], c.offset()[1], c.offset()[2]).after(Affine.rotY(yaw)).after(a);
         }
         return a;
@@ -241,14 +245,127 @@ final class EntityBoxes {
      * @param shiftY pixels the model is lowered (the vane on an anemometer: {@code translate(0, 0.5625, 0)})
      */
     String model(OutputTree out, String name, List<String> tops, Pose pose, double shiftY) {
-        JsonArray elements = new JsonArray();
+        return bake(out, name, tops, place(pose, shiftY), Affine.IDENTITY, restYaw);
+    }
+
+    private static Affine place(Pose pose, double shiftY) {
         Affine flip = new Affine(new double[] {-1, 0, 0, 0, -1, 0, 0, 0, 1}, new double[] {8, 24, 8});
-        Affine place = flip.after(Affine.translate(0, shiftY, 0)).after(pose.affine());
+        return flip.after(Affine.translate(0, shiftY, 0)).after(pose.affine());
+    }
+
+    /**
+     * A moving part drawn as its own display: the cubes of {@code top} baked at yaw 0 and shifted so that the part's pivot sits
+     * at the block centre, where an item display rotates. {@link Moving#quaternion} turns it by the part's {@code yRot}.
+     *
+     * @param model the model id
+     * @param pivot the pivot in the baked block frame, pixels (before the display's own 180 degree turn)
+     * @param basis the 3x3 (row-major) linear part that maps the part's local axes to the baked block frame
+     */
+    record Moving(String model, double[] pivot, double[] basis) {
+        /** Display translation in blocks that puts the shifted model back on its pivot after the display's 180 turn about y. */
+        String translation() {
+            return fmt(-(pivot[0] - 8) / 16) + "," + fmt((pivot[1] - 8) / 16) + "," + fmt(-(pivot[2] - 8) / 16);
+        }
+
+        /** The display rotation "x,y,z,w" for the part at {@code yRotDegrees}: {@code Rot180Y * basis * rotY(T) * basis^T}. */
+        String quaternion(double yRotDegrees) {
+            double t = Math.toRadians(yRotDegrees);
+            double c = Math.cos(t);
+            double s = Math.sin(t);
+            double[] ry = {c, 0, s, 0, 1, 0, -s, 0, c};
+            double[] bt = new double[9];
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    bt[3 * i + j] = basis[3 * j + i];
+                }
+            }
+            double[] r = mul(mul(basis, ry), bt);
+            double[] rot180y = {-1, 0, 0, 0, 1, 0, 0, 0, -1};
+            return quat(mul(rot180y, r));
+        }
+
+        private static double[] mul(double[] a, double[] b) {
+            double[] r = new double[9];
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    for (int k = 0; k < 3; k++) {
+                        r[3 * i + j] += a[3 * i + k] * b[3 * k + j];
+                    }
+                }
+            }
+            return r;
+        }
+
+        /** Rotation matrix to {@code x,y,z,w} (w non-negative). */
+        static String quat(double[] m) {
+            double tr = m[0] + m[4] + m[8];
+            double x;
+            double y;
+            double z;
+            double w;
+            if (tr > 0) {
+                double sq = Math.sqrt(tr + 1) * 2;
+                w = sq / 4;
+                x = (m[7] - m[5]) / sq;
+                y = (m[2] - m[6]) / sq;
+                z = (m[3] - m[1]) / sq;
+            } else if (m[0] > m[4] && m[0] > m[8]) {
+                double sq = Math.sqrt(1 + m[0] - m[4] - m[8]) * 2;
+                w = (m[7] - m[5]) / sq;
+                x = sq / 4;
+                y = (m[1] + m[3]) / sq;
+                z = (m[2] + m[6]) / sq;
+            } else if (m[4] > m[8]) {
+                double sq = Math.sqrt(1 + m[4] - m[0] - m[8]) * 2;
+                w = (m[2] - m[6]) / sq;
+                x = (m[1] + m[3]) / sq;
+                y = sq / 4;
+                z = (m[5] + m[7]) / sq;
+            } else {
+                double sq = Math.sqrt(1 + m[8] - m[0] - m[4]) * 2;
+                w = (m[3] - m[1]) / sq;
+                x = (m[2] + m[6]) / sq;
+                y = (m[5] + m[7]) / sq;
+                z = sq / 4;
+            }
+            if (w < 0) {
+                x = -x;
+                y = -y;
+                z = -z;
+                w = -w;
+            }
+            return fmt(x) + "," + fmt(y) + "," + fmt(z) + "," + fmt(w);
+        }
+
+        private static String fmt(double v) {
+            double r = Math.round(v * 1_000_000d) / 1_000_000d + 0.0;
+            return r == Math.rint(r) ? Long.toString((long) r) : Double.toString(r);
+        }
+    }
+
+    /** The part {@code top} as a {@link Moving} display model (see {@link Moving}). */
+    Moving moving(OutputTree out, String name, String top, Pose pose, double shiftY) {
+        Part part = parts.get(top);
+        if (part == null) {
+            throw new DatagenException("entity model has no part " + top);
+        }
+        Map<String, Integer> yaws = new LinkedHashMap<>(restYaw);
+        yaws.put(top, 0);
+        Affine place = place(pose, shiftY);
+        Affine g = place.after(chain(part, yaws));
+        double[] pivot = g.apply(new double[] {0, 0, 0});
+        Affine shift = Affine.translate(8 - pivot[0], 8 - pivot[1], 8 - pivot[2]);
+        String id = bake(out, name, List.of(top), place, shift, yaws);
+        return new Moving(id, pivot, g.m());
+    }
+
+    private String bake(OutputTree out, String name, List<String> tops, Affine place, Affine extra, Map<String, Integer> yaws) {
+        JsonArray elements = new JsonArray();
         for (Part p : parts.values()) {
             if (p.cubes().isEmpty() || tops.stream().noneMatch(t -> under(p, t))) {
                 continue;
             }
-            Affine g = place.after(chain(p));
+            Affine g = extra.after(place).after(chain(p, yaws));
             for (Cube c : p.cubes()) {
                 elements.add(element(g, c));
             }

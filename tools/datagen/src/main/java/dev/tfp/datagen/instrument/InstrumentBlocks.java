@@ -4,8 +4,8 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/blocks/devices/{ThermometerBlock,AnemometerBlock,VaneBlock,CalendarClockBlock}.java
- *       @ c3b4d9536 (properties, shapes),
+ * file: src/main/java/net/dries007/tfc/common/blocks/devices/ThermometerBlock.java @ c3b4d9536 (properties, shapes; likewise
+ *       AnemometerBlock, VaneBlock and CalendarClockBlock),
  *       src/main/java/net/dries007/tfc/client/model/entity/{AnemometerModel,VaneModel,CalendarClockModel}.java @ c3b4d9536 (the
  *       cube lists), src/main/java/net/dries007/tfc/client/render/blockentity/{Anemometer,Vane,CalendarClock}BlockEntityRenderer.java
  *       @ c3b4d9536 (the render transforms), src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java @ c3b4d9536,
@@ -89,6 +89,12 @@ public final class InstrumentBlocks {
     /** The appearance of one outline and its displays. */
     private static DeviceAppearance appearance(String id, String pattern, String name, List<String> models, List<String> rotations,
             DeviceBlockSpec.Builder b, Set<String> renderItems, Map<String, String> hidden) {
+        return appearance(id, pattern, name, models, rotations, null, b, renderItems, hidden);
+    }
+
+    /** {@code translations}: per model the display translation (blocks), or null for none (the moving parts have one). */
+    private static DeviceAppearance appearance(String id, String pattern, String name, List<String> models, List<String> rotations,
+            List<String> translations, DeviceBlockSpec.Builder b, Set<String> renderItems, Map<String, String> hidden) {
         HitboxAllocation.Assignment a = HitboxAllocation.agreed(id, pattern);
         if (a.mode() != HitboxAllocation.Mode.HITBOX_ONLY) {
             throw new DatagenException(id + "#" + name + " got a " + a.mode() + " carrier; InstrumentBlocks draws item displays");
@@ -99,7 +105,8 @@ public final class InstrumentBlocks {
             if (renderItems.add(item)) {
                 b.renderItem(item, models.get(i));
             }
-            renderers.add(DeviceAppearance.Renderer.item(item).rotated(rotations.get(i)));
+            DeviceAppearance.Renderer r = DeviceAppearance.Renderer.item(item).rotated(rotations.get(i));
+            renderers.add(translations == null || translations.get(i) == null ? r : r.translated(translations.get(i)));
         }
         if (a.hideTarget() != null && !a.pool() && hidden.putIfAbsent(a.state(), a.hideTarget()) == null) {
             b.stateMapping(a.state(), a.hideTarget());
@@ -145,36 +152,80 @@ public final class InstrumentBlocks {
         return new Built(b.build(), models);
     }
 
+    /** The vane arrow's resting steps: {@code wind} 0..15, step {@code n} points {@code n * 22.5} degrees from the model's rest. */
+    public static final int WIND_STEPS = 16;
+    /** The clock dial: hour/timer mode {@code dial} 0..47 is the quarter hour of the 12 hour face, month mode 0..11 the month. */
+    public static final int DIAL_STEPS = 48;
+    public static final int MONTH_STEPS = 12;
+
     static Built windDevice(TfcCheckout tfc, String id, EntityBoxes boxes, OutputTree out, boolean vane) {
         DeviceBlockSpec.Builder b = base(tfc, id).property(DeviceProperty.bool("attached_wind_devices", false));
+        if (vane) {
+            b.property(DeviceProperty.range("wind", 0, WIND_STEPS - 1, 0));
+        }
         Set<String> renderItems = new LinkedHashSet<>();
         Map<String, String> hidden = new TreeMap<>();
-        String plain = boxes.model(out, name(id), vane ? List.of("base", "static_parts", "spinny") : List.of("post", "base", "spinny"),
+        String plain = boxes.model(out, name(id), vane ? List.of("base", "static_parts") : List.of("post", "base", "spinny"),
             EntityBoxes.Pose.IDENTITY, 0);
-        String attached = vane ? boxes.model(out, name(id) + "_attached", List.of("static_parts", "spinny"), EntityBoxes.Pose.IDENTITY, 9)
-            : plain;
-        b.appearance(appearance(id, "base", "base", List.of(plain), List.of(ROTATION), b, renderItems, hidden));
-        b.appearance(appearance(id, "attached", "attached", List.of(attached), List.of(ROTATION), b, renderItems, hidden));
-        b.everyState(s -> s.get("attached_wind_devices").equals("true") ? "attached" : "base", null);
+        if (!vane) {
+            b.appearance(appearance(id, "base", "base", List.of(plain), List.of(ROTATION), b, renderItems, hidden));
+            b.appearance(appearance(id, "attached", "attached", List.of(plain), List.of(ROTATION), b, renderItems, hidden));
+            b.everyState(s -> s.get("attached_wind_devices").equals("true") ? "attached" : "base", null);
+            return new Built(b.build(), Set.of());
+        }
+        String attached = boxes.model(out, name(id) + "_attached", List.of("static_parts"), EntityBoxes.Pose.IDENTITY, 9);
+        EntityBoxes.Moving arrow = boxes.moving(out, name(id) + "_arrow", "spinny", EntityBoxes.Pose.IDENTITY, 0);
+        EntityBoxes.Moving arrowAttached = boxes.moving(out, name(id) + "_arrow_attached", "spinny", EntityBoxes.Pose.IDENTITY, 9);
+        for (int w = 0; w < WIND_STEPS; w++) {
+            for (String kind : List.of("base", "attached")) {
+                boolean att = kind.equals("attached");
+                EntityBoxes.Moving m = att ? arrowAttached : arrow;
+                // VaneModel: spinny.yRot = angle + PI / 2
+                String rot = m.quaternion(90 + w * 360.0 / WIND_STEPS);
+                b.appearance(appearance(id, kind, kind + "_" + w, List.of(att ? attached : plain, m.model()),
+                    List.of(ROTATION, rot), java.util.Arrays.asList(null, m.translation()), b, renderItems, hidden));
+            }
+        }
+        b.everyState(s -> (s.get("attached_wind_devices").equals("true") ? "attached" : "base") + "_" + s.get("wind"), null);
         return new Built(b.build(), Set.of());
     }
 
     static Built clock(TfcCheckout tfc, EntityBoxes plain, EntityBoxes month, OutputTree out) {
         String id = HitboxDemands.CLOCK_ID;
         List<DeviceProperty> props = List.of(DeviceProperty.names("mode", List.of("hour", "month", "timer"), "hour"),
-            DeviceProperty.names("facing", CLOCK_FACINGS, "up"));
+            DeviceProperty.names("facing", CLOCK_FACINGS, "up"), DeviceProperty.range("dial", 0, DIAL_STEPS - 1, 0));
         DeviceBlockSpec.Builder b = base(tfc, id).properties(props);
         Set<String> renderItems = new LinkedHashSet<>();
         Map<String, String> hidden = new TreeMap<>();
         for (String f : CLOCK_FACINGS) {
             for (String tex : List.of("plain", "month")) {
-                String model = (tex.equals("month") ? month : plain).model(out,
-                    "calendar_clock_" + f + (tex.equals("month") ? "_month" : ""),
-                    List.of("static_parts", "hour_hand", "minute_hand", "month_hand"), EntityBoxes.Pose.clock(f), 0);
-                b.appearance(appearance(id, f + "_*", f + "_" + tex, List.of(model), List.of(ROTATION), b, renderItems, hidden));
+                boolean m = tex.equals("month");
+                EntityBoxes boxes = m ? month : plain;
+                EntityBoxes.Pose pose = EntityBoxes.Pose.clock(f);
+                String suffix = "calendar_clock_" + f + (m ? "_month" : "");
+                String model = boxes.model(out, suffix, List.of("static_parts"), pose, 0);
+                EntityBoxes.Moving hour = boxes.moving(out, suffix + "_hour", "hour_hand", pose, 0);
+                EntityBoxes.Moving minute = boxes.moving(out, suffix + "_minute", "minute_hand", pose, 0);
+                EntityBoxes.Moving monthHand = boxes.moving(out, suffix + "_month_hand", "month_hand", pose, 0);
+                // CalendarClockModel: <hand>.yRot = angle + PI; the hour hand makes two turns a day (12 hour face)
+                int steps = m ? MONTH_STEPS : DIAL_STEPS;
+                for (int d = 0; d < steps; d++) {
+                    String hourRot = hour.quaternion(180 + (m ? 0 : d * 360.0 / DIAL_STEPS));
+                    String minuteRot = minute.quaternion(180 + (m ? 0 : (d % 4) * 90));
+                    String monthRot = monthHand.quaternion(180 + (m ? d * 360.0 / MONTH_STEPS : 0));
+                    b.appearance(appearance(id, f + "_*", f + "_" + tex + "_" + d,
+                        List.of(model, hour.model(), minute.model(), monthHand.model()),
+                        List.of(ROTATION, hourRot, minuteRot, monthRot),
+                        java.util.Arrays.asList(null, hour.translation(), minute.translation(), monthHand.translation()), b,
+                        renderItems, hidden));
+                }
             }
         }
-        b.everyState(s -> s.get("facing") + "_" + (s.get("mode").equals("month") ? "month" : "plain"), null);
+        b.everyState(s -> {
+            boolean m = s.get("mode").equals("month");
+            int d = Integer.parseInt(s.get("dial"));
+            return s.get("facing") + "_" + (m ? "month_" + d % MONTH_STEPS : "plain_" + d);
+        }, null);
         return new Built(b.build(), Set.of());
     }
 

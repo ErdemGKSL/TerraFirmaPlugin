@@ -21,14 +21,17 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import net.kyori.adventure.text.Component;
+import dev.tfp.paper.tags.Tags;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockSupport;
 import org.bukkit.block.data.BlockData;
 
 /**
  * PAR-CLIM-09: registers the four instrument device kinds ({@link InstrumentDevices}) and provides the
  * {@link InstrumentSources.Registry} that device modules use to expose their heat and recipe timer to a thermometer or clock
- * mounted on them. The CraftEngine blocks come from the instrument datagen (follow-up PAR-CLIM-27); until they exist the
- * kinds are registered and idle.
+ * mounted on them (PAR-CLIM-28: the firebox and crucible sources are wired here through {@link DeviceSources}). The
+ * CraftEngine blocks come from the instrument datagen (PAR-CLIM-27).
  */
 public final class InstrumentModule implements FeatureModule {
     public static final String ID = "instrument";
@@ -42,7 +45,10 @@ public final class InstrumentModule implements FeatureModule {
     public void enable(ModuleContext context) {
         DeviceService devices = context.services().require(DeviceService.class);
         InstrumentSources.Registry sources = new InstrumentSources.Registry();
+        sources.register(new DeviceSources(devices));
         context.services().provide(InstrumentSources.Registry.class, sources);
+        Tags tags = context.services().require(Tags.class);
+        InstrumentRules.Support support = support(context, tags);
         Scheduler scheduler = context.scheduler();
         InstrumentDevices.Computer compute = new InstrumentDevices.Computer() {
             @Override
@@ -55,10 +61,37 @@ public final class InstrumentModule implements FeatureModule {
             (player, task) -> scheduler.entity(player, task, () -> { }),
             (block, task) -> scheduler.region(block.getWorld(), block.getX() >> 4, block.getZ() >> 4, task),
             (block, state) -> show(context, block, state),
-            (player, readout) -> player.sendActionBar(Component.text(format(context, player, readout))));
+            (player, readout) -> player.sendActionBar(Component.text(format(context, player, readout))), support,
+            block -> context.integrations().customBlocks().remove(block));
         for (var kind : InstrumentDevices.kinds(services)) {
             devices.register(kind);
         }
+    }
+
+    /** The world questions of the support rules: the tags, vanilla block support and the custom block ids. */
+    static InstrumentRules.Support support(ModuleContext context, Tags tags) {
+        return new InstrumentRules.Support() {
+            @Override
+            public boolean readable(Block block, InstrumentReadout.Kind kind) {
+                return tags.is(block, kind == InstrumentReadout.Kind.THERMOMETER ? InstrumentRules.THERMOMETER_READABLE
+                    : InstrumentRules.CLOCK_READABLE);
+            }
+
+            @Override
+            public boolean sturdyFace(Block block, BlockFace face) {
+                return block.getBlockData().isFaceSturdy(face, BlockSupport.FULL);
+            }
+
+            @Override
+            public boolean centerSupportUp(Block block) {
+                return block.getBlockData().isFaceSturdy(BlockFace.UP, BlockSupport.CENTER);
+            }
+
+            @Override
+            public Optional<String> id(Block block) {
+                return context.integrations().customBlocks().stateAt(block).map(BlockStateRef::id);
+            }
+        };
     }
 
     /** Writes {@code state} to the block when it is still an instrument of that id (region thread). */

@@ -57,6 +57,9 @@ public final class InstrumentDevices {
     public static final String VANE = "tfp:vane";
     public static final String CALENDAR_CLOCK = "tfp:calendar_clock";
 
+    /** The vane arrow's resting step 0..15 and the clock's dial (PAR-CLIM-28; see the instrument datagen). */
+    public static final String WIND = "wind";
+    public static final String DIAL = "dial";
     /** TFC {@code BlockStateProperties.POWER}. */
     public static final String POWER = "power";
     /** TFC {@code TFCBlockStateProperties.THERMOMETER_ATTACHED}. */
@@ -85,10 +88,12 @@ public final class InstrumentDevices {
      * @param toBlock    runs a task on the region thread that owns the block
      * @param show       writes a block state (the module's {@code BlockVisuals}), region thread
      * @param send       sends a readout line to a player (the action bar), player thread
+     * @param support    the world questions of the placement, support and attach rules (PAR-CLIM-28)
+     * @param remove     breaks the instrument (its loot drops), region thread
      */
     public record Services(InstrumentSources sources, Supplier<ClockSnapshot> clock, int windScale, Computer compute,
             BiConsumer<Player, Runnable> toPlayer, BiConsumer<Block, Runnable> toBlock, BiConsumer<Block, BlockStateRef> show,
-            BiConsumer<Player, InstrumentReadout.Readout> send) {
+            BiConsumer<Player, InstrumentReadout.Readout> send, InstrumentRules.Support support, java.util.function.Consumer<Block> remove) {
         public Services {
             Objects.requireNonNull(sources, "sources");
             Objects.requireNonNull(clock, "clock");
@@ -97,6 +102,8 @@ public final class InstrumentDevices {
             Objects.requireNonNull(toBlock, "toBlock");
             Objects.requireNonNull(show, "show");
             Objects.requireNonNull(send, "send");
+            Objects.requireNonNull(support, "support");
+            Objects.requireNonNull(remove, "remove");
         }
     }
 
@@ -185,6 +192,7 @@ public final class InstrumentDevices {
     }
 
     private record Handler(String id, Kind kind, Services services) implements DeviceHandler<State> {
+
         @Override
         public DeviceResult<State> use(DeviceContext<State> ctx) {
             Player player = ctx.player();
@@ -200,47 +208,95 @@ public final class InstrumentDevices {
             Capture c = capture(services, block, shown, kind);
             services.compute().run(() -> InstrumentReadout.compute(c, kind), result -> {
                 services.toPlayer().accept(player, () -> services.send().accept(player, result.readout()));
-                applyPower(block, shown, result);
+                applyVisual(block, shown, result);
             });
             return DeviceResult.consume();
         }
 
+        /**
+         * TFC {@code getStateForPlacement}: a thermometer or clock takes the facing of the first look direction that has a
+         * support behind it (none: the placement is refused); a thermometer on a readable device is {@code attached}; a vane
+         * on an anemometer (or the other way round) is {@code attached_wind_devices}.
+         */
         @Override
         public DeviceResult<State> placed(DeviceContext<State> ctx) {
-            refresh(ctx);
-            return DeviceResult.pass();
+            Block block = ctx.block();
+            BlockStateRef state = ctx.state();
+            Player player = ctx.player();
+            if ((kind == Kind.THERMOMETER || kind == Kind.CALENDAR_CLOCK) && player != null) {
+                BlockFace f = InstrumentRules.placementFacing(kind, block, player.getEyeLocation().getDirection(),
+                    kind == Kind.THERMOMETER, services.support());
+                if (f == null) {
+                    services.remove().accept(block);
+                    return DeviceResult.pass();
+                }
+                state = state.with(FACING, f.name().toLowerCase(Locale.ROOT));
+                if (kind == Kind.THERMOMETER) {
+                    state = state.with(ATTACHED, Boolean.toString(InstrumentRules.thermometerAttached(block, f, services.support())));
+                }
+                state = write(block, ctx.state(), state);
+            }
+            return settle(ctx, state);
         }
 
+        /** TFC {@code updateShape}: a lost support breaks the instrument; the wind devices re-attach. */
         @Override
         public DeviceResult<State> neighbourChanged(DeviceContext<State> ctx) {
-            refresh(ctx);
+            return settle(ctx, ctx.state());
+        }
+
+        private DeviceResult<State> settle(DeviceContext<State> ctx, BlockStateRef state) {
+            Block block = ctx.block();
+            if (!InstrumentRules.canSurvive(kind, block, state, services.support())) {
+                services.remove().accept(block);
+                return DeviceResult.pass();
+            }
+            if (kind == Kind.ANEMOMETER || kind == Kind.VANE) {
+                state = write(block, state, state.with("attached_wind_devices",
+                    Boolean.toString(InstrumentRules.windAttached(kind, block, services.support()))));
+            }
+            refresh(block, state);
             return DeviceResult.pass();
         }
 
-        /** TFC {@code needsInstantUpdate}: a thermometer's power follows the reading (decide off-thread, apply on the region). */
-        private void refresh(DeviceContext<State> ctx) {
-            if (kind != Kind.THERMOMETER) {
+        /** Writes {@code next} when it differs from {@code was} (region thread); returns the state the block now has. */
+        private BlockStateRef write(Block block, BlockStateRef was, BlockStateRef next) {
+            if (!next.equals(was)) {
+                services.show().accept(block, next);
+            }
+            return next;
+        }
+
+        /**
+         * TFC {@code needsInstantUpdate}: the moving parts follow the reading (a thermometer's power, the vane arrow, the
+         * clock hands); decide off-thread, apply on the region.
+         */
+        private void refresh(Block block, BlockStateRef state) {
+            if (kind == Kind.ANEMOMETER) {
                 return;
             }
-            BlockStateRef state = ctx.state();
-            Block block = ctx.block();
             Capture c = capture(services, block, state, kind);
-            services.compute().run(() -> InstrumentReadout.compute(c, kind), result -> applyPower(block, state, result));
+            services.compute().run(() -> InstrumentReadout.compute(c, kind), result -> applyVisual(block, state, result));
         }
 
         /** Decide async, apply sync: the write re-checks that the block is still the state the reading was taken for. */
-        private void applyPower(Block block, BlockStateRef was, Result result) {
-            if (kind != Kind.THERMOMETER || result.power() < 0) {
+        private void applyVisual(Block block, BlockStateRef was, Result result) {
+            BlockStateRef next = was;
+            switch (kind) {
+                case THERMOMETER -> next = set(next, POWER, result.power());
+                case VANE -> next = set(next, WIND, result.wind());
+                case CALENDAR_CLOCK -> next = set(next, DIAL, result.dial());
+                default -> { }
+            }
+            if (next.equals(was)) {
                 return;
             }
-            String want = Integer.toString(result.power());
-            if (want.equals(was.properties().get(POWER))) {
-                return;
-            }
-            services.toBlock().accept(block, () -> {
-                BlockStateRef next = was.with(POWER, want);
-                services.show().accept(block, next);
-            });
+            BlockStateRef target = next;
+            services.toBlock().accept(block, () -> services.show().accept(block, target));
+        }
+
+        private static BlockStateRef set(BlockStateRef state, String property, int value) {
+            return value < 0 ? state : state.with(property, Integer.toString(value));
         }
 
         /** TFC {@code useWithoutItem} for a player who {@code mayBuild}: next mode, written to the block. */
