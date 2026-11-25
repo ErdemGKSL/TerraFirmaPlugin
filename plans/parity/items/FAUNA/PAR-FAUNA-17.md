@@ -32,4 +32,6 @@ done_criteria:
 
 # PAR-FAUNA-17: Hunting drops, butchering, hides
 
+> Claimed: REL session_011osUpAJcukeqydbqrkqw9X (takeover, owner request), 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
