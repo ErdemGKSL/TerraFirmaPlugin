@@ -9,6 +9,7 @@ import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
+import dev.tfp.paper.pipeline.CommitBudget;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.util.Optional;
 import org.bukkit.Bukkit;
@@ -39,6 +40,8 @@ public final class MagmaModule implements FeatureModule {
     private volatile Scheduler scheduler;
     private volatile CustomBlocks blocks;
     private volatile Scheduler.TaskHandle task;
+    /** PAR-WORLD-54: the drag-down bubble columns above the magma blocks. */
+    private volatile MagmaColumnKeeper columns;
 
     @Override
     public String id() {
@@ -49,6 +52,9 @@ public final class MagmaModule implements FeatureModule {
     public void enable(ModuleContext context) {
         scheduler = context.scheduler();
         blocks = context.integrations().customBlocks();
+        columns = new MagmaColumnKeeper(context::regions, blocks, scheduler.cpuExecutor(),
+                new CommitBudget(MagmaColumnKeeper.BUDGET_NANOS, System::nanoTime));
+        context.listen(columns);
         task = scheduler.globalRepeating(PERIOD, PERIOD, this::tickAll);
     }
 
@@ -67,9 +73,13 @@ public final class MagmaModule implements FeatureModule {
         }
     }
 
-    /** Player thread: damages a player standing on a magma block. */
+    /** Player thread: damages a player standing on a magma block; forms the bubble columns under a swimming player. */
     @SuppressWarnings("deprecation")
     void tick(Player player) {
+        final MagmaColumnKeeper c = columns;
+        if (c != null) {
+            c.nearPlayer(player);
+        }
         final Location at = player.getLocation().subtract(0, BELOW, 0);
         final Block below = at.getBlock();
         final Optional<BlockStateRef> state = blocks.stateAt(below);
