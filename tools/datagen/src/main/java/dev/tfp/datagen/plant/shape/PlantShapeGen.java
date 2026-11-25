@@ -28,6 +28,7 @@ import dev.tfp.datagen.Yaml;
 import dev.tfp.datagen.device.DeviceYaml;
 import dev.tfp.datagen.hitbox.HitboxAllocation;
 import dev.tfp.datagen.hitbox.HitboxDemands;
+import dev.tfp.datagen.hitbox.PlantPools;
 import dev.tfp.datagen.plant.PlantBlockGen;
 import dev.tfp.datagen.plant.PlantBlockGen.Plant;
 import java.math.BigDecimal;
@@ -74,10 +75,11 @@ public final class PlantShapeGen {
     public static final Set<String> TALL_WATER = Set.of("TALL_WATER", "TALL_WATER_FRESH");
     /** Solid in TFC (the barrel cactus's {@code solid()}, bamboo): the barrel's collision outline row. */
     public static final Set<String> SOLID = Set.of("CACTUS", "BAMBOO");
-    public static final String KELP_POOL = "kelp";
-    public static final int POOL_SIZE = 25;
+    /** PAR-WORLD-59: the selector's water plant pool ({@code hitbox/PlantPools}). */
+    public static final String KELP_POOL = PlantPools.KELP;
+    public static final int POOL_SIZE = PlantPools.capacity(KELP_POOL);
     /** Model looks per pool; the last state is the shared empty one under the item displays. */
-    public static final int POOL_MODELS = POOL_SIZE - 1;
+    public static final int POOL_MODELS = PlantPools.waterModels();
     static final String EMPTY_MODEL = "tfp:block/plant_empty";
     static final String WATERLOGGED = "waterlogged";
 
@@ -495,12 +497,7 @@ public final class PlantShapeGen {
     }
 
     private static Map<String, Object> autoState(String pool, String id) {
-        Map<String, Object> auto = new LinkedHashMap<>();
-        auto.put("type", pool);
-        auto.put("id", id);
-        Map<String, Object> v = new LinkedHashMap<>();
-        v.put("auto_state", auto);
-        return v;
+        return PlantPools.appearance(pool, id);
     }
 
     static String lookKey(List<ModelRef> look) {

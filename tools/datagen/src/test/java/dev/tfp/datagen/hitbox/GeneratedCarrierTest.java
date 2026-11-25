@@ -60,6 +60,7 @@ class GeneratedCarrierTest {
         List<String> problems = new ArrayList<>();
         int states = 0;
         int pools = 0;
+        Map<String, java.util.SortedSet<String>> plantPoolStates = new java.util.TreeMap<>();
         java.util.SortedSet<String> checkedIds = new java.util.TreeSet<>();
         java.util.SortedSet<String> mappings = new java.util.TreeSet<>();
         java.util.SortedSet<String> keptVanillaIds = new java.util.TreeSet<>();
@@ -82,9 +83,17 @@ class GeneratedCarrierTest {
                         if (!(a.getValue() instanceof Map<?, ?> app)) {
                             continue;
                         }
-                        // PAR-WORLD-12: the plant looks take the plant pools outside the selector (PlantBlockGenTest pins
-                        // them; PAR-WORLD-47 moves them into hitbox/)
-                        if (app.containsKey("auto_state") && !id.startsWith("tfp:plant/")) {
+                        // PAR-WORLD-59: the plant looks take the selector's plant pools (PlantPools); every state of
+                        // a plant pool is counted once per id against the pool's size below
+                        java.util.Optional<List<String>> plantPool = PlantPools.poolState(app);
+                        if (plantPool.isPresent()) {
+                            plantPoolStates.computeIfAbsent(plantPool.get().get(0), k -> new java.util.TreeSet<>())
+                                .add(plantPool.get().get(1));
+                            if (!id.startsWith("tfp:plant/") && !HitboxDemands.POOLS.containsKey(id)) {
+                                problems.add(path + " " + id + "#" + a.getKey() + ": plant pool " + plantPool.get()
+                                    + " outside the plant blocks");
+                            }
+                        } else if (app.containsKey("auto_state")) {
                             pools++;
                             checkPool(path, id, a.getKey(), app.get("auto_state"), problems);
                         }
@@ -158,7 +167,12 @@ class GeneratedCarrierTest {
             + 144); // PAR-METAL-13: the channel (128 states) and the mold table (16)
         // PAR-CLIM-04: the ice pile and sea ice (one leaves pool appearance each).
         // PAR-WORLD-44: the 20 twigs on their one shared tripwire state.
-        assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 20 + 4 // PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
+        // PAR-WORLD-59: the plant pools hold every distinct look (and the twigs' one shared tripwire state) within their size
+        assertThat(plantPoolStates).containsOnlyKeys(PlantPools.SIZES.keySet());
+        plantPoolStates.forEach((pool, ids) -> assertThat(ids.size()).as("states of the " + pool + " pool")
+            .isLessThanOrEqualTo(PlantPools.SIZES.get(pool)));
+        assertThat(plantPoolStates.get(PlantPools.TRIPWIRE)).contains(HitboxDemands.TWIG_SHARE_KEY);
+        assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 4 // PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
             + (int) HitboxDemands.all().stream().filter(d -> d.blockId().startsWith("tfp:grass_path/") && agreedOrOld(d).pool())
                 .count()); // PAR-WORLD-42: the grass paths on the leaves pool
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(

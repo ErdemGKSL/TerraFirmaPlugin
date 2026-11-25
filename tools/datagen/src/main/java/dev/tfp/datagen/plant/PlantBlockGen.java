@@ -26,6 +26,7 @@ import dev.tfp.datagen.OutputTree;
 import dev.tfp.datagen.TfcCheckout;
 import dev.tfp.datagen.Yaml;
 import dev.tfp.datagen.device.DeviceYaml;
+import dev.tfp.datagen.hitbox.PlantPools;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -71,8 +72,8 @@ public final class PlantBlockGen {
     static final Set<String> FLOATING = Set.of("FLOATING", "FLOATING_FRESH");
     /** The cacti: TFC {@code strength(0.25F).sound(SoundType.WOOL)}; CACTUSBED is not replaceable ({@code solid()}). */
     static final Set<String> CACTI = Set.of("CACTUSBED", "PASSABLE_CACTUS");
-    /** CraftEngine's plant pools and their sizes (research report §5; the same on 1.21.4+ and 26.x). */
-    public static final Map<String, Integer> POOLS = poolSizes();
+    /** CraftEngine's land plant pools and their sizes (PAR-WORLD-59: modelled by the selector, {@code hitbox/PlantPools}). */
+    public static final Map<String, Integer> POOLS = PlantPools.LAND;
     /** TFC's default climate for colours without a position: 10 C, 250 mm ({@code TFCColors}). */
     static final int TINT_X = 255 - Math.clamp((int) ((10f + 20f) * 255f / 50f), 0, 255);
     static final int TINT_Y = 255 - Math.clamp((int) (250f * 255f / 500f), 0, 255);
@@ -84,11 +85,10 @@ public final class PlantBlockGen {
     private PlantBlockGen() {
     }
 
-    private static Map<String, Integer> poolSizes() {
-        Map<String, Integer> m = new LinkedHashMap<>();
-        m.put("sugar_cane", 15);
-        m.put("sapling", 8);
-        m.put("tripwire", 126);
+
+    private static Map<String, Integer> landUse(PlantPools.Allocator allocator) {
+        Map<String, Integer> m = new LinkedHashMap<>(allocator.use());
+        m.keySet().retainAll(POOLS.keySet());
         return java.util.Collections.unmodifiableMap(m);
     }
 
@@ -206,8 +206,7 @@ public final class PlantBlockGen {
         Assets assets = new Assets(tfc, out);
         Map<String, String> lookIds = new LinkedHashMap<>(); // look key -> auto_state id
         Map<String, String> lookPool = new LinkedHashMap<>();
-        Map<String, Integer> use = new LinkedHashMap<>();
-        POOLS.keySet().forEach(k -> use.put(k, 0));
+        PlantPools.Allocator allocator = new PlantPools.Allocator();
         int states = 0;
         // first pass: the looks of every plant, so the pools are assigned in one deterministic order
         Map<Plant, Map<String, List<ModelRef>>> looks = new LinkedHashMap<>();
@@ -237,18 +236,11 @@ public final class PlantBlockGen {
                     if (lookIds.containsKey(k)) {
                         continue;
                     }
-                    String pool = null;
-                    for (String candidate : POOLS.keySet()) {
-                        if ((!tinted || candidate.equals("tripwire")) && use.get(candidate) < POOLS.get(candidate)) {
-                            pool = candidate;
-                            break;
-                        }
-                    }
+                    String pool = allocator.land(tinted).orElse(null);
                     if (pool == null) {
                         throw new DatagenException("plant looks overflow the plant pools " + POOLS + " at " + e.getKey().id()
                             + " (" + lookIds.size() + " looks placed): merge more looks or move some to entity renderers");
                     }
-                    use.merge(pool, 1, Integer::sum);
                     lookIds.put(k, "tfp_plant_" + lookIds.size());
                     lookPool.put(k, pool);
                 }
@@ -271,7 +263,7 @@ public final class PlantBlockGen {
             }
         }
         writeLang(tfc, out, plants);
-        return new Result(List.copyOf(plants), states, java.util.Collections.unmodifiableMap(use), lookIds.size());
+        return new Result(List.copyOf(plants), states, landUse(allocator), lookIds.size());
     }
 
     static String lookKey(List<ModelRef> look) {
@@ -351,12 +343,7 @@ public final class PlantBlockGen {
 
     private static Map<String, Object> visual(List<ModelRef> look, Map<String, String> ids, Map<String, String> pools) {
         String k = lookKey(look);
-        Map<String, Object> auto = new LinkedHashMap<>();
-        auto.put("type", pools.get(k));
-        auto.put("id", ids.get(k));
-        Map<String, Object> v = new LinkedHashMap<>();
-        v.put("auto_state", auto);
-        return CeBlockStates.appearance(v, look);
+        return CeBlockStates.appearance(PlantPools.appearance(pools.get(k), ids.get(k)), look);
     }
 
     private static Map<String, Object> item(Plant p, Assets assets) {
