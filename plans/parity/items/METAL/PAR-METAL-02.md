@@ -2,7 +2,7 @@
 id: PAR-METAL-02
 title: "Fire ingot mold and bell casting; casting crafting"
 area: METAL
-status: open
+status: done
 wave: 28
 deps: [PAR-POT-05]
 size: S
@@ -19,6 +19,7 @@ in_game_steps:
   - "vessel with molten brass; pour into bell mold; screenshot result"
 plan:
   - "Fire ingot mold (reusable, break chance 0.01), bell mold (bronze/brass bells) as MoldKind entries on the Paper glue."
+  - "Done: PAR-METAL-02 commit (fire ingot and bell molds through the mold glue, placeholder bell until PAR-METAL-18, SpecialMoldsMockBukkitTest 7 tests, in-game check docs/verification/PAR-METAL-02/)"
 tests:
   - "paper: break chance roll"
 done_criteria:
@@ -27,6 +28,5 @@ done_criteria:
 
 # PAR-METAL-02: Fire ingot mold and bell casting; casting crafting
 
-> Claimed: claude session_011osUp6aEeM6XBUKHoB7Lf2, 2026-11-20
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
