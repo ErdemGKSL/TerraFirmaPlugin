@@ -393,7 +393,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-20 | Pluckable feathers, animal sounds | FAUNA | 45 | done |
 | PAR-FAUNA-29 | Pack predator taming and temptation, predator sleep sound (follow-up of PAR-FAUNA-10) | FAUNA | 45 | done |
 | PAR-DECO-03 | Signs and hanging signs (per wood, per metal hanger) | DECO | 46 | done |
-| PAR-DECO-04 | Chests, trapped chests and barrel racks per wood | DECO | 46 | open |
+| PAR-DECO-04 | Chests, trapped chests and barrel racks per wood | DECO | 46 | done |
 | PAR-DECO-05 | Tool racks, shelves, bookshelves, lecterns | DECO | 46 | open |
 | PAR-DECO-06 | Rock families: bricks, cobble, smooth, stairs, slabs, walls, aqueducts, spikes, pressure plates, buttons | DECO | 46 | done |
 | PAR-FAUNA-30 | Crocodile without the aggressive swim goal, diving in water (follow-up of PAR-FAUNA-12) | FAUNA | 46 | open |
@@ -523,6 +523,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-23 | Golden bamboo block, palm mosaic stairs and slabs, tree roots, light block (follow-up of PAR-DECO-12) | DECO | 49 | open |
 | PAR-DECO-24 | Crate storage, buoys and cakes (follow-up of PAR-DECO-12) | DECO | 49 | open |
 | PAR-DECO-25 | Sign runtime: placement rotation, text editing, text display, sign carriers (follow-up of PAR-DECO-03) | DECO | 47 | open |
+| PAR-DECO-26 | Chest extras: lid animation, trapped chest signal, waterlogging, better carrier, automation, custom names (follow-up of PAR-DECO-04) | DECO | 47 | open |
 | PAR-METAL-27 | Blast furnace textured screen: temperature bar and tank bars | METAL | 37 | open |
 | PAR-DATA-20 | Field guide BOOK tab: the fifth player tab opens the field guide (follow-up of PAR-DATA-04) | DATA | 36 | open |
 | PAR-DATA-21 | Field guide translations: TFC's nine other book locales as per-player books (follow-up of PAR-DATA-04) | DATA | 36 | open |
