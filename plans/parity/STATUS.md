@@ -406,7 +406,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-INFRA-53 | Hitbox carrier in-game verification of the classes added by family items: piles, rocks, ores, groundcover, placed items, containers, seals, heavy_core | INFRA | 47 | open |
 | PAR-DECO-11 | Boats, chest boats and minecarts | DECO | 48 | open |
 | PAR-DECO-12 | Misc blocks: crates, buoys, cakes, golden bamboo, palm mosaic, tree roots, light block | DECO | 48 | done |
-| PAR-METAL-17 | Metal weathering of copper-family blocks | METAL | 48 | open |
+| PAR-METAL-17 | Metal weathering of copper-family blocks | METAL | 48 | done |
 | PAR-METAL-19 | Metal lamps: fuel, light, lit state | METAL | 48 | open |
 | PAR-WORLD-20 | Underground decoration and erosion: cave spikes and columns, calcite, cave vegetation, hanging roots, underground lakes, the erosion pass | WORLD | 48 | open |
 | PAR-DECO-13 | Potted plants and krummholz | DECO | 49 | open |
