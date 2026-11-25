@@ -59,6 +59,7 @@ public final class ConfigCodec {
                 BucketConfig.SECTION, Survival.SECTION, ItemBars.SECTION, Automation.SECTION,
                 "pit-kiln", // PAR-POT-14: read raw by PitKilnModule (pit-kiln.ticks, pit-kiln.temperature)
                 "placed-items", // PAR-POT-13: read raw by PlacedItemsModule (placed-items.enabled, placed-items.gesture)
+                "collapse", // PAR-PHYS-07: read raw by CollapseModule (collapse.*)
                 "bloomery", "blast-furnace")); // read raw by BloomeryModule and BlastFurnaceModule
 
         Map<?, ?> v = r.section(top, "visuals");

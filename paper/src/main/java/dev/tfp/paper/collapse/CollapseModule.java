@@ -13,6 +13,9 @@ import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.pipeline.CommitBudget;
 import dev.tfp.paper.recipe.Recipes;
 import dev.tfp.paper.tags.Tags;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 /**
  * PAR-PHYS-02: mining collapses. Provides {@link CollapseService} and {@link CollapseSupports} (the support table
@@ -39,11 +42,19 @@ public final class CollapseModule implements FeatureModule {
         CollapseWorld world = new BukkitCollapseWorld(tags, recipes::index, context.integrations().customBlocks(), fall,
                 falling);
         CollapseSupports supports = new CollapseSupports(() -> context.registryService().registries());
+        CollapseConfig config = CollapseConfig.parse(
+                yaml(context.config().file()).getConfigurationSection(CollapseConfig.SECTION),
+                warning -> context.logger().warning(warning));
         CollapseService service = new CollapseService(context::regions, world, context.scheduler(),
                 context.scheduler().cpuExecutor(), new CommitBudget(CollapseService.BUDGET_NANOS, System::nanoTime),
-                supports);
+                supports, config);
         context.services().provide(CollapseSupports.class, supports);
         context.services().provide(CollapseService.class, service);
         context.listen(new CollapseListener(service));
+    }
+
+    private static YamlConfiguration yaml(Path file) {
+        return file == null || !Files.isRegularFile(file) ? new YamlConfiguration()
+                : YamlConfiguration.loadConfiguration(file.toFile());
     }
 }

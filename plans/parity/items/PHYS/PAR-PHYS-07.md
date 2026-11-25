@@ -2,7 +2,7 @@
 id: PAR-PHYS-07
 title: "Collapse follow-ups: Folia stress self-test, TFC rock-slide sounds in the pack, collapse server config keys"
 area: PHYS
-status: open
+status: done
 wave: 18
 deps: [PAR-PHYS-02]
 size: S
@@ -25,6 +25,7 @@ in_game_steps:
   - "screenshot falling cobble"
 plan:
   - "Left over by PAR-PHYS-02 (files it did not own). (1) itest `collapse.stress` on Folia: many simultaneous triggers across a region border (CollapseService.trigger on raw rock ceilings in two regions), assert every world read and write ran on its owner (ThreadAsserts), the service settles (isIdle) and no commit window exceeds the budget much. (2) Ship TFC's tfc:random.rock_slide_long, rock_slide_long_fake and rock_slide_short (and dirt_slide_short for PAR-PHYS-03) through datagen into the pack and play them from BukkitCollapseWorld.sound instead of the vanilla stone/gravel stand-ins. (3) TFC's collapse server config (collapseTriggerChance, collapseFakeTriggerChance, collapsePropagateChance, collapseMinRadius, collapseRadiusVariance, enableChiselsStartCollapses) as our config keys feeding CollapseRules' full constructor. (4) The in-game screenshot check of PAR-PHYS-02 (deferred there: the container could not run the client)."
+  - "Done: itest case `collapse.stress` (CollapseStressCase, registered in SelfTestSuite; compiled, not run in the container: it needs a Folia/Paper server with CraftEngine); sounds were already shipped and played by PAR-DATA-08 (Sounds.ROCK_SLIDE_*, DIRT_SLIDE_SHORT, used by BukkitCollapseWorld/BukkitLandslideWorld; TfcSoundsTest covers the events); `collapse:` config section (CollapseConfig, config.yml, ConfigCodec known section) feeding CollapseRules' full constructor and the explosion chance. Tests: CollapseConfigTest (6), ExplosionCollapseServiceMockBukkitTest (+1), paper collapse/config/boot, core config, itest SelfTestSuiteTest. Pending in-game check (container cannot run client)"
 tests:
   - "itest: Folia stress `collapse.stress`"
   - "datagen: the three rock-slide sound events in the pack"
@@ -33,7 +34,5 @@ done_criteria:
 ---
 
 # PAR-PHYS-07: Collapse follow-ups: Folia stress self-test, TFC rock-slide sounds in the pack, collapse server config keys
-
-> Claimed: parity worker session_011osUp9, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

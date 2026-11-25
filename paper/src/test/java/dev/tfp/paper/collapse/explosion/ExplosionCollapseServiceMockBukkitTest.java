@@ -254,4 +254,17 @@ class ExplosionCollapseServiceMockBukkitTest extends MockServerTest {
         runAll();
         assertThat(service.explosions()).isZero();
     }
+
+    @Test
+    void theConfiguredExplosionChanceDecidesWhichDrawsStartACollapse() {
+        service = new CollapseService(w -> regions, fake, scheduler(), Runnable::run,
+                new CommitBudget(1_000_000_000L, () -> clock[0] += 400_000L), () -> new SupportTable(List.of()),
+                () -> randoms.get(), new dev.tfp.paper.collapse.CollapseConfig(0.1, 0.35, 0.55, 0.5, 3, 16, true));
+        List<BlockPos> blown = ceilingAndBlast();
+        randoms = () -> scripted(0.3f); // below 0.5: every blown block's upper neighbour joins
+        service.explosion(world, new BlockPos(0, 99, 0), blown);
+        runAll();
+        assertThat(spawns).hasSize(13);
+        assertThat(service.explosions()).isEqualTo(1);
+    }
 }

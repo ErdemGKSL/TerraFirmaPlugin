@@ -49,6 +49,6 @@ class SelfTestSuiteTest {
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("grill.cook")); // PAR-HEAT-24
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("flammability.spread")); // PAR-INFRA-65
         assertThat(cases).extracting(SelfTestCase::name).anyMatch(n -> n.startsWith("craft.leakage")); // PAR-PROC-28
-        assertThat(cases).hasSize(49);
+        assertThat(cases).hasSize(50);
     }
 }

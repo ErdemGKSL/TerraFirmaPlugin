@@ -70,6 +70,7 @@ public final class SelfTestSuite {
                 new dev.tfp.itest.cases.LootCase(),
                 new dev.tfp.itest.cases.VanillaLootCase(),
                 new dev.tfp.itest.cases.NeighbourConvergeCase(),
+                new dev.tfp.itest.cases.CollapseStressCase(),
                 new dev.tfp.itest.cases.PistonNoWaterDupeCase(),
                 new WorldgenTerrainCase(),
                 new dev.tfp.itest.cases.SpawnRulesCase(),

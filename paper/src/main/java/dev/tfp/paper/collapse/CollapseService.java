@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.SplittableRandom;
 import java.util.UUID;
@@ -88,6 +89,7 @@ public final class CollapseService {
     private final CommitBudget budget;
     private final Supplier<SupportTable> supports;
     private final Supplier<CollapseRandom> randoms;
+    private final CollapseConfig config;
     private final Map<UUID, WorldRunner> runners = new ConcurrentHashMap<>();
     private final AtomicLong inFlight = new AtomicLong();
     private final LongAdder triggers = new LongAdder();
@@ -117,6 +119,14 @@ public final class CollapseService {
      */
     public CollapseService(Function<World, RegionExecutor> regions, CollapseWorld blocks, Scheduler scheduler,
             Executor workers, CommitBudget budget, Supplier<SupportTable> supports, Supplier<CollapseRandom> randoms) {
+        this(regions, blocks, scheduler, workers, budget, supports, randoms, CollapseConfig.DEFAULT);
+    }
+
+    /** As above with TFC's server collapse options ({@link CollapseConfig}). */
+    public CollapseService(Function<World, RegionExecutor> regions, CollapseWorld blocks, Scheduler scheduler,
+            Executor workers, CommitBudget budget, Supplier<SupportTable> supports, Supplier<CollapseRandom> randoms,
+            CollapseConfig config) {
+        this.config = Objects.requireNonNull(config, "config");
         this.regions = regions;
         this.blocks = blocks;
         this.scheduler = scheduler;
@@ -130,6 +140,17 @@ public final class CollapseService {
     public CollapseService(Function<World, RegionExecutor> regions, CollapseWorld blocks, Scheduler scheduler,
             Executor workers, CommitBudget budget, Supplier<SupportTable> supports) {
         this(regions, blocks, scheduler, workers, budget, supports, CollapseService::splittable);
+    }
+
+    /** The server one with the configured options. */
+    public CollapseService(Function<World, RegionExecutor> regions, CollapseWorld blocks, Scheduler scheduler,
+            Executor workers, CommitBudget budget, Supplier<SupportTable> supports, CollapseConfig config) {
+        this(regions, blocks, scheduler, workers, budget, supports, CollapseService::splittable, config);
+    }
+
+    /** The options in force (TFC server config {@code collapse*}). */
+    public CollapseConfig config() {
+        return config;
     }
 
     private static CollapseRandom splittable() {
@@ -188,16 +209,17 @@ public final class CollapseService {
         return b.build();
     }
 
-    static CollapseRules rules(Snapshot snap, SupportTable supports) {
-        return new CollapseRules(kinds(snap), supports, CollapseRules.DEFAULT_TRIGGER_CHANCE,
-                CollapseRules.DEFAULT_FAKE_TRIGGER_CHANCE);
+    static CollapseRules rules(Snapshot snap, SupportTable supports, CollapseConfig config) {
+        return new CollapseRules(kinds(snap), supports, config.triggerChance(), config.fakeTriggerChance(),
+                config.propagateChance(), config.minRadius(), config.radiusVariance());
     }
 
     /** What {@link #decideTrigger} decided: the decision, and the radius drawn after a real one (0 otherwise). */
     record Triggered(TriggerDecision decision, int radius) {}
 
-    static Triggered decideTrigger(Snapshot snap, BlockPos mined, SupportTable supports, CollapseRandom random) {
-        CollapseRules rules = rules(snap, supports);
+    static Triggered decideTrigger(Snapshot snap, BlockPos mined, SupportTable supports, CollapseConfig config,
+            CollapseRandom random) {
+        CollapseRules rules = rules(snap, supports, config);
         TriggerDecision d = rules.trigger(snap.view(), mined, random);
         return new Triggered(d, d instanceof TriggerDecision.Real ? rules.drawRadius(random) : 0);
     }
@@ -328,7 +350,7 @@ public final class CollapseService {
         SupportTable table = supports.get();
         CollapseRandom random = randoms.get();
         track(capture(w, triggerBox(mined, table))
-                .thenApplyAsync(snap -> decideTrigger(snap, mined, table, random), workers)
+                .thenApplyAsync(snap -> decideTrigger(snap, mined, table, config, random), workers)
                 .thenCompose(t -> switch (t.decision()) {
                     case TriggerDecision.Real r -> {
                         real.increment();
@@ -343,8 +365,8 @@ public final class CollapseService {
                 }), "trigger at " + mined);
     }
 
-    /** TFC {@code collapseExplosionPropagateChance}: the chance a blown block's upper neighbour is checked (fixed). */
-    public static final double EXPLOSION_PROPAGATE_CHANCE = 0.3;
+    /** TFC {@code collapseExplosionPropagateChance} default; the live value is {@link CollapseConfig#explosionPropagateChance}. */
+    public static final double EXPLOSION_PROPAGATE_CHANCE = CollapseConfig.DEFAULT.explosionPropagateChance();
 
     /**
      * PAR-PHYS-05, TFC {@code WorldTracker.addCollapsePositions}: an explosion at {@code center} that blows {@code blown}
@@ -369,7 +391,7 @@ public final class CollapseService {
             if (dist > maxRadiusSquared) {
                 maxRadiusSquared = dist;
             }
-            if (random.nextFloat() < EXPLOSION_PROPAGATE_CHANCE) {
+            if (random.nextFloat() < config.explosionPropagateChance()) {
                 next.add(pos.offset(0, 1, 0));
             }
         }
@@ -403,7 +425,7 @@ public final class CollapseService {
         CompletableFuture<Void> done = new CompletableFuture<>();
         onOwner(w, center, () -> capture(w, startBox(center, radius))
                 .thenApplyAsync(snap -> {
-                    CollapseRules.Phase phase = rules(snap, table).start(snap.view(), center, radius, random);
+                    CollapseRules.Phase phase = rules(snap, table, config).start(snap.view(), center, radius, random);
                     decided.increment();
                     return new Decided(changes(snap, phase), phase.followUp(),
                             phase.followUp().isPresent() ? CollapseRules.propagationDelay(random) : 0L);
@@ -453,7 +475,7 @@ public final class CollapseService {
         propagations.increment();
         track(capture(w, propagationBox(collapse))
                 .thenApplyAsync(snap -> {
-                    CollapseRules.Phase phase = rules(snap, table).propagate(snap.view(), collapse, random);
+                    CollapseRules.Phase phase = rules(snap, table, config).propagate(snap.view(), collapse, random);
                     decided.increment();
                     return new Decided(changes(snap, phase), phase.followUp(),
                             phase.followUp().isPresent() ? CollapseRules.propagationDelay(random) : 0L);

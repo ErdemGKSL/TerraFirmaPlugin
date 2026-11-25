@@ -166,3 +166,19 @@ pit-kiln:
 placed-items:
   enabled: true
   gesture: both
+
+# Collapses (TFC server config collapse*; PAR-PHYS-07). Restart to apply (the numbers are read once at startup).
+# trigger-chance: chance that mining an unsupported ore or stone starts a real collapse (0..1, TFC 0.1).
+# fake-trigger-chance: chance it only plays the rumble (0..1, TFC 0.35).
+# propagate-chance: chance a block falls in a mining collapse, higher = more likely (0..1, TFC 0.55).
+# explosion-propagate-chance: the same for an explosion collapse (0..1, TFC 0.3).
+# min-radius / radius-variance: a collapse reaches min-radius up to min-radius + radius-variance blocks (1..32, TFC 3 and 16).
+# chisels-start-collapses: chiselling may start a collapse (TFC enableChiselsStartCollapses; read by the chisel item).
+collapse:
+  trigger-chance: 0.1
+  fake-trigger-chance: 0.35
+  propagate-chance: 0.55
+  explosion-propagate-chance: 0.3
+  min-radius: 3
+  radius-variance: 16
+  chisels-start-collapses: true
