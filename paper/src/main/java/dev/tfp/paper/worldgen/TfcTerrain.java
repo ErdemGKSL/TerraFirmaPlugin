@@ -764,7 +764,7 @@ final class TfcTerrain {
     /**
      * PAR-WORLD-32: the block of a groundcover decision: its CraftEngine block (PAR-WORLD-31) when loaded, else the vanilla
      * placeholder. A waterlogged decision keeps the waterloggable placeholder: the CraftEngine groundcover has no fluid state
-     * yet (PAR-WORLD-56).
+     * yet (PAR-WORLD-58).
      */
     private BlockData coverData(Groundcover cover) {
         if (!cover.waterlogged()) {
