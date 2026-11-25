@@ -14,10 +14,10 @@ import org.bukkit.Material;
 /**
  * PAR-WORLD-27: the blocks of every volcanic feature ({@code VolcanicFeatures}: cinder cones, tuyas, stratovolcanoes, shield
  * volcanoes, ocean ridges, springs). Rock kinds are the CraftEngine rocks of the palette: raw rock as itself, hardened rock
- * as the raw rock of the same rock (until PAR-WORLD-15), a gem or sulfur ore as {@code tfp:ore/<ore>/<rock>} when CraftEngine
+ * as the CraftEngine hardened rock of the rock (PAR-WORLD-45; the raw rock while CraftEngine is not loaded), a gem or sulfur ore as {@code tfp:ore/<ore>/<rock>} when CraftEngine
  * knows it, else its rock. Pumice and obsidian shards are the CraftEngine groundcover blocks when loaded. The rest are vanilla
- * placeholders: lava, water for TFC's spring, fresh and salt water, gravel for rock gravel, magma blocks (per rock with
- * PAR-WORLD-15), dirt, and buttons for the groundcover while CraftEngine is not loaded (ledger).
+ * placeholders: lava, water for TFC's spring, fresh and salt water, gravel for rock gravel, magma blocks (the CraftEngine
+ * per-rock magma of PAR-WORLD-45 when loaded, else vanilla magma), dirt, and buttons for the groundcover while CraftEngine is not loaded (ledger).
  */
 final class VolcanicFeatureBlocks {
     private VolcanicFeatureBlocks() {}

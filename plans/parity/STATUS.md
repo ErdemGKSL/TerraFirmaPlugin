@@ -297,7 +297,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-POT-09 | Bowls and powder bowls (wooden and ceramic bowl blocks) | POTTERY | 27 | open |
 | PAR-CLIM-11 | Climate in worlds without the TFC generator: biome-based climate model for the Nether, the End and vanilla worlds (temperature, rainfall, consumers) | CLIMATE | 27 | done |
 | PAR-SURV-13 | Intoxication in-game verification: beer from a jug, drunk chat | SURV | 27 | open |
-| PAR-WORLD-45 | Place CE hardened rock and per-rock magma in the volcanic features; TFC magma behaviour on the CE magma block | WORLD | 27 | open |
+| PAR-WORLD-45 | Place CE hardened rock and per-rock magma in the volcanic features; TFC magma behaviour on the CE magma block | WORLD | 27 | done |
 | PAR-FARM-02 | Fertilizers | FARM | 28 | done |
 | PAR-FARM-03 | Crop blocks: all 29 crops in every shape, seeds, dead and wild crops | FARM | 28 | done |
 | PAR-METAL-02 | Fire ingot mold and bell casting; casting crafting | METAL | 28 | open |
@@ -416,6 +416,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-51 | Per-world TFC settings in every climate consumer (HUD, snow, precipitation, weather, seasonal remap, plant effects, chunk climate) | WORLD | 29 | open |
 | PAR-WORLD-52 | A world's own rock_layer_settings in every rock consumer (terrain fill, volcanoes, groundcover, karst), not only TFC's preset | WORLD | 30 | open |
 | PAR-WORLD-53 | Visual budget for wood plants: the tripwire pool has 3 free states, saplings, fallen leaves and twigs need 101 | WORLD | 22 | done |
+| PAR-WORLD-54 | Bubble columns above the CE magma blocks: drag-down columns that survive vanilla's support check, and the hot spring tracker | WORLD | 30 | open |
 | PAR-MECH-03 | Water wheel | MECH | 51 | open |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | open |
 | PAR-MECH-08 | Power loom | MECH | 51 | open |
@@ -444,3 +445,4 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-20 | Verification: crops grow, die and yield in game (itest crop.grow and screenshots) | FARM | 34 | open |
 | PAR-FARM-23 | Fruit and wild spreading crop blocks: tfp:fruit pumpkin/melon (and rotten), hitbox rows, loot, wild crop worldgen fruit | FARM | 31 | open |
 | PAR-FARM-24 | Wire SpreadingFruit into the crop device: fruit placement at full growth, crowding limit, fruit sides | FARM | 31 | open |
+

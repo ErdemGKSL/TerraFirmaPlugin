@@ -44,6 +44,19 @@ class VolcanicFeatureWiringTest {
     }
 
     @Test
+    void hardenedRockAndMagmaHaveCraftEngineIdsWithFallbacks() {
+        final VolcanicBlock hardened = new VolcanicBlock(0, 70, 0, VolcanicKind.HARDENED_ROCK, BASALT, null);
+        final VolcanicBlock magma = new VolcanicBlock(0, 70, 0, VolcanicKind.MAGMA, BASALT, null);
+        assertThat(VolcanoBlocks.rockBlockId(hardened)).isEqualTo("tfp:rock/hardened/basalt");
+        assertThat(VolcanoBlocks.rockBlockId(magma)).isEqualTo("tfp:rock/magma/basalt");
+        // a non-igneous rock has no magma block: the vanilla magma placeholder stays
+        final int shale = PlaceholderRocks.names().indexOf("shale");
+        assertThat(VolcanoBlocks.rockBlockId(new VolcanicBlock(0, 70, 0, VolcanicKind.MAGMA, shale, null))).isNull();
+        assertThat(VolcanicFeatureBlocks.placeholder(VolcanicKind.MAGMA)).isEqualTo(Material.MAGMA_BLOCK);
+        assertThat(VolcanicFeatureBlocks.rockId(hardened)).isEqualTo("tfp:rock/raw/basalt");
+    }
+
+    @Test
     void writesOnlyItsChunkInsideTheHeightsAndKeepsTrees() {
         final Map<String, Material> world = new HashMap<>();
         world.put("2,66,0", Material.OAK_LOG);

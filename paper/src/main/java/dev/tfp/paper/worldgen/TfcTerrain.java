@@ -679,6 +679,15 @@ final class TfcTerrain {
                 return custom;
             }
         }
+        // PAR-WORLD-45: the per-rock hardened rock and magma of the CraftEngine rock families (fallbacks below: the palette's raw
+        // rock, vanilla magma while CraftEngine is not loaded)
+        final String rockBlock = VolcanoBlocks.rockBlockId(block);
+        if (rockBlock != null) {
+            final BlockData custom = customBlockData(rockBlock);
+            if (custom != null) {
+                return custom;
+            }
+        }
         final Material material = VolcanicFeatureBlocks.placeholder(block.kind());
         if (material != null) {
             return switch (block.kind()) {

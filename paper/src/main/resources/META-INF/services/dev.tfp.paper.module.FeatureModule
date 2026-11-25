@@ -105,3 +105,4 @@ dev.tfp.paper.prey.PreyModule
 dev.tfp.paper.vanilla.VanillaRulesModule
 dev.tfp.paper.pluck.PluckModule
 dev.tfp.paper.animal.sound.AnimalSoundsModule
+dev.tfp.paper.magma.MagmaModule
