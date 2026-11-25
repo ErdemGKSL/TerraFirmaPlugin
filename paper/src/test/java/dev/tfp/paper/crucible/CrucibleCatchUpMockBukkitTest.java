@@ -259,4 +259,42 @@ class CrucibleCatchUpMockBukkitTest extends MockServerTest {
         assertThat(device.kind().slotLimit(3)).isEqualTo(1);
         assertThat(device.kind().removal()).isEqualTo(dev.tfp.paper.device.DeviceKind.RemoveBehaviour.SAVE);
     }
+
+    /** PAR-METAL-29: a small vessel (a decorated pot here) in the output slot takes one mB per tick like a mold. */
+    @Test
+    void aVesselInTheOutputSlotFillsFromAMoltenAlloyAndMixesItsTemperature() {
+        java.util.concurrent.atomic.AtomicLong now = new java.util.concurrent.atomic.AtomicLong(1000);
+        dev.tfp.paper.vessel.VesselItems vessels = new dev.tfp.paper.vessel.VesselItems(
+            new dev.tfp.paper.vessel.VesselItems.Services(now::get,
+                stack -> Optional.ofNullable(stack.getType() == Material.DECORATED_POT ? "tfp:ceramic/vessel" : null),
+                id -> 0.0, stack -> Optional.empty(), stack -> true), HeatConfig.DEFAULT);
+        CrucibleMolds molds = CrucibleMolds.of(null, vessels, List::of);
+        assertThat(molds.isMold(new ItemStack(Material.DECORATED_POT))).isFalse();
+        assertThat(molds.isVessel(new ItemStack(Material.DECORATED_POT))).isTrue();
+        assertThat(molds.isContainer(new ItemStack(Material.DECORATED_POT))).isTrue();
+        assertThat(molds.isContainer(new ItemStack(Material.STONE))).isFalse();
+        CrucibleDevice device = new CrucibleDevice(new CrucibleDevice.Services(ItemHeatHooks.Capacities.UNIT,
+            new CrucibleDevice.Heating() {
+                @Override
+                public Optional<CrucibleRecipe> recipe(ItemStack stack) {
+                    return Optional.empty();
+                }
+
+                @Override
+                public ItemStack melted(ItemStack heated) {
+                    return ItemStack.empty();
+                }
+            }, HeatConfig.DEFAULT, CrucibleRules.DEFAULT_CAPACITY, molds::isContainer, (p, b) -> { }, b -> { }, molds), codec);
+        DeviceRecord<CrucibleData> r = hot("tfp:metal/copper", 250, 1200f)
+            .withSlot(CrucibleDevice.SLOT_OUTPUT, codec.encode(new ItemStack(Material.DECORATED_POT)));
+        DeviceRecord<CrucibleData> after = device.moldPass(r, 60);
+        ItemStack vessel = codec.decode(after.slot(CrucibleDevice.SLOT_OUTPUT));
+        assertThat(vessels.fluid(vessel)).isEqualTo(new FluidAmount("tfp:metal/copper", 60));
+        assertThat(after.state().alloy().amount()).isEqualTo(190);
+        assertThat(vessels.temperature(vessel)).isGreaterThan(0f).isLessThanOrEqualTo(1200f);
+        // given time the crucible empties into the vessel (capacity 3000 is more than the 250 mB)
+        after = device.moldPass(after, 10_000);
+        assertThat(vessels.fluid(codec.decode(after.slot(CrucibleDevice.SLOT_OUTPUT))).amount()).isEqualTo(250);
+        assertThat(after.state().alloy().amount()).isZero();
+    }
 }

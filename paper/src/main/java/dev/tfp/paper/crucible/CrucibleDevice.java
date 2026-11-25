@@ -242,7 +242,7 @@ public final class CrucibleDevice {
         boolean any = false;
         for (int slot = 0; slot < SLOTS; slot++) {
             stacks[slot] = this.stacks.decode(record.slot(slot));
-            any |= !StackCodec.isEmpty(stacks[slot]) && molds.isMold(stacks[slot]);
+            any |= !StackCodec.isEmpty(stacks[slot]) && molds.isContainer(stacks[slot]);
         }
         if (!any) {
             return record;
@@ -273,7 +273,7 @@ public final class CrucibleDevice {
             pour = CrucibleRules.pourTick(pour, transferred, CrucibleRules.POURING_RATE, CrucibleRules.FAST_POURING_RATE);
             boolean output = false;
             ItemStack out = stacks[SLOT_OUTPUT];
-            if (!alloy.isEmpty() && !StackCodec.isEmpty(out) && molds.isMold(out)) {
+            if (!alloy.isEmpty() && !StackCodec.isEmpty(out) && molds.isContainer(out)) {
                 String result = molds.result(alloy);
                 if (CrucibleRules.isMolten(result, temperature)
                     && molds.pourStep(new FluidAmount(result, 1), temperature, out) == 1) {

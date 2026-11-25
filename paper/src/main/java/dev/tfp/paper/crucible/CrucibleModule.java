@@ -34,6 +34,7 @@ import dev.tfp.paper.module.DebugTree;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.mold.MoldItems;
+import dev.tfp.paper.vessel.VesselItems;
 import dev.tfp.paper.neighbour.NeighbourService;
 import dev.tfp.paper.recipe.Recipes;
 import dev.tfp.paper.scheduler.Scheduler;
@@ -110,12 +111,13 @@ public final class CrucibleModule implements FeatureModule {
             }
         }, () -> { });
         Recipes recipes = ctx.services().require(Recipes.class);
-        CrucibleMolds molds = CrucibleMolds.lazy(() -> ctx.services().get(MoldItems.class), alloys);
+        CrucibleMolds molds = CrucibleMolds.lazy(() -> ctx.services().get(MoldItems.class),
+            () -> ctx.services().get(VesselItems.class), alloys);
         CrucibleDevice d = new CrucibleDevice(new CrucibleDevice.Services(
             ItemHeatHooks.Capacities.byId(tags::itemId, definitions),
             CrucibleDevice.Heating.of(heating, stack -> recipes.modifiers().addTrait(stack, BURNT_TO_A_CRISP)),
             HeatConfig.DEFAULT, CrucibleRules.DEFAULT_CAPACITY,
-            molds::isMold, // TFC: the output slot takes what has a fluid handler; ours the fired molds
+            molds::isContainer, // TFC: the output slot takes what has a fluid handler; ours the fired molds and vessels (PAR-METAL-29)
             open, block -> heatBelow(blocks, devs, block), molds), devs.stacks());
         holder[0] = d;
         devs.register(d.kind());

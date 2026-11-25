@@ -294,6 +294,30 @@ class VesselMockBukkitTest extends MockServerTest {
         assertThat(items.isMolten(v)).as("below 950 the bronze is solid; copper alone would still be").isFalse();
     }
 
+    /** PAR-METAL-29: TFC mergeOutputFluidIntoSlot on a vessel: the fill, then the temperature mixed by heat capacity. */
+    @Test
+    void aPourFillsTheVesselAndMixesTheTemperatureByHeatCapacity() {
+        ItemStack v = vessel();
+        heat(v, 20f);
+        float capacity = items.state(v).heatCapacity();
+        float specific = VesselItems.fluidHeat(COPPER).orElseThrow()[0];
+        assertThat(items.pour(v, COPPER, 100, 1200f)).isEqualTo(100);
+        assertThat(items.fluid(v)).isEqualTo(new FluidAmount(COPPER, 100));
+        float expected = 20f * capacity / (capacity + specific * 100) + 1200f * specific * 100 / (capacity + specific * 100);
+        assertThat(items.temperature(v)).isCloseTo(expected, org.assertj.core.data.Offset.offset(0.5f));
+        // a vessel that never had a heat record is cold (0): the pour still mixes
+        ItemStack cold = vessel();
+        assertThat(items.pour(cold, COPPER, 50, 1000f)).isEqualTo(50);
+        assertThat(items.temperature(cold)).isGreaterThan(0f);
+        // a refused fluid, a stack that is no vessel and a full vessel take nothing and change nothing
+        float before = items.temperature(v);
+        assertThat(items.pour(v, "minecraft:water", 10, 20f)).isZero();
+        assertThat(items.pour(new ItemStack(Material.STONE), COPPER, 10, 1200f)).isZero();
+        assertThat(items.pour(v, COPPER, 5000, 1200f)).as("room for 2900").isEqualTo(2900);
+        assertThat(items.pour(v, COPPER, 1, 1200f)).isZero();
+        assertThat(before).isLessThan(1200f);
+    }
+
     @Test
     void aFillOfAnotherMetalAddsAMixAndStopsAtTheCapacity() {
         ItemStack v = vessel();

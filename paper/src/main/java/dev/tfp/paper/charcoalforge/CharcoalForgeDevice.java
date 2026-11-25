@@ -307,21 +307,18 @@ public final class CharcoalForgeDevice {
     }
 
     /**
-     * TFC {@code handleInputMelting}: the fluid is poured into the molds of the extra slots in order (each fills from the
+     * TFC {@code handleInputMelting}: the fluid is poured into the molds and vessels of the extra slots in order (a vessel
+     * takes the whole fitting amount at once, PAR-METAL-29; each fills from the
      * remainder; a fluid no mold takes is lost), then the item output (with the grilled trait) replaces the input.
      */
     DeviceRecord<CharcoalForgeData> melted(DeviceRecord<CharcoalForgeData> record, int slot, Melted made, float temperature) {
         FluidAmount fluid = made.fluid();
         for (int extra = CharcoalForgeSim.SLOT_EXTRA_MIN; extra <= CharcoalForgeSim.SLOT_EXTRA_MAX && !fluid.isEmpty(); extra++) {
             ItemStack mold = stacks.decode(record.slot(extra));
-            if (StackCodec.isEmpty(mold) || !services.molds().isMold(mold)) {
+            if (StackCodec.isEmpty(mold) || !services.molds().isContainer(mold)) {
                 continue;
             }
-            int poured = 0;
-            while (poured < fluid.amount() && services.molds().pourStep(new FluidAmount(fluid.fluid(), fluid.amount() - poured),
-                    temperature, mold) == 1) {
-                poured++;
-            }
+            int poured = services.molds().pour(fluid, temperature, mold);
             if (poured > 0) {
                 record = record.withSlot(extra, stacks.encode(mold));
                 fluid = new FluidAmount(fluid.fluid(), fluid.amount() - poured);

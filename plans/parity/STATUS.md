@@ -533,5 +533,6 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-26 | Chest extras: lid animation, trapped chest signal, waterlogging, better carrier, automation, custom names (follow-up of PAR-DECO-04) | DECO | 47 | open |
 | PAR-METAL-27 | Blast furnace textured screen: temperature bar and tank bars | METAL | 37 | done |
 | PAR-METAL-28 | Anvil remote work: TFC AnvilBlockEntity.workRemotely for the trip hammer (the AnvilRemote service) | METAL | 55 | open |
+| PAR-METAL-29 | Vessels take molten metal from the charcoal forge's extra slots and the crucible's output slot (follow-up of PAR-METAL-22, -23, -25) | METAL | 34 | done |
 | PAR-DATA-20 | Field guide BOOK tab: the fifth player tab opens the field guide (follow-up of PAR-DATA-04) | DATA | 36 | open |
 | PAR-DATA-21 | Field guide translations: TFC's nine other book locales as per-player books (follow-up of PAR-DATA-04) | DATA | 36 | open |

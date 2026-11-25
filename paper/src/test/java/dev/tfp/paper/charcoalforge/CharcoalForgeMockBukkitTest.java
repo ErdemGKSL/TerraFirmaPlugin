@@ -155,6 +155,25 @@ class CharcoalForgeMockBukkitTest extends MockServerTest {
             return stack.getType() == Material.BUCKET;
         }
 
+        /** A decorated pot stands for a small vessel: it takes the whole fitting amount of a pour at once (3000 mB). */
+        @Override
+        public boolean isVessel(ItemStack stack) {
+            return stack.getType() == Material.DECORATED_POT;
+        }
+
+        @Override
+        public int pour(FluidAmount fluid, float temperature, ItemStack container) {
+            if (!isVessel(container)) {
+                return CrucibleMolds.super.pour(fluid, temperature, container);
+            }
+            int now = content(container).amount();
+            int take = Math.min(fluid.amount(), 3000 - now);
+            var meta = container.getItemMeta();
+            meta.setLore(List.of(Integer.toString(now + take), Float.toString(temperature)));
+            container.setItemMeta(meta);
+            return take;
+        }
+
         @Override
         public boolean isMolten(ItemStack mold) {
             return false;
@@ -376,6 +395,31 @@ class CharcoalForgeMockBukkitTest extends MockServerTest {
         fire(new ItemStack(Material.GOLD_INGOT));
         assertThat(new FakeMolds().content(stacks.decode(record().slot(10))).amount()).isEqualTo(100);
         assertThat(new FakeMolds().content(stacks.decode(record().slot(12))).amount()).isEqualTo(70);
+    }
+
+    /** PAR-METAL-29: a vessel in an extra slot takes the melted fluid like a mold (the whole fitting amount at once). */
+    @Test
+    void aVesselInAnExtraSlotTakesTheMeltedFluidAfterAFullMold() {
+        put(10, new ItemStack(Material.BUCKET));
+        put(13, new ItemStack(Material.DECORATED_POT));
+        service.edit(forge, kind, (r, now) -> {
+            ItemStack full = stacks.decode(r.slot(10));
+            for (int i = 0; i < 70; i++) {
+                new FakeMolds().pourStep(new FluidAmount("tfc:metal/gold", 1), 0f, full);
+            }
+            return r.withSlot(10, stacks.encode(full));
+        });
+        fire(new ItemStack(Material.GOLD_INGOT));
+        assertThat(record().slot(5).isEmpty()).isTrue();
+        assertThat(new FakeMolds().content(stacks.decode(record().slot(10))).amount()).isEqualTo(100);
+        assertThat(new FakeMolds().content(stacks.decode(record().slot(13))).amount()).isEqualTo(70);
+    }
+
+    @Test
+    void aVesselAloneTakesTheWholeMeltedFluid() {
+        put(11, new ItemStack(Material.DECORATED_POT));
+        fire(new ItemStack(Material.GOLD_INGOT));
+        assertThat(new FakeMolds().content(stacks.decode(record().slot(11))).amount()).isEqualTo(100);
     }
 
     @Test

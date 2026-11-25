@@ -16,6 +16,7 @@ import dev.tfp.core.alloy.FluidAlloy;
 import dev.tfp.core.crucible.CrucibleRules;
 import dev.tfp.core.heat.HeatConfig;
 import dev.tfp.core.heat.HeatState;
+import dev.tfp.core.mold.MoldPouring;
 import dev.tfp.core.vessel.Alloy;
 import dev.tfp.core.vessel.FluidAmount;
 import dev.tfp.core.vessel.Melt;
@@ -274,6 +275,31 @@ public final class VesselItems {
         }
         writeMix(vessel, fill.alloy());
         return fill.accepted();
+    }
+
+    /**
+     * TFC {@code Helpers.mergeOutputFluidIntoSlot} on a vessel (the crucible's output slot, the charcoal forge's extra
+     * slots): {@link #fill} the vessel, then mix its temperature with the poured fluid by heat capacity
+     * ({@code addTemperatureFromSourceWithHeatCapacity}: the vessel's capacity from before the fill, the fluid's specific
+     * heat times the filled amount). PAR-METAL-29.
+     *
+     * @param sourceTemperature the temperature of the poured fluid
+     * @return the amount taken, 0 for a stack that is no vessel, a refused fluid or a full vessel
+     */
+    public int pour(ItemStack vessel, String fluid, int amount, float sourceTemperature) {
+        float[] heat = fluidHeat(fluid).orElse(null);
+        if (heat == null || !isVessel(vessel) || amount <= 0) {
+            return 0;
+        }
+        float capacity = state(vessel).heatCapacity();
+        float before = temperature(vessel);
+        int filled = fill(vessel, fluid, amount);
+        if (filled == 0) {
+            return 0;
+        }
+        float mixed = MoldPouring.mix(before, capacity, sourceTemperature, heat[0] * filled);
+        HeatPdc.write(vessel, new HeatState(mixed, services.now().getAsLong()));
+        return filled;
     }
 
     /**

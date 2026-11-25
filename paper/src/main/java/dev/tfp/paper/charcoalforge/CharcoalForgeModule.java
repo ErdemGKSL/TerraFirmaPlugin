@@ -125,7 +125,8 @@ public final class CharcoalForgeModule implements FeatureModule {
             block -> blocks.stateAt(block).map(BlockStateRef::id),
             effects,
             stack -> ctx.services().get(Recipes.class).map(r -> r.modifiers().addTrait(stack, CHARCOAL_GRILLED)).orElse(stack),
-            CrucibleMolds.lazy(() -> ctx.services().get(MoldItems.class), ctx.services().require(AlloyRecipes.class))), devs.stacks());
+            CrucibleMolds.lazy(() -> ctx.services().get(MoldItems.class), () -> ctx.services().get(VesselItems.class),
+                ctx.services().require(AlloyRecipes.class))), devs.stacks());
         devs.register(d.kind());
         ctx.services().provide(CharcoalForgeDevice.class, d);
         d.structure(block -> valid(block, tg, sch)); // PAR-METAL-09: the multiblock scan on every callback and neighbour change
