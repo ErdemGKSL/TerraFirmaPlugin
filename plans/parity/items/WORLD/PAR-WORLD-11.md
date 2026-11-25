@@ -2,7 +2,7 @@
 id: PAR-WORLD-11
 title: "Tree generation: forest placement on every chunk, dead forests, mangroves"
 area: WORLD
-status: blocked
+status: open
 wave: 23
 deps: [PAR-WORLD-10]
 size: M
@@ -14,11 +14,16 @@ tfc_refs:
 files_owned:
   - "core/src/main/java/dev/tfp/core/tree/**"
   - "core/src/test/java/dev/tfp/core/tree/**"
+  - "core/src/main/java/dev/tfp/core/worldgen/tree/**"
+  - "core/src/test/java/dev/tfp/core/worldgen/tree/**"
+  - "core/src/test/resources/dev/tfp/core/tree/**"
+  - "paper/src/main/java/dev/tfp/paper/worldgen/TfcTerrain.java"
   - "paper/src/main/java/dev/tfp/paper/worldgen/TreeResources.java"
 ui: true
 in_game_steps:
   - "Locate a mangrove biome via tfp debug chunk; screenshot"
 plan:
+  - "Unblocked 2026-11-25 (world session): files_owned widened to the real tree paths and the TfcTerrain.decorate hook line, as the blocked note asked."
   - "Close the 21 open species (19 dead entries, mangrove, dead mangrove) in core/tree/open_gaps.txt; place trees for every chunk on the region pass; forest density/type map compared with TFC."
   - "BLOCKED (2026-11-25): files_owned names core/src/main/java/dev/tfp/core/tree/**, which does not exist; the tree code lives in core/src/main/java/dev/tfp/core/worldgen/tree/** (TreeData loads only the forest_trees.json tag; the dead_forest_trees and mangrove_forest_trees tags, the mangrove's special root placer and the Forest/TreePlacer changes go there), the open gaps list is core/src/test/resources/dev/tfp/core/tree/open_gaps.txt (outside core/src/test/java), and choosing dead and mangrove forests per biome needs paper/.../worldgen/TfcTerrain.java besides TreeResources. Unblock: widen files_owned to core/src/main/java/dev/tfp/core/worldgen/tree/**, core/src/test/java/dev/tfp/core/worldgen/tree/**, core/src/test/resources/dev/tfp/core/tree/** and a hook line in TfcTerrain.decorate. No code changed."
 tests:

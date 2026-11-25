@@ -2,7 +2,7 @@
 id: PAR-WORLD-53
 title: "Visual budget for wood plants: the tripwire pool has 3 free states, saplings, fallen leaves and twigs need 101"
 area: WORLD
-status: open
+status: done
 wave: 22
 deps: [PAR-WORLD-10, PAR-WORLD-12]
 size: S
@@ -23,3 +23,5 @@ done_criteria:
 # PAR-WORLD-53: Visual budget for wood plants
 
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.
+
+Done (2026-11-25, world session): Decision: option (a). Fallen leaves and saplings become hitbox-only carriers drawn by an entity_renderer item display (no tripwire states, like the snow pile); the shared twig takes 1 of the 3 free tripwire states; potted saplings reuse never-occurring vanilla potted-plant states. PAR-WORLD-12's 123 tripwire states stay. PAR-WORLD-44 is open again with this decision; its generator test must sum tripwire demand over all generators to <= 126.
