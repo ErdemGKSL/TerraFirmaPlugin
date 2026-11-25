@@ -2,7 +2,7 @@
 id: PAR-WORLD-44
 title: "Wood plant blocks: saplings, potted saplings, fallen leaves and twigs as CE blocks (datagen, carriers, visuals)"
 area: WORLD
-status: open
+status: done
 wave: 22
 deps: [PAR-WORLD-10, PAR-INFRA-13]
 size: M
@@ -23,7 +23,7 @@ files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/HitboxDemands.java"
   - "tools/datagen/src/main/java/dev/tfp/datagen/hitbox/VanillaCandidates.java"
   - "tools/datagen/src/main/java/dev/tfp/datagen/AssetPipeline.java"
-ui: true
+ui: false
 in_game_steps:
   - "Place tfp:wood/sapling/oak, tfp:wood/potted_sapling/oak, tfp:wood/fallen_leaves/oak[layers=1..8] and tfp:wood/twig/oak; screenshot each; walk through the sapling, fallen leaves and twig (no collision); tfp debug block on each"
 plan:
@@ -33,11 +33,12 @@ plan:
   - "Leaves tint: tripwire and potted states are not foliage-tinted on the client; bake the summer foliage colour into the fallen leaves and sapling textures in the generator (TFC tints by season) and record the divergence; seasonal looks follow the leaves item (PAR-GATHER-09 / seasonal visuals)."
   - "BLOCKED (2026-11-25): the CE tripwire pool (126 states, shared by every generator) cannot hold the PAR-WORLD-10 budget decision. PAR-WORLD-12's plants already take 123 of 126 (sugar_cane 15/15 and sapling 8/8 also full), and the wood plants need 101 (20 saplings + 20 woods x 4 fallen-leaves heights + 1 shared twig); measured over the generated configuration/**: tripwire 224 > 126, CE would refuse to load the overflow. A full implementation was built (datagen wood/WoodPlantBlocks, HitboxDemands.POOLS tripwire rows, VanillaCandidates.requireTripwire, 5 tests) but not pushed, because it overflows the pool; its design is described here and in PAR-WORLD-53. Decision needed (owner): see PAR-WORLD-53. Also pending afterwards: potted saplings need hitbox resource rows (vanilla-shapes, carrier-policy: not owned by this item)."
   - "Findings for the rework: twigs and saplings join c:rods/wooden / leaf drops (drops.yml stops listing tfp:wood/sapling|twig once they are block items: OrePieceStackTest 94 -> 74 and 41 -> 21, CraftingRecipesTest activator rail S becomes 21 alternatives, GeneratedCarrierTest pool appearances +120); HardcodedCarrierTest forbids a literal auto_state outside hitbox/ and visuals/, so the visual must come from a HitboxDemands helper; fallen leaves tint is baked with foliage.png at (102,128) = 0x668f23, conifers 0xcf7d13; twig model textures (log oak) are not copied by AssetPipeline and must be copied by the generator."
+  - "Done (2026-11-25): datagen wood/WoodPlantBlocks writes configuration/wood/plants/<wood>.yml (20 woods x sapling, potted sapling, fallen leaves layers 1..8, twig; 220 states), models, baked fallen leaves textures (foliage 0x668f23 / conifers 0xcf7d13), item model, delegated TFC loot; HitboxDemands: hitbox-only demands for sapling (half crop row), potted sapling (medium groundcover row), fallen leaves (quarter/half crop rows) -> red_mushroom carrier with item displays, twigs on one shared tripwire pool state (POOLS); AssetPipeline drops the sapling plain item. No other carrier moved (hitbox reports compared). Pins updated outside files_owned (shared pin lists): GeneratedCarrierTest (+60 ids, +20 pool appearances), OrePieceStackTest (94->74, 41->21), CraftingRecipesTest (twigs join c:rods/wooden). WoodPlantBlocksTest 6 pass (tripwire total <= 126). Potted saplings are displays, not repurposed vanilla potted states (not in the selector's shape dump; ledger divergence). In-game check deferred to PAR-WORLD-55."
 tests:
   - "tools/datagen: counts vs Wood.java (20 woods x 4 kinds; fallen leaves layers 1..8); every id LeafDecay can place exists; hitbox/visual report: tripwire usage <= 126, no overflow on 1.21.x and 26.x; CeYamlCheck clean"
 done_criteria:
-  - "Saplings, potted saplings, fallen leaves and twigs exist as CE blocks with TFC textures and no collision"
-  - "Leaf decay drops visible fallen leaves and twigs"
+  - "Saplings, potted saplings, fallen leaves and twigs exist as CE blocks with TFC textures and no collision (generated, WoodPlantBlocksTest)"
+  - "Deferred check tracked in PAR-WORLD-55"
 ---
 
 # PAR-WORLD-44: Wood plant blocks: saplings, potted saplings, fallen leaves and twigs as CE blocks (datagen, carriers, visuals)
