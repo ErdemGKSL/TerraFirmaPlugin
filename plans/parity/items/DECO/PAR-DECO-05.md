@@ -2,7 +2,7 @@
 id: PAR-DECO-05
 title: "Tool racks, shelves, bookshelves, lecterns"
 area: DECO
-status: open
+status: done
 wave: 46
 deps: [PAR-DECO-01, PAR-INFRA-02, PAR-INFRA-13]
 size: M
@@ -27,6 +27,7 @@ in_game_steps:
   - "place tfp:wood/tool_rack/oak; right-click with tools; screenshot"
 plan:
   - "Tool rack (4 tools shown via item displays), shelves (items shown), chiseled-bookshelf-like TFC bookshelves, lecterns on vanilla carrier."
+  - "Done: 80 device blocks (tool rack, shelf, bookshelf, lectern x 20 woods, datagen rack/RackBlocks, configuration/rack/<wood>.yml) drawn as item displays of TFC's models on shared trapdoor, vanilla lectern and barrier carriers; the tool rack (4 tools, TFC quadrants, persistent item displays at the renderer's positions) and the bookshelf (6 books, vanilla slots and sounds, slot_n_occupied states) work in the paper rack module with placement and support rules; core rack rules. Tests: core RackRulesTest 11, datagen RackBlocksTest 7, paper RackMockBukkitTest 21. Shelf items, lectern book, bookshelf power and signal, exact carriers and waterlogging split to PAR-DECO-29. In-game check pending (docs/porting/ledger.md rows)."
 tests:
   - "paper: put/take"
 done_criteria:
@@ -34,7 +35,5 @@ done_criteria:
 ---
 
 # PAR-DECO-05: Tool racks, shelves, bookshelves, lecterns
-
-> Claimed: claude session_011osUp892PmKaxtusSgMonq, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.

@@ -394,7 +394,7 @@ Totals: 387 items; open 207, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-29 | Pack predator taming and temptation, predator sleep sound (follow-up of PAR-FAUNA-10) | FAUNA | 45 | done |
 | PAR-DECO-03 | Signs and hanging signs (per wood, per metal hanger) | DECO | 46 | done |
 | PAR-DECO-04 | Chests, trapped chests and barrel racks per wood | DECO | 46 | done |
-| PAR-DECO-05 | Tool racks, shelves, bookshelves, lecterns | DECO | 46 | open |
+| PAR-DECO-05 | Tool racks, shelves, bookshelves, lecterns | DECO | 46 | done |
 | PAR-DECO-06 | Rock families: bricks, cobble, smooth, stairs, slabs, walls, aqueducts, spikes, pressure plates, buttons | DECO | 46 | done |
 | PAR-FAUNA-30 | Crocodile without the aggressive swim goal, diving in water (follow-up of PAR-FAUNA-12) | FAUNA | 46 | done |
 | PAR-FAUNA-31 | Amphibian play-dead pose: penguin and turtle models (follow-up of PAR-FAUNA-12) | FAUNA | 46 | done |
@@ -539,6 +539,11 @@ Totals: 387 items; open 207, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-METAL-27 | Blast furnace textured screen: temperature bar and tank bars | METAL | 37 | done |
 | PAR-METAL-28 | Anvil remote work: TFC AnvilBlockEntity.workRemotely for the trip hammer (the AnvilRemote service) | METAL | 55 | done |
 | PAR-METAL-29 | Vessels take molten metal from the charcoal forge's extra slots and the crucible's output slot (follow-up of PAR-METAL-22, -23, -25) | METAL | 34 | done |
+| PAR-DECO-25 | Sign runtime: placement rotation, text editing, text display, sign carriers (follow-up of PAR-DECO-03) | DECO | 47 | open |
+| PAR-DECO-26 | Chest extras: lid animation, trapped chest signal, waterlogging, better carrier, automation, custom names (follow-up of PAR-DECO-04) | DECO | 47 | open |
+| PAR-DECO-29 | Rack extras: shelf placed items, lectern book, bookshelf power and signal, better carriers, waterlogging (follow-up of PAR-DECO-05) | DECO | 47 | open |
+| PAR-METAL-27 | Blast furnace textured screen: temperature bar and tank bars | METAL | 37 | open |
+| PAR-METAL-28 | Anvil remote work: TFC AnvilBlockEntity.workRemotely for the trip hammer (the AnvilRemote service) | METAL | 55 | open |
 | PAR-DATA-20 | Field guide BOOK tab: the fifth player tab opens the field guide (follow-up of PAR-DATA-04) | DATA | 36 | open |
 | PAR-DATA-21 | Field guide translations: TFC's nine other book locales as per-player books (follow-up of PAR-DATA-04) | DATA | 36 | open |
 | PAR-DATA-23 | Advancement triggers left from PAR-DATA-19: events published by the 17 owning features | DATA | 56 | open |
