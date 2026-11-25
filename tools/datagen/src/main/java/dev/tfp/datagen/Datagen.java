@@ -233,6 +233,9 @@ public final class Datagen {
         if (dev.tfp.datagen.plant.PlantBlockGen.available(tfc)) { // PAR-WORLD-12: tfp:plant/* land and floating plants on the plant pools, models, baked tints, items, loot, names; fixtures have no plants
             dev.tfp.datagen.plant.PlantBlockGen.run(tfc, out);
         }
+        if (dev.tfp.datagen.plant.FlowerCutting.available(tfc)) { // PAR-FARM-21: tfp:flower_cutting (the item shears on a flower drop); fixtures have no TFCItems
+            dev.tfp.datagen.plant.FlowerCutting.run(tfc, out);
+        }
         if (dev.tfp.datagen.rotation.RotationBlocks.available(tfc)) { // PAR-MECH-01: axles, encased axles, clutches, gearboxes, creative motor; fixtures have no rotation blocks
             dev.tfp.datagen.rotation.RotationBlocks.run(tfc, out);
         }

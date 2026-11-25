@@ -184,6 +184,11 @@ final class PlantLevel {
         return placed(x, y, z) == null && view.ground(x, y, z).isAirOrEmptyFluid();
     }
 
+    /** Whether the position is the {@code minecraft:water} block (fresh water; never a placed block). */
+    boolean freshWaterBlock(int x, int y, int z) {
+        return placed(x, y, z) == null && view.ground(x, y, z) == TreeGround.WATER;
+    }
+
     /** Whether the position is TFC's salt water block ({@code TFCBlocks.SALT_WATER}). */
     boolean saltWaterBlock(int x, int y, int z) {
         return placed(x, y, z) == null && view.ground(x, y, z) == TreeGround.SALT_WATER;
@@ -221,6 +226,7 @@ final class PlantLevel {
         return switch (state.kind()) {
             case PLANT -> state.type().fluidProperty();
             case WILD_CROP -> WildCrop.of(state.block()) == WildCrop.FLOODED ? PlantState.Fluid.WATER : null;
+            case BERRY_BUSH -> Berries.cranberry(state) ? PlantState.Fluid.WATER : null;
             case CORAL, CORAL_FAN, CORAL_WALL_FAN, SEA_PICKLE -> PlantState.Fluid.SALT_WATER;
             default -> null;
         };
@@ -249,6 +255,7 @@ final class PlantLevel {
                 final boolean ground = below == null && view.ground(x, y - 1, z).treeGrowsOn();
                 yield crop == WildCrop.FLOODED ? ground && fluid(x, y + 1, z) == PlantState.Fluid.EMPTY : ground;
             }
+            case BERRY_BUSH, SPREADING_BUSH -> Berries.survives(this, state, x, y, z);
             default -> false;
         };
     }

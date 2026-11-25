@@ -56,6 +56,9 @@ final class PlantBlocks {
             };
             case WILD_CROP_FRUIT -> state.block().endsWith("melon") ? Material.MELON : Material.PUMPKIN;
             case CORAL_BLOCK, CORAL, CORAL_FAN, CORAL_WALL_FAN, SEA_PICKLE -> vanilla(state.block());
+            // PAR-FARM-18/19: the berry bushes look like a shrub until the CE blocks are written; the cane has no placeholder
+            case BERRY_BUSH, SPREADING_BUSH -> Material.AZALEA;
+            case SPREADING_CANE -> null;
         };
     }
 
@@ -91,6 +94,22 @@ final class PlantBlocks {
      * {@code half}; an age not drawn yet is age 0 (TFC's default state).
      */
     static String ceRef(PlantState state) {
+        switch (state.kind()) {
+            case BERRY_BUSH, SPREADING_BUSH -> {
+                // lifecycle healthy and the stage of the bush; the cranberry holds fresh water or none (TFC's fluid property)
+                return state.block() + "[lifecycle=healthy,stage=" + Math.clamp(state.age(), 0, 2) + "]";
+            }
+            case SPREADING_CANE -> {
+                return state.block() + "[lifecycle=healthy,stage=0,facing=" + switch (state.extra()) {
+                    case 2 -> "north";
+                    case 3 -> "south";
+                    case 4 -> "west";
+                    default -> "east";
+                } + "]";
+            }
+            default -> {
+            }
+        }
         if (state.kind() != PlantState.Kind.PLANT || !CE_TYPES.contains(state.type())) {
             return null;
         }

@@ -191,6 +191,7 @@ final class PlantPlacer {
             }
             case PlantFeature.DryReplaceable d -> level.replaceable(x, y, z) && level.fluid(x, y, z) == PlantState.Fluid.EMPTY;
             case PlantFeature.SaltWaterBlock s -> level.saltWaterBlock(x, y, z);
+            case PlantFeature.FreshWaterBlock w -> level.freshWaterBlock(x, y, z);
         };
     }
 
@@ -225,6 +226,7 @@ final class PlantPlacer {
                 spreadingCrop(s.state(), level, random, x, y, z);
                 yield true;
             }
+            case PlantFeature.SpreadingBush b -> Berries.place(b, level, random, x, y, z);
             case PlantFeature.NoisyMultiple n -> noisyMultiple(n, level, random, x, y, z);
             case PlantFeature.Coral c -> Corals.place(level, random, x, y, z, c.shape());
             case PlantFeature.Creeping c -> ShapedPlants.creeping(c, level, random, x, y, z);

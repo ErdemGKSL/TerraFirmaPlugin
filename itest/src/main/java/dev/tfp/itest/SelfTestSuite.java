@@ -61,6 +61,7 @@ public final class SelfTestSuite {
                 new dev.tfp.itest.cases.GrillCookCase(),
                 new dev.tfp.itest.cases.CharcoalForgeContinuousCase(),
                 new dev.tfp.itest.cases.CatchUpCase(),
+                new dev.tfp.itest.cases.CropGrowCase(),
                 new dev.tfp.itest.cases.PrecipSampleCase(),
                 new dev.tfp.itest.cases.WeatherCycleCase(),
                 new dev.tfp.itest.cases.LootCase(),

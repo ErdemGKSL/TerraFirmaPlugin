@@ -45,7 +45,13 @@ public record PlantState(String block, Kind kind, PlantType type, Part part, int
         /** A TFC coral wall fan ({@code tfp:coral/<colour>_coral_wall_fan}), facing {@link #extra}. */
         CORAL_WALL_FAN,
         /** TFC's sea pickle ({@code tfp:sea_pickle}), {@link #extra} pickles. */
-        SEA_PICKLE
+        SEA_PICKLE,
+        /** A stationary berry bush ({@code tfp:berry_bush/<species>}) or the cranberry bush ({@code tfp:spreading_bush/cranberry}); {@link #age} is its stage. */
+        BERRY_BUSH,
+        /** A spreading bush ({@code tfp:spreading_bush/<species>}); {@link #age} is its stage. */
+        SPREADING_BUSH,
+        /** The cane of a spreading bush ({@code tfp:spreading_bush/<species>_cane}), facing {@link #extra} (a {@code get3DDataValue} index). */
+        SPREADING_CANE
     }
 
     /** The half of a two-block plant ({@code part} lower/upper, a double crop's bottom/top). */

@@ -87,7 +87,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-29 | Scraping block CE entry: tfc:scraping hitbox row and demand, configuration/scraping, in-game check | PROC | 8 | done |
 | PAR-PROC-30 | minecraft:bricks is craftable in TFC: stop repurposing it as a visual state; bricks craft in-game re-check | PROC | 8 | done |
 | PAR-GATHER-12 | CraftEngine blocks for loose rocks and groundcover, so pickup and stacking work in the world | GATHER | 22 | blocked |
-| PAR-FARM-19 | CraftEngine farmland blocks per soil with hydration visual states | FARM | 28 | open |
+| PAR-FARM-26 | CraftEngine farmland blocks per soil with hydration visual states (renamed from a nameless second PAR-FARM-19 row) | FARM | 28 | open |
 | PAR-PROC-28 | Advanced crafting in-game verification and self-test: knife/sandwich crafts, vanilla recipe leakage over all recipes | PROC | 41 | open |
 | PAR-HUD-17 | Wire the HUD display styles: hud.* keys in config.yml, health text and climate temperature placeholders follow HudStyles | HUD | 8 | done |
 | PAR-HUD-18 | /tfp debug chunk climate lines follow hud.climate-temperature-style | HUD | 9 | done |
@@ -286,7 +286,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-13 | Remaining plant features: vines, kelp, epiphytes, creeping plants, cacti, algae, atoll corals | WORLD | 25 | done |
 | PAR-WORLD-14 | Volcanic features: springs, rivulets, flood-fill lakes, calderas of other cones | WORLD | 25 | done |
 | PAR-WORLD-25 | TFC corals and sea pickle as CE blocks: 5 colours x (coral, coral fan, wall fan) live and dead, the salt-water sea pickle, dying out of water, drops; replace the vanilla coral placeholders in generation | WORLD | 25 | done |
-| PAR-FARM-12 | Wild plant block rules: survival per shape, cactus damage, tall halves, plant stacking, flower shearing, long growth of vines, kelp, kelp trees and branching cacti | FARM | 26 | open |
+| PAR-FARM-12 | Wild plant block rules: survival per shape, cactus damage, tall halves, plant stacking, flower shearing, long growth of vines, kelp, kelp trees and branching cacti | FARM | 26 | done |
 | PAR-POT-06 | Large vessel (and glazed): nine slots, sealing, preservation, automation | POTTERY | 26 | open |
 | PAR-POT-07 | Jugs and glass bottles: fill, drink, pour, break | POTTERY | 26 | done |
 | PAR-WORLD-15 | Volcanic and spring CE blocks: hardened rock, magma blocks, spring water look | WORLD | 26 | done |
@@ -445,17 +445,19 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-REL-08 | Full playthrough and visual QA | REL | 55 | open |
 | PAR-REL-09 | Release packaging | REL | 56 | blocked |
 | PAR-FARM-14 | Stationary berry bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 30 | done |
-| PAR-FARM-18 | Worldgen placement of stationary berry bushes | FARM | 31 | open |
-| PAR-FARM-19 | Worldgen placement of spreading bushes and cranberries | FARM | 32 | open |
+| PAR-FARM-18 | Worldgen placement of stationary berry bushes | FARM | 31 | done |
+| PAR-FARM-19 | Worldgen placement of spreading bushes and cranberries | FARM | 32 | done |
 | PAR-FARM-15 | Spreading bush blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 31 | done |
 | PAR-FARM-16 | Fruit tree blocks: CraftEngine states, models, hitbox carriers, loot, splicing | FARM | 32 | open |
 | PAR-FARM-17 | Banana blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 33 | open |
 | PAR-METAL-23 | Crucible molds: pour into and out of the crucible, output slot, held crucible tooltip | METAL | 34 | open |
 | PAR-METAL-25 | Charcoal forge: melting into extra-slot molds, the grilled trait on outputs, picking up dropped fuel | METAL | 34 | open |
 | PAR-METAL-24 | Crucible channel nubs: the crucible draws TFC's crucible_connection toward adjacent channels | METAL | 35 | open |
-| PAR-FARM-20 | Verification: crops grow, die and yield in game (itest crop.grow and screenshots) | FARM | 34 | open |
+| PAR-FARM-20 | Verification: crops grow, die and yield in game (itest crop.grow and screenshots) | FARM | 34 | done |
 | PAR-FARM-23 | Fruit and wild spreading crop blocks: tfp:fruit pumpkin/melon (and rotten), hitbox rows, loot, wild crop worldgen fruit | FARM | 31 | open |
 | PAR-FARM-24 | Wire SpreadingFruit into the crop device: fruit placement at full growth, crowding limit, fruit sides | FARM | 31 | open |
+| PAR-FARM-21 | Flower cutting item and plant block items: tfp:flower_cutting content | FARM | 34 | done |
+| PAR-FARM-25 | CraftEngine blocks and runtime for the growing plant shapes: vines, columns, kelp, kelp trees, branching cacti | FARM | 35 | open |
 | PAR-PROC-46 | Panning in-game verification: deposit pickup, water hint, 6 s pan, small ores | PROC | 33 | open |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | open |
 | PAR-DECO-18 | Sandstone stairs, slabs and walls and the calcite spike | DECO | 49 | open |

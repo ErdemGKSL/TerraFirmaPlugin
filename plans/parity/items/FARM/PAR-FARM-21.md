@@ -2,7 +2,7 @@
 id: PAR-FARM-21
 title: "Flower cutting item and plant block items: tfp:flower_cutting content, plant item ids for cuttings"
 area: FARM
-status: open
+status: done
 wave: 34
 deps: [PAR-FARM-11]
 size: S
@@ -13,12 +13,14 @@ tfc_refs:
 files_owned:
   - "tools/datagen/src/main/java/dev/tfp/datagen/plant/FlowerCutting.java"
   - "tools/datagen/src/test/java/dev/tfp/datagen/plant/FlowerCuttingTest.java"
+  - "tools/datagen/src/main/java/dev/tfp/datagen/Datagen.java"
 ui: true
 in_game_steps:
   - "give a shears; right-click a flower; screenshot the dropped cutting"
   - "craft the cutting with compost; two flowers come out"
 plan:
   - "Datagen the CE item tfp:flower_cutting (TFC texture and lang) and check that the plant item id the cutting stores (tfp:plant/<name>, written by PAR-FARM-11 CuttingListener) is a CE item the crafting modifier can create; if PlantBlockGen defines no plant block items, add them."
+  - "Done: datagen plant/FlowerCutting writes tfp:flower_cutting (paper item, TFC model and texture, names and tooltip line), hooked in Datagen.generate; plant block items already exist under tfp:plant/<name> (PlantBlockGen), so the crafting modifier creates them; FlowerCuttingTest (3). Pending in-game check (container cannot run client)"
 tests:
   - "datagen: item exists, model and lang"
 done_criteria:
@@ -27,6 +29,5 @@ done_criteria:
 
 # PAR-FARM-21
 
-> Claimed: farm-worker-b, 2026-11-25: Flower cutting item and plant block items
 
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.

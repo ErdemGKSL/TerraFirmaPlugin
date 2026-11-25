@@ -203,9 +203,10 @@ class PlantPropertyTest {
             .contains("tfp:plant/manatee_grass_patch").doesNotContain("tfp:plant/allium_patch");
         assertThat(plants.features(Plants.Step.LARGE_FEATURES, TfcBiomes.OCEAN_REEF).stream().map(PlantFeature.Placed::id))
             .containsExactly("tfp:coral_mushroom", "tfp:coral_tree", "tfp:coral_claw");
-        // Not here: the fruit trees and berry bushes (PAR-FARM items)
-        assertThat(plants.skipped()).containsKeys("tfp:plant/cherry", "tfp:plant/blackberry_bush", "tfp:plant/bunchberry_bush_patch")
-            .doesNotContainKeys("tfp:atoll_coral_tree", "tfp:plant/jungle_vines", "tfp:plant/giant_kelp_patch", "tfp:plant/moss_cover",
+        // Not here: the fruit trees (PAR-FARM items); the berry bushes are placed since PAR-FARM-18/19
+        assertThat(plants.skipped()).containsKeys("tfp:plant/cherry")
+            .doesNotContainKeys("tfp:plant/blackberry_bush", "tfp:plant/bunchberry_bush_patch", "tfp:plant/cranberry_bush",
+                "tfp:atoll_coral_tree", "tfp:plant/jungle_vines", "tfp:plant/giant_kelp_patch", "tfp:plant/moss_cover",
                 "tfp:plant/barrel_cactus_patch");
         for (int biome = 0; biome < TfcBiomes.COUNT; biome++) {
             for (Plants.Step step : Plants.Step.values()) {

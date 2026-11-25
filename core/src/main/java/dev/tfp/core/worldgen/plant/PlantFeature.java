@@ -115,6 +115,9 @@ public final class PlantFeature {
     /** {@code minecraft:matching_blocks} of {@code tfc:fluid/salt_water}: TFC's salt water block. */
     public record SaltWaterBlock() implements Predicate {}
 
+    /** {@code minecraft:matching_blocks} of {@code minecraft:water}: the fresh water block (a source or flowing block of it). */
+    public record FreshWaterBlock() implements Predicate {}
+
     /** A configured feature. */
     public sealed interface Configured {}
 
@@ -144,6 +147,9 @@ public final class PlantFeature {
 
     /** {@code tfc:spreading_crop}: the crop with its fruit on a random horizontal side, when that side can hold it. */
     public record SpreadingCrop(PlantState state) implements Configured {}
+
+    /** {@code tfc:spreading_bush}: {@code SpreadingBushFeature}, five tries of a bush one to three high with canes on its sides. */
+    public record SpreadingBush(PlantState state) implements Configured {}
 
     /** {@code tfc:noisy_multiple}: the features in an order rotated by the temperature, stopping after two placed. */
     public record NoisyMultiple(List<Placed> features) implements Configured {

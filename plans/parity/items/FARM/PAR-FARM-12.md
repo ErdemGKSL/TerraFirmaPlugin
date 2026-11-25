@@ -2,7 +2,7 @@
 id: PAR-FARM-12
 title: "Wild plant block rules: survival per shape, cactus damage, tall halves, plant stacking, flower shearing, long growth of vines, kelp, kelp trees and branching cacti"
 area: FARM
-status: open
+status: done
 wave: 26
 deps: [PAR-WORLD-12, PAR-WORLD-13, PAR-INFRA-10, PAR-INFRA-11]
 size: L
@@ -52,6 +52,7 @@ plan:
   - "core/plant (pure, golden vs TFC): canSurvive per shape (bush/grass on the plantable_on tags, dry plants, tall halves, water plants and floating plants by fluid and depth, epiphytes on logs, creeping plants on any solid face with updateStateFromSides, hanging/top/body pipes, kelp and kelp trees attached downward, cactus on sand); the stacking rule (canBeReplaced with the same item and age < max raises age, not when sneaking); flower shearing (shears on #minecraft:flowers drop the flower item); long growth: TopPlantBlock age < 25 grows one block in its direction when the next block is free, GrowingBranchingCactusBlock and KelpTreeFlowerBlock with plantGrowthChance / plantLongGrowthChance and their size caps, TFCVineBlock only when the instant temperature is above 0 C."
   - "paper/plant: survival through the PAR-INFRA-10 neighbour runner (decide async, apply sync: a support change marks the plants above/beside, the decision pops the ones that cannot survive, the region commit queue applies it with their loot); cactus contact damage 1.0 of vanilla's cactus damage type for TFCCactusBlock, TFCPassableCactusBlock, TFCCactusBedBlock and BranchingCactusBlock (entity-in-block check on the entity's region thread, throttled to the vanilla contact cadence); tall halves placed and broken together; stacking and shearing on interaction; long growth as lazy catch-up from the last-seen calendar time through PAR-INFRA-11 (no ticking), equivalent to TFC's random ticks in expectation (lazy-vs-stepped test)."
   - "Config keys plantGrowthChance and plantLongGrowthChance through the PAR-DATA-06 config when it exists; until then the TFC defaults as constants with a ledger note."
+  - "Done: core/plant PlantSurvival, PlantStacking, CactusContact, PlantGrowth (14 tests, lazy-vs-stepped means for age and column growth); paper/plant PlantSupportQueue (snapshot, CPU decision, region commit), PlantListener (physics events, flowerbed and cactus bed stacking), CactusContactTask, PlantAgeSweeper, PlantModule (4 MockBukkit tests); shearing was PAR-FARM-11. Vines, kelp, kelp trees, branching cacti, creeping plants and epiphytes have no CE blocks yet: follow-up PAR-FARM-25 (their rules are in core). Ledger rows and divergences added. Pending in-game check (container cannot run client)"
 tests:
   - "core: survival golden per shape vs TFC (table exported from /opt/tfc), stacking and shearing rules, long-growth caps"
   - "core: lazy-vs-stepped: catch-up growth of a kelp column and a branching cactus over 1..24 months matches the random-tick simulation in mean and bound"
@@ -63,7 +64,6 @@ done_criteria:
 
 # PAR-FARM-12
 
-> Claimed: farm-worker-b, 2026-11-25: Wild plant block rules: survival per shape, cactus damage, tall halves, plant stacking, flower shearing, long growth
 
 > see_not_parity: NP-SIM-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

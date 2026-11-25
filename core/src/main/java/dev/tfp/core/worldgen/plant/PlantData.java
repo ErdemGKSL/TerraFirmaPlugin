@@ -240,6 +240,7 @@ public final class PlantData {
                 }
                 yield new PlantFeature.TallWildCrop(s);
             }
+            case "tfp:spreading_bush" -> new PlantFeature.SpreadingBush(blockState(string(c, "block")));
             case "tfp:spreading_crop" -> {
                 final PlantState s = blockState(string(c, "block"));
                 if (WildCrop.of(s.block()) != WildCrop.SPREADING) {
@@ -400,11 +401,15 @@ public final class PlantData {
             case "tfp:dry_replaceable" -> new PlantFeature.DryReplaceable();
             case "minecraft:matching_blocks" -> {
                 final JsonElement blocks = p.get("blocks");
-                if (blocks == null || !blocks.isJsonArray() || blocks.getAsJsonArray().size() != 1
-                    || !"tfp:fluid/salt_water".equals(blocks.getAsJsonArray().get(0).getAsString())) {
-                    throw new Unsupported("matching blocks " + blocks);
+                final String only = blocks != null && blocks.isJsonArray() && blocks.getAsJsonArray().size() == 1
+                    ? blocks.getAsJsonArray().get(0).getAsString() : null;
+                if ("tfp:fluid/salt_water".equals(only)) {
+                    yield new PlantFeature.SaltWaterBlock();
                 }
-                yield new PlantFeature.SaltWaterBlock();
+                if ("minecraft:water".equals(only)) {
+                    yield new PlantFeature.FreshWaterBlock();
+                }
+                throw new Unsupported("matching blocks " + blocks);
             }
             default -> throw new Unsupported("block predicate " + type);
         };
@@ -487,6 +492,9 @@ public final class PlantData {
                 default -> throw new IllegalArgumentException("unknown part in " + s);
             });
         }
+        if (props.has("stage") && (out.kind() == PlantState.Kind.BERRY_BUSH || out.kind() == PlantState.Kind.SPREADING_BUSH)) {
+            out = out.withAge(Integer.parseInt(props.get("stage").getAsString()));
+        }
         if (props.has("age") && PlantPlacer.hasAge(out)) {
             out = out.withAge(Integer.parseInt(props.get("age").getAsString()));
         }
@@ -537,6 +545,11 @@ public final class PlantData {
         }
         if (WildCrop.of(id) != null) {
             return PlantState.of(id, PlantState.Kind.WILD_CROP, null);
+        }
+        final Berries.Bush bush = Berries.of(id);
+        if (bush != null) {
+            // the bush at stage 0 (TFC's worldgen states say lifecycle healthy, stage 0)
+            return PlantState.of(bush.block(), bush.kind(), null).withAge(0);
         }
         throw new Unsupported("block " + id);
     }

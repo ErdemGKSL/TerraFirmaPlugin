@@ -1,29 +1,11 @@
 # TFC placed features (tfc: ids, from plant_placement.tsv) that the Java plant rules do not run yet (PlantData.skipped()).
-# Open gaps of M2-GEN-13: since PAR-WORLD-13 only the fruit trees and berry bushes, which the PAR-FARM items place.
+# Open gaps of M2-GEN-13: since PAR-WORLD-13 only the fruit trees and berry bushes, which the PAR-FARM items place; the bushes are placed since PAR-FARM-18/19.
 tfc:plant/banana
-tfc:plant/blackberry_bush
-tfc:plant/blueberry_bush
-tfc:plant/bunchberry_bush
-tfc:plant/bunchberry_bush_patch
 tfc:plant/cherry
-tfc:plant/cloudberry_bush
-tfc:plant/cloudberry_bush_patch
-tfc:plant/cranberry_bush
-tfc:plant/cranberry_bush_patch
-tfc:plant/elderberry_bush
-tfc:plant/gooseberry_bush
-tfc:plant/gooseberry_bush_patch
 tfc:plant/green_apple
 tfc:plant/lemon
 tfc:plant/olive
 tfc:plant/orange
 tfc:plant/peach
 tfc:plant/plum
-tfc:plant/raspberry_bush
 tfc:plant/red_apple
-tfc:plant/snowberry_bush
-tfc:plant/snowberry_bush_patch
-tfc:plant/strawberry_bush
-tfc:plant/strawberry_bush_patch
-tfc:plant/wintergreen_berry_bush
-tfc:plant/wintergreen_berry_bush_patch
