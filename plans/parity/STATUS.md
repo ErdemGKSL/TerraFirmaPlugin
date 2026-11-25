@@ -88,7 +88,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-30 | minecraft:bricks is craftable in TFC: stop repurposing it as a visual state; bricks craft in-game re-check | PROC | 8 | done |
 | PAR-GATHER-12 | CraftEngine blocks for loose rocks and groundcover, so pickup and stacking work in the world | GATHER | 22 | blocked |
 | PAR-FARM-26 | CraftEngine farmland blocks per soil with hydration visual states (renamed from a nameless second PAR-FARM-19 row) | FARM | 28 | done |
-| PAR-PROC-28 | Advanced crafting in-game verification and self-test: knife/sandwich crafts, vanilla recipe leakage over all recipes | PROC | 41 | open |
+| PAR-PROC-28 | Advanced crafting in-game verification and self-test: knife/sandwich crafts, vanilla recipe leakage over all recipes | PROC | 41 | done |
 | PAR-HUD-17 | Wire the HUD display styles: hud.* keys in config.yml, health text and climate temperature placeholders follow HudStyles | HUD | 8 | done |
 | PAR-HUD-18 | /tfp debug chunk climate lines follow hud.climate-temperature-style | HUD | 9 | done |
 | PAR-PROC-31 | Vanilla full-cube blocks made by TFC barrel, loom, heating and glassworking recipes: stop repurposing them; guard over every recipe type | PROC | 9 | done |

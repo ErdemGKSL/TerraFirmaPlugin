@@ -2,7 +2,7 @@
 id: PAR-PROC-28
 title: "Advanced crafting in-game verification and self-test: knife/sandwich crafts, vanilla recipe leakage over all recipes"
 area: PROC
-status: open
+status: done
 wave: 41
 deps: [PAR-PROC-24, PAR-DECO-01]
 size: S
@@ -28,6 +28,7 @@ plan:
   - "Pending (PAR-PROC-03 review): CraftLeakageCase also fires a real CrafterCraftEvent on a crafter block (Container state and getContents through CraftListener.onCrafter, not only blocksCrafter), and lists the vanilla crafting recipes newer than TFC's 1.21.1 (spears, copper tools and armor, shelves, ...) that are neither removed nor overridden (ledger divergence row)."
   - "Pending (PAR-PROC-03 unblock): the food-combining step needs two stacks of the SAME food that differ only in creation date (TFC FoodCombiningCraftingRecipe.matches uses FoodCapability.areStacksStackableExceptCreationDate); bread + bread + cabbage gives no result in TFC either, so the empty slot of the 9bec055 probe is expected. Wave 41: after PAR-DECO-01 (wave 40), which the planks steps need."
   - "Pending (PAR-PROC-03 review): a drift guard for KeptVanillaRecipes. Recompute from the running server's recipes the kept minecraft:crafting_* recipes (not TFC-overridden, not disabled) whose ingredients, with nested tags expanded, hit a vanilla tag TFC's data extends; fail when the set differs from KeptVanillaRecipes.ALL (minus minecraft:wooden_spear, left out because TFC removes all wooden tools). Run it on 1.21.11 and on 26.x."
+  - "Done: in-game check run 2026-11-25 on Paper 1.21.11 with the headless client (GUI scale 2 and 3): knife + oat bread + cooked beef craft a sandwich and the knife keeps a durability bar, two beef stacks a day apart combine to a stack of 2 with the older date, three loose rocks (paper base) + leather give no book (control: paper gives the book), TFC planks make 4 sticks, a powered crafter holding the rocks grid crafts nothing. The crafter holding the two-planks grid also crafts nothing (documented divergence in CraftListener#onCrafter: the server sees no vanilla planks there, so no CrafterCraftEvent). Self-test craft.leakage (CraftLeakageCase, SelfTestSuite line) passes on Paper 1.21.11 with CraftEngine: 1027 of 1070 server crafting recipes filled with stand-ins of a CE item (same CE id, every base material) and fired as real CrafterCraftEvents, all cancelled; a grid of TFC planks stand-ins is accepted by minecraft:stick. Not done: the drift guard of KeptVanillaRecipes against the running server's recipes, the 195 disabled recipes on vanilla items, the 26.x run. Evidence and verdict: docs/verification/PAR-PROC-03/ (verdict.md)."
 tests:
   - "itest: CraftLeakageCase (leakage over all recipes)"
 done_criteria:
