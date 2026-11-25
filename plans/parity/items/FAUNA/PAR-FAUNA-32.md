@@ -27,4 +27,6 @@ done_criteria:
 
 # PAR-FAUNA-32: Pest infestation of large vessels and nest boxes
 
+> Claimed: worker session_011osUp8LArwstSDt7X82o4E, 2026-11-25
+
 Follow `plans/parity/PROTOCOL.md`.
