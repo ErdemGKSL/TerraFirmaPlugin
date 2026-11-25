@@ -42,8 +42,8 @@ final class MoldTableDevice {
     private final DeviceKind<MoldTableData> kind;
 
     MoldTableDevice(ChannelWorld world, PourService pour, MoldItems molds, StackCodec stacks) {
-        this.world = Objects.requireNonNull(world, "world");
-        this.pour = Objects.requireNonNull(pour, "pour");
+        this.world = world;
+        this.pour = pour;
         this.molds = Objects.requireNonNull(molds, "molds");
         this.stacks = Objects.requireNonNull(stacks, "stacks");
         this.kind = DeviceKind.builder(ID, MoldTableData.CODEC, MoldTableData.IDLE)

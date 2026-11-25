@@ -33,8 +33,8 @@ final class ChannelDevice {
     private final DeviceKind<ChannelData> kind;
 
     ChannelDevice(ChannelWorld world, PourService pour) {
-        this.world = Objects.requireNonNull(world, "world");
-        this.pour = Objects.requireNonNull(pour, "pour");
+        this.world = world;
+        this.pour = pour;
         this.kind = DeviceKind.builder(ID, ChannelData.CODEC, ChannelData.IDLE)
             .slots(0)
             .removal(DeviceKind.RemoveBehaviour.NOOP)
