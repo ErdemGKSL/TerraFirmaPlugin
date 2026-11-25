@@ -2,7 +2,7 @@
 id: PAR-FARM-13
 title: "Plant info and fertilizer tooltips: climate range, nutrients, growth time and lifecycle on seeds and saplings; N/P/K on fertilizers"
 area: FARM
-status: open
+status: done
 wave: 33
 deps: [PAR-INFRA-46, PAR-FARM-02, PAR-FARM-03, PAR-FARM-06, PAR-FARM-07, PAR-FARM-08, PAR-FARM-09, PAR-FARM-10]
 size: M
@@ -33,6 +33,7 @@ plan:
   - "core/plantable: the pure line model per item (climate range from climate_range data, nutrients from the crop table, growth ticks, lifecycle months by hemisphere-neutral month as TFC prints them, fertilizer values from the fertilizer data); golden rows from /opt/tfc."
   - "paper/plantable: TooltipContributors at TFC's place (after fertilizer, before metal content) through the PAR-INFRA-05 pipeline; climate temperatures in the server's hud.climate-temperature-style (PAR-HUD-14) as TFC uses climateTooltipStyle."
   - "Shift cannot be read on a vanilla client: show the expanded block always and never send the hint line, the same choice as the nutrition block of PAR-SURV-02 (extend that Divergences row or add one)."
+  - "Done: core/plantable (PlantInfo, PlantInfos by item id, PlantLines, FertilizerInfo) and paper/plantable (FertilizerTooltipContributor order 650, PlantableTooltipContributor 660, PlantableModule); lang keys tooltip.plantable.* and tooltip.fertilizer.* in en_us. The hold-shift hint is never sent (3 ledger divergences). Tests: core PlantLinesTest 12 (values from the typed core tables, the TFC loop incl. skipped January, nutrient formats), paper PlantableTooltipTest 7. The golden rows are checked against the same core tables the other items port from /opt/tfc, not a fresh oracle dump. Pending in-game check (container cannot run client)."
 tests:
   - "core: golden plant info for one seed per crop shape, a fruit tree, a stationary bush, a spreading bush, a tree sapling, banana; fertilizer lines for every entry of the fertilizer data (pure N/P/K, compost, bone meal, food, groundcover and powder files)"
   - "paper: contributor order with heat/fuel/metal lines; climate style switch changes the temperature unit"
@@ -41,8 +42,6 @@ done_criteria:
 ---
 
 # PAR-FARM-13: Plant info and fertilizer tooltips: climate range, nutrients, growth time and lifecycle on seeds and saplings; N/P/K on fertilizers
-
-> Claimed: sapling worker, 2026-11-25
 
 > see_not_parity: NP-CLIENT-02, NP-CLIENT-04 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
