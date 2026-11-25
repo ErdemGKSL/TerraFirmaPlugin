@@ -29,4 +29,6 @@ done_criteria:
 
 # PAR-FAUNA-40: Publish the penguin and turtle play_dead models
 
+> Claimed: session_011osUp8LArwstSDt7X82o4E, 2026-11-25
+
 Follow `plans/parity/PROTOCOL.md`.
