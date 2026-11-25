@@ -241,6 +241,9 @@ public final class Datagen {
         if (dev.tfp.datagen.anvil.AnvilPlanArt.available(tfc)) { // PAR-METAL-04: anvil plan screen art, button frames and arrows; fixtures have no plan screen
             dev.tfp.datagen.anvil.AnvilPlanArt.run(tfc, out);
         }
+        if (dev.tfp.datagen.charcoalforge.CharcoalForgeScreenArt.available(tfc)) { // PAR-METAL-09: charcoal forge screen art and thermometer; fixtures have no forge screen
+            dev.tfp.datagen.charcoalforge.CharcoalForgeScreenArt.run(tfc, out);
+        }
         if (dev.tfp.datagen.anvil.AnvilForgeArt.available(tfc)) { // PAR-METAL-05: anvil forging screen art, markers, rule and step overlays; fixtures have none
             dev.tfp.datagen.anvil.AnvilForgeArt.run(tfc, out);
         }

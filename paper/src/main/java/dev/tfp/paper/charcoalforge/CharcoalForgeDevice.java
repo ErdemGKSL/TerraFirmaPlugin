@@ -80,6 +80,8 @@ public final class CharcoalForgeDevice {
     public static final long HEAT_PERIOD = 20;
     /** How often a warming or cooling lit forge re-runs so its shown heat level follows, in ticks. */
     public static final long LEVEL_PERIOD = 40;
+    /** How often a lit forge re-checks its structure at most, in ticks (TFC's random tick, about once a minute). */
+    public static final long STRUCTURE_PERIOD = 1200;
     /** The most conversions one catch-up replays in a row (a guard; each needs its own tick). */
     static final int CONVERSION_LIMIT = 64;
 
@@ -138,6 +140,7 @@ public final class CharcoalForgeDevice {
     private final StackCodec stacks;
     private final DeviceKind<CharcoalForgeData> kind;
     private volatile BiConsumer<Player, Block> screen;
+    private volatile Predicate<Block> structure;
 
     public CharcoalForgeDevice(Services services, StackCodec stacks) {
         this.services = Objects.requireNonNull(services, "services");
@@ -166,6 +169,19 @@ public final class CharcoalForgeDevice {
      */
     public void screen(BiConsumer<Player, Block> open) {
         this.screen = open;
+    }
+
+    /**
+     * Installs the multiblock check (PAR-METAL-09): TFC {@code CharcoalForgeBlock.isValid}. A lit forge for which it answers
+     * false is put out on its next callback or neighbour change. Region thread of the forge block. {@code null} removes it.
+     */
+    public void structure(Predicate<Block> valid) {
+        this.structure = valid;
+    }
+
+    /** TFC {@code extinguish}: the burn and the burn temperature clear; the temperature and the air stay. */
+    static CharcoalForgeState extinguished(CharcoalForgeState s) {
+        return new CharcoalForgeState(false, 0, 0f, s.temperature(), s.airTicks());
     }
 
     /** The block state of a forge showing {@code heatLevel}. */
@@ -424,7 +440,7 @@ public final class CharcoalForgeDevice {
         }
         CharcoalForgeState s = data.state();
         boolean settled = s.temperature() == s.burnTemperature() && s.airTicks() == 0;
-        return settled ? out : Math.min(out, LEVEL_PERIOD);
+        return Math.min(settled ? out : Math.min(out, LEVEL_PERIOD), STRUCTURE_PERIOD);
     }
 
     // ---- reactions --------------------------------------------------------------------------------------
@@ -466,7 +482,13 @@ public final class CharcoalForgeDevice {
         /** The burn-out and heat callbacks, and neighbour changes. */
         @Override
         public DeviceResult<CharcoalForgeData> neighbourChanged(DeviceContext<CharcoalForgeData> ctx) {
-            return finish(ctx, sampled(ctx), false);
+            DeviceRecord<CharcoalForgeData> record = sampled(ctx);
+            Predicate<Block> check = structure;
+            if (check != null && record.state().state().lit() && !check.test(ctx.block())) {
+                // updateShape / randomTick: a lit forge whose insulation or chimney is gone is put out
+                record = record.withState(record.state().withState(extinguished(record.state().state())));
+            }
+            return finish(ctx, record, false);
         }
 
         /** The first empty slot of the stack's kind: a fuel slot for a fuel, else an input slot. */

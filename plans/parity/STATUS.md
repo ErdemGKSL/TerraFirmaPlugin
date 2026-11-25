@@ -321,7 +321,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-16 | Glassworking: blowpipe operations (blow, roll, stretch, pinch, flatten, saw) | PROC | 30 | open |
 | PAR-FARM-08 | Fruit trees: saplings, growing branches, seasonal leaves, fruit | FARM | 31 | done |
 | PAR-METAL-06 | Welding on the anvil (flux) | METAL | 31 | done |
-| PAR-METAL-09 | Charcoal forge GUI and insulation/chimney multiblock scan | METAL | 31 | open |
+| PAR-METAL-09 | Charcoal forge GUI and insulation/chimney multiblock scan | METAL | 31 | done |
 | PAR-METAL-21 | Forging tooltips: forging bonus with the smith's name, and 'Worked' on partly forged items | METAL | 31 | done |
 | PAR-PROC-17 | Glass basin and hot poured glass; poured glass blocks and glass items | PROC | 31 | open |
 | PAR-DATA-01 | Commands under /tfp: player, count block, clear world, add trim, weather hooks | DATA | 32 | open |

@@ -26,7 +26,12 @@ import dev.tfp.paper.boot.TfpCommands.Reply;
 import dev.tfp.paper.catchup.CatchUpModule;
 import dev.tfp.paper.catchup.CatchUpService;
 import dev.tfp.paper.device.DeviceService;
+import dev.tfp.paper.charcoalforge.gui.ForgeGuiListener;
+import dev.tfp.paper.charcoalforge.gui.ForgeScreenLink;
+import dev.tfp.paper.charcoalforge.gui.ForgeScreenSync;
+import dev.tfp.paper.charcoalforge.gui.ForgeScreens;
 import dev.tfp.paper.fire.FireStarting;
+import dev.tfp.paper.gui.GuiService;
 import dev.tfp.paper.firebox.HeatConsumers;
 import dev.tfp.paper.heat.HeatPdc;
 import dev.tfp.paper.heat.HeatingService;
@@ -41,6 +46,7 @@ import dev.tfp.paper.module.ModuleContext;
 import dev.tfp.paper.mold.MoldItems;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tags.Tags;
+import dev.tfp.paper.tooltip.TooltipStyles;
 import dev.tfp.paper.vessel.VesselItems;
 import dev.tfp.paper.weather.PrecipitationService;
 import io.papermc.paper.command.brigadier.Commands;
@@ -81,6 +87,8 @@ public final class CharcoalForgeModule implements FeatureModule {
     private volatile CustomItems items;
     private volatile ModuleContext context;
     private volatile Tags tags;
+    private volatile ForgeScreens screens;
+    private volatile AutoCloseable hook;
 
     @Override
     public String id() {
@@ -112,6 +120,8 @@ public final class CharcoalForgeModule implements FeatureModule {
             effects), devs.stacks());
         devs.register(d.kind());
         ctx.services().provide(CharcoalForgeDevice.class, d);
+        d.structure(block -> valid(block, tg, sch)); // PAR-METAL-09: the multiblock scan on every callback and neighbour change
+        installScreen(ctx, devs, d, sch);
         ctx.services().get(FireStarting.class).ifPresent(fire -> fire.register(fc -> fc.strong()
             && lightable(blocks, devs, d, tg, sch, fc.block())));
         Optional<CatchUpService> catchUp = ctx.services().get(CatchUpService.class);
@@ -124,8 +134,43 @@ public final class CharcoalForgeModule implements FeatureModule {
         this.tags = tg;
     }
 
+    /** PAR-METAL-09: the forge screen, its listener and its sync with the device. */
+    private void installScreen(ModuleContext ctx, DeviceService devs, CharcoalForgeDevice d, Scheduler sch) {
+        Optional<GuiService> gui = ctx.services().get(GuiService.class);
+        if (gui.isEmpty()) {
+            ctx.logger().warning("charcoalforge: no GuiService; the forge opens no screen");
+            return;
+        }
+        ForgeScreens s = new ForgeScreens(gui.get(), sch, ctx.messages(), TooltipStyles.TFC_DEFAULTS.heat());
+        d.screen((player, block) -> sch.entityDelayed(player, 1, () -> {
+            if (player.isOnline()) {
+                s.open(player, ForgeScreenLink.Key.of(block),
+                    new ForgeScreenLink(new ForgeScreenLink.Env(devs, d, sch), block),
+                    p -> ctx.messages().get(p, "gui.charcoal_forge.title"));
+            }
+        }, () -> { }));
+        ctx.listen(new ForgeGuiListener(s));
+        hook = devs.hook(CharcoalForgeDevice.ID, new ForgeScreenSync(s, sch));
+        ctx.services().provide(ForgeScreens.class, s);
+        this.screens = s;
+    }
+
     @Override
     public void disable() {
+        CharcoalForgeDevice d = device;
+        if (d != null) {
+            d.screen(null);
+            d.structure(null);
+        }
+        try {
+            if (hook != null) {
+                hook.close();
+            }
+        } catch (Exception e) {
+            // closing a hook of a stopping module: nothing to do
+        }
+        hook = null;
+        screens = null;
         device = null;
     }
 
