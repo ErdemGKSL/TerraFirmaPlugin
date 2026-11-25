@@ -310,7 +310,7 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-43 | Wire every biome's own surface builder (BiomeSurfaces) and the full surface block set into the Paper terrain | WORLD | 28 | done |
 | PAR-FARM-04 | Crop growth glue: lazy calendar growth, climate checks, death, harvest yields | FARM | 29 | done |
 | PAR-FARM-06 | Stationary berry bushes: lifecycle, picking, propagation | FARM | 29 | done |
-| PAR-METAL-04 | Anvil plan selection GUI | METAL | 29 | open |
+| PAR-METAL-04 | Anvil plan selection GUI | METAL | 29 | done |
 | PAR-METAL-08 | Charcoal forge block entity: creation from a charcoal pile, lighting, continuous heating of held items | METAL | 29 | open |
 | PAR-SURV-11 | Item size in-game check: anvil refused by a chest, two anvils overburden, size tooltip | SURV | 29 | open |
 | PAR-WORLD-23 | TFC rock layers: the rock layer settings walk and per-rock rock settings replace PlaceholderRocks (rock stacking, sand colour, karst surface rocks) | WORLD | 29 | done |
@@ -451,6 +451,8 @@ Totals: 384 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FARM-16 | Fruit tree blocks: CraftEngine states, models, hitbox carriers, loot, splicing | FARM | 32 | open |
 | PAR-FARM-17 | Banana blocks: CraftEngine states, models, hitbox carriers, loot, worldgen placement | FARM | 33 | open |
 | PAR-METAL-23 | Crucible molds: pour into and out of the crucible, output slot, held crucible tooltip | METAL | 34 | open |
+| PAR-METAL-25 | Charcoal forge: melting into extra-slot molds, the grilled trait on outputs, picking up dropped fuel | METAL | 34 | open |
+| PAR-METAL-24 | Crucible channel nubs: the crucible draws TFC's crucible_connection toward adjacent channels | METAL | 35 | open |
 | PAR-FARM-20 | Verification: crops grow, die and yield in game (itest crop.grow and screenshots) | FARM | 34 | open |
 | PAR-FARM-23 | Fruit and wild spreading crop blocks: tfp:fruit pumpkin/melon (and rotten), hitbox rows, loot, wild crop worldgen fruit | FARM | 31 | open |
 | PAR-FARM-24 | Wire SpreadingFruit into the crop device: fruit placement at full growth, crowding limit, fruit sides | FARM | 31 | open |

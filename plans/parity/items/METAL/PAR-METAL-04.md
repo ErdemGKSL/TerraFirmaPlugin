@@ -2,7 +2,7 @@
 id: PAR-METAL-04
 title: "Anvil plan selection GUI"
 area: METAL
-status: open
+status: done
 wave: 29
 deps: [PAR-METAL-03, PAR-INFRA-03, PAR-INFRA-06]
 size: S
@@ -35,6 +35,7 @@ done_criteria:
 
 # PAR-METAL-04: Anvil plan selection GUI
 
-> Claimed: session_011osUp6aEeM6XBUKHoB7Lf2, 2026-11-20
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+Done: seeded work target (`AnvilRecipe.computeTarget`) and paging (`AnvilRecipePage`) in core; datagen `AnvilPlanArt` from TFC's `anvil_plan.png`; Paper `anvil/plan` (plan screen, `ForgingPdc`, `PlanBook`, default plan on placement, unworked plan cleared on extraction) and the anvil device's plain click; `/tfp debug anvil open|info`. Tests: core `AnvilRecipePlanTest` (8), datagen `AnvilPlanArtTest` (4), paper `AnvilPlanMockBukkitTest` (12). Verification: `docs/verification/PAR-METAL-04/`.
