@@ -9,9 +9,12 @@
 package dev.tfp.paper.rotation;
 
 import dev.tfp.core.rotation.MechanicalBlock;
+import dev.tfp.core.rotation.Rotation;
 import dev.tfp.core.rotation.RotationWorld;
 import dev.tfp.core.world.BlockPos;
+import dev.tfp.paper.rotation.spin.ShaftReport;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -36,6 +39,7 @@ import java.util.logging.Logger;
  * <p>One actor per world, not one per region: a network may span Folia regions, and the actor never touches the world, so
  * it needs no region. Its operations run in the order they were submitted, so the networks see the block changes in the
  * order the region threads made them (per region; across regions in arrival order, as TFC's single server thread sees them).
+ * After each batch the actor reports the axles' turning to the {@link ShaftHook} (PAR-MECH-12, the spinning displays).
  */
 public final class RotationService {
     /** Where the blocks that must break are sent; called on the actor's thread. */
@@ -44,15 +48,30 @@ public final class RotationService {
         void breakAt(UUID world, BlockPos pos);
     }
 
+    /**
+     * PAR-MECH-12: where the axle shafts' turning goes (the spinning displays). Called on the actor's thread after each batch of
+     * changes with the shafts that appeared or whose hand, speed or network changed, and the ones that are gone.
+     */
+    @FunctionalInterface
+    public interface ShaftHook {
+        void shafts(UUID world, List<ShaftReport> changed, List<BlockPos> removed);
+    }
+
     private final Executor executor;
     private final BreakSink sink;
     private final Logger logger;
     private final Map<UUID, Actor> actors = new ConcurrentHashMap<>();
+    private volatile ShaftHook shaftHook;
 
     public RotationService(Executor executor, BreakSink sink, Logger logger) {
         this.executor = Objects.requireNonNull(executor, "executor");
         this.sink = Objects.requireNonNull(sink, "sink");
         this.logger = Objects.requireNonNull(logger, "logger");
+    }
+
+    /** PAR-MECH-12: reports every axle shaft to {@code hook} from now on (the shafts already known on the next change). */
+    public void shaftHook(ShaftHook hook) {
+        this.shaftHook = hook;
     }
 
     /** A block was placed, loaded or changed. Any thread; returns at once. */
@@ -111,11 +130,32 @@ public final class RotationService {
         actors.remove(world);
     }
 
+    /**
+     * PAR-MECH-12: the turning of every axle (TFC draws only the axle's shaft spinning; the encased axle, clutch and gearbox
+     * are closed cubes): its hand and speed from the incoming rotation, at rest when disconnected or invalid.
+     */
+    static Map<BlockPos, ShaftReport> shafts(RotationWorld state) {
+        Map<BlockPos, ShaftReport> now = new HashMap<>();
+        for (BlockPos pos : state.positions()) {
+            MechanicalBlock.State s = state.state(pos).orElse(null);
+            if (s == null || s.block() != MechanicalBlock.AXLE) {
+                continue;
+            }
+            RotationWorld.Readout r = state.readout(pos).orElse(null);
+            Rotation in = r == null || r.invalid() ? null : r.incoming().orElse(null);
+            now.put(pos, in == null || r.network().isEmpty() ? ShaftReport.resting(pos, s.axis())
+                : new ShaftReport(pos, s.axis(), in.direction(), in.speed(), r.network().getAsLong()));
+        }
+        return now;
+    }
+
     private final class Actor implements Runnable {
         final UUID world;
         final RotationWorld state = new RotationWorld();
         final Queue<Function<RotationWorld, List<BlockPos>>> queue = new ConcurrentLinkedQueue<>();
         final AtomicBoolean running = new AtomicBoolean();
+        /** PAR-MECH-12: what the shaft hook was last told, per axle. Actor thread only. */
+        final Map<BlockPos, ShaftReport> shown = new HashMap<>();
 
         Actor(UUID world) {
             this.world = world;
@@ -143,11 +183,49 @@ public final class RotationService {
                         sink.breakAt(world, pos);
                     }
                 }
+                reportShafts();
             } finally {
                 running.set(false);
             }
             if (!queue.isEmpty()) {
                 schedule();
+            }
+        }
+
+        /** PAR-MECH-12: the shafts that changed since the last report go to the hook. */
+        void reportShafts() {
+            ShaftHook hook = shaftHook;
+            if (hook == null) {
+                return;
+            }
+            Map<BlockPos, ShaftReport> now;
+            try {
+                now = shafts(state);
+            } catch (RuntimeException e) {
+                logger.log(Level.SEVERE, "rotation network of world " + world + ": the shaft report failed", e);
+                return;
+            }
+            List<ShaftReport> changed = new ArrayList<>();
+            now.forEach((pos, r) -> {
+                if (!r.equals(shown.get(pos))) {
+                    changed.add(r);
+                }
+            });
+            List<BlockPos> removed = new ArrayList<>();
+            for (BlockPos pos : shown.keySet()) {
+                if (!now.containsKey(pos)) {
+                    removed.add(pos);
+                }
+            }
+            if (changed.isEmpty() && removed.isEmpty()) {
+                return;
+            }
+            shown.clear();
+            shown.putAll(now);
+            try {
+                hook.shafts(world, List.copyOf(changed), List.copyOf(removed));
+            } catch (RuntimeException e) {
+                logger.log(Level.SEVERE, "rotation network of world " + world + ": the shaft hook failed", e);
             }
         }
     }

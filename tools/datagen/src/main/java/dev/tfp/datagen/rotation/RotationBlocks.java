@@ -55,8 +55,8 @@ import java.util.regex.Pattern;
  *       pitch, the {@code destroy_stages} cracks and the break particles), with {@code states} in place of the template's one
  *       {@code state}: CraftEngine templates cannot drop a key, so the entry is written expanded. Each state's barrier
  *       carrier is drawn by item displays of TFC's models, turned as TFC's blockstate turns them ({@link #rotation}).</li>
- *   <li>The axle is TFC's 4x4 shaft drawn by one item display on a transparent carrier from the hitbox allocation
- *       ({@link #axleCarrier}, PAR-MECH-15).</li>
+ *   <li>The axle is a transparent carrier from the hitbox allocation ({@link #axleCarrier}, PAR-MECH-15) with no display
+ *       element: the plugin's spinning display draws TFC's shaft model (its render item), also at rest (PAR-MECH-12).</li>
  * </ul>
  * TFC's models (renamed under {@code tfp:block/rotation/}), the textures they name, TFC's item models and the block names
  * ({@code assets/tfp_rotation/lang/}) are written beside the entries.
@@ -256,7 +256,25 @@ public final class RotationBlocks {
         models.itemModel("wood/" + type + "/" + wood);
         DeviceBlockSpec spec = b.build();
         boolean cube = !type.equals("axle");
-        return finish(spec, cube, false);
+        Entry e = finish(spec, cube, false);
+        if (!cube) {
+            withoutShaftDisplays(e, spec.id());
+        }
+        return e;
+    }
+
+    /**
+     * PAR-MECH-12: the axle's appearances keep only the transparent carrier (TFC's outline); the shaft is drawn by the plugin's
+     * spinning display ({@code dev.tfp.paper.rotation.spin}), also at rest, so a static element would draw it twice. The
+     * render item stays declared: the spinning display shows it.
+     */
+    @SuppressWarnings("unchecked")
+    static void withoutShaftDisplays(Entry e, String id) {
+        Map<String, Object> block = (Map<String, Object>) e.blocks().get(id);
+        Map<String, Object> appearances = (Map<String, Object>) ((Map<String, Object>) block.get("states")).get("appearances");
+        for (Object a : appearances.values()) {
+            ((Map<String, Object>) a).remove("entity_renderer");
+        }
     }
 
     static Entry motor(TfcCheckout tfc, Models models) {

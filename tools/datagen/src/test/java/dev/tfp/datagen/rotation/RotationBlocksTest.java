@@ -154,6 +154,22 @@ class RotationBlocksTest {
         }
     }
 
+    /** PAR-MECH-12: the axle draws no static element (the spinning display is the only drawing); its render item stays. */
+    @Test
+    @SuppressWarnings("unchecked")
+    void axleAppearancesCarryNoStaticElement() {
+        Map<String, Object> items = (Map<String, Object>) root("axle").get("items");
+        for (String wood : List.of("oak", "acacia", "willow")) {
+            Map<String, Object> block = block("axle", "tfp:wood/axle/" + wood);
+            for (String axis : List.of("x", "y", "z")) {
+                assertThat(appearance(block, axis)).as("%s %s", wood, axis).doesNotContainKey("entity_renderer");
+            }
+            assertThat(items).containsKey("tfp:render/rotation/wood/axle/" + wood);
+        }
+        // the cubes keep theirs
+        assertThat(appearance(block("encased_axle", "tfp:wood/encased_axle/oak"), "y")).containsKey("entity_renderer");
+    }
+
     /** Vanilla's rotateYXZ(-y, -x, 0) followed by the item display's half turn. */
     @Test
     void rotationQuaternions() {

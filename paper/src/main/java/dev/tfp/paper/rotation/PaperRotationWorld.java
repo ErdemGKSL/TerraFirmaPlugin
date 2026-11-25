@@ -16,11 +16,13 @@ import dev.tfp.paper.integration.BlockStateRef;
 import dev.tfp.paper.integration.BlockVisuals;
 import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.integration.CustomItems;
+import dev.tfp.paper.rotation.spin.SpinVisuals;
 import dev.tfp.paper.scheduler.Scheduler;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.bukkit.Chunk;
@@ -161,6 +163,26 @@ public final class PaperRotationWorld implements RotationDevices.Ops, RotationSe
         if (n != null && !positions.isEmpty()) {
             n.removeAll(chunk.getWorld().getUID(), positions);
         }
+    }
+
+    /**
+     * PAR-MECH-12: the spinning display's item of the axle at {@code pos} ({@link SpinVisuals#renderItem} of its block id), read
+     * on the block's region thread; empty when the world or chunk is gone or the block is no axle. Any thread (it only schedules).
+     */
+    public void axleItem(UUID worldId, BlockPos pos, Consumer<Optional<String>> done) {
+        World world = worlds.apply(worldId);
+        if (world == null) {
+            done.accept(Optional.empty());
+            return;
+        }
+        scheduler.region(world, pos.x() >> 4, pos.z() >> 4, () -> {
+            if (!world.isChunkLoaded(pos.x() >> 4, pos.z() >> 4)) {
+                done.accept(Optional.empty());
+                return;
+            }
+            done.accept(blocks.stateAt(world.getBlockAt(pos.x(), pos.y(), pos.z()))
+                .flatMap(state -> SpinVisuals.renderItem(state.id())));
+        });
     }
 
     /** The creative motor's stored step at {@code block}, 0 when none. Region thread. */

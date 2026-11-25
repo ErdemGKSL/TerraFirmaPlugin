@@ -14,6 +14,8 @@ import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.module.DebugTree;
 import dev.tfp.paper.module.FeatureModule;
 import dev.tfp.paper.module.ModuleContext;
+import dev.tfp.paper.rotation.spin.SpinShafts;
+import dev.tfp.paper.rotation.spin.SpinVisuals;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tags.Tags;
 import java.util.ArrayList;
@@ -27,7 +29,8 @@ import org.bukkit.entity.Player;
 /**
  * PAR-MECH-01: the rotation network blocks (axles, encased axles, clutches, gearboxes, the creative motor). Registers their
  * device kinds, runs the per-world networks ({@link RotationService}), re-adds a chunk's blocks when it loads and removes them
- * when it unloads, and adds {@code /tfp debug rotation}: the speeds of the network of the block the player looks at.
+ * when it unloads, and adds {@code /tfp debug rotation}: the speeds of the network of the block the player looks at. The axles
+ * are drawn by the spinning shafts ({@link SpinVisuals}, PAR-MECH-12).
  * Needs the device and tags modules before it in the service file.
  */
 public final class RotationModule implements FeatureModule {
@@ -40,6 +43,7 @@ public final class RotationModule implements FeatureModule {
     private RotationService networks;
     private RotationDevices devices;
     private PaperRotationWorld world;
+    private volatile SpinShafts spin;
 
     @Override
     public String id() {
@@ -62,9 +66,20 @@ public final class RotationModule implements FeatureModule {
         context.services().provide(RotationService.class, networks);
         blocks.onChunkLoad(chunk -> world.chunkLoaded(chunk, index, devices));
         blocks.onChunkUnload(chunk -> world.chunkUnloaded(chunk, index));
+        // PAR-MECH-12: the spinning shafts (packet-only displays fed by the network actors), before the re-add so it reports them.
+        try {
+            spin = SpinVisuals.start(context, networks, world::axleItem).orElse(null);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            context.logger().warning("Rotation: the spinning shafts failed to start (" + e + "); axles are not drawn");
+        }
         // PAR-MECH-11: chunks loaded before this module enabled get no chunk load event; re-add their blocks once the server
         // is up (CraftEngine has restored them by then).
         scheduler.global(() -> context.plugin().getServer().getWorlds().forEach(w -> world.reAddLoaded(w, index, devices)));
+    }
+
+    /** PAR-MECH-12: the spinning shafts, or null when they are off (no PacketEvents). */
+    public SpinShafts spin() {
+        return spin;
     }
 
     @Override
