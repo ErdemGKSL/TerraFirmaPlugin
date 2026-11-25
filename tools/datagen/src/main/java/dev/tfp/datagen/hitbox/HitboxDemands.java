@@ -487,7 +487,56 @@ public final class HitboxDemands {
                 }
             }
         }
+        // PAR-WORLD-44 (PAR-WORLD-53 option a): the sapling, the potted sapling and the fallen leaves of every wood,
+        // hitbox-only on the no-collision plant outlines (the look is TFC's model as an item display, WoodPlantBlocks);
+        // the twigs share one tripwire pool state (POOLS), no demand.
+        for (String w : BARREL_WOODS) {
+            d.add(new Demand(woodPlantId(SAPLING, w), WOOD_PLANT_APPEARANCE, SAPLING_ROW, 0, HitboxAllocation.TRANSPARENT, true,
+                WOOD_PLANT_WEIGHT));
+            d.add(new Demand(woodPlantId(POTTED_SAPLING, w), WOOD_PLANT_APPEARANCE, POTTED_SAPLING_ROW, 0,
+                HitboxAllocation.TRANSPARENT, true, WOOD_PLANT_WEIGHT));
+            for (String row : FALLEN_LEAVES_ROWS) {
+                d.add(new Demand(woodPlantId(FALLEN_LEAVES, w), row + "_*", TfcShapes.cropKey(row), 0, HitboxAllocation.TRANSPARENT,
+                    true, WOOD_PLANT_WEIGHT));
+            }
+        }
         return d;
+    }
+
+    /** PAR-WORLD-44: TFC's {@code Wood.BlockType} wood plant kinds, as block id folders ({@code tfp:wood/<kind>/<wood>}). */
+    public static final String SAPLING = "sapling";
+    public static final String POTTED_SAPLING = "potted_sapling";
+    public static final String FALLEN_LEAVES = "fallen_leaves";
+    public static final String TWIG = "twig";
+    /** PAR-WORLD-44: the one appearance of a sapling, potted sapling and twig. */
+    public static final String WOOD_PLANT_APPEARANCE = "base";
+    /** PAR-WORLD-44: served after every other demand (adding the wood plants moves no carrier of another block). */
+    static final int WOOD_PLANT_WEIGHT = -14;
+    /**
+     * PAR-WORLD-44: the rows the wood plants borrow (no collision, as TFC). TFC's sapling outline is 12 x 12 x 12; the
+     * nearest row with no collision is the half crop (12 x 8 x 12). The potted sapling is TFC's flower pot (6 x 6 x 6, with
+     * collision); it borrows the medium groundcover row (6 x 4 x 6, none). Ledger divergences.
+     */
+    public static final String SAPLING_ROW = TfcShapes.cropKey("half");
+    public static final String POTTED_SAPLING_ROW = "tfc:groundcover[shape=medium]";
+    /**
+     * PAR-WORLD-44: the fallen leaves (TFC: the charcoal pile outlines, 2 to 16 px, no collision) borrow the quarter crop row
+     * for layers 1..4 and the half crop row for 5..8; the appearance of {@code layers} is {@code <row>_<layers>}.
+     */
+    public static final List<String> FALLEN_LEAVES_ROWS = List.of("quarter", "half");
+    /** PAR-WORLD-44: the CE pool the twigs share one state of (PAR-WORLD-53: 1 of the 3 tripwire states PAR-WORLD-12 left). */
+    public static final String TWIG_POOL = "tripwire";
+    /** PAR-WORLD-44: the share key of the twigs' one pool state. */
+    public static final String TWIG_SHARE_KEY = "tfp:wood/twig";
+
+    /** PAR-WORLD-44: the block id of a wood plant kind ({@link #SAPLING} and the others) of {@code wood}. */
+    public static String woodPlantId(String kind, String wood) {
+        return "tfp:wood/" + kind + "/" + wood;
+    }
+
+    /** PAR-WORLD-44: the fallen leaves appearance of {@code layers} ({@code quarter_3}, {@code half_5}). */
+    public static String fallenLeavesAppearance(int layers) {
+        return FALLEN_LEAVES_ROWS.get(layers <= 4 ? 0 : 1) + "_" + layers;
     }
 
     /** PAR-DECO-01: served after every other demand (the twins are reserved by only_class, so nothing else moves). */
@@ -760,7 +809,7 @@ public final class HitboxDemands {
      */
     public static final java.util.Map<String, java.util.Map<String, String>> POOLS = pools();
 
-    private static java.util.Map<String, java.util.Map<String, String>> pools() {
+    private static java.util.Map<String, java.util.Map<String, String>> basePools() {
         java.util.Map<String, String> log = new java.util.LinkedHashMap<>();
         log.put("*_" + TfcShapes.LOG_PILE_MAX, CHARCOAL_POOL);
         for (int count = LOG_PILE_POOL_FROM; count < TfcShapes.LOG_PILE_MAX; count++) {
@@ -771,6 +820,15 @@ public final class HitboxDemands {
             CHARCOAL_PILE_ID, java.util.Map.of(charcoalPileAppearance(CHARCOAL_PILE_MAX), CHARCOAL_POOL),
             ICE_PILE_ID, java.util.Map.of(ICE_APPEARANCE, ICE_POOL),
             SEA_ICE_ID, java.util.Map.of(ICE_APPEARANCE, ICE_POOL));
+    }
+
+    /** {@link #POOLS} plus PAR-WORLD-44's twigs (one tripwire pool state shared by every wood). */
+    private static java.util.Map<String, java.util.Map<String, String>> pools() {
+        java.util.Map<String, java.util.Map<String, String>> m = new java.util.LinkedHashMap<>(basePools());
+        for (String w : BARREL_WOODS) {
+            m.put(woodPlantId(TWIG, w), java.util.Map.of(WOOD_PLANT_APPEARANCE, TWIG_POOL));
+        }
+        return java.util.Collections.unmodifiableMap(m);
     }
 
     public static String composterKey(int stage) {

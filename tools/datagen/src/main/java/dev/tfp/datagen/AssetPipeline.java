@@ -141,7 +141,7 @@ public final class AssetPipeline {
         for (String f : tfc.list(TfcCheckout.ASSETS + "blockstates/wood/log/")) {
             String wood = f.substring(f.lastIndexOf('/') + 1, f.length() - 5);
             List<String> dirs = new ArrayList<>(WOOD_BLOCKS.stream().map(WoodBlock::dir).toList());
-            dirs.add("sapling"); // leaves drop it as a plain item until its block exists
+            dirs.add("sapling"); // the sapling block item's model (PAR-WORLD-44: WoodPlantBlocks writes the block)
             twigItem(wood);
             for (String dir : dirs) {
                 String id = "wood/" + dir + "/" + wood;
@@ -935,8 +935,18 @@ public final class AssetPipeline {
             return; // vanilla items need no CE entry
         }
         String path = itemId.substring(Json.TO_NS.length() + 1);
+        if (woodPlantItem(path)) {
+            return; // PAR-WORLD-44: WoodPlantBlocks declares the sapling, fallen leaves and twig block items
+        }
         boolean isBlockItem = tfc.exists(blockstate(path));
         dropItems.put(path, langKey(isBlockItem ? "block" : "item", path));
+    }
+
+    /** PAR-WORLD-44: a wood plant block item of {@link dev.tfp.datagen.wood.WoodPlantBlocks} ({@code wood/sapling/oak}). */
+    private boolean woodPlantItem(String path) {
+        String[] parts = path.split("/");
+        return parts.length == 3 && parts[0].equals("wood") && dev.tfp.datagen.wood.WoodPlantBlocks.kinds().contains(parts[1])
+            && dev.tfp.datagen.wood.WoodPlantBlocks.available(tfc);
     }
 
     private void reportSkipped() {

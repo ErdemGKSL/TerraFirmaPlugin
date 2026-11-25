@@ -116,7 +116,8 @@ class GeneratedCarrierTest {
             + 20 * (80 + 4 + 32 + 32) // PAR-DECO-01: per wood stairs, slab (double draws the planks' visual), fence, log fence
             + 144); // PAR-METAL-13: the channel (128 states) and the mold table (16)
         // PAR-CLIM-04: the ice pile and sea ice (one leaves pool appearance each).
-        assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2);
+        // PAR-WORLD-44: the 20 twigs on their one shared tripwire state.
+        assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 20);
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
             List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern",
                 "tfp:scraping", HitboxDemands.COMPOSTER_ID, HitboxDemands.LOG_PILE_ID, HitboxDemands.CHARCOAL_PILE_ID,
@@ -152,7 +153,12 @@ class GeneratedCarrierTest {
             expected.addAll(List.of(HitboxDemands.woodStairsId(w), HitboxDemands.woodSlabId(w), HitboxDemands.woodFenceId(w),
                 HitboxDemands.woodLogFenceId(w)));
         }
-        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 2);
+        for (String w : HitboxDemands.BARREL_WOODS) { // PAR-WORLD-44: sapling, potted sapling, fallen leaves (hitbox-only)
+            for (String kind : List.of(HitboxDemands.SAPLING, HitboxDemands.POTTED_SAPLING, HitboxDemands.FALLEN_LEAVES)) {
+                expected.add(HitboxDemands.woodPlantId(kind, w));
+            }
+        }
+        assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 2 + 20 * 3);
         java.util.SortedSet<String> grass = new java.util.TreeSet<>();
         for (String soil : List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol", "podzol", "alfisol", "mollisol")) {
             dev.tfp.datagen.soil.SoilBlocks.GRASS_TYPES.forEach(t -> grass.add("tfp:" + t + "/" + soil));
