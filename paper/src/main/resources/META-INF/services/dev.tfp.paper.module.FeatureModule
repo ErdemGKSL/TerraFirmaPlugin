@@ -154,3 +154,4 @@ dev.tfp.paper.fishing.FishingModule
 dev.tfp.paper.sewing.SewingModule
 dev.tfp.paper.crankshaft.CrankshaftModule
 dev.tfp.paper.lobstertrap.LobsterTrapModule
+dev.tfp.paper.powerloom.PowerLoomModule

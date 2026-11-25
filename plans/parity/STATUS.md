@@ -436,7 +436,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-54 | Bubble columns above the CE magma blocks: drag-down columns that survive vanilla's support check, and the hot spring tracker | WORLD | 30 | done |
 | PAR-MECH-03 | Water wheel | MECH | 51 | done |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | done |
-| PAR-MECH-08 | Power loom | MECH | 51 | open |
+| PAR-MECH-08 | Power loom | MECH | 51 | done |
 | PAR-MECH-09 | Pump and pipes | MECH | 51 | done |
 | PAR-MECH-12 | Spinning shafts on the wire: speed hook, packet sender, axle without a static element, in-game check | MECH | 51 | done |
 | PAR-MECH-13 | Powered quern in game: handstone spin, grind sounds and particles, hopper and axle screenshots | MECH | 52 | open |
@@ -450,6 +450,7 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-19 | Spinning shafts in game: axles turn at the right speed and hand on 1.21.11 and 26.x (PAR-MECH-12 in-game check) | MECH | 53 | open |
 | PAR-MECH-20 | Bladed axle as TFC: the axle with a steel blade, its network node and spinning blade, the trip hammer's drive | MECH | 53 | open |
 | PAR-MECH-21 | Crankshaft in game: the tfp:crankshaft CE block, its sink node in the rotation network (CrankRotation), the powered bellows in-game check | MECH | 54 | open |
+| PAR-MECH-22 | Power loom block in CraftEngine and the in-game check: tfp:power_loom, its model, item and the axle into the loom | MECH | 52 | open |
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |
 | PAR-REL-03 | Dependency and version updates (MC, Paper, Folia, CE, BetterModel, BetterHud) | REL | 52 | done |
 | PAR-REL-04 | Stone-age run self-test | REL | 52 | done |
