@@ -39,7 +39,7 @@ import org.bukkit.inventory.meta.trim.TrimPattern;
  *
  * <p>A material item is a trim material when it is one of the vanilla ingredients ({@link #VANILLA_MATERIALS}); a pattern
  * item is one when it is a vanilla {@code <pattern>_armor_trim_smithing_template}. TFC's own trim materials (gems and
- * metals) are PAR-DATA-11 and answer "not recognised" until then.
+ * metals, PAR-DATA-11) are datapack entries {@code tfp:<name>}, found by their ingredient item ({@link #TFC_MATERIALS}).
  */
 public final class TrimCommands {
     /** Vanilla trim material ingredients (TFC: {@code TrimMaterials.getFromIngredient}) to the material's key. */
@@ -50,6 +50,15 @@ public final class TrimCommands {
             Map.entry("minecraft:emerald", "emerald"), Map.entry("minecraft:diamond", "diamond"),
             Map.entry("minecraft:lapis_lazuli", "lapis"), Map.entry("minecraft:amethyst_shard", "amethyst"),
             Map.entry("minecraft:resin_brick", "resin"));
+    /** TFC's 14 trim materials: ingredient item id to the {@code tfp:} material name (datagen {@code PaintingsAndTrims}). */
+    static final Map<String, String> TFC_MATERIALS = Map.ofEntries(
+            Map.entry("tfp:gem/amethyst", "amethyst"), Map.entry("tfp:gem/diamond", "diamond"),
+            Map.entry("tfp:gem/emerald", "emerald"), Map.entry("tfp:gem/lapis_lazuli", "lapis_lazuli"),
+            Map.entry("tfp:gem/opal", "opal"), Map.entry("tfp:gem/pyrite", "pyrite"), Map.entry("tfp:gem/ruby", "ruby"),
+            Map.entry("tfp:gem/sapphire", "sapphire"), Map.entry("tfp:gem/topaz", "topaz"),
+            Map.entry("tfp:metal/ingot/silver", "silver"), Map.entry("tfp:metal/ingot/sterling_silver", "sterling_silver"),
+            Map.entry("tfp:metal/ingot/gold", "gold"), Map.entry("tfp:metal/ingot/rose_gold", "rose_gold"),
+            Map.entry("tfp:metal/ingot/bismuth", "bismuth"));
     private static final String TEMPLATE_SUFFIX = "_armor_trim_smithing_template";
 
     /** What a trim command did: the failure to report (if any) and how many times, the pieces given, and whether the held item
@@ -71,7 +80,11 @@ public final class TrimCommands {
     /** The trim material of an ingredient item id, or empty. */
     static Optional<TrimMaterial> material(String itemId) {
         String key = VANILLA_MATERIALS.get(itemId);
-        return key == null ? Optional.empty() : Optional.ofNullable(lookup(RegistryKey.TRIM_MATERIAL, key));
+        if (key != null) {
+            return Optional.ofNullable(lookup(RegistryKey.TRIM_MATERIAL, NamespacedKey.minecraft(key)));
+        }
+        String tfc = TFC_MATERIALS.get(itemId);
+        return tfc == null ? Optional.empty() : Optional.ofNullable(lookup(RegistryKey.TRIM_MATERIAL, new NamespacedKey("tfp", tfc)));
     }
 
     /** The trim pattern of a smithing template item id, or empty. */
@@ -80,13 +93,13 @@ public final class TrimCommands {
             return Optional.empty();
         }
         String name = itemId.substring("minecraft:".length(), itemId.length() - TEMPLATE_SUFFIX.length());
-        return Optional.ofNullable(lookup(RegistryKey.TRIM_PATTERN, name));
+        return Optional.ofNullable(lookup(RegistryKey.TRIM_PATTERN, NamespacedKey.minecraft(name)));
     }
 
-    /** {@code minecraft:name} in the server's registry; null when there is none (or no registry access, in tests). */
-    private static <T extends Keyed> T lookup(RegistryKey<T> key, String name) {
+    /** {@code key} in the server's registry; null when there is none (or no registry access, in tests). */
+    private static <T extends Keyed> T lookup(RegistryKey<T> registry, NamespacedKey key) {
         try {
-            return RegistryAccess.registryAccess().getRegistry(key).get(NamespacedKey.minecraft(name));
+            return RegistryAccess.registryAccess().getRegistry(registry).get(key);
         } catch (RuntimeException | LinkageError e) {
             return null;
         }

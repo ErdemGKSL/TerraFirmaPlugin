@@ -2,7 +2,7 @@
 id: PAR-DATA-11
 title: "Paintings, armour trims, misc data registries"
 area: DATA
-status: open
+status: done
 wave: 38
 deps: []
 size: S
@@ -30,3 +30,7 @@ done_criteria:
 > see_not_parity: NP-CLIENT-02 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
+
+Pending in-game check (container cannot run client)
+
+Done: datagen `registry/PaintingsAndTrims` ships TFC's 5 painting variants (+ textures, titles, `placeable` tag) and 14 trim materials (+ palettes, `armor_trims` atlas, lang) in the bootstrap datapack and pack; `/tfp trim` accepts the TFC materials (`TrimCommands.TFC_MATERIALS`). Tests: `PaintingsAndTrimsTest` (3), `TrimTfcMaterialsTest` (1). Follow-up: `provides_trim_material` on the gem and ingot items.
