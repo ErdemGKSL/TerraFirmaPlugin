@@ -15,8 +15,9 @@ import dev.tfp.core.oreoverlay.census.ChunkCensus;
 import dev.tfp.core.oreoverlay.census.ExposureCensus;
 import dev.tfp.core.oreoverlay.census.ExposureRule;
 import dev.tfp.core.worldgen.chunk.PlaceholderRocks;
-import dev.tfp.core.worldgen.ore.ClusterVeinConfig;
+import dev.tfp.core.worldgen.geode.GeodeConfig;
 import dev.tfp.core.worldgen.ore.OreVeins;
+import dev.tfp.core.worldgen.ore.VeinConfig;
 import dev.tfp.core.worldgen.ore.VeinData;
 import dev.tfp.itest.SelfTestCase;
 import dev.tfp.itest.SelfTestContext;
@@ -35,10 +36,12 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -61,8 +64,7 @@ import org.bukkit.block.data.Waterlogged;
  * <ul>
  *   <li>TFC world (our generator): the targets are the ore blocks the veins can place (counted) and the raw rocks (counted
  *       only per target, for the rock exposure).</li>
- *   <li>Any other world: the exposure proxy (TFC's caves are not ported yet, PAR-WORLD-06): stone-family blocks and vanilla
- *       ores, all counted.</li>
+ *   <li>Any other world: the exposure proxy: stone-family blocks and vanilla ores, all counted.</li>
  * </ul>
  * The report ({@link CensusReport#toJson}) goes to {@code ore-census.json} in the server folder and to
  * {@code ore-census-<kind>-<seed>.json}. {@code tfp.oreCensus.caveFacesPerBlock} (a vanilla run's
@@ -276,13 +278,24 @@ public final class OreExposureCensusCase implements SelfTestCase {
         }
     }
 
-    /** Our world: every ore block the veins can place (counted) and the raw rocks (per target only). */
+    /**
+     * Our world: every ore block the veins can place (counted): every type of the main vein tag (cluster, disc and pipe
+     * veins), of the biome vein tags (montane, collisional_mountains, river) and the geode's ore layer (PAR-WORLD-19); and
+     * the raw rocks (per target only).
+     */
     static Targets tfcTargets(long seed, BlockVisuals visuals) {
         if (!visuals.isLoaded()) {
             throw new Skip("CraftEngine's blocks are not loaded: ore blocks cannot be recognised");
         }
         final List<String> rocks = PlaceholderRocks.names().stream().map(n -> "tfp:rock/raw/" + n).toList();
-        final List<String> ores = new OreVeins(seed, veins(), rocks).oreIds();
+        final TreeSet<String> oreSet = new TreeSet<>(new OreVeins(seed, tag(VeinData.VEIN_TAG), biomeVeins(), rocks).oreIds());
+        final GeodeConfig geode = GeodeConfig.TFC;
+        for (String id : List.of(geode.outerLayer(), geode.middleLayer(), geode.innerLayer(), geode.alternateInnerLayer())) {
+            if (id.startsWith("tfp:ore/")) {
+                oreSet.add(id);
+            }
+        }
+        final List<String> ores = List.copyOf(oreSet);
         final List<String> ids = new ArrayList<>(ores);
         ids.addAll(rocks);
         final boolean[] counted = new boolean[ids.size()];
@@ -322,11 +335,20 @@ public final class OreExposureCensusCase implements SelfTestCase {
         return new Targets("vanilla", List.copyOf(ids), counted, Map.copyOf(index));
     }
 
-    /** The cluster veins of the shipped vein tag, read from the main plugin's jar. */
-    private static List<ClusterVeinConfig> veins() {
-        final List<ClusterVeinConfig> out = new ArrayList<>();
-        for (String name : VeinData.tagOrder(json(VeinData.VEIN_TAG))) {
-            VeinData.parse(name, json(VeinData.FEATURE_DIR + name + ".json")).ifPresent(out::add);
+    /** Every vein type (cluster, disc, pipe) of a shipped vein tag, in tag order, read from the main plugin's jar. */
+    private static List<VeinConfig> tag(String tagPath) {
+        final List<VeinConfig> out = new ArrayList<>();
+        for (String name : VeinData.tagOrder(json(tagPath))) {
+            out.add(VeinData.parseAny(name, json(VeinData.FEATURE_DIR + name + ".json")));
+        }
+        return out;
+    }
+
+    /** The vein types of the biome vein tags that replace rock, by tag, in the order a chunk runs them. */
+    private static Map<String, List<VeinConfig>> biomeVeins() {
+        final Map<String, List<VeinConfig>> out = new LinkedHashMap<>();
+        for (String key : VeinData.BIOME_VEIN_TAGS) {
+            out.put(key, tag(VeinData.BIOME_VEIN_TAG_DIR + key + ".json"));
         }
         return out;
     }
