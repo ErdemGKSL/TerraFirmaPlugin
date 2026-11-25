@@ -136,4 +136,25 @@ class MechanicalBlockTest {
         assertThat(w.readout(p(0, 1, 0)).orElseThrow().incoming().orElseThrow().direction()).isEqualTo(UP);
         assertThat(w.readout(p(0, 1, 0)).orElseThrow().parent()).contains(DOWN);
     }
+
+    /** PAR-MECH-20: BladedAxleBlockEntity is an AxleBlockEntity: the axle's node, turning with the line, counted in its length. */
+    @Test
+    void bladedAxleIsAnAxle() {
+        assertThat(MechanicalBlock.BLADED_AXLE.kind()).isEqualTo(NodeKind.AXLE);
+        assertThat(MechanicalBlock.State.axle(MechanicalBlock.BLADED_AXLE, RotationAxis.X).node(p(0, 0, 0)))
+            .isEqualTo(MechanicalBlock.State.axle(MechanicalBlock.AXLE, RotationAxis.X).node(p(0, 0, 0)));
+        RotationWorld world = new RotationWorld();
+        world.put(p(0, 0, 0), MechanicalBlock.State.motor(RotationAxis.X, 8));
+        world.put(p(1, 0, 0), MechanicalBlock.State.axle(MechanicalBlock.AXLE, RotationAxis.X));
+        assertThat(world.put(p(2, 0, 0), MechanicalBlock.State.axle(MechanicalBlock.BLADED_AXLE, RotationAxis.X))).isEmpty();
+        RotationWorld.Readout r = world.readout(p(2, 0, 0)).orElseThrow();
+        assertThat(r.block()).isEqualTo(MechanicalBlock.BLADED_AXLE);
+        assertThat(r.rpm()).isCloseTo(30f, org.assertj.core.data.Offset.offset(1e-4f));
+        assertThat(r.incoming().orElseThrow().direction()).isEqualTo(EAST);
+        // three more plain axles make six in a row: the sixth breaks, the bladed one counted
+        for (int x = 3; x <= 5; x++) {
+            assertThat(world.put(p(x, 0, 0), MechanicalBlock.State.axle(MechanicalBlock.AXLE, RotationAxis.X))).isEmpty();
+        }
+        assertThat(world.put(p(6, 0, 0), MechanicalBlock.State.axle(MechanicalBlock.AXLE, RotationAxis.X))).containsExactly(p(6, 0, 0));
+    }
 }

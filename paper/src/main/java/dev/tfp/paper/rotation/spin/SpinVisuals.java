@@ -35,6 +35,9 @@ public final class SpinVisuals {
     /** The render item of an axle block: {@code tfp:wood/axle/<wood>} draws {@code tfp:render/rotation/wood/axle/<wood>}. */
     static final String AXLE_PREFIX = "tfp:wood/axle/";
     static final String RENDER_PREFIX = "tfp:render/rotation/wood/axle/";
+    /** PAR-MECH-20: {@code tfp:wood/bladed_axle/<wood>} draws TFC's shaft-and-blade model {@code tfp:render/rotation/wood/bladed_axle/<wood>}. */
+    static final String BLADED_PREFIX = "tfp:wood/bladed_axle/";
+    static final String BLADED_RENDER_PREFIX = "tfp:render/rotation/wood/bladed_axle/";
     /** First id of our own range when the server has no shared counter (as the ore overlays'). */
     static final int OWN_ID_BASE = 0x71000000;
 
@@ -43,6 +46,9 @@ public final class SpinVisuals {
 
     /** The display item of the axle block {@code blockId}, empty for any other block. */
     public static Optional<String> renderItem(String blockId) {
+        if (blockId != null && blockId.startsWith(BLADED_PREFIX) && blockId.length() > BLADED_PREFIX.length()) {
+            return Optional.of(BLADED_RENDER_PREFIX + blockId.substring(BLADED_PREFIX.length()));
+        }
         if (blockId == null || !blockId.startsWith(AXLE_PREFIX) || blockId.length() == AXLE_PREFIX.length()) {
             return Optional.empty();
         }

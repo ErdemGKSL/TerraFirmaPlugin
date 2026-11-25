@@ -62,8 +62,8 @@ class RotationBlocksTest {
 
     @Test
     void stateCountsAreTfcs() {
-        // TFC's 20 woods x (axle 3 + encased 3 + clutch 6 + gearbox 64) + motor 3
-        assertThat(states).isEqualTo(20L * (3 + 3 + 6 + 64) + 3);
+        // TFC's 20 woods x (axle 3 + encased 3 + clutch 6 + gearbox 64 + bladed axle 3) + motor 3
+        assertThat(states).isEqualTo(20L * (3 + 3 + 6 + 64 + 3) + 3);
         assertThat(((Map<?, ?>) root("gear_box").get("blocks"))).hasSize(20);
     }
 
@@ -168,6 +168,37 @@ class RotationBlocksTest {
         }
         // the cubes keep theirs
         assertThat(appearance(block("encased_axle", "tfp:wood/encased_axle/oak"), "y")).containsKey("entity_renderer");
+    }
+
+    /**
+     * PAR-MECH-20: 20 bladed axles, each the axle's carriers (TFC's shaft outline) with no static element, TFC's settings
+     * (strength 2.5, axe), its loot (itself) and TFC's shaft-and-blade model as its render item, with the steel texture.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    void bladedAxlesAreAxleCarriersWithTheBladeModel() {
+        Map<String, Object> blocks = (Map<String, Object>) root("bladed_axle").get("blocks");
+        Map<String, Object> items = (Map<String, Object>) root("bladed_axle").get("items");
+        assertThat(blocks).hasSize(20);
+        for (String wood : List.of("oak", "acacia", "willow")) {
+            Map<String, Object> bladed = block("bladed_axle", "tfp:wood/bladed_axle/" + wood);
+            Map<String, Object> axle = block("axle", "tfp:wood/axle/" + wood);
+            for (String axis : List.of("x", "y", "z")) {
+                assertThat(appearance(bladed, axis)).as("%s %s", wood, axis).doesNotContainKey("entity_renderer")
+                    .isEqualTo(appearance(axle, axis));
+            }
+            assertThat(items).containsKey("tfp:render/rotation/wood/bladed_axle/" + wood);
+            Map<String, Object> s = (Map<String, Object>) bladed.get("settings");
+            assertThat(s.get("hardness")).isEqualTo(2.5);
+            assertThat(s.get("tags")).isEqualTo(List.of("minecraft:mineable/axe"));
+            assertThat(String.valueOf(bladed.get("loot"))).contains("tfp:loot_table/self"); // TFC: drops itself
+        }
+        String model = new String(out.get("craftengine/tfp/resourcepack/assets/tfp/models/block/rotation/bladed_axle.json"),
+            StandardCharsets.UTF_8);
+        assertThat(model.replaceAll("\\s", "")).contains("\"from\":[7,10,6]").contains("tfp:block/metal/smooth/steel");
+        assertThat(out.contains("craftengine/tfp/resourcepack/assets/tfp/textures/block/metal/smooth/steel.png")).isTrue();
+        String en = new String(out.get("craftengine/tfp/resourcepack/assets/tfp_rotation/lang/en_us.json"), StandardCharsets.UTF_8);
+        assertThat(en).contains("\"block.tfp.wood.bladed_axle.oak\": \"Oak Bladed Axle\"");
     }
 
     /** Vanilla's rotateYXZ(-y, -x, 0) followed by the item display's half turn. */

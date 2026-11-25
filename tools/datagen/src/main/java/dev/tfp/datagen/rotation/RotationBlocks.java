@@ -4,9 +4,11 @@
  * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
- * file: src/main/java/net/dries007/tfc/common/blocks/wood/Wood.java @ c3b4d9536 (AXLE, ENCASED_AXLE, CLUTCH, GEAR_BOX properties),
+ * file: src/main/java/net/dries007/tfc/common/blocks/wood/Wood.java @ c3b4d9536 (AXLE, ENCASED_AXLE, CLUTCH, GEAR_BOX, BLADED_AXLE
+ *       properties),
  *       src/main/java/net/dries007/tfc/common/blocks/TFCBlocks.java @ c3b4d9536 (CREATIVE_MOTOR),
- *       src/main/resources/assets/tfc/blockstates/wood/{axle,encased_axle,clutch,gear_box}/*.json @ c3b4d9536,
+ *       src/main/resources/assets/tfc/blockstates/wood/{axle,encased_axle,clutch,gear_box,bladed_axle}/*.json @ c3b4d9536,
+ *       src/main/resources/assets/tfc/models/block/bladed_axle.json @ c3b4d9536 (the shaft and blade model, PAR-MECH-20),
  *       src/main/resources/assets/tfc/blockstates/creative_motor.json @ c3b4d9536
  */
 package dev.tfp.datagen.rotation;
@@ -57,6 +59,8 @@ import java.util.regex.Pattern;
  *       carrier is drawn by item displays of TFC's models, turned as TFC's blockstate turns them ({@link #rotation}).</li>
  *   <li>The axle is a transparent carrier from the hitbox allocation ({@link #axleCarrier}, PAR-MECH-15) with no display
  *       element: the plugin's spinning display draws TFC's shaft model (its render item), also at rest (PAR-MECH-12).</li>
+ *   <li>PAR-MECH-20: {@code tfp:wood/bladed_axle/<wood>} is the same carrier; its render item is TFC's bladed axle model (the
+ *       shaft and the steel blade).</li>
  * </ul>
  * TFC's models (renamed under {@code tfp:block/rotation/}), the textures they name, TFC's item models and the block names
  * ({@code assets/tfp_rotation/lang/}) are written beside the entries.
@@ -75,7 +79,7 @@ public final class RotationBlocks {
     /** The model namespace of our copies of TFC's models: {@code tfc:block/x} becomes {@code tfp:block/rotation/x}. */
     static final String MODEL_PREFIX = "block/rotation/";
     public static final String MOTOR = Json.TO_NS + ":creative_motor";
-    public static final List<String> TYPES = List.of("axle", "encased_axle", "clutch", "gear_box");
+    public static final List<String> TYPES = List.of("axle", "encased_axle", "clutch", "gear_box", "bladed_axle");
     /** TFC {@code GearBoxBlock.createBlockStateDefinition}: {@code builder.add(UP, DOWN, NORTH, SOUTH, EAST, WEST)}. */
     public static final List<String> FACES = List.of("up", "down", "north", "south", "east", "west");
     /**
@@ -218,10 +222,12 @@ public final class RotationBlocks {
             .loot(DeviceLoot.fromTfc(tfc, "wood/" + type + "/" + wood)).deviceBehaviour().blockItem(langKey(id));
         JsonObject blockstate = blockstate(tfc, "wood/" + type + "/" + wood);
         switch (type) {
-            case "axle" -> {
+            case "axle", "bladed_axle" -> {
                 // TFC draws the axle with its block entity renderer (the blockstate is tfc:block/empty); the shaft model
                 // is tfc:block/wood/axle/<wood> along z, turned to x and y as AxleBlockEntityRenderer does.
-                String model = models.copy("block/wood/axle/" + wood);
+                // PAR-MECH-20: the bladed axle (an AbstractShaftAxleBlock, the axle's outline) draws TFC's own
+                // tfc:block/wood/bladed_axle/<wood> model, the shaft plus the steel blade cuboid, turning as one.
+                String model = models.copy("block/wood/" + type + "/" + wood);
                 b.property(DeviceProperty.names("axis", List.of("x", "y", "z"), "x")).renderItem(renderItem(model), tfp(model));
                 for (String axis : List.of("x", "y", "z")) {
                     int[] xy = switch (axis) {
@@ -255,12 +261,17 @@ public final class RotationBlocks {
         }
         models.itemModel("wood/" + type + "/" + wood);
         DeviceBlockSpec spec = b.build();
-        boolean cube = !type.equals("axle");
+        boolean cube = !isShaft(type);
         Entry e = finish(spec, cube, false);
         if (!cube) {
             withoutShaftDisplays(e, spec.id());
         }
         return e;
+    }
+
+    /** The axle and the bladed axle: transparent shaft carriers drawn by the spinning display. */
+    static boolean isShaft(String type) {
+        return type.equals("axle") || type.equals("bladed_axle");
     }
 
     /**

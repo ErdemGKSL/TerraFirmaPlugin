@@ -113,7 +113,6 @@ public final class BlockCoverage {
         Owner.of("rope|hanging_rope|steel_rope_anchor", "PAR-DECO-10", "ropes and rope anchors"),
         // mechanical power
         Owner.of("wood/(axle|encased_axle|gear_box|clutch)/.+|creative_motor", "PAR-MECH-01", "rotation network blocks"),
-        Owner.of("wood/bladed_axle/.+", "PAR-MECH-10", "bladed axles"),
         Owner.of("wood/water_wheel/.+", "PAR-MECH-18", "water wheels"),
         Owner.of("wood/windmill/.+", "PAR-MECH-18", "windmills"),
         Owner.of("crankshaft", "PAR-MECH-21", "crankshaft"),

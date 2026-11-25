@@ -10,7 +10,8 @@
  *       src/main/java/net/dries007/tfc/common/blockentities/rotation/GearBoxBlockEntity.java @ c3b4d9536 (connections from state),
  *       src/main/java/net/dries007/tfc/common/blockentities/rotation/CreativeRotationBlockEntity.java @ c3b4d9536 (source node),
  *       src/main/java/net/dries007/tfc/common/blockentities/rotation/WaterWheelBlockEntity.java @ c3b4d9536 (source node),
- *       src/main/java/net/dries007/tfc/common/blockentities/rotation/WindmillBlockEntity.java @ c3b4d9536 (source node)
+ *       src/main/java/net/dries007/tfc/common/blockentities/rotation/WindmillBlockEntity.java @ c3b4d9536 (source node),
+ *       src/main/java/net/dries007/tfc/common/blockentities/rotation/BladedAxleBlockEntity.java @ c3b4d9536 (an AxleBlockEntity)
  */
 package dev.tfp.core.rotation;
 
@@ -21,7 +22,8 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * The rotation network blocks (the five of PAR-MECH-01, the water wheel and windmill sources of PAR-MECH-17) and the network
+ * The rotation network blocks (the five of PAR-MECH-01, the water wheel and windmill sources of PAR-MECH-17, the bladed axle of
+ * PAR-MECH-20) and the network
  * node each state makes. TFC builds the node in the
  * block entity's constructor from the block state; here {@link State#node} does the same from the state's properties.
  */
@@ -42,12 +44,14 @@ public enum MechanicalBlock {
      */
     WATER_WHEEL,
     /** PAR-MECH-17, TFC {@code WindmillBlockEntity}: a {@code SourceNode} on the axis, positive hand, at the windmill's speed. */
-    WINDMILL;
+    WINDMILL,
+    /** PAR-MECH-20, TFC {@code BladedAxleBlock} / {@code BladedAxleBlockEntity}: an {@code AxleBlockEntity}, the axle's node. */
+    BLADED_AXLE;
 
     /** The network kind of this block's node. */
     public NodeKind kind() {
         return switch (this) {
-            case AXLE, ENCASED_AXLE, CLUTCH -> NodeKind.AXLE;
+            case AXLE, ENCASED_AXLE, CLUTCH, BLADED_AXLE -> NodeKind.AXLE;
             case GEAR_BOX -> NodeKind.GEAR_BOX;
             case CREATIVE_MOTOR, WATER_WHEEL, WINDMILL -> NodeKind.SOURCE;
         };
@@ -130,7 +134,7 @@ public enum MechanicalBlock {
         /** The node at {@code pos}. */
         public RotationNode node(BlockPos pos) {
             return switch (block) {
-                case AXLE, ENCASED_AXLE -> RotationNode.of(pos, NodeKind.AXLE, axis.faces());
+                case AXLE, ENCASED_AXLE, BLADED_AXLE -> RotationNode.of(pos, NodeKind.AXLE, axis.faces());
                 // TFC ClutchBlockEntity.updateConnections: powered clears the connections, unpowered sets the axis.
                 case CLUTCH -> RotationNode.of(pos, NodeKind.AXLE, powered ? Set.of() : axis.faces());
                 case GEAR_BOX -> RotationNode.of(pos, NodeKind.GEAR_BOX, faces);

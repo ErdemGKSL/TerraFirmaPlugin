@@ -125,20 +125,40 @@ public final class RotationService {
         actor.schedule();
     }
 
+    /**
+     * PAR-MECH-20: the rotation the block at {@code pos} receives (TFC {@code Node.rotation()}), as decided after the last batch of
+     * changes; empty when it is disconnected, invalid or no block of the network. Any thread, never blocks: the trip hammer reads
+     * the bladed axle above it this way (PAR-MECH-07).
+     */
+    public Optional<Rotation> rotation(UUID world, BlockPos pos) {
+        Actor actor = actors.get(world);
+        return actor == null ? Optional.empty() : Optional.ofNullable(actor.live.get(pos));
+    }
+
+    /** The incoming rotation of every connected, valid block. Actor thread. */
+    static Map<BlockPos, Rotation> live(RotationWorld state) {
+        Map<BlockPos, Rotation> out = new HashMap<>();
+        for (BlockPos pos : state.positions()) {
+            state.readout(pos).filter(r -> !r.invalid() && r.network().isPresent())
+                .flatMap(RotationWorld.Readout::incoming).ifPresent(r -> out.put(pos, r));
+        }
+        return out;
+    }
+
     /** Forgets a world (unloaded). Pending operations still run. */
     public void forget(UUID world) {
         actors.remove(world);
     }
 
     /**
-     * PAR-MECH-12: the turning of every axle (TFC draws only the axle's shaft spinning; the encased axle, clutch and gearbox
-     * are closed cubes): its hand and speed from the incoming rotation, at rest when disconnected or invalid.
+     * PAR-MECH-12: the turning of every axle and bladed axle (PAR-MECH-20; TFC draws only the axle's shaft spinning, the
+     * bladed axle's with its blade; the encased axle, clutch and gearbox are closed cubes): its hand and speed from the incoming rotation, at rest when disconnected or invalid.
      */
     static Map<BlockPos, ShaftReport> shafts(RotationWorld state) {
         Map<BlockPos, ShaftReport> now = new HashMap<>();
         for (BlockPos pos : state.positions()) {
             MechanicalBlock.State s = state.state(pos).orElse(null);
-            if (s == null || s.block() != MechanicalBlock.AXLE) {
+            if (s == null || (s.block() != MechanicalBlock.AXLE && s.block() != MechanicalBlock.BLADED_AXLE)) {
                 continue;
             }
             RotationWorld.Readout r = state.readout(pos).orElse(null);
@@ -156,6 +176,8 @@ public final class RotationService {
         final AtomicBoolean running = new AtomicBoolean();
         /** PAR-MECH-12: what the shaft hook was last told, per axle. Actor thread only. */
         final Map<BlockPos, ShaftReport> shown = new HashMap<>();
+        /** PAR-MECH-20: the incoming rotations after the last batch ({@link #rotation}); written here, read anywhere. */
+        final Map<BlockPos, Rotation> live = new ConcurrentHashMap<>();
 
         Actor(UUID world) {
             this.world = world;
@@ -183,6 +205,7 @@ public final class RotationService {
                         sink.breakAt(world, pos);
                     }
                 }
+                publish();
                 reportShafts();
             } finally {
                 running.set(false);
@@ -190,6 +213,19 @@ public final class RotationService {
             if (!queue.isEmpty()) {
                 schedule();
             }
+        }
+
+        /** PAR-MECH-20: publishes the incoming rotations for {@link #rotation}. */
+        void publish() {
+            Map<BlockPos, Rotation> now;
+            try {
+                now = live(state);
+            } catch (RuntimeException e) {
+                logger.log(Level.SEVERE, "rotation network of world " + world + ": the rotation readout failed", e);
+                return;
+            }
+            live.keySet().retainAll(now.keySet());
+            live.putAll(now);
         }
 
         /** PAR-MECH-12: the shafts that changed since the last report go to the hook. */

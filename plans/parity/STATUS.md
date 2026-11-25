@@ -448,8 +448,9 @@ Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-17 | Water wheel and windmill as rotation network sources: source states in core/rotation, the WaterWheelNetwork and WindmillNetwork services | MECH | 53 | done |
 | PAR-MECH-18 | Water wheel and windmill in game: CE blocks, wheel and blade items, spinning models, in-game checks of PAR-MECH-03 and PAR-MECH-04 | MECH | 54 | open |
 | PAR-MECH-19 | Spinning shafts in game: axles turn at the right speed and hand on 1.21.11 and 26.x (PAR-MECH-12 in-game check) | MECH | 53 | open |
-| PAR-MECH-20 | Bladed axle as TFC: the axle with a steel blade, its network node and spinning blade, the trip hammer's drive | MECH | 53 | open |
+| PAR-MECH-20 | Bladed axle as TFC: the axle with a steel blade, its network node and spinning blade, the trip hammer's drive | MECH | 53 | done |
 | PAR-MECH-21 | Crankshaft in game: the tfp:crankshaft CE block, its sink node in the rotation network (CrankRotation), the powered bellows in-game check | MECH | 54 | open |
+| PAR-MECH-23 | Bladed axle in game: craft, place, spin with its blade, debug readout, drop (PAR-MECH-20 in-game check) | MECH | 54 | open |
 | PAR-MECH-22 | Power loom block in CraftEngine and the in-game check: tfp:power_loom, its model, item and the axle into the loom | MECH | 52 | open |
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |
 | PAR-REL-03 | Dependency and version updates (MC, Paper, Folia, CE, BetterModel, BetterHud) | REL | 52 | done |

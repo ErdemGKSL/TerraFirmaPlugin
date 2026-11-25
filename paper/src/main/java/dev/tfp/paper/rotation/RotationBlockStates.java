@@ -24,8 +24,10 @@ public final class RotationBlockStates {
     public static final String CLUTCH = "tfp:wood/clutch";
     public static final String GEAR_BOX = "tfp:wood/gear_box";
     public static final String MOTOR = "tfp:creative_motor";
+    /** PAR-MECH-20. */
+    public static final String BLADED_AXLE = "tfp:wood/bladed_axle";
     /** The device kind ids, in the order they are registered. */
-    public static final List<String> KINDS = List.of(AXLE, ENCASED_AXLE, CLUTCH, GEAR_BOX, MOTOR);
+    public static final List<String> KINDS = List.of(AXLE, ENCASED_AXLE, CLUTCH, GEAR_BOX, MOTOR, BLADED_AXLE);
     public static final String AXIS = "axis";
     public static final String POWERED = "powered";
 
@@ -39,6 +41,9 @@ public final class RotationBlockStates {
         }
         if (id.startsWith(AXLE + "/")) {
             return Optional.of(MechanicalBlock.AXLE);
+        }
+        if (id.startsWith(BLADED_AXLE + "/")) {
+            return Optional.of(MechanicalBlock.BLADED_AXLE);
         }
         if (id.startsWith(ENCASED_AXLE + "/")) {
             return Optional.of(MechanicalBlock.ENCASED_AXLE);
@@ -60,7 +65,7 @@ public final class RotationBlockStates {
         }
         try {
             return Optional.of(switch (block.get()) {
-                case AXLE, ENCASED_AXLE -> MechanicalBlock.State.axle(block.get(), axis(state));
+                case AXLE, ENCASED_AXLE, BLADED_AXLE -> MechanicalBlock.State.axle(block.get(), axis(state));
                 case CLUTCH -> MechanicalBlock.State.clutch(axis(state), Boolean.parseBoolean(state.properties().get(POWERED)));
                 case GEAR_BOX -> MechanicalBlock.State.gearBox(faces(state));
                 case CREATIVE_MOTOR -> MechanicalBlock.State.motor(axis(state), step);
