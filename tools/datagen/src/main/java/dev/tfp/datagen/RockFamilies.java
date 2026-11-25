@@ -278,7 +278,10 @@ final class RockFamilies {
                 List<String> blockTags = tags.getOrDefault(Json.FROM_NS + ":" + b.path(), List.of());
                 Map<String, Object> entry = new LinkedHashMap<>();
                 entry.put("settings", settings(kind, info, blockTags));
-                entry.put("behavior", behavior(kind));
+                List<Object> behavior = behavior(kind);
+                if (!behavior.isEmpty()) {
+                    entry.put("behavior", behavior);
+                }
                 entry.put("loot", loot(tfc, kind, f.rock(), b.path()));
                 entry.put("states", switch (kind) {
                     case "stairs" -> stairs(tfc, out, id, b.path(), renderItems);

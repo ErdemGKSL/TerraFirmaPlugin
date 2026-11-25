@@ -2,7 +2,7 @@
 
 Generated-style table: one row per item in `plans/parity/items/`. The loop updates the `status` column here and in the item file in the same commit (see `PROTOCOL.md`). Keep rows sorted by wave, then id.
 
-Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already done).
+Totals: 386 items; open 207, done 169, blocked 9; waves 1..56 (wave 0 = already done).
 
 | id | title | area | wave | status |
 |---|---|---|---|---|
@@ -394,7 +394,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-03 | Signs and hanging signs (per wood, per metal hanger) | DECO | 46 | open |
 | PAR-DECO-04 | Chests, trapped chests and barrel racks per wood | DECO | 46 | open |
 | PAR-DECO-05 | Tool racks, shelves, bookshelves, lecterns | DECO | 46 | open |
-| PAR-DECO-06 | Rock families: bricks, cobble, smooth, stairs, slabs, walls, aqueducts, spikes, pressure plates, buttons | DECO | 46 | open |
+| PAR-DECO-06 | Rock families: bricks, cobble, smooth, stairs, slabs, walls, aqueducts, spikes, pressure plates, buttons | DECO | 46 | done |
 | PAR-FAUNA-30 | Crocodile without the aggressive swim goal, diving in water (follow-up of PAR-FAUNA-12) | FAUNA | 46 | open |
 | PAR-FAUNA-31 | Amphibian play-dead pose: penguin and turtle models (follow-up of PAR-FAUNA-12) | FAUNA | 46 | open |
 | PAR-FAUNA-32 | Pest infestation of large vessels and nest boxes (follow-up of PAR-FAUNA-13) | FAUNA | 46 | open |
@@ -505,3 +505,4 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-FAUNA-34 | Livestock check hands horse-family mating and birth to the mount module (follow-up of PAR-FAUNA-15) | FAUNA | 46 | open |
 | PAR-POT-15 | Bowl automation: hoppers fill and empty powder bowls, the powder layer follows (follow-up of PAR-POT-09) | POTTERY | 28 | open |
 | PAR-DATA-19 | Advancement triggers left from PAR-DATA-03: feature events for TFC's 21 own triggers | DATA | 40 | open |
+| PAR-DECO-22 | Rock walls, aqueducts and rope anchors (follow-up of PAR-DECO-06) | DECO | 49 | open |
