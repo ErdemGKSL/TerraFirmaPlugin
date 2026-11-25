@@ -34,4 +34,6 @@ done_criteria:
 
 # PAR-PHYS-07: Collapse follow-ups: Folia stress self-test, TFC rock-slide sounds in the pack, collapse server config keys
 
+> Claimed: parity worker session_011osUp9, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
