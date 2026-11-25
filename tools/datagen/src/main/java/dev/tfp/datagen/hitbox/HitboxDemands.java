@@ -696,6 +696,42 @@ public final class HitboxDemands {
                 d.add(new Demand(id, state[0], state[1], 0, HitboxAllocation.TRANSPARENT, false, WOOD_FAMILY_WEIGHT));
             }
         }
+        // PAR-DECO-06: the rock stairs and slabs (7 kinds x 21 rocks), buttons and pressure plates, hitbox-only on the shared
+        // vanilla twins of the metal stairs and slabs and of the wood buttons and plates (drawn empty, the look is item
+        // displays; RockFamilies), and the rock spikes (three parts, wet or dry), rare hitbox-only on the best free carrier.
+        for (String rock : LOOSE_ROCKS) {
+            for (String kind : ROCK_DECOR_KINDS) {
+                String stairs = rockShapeId(kind, rock, "stairs");
+                for (String facing : TfcShapes.STAIRS_FACINGS) {
+                    for (String half : TfcShapes.STAIRS_HALVES) {
+                        for (String shape : TfcShapes.STAIRS_SHAPES) {
+                            for (boolean wet : new boolean[] {false, true}) {
+                                d.add(new Demand(stairs, woodStairsAppearance(facing, half, shape, wet),
+                                    TfcShapes.stairsKey(facing, half, shape, wet), 0, HitboxAllocation.TRANSPARENT, false,
+                                    ROCK_FAMILY_WEIGHT));
+                            }
+                        }
+                    }
+                }
+                String slab = rockShapeId(kind, rock, "slab");
+                for (String type : WOOD_SLAB_CARRIED_TYPES) {
+                    for (boolean wet : new boolean[] {false, true}) {
+                        d.add(new Demand(slab, woodSlabAppearance(type, wet), TfcShapes.slabKey(type, wet), 0,
+                            HitboxAllocation.TRANSPARENT, false, ROCK_FAMILY_WEIGHT));
+                    }
+                }
+            }
+            for (String kind : ROCK_LOGIC_KINDS) {
+                for (String[] state : woodLogicStates(kind)) {
+                    d.add(new Demand(rockLogicId(kind, rock), state[0], state[1], 0, HitboxAllocation.TRANSPARENT, false,
+                        ROCK_FAMILY_WEIGHT));
+                }
+            }
+            for (String[] state : rockSpikeStates()) {
+                d.add(new Demand(rockSpikeId(rock), state[0], state[1], 0, HitboxAllocation.TRANSPARENT, true,
+                    ROCK_FAMILY_WEIGHT));
+            }
+        }
         // PAR-WORLD-44 (PAR-WORLD-53 option a): the sapling, the potted sapling and the fallen leaves of every wood,
         // hitbox-only on the no-collision plant outlines (the look is TFC's model as an item display, WoodPlantBlocks);
         // the twigs share one tripwire pool state (POOLS), no demand.
@@ -953,6 +989,65 @@ public final class HitboxDemands {
         return out;
     }
 
+    /** PAR-DECO-06: served after the wood and metal families (the twins are reserved by only_class, so nothing else moves). */
+    static final int ROCK_FAMILY_WEIGHT = -14;
+    /** PAR-DECO-06: the {@code Rock.BlockType} kinds with slab, stair and wall variants (TFC {@code hasVariants}, plus the mossy ones). */
+    public static final List<String> ROCK_DECOR_KINDS = List.of("raw", "smooth", "cobble", "bricks", "cracked_bricks",
+        "mossy_bricks", "mossy_cobble");
+    /** PAR-DECO-06: the rock kinds drawn by item displays on the shared wood button and pressure plate twins. */
+    public static final List<String> ROCK_LOGIC_KINDS = List.of("button", "pressure_plate");
+
+    /** PAR-DECO-06: the block id of a rock slab or stairs ({@code tfp:rock/cobble/granite_stairs}); {@code shape} is {@code slab} or {@code stairs}. */
+    public static String rockShapeId(String kind, String rock, String shape) {
+        return "tfp:rock/" + kind + "/" + rock + "_" + shape;
+    }
+
+    /** PAR-DECO-06: the block id of a rock button or pressure plate ({@code tfp:rock/button/granite}). */
+    public static String rockLogicId(String kind, String rock) {
+        return "tfp:rock/" + kind + "/" + rock;
+    }
+
+    /** PAR-DECO-06: TFC {@code ROCK_SPIKE_PART} values; the rows {@code tfc:rock/spike[part=...]} of tfc-shapes.json are shared by every rock. */
+    public static final List<String> SPIKE_PARTS = List.of("base", "middle", "tip");
+
+    public static String rockSpikeId(String rock) {
+        return "tfp:rock/spike/" + rock;
+    }
+
+    /** PAR-DECO-06: every state of a rock spike as {appearance, tfc-shapes key}: TFC's part, wet or dry. */
+    public static List<String[]> rockSpikeStates() {
+        List<String[]> out = new ArrayList<>();
+        for (String part : SPIKE_PARTS) {
+            for (boolean wet : new boolean[] {false, true}) {
+                out.add(new String[] {"part=" + part + ",waterlogged=" + wet, "tfc:rock/spike[part=" + part + "]"});
+            }
+        }
+        return out;
+    }
+
+    /** PAR-DECO-06: the vanilla twin of a rock stairs, slab, button or pressure plate block id, or null for every other id. */
+    static String rockTwin(String blockId) {
+        if (!blockId.startsWith("tfp:rock/")) {
+            return null;
+        }
+        for (String rock : LOOSE_ROCKS) {
+            for (String kind : ROCK_DECOR_KINDS) {
+                if (blockId.equals(rockShapeId(kind, rock, "stairs"))) {
+                    return METAL_STAIRS_TWIN;
+                }
+                if (blockId.equals(rockShapeId(kind, rock, "slab"))) {
+                    return METAL_SLAB_TWIN;
+                }
+            }
+            for (int k = 0; k < ROCK_LOGIC_KINDS.size(); k++) {
+                if (blockId.equals(rockLogicId(ROCK_LOGIC_KINDS.get(k), rock))) {
+                    return WOOD_LOGIC_TWINS.get(WOOD_LOGIC_KINDS.indexOf(ROCK_LOGIC_KINDS.get(k)));
+                }
+            }
+        }
+        return null;
+    }
+
     /** PAR-DECO-09: TFC's metals that have a metal block ({@code Metal.PartType} above INGOT; MetalFamilies checks the list). */
     public static final List<String> METAL_BLOCK_METALS = List.of("bismuth", "bismuth_bronze", "black_bronze", "black_steel",
         "blue_steel", "brass", "bronze", "cast_iron", "copper", "gold", "nickel", "red_steel", "rose_gold", "silver",
@@ -1176,6 +1271,10 @@ public final class HitboxDemands {
         String metal = metalTwin(blockId);
         if (metal != null) {
             return metal; // PAR-DECO-09: the metal stairs, slabs and trapdoors, drawn empty on a shared twin
+        }
+        String rock = rockTwin(blockId);
+        if (rock != null) {
+            return rock; // PAR-DECO-06: the rock stairs, slabs, buttons and pressure plates, drawn empty on a shared twin
         }
         if (blockId.equals(JACK_O_LANTERN_ID)) {
             return "minecraft:jack_o_lantern";

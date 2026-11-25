@@ -112,16 +112,26 @@ public final class HitboxAllocation {
         Map<String, String> taken = new TreeMap<>();
         Map<String, String> hide = new TreeMap<>();
         Map<String, Assignment> byId = new LinkedHashMap<>();
+        Map<String, Selected> selected = new java.util.HashMap<>();
         for (Demand d : order) {
             if (byId.containsKey(d.id())) {
                 throw new DatagenException("duplicate hitbox demand " + d.id());
             }
-            TfcState tfc = TfcState.of(d.tfcKey()).withLight(d.light()).withTwin(HitboxDemands.twin(d.blockId()));
+            String twin = HitboxDemands.twin(d.blockId());
             boolean model = !d.look().equals(VANILLA_LOOK) && !d.look().equals(TRANSPARENT);
-            Choice choice = HitboxCarrier.select(tfc, profile, family, ctx, s -> free(s, d.look(), model, taken, hide));
+            // PAR-DECO-06: demands of one outline, twin, light and look (thousands of rock, wood and metal stairs states) take the
+            // same carrier: the taken and hide maps only grow, so a carrier free for a later demand was free for the first, and
+            // a shared (transparent or equal) look keeps the first pick free. Selecting once per key is exact.
+            String cacheKey = d.tfcKey() + "|" + d.light() + "|" + twin + "|" + d.look() + "|" + d.rare();
+            Selected cached = selected.get(cacheKey);
+            TfcState tfc = TfcState.of(d.tfcKey()).withLight(d.light()).withTwin(twin);
+            Choice choice = cached != null ? cached.choice()
+                : HitboxCarrier.select(tfc, profile, family, ctx, s -> free(s, d.look(), model, taken, hide));
             Mode mode;
-            Scored chosen = choice.chosen();
-            if (chosen != null && (choice.override() != null || chosen.score() >= HitboxCarrier.MIN_SCORE)) {
+            Scored chosen = cached != null ? cached.chosen() : choice.chosen();
+            if (cached != null) {
+                mode = cached.mode();
+            } else if (chosen != null && (choice.override() != null || chosen.score() >= HitboxCarrier.MIN_SCORE)) {
                 mode = chosen.pool() ? Mode.POOL : model ? Mode.MODEL : d.look().equals(TRANSPARENT) ? Mode.HITBOX_ONLY : Mode.VANILLA;
             } else if (d.rare()) {
                 chosen = null;
@@ -138,6 +148,9 @@ public final class HitboxAllocation {
             } else {
                 throw new DatagenException("hitbox overflow on " + family.id() + ": " + d.id() + " has no free carrier scoring "
                     + HitboxCarrier.MIN_SCORE + " or more and is not rare (ask the owner; never degrade silently)");
+            }
+            if (cached == null && !d.look().equals(VANILLA_LOOK)) {
+                selected.put(cacheKey, new Selected(choice, chosen, mode));
             }
             String look = mode == Mode.HITBOX_ONLY ? TRANSPARENT : d.look();
             // A vanilla look changes nothing for real instances of the state, so they need no hiding.
@@ -169,6 +182,10 @@ public final class HitboxAllocation {
             inDemandOrder.add(byId.get(d.id()));
         }
         return new Result(profile, family, List.copyOf(inDemandOrder), Map.copyOf(hide), Map.copyOf(taken));
+    }
+
+    /** The pick of the first demand of a cache key (see {@link #allocate}). */
+    private record Selected(Choice choice, Scored chosen, Mode mode) {
     }
 
     private static boolean free(String state, String look, boolean model, Map<String, String> taken, Map<String, String> hide) {
