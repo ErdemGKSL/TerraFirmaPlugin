@@ -79,6 +79,9 @@ class SoilBlocksTest {
         out.files().keySet().stream().filter(k -> k.startsWith(SoilBlocks.OUTPUT_DIR))
             .forEach(k -> files.add(k.substring(SoilBlocks.OUTPUT_DIR.length())));
         Set<String> expectedFiles = new TreeSet<>(List.of("peat.yml", "kaolin.yml"));
+        if (out.files().containsKey(SoilBlocks.OUTPUT_DIR + "grass_path_carriers.yml")) {
+            expectedFiles.add("grass_path_carriers.yml"); // PAR-WORLD-42: the grass path carriers' hide mappings
+        }
         soils.forEach(s -> expectedFiles.add(s + "_set.yml"));
         assertThat(files).isEqualTo(expectedFiles);
         for (String type : List.of("grass", "clay_grass", "coarse_dirt", "mud", "rooted_dirt")) {
@@ -90,10 +93,11 @@ class SoilBlocksTest {
         }
         assertThat(blocks.keySet()).contains("tfp:peat", "tfp:peat_grass", "tfp:red_kaolin_clay", "tfp:pink_kaolin_clay",
             "tfp:white_kaolin_clay", "tfp:kaolin_clay_grass");
-        assertThat(blocks).hasSize(8 * 5 + 6);
-        assertThat(items.keySet()).isEqualTo(blocks.keySet());
-        assertThat(SoilBlocks.blockIds(tfc).stream().map(id -> "tfp:" + id).toList())
-            .containsExactlyInAnyOrderElementsOf(blocks.keySet());
+        assertThat(blocks).hasSize(8 * 5 + 6 + 8 * 4); // + duff, clay duff, grass path, muddy roots (PAR-WORLD-42)
+        assertThat(items.keySet()).containsAll(blocks.keySet());
+        List<String> all = new ArrayList<>(SoilBlocks.blockIds(tfc));
+        all.addAll(SoilExtraBlocks.ids(tfc));
+        assertThat(all.stream().map(id -> "tfp:" + id).toList()).containsExactlyInAnyOrderElementsOf(blocks.keySet());
     }
 
     @Test
@@ -213,7 +217,8 @@ class SoilBlocksTest {
     @SuppressWarnings("unchecked")
     void fullCubesAskTheAllocatorForOneVisualOfTfcsModel() {
         assertThat(demand.getFirst()).as("earlier demand kept first").isEqualTo(EARLIER);
-        List<VisualDemand> mine = demand.subList(1, demand.size());
+        // PAR-WORLD-42's blocks (SoilExtraBlocksTest) have named appearances; this test covers the single-state cubes
+        List<VisualDemand> mine = demand.subList(1, demand.size()).stream().filter(d -> d.appearance().isEmpty()).toList();
         List<String> cubes = SoilBlocks.blockIds(tfc).stream().filter(id -> !SoilBlocks.isGrass(id)).toList();
         assertThat(cubes).hasSize(8 * 3 + 4);
         assertThat(mine.stream().map(VisualDemand::key).toList()).containsExactlyInAnyOrderElementsOf(cubes);
@@ -280,7 +285,9 @@ class SoilBlocksTest {
     void namesAndPeatSoundsComeFromTfc() {
         JsonObject en = json(SOIL_RP + "lang/en_us.json");
         List<String> named = new ArrayList<>();
-        for (String id : SoilBlocks.blockIds(tfc)) {
+        List<String> all = new ArrayList<>(SoilBlocks.blockIds(tfc));
+        all.addAll(SoilExtraBlocks.ids(tfc)); // PAR-WORLD-42
+        for (String id : all) {
             if (!SoilBlocks.pipelineNames(id)) {
                 named.add("block.tfp." + id.replace('/', '.'));
             }

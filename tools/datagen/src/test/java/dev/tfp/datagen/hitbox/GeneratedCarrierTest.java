@@ -91,22 +91,38 @@ class GeneratedCarrierTest {
                         } else if (app.get("state") instanceof String state) {
                             states++;
                             checkedIds.add(id);
-                            check(path, id, a.getKey(), state, problems);
+                            check(path, id, a.getKey(), state, null, problems);
+                        } else if (app.containsKey("$$fallback")) {
+                            // PAR-WORLD-31: a version selector where the families' carriers differ
+                            for (Map.Entry<?, ?> branch : app.entrySet()) {
+                                if (branch.getValue() instanceof Map<?, ?> look && look.get("state") instanceof String state) {
+                                    states++;
+                                    checkedIds.add(id);
+                                    check(path, id, a.getKey(), state, String.valueOf(branch.getKey()).equals("$$fallback")
+                                        ? dev.tfp.datagen.visuals.VersionFamily.V1_21 : dev.tfp.datagen.visuals.VersionFamily.V26,
+                                        problems);
+                                }
+                            }
                         }
                     }
                 }
             }
-            if (top.get("block_state_mappings") instanceof Map<?, ?> m) {
+            if (top.get("block_state_mappings") instanceof Map<?, ?> top0) {
+                // PAR-WORLD-31: family-specific mappings sit under $$>=26.1 / $$<26.1
+                Map<Object, Object> m = new java.util.LinkedHashMap<>();
+                top0.forEach((k, v) -> {
+                    if (String.valueOf(k).startsWith("$$") && v instanceof Map<?, ?> nested) {
+                        m.putAll(nested);
+                    } else {
+                        m.put(k, v);
+                    }
+                });
                 for (Map.Entry<?, ?> x : m.entrySet()) {
                     String from = String.valueOf(x.getKey());
                     String to = String.valueOf(x.getValue());
                     mappings.add(from + " -> " + to);
-                    // The groundcover generator writes one file per version family (PAR-WORLD-31), so its carriers
-                    // legitimately differ between families and agreed() does not apply; they are pinned per family in
-                    // groundcoverCarriersAreAllocatedInEveryFamily.
-                    boolean fromSelector = HitboxDemands.all().stream()
-                        .filter(d -> !d.blockId().startsWith(GROUNDCOVER_PREFIX))
-                        .map(d -> HitboxAllocation.agreed(d.blockId(), d.appearance()))
+                    boolean fromSelector = HitboxAllocation.standard().values().stream()
+                        .flatMap(r -> r.assignments().stream())
                         .anyMatch(a -> a.state().equals(from) && to.equals(a.hideTarget()));
                     if (!fromSelector) {
                         problems.add(path + ": block_state_mappings " + from + " -> " + to + " is no selector hide mapping");
@@ -137,7 +153,9 @@ class GeneratedCarrierTest {
             + 144); // PAR-METAL-13: the channel (128 states) and the mold table (16)
         // PAR-CLIM-04: the ice pile and sea ice (one leaves pool appearance each).
         // PAR-WORLD-44: the 20 twigs on their one shared tripwire state.
-        assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 20 + 4); // PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
+        assertThat(pools).as("auto_state appearances of declared pools").isEqualTo(3 + 8 + 32 + 1 + 2 + 20 + 4 // PAR-FARM-23: pumpkin, melon, rotten x2 on the solid pool
+            + (int) HitboxDemands.all().stream().filter(d -> d.blockId().startsWith("tfp:grass_path/") && agreedOrOld(d).pool())
+                .count()); // PAR-WORLD-42: the grass paths on the leaves pool
         java.util.SortedSet<String> expected = new java.util.TreeSet<>(
             List.of("tfp:bellows", "tfp:charcoal_forge", "tfp:firepit", "tfp:grill", "tfp:pot", "tfp:quern",
                 "tfp:scraping", HitboxDemands.COMPOSTER_ID, HitboxDemands.LOG_PILE_ID, HitboxDemands.CHARCOAL_PILE_ID,
@@ -191,6 +209,17 @@ class GeneratedCarrierTest {
         }
         expected.addAll(List.of(HitboxDemands.BANANA_SAPLING_ID, HitboxDemands.BANANA_PLANT_ID, HitboxDemands.BANANA_DEAD_ID));
         assertThat(expected).hasSize(36 + 35 + 2 + 16 + 87 + 7 + 1 + 4 + 11 + 20 * 4 + 20 * 5 + 2 + 20 * 3 + 24 + 3 + 8 + 40); // + 8: PAR-FARM-26 farmland, + 40: PAR-FARM-25 growing plants
+        // PAR-WORLD-31: the loose and mossy loose rocks, small ores and groundcover types; PAR-WORLD-42: the grass paths
+        for (String rock : HitboxDemands.LOOSE_ROCKS) {
+            HitboxDemands.LOOSE_KINDS.forEach(k -> expected.add(HitboxDemands.looseRockId(k, rock)));
+        }
+        HitboxDemands.SMALL_ORES.forEach(o -> expected.add(HitboxDemands.smallOreId(o)));
+        HitboxDemands.GROUNDCOVER_TYPES.keySet().forEach(t -> expected.add(HitboxDemands.groundcoverId(t)));
+        for (Demand d : HitboxDemands.all()) { // the grass paths on an explicit state (the others take the leaves pool)
+            if (d.blockId().startsWith("tfp:grass_path/") && !agreedOrOld(d).pool()) {
+                expected.add(d.blockId());
+            }
+        }
         java.util.SortedSet<String> grass = new java.util.TreeSet<>();
         for (String soil : List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol", "podzol", "alfisol", "mollisol")) {
             dev.tfp.datagen.soil.SoilBlocks.GRASS_TYPES.forEach(t -> grass.add("tfp:" + t + "/" + soil));
@@ -268,9 +297,9 @@ class GeneratedCarrierTest {
     @Test
     void theOutputGuardRefusesABareStatelessCarrier() {
         List<String> problems = new ArrayList<>();
-        check("x.yml", "tfp:bellows", "north", "minecraft:mud", problems);
-        check("x.yml", "tfp:unknown", "only", "minecraft:dirt_path", problems);
-        check("x.yml", "tfp:bellows", "north", HitboxAllocation.agreed("tfp:bellows", "north").state(), problems);
+        check("x.yml", "tfp:bellows", "north", "minecraft:mud", null, problems);
+        check("x.yml", "tfp:unknown", "only", "minecraft:dirt_path", null, problems);
+        check("x.yml", "tfp:bellows", "north", HitboxAllocation.agreed("tfp:bellows", "north").state(), null, problems);
         assertThat(problems).hasSize(2);
     }
 
@@ -354,7 +383,7 @@ class GeneratedCarrierTest {
         }
         for (Demand d : HitboxDemands.all()) {
             if (d.blockId().contains("pile")) {
-                assertThat(HitboxAllocation.agreed(d.blockId(), d.appearance()).state()).as(d.id())
+                assertThat(agreedOrOld(d).state()).as(d.id())
                     .doesNotStartWith("minecraft:daylight_detector").doesNotStartWith(VanillaCandidates.POOL_PREFIX);
             }
         }
@@ -406,7 +435,7 @@ class GeneratedCarrierTest {
             assertThat(rows).as(d.id()).containsKey(d.tfcKey());
             assertThat(d.look()).isEqualTo(HitboxAllocation.TRANSPARENT);
             assertThat(rows.get(d.tfcKey()).collision().isEmpty()).as(d.id() + " has no collision").isTrue();
-            assertThat(HitboxAllocation.agreed(d.blockId(), d.appearance()).mode()).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
+            assertThat(agreedOrOld(d).mode()).isEqualTo(HitboxAllocation.Mode.HITBOX_ONLY);
         }
     }
 
@@ -477,14 +506,14 @@ class GeneratedCarrierTest {
         // The three powers PAR-HEAT-23 took are free again: no demand of any block sits on them.
         for (Demand d : HitboxDemands.all()) {
             for (int power : new int[] {10, 12, 14}) {
-                assertThat(HitboxAllocation.agreed(d.blockId(), d.appearance()).state()).as(d.id())
+                assertThat(agreedOrOld(d).state()).as(d.id())
                     .isNotEqualTo("minecraft:daylight_detector[inverted=false,power=" + power + "]");
             }
         }
         for (Demand d : HitboxDemands.all()) {
             // PAR-METAL-13: the channel's outlines are served last and may share a hitbox-only carrier (same transparent look)
             if (!d.blockId().equals(HitboxDemands.FIREPIT_ID) && !d.blockId().equals(HitboxDemands.CHANNEL_ID)) {
-                assertThat(HitboxAllocation.agreed(d.blockId(), d.appearance()).state()).as(d.id()).isNotIn(carriers);
+                assertThat(agreedOrOld(d).state()).as(d.id()).isNotIn(carriers);
             }
         }
     }
@@ -510,7 +539,7 @@ class GeneratedCarrierTest {
         assertThat(reserved.mode()).isEqualTo(HitboxAllocation.Mode.VANILLA);
         for (Demand d : HitboxDemands.all()) {
             if (!d.blockId().equals(HitboxDemands.GRILL_ID)) {
-                Assignment a = HitboxAllocation.agreed(d.blockId(), d.appearance());
+                Assignment a = agreedOrOld(d);
                 assertThat(a.state()).as(d.id()).isNotEqualTo(reserved.state());
                 assertThat(a.state().equals(carrier) && a.mode() != HitboxAllocation.Mode.HITBOX_ONLY).as(d.id()).isFalse();
             }
@@ -542,7 +571,7 @@ class GeneratedCarrierTest {
         // the keg's carriers are no other block's
         for (Demand d : HitboxDemands.all()) {
             if (!d.blockId().equals(HitboxDemands.POWDERKEG_ID)) {
-                assertThat(HitboxAllocation.agreed(d.blockId(), d.appearance()).state()).as(d.id())
+                assertThat(agreedOrOld(d).state()).as(d.id())
                     .isNotIn(unsealed.state(), sealed.state(), lit.state());
             }
         }
@@ -562,7 +591,7 @@ class GeneratedCarrierTest {
         VanillaCandidates v = HitboxCarrier.standardContext().vanilla();
         List<String> problems = new ArrayList<>();
         for (Demand d : HitboxDemands.all()) {
-            Assignment a = HitboxAllocation.agreed(d.blockId(), d.appearance());
+            Assignment a = agreedOrOld(d);
             if (a.mode() != HitboxAllocation.Mode.HITBOX_ONLY) {
                 continue;
             }
@@ -655,15 +684,38 @@ class GeneratedCarrierTest {
         return mine.stream().filter(d -> matches(d.appearance(), appearance)).findFirst().orElse(null);
     }
 
-    private static void check(String path, String id, String appearance, String state, List<String> problems) {
+    /**
+     * The agreed carrier of a demand, or, for a demand whose carriers differ between the version families (PAR-WORLD-31
+     * writes a {@code $$>=26.1} selector for those), its 1.21.x carrier.
+     */
+    private static Assignment agreedOrOld(Demand d) {
+        Assignment first = null;
+        for (HitboxAllocation.Result r : HitboxAllocation.standard().values()) {
+            Assignment a = r.get(d.blockId(), d.appearance());
+            if (first == null || r.family() == dev.tfp.datagen.visuals.VersionFamily.V1_21 && !a.state().equals(first.state())) {
+                first = a;
+            }
+        }
+        return first;
+    }
+
+    /** {@code family}: the version family of a {@code $$} branch (PAR-WORLD-31), or null for a plain appearance (all agree). */
+    private static void check(String path, String id, String appearance, String state,
+            dev.tfp.datagen.visuals.VersionFamily family, List<String> problems) {
         Demand demand = demand(id, appearance);
         if (demand == null) {
             problems.add(path + " " + id + "#" + appearance + ": explicit state " + state + " with no HitboxDemands entry");
             return;
         }
-        Assignment a = HitboxAllocation.agreed(demand.blockId(), demand.appearance());
-        if (!a.state().equals(state)) {
-            problems.add(path + " " + id + "#" + appearance + ": " + state + " but the selector chose " + a.state());
+        for (HitboxAllocation.Result r : HitboxAllocation.standard().values()) {
+            if (family != null && r.family() != family) {
+                continue;
+            }
+            Assignment a = r.get(demand.blockId(), demand.appearance());
+            if (!a.state().equals(state)) {
+                problems.add(path + " " + id + "#" + appearance + ": " + state + " but the selector chose " + a.state());
+                return;
+            }
         }
     }
 

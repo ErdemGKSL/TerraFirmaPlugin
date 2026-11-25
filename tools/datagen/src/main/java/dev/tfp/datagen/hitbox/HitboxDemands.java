@@ -630,6 +630,12 @@ public final class HitboxDemands {
         }
         GROUNDCOVER_TYPES.forEach((type, shape) -> d.add(new Demand(groundcoverId(type), GROUNDCOVER_APPEARANCE,
             groundcoverKey(shape), 0, groundcoverModel(GROUNDCOVER_LOOKS.getOrDefault(type, type)), true, GROUNDCOVER_WEIGHT)));
+        // PAR-WORLD-42: the grass path of every soil (TFC PathBlock: 16 x 15 x 16, the farmland outline), TFC's per-soil model
+        // on a carrier of that outline where one is free, else hitbox-only (SoilExtraBlocks)
+        for (String soil : SOILS) {
+            d.add(new Demand(grassPathId(soil), GRASS_PATH_APPEARANCE, GRASS_PATH_ROW, 0, "tfp:block/grass_path/" + soil, true,
+                GRASS_PATH_WEIGHT));
+        }
         // PAR-FARM-16: the fruit trees. Every tree's saplings, branches and growing branches have the same outlines and the same
         // empty look, so one set of demands (owned by the first tree's blocks, see fruitDemandOwner) serves all of them: the
         // allocation does not grow by 1000 demands. Saplings: the bush outline (no tall no-collision carrier exists); branches:
@@ -891,6 +897,19 @@ public final class HitboxDemands {
         "stick1");
     public static final String GROUNDCOVER_APPEARANCE = "base";
     public static final String SMALL_ORE_KEY = "tfc:ore/small";
+    /** PAR-WORLD-42: TFC's {@code SoilBlockType.Variant} values in enum order. */
+    public static final List<String> SOILS = List.of("entisol", "aridisol", "oxisol", "fluvisol", "andisol", "podzol", "alfisol",
+        "mollisol");
+    public static final String GRASS_PATH_APPEARANCE = "base";
+    /** PAR-WORLD-42: TFC's {@code PathBlock.SHAPE} is the farmland's {@code box(0, 0, 0, 16, 15, 16)}. */
+    public static final String GRASS_PATH_ROW = "tfc:farmland";
+    /** PAR-WORLD-42: served after every other demand. */
+    static final int GRASS_PATH_WEIGHT = -16;
+
+    public static String grassPathId(String soil) {
+        return "tfp:grass_path/" + soil;
+    }
+
     /** PAR-WORLD-31: served after every other demand (adding the groundcover moves no carrier of another block). */
     static final int GROUNDCOVER_WEIGHT = -15;
 
