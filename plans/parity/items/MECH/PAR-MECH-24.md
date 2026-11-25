@@ -2,7 +2,7 @@
 id: PAR-MECH-24
 title: "Axle, encased axle, clutch and creative motor cannot be placed by item: CraftEngine's hardcoded axis behaviour casts the string property"
 area: MECH
-status: open
+status: done
 wave: 54
 deps: [PAR-MECH-01]
 size: S
@@ -20,6 +20,7 @@ plan:
   - "Verified fix (in a scratch worktree, jar run on Paper 1.21.11 with the real client, PAR-MECH-16): in DeviceProperty.yaml() STRING case write `type: axis` (no `values`) when `name.equals(\"axis\") && values.equals(List.of(\"x\", \"y\", \"z\"))` (the full set is exactly CraftEngine's axis type, so no state is added); everything else stays `string`. With it motor, 5 axles, gearbox, encased axle and axle are placed by item with the right axis, and the network reads 30.00 rpm."
   - "Still open: the two-value (x,z) `axis` properties (firepit, grill, charcoal forge, channel...) are `type: string` too; if any of them is placed by a CraftEngine block item (not by our own placement) it will hit the same cast. Check with a real placement; CraftEngine's axis type has y as a third value, so a horizontal axis needs either the `axis` type plus a placement rule or a rename of the property (e.g. `tfp_axis`) in datagen and the paper code that reads it. Update the golden tests that pin `type: string` for axis (CharcoalBlocksTest, FirepitTest, GrillTest if touched)."
   - "Regenerate content and rerun the PAR-MECH-16 placement: place the motor east face of a stone, axles by clicking the previous block's east face."
+  - "Done: DeviceProperty writes `type: axis` for the full x,y,z axis property; DevicePropertyAxisTest (2), DeviceYamlGoldenTest and RotationBlocksTest pass. The two-value (x,z) axis properties stay string and are untested by item placement: open question above remains for a follow-up if any of them is placed by a CE block item. Pending in-game re-check of the five rotation items placed by right-click (PAR-MECH-16)."
 tests:
   - "datagen: DeviceProperty yaml for axis x/y/z is `type: axis` without values; every other names property stays string"
 done_criteria:
@@ -28,6 +29,5 @@ done_criteria:
 
 # PAR-MECH-24: Rotation blocks cannot be placed by item
 
-> Claimed: claude-heat-mech-proc-infra, 2026-11-25
 
 All fields live in the front matter above; the loop parses them. Follow `plans/parity/PROTOCOL.md`.

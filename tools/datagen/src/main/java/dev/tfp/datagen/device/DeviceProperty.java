@@ -104,12 +104,23 @@ public record DeviceProperty(String name, Kind kind, List<String> values, String
                 m.put("default", Integer.parseInt(dflt));
             }
             case STRING -> {
-                m.put("type", "string");
-                m.put("values", values);
+                if (isCraftEngineAxis()) {
+                    // PAR-MECH-24: CraftEngine puts a hardcoded behaviour on every property named axis and casts it to
+                    // its own axis type (x, y, z): a string property crashes the placement by item.
+                    m.put("type", "axis");
+                } else {
+                    m.put("type", "string");
+                    m.put("values", values);
+                }
                 m.put("default", dflt);
             }
             default -> throw new IllegalStateException();
         }
         return m;
+    }
+
+    /** Whether this property is exactly CraftEngine's {@code axis} type: named axis with the values x, y and z. */
+    private boolean isCraftEngineAxis() {
+        return name.equals("axis") && values.equals(List.of("x", "y", "z"));
     }
 }
