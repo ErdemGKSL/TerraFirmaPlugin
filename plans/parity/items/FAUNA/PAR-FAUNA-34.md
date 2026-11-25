@@ -27,4 +27,6 @@ done_criteria:
 
 # PAR-FAUNA-34: Livestock check hands horse-family mating and birth to the mount module (follow-up of PAR-FAUNA-15)
 
+> Claimed: sonnet-5.5 session_011osUp8, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
