@@ -1,0 +1,94 @@
+/*
+ * Licensed under the EUPL, Version 1.2.
+ * You may obtain a copy of the Licence at:
+ * https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ */
+package dev.tfp.paper.plant;
+
+import dev.tfp.core.catchup.SweepArea;
+import dev.tfp.core.world.ChunkPos;
+import dev.tfp.paper.integration.CustomBlocks;
+import dev.tfp.paper.module.FeatureModule;
+import dev.tfp.paper.module.ModuleContext;
+import dev.tfp.paper.scheduler.Scheduler;
+import dev.tfp.paper.tags.Tags;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+
+/**
+ * PAR-FARM-12: the block rules of placed TFC plants: they pop without their support ({@link PlantSupportQueue}), cacti hurt
+ * ({@link CactusContactTask}), flowerbeds and cactus beds stack ({@link PlantListener}), and plant ages grow lazily
+ * ({@link PlantAgeSweeper}). Must be listed after the tags module.
+ */
+public final class PlantModule implements FeatureModule {
+    public static final String ID = "plant";
+    static final long PERIOD_TICKS = 600;
+    static final int RADIUS = 3;
+    static final int DEFAULT_RANDOM_TICK_SPEED = 3;
+
+    private volatile Scheduler.TaskHandle task;
+
+    @Override
+    public String id() {
+        return ID;
+    }
+
+    @Override
+    public void enable(ModuleContext context) {
+        Scheduler scheduler = context.scheduler();
+        Tags tags = context.services().require(Tags.class);
+        CustomBlocks blocks = context.integrations().customBlocks();
+        PlantSupportQueue queue = new PlantSupportQueue(new PlantSupport(blocks, tags), blocks, scheduler);
+        context.listen(new PlantListener(blocks, context.integrations().customItems(), queue));
+        CactusContactTask contact = new CactusContactTask(blocks, scheduler);
+        context.listen(contact);
+        for (Player player : List.copyOf(Bukkit.getOnlinePlayers())) {
+            contact.start(player);
+        }
+        PlantAgeSweeper sweeper = new PlantAgeSweeper(blocks, scheduler, PlantModule::randomTickSpeed);
+        blocks.onChunkLoad(chunk -> {
+            World world = chunk.getWorld();
+            long delay = 80 + ThreadLocalRandom.current().nextInt(200);
+            scheduler.regionDelayed(world, chunk.getX(), chunk.getZ(), delay, () -> sweeper.sweepChunk(world, chunk.getX(), chunk.getZ()));
+        });
+        task = scheduler.globalRepeating(PERIOD_TICKS, PERIOD_TICKS, () -> {
+            for (Player player : List.copyOf(Bukkit.getOnlinePlayers())) {
+                scheduler.entity(player, () -> {
+                    Location loc = player.getLocation();
+                    World world = loc.getWorld();
+                    if (world == null) {
+                        return;
+                    }
+                    for (ChunkPos c : SweepArea.around(loc.getBlockX() >> 4, loc.getBlockZ() >> 4, RADIUS)) {
+                        scheduler.region(world, c.x(), c.z(), () -> sweeper.sweepChunk(world, c.x(), c.z()));
+                    }
+                }, () -> {
+                });
+            }
+        });
+    }
+
+    @Override
+    public void disable() {
+        Scheduler.TaskHandle t = task;
+        task = null;
+        if (t != null) {
+            t.cancel();
+        }
+    }
+
+    @SuppressWarnings("removal")
+    private static int randomTickSpeed(World world) {
+        try {
+            Integer value = world.getGameRuleValue(GameRule.RANDOM_TICK_SPEED);
+            return value == null ? DEFAULT_RANDOM_TICK_SPEED : value;
+        } catch (LinkageError | RuntimeException e) {
+            return DEFAULT_RANDOM_TICK_SPEED;
+        }
+    }
+}
