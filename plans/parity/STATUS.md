@@ -462,6 +462,7 @@ Totals: 388 items; open 208, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-26 | Crankshaft as TFC: the turning wheel and the shaft's stroke (TFC CrankshaftBlockEntityRenderer), the axle stub, TFC's base and shaft outlines | MECH | 55 | open |
 | PAR-MECH-27 | Trip hammer in game: the tfp:trip_hammer CE block (TFC model, outline, item, loot), the block coverage owner, the in-game check of PAR-MECH-07 | MECH | 56 | open |
 | PAR-MECH-28 | Crankshaft outlines as TFC: tfc-shapes rows for BASE_SHAPES and SHAFT_SHAPES ((index + 3) % 4), HitboxDemands rows and the carriers from HitboxAllocation.agreed instead of the barrier | MECH | 56 | open |
+| PAR-MECH-29 | Water wheel and windmill spin: the wheel and the blades on the spin wire at the source's speed, the per-slot blade kind and dye colour, TFC's rustic blade model | MECH | 55 | open |
 | PAR-MECH-23 | Bladed axle in game: craft, place, spin with its blade, debug readout, drop (PAR-MECH-20 in-game check) | MECH | 54 | open |
 | PAR-MECH-22 | Power loom block in CraftEngine and the in-game check: tfp:power_loom, its model, item and the axle into the loom | MECH | 52 | open |
 | PAR-REL-02 | Performance budgets in CI (JMH) and threading gate | REL | 52 | done |

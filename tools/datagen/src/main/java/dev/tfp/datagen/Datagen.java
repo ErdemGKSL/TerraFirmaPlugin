@@ -352,6 +352,9 @@ public final class Datagen {
         if (dev.tfp.datagen.rotation.RotationBlocks.available(tfc)) { // PAR-MECH-01: axles, encased axles, clutches, gearboxes, creative motor; fixtures have no rotation blocks
             dev.tfp.datagen.rotation.RotationBlocks.run(tfc, out);
         }
+        if (dev.tfp.datagen.power.PowerBlocks.available(tfc)) { // PAR-MECH-18: water wheels, windmills, windmill blades (after the axles: the windmill reads their carriers)
+            dev.tfp.datagen.power.PowerBlocks.run(tfc, out);
+        }
         if (dev.tfp.datagen.pump.PumpBlocks.available(tfc)) { // PAR-MECH-09: steel pipe and steel pump; fixtures have no pump blocks
             dev.tfp.datagen.pump.PumpBlocks.run(tfc, out);
         }
