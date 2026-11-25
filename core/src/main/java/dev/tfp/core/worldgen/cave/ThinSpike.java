@@ -99,7 +99,7 @@ public record ThinSpike(CaveCell.Kind kind, int radius, int tries, int minHeight
     /** {@code ThinSpikeBlock.canSurvive}: below the same spike or a sturdy bottom face. */
     private boolean survives(CaveLevel level, int x, int y, int z) {
         final CaveCell above = level.get(x, y + 1, z);
-        return above.kind() == kind || above.sturdyBelow();
+        return above.kind() == kind || above.sturdy();
     }
 
     private boolean empty(CaveCell state) {

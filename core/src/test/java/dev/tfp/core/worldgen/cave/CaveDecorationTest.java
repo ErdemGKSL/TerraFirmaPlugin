@@ -47,6 +47,8 @@ class CaveDecorationTest {
         TAGGED.stream().filter(id -> !ELSEWHERE.contains(id)).forEach(expected::add);
         expected.addAll(BIOME_LISTED);
         final Set<String> covered = new LinkedHashSet<>(CaveDecoration.FEATURES);
+        covered.add(CaveVegetation.FEATURE);
+        covered.add(dev.tfp.core.worldgen.erosion.Erosion.FEATURE);
         covered.addAll(gaps);
         assertThat(covered).containsExactlyInAnyOrderElementsOf(expected);
         assertThat(gaps).doesNotContainAnyElementsOf(CaveDecoration.FEATURES);
@@ -80,6 +82,26 @@ class CaveDecorationTest {
         }
         // cave_spike: one carved position in five (40 % of the synthetic world is cave air), so every chunk has spikes
         assertThat(spikes).isGreaterThan(16 * 100);
+    }
+
+    @Test
+    void caveVegetationNeedsAWarmWetChunkAndWritesOnlyItsBlocks() {
+        final SyntheticCaves cold = new SyntheticCaves();
+        final CaveVegetation vegetation = new CaveVegetation(99L);
+        for (int c = 0; c < 8; c++) {
+            vegetation.place(c, -c, cold);
+        }
+        assertThat(cold.writes).isEmpty();
+        final SyntheticCaves warm = new SyntheticCaves();
+        warm.temperature = 24f;
+        for (int c = 0; c < 8; c++) {
+            vegetation.place(c, -c, warm);
+        }
+        assertThat(warm.writes).isNotEmpty();
+        for (CaveCell cell : warm.writes.values()) {
+            assertThat(cell.kind()).isIn(CaveCell.Kind.MOSSY_COBBLE, CaveCell.Kind.COBBLE, CaveCell.Kind.GUANO,
+                CaveCell.Kind.FLUID, CaveCell.Kind.COBWEB, CaveCell.Kind.HANGING_ROOTS);
+        }
     }
 
     @Test

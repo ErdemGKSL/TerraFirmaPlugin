@@ -37,6 +37,16 @@ public record CaveCell(Kind kind, int rock, Part part, Fluid fluid, boolean tip)
         CALCITE,
         /** {@code tfc:icicle}. */
         ICICLE,
+        /** {@code tfc:rock/mossy_cobble/<rock>} (cave vegetation). */
+        MOSSY_COBBLE,
+        /** {@code tfc:rock/cobble/<rock>} (cave vegetation). */
+        COBBLE,
+        /** {@code tfc:groundcover/guano}. */
+        GUANO,
+        /** {@code minecraft:cobweb}. */
+        COBWEB,
+        /** {@code minecraft:hanging_roots}. */
+        HANGING_ROOTS,
         /** A block of {@code #minecraft:ice}. */
         ICE,
         /** Any other block of {@code #minecraft:base_stone_overworld}. */
@@ -73,6 +83,10 @@ public record CaveCell(Kind kind, int rock, Part part, Fluid fluid, boolean tip)
         return new CaveCell(Kind.SPIKE, rock, part, fluid, false);
     }
 
+    public static CaveCell of(Kind kind, int rock) {
+        return new CaveCell(kind, rock, null, Fluid.EMPTY, false);
+    }
+
     public static CaveCell thinSpike(Kind kind, Fluid fluid, boolean tip) {
         return new CaveCell(kind, -1, null, fluid, tip);
     }
@@ -97,8 +111,14 @@ public record CaveCell(Kind kind, int rock, Part part, Fluid fluid, boolean tip)
         return isAir() || kind == Kind.FLUID;
     }
 
-    /** Whether the block's bottom face is sturdy ({@code isFaceSturdy(DOWN)}), for a thin spike below. */
-    public boolean sturdyBelow() {
-        return kind == Kind.RAW || kind == Kind.HARDENED || kind == Kind.STONE || kind == Kind.ICE || kind == Kind.OTHER;
+    /**
+     * Whether the block's faces are sturdy ({@code isFaceSturdy}): the full blocks. {@link Kind#OTHER} counts as a full block
+     * (in a cave it is soil, ore or another full block the terrain wrote).
+     */
+    public boolean sturdy() {
+        return switch (kind) {
+            case RAW, HARDENED, STONE, ICE, OTHER, MOSSY_COBBLE, COBBLE -> true;
+            default -> false;
+        };
     }
 }

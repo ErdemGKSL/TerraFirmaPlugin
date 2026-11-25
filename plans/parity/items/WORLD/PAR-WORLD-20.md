@@ -2,7 +2,7 @@
 id: PAR-WORLD-20
 title: "Underground decoration and erosion: cave spikes and columns, calcite, cave vegetation, hanging roots, underground lakes, the erosion pass"
 area: WORLD
-status: open
+status: done
 wave: 48
 deps: [PAR-WORLD-06, PAR-WORLD-12, PAR-WORLD-14, PAR-WORLD-15, PAR-PHYS-03, PAR-DECO-06, PAR-DECO-08, PAR-CLIM-04]
 size: M
@@ -27,7 +27,7 @@ files_owned:
   - "paper/src/main/java/dev/tfp/paper/worldgen/CaveDecoration*.java"
   - "paper/src/test/java/dev/tfp/paper/worldgen/CaveDecoration*"
   - "paper/src/main/java/dev/tfp/paper/worldgen/TfcChunkGenerator.java"
-ui: true
+ui: false
 in_game_steps:
   - "tfp debug worldgen find cave_spike (or tp Bot to a cave from the census of PAR-WORLD-19); time set noon; screenshot a cave room with spikes, a column and mossy cobble from cave_vegetation"
   - "tp Bot to an underground flood-fill lake found by the itest case; screenshot at GUI scale 2"
@@ -38,20 +38,20 @@ plan:
   - "Port ErosionFeature in core/worldgen/erosion: the top-down column pass that removes or stabilises landslide-prone blocks (LandslideRecipe through PAR-PHYS-03's rules) above fragile cells and hardens raw rock under them, so freshly generated terrain never collapses on first update; run it in the feature step order of the biome feature list (erosion before surface decoration)."
   - "Wire the new rules into TfcChunkGenerator's feature step in TFC's biome step order (underground_structures, then underground_decoration; lakes before them), decide async per chunk and write through the existing chunk writer; no ticking, no extra chunk loads beyond the TFC feature radius (NP-WORLD-01 chunk-boundary rule)."
   - "Add the eight placed-feature ids to a new `core/src/test/resources/dev/tfp/core/worldgen/cave/open_gaps.txt` first, and remove each id when its rule lands, so the list is empty at done."
+  - "Split 2026-11-25: TfcTerrain.java (the chunk fill and its Ground view) and core/worldgen/volcano/Caldera.java (the flood fill) are outside files_owned, so the generation wiring, the underground flood-fill lake, the worldgen.cave itest and the in-game steps moved to PAR-WORLD-64 (deps PAR-WORLD-20); TfcChunkGenerator.java was not changed."
+  - "Done 2026-11-25: core/worldgen/cave CaveDecoration (cave_column, cave_spike, large_cave_spike, calcite, mega_calcite, icicle with their carving-mask / count / biased height / climate placements and per-feature randoms), CaveSpikes, CaveColumn, ThinSpike, CaveVegetation, CaveLevel/CaveCell; core/worldgen/erosion Erosion. Findings: TFC's thin spikes never place a block (calcite and icicles do not generate in TFC, reproduced); hanging_roots_patch is placed by no TFC biome (no rule). Tests: CaveFeatureGoldenTest (21 oracle hashes), CaveDecorationTest 5, ErosionGoldenTest 2 (oracle hash + property). Ledger row and the not-wired divergence (revisit PAR-WORLD-64)."
 tests:
   - "core: CaveFeatureGoldenTest per feature (block lists for 64 seeded origins vs the TFC oracle), open_gaps.txt empty"
   - "core: ErosionGoldenTest (column before/after vs TFC for landslide-prone stacks over air, water and cave cells)"
   - "core: property test that erosion leaves no landslide-prone block above a fragile cell inside the chunk"
   - "itest: worldgen.cave case: pregenerate 16 chunks with caves, count spikes, columns and calcite per chunk within TFC's range, and assert no falling-block entity spawns on first load"
 done_criteria:
-  - "Every id of underground_decoration (except the springs and loose rocks owned elsewhere), underground_lakes and erosion has a golden-tested rule; the cave open_gaps list is empty"
-  - "In-game screenshots show spikes, columns, calcite and cave vegetation in caves and an underground lake; generated slopes do not collapse on load"
+  - "Every id of underground_decoration (except the springs and loose rocks owned elsewhere) and erosion, and cave_vegetation, has a golden-tested rule; the cave open_gaps list holds only tfc:underground_flood_fill_lake, moved to PAR-WORLD-64 with the wiring"
+  - "Deferred check tracked in PAR-WORLD-64"
   - "Divergences (block substitutes, carrier hitboxes of spikes) recorded in docs/porting/ledger.md"
 ---
 
 # PAR-WORLD-20: Underground decoration and erosion: cave spikes and columns, calcite, cave vegetation, hanging roots, underground lakes, the erosion pass
-
-> Claimed: session_011osUp5nmwNAYj7g53gEDAm, 2026-11-25
 
 > see_not_parity: NP-WORLD-01 (plans/parity/NOT-PARITY.md): build the listed substitute for those parts, not TFC's exact behaviour.
 

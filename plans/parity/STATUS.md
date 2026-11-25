@@ -408,7 +408,7 @@ Totals: 387 items; open 207, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-DECO-12 | Misc blocks: crates, buoys, cakes, golden bamboo, palm mosaic, tree roots, light block | DECO | 48 | done |
 | PAR-METAL-17 | Metal weathering of copper-family blocks | METAL | 48 | done |
 | PAR-METAL-19 | Metal lamps: fuel, light, lit state | METAL | 48 | done |
-| PAR-WORLD-20 | Underground decoration and erosion: cave spikes and columns, calcite, cave vegetation, hanging roots, underground lakes, the erosion pass | WORLD | 48 | open |
+| PAR-WORLD-20 | Underground decoration and erosion: cave spikes and columns, calcite, cave vegetation, hanging roots, underground lakes, the erosion pass | WORLD | 48 | done |
 | PAR-DECO-13 | Potted plants and krummholz | DECO | 49 | open |
 | PAR-DECO-14 | Thatch bed: sleeping and spawn setting | DECO | 49 | open |
 | PAR-DECO-15 | Visual budget re-check after all block families | DECO | 49 | open |
@@ -435,6 +435,7 @@ Totals: 387 items; open 207, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-WORLD-61 | Plant stage looks at packet time: blooming/dormant client states per plant from the selector's left-over pool states, chosen per viewer by PlantLifecycle | WORLD | 29 | done |
 | PAR-WORLD-62 | Ore overlay default radius from the PAR-WORLD-19 census | WORLD | 29 | done |
 | PAR-WORLD-63 | Plant stage packet handler: CHUNK_DATA / BLOCK_CHANGE / MULTI_BLOCK_CHANGE rewrite through PlantStageRemap, CE state id resolution and the module wiring | WORLD | 30 | done |
+| PAR-WORLD-64 | Cave decoration in generation: wire the PAR-WORLD-20 cave rules and erosion into TfcTerrain, the underground flood-fill lake, the worldgen.cave itest | WORLD | 49 | open |
 | PAR-WORLD-54 | Bubble columns above the CE magma blocks: drag-down columns that survive vanilla's support check, and the hot spring tracker | WORLD | 30 | done |
 | PAR-MECH-03 | Water wheel | MECH | 51 | done |
 | PAR-MECH-04 | Windmill and blades | MECH | 51 | done |

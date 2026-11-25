@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
  * PAR-WORLD-20: golden values of TFC's cave features at the pinned commit (c3b4d9536).
  *
  * <p>The expected values came from a scratch oracle (kept outside the repo): the method bodies of TFC's
- * {@code CaveSpikesFeature}, {@code LargeCaveSpikesFeature}, {@code CaveColumnFeature} and {@code ThinSpikeFeature} (with
+ * {@code CaveSpikesFeature}, {@code LargeCaveSpikesFeature}, {@code CaveColumnFeature} and {@code ThinSpikeFeature} and {@code CaveVegetationFeature} (its config: every raw rock to mossy cobble 8, cobble 2; with
  * {@code ThinSpikeConfig.getHeight}, {@code ThinSpikeBlock.canSurvive} and the {@code FluidHelpers.fillWithFluid} case of the
  * spike's {@code WATER} fluid property) copied over a string-keyed block-state stub of the {@link SyntheticCaves} world, run
  * with Minecraft 1.21.11's own {@code XoroshiroRandomSource}, {@code Mth}, {@code BlockPos} and {@code Direction} from the
@@ -32,7 +32,8 @@ import org.junit.jupiter.api.Test;
  * is never empty itself, so {@code placeSpikeBlock} always fails. TFC generates no calcite and no icicles; the port keeps it.
  */
 class CaveFeatureGoldenTest {
-    private static final String[] FEATURES = {"cave_spike", "large_cave_spike", "cave_column", "calcite", "mega_calcite", "icicle"};
+    private static final String[] FEATURES = {"cave_spike", "large_cave_spike", "cave_column", "calcite", "mega_calcite", "icicle",
+        "cave_vegetation"};
 
     private record Golden(long seed, String feature, String hash, int writes) {
     }
@@ -63,7 +64,7 @@ class CaveFeatureGoldenTest {
     @Test
     void everyFeatureMatchesTheOracle() throws IOException {
         final List<Golden> goldens = goldens();
-        assertThat(goldens).hasSize(18);
+        assertThat(goldens).hasSize(21);
         final SyntheticCaves level = new SyntheticCaves();
         for (Golden g : goldens) {
             final int f = List.of(FEATURES).indexOf(g.feature());
@@ -82,7 +83,11 @@ class CaveFeatureGoldenTest {
                     case 2 -> level.log.append(CaveColumn.place(level, x, y, z, r));
                     case 3 -> level.log.append(ThinSpike.CALCITE.place(level, x, y, z, r));
                     case 4 -> level.log.append(ThinSpike.MEGA_CALCITE.place(level, x, y, z, r));
-                    default -> level.log.append(ThinSpike.ICICLE.place(level, x, y, z, r));
+                    case 5 -> level.log.append(ThinSpike.ICICLE.place(level, x, y, z, r));
+                    default -> {
+                        CaveVegetation.feature(level, x, y, z, r);
+                        level.log.append(true);
+                    }
                 }
                 writes += level.writes.size();
                 out.append(x).append(' ').append(y).append(' ').append(z).append('|').append(level.log).append('|')
