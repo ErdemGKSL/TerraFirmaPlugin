@@ -29,6 +29,8 @@ done_criteria:
 
 # PAR-MECH-17: Water wheel and windmill as rotation network sources
 
+> Claimed: session_011osUpAUVyyokAxf5Kiw72D, 2026-11-25
+
 > Created by PAR-MECH-03/PAR-MECH-04. Start after PAR-MECH-12 (which owns `paper/rotation/RotationService.java`, `RotationModule.java`) is done.
 
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
