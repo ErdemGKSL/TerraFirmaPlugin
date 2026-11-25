@@ -115,7 +115,7 @@ public final class SluiceDevice {
      * {@code (dx, dy, dz)} from the block's corner is inside.
      */
     public static boolean inGatherBox(double dx, double dy, double dz) {
-        return dx >= -0.2 && dx <= 1.2 && dy >= 0.5 && dy <= 1.25 && dz >= -0.2 && dz <= 1.2;
+        return dx >= -0.2 && dx <= 1.2 && dy >= 0.0 && dy <= 1.25 && dz >= -0.2 && dz <= 1.2;
     }
 
     /** The lazy gap: {@link SluiceRules#advance} over the slots' deposits; its products join the pending list. */

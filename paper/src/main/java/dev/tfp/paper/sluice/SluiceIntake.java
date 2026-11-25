@@ -69,10 +69,8 @@ final class SluiceIntake implements Listener {
             return;
         }
         Optional<Block> sluice = find(item.getLocation());
-        if (sluice.isEmpty()) {
-            return;
-        }
-        if (!take(sluice.get(), item) && tries > 1) {
+        // not in a box yet (still sliding down the ramp): look again, like TFC's once-a-second gather
+        if ((sluice.isEmpty() || !take(sluice.get(), item)) && tries > 1) {
             arm(item, tries - 1);
         }
     }

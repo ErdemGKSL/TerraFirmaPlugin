@@ -254,7 +254,8 @@ class SluiceMockBukkitTest extends MockServerTest {
         assertThat(SluiceDevice.inputOffset(BlockFace.NORTH)).containsExactly(0, 1, 1);
         assertThat(SluiceDevice.inputOffset(BlockFace.WEST)).containsExactly(1, 1, 0);
         assertThat(SluiceDevice.inGatherBox(0.5, 0.9, 0.5)).isTrue();
-        assertThat(SluiceDevice.inGatherBox(0.5, 0.4, 0.5)).isFalse();
+        assertThat(SluiceDevice.inGatherBox(0.5, -0.1, 0.5)).isFalse();
+        assertThat(SluiceDevice.inGatherBox(0.5, 0.1, 0.5)).as("items rest at the block's base on our carrier").isTrue();
         assertThat(SluiceDevice.inGatherBox(1.3, 0.9, 0.5)).isFalse();
     }
 

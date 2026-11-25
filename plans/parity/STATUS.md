@@ -500,6 +500,7 @@ Totals: 388 items; open 208, done 170, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-PROC-55 | Powder bowl: the soda ash step is not written back to the glass blowpipe | PROC | 32 | done |
 | PAR-PROC-56 | Scribing table: TFC screen art on the anvil screen | PROC | 44 | open |
 | PAR-PROC-57 | Sewing table: TFC screen art (sewing.png) behind the grid | PROC | 44 | open |
+| PAR-PROC-58 | Sluice intake: thrown deposits that rest on the ramp are never taken | PROC | 35 | open |
 | PAR-PROC-52 | Glassworking items in CraftEngine and the in-game blowpipe check | PROC | 31 | done |
 | PAR-PROC-51 | Sewing table in-game verification and TFC screen art (tfp:gui/sewing) | PROC | 42 | done |
 | PAR-INFRA-65 | Block flammability in-game verification and the flammability.spread self-test case | INFRA | 48 | done |

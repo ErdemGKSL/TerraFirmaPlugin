@@ -11,3 +11,7 @@ Date 2026-11-25 (second run), HEAD 0b20422, Paper 1.21.11 + vanilla client 1.21.
 | Selection outline of both halves against TFC | NOT CHECKED beyond PAR-PROC-53's by-eye note | |
 
 Verdict: not passed. The remaining steps need a controlled setup (drop from a hopper-less dispenser or a thrown stack from a distance, with the player away from the drop point).
+
+## Third run (2026-11-25, with PAR-PROC-58's code fix)
+
+Sluice rebuilt (placed first, source water last): the output water appears (PASS again). Deposits thrown from 4 blocks away landed on the upper half and were not taken: within a second they were carried over the output pit and came to rest 3.4 blocks past the upper half (RCON position, deposits-swept-past-the-pit.png in PAR-PROC-58), so no loot. Cause hypothesis: the input water spreads over the ramp and sweeps the items; follow-up in PAR-PROC-58. Water removal and break: not run. Still pending in-game check.
