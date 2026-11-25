@@ -31,4 +31,6 @@ done_criteria:
 
 # PAR-FARM-29: Growing plant shapes, part 2
 
+> Claimed: farm29 agent, 2026-11-25
+
 Follow-up of PAR-FARM-25. Follow `plans/parity/PROTOCOL.md`.
