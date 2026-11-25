@@ -36,4 +36,6 @@ done_criteria:
 
 # PAR-FAUNA-33: 200-animal load: spread the path starts of the livestock and prey goals (single-call spikes) (follow-up of PAR-FAUNA-28)
 
+> Claimed: session_011osUp8LArwstSDt7X82o4E, 2026-11-25
+
 All fields live in the front matter above; the loop parses them. Paths in `tfc_refs` are relative to the TFC checkout (`/opt/tfc`, pinned commit in `docs/porting/ledger.md`). Follow `plans/parity/PROTOCOL.md`.
