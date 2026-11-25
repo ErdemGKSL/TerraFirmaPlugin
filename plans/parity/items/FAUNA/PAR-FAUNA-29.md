@@ -36,4 +36,6 @@ done_criteria:
 
 # PAR-FAUNA-29: Pack predator taming and temptation, predator sleep sound
 
+> Claimed: worker session_011osUp8, 2026-11-25
+
 Follow `plans/parity/PROTOCOL.md`.
