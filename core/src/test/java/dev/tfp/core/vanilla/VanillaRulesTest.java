@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 class VanillaRulesTest {
     @Test
     void defaultsAreTfcs() {
-        assertThat(VanillaRules.DEFAULT).isEqualTo(new VanillaRules(false, false, false, true, false, false, false));
+        assertThat(VanillaRules.DEFAULT).isEqualTo(new VanillaRules(false, false, false, true, false, false, false, false, false, false, true));
         assertThat(VanillaRules.fromProperties(k -> null)).isEqualTo(VanillaRules.DEFAULT);
     }
 
@@ -34,9 +34,45 @@ class VanillaRulesTest {
         assertThat(d.deniesMonster(true, 7, false, true)).as("slimes ignore light").isFalse();
         assertThat(d.deniesMonster(false, 0, true, true)).as("surface").isTrue();
         assertThat(d.deniesMonster(false, 0, false, false)).as("ground not in tag").isTrue();
-        VanillaRules surface = new VanillaRules(false, false, false, true, true, false, false);
+        VanillaRules surface = new VanillaRules(false, false, false, true, true, false, false, false, false, false, true);
         assertThat(surface.deniesMonster(false, 15, true, false)).isFalse();
-        VanillaRules none = new VanillaRules(false, false, false, false, true, false, false);
+        VanillaRules none = new VanillaRules(false, false, false, false, true, false, false, false, false, false, true);
         assertThat(none.deniesMonster(false, 0, false, true)).isTrue();
+    }
+
+    @Test
+    void tfcServerConfigDefaultsOfEveryVanillaChangesKey() {
+        VanillaRules d = VanillaRules.DEFAULT;
+        // ServerConfig.java @ c3b4d9536: enableVanillaBonemeal, SkeletonHorseSpawning, MobsSpawningWithEnchantments,
+        // MobsSpawningWithVanillaEquipment, Golems, Monsters (true), MonstersOnSurface, EggThrowing, DrinkingMilk...; chicken
+        // jockies false and dispenserEnableLighting true.
+        assertThat(d.bonemeal()).isFalse();
+        assertThat(d.skeletonHorses()).isFalse();
+        assertThat(d.mobEnchantments()).isFalse();
+        assertThat(d.mobEquipment()).isFalse();
+        assertThat(d.golems()).isFalse();
+        assertThat(d.monsters()).isTrue();
+        assertThat(d.monstersOnSurface()).isFalse();
+        assertThat(d.eggThrowing()).isFalse();
+        assertThat(d.milkClearsEffects()).isFalse();
+        assertThat(d.chickenJockies()).isFalse();
+        assertThat(d.dispenserLighting()).isTrue();
+    }
+
+    @Test
+    void newPropertiesOverride() {
+        VanillaRules r = VanillaRules.fromProperties(Map.of("tfp.vanilla.mobEnchantments", "true", "tfp.vanilla.mobEquipment", "true",
+                "tfp.vanilla.chickenJockies", "true", "tfp.vanilla.dispenserLighting", "false")::get);
+        assertThat(r.mobEnchantments()).isTrue();
+        assertThat(r.mobEquipment()).isTrue();
+        assertThat(r.chickenJockies()).isTrue();
+        assertThat(r.dispenserLighting()).isFalse();
+    }
+
+    @Test
+    void randomMemberPicksByIndexOrNothing() {
+        assertThat(VanillaRules.randomMember(java.util.List.of(), n -> 0)).isEmpty();
+        assertThat(VanillaRules.randomMember(java.util.List.of("a", "b", "c"), n -> n - 1)).contains("c");
+        assertThat(VanillaRules.ArmorSlot.HEAD.tag()).isEqualTo("tfc:mob_head_armor");
     }
 }

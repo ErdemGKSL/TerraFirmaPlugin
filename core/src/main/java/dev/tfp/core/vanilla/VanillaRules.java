@@ -22,11 +22,17 @@ import java.util.function.Function;
  * @param monstersOnSurface    {@code enableVanillaMonstersOnSurface} (false): monsters on the surface, in light
  * @param eggThrowing          {@code enableVanillaEggThrowing} (false)
  * @param milkClearsEffects    {@code enableVanillaDrinkingMilkClearsPotionEffects} (false)
+ * @param mobEnchantments      {@code enableVanillaMobsSpawningWithEnchantments} (false): enchanted spawn gear
+ * @param mobEquipment         {@code enableVanillaMobsSpawningWithVanillaEquipment} (false): vanilla armour and held items
+ * @param chickenJockies       {@code enableChickenJockies} (false)
+ * @param dispenserLighting    {@code dispenserEnableLighting} (true): dispensers light fires and devices
  */
 public record VanillaRules(boolean bonemeal, boolean skeletonHorses, boolean golems, boolean monsters,
-        boolean monstersOnSurface, boolean eggThrowing, boolean milkClearsEffects) {
+        boolean monstersOnSurface, boolean eggThrowing, boolean milkClearsEffects, boolean mobEnchantments,
+        boolean mobEquipment, boolean chickenJockies, boolean dispenserLighting) {
     /** TFC's defaults. */
-    public static final VanillaRules DEFAULT = new VanillaRules(false, false, false, true, false, false, false);
+    public static final VanillaRules DEFAULT = new VanillaRules(false, false, false, true, false, false, false, false,
+            false, false, true);
     public static final String PREFIX = "tfp.vanilla.";
 
     /** The defaults with the JVM properties applied (absent or blank = the default). */
@@ -35,7 +41,40 @@ public record VanillaRules(boolean bonemeal, boolean skeletonHorses, boolean gol
         return new VanillaRules(bool(properties, "bonemeal", d.bonemeal), bool(properties, "skeletonHorses", d.skeletonHorses),
                 bool(properties, "golems", d.golems), bool(properties, "monsters", d.monsters),
                 bool(properties, "monstersOnSurface", d.monstersOnSurface), bool(properties, "eggThrowing", d.eggThrowing),
-                bool(properties, "milkClearsEffects", d.milkClearsEffects));
+                bool(properties, "milkClearsEffects", d.milkClearsEffects),
+                bool(properties, "mobEnchantments", d.mobEnchantments), bool(properties, "mobEquipment", d.mobEquipment),
+                bool(properties, "chickenJockies", d.chickenJockies),
+                bool(properties, "dispenserLighting", d.dispenserLighting));
+    }
+
+    /** The armour slots of TFC's {@code MobMixin.getEquipmentForSlot}, each with the item tag its replacement comes from. */
+    public enum ArmorSlot {
+        FEET("tfc:mob_feet_armor"), LEGS("tfc:mob_leg_armor"), CHEST("tfc:mob_chest_armor"), HEAD("tfc:mob_head_armor");
+
+        private final String tag;
+
+        ArmorSlot(String tag) {
+            this.tag = tag;
+        }
+
+        public String tag() {
+            return tag;
+        }
+    }
+
+    public static final String DISABLED_HELD_ITEMS = "tfc:disabled_monster_held_items";
+    public static final String SKELETON_WEAPONS = "tfc:skeleton_weapons";
+
+    /**
+     * TFC {@code MobMixin.getEquipmentForSlot}: with vanilla equipment off, an armour piece a mob spawns with is replaced by
+     * a random member of the slot's TFC tag, or by nothing when the tag is empty (the vanilla piece is never kept).
+     *
+     * @param members the tag members (any order); {@code pick} maps a size to an index in {@code [0, size)}
+     * @return the replacement id, or empty for none
+     */
+    public static java.util.Optional<String> randomMember(java.util.List<String> members,
+            java.util.function.IntUnaryOperator pick) {
+        return members.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(members.get(pick.applyAsInt(members.size())));
     }
 
     private static boolean bool(Function<String, String> p, String name, boolean fallback) {
