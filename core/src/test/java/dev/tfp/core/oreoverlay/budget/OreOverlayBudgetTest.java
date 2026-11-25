@@ -37,11 +37,11 @@ import org.junit.jupiter.api.Test;
  * <ul>
  *   <li>The fixture recounts S1 exactly: per-chunk faces and the 4-chunk-radius totals of the 20 sample positions equal
  *       the published census numbers, so a change of the table build that alters the face count fails here.</li>
- *   <li>Gate ({@value #GATE} overlays per player, {@code ore-overlay.max-per-player} default and the S1 gate): today's
- *       world (measured faces) stays within it at every sample; with the S1 combined estimate (TFC caves) the overlays a
- *       player is actually sent never exceed it (nearest-first cap), the default 40 m cutoff (3-chunk radius, PAR-WORLD-62)
- *       keeps p95 within it, and the raw 4-chunk p95 (S1's former 48 m square) is pinned at S1's values (above the gate on
- *       seed 1: why the default moved to 40 m).</li>
+ *   <li>Gate ({@value #GATE} overlays per player, {@code ore-overlay.max-per-player} default and the S1 gate), on the
+ *       PAR-WORLD-19 census of our world with TFC's caves, over every window of the area (S1 §2.3): at the default 40 m
+ *       cutoff (3-chunk radius, PAR-WORLD-62) p95 stays within it on all three seeds; at S1's former 48 m (4-chunk
+ *       radius) p95 is above it on seeds 1 and 2, the documented reason the default moved. Where a window's raw count is
+ *       above the gate the nearest-first cap ({@link ViewerSet}) binds: a player is never sent more than the gate.</li>
  *   <li>CPU: the table build of the median, p95 and largest chunk stays within the design's 0.5 ms per chunk target
  *       (median of 20 timed runs after warm-up, with a generous margin for shared CI machines).</li>
  * </ul>
@@ -51,6 +51,8 @@ class OreOverlayBudgetTest {
     static final int GATE = 8000;
     /** Default {@code ore-overlay.cutoff-blocks} (PAR-WORLD-62). */
     static final int CUTOFF = 40;
+    /** The default send radius: {@code ceil(40 / 16)} = 3 chunks, 49 chunks. */
+    static final OverlayGate DEFAULT_GATE = new OverlayGate(CUTOFF, true);
     /** S1's published radius (its former 48 m square, 81 chunks): a cutoff of 64 m in {@code ceil(cutoff / 16)}. */
     static final OverlayGate S1_FOUR_CHUNKS = new OverlayGate(64, true);
     /** design §4.3: table build target per chunk. */
@@ -155,14 +157,68 @@ class OreOverlayBudgetTest {
 
     // ---------------------------------------------------------------------------------------------- gate
 
+    /** Every (2r+1)² window inside the area (S1 §2.3, {@code analyze.py}): the faces it holds, row-major. */
+    private static int[] windowTotals(BudgetFixture.Area a, int[] perChunk, int r) {
+        int width = 2 * r + 1;
+        int span = a.size() - width + 1;
+        int[] out = new int[span * span];
+        for (int z0 = 0; z0 < span; z0++) {
+            for (int x0 = 0; x0 < span; x0++) {
+                int sum = 0;
+                for (int dz = 0; dz < width; dz++) {
+                    for (int dx = 0; dx < width; dx++) {
+                        sum += perChunk[(z0 + dz) * a.size() + x0 + dx];
+                    }
+                }
+                out[z0 * span + x0] = sum;
+            }
+        }
+        return out;
+    }
+
+    /** S1 §2.3 (PAR-WORLD-19, measured with caves): all-window p50 / p95 / max per seed, radius 3 (40 m). */
+    static final BudgetFixture.Published[] S1_WINDOWS_R3 = {
+        new BudgetFixture.Published(2192, 6969, 11171),
+        new BudgetFixture.Published(2807, 7615, 10528),
+        new BudgetFixture.Published(1246, 3136, 3919),
+    };
+    /** S1 §2.3: the same at radius 4 (48 m). */
+    static final BudgetFixture.Published[] S1_WINDOWS_R4 = {
+        new BudgetFixture.Published(3786, 8901, 13000),
+        new BudgetFixture.Published(4971, 11293, 13108),
+        new BudgetFixture.Published(2197, 4613, 5761),
+    };
+
     @Test
-    void todaysWorldStaysWithinTheGateAtEverySample() {
+    void theDefaultRadiusKeepsP95WithinTheGateOnEverySeed() {
+        assertThat(DEFAULT_GATE.radiusChunks()).isEqualTo(3);
         for (int i = 0; i < areas.size(); i++) {
             BudgetFixture.Area a = areas.get(i);
-            int[] totals = shell(a).radiusTotals(faces(measuredTables.get(i)), new OverlayGate(CUTOFF, true).radiusChunks(),
-                    a.seed());
-            assertThat(p(totals, 0.95)).as("seed %d p95", a.seed()).isLessThanOrEqualTo(GATE);
-            assertThat(Arrays.stream(totals).max().orElse(0)).as("seed %d samples max", a.seed()).isLessThanOrEqualTo(GATE);
+            int[] w = windowTotals(a, faces(measuredTables.get(i)), DEFAULT_GATE.radiusChunks());
+            assertThat(w).hasSize(26 * 26);
+            assertThat(dist(w)).as("seed %d measured, all windows, radius 3", a.seed()).isEqualTo(S1_WINDOWS_R3[i]);
+            assertThat(p(w, 0.95)).as("seed %d p95, 40 m", a.seed()).isLessThanOrEqualTo(GATE);
+            // The PAR-WORLD-17 combined estimate (vanilla cave proxy as a per-chunk floor over the measurement) is
+            // superseded by the cave-world measurement (S1 §4) and not gated: it lifts every chunk whose measured cave faces
+            // are below blocks × 0.0659 to that figure, a pessimistic bound. Its seed 2 all-window p95 at 40 m is 8 241, which the nearest-first cap absorbs.
+        }
+    }
+
+    @Test
+    void atTheFormer48mTheGateFailsOnSeedsOneAndTwo() {
+        // S1 §4: the documented reason for PAR-WORLD-62 (pinned, not passed)
+        int r = S1_FOUR_CHUNKS.radiusChunks();
+        assertThat(r).isEqualTo(4);
+        for (int i = 0; i < areas.size(); i++) {
+            BudgetFixture.Area a = areas.get(i);
+            int[] w = windowTotals(a, faces(measuredTables.get(i)), r);
+            assertThat(w).hasSize(24 * 24);
+            assertThat(dist(w)).as("seed %d measured, all windows, radius 4", a.seed()).isEqualTo(S1_WINDOWS_R4[i]);
+            if (a.seed() == 3) {
+                assertThat(p(w, 0.95)).as("seed 3 p95, 48 m").isLessThanOrEqualTo(GATE);
+            } else {
+                assertThat(p(w, 0.95)).as("seed %d p95, 48 m", a.seed()).isGreaterThan(GATE);
+            }
         }
     }
 
@@ -206,40 +262,30 @@ class OreOverlayBudgetTest {
 
     @Test
     void withTfcCavesAPlayerIsNeverSentMoreThanTheGate() {
-        OverlayGate gate = S1_FOUR_CHUNKS;
-        StringBuilder report = new StringBuilder("ore overlay budget, S1 combined estimate, 4-chunk radius, 20 samples:\n");
-        for (int i = 0; i < areas.size(); i++) {
-            BudgetFixture.Area a = areas.get(i);
-            int[] raw = new int[CensusReport.SAMPLES];
-            int[] sent = sentAtSamples(a, estimateTables.get(i), gate, GATE, raw);
-            for (int s = 0; s < sent.length; s++) {
-                assertThat(sent[s]).as("seed %d sample %d", a.seed(), s).isEqualTo(Math.min(raw[s], GATE));
+        StringBuilder report = new StringBuilder("ore overlay budget, TFC caves (PAR-WORLD-19), 20 samples:\n");
+        for (OverlayGate gate : new OverlayGate[] {DEFAULT_GATE, S1_FOUR_CHUNKS}) {
+            for (int i = 0; i < areas.size(); i++) {
+                BudgetFixture.Area a = areas.get(i);
+                for (boolean estimate : new boolean[] {false, true}) {
+                    int[] raw = new int[CensusReport.SAMPLES];
+                    int[] sent = sentAtSamples(a, (estimate ? estimateTables : measuredTables).get(i), gate, GATE, raw);
+                    for (int s = 0; s < sent.length; s++) {
+                        assertThat(sent[s]).as("seed %d sample %d", a.seed(), s).isEqualTo(Math.min(raw[s], GATE));
+                    }
+                    assertThat(Arrays.stream(sent).max().orElse(0)).as("seed %d entities per player", a.seed())
+                            .isLessThanOrEqualTo(GATE);
+                    if (gate == S1_FOUR_CHUNKS) {
+                        // the raw counts are the published 20-sample figures
+                        assertThat(dist(raw)).isEqualTo(estimate ? a.estimateGated() : a.measuredGated());
+                    }
+                    long capped = Arrays.stream(raw).filter(n -> n > GATE).count();
+                    report.append(String.format(Locale.ROOT,
+                            "radius %d, seed %d, %s: raw faces p50/p95/max %d/%d/%d, sent p95/max %d/%d, %d of 20 capped%n",
+                            gate.radiusChunks(), a.seed(), estimate ? "estimate" : "measured", p(raw, 0.5), p(raw, 0.95),
+                            Arrays.stream(raw).max().orElse(0), p(sent, 0.95), Arrays.stream(sent).max().orElse(0),
+                            capped));
+                }
             }
-            assertThat(Arrays.stream(sent).max().orElse(0)).as("seed %d entities per player", a.seed()).isLessThanOrEqualTo(GATE);
-            // the raw count is pinned at S1 (its p95 is above the gate on seed 1: why the default is 40 m, PAR-WORLD-62)
-            assertThat(dist(raw)).isEqualTo(a.estimateGated());
-            long capped = Arrays.stream(raw).filter(n -> n > GATE).count();
-            report.append(String.format(Locale.ROOT,
-                    "seed %d: raw faces p50/p95/max %d/%d/%d, sent p95/max %d/%d, %d of 20 samples capped%n", a.seed(),
-                    p(raw, 0.5), p(raw, 0.95), Arrays.stream(raw).max().orElse(0), p(sent, 0.95),
-                    Arrays.stream(sent).max().orElse(0), capped));
-        }
-        System.out.print(report);
-    }
-
-    @Test
-    void aThreeChunkRadiusKeepsTheEstimateWithinTheGate() {
-        // PAR-WORLD-62: the default 40 m is S1's "40 m" option, the 3-chunk square (49 chunks)
-        OverlayGate threeChunks = new OverlayGate(CUTOFF, true);
-        assertThat(threeChunks.radiusChunks()).isEqualTo(3);
-        StringBuilder report = new StringBuilder("ore overlay budget, S1 combined estimate, 3-chunk radius, 20 samples:\n");
-        for (int i = 0; i < areas.size(); i++) {
-            BudgetFixture.Area a = areas.get(i);
-            int[] raw = new int[CensusReport.SAMPLES];
-            sentAtSamples(a, estimateTables.get(i), threeChunks, GATE, raw);
-            assertThat(p(raw, 0.95)).as("seed %d p95, 3-chunk radius", a.seed()).isLessThanOrEqualTo(GATE);
-            report.append(String.format(Locale.ROOT, "seed %d: raw faces p50/p95/max %d/%d/%d%n", a.seed(), p(raw, 0.5),
-                    p(raw, 0.95), Arrays.stream(raw).max().orElse(0)));
         }
         System.out.print(report);
     }
