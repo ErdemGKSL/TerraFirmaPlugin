@@ -1,0 +1,23 @@
+# PAR-WORLD-21: scratch oracle (vanilla placements + TFC c3b4d9536 ClimatePlacement.isValid on Minecraft 1.21.11's XoroshiroRandomSource)
+# seed	block	fnv1a64	covers
+0	stick	1f0724e7e85b218d	258
+0	pinecone	a8b59044934dcab6	30
+0	salt_lick	202936a34596600a	0
+0	humus	cecad13259411591	63
+0	rotten_flesh	e86956f98c1321e5	0
+0	bone	e15d534fa1982949	10
+0	guano	dba51b12af2bfb84	1097
+42	stick	11c7b9f0c737356d	197
+42	pinecone	34c580bcf6141cc3	20
+42	salt_lick	9713dfdb04c05673	0
+42	humus	cecc5dcaceb30000	0
+42	rotten_flesh	e8813132efb1310e	10
+42	bone	5aae2c3243ce4da	0
+42	guano	8ee3922f13464826	1145
+-7	stick	9f0e794f7019fcee	192
+-7	pinecone	c8f56634fbf45b94	9
+-7	salt_lick	8b1328c0b92dba9f	0
+-7	humus	44c66961cf56419e	0
+-7	rotten_flesh	5e411cbb0114f801	0
+-7	bone	adc14ef73a928f90	10
+-7	guano	391d96160eee67de	1178

@@ -193,6 +193,21 @@ public final class VolcanicFeatures {
         new Springs("tfc:glacial_spring", 200, 110, 122, false, null, Spring.Config.GLACIAL),
         new Springs("tfc:ice_sheet_spring", 50, 64, 96, false, null, Spring.Config.ICE_SHEET)};
 
+    /**
+     * PAR-WORLD-21: {@code tfc:glacial_oceanic_spring}, a large feature of the glaciated (volcanic) oceanic mountains and the
+     * ice sheet oceanic mountain edge, listed before their volcanic families: {@code tfc:glacial_spring}'s configured spring
+     * 200 times at a uniform y of 80 to 92. Not a row of the configured-feature table (a placed id only), so it is kept out
+     * of {@link #rules()}.
+     */
+    static final Springs GLACIAL_OCEANIC_SPRING = new Springs("tfc:glacial_oceanic_spring", 200, 80, 92, false, null,
+        Spring.Config.GLACIAL);
+
+    /** Whether a biome's large features list {@code tfc:glacial_oceanic_spring}. */
+    static boolean hasGlacialOceanicSpring(int biome) {
+        return biome == TfcBiomes.GLACIATED_OCEANIC_MOUNTAINS || biome == TfcBiomes.ICE_SHEET_OCEANIC_MOUNTAINS_EDGE
+            || biome == TfcBiomes.GLACIATED_VOLCANIC_OCEANIC_MOUNTAINS;
+    }
+
     private static Lake lake(String id, Stratovolcanoes.Variant variant, boolean offset, float hashMin, float hashMax, Caldera.Config config) {
         return new Lake(id, Where.STRATOVOLCANO, Stratovolcanoes.Placement.center(variant, offset, hashMin, hashMax), config);
     }
@@ -227,6 +242,7 @@ public final class VolcanicFeatures {
         for (String id : placedIds()) {
             randoms.put(id, new FeatureRandom(levelSeed, id));
         }
+        randoms.put(GLACIAL_OCEANIC_SPRING.id(), new FeatureRandom(levelSeed, GLACIAL_OCEANIC_SPRING.id()));
     }
 
     /** The placed features that draw: each has its own random. */
@@ -340,6 +356,10 @@ public final class VolcanicFeatures {
     /** The large features of the biome at the chunk's centre, family by family in TFC's tag order. */
     void largeFeatures(VolcanoLevel level, int chunkX, int chunkZ) {
         final int biome = level.view().biome((chunkX << 4) + 8, (chunkZ << 4) + 8);
+        // PAR-WORLD-21: before the stratovolcanoes in the three biomes that list it (none of them has cinder cones or tuyas)
+        if (hasGlacialOceanicSpring(biome)) {
+            springs(level, GLACIAL_OCEANIC_SPRING, chunkX, chunkZ);
+        }
         if (CinderCones.hasCinderCones(biome)) {
             rivulets(level, VOLCANO_RIVULET, chunkX, chunkZ);
             volcanoes.placeCaldera(level, chunkX, chunkZ);
