@@ -2,7 +2,7 @@
 id: PAR-MECH-17
 title: "Water wheel and windmill as rotation network sources: source states in core/rotation, the WaterWheelNetwork and WindmillNetwork services"
 area: MECH
-status: open
+status: done
 wave: 53
 deps: [PAR-MECH-03, PAR-MECH-04, PAR-MECH-12]
 size: S
@@ -20,6 +20,7 @@ ui: false
 plan:
   - "Split from PAR-MECH-03 and PAR-MECH-04, which own only their own packages: `core/rotation/MechanicalBlock` knows the five PAR-MECH-01 blocks, so a water wheel or windmill cannot join a network yet. Their services sample every 40 ticks and call `dev.tfp.paper.waterwheel.WaterWheelNetwork.source(world, pos, axis, speed)` / `remove` and `dev.tfp.paper.windmill.WindmillNetwork` (same shape) when the speed changes; until a module provides these services they report to `NONE`."
   - "Add source states for both (a SourceNode on `ShaftAxis.faces()`, positive face, any float speed: `dev.tfp.core.power.Transmission.sourceNode`; the water wheel's speed may be negative) to `MechanicalBlock` (or a generic source state), let `RotationService` take them (`put` of a source state, then speed-only updates through `RotationNetworks.setSourceSpeed` so a speed change does not rebuild the network), and provide `WaterWheelNetwork` and `WindmillNetwork` from `RotationModule` (they enqueue on the world's actor). `/tfp debug rotation` names them (water_wheel, windmill). The windmill's axle replacement (`WindmillDevices.update` places the axle back when the last blade comes out; a blade on an axle places the windmill) must re-add the axle and remove the windmill node: check that CraftEngine's place fires the device placed/removed callbacks, else submit them here."
+  - "Done: MechanicalBlock WATER_WHEEL/WINDMILL source states (State.source, sourceSpeed), RotationWorld speed-only updates for any source; paper RotationSources provides WaterWheelNetwork and WindmillNetwork from RotationModule; CraftEngine's place fires the removed callback (DeviceController.onRemove) but no placement, so a windmill's removal re-adds the axle found there one tick later (PaperRotationWorld.reAddAfterSource); a rejected source breaks like TFC destroyIfInvalid (wheel drops itself, windmill its axle); /tfp debug rotation accepts a looked-at wheel or windmill. Tests: core RotationSourceTest (5), paper RotationSourcesMockBukkitTest (4); rotation/power/waterwheel/windmill suites pass. In-game spin check stays with PAR-MECH-18/PAR-MECH-19."
 tests:
   - "core: a water wheel source at -MAX_SPEED drives an axle line (rpm and hand), a windmill source at 2 pi / 80 drives a gearbox"
   - "paper: WaterWheelNetwork/WindmillNetwork provided by RotationModule move the network (MockBukkit), a speed change keeps the network id"
@@ -28,8 +29,6 @@ done_criteria:
 ---
 
 # PAR-MECH-17: Water wheel and windmill as rotation network sources
-
-> Claimed: session_011osUpAUVyyokAxf5Kiw72D, 2026-11-25
 
 > Created by PAR-MECH-03/PAR-MECH-04. Start after PAR-MECH-12 (which owns `paper/rotation/RotationService.java`, `RotationModule.java`) is done.
 

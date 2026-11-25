@@ -445,7 +445,7 @@ Totals: 385 items; open 207, done 168, blocked 9; waves 1..56 (wave 0 = already 
 | PAR-MECH-14 | Pump in game: a crankshaft powers a pump that moves water 10 pipes up (PAR-MECH-09 in-game check and crankshaft wiring) | MECH | 52 | open |
 | PAR-MECH-15 | Axle carriers from the hitbox allocation: TFC axle outline rows, demands, RotationBlocks reads the agreed carriers | MECH | 52 | done |
 | PAR-MECH-16 | Rotation in game: PAR-MECH-01 in-game steps and the rotation.stress itest on Paper and Folia | MECH | 53 | open |
-| PAR-MECH-17 | Water wheel and windmill as rotation network sources: source states in core/rotation, the WaterWheelNetwork and WindmillNetwork services | MECH | 53 | open |
+| PAR-MECH-17 | Water wheel and windmill as rotation network sources: source states in core/rotation, the WaterWheelNetwork and WindmillNetwork services | MECH | 53 | done |
 | PAR-MECH-18 | Water wheel and windmill in game: CE blocks, wheel and blade items, spinning models, in-game checks of PAR-MECH-03 and PAR-MECH-04 | MECH | 54 | open |
 | PAR-MECH-19 | Spinning shafts in game: axles turn at the right speed and hand on 1.21.11 and 26.x (PAR-MECH-12 in-game check) | MECH | 53 | open |
 | PAR-MECH-20 | Bladed axle as TFC: the axle with a steel blade, its network node and spinning blade, the trip hammer's drive | MECH | 53 | open |

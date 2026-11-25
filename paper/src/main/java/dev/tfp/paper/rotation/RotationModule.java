@@ -18,6 +18,8 @@ import dev.tfp.paper.rotation.spin.SpinShafts;
 import dev.tfp.paper.rotation.spin.SpinVisuals;
 import dev.tfp.paper.scheduler.Scheduler;
 import dev.tfp.paper.tags.Tags;
+import dev.tfp.paper.waterwheel.WaterWheelNetwork;
+import dev.tfp.paper.windmill.WindmillNetwork;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -27,7 +29,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 /**
- * PAR-MECH-01: the rotation network blocks (axles, encased axles, clutches, gearboxes, the creative motor). Registers their
+ * PAR-MECH-01: the rotation network blocks (axles, encased axles, clutches, gearboxes, the creative motor), and the water wheel
+ * and windmill sources (PAR-MECH-17: the {@link WaterWheelNetwork} and {@link WindmillNetwork} services). Registers their
  * device kinds, runs the per-world networks ({@link RotationService}), re-adds a chunk's blocks when it loads and removes them
  * when it unloads, and adds {@code /tfp debug rotation}: the speeds of the network of the block the player looks at. The axles
  * are drawn by the spinning shafts ({@link SpinVisuals}, PAR-MECH-12).
@@ -64,6 +67,10 @@ public final class RotationModule implements FeatureModule {
         world.bind(networks, deviceService);
         devices.kinds().forEach(deviceService::register);
         context.services().provide(RotationService.class, networks);
+        // PAR-MECH-17: the water wheels and windmills report their speed here (their modules look the services up lazily).
+        context.services().provide(WaterWheelNetwork.class, RotationSources.waterWheel(networks));
+        context.services().provide(WindmillNetwork.class, RotationSources.windmill(networks,
+            (w, p) -> world.reAddAfterSource(w, p, index, devices)));
         blocks.onChunkLoad(chunk -> world.chunkLoaded(chunk, index, devices));
         blocks.onChunkUnload(chunk -> world.chunkUnloaded(chunk, index));
         // PAR-MECH-12: the spinning shafts (packet-only displays fed by the network actors), before the re-add so it reports them.
@@ -105,9 +112,10 @@ public final class RotationModule implements FeatureModule {
     CompletableFuture<Reply> report(Player player) {
         Block target = player.getTargetBlockExact(REACH);
         Optional<BlockStateRef> state = target == null ? Optional.empty() : blocks.stateAt(target);
-        if (state.isEmpty() || RotationBlockStates.block(state.get().id()).isEmpty()) {
+        if (state.isEmpty() || PaperRotationWorld.dropOf(state.get()).isEmpty()) {
             return CompletableFuture.completedFuture(Reply.error("debug.rotation.none", REACH));
         }
+        // a water wheel or windmill (PAR-MECH-17) is reported by its own service, not refreshed from its state
         devices.submit(target, state.get(), world.step(target));
         BlockPos pos = RotationDevices.pos(target);
         return networks.report(target.getWorld().getUID(), pos).thenApply(r -> r.map(RotationModule::reply)

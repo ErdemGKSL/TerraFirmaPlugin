@@ -64,6 +64,8 @@ public final class RotationBlockStates {
                 case CLUTCH -> MechanicalBlock.State.clutch(axis(state), Boolean.parseBoolean(state.properties().get(POWERED)));
                 case GEAR_BOX -> MechanicalBlock.State.gearBox(faces(state));
                 case CREATIVE_MOTOR -> MechanicalBlock.State.motor(axis(state), step);
+                // PAR-MECH-17: the water wheel and windmill report through their own services (RotationSources).
+                case WATER_WHEEL, WINDMILL -> throw new IllegalArgumentException("not a state-parsed block");
             });
         } catch (IllegalArgumentException | NullPointerException e) {
             return Optional.empty();

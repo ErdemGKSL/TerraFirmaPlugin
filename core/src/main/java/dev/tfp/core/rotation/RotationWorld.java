@@ -33,9 +33,9 @@ public final class RotationWorld {
     private final Map<BlockPos, Boolean> invalid = new HashMap<>();
 
     /**
-     * Adds or changes the block at {@code pos}. An unchanged state does nothing. A motor whose only change is its step
-     * changes the live source speed (TFC's {@code setSpeed} each tick). A source that turns into another block, or the
-     * reverse, is removed first.
+     * Adds or changes the block at {@code pos}. An unchanged state does nothing. A source whose only change is its speed (the
+     * motor's step, the water wheel's or windmill's reported speed) changes the live source speed (TFC's {@code setSpeed}
+     * each tick) and keeps its network. A source that turns into another block, or the reverse, is removed first.
      *
      * @return the positions whose block must break (TFC: marked invalid, destroyed on the scheduled tick)
      */
@@ -50,11 +50,11 @@ public final class RotationWorld {
             return List.of();
         }
         List<BlockPos> broken = new ArrayList<>();
-        if (old != null && old.block() == MechanicalBlock.CREATIVE_MOTOR && state.block() == MechanicalBlock.CREATIVE_MOTOR
+        if (old != null && old.block().kind() == NodeKind.SOURCE && old.block() == state.block()
             && old.axis() == state.axis()) {
             states.put(pos, state);
             if (networks.networkOf(pos).isPresent()) {
-                networks.setSourceSpeed(pos, CreativeMotor.speed(state.step()));
+                networks.setSourceSpeed(pos, state.sourceSpeed());
             }
             return List.of();
         }

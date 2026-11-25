@@ -5,7 +5,9 @@
  *
  * Ported from TerraFirmaCraft (https://github.com/TerraFirmaCraft/TerraFirmaCraft),
  * file: src/main/java/net/dries007/tfc/common/blockentities/rotation/RotatingBlockEntity.java @ c3b4d9536
- *       (DELAY_FOR_INVALID_IN_NETWORK, destroyIfInvalid)
+ *       (DELAY_FOR_INVALID_IN_NETWORK, destroyIfInvalid),
+ *       src/main/java/net/dries007/tfc/common/blocks/rotation/WaterWheelBlock.java @ c3b4d9536 (tick: destroyIfInvalid),
+ *       src/main/java/net/dries007/tfc/common/blocks/rotation/WindmillBlock.java @ c3b4d9536 (tick: destroyIfInvalid)
  */
 package dev.tfp.paper.rotation;
 
@@ -18,6 +20,8 @@ import dev.tfp.paper.integration.CustomBlocks;
 import dev.tfp.paper.integration.CustomItems;
 import dev.tfp.paper.rotation.spin.SpinVisuals;
 import dev.tfp.paper.scheduler.Scheduler;
+import dev.tfp.paper.waterwheel.WaterWheelBlocks;
+import dev.tfp.paper.windmill.WindmillBlocks;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -106,23 +110,68 @@ public final class PaperRotationWorld implements RotationDevices.Ops, RotationSe
     /**
      * TFC {@code destroyIfInvalid}: {@code level.destroyBlock(pos, true)}, the break effect and the block's drops (its own
      * item; the creative motor has no loot table), then air. A block that is no longer a rotation block is left alone.
+     * PAR-MECH-17: a rejected water wheel drops itself and a rejected windmill its axle (TFC's loot tables); their device
+     * removal drops the windmill's blades and stops their samples.
      */
     void destroyIfInvalid(Block block) {
         Optional<BlockStateRef> state = blocks.stateAt(block);
-        if (state.isEmpty() || RotationBlockStates.block(state.get().id()).isEmpty()) {
+        Optional<Optional<String>> drop = state.flatMap(PaperRotationWorld::dropOf);
+        if (drop.isEmpty()) {
             return;
         }
-        String id = state.get().id();
         Location centre = block.getLocation().add(0.5, 0.5, 0.5);
         block.getWorld().playEffect(centre, Effect.STEP_SOUND, block.getBlockData());
-        if (!id.equals(RotationBlockStates.MOTOR)) {
-            items.create(id, 1).ifPresent(stack -> block.getWorld().dropItemNaturally(centre, stack));
-        }
+        drop.get().flatMap(id -> items.create(id, 1)).ifPresent(stack -> block.getWorld().dropItemNaturally(centre, stack));
         blocks.remove(block);
         RotationService n = networks;
         if (n != null) {
             n.remove(block.getWorld().getUID(), RotationDevices.pos(block));
         }
+    }
+
+    /**
+     * What a network-invalid block drops when it breaks: empty when it is no block of the network, else the item id (none for
+     * the creative motor).
+     */
+    static Optional<Optional<String>> dropOf(BlockStateRef state) {
+        String id = state.id();
+        if (RotationBlockStates.block(id).isPresent()) {
+            return Optional.of(id.equals(RotationBlockStates.MOTOR) ? Optional.empty() : Optional.of(id));
+        }
+        if (WaterWheelBlocks.isWheel(id)) {
+            return Optional.of(Optional.of(id));
+        }
+        if (WindmillBlocks.isWindmill(id)) {
+            return Optional.of(Optional.of(WindmillBlocks.axleOf(state).id()));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * PAR-MECH-17: after a windmill left the network, the block there may be its axle again ({@code WindmillDevices.update}
+     * puts the axle back when the last blade comes out, through {@code CustomBlocks.place}, which fires no device placement).
+     * One tick later, on the block's region thread, a rotation block found there is listed and added, as a placement would.
+     * Any thread (it only schedules).
+     */
+    public void reAddAfterSource(UUID worldId, BlockPos pos, RotationChunkIndex index, RotationDevices kinds) {
+        World world = worlds.apply(worldId);
+        if (world == null) {
+            return;
+        }
+        int cx = pos.x() >> 4;
+        int cz = pos.z() >> 4;
+        scheduler.regionDelayed(world, cx, cz, 1, () -> {
+            if (!world.isChunkLoaded(cx, cz)) {
+                return;
+            }
+            Block block = world.getBlockAt(pos.x(), pos.y(), pos.z());
+            Optional<BlockStateRef> state = blocks.stateAt(block);
+            if (state.isEmpty() || RotationBlockStates.block(state.get().id()).isEmpty()) {
+                return;
+            }
+            index.track(block);
+            kinds.submit(block, state.get(), step(block));
+        });
     }
 
     /** TFC {@code onLoad} ADD / ADD_SOURCE for every listed block of a loaded chunk. Region thread of the chunk. */
